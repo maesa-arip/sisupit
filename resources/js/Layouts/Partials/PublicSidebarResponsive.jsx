@@ -1,4 +1,5 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
+import NavLink from '@/Components/NavLink';
 import NavLinkResponsive from '@/Components/NavLinkResponsive';
 import { Button } from '@/Components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/Components/ui/sheet';
@@ -7,6 +8,7 @@ import {
 	IconAlertCircle,
 	IconBook,
 	IconBooks,
+	IconBuilding,
 	IconBuildingCommunity,
 	IconCategory,
 	IconChartDots2,
@@ -20,6 +22,7 @@ import {
 	IconLogout,
 	IconMoneybag,
 	IconRoute,
+	IconSettings,
 	IconSettingsExclamation,
 	IconStack3,
 	IconUser,
@@ -55,6 +58,25 @@ export default function PublicSidebarResponsive({ url }) {
 						active={url.startsWith('/dashboard')}
 						title="Dashboard"
 						icon={IconDashboard}
+					/>
+					<div className="px-3 py-2 text-sm font-semibold text-foreground">Sisupit</div>
+					<NavLink
+						url={route('front.companies.index')}
+						active={url.startsWith('/companies')}
+						title="Daftar Relawan"
+						icon={IconBuilding}
+					/>
+					<NavLink
+						url={route('front.settings.index')}
+						active={url.startsWith('/settings')}
+						title="Lihat Lokasi APAR"
+						icon={IconSettings}
+					/>
+					<NavLink
+						url={route('cashiers')}
+						active={url.startsWith('/cashiers2')}
+						title="Lihat Lokasi Kantor"
+						icon={IconCategory}
 					/>
 				</>
 

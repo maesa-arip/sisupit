@@ -3,11 +3,8 @@ import {
 	IconAlertCircle,
 	IconBook,
 	IconBooks,
-	IconBrandProducthunt,
-	IconBrandUnity,
 	IconBuilding,
 	IconBuildingCommunity,
-	IconCash,
 	IconCategory,
 	IconChartDots2,
 	IconCircleKey,
@@ -16,14 +13,12 @@ import {
 	IconDashboard,
 	IconKeyframe,
 	IconLayoutKanban,
-	IconLayoutNavbarExpand,
 	IconLogout,
 	IconMoneybag,
 	IconRoute,
 	IconSettings,
 	IconSettingsExclamation,
 	IconStack3,
-	IconTable,
 	IconUser,
 	IconUsersGroup,
 	IconVersions,
@@ -45,51 +40,20 @@ export default function Sidebar({ url, auth }) {
 					<NavLink
 						url={route('front.companies.index')}
 						active={url.startsWith('/companies')}
-						title="Perusahaan"
+						title="Daftar Relawan"
 						icon={IconBuilding}
 					/>
 					<NavLink
 						url={route('front.settings.index')}
 						active={url.startsWith('/settings')}
-						title="Pengaturan"
+						title="Lihat Lokasi APAR"
 						icon={IconSettings}
 					/>
 					<NavLink
 						url={route('cashiers')}
 						active={url.startsWith('/cashiers2')}
-						title="Kategori"
+						title="Lihat Lokasi Kantor"
 						icon={IconCategory}
-					/>
-					<NavLink
-						url={route('cashiers')}
-						active={url.startsWith('/cashiers2')}
-						title="Unit"
-						icon={IconBrandUnity}
-					/>
-					
-					<NavLink
-						url={route('cashiers')}
-						active={url.startsWith('/cashiers2')}
-						title="Area"
-						icon={IconLayoutNavbarExpand}
-					/>
-					<NavLink
-						url={route('cashiers')}
-						active={url.startsWith('/cashiers2')}
-						title="Meja"
-						icon={IconTable}
-					/>
-					<NavLink
-						url={route('front.products.index')}
-						active={url.startsWith('/products')}
-						title="Produk"
-						icon={IconBrandProducthunt}
-					/>
-					<NavLink
-						url={route('cashiers')}
-						active={url.startsWith('/cashiers')}
-						title="POS"
-						icon={IconCash}
 					/>
 				</>
 			)}
@@ -216,16 +180,30 @@ export default function Sidebar({ url, auth }) {
 						title="Buku"
 						icon={IconBook}
 					/>
-					<NavLink url={route('front.categories.index')}
-						active={url.startsWith('/categories')} title="Kategori" icon={IconCategory} />
-					<NavLink url={route('front.loans.index')} active={url.startsWith('/loans')} title="Peminjaman" icon={IconCreditCardPay} />
+					<NavLink
+						url={route('front.categories.index')}
+						active={url.startsWith('/categories')}
+						title="Kategori"
+						icon={IconCategory}
+					/>
+					<NavLink
+						url={route('front.loans.index')}
+						active={url.startsWith('/loans')}
+						title="Peminjaman"
+						icon={IconCreditCardPay}
+					/>
 					<NavLink
 						url={route('front.return-books.index')}
 						active={url.startsWith('/return-books')}
 						title="Pengembalian"
 						icon={IconCreditCardRefund}
 					/>
-					<NavLink url={route('front.fines.index')} active={url.startsWith('/fines')} title="Denda" icon={IconMoneybag} />
+					<NavLink
+						url={route('front.fines.index')}
+						active={url.startsWith('/fines')}
+						title="Denda"
+						icon={IconMoneybag}
+					/>
 				</>
 			)}
 

@@ -8,8 +8,8 @@ export default function ApplicationLogo({ url = '#', size = 'size-9', isTitle = 
 			<IconInnerShadowBottomRight className={cn('text-orange-500', size)} />
 			{isTitle && (
 				<div className="flex flex-col">
-					<span className="font-bold leading-none text-foreground">Kasirin</span>
-					<span className="text-xs font-medium text-muted-foreground">Semua Bisa Jualan</span>
+					<span className="font-bold leading-none text-foreground">Sisupit</span>
+					<span className="text-xs font-medium text-muted-foreground">Semua Bisa Jadi Pahlawan</span>
 				</div>
 			)}
 		</Link>

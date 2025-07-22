@@ -45,52 +45,22 @@ export default function PublicSidebar({ url }) {
 					<NavLink
 						url={route('front.companies.index')}
 						active={url.startsWith('/companies')}
-						title="Perusahaan"
+						title="Daftar Relawan"
 						icon={IconBuilding}
 					/>
 					<NavLink
 						url={route('front.settings.index')}
 						active={url.startsWith('/settings')}
-						title="Pengaturan"
+						title="Lihat Lokasi APAR"
 						icon={IconSettings}
 					/>
 					<NavLink
 						url={route('cashiers')}
 						active={url.startsWith('/cashiers2')}
-						title="Kategori"
+						title="Lihat Lokasi Kantor"
 						icon={IconCategory}
 					/>
-					<NavLink
-						url={route('cashiers')}
-						active={url.startsWith('/cashiers2')}
-						title="Unit"
-						icon={IconBrandUnity}
-					/>
 					
-					<NavLink
-						url={route('cashiers')}
-						active={url.startsWith('/cashiers2')}
-						title="Area"
-						icon={IconLayoutNavbarExpand}
-					/>
-					<NavLink
-						url={route('cashiers')}
-						active={url.startsWith('/cashiers2')}
-						title="Meja"
-						icon={IconTable}
-					/>
-					<NavLink
-						url={route('front.products.index')}
-						active={url.startsWith('/products')}
-						title="Produk"
-						icon={IconBrandProducthunt}
-					/>
-					<NavLink
-						url={route('cashiers')}
-						active={url.startsWith('/cashiers')}
-						title="POS"
-						icon={IconCash}
-					/>
 				</>
 			
 
