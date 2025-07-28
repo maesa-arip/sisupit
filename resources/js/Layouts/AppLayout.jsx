@@ -15,6 +15,7 @@ import Sidebar from './Partials/Sidebar';
 import SidebarResponsive from './Partials/SidebarResponsive';
 import Banner from '@/Components/Banner';
 import ThemeSwitcher from '@/Components/ThemeSwitcher';
+import WebPushSubscribe from '@/Components/WebPushSubscribe';
 export default function AppLayout({ title, children }) {
 	const { url } = usePage();
 	const announcemet = usePage().props.announcemet;
@@ -24,6 +25,7 @@ export default function AppLayout({ title, children }) {
 		<>
 			<Head title={title} />
 			<Toaster position="top-center" richColors />
+			<WebPushSubscribe/>
 			<div className="flex flex-row w-full min-h-screen">
 				
 				<div className="hidden w-1/5 border-r lg:block">

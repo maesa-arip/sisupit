@@ -46,13 +46,13 @@ export default function Sidebar({ url, auth }) {
 					<NavLink
 						url={route('front.settings.index')}
 						active={url.startsWith('/settings')}
-						title="Lihat Lokasi APAR"
+						title="Lihat Lokasi Pompa Supit"
 						icon={IconSettings}
 					/>
 					<NavLink
 						url={route('cashiers')}
 						active={url.startsWith('/cashiers2')}
-						title="Lihat Lokasi Kantor"
+						title="Lihat Lokasi Pos Damkar Terdekat"
 						icon={IconCategory}
 					/>
 				</>

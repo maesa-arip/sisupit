@@ -1,1 +1,0 @@
-import{r as e,S as a}from"./app-COKEQNPH.js";import{p as m}from"./lodash-C6TUr7nO.js";function l({route:t,values:r,only:o,wait:c=300}){const{debounce:n,pickBy:f,isEqual:i}=m,s=e.useRef(r),p=e.useCallback(n(u=>{a.get(t,f(u),{only:o,preserveScroll:!0,preserveState:!0})},c),[t,o,c]);return e.useEffect(()=>{i(s.current,r)||(s.current=r,p(r))},[r,p]),{values:r}}export{l as U};

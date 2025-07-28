@@ -16,6 +16,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReturnBookFrontController;
 use App\Http\Controllers\SettingController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 
 // Route::redirect('/', 'login');
 
@@ -27,6 +28,25 @@ Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProv
 Route::controller(HomeController::class)->group(function () {
     Route::get('/', 'index')->name('home.index');
     Route::get('/testnotif', 'testnotif')->name('home.testnotif');
+    Route::get('/kirim-notifikasi', 'kirimNotifikasi')->name('home.kirim-notifikasi');
+});
+
+Route::get('/webpush/public-key', function () {
+    return ['publicKey' => config('webpush.vapid.public_key')];
+});
+
+Route::post('/webpush/subscribe', function (Request $request) {
+    $request->user()->updatePushSubscription(
+        $request->input('endpoint'),
+        $request->input('keys.p256dh'),
+        $request->input('keys.auth')
+    );
+
+    return response()->json(['success' => true]);
+});
+
+Route::get('/openssl-test', function () {
+    return response()->json(openssl_get_curve_names());
 });
 
 Route::middleware(['auth', 'verified'])->controller(ReportController::class)->group(function () {
@@ -38,7 +58,7 @@ Route::middleware(['auth', 'verified'])->controller(ReportController::class)->gr
     Route::delete('reports/destroy/{report}', 'destroy')->name('front.reports.destroy');
 });
 
-Route::middleware(['auth', 'verified', 'dynamic.role_permission'])->controller(DashboardController::class)->group(function () {
+Route::middleware(['auth', 'verified'])->controller(DashboardController::class)->group(function () {
     Route::get('dashboard', 'index')->name('dashboard');
     Route::get('cashiers', 'cashier')->name('cashiers');
 });

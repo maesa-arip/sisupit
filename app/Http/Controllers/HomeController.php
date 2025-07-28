@@ -11,7 +11,9 @@ use App\Models\Loan;
 use App\Models\Report;
 use App\Models\ReturnBook;
 use App\Models\User;
+use App\Notifications\AlertNotification;
 use App\Notifications\NewReportNotification;
+use App\Notifications\WebPushNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Notification;
 use Inertia\Response;
@@ -119,5 +121,19 @@ class HomeController extends Controller
             'message' => 'Notifikasi berhasil dikirim'
         ]);
     }
+    public function kirimNotifikasi()
+{
+    // dump(config('webpush.vapid'));
+    // $user = User::find(1); // ganti sesuai ID user yang akan dikirimi
+    // $user->notify(new AlertNotification(
+    //     '🚨 Kejadian Baru!',
+    //     'Ada laporan kebakaran di daerah Anda',
+    //     url('/laporan/123')
+    // ));
+    $user = User::find(1); // contoh user
+$user->notify(new WebPushNotification());
+
+    return response()->json(['message' => 'Notifikasi dikirim']);
+}
 
 }

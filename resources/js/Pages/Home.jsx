@@ -40,7 +40,7 @@ export default function Home(props) {
 			</Button>
 
 
-				<div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+				{/* <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
 					<CardStat
 						data={{
 							title: 'Total Laporan',
@@ -81,9 +81,9 @@ export default function Home(props) {
 					>
 						<div className="text-2xl font bold">{props.page_data.total_returns}</div>
 					</CardStat>
-				</div>
-			<ChartCustom chartData={props.page_data.transactionChart} />
-			<div className="flex flex-col justify-between w-full gap-2 lg:flex-row">
+				</div> */}
+			{/* <ChartCustom chartData={props.page_data.transactionChart} /> */}
+			{/* <div className="flex flex-col justify-between w-full gap-2 lg:flex-row">
 				<Card className="w-full lg:w-1/2">
 					<CardHeader>
 						<div className="flex flex-col justify-between gap-y-4 lg:flex-row lg:items-center">
@@ -162,7 +162,7 @@ export default function Home(props) {
 						</Table>
 					</CardContent>
 				</Card>
-			</div>
+			</div> */}
 		</div>
 	);
 }
