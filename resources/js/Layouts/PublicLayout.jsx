@@ -17,11 +17,39 @@ import Banner from '@/Components/Banner';
 import ThemeSwitcher from '@/Components/ThemeSwitcher';
 import PublicSidebarResponsive from './Partials/PublicSidebarResponsive';
 import PublicSidebar from './Partials/PublicSidebar';
+import { useEffect } from 'react';
 export default function PublicLayout({ title, children }) {
 	const { url } = usePage();
 	const announcemet = usePage().props.announcemet;
 	// const auth = usePage().props.auth.user;
 	// console.log(auth)
+useEffect(() => {
+  let audio;
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.onmessage = (event) => {
+      if (event.data && event.data.type === 'PLAY_SOUND') {
+        if (!audio) {
+          audio = new Audio(event.data.soundUrl);
+          audio.loop = true;
+          audio.play().catch((error) => {
+            console.warn('Gagal memutar suara:', error);
+          });
+        }
+      }
+    };
+
+    // Hentikan audio saat notifikasi diklik (misalnya jika halaman / sudah terbuka)
+    window.addEventListener('focus', () => {
+      if (audio) {
+        audio.pause();
+        audio = null;
+      }
+    });
+  }
+}, []);
+
+
 	return (
 		<>
 			<Head title={title} />

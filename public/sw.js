@@ -9,19 +9,35 @@ self.addEventListener('push', function (event) {
         }
     };
 
-    event.waitUntil(
-        self.registration.showNotification(data.title, options)
-    );
+  event.waitUntil(
+    self.registration.showNotification(data.title, options).then(() => {
+      // Kirim pesan ke halaman agar bisa memutar suara
+      self.clients.matchAll({ includeUncontrolled: true, type: 'window' }).then(function(clients) {
+        for (const client of clients) {
+          client.postMessage({
+            type: 'PLAY_SOUND',
+            soundUrl: '/sounds/alert.mp3',
+          });
+        }
+      });
+    })
+  );
 });
 
-self.addEventListener('notificationclick', function (event) {
-    event.notification.close();
-
-    if (event.notification.data && event.notification.data.url) {
-        event.waitUntil(
-            clients.openWindow(event.notification.data.url)
-        );
-    }
+self.addEventListener('notificationclick', function(event) {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+      for (const client of clientList) {
+        if (client.url === '/' && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow('/');
+      }
+    })
+  );
 });
 self.addEventListener('install', event => {
   console.log('Service Worker: Installed');
