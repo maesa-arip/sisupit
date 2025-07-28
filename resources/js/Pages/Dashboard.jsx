@@ -1,6 +1,7 @@
 import CardStat from '@/Components/CardStat';
 import ChartCustom from '@/Components/ChartCustom';
 import HeaderTitle from '@/Components/HeaderTitle';
+import InstallPWAButton from '@/Components/InstallPWAButton';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
@@ -208,6 +209,9 @@ export default function Dashboard(props) {
 						</Table>
 					</CardContent>
 				</Card>
+				<div className="mt-6">
+        <InstallPWAButton />
+      </div>
 			</div>
 		</div>
 	);

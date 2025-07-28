@@ -23,3 +23,17 @@ self.addEventListener('notificationclick', function (event) {
         );
     }
 });
+self.addEventListener('install', event => {
+  console.log('Service Worker: Installed');
+});
+
+self.addEventListener('activate', event => {
+  console.log('Service Worker: Activated');
+  return self.clients.claim(); // optional
+});
+
+self.addEventListener('fetch', event => {
+  // Just pass through for now
+  // This will make "Fetch handler existence" become EXISTS
+  event.respondWith(fetch(event.request));
+});
