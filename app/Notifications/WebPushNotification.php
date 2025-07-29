@@ -45,7 +45,7 @@ class WebPushNotification extends Notification
             ->icon('/icon.png') // opsional
             ->body('Notifikasi Kejadian Baru, Silakan Lihat di Aplikasi Untuk Detail')
             ->action('Lihat', 'view_app')
-            ->data(['url' => 'https://sisupit.test']);
+            ->data(['url' => 'https://sisupit.com/dashboard']);
     }
     public function toMail(object $notifiable): MailMessage
     {

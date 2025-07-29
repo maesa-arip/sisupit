@@ -43,13 +43,7 @@ class DashboardController extends Controller
 
             $reports = Report::query()
             ->select(['id', 'name', 'phone', 'title', 'description','address','photo','created_at'])
-            ->when(auth()->user()->hasAnyRole(['petugas', 'relawan','member']), function ($query) {
-                return $query;
-            }, function ($query) {
-                return $query->where('user_id', auth()->user()->id);
-            })
             ->latest('created_at')
-            ->limit(5)
             ->with(['user'])
             ->get();
 
