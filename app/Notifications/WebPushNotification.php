@@ -12,13 +12,14 @@ use NotificationChannels\WebPush\WebPushMessage;
 class WebPushNotification extends Notification
 {
     use Queueable;
+    private $data;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct()
+    public function __construct($data)
     {
-        //
+        $this->data = $data;
     }
 
     /**
@@ -36,11 +37,15 @@ class WebPushNotification extends Notification
      */
     public function toWebPush($notifiable, $notification)
     {
+         $latitude = $this->data['location_lat'] ?? 0;
+        $longitude = $this->data['location_lng'] ?? 0;
+        $mapUrl = "https://www.google.com/maps/dir/?api=1&destination={$latitude},{$longitude}";
         return (new WebPushMessage)
-            ->title('Notifikasi Baru')
+            ->title('Laporan Kejadian Baru')
             ->icon('/icon.png') // opsional
-            ->body('Ini adalah isi notifikasinya Test')
-            ->action('Lihat', 'view_app');
+            ->body('Notifikasi Kejadian Baru, Silakan Lihat di Aplikasi Untuk Detail')
+            ->action('Lihat', 'view_app')
+            ->data(['url' => 'https://sisupit.test']);
     }
     public function toMail(object $notifiable): MailMessage
     {

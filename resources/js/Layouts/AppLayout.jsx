@@ -17,6 +17,7 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
 import Sidebar from './Partials/Sidebar';
 import SidebarResponsive from './Partials/SidebarResponsive';
+import SoundNotificationControl from '@/Components/SoundNotificationControl';
 export default function AppLayout({ title, children }) {
 	const { url } = usePage();
 	const announcemet = usePage().props.announcemet;
@@ -53,6 +54,7 @@ export default function AppLayout({ title, children }) {
 			<Head title={title} />
 			<Toaster position="top-center" richColors />
 			<WebPushSubscribe />
+			<SoundNotificationControl />
 			<div className="flex flex-row w-full min-h-screen">
 				<div className="hidden w-1/5 border-r lg:block">
 					<div className="flex flex-col h-full min-h-screen gap-2">
@@ -73,7 +75,7 @@ export default function AppLayout({ title, children }) {
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<Button variant="ghost" size="lg" className="flex gap-x-2">
-									<span>Hi, {auth.name}</span>
+									<span>{auth.name}</span>
 									<Avatar>
 										<AvatarImage src={auth.avatar} />
 										<AvatarFallback>{auth.name.substring(0, 1)}</AvatarFallback>

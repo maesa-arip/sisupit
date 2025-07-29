@@ -131,7 +131,7 @@ class HomeController extends Controller
     //     url('/laporan/123')
     // ));
     $user = User::find(1); // contoh user
-$user->notify(new WebPushNotification());
+    $user->notify(new WebPushNotification());
 
     return response()->json(['message' => 'Notifikasi dikirim']);
 }

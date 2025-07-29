@@ -27,7 +27,7 @@ import {
 export default function Sidebar({ url, auth }) {
 	return (
 		<nav className="grid items-start px-2 text-sm font-semibold lg:px-4">
-			{auth.role.some((role) => ['admin', 'operator', 'member'].includes(role)) && (
+			{auth.role.some((role) => ['petugas', 'relawan', 'member'].includes(role)) && (
 				<>
 					<div className="px-3 py-2 text-sm font-semibold text-foreground">Dashboard</div>
 					<NavLink
@@ -40,7 +40,7 @@ export default function Sidebar({ url, auth }) {
 					<NavLink
 						url={route('front.companies.index')}
 						active={url.startsWith('/companies')}
-						title="Daftar Relawan"
+						title="Daftar Sebagai Relawan"
 						icon={IconBuilding}
 					/>
 					<NavLink
@@ -58,7 +58,7 @@ export default function Sidebar({ url, auth }) {
 				</>
 			)}
 
-			{auth.role.some((role) => ['admin'].includes(role)) && (
+			{/* {auth.role.some((role) => ['admin'].includes(role)) && (
 				<>
 					<div className="px-3 py-2 text-sm font-semibold text-foreground">Statistik</div>
 					<NavLink
@@ -205,7 +205,7 @@ export default function Sidebar({ url, auth }) {
 						icon={IconMoneybag}
 					/>
 				</>
-			)}
+			)} */}
 
 			<div className="px-3 py-2 text-sm font-semibold text-foreground">Lainnya</div>
 			{auth.role.some((role) => ['admin', 'operator'].includes(role)) && (

@@ -1,27 +1,30 @@
-import CardStat from '@/Components/CardStat';
 import ChartCustom from '@/Components/ChartCustom';
 import HeaderTitle from '@/Components/HeaderTitle';
 import InstallPWAButton from '@/Components/InstallPWAButton';
+import ReportCard from '@/Components/ReportCard';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import AppLayout from '@/Layouts/AppLayout';
-import { formatToRupiah } from '@/lib/utils';
 import { Link } from '@inertiajs/react';
-import {
-	IconArrowUpRight,
-	IconBooks,
-	IconCreditCardPay,
-	IconCreditCardRefund,
-	IconDashboard,
-	IconMoneybag,
-	IconUsersGroup,
-} from '@tabler/icons-react';
-import { useState } from 'react';
+import { IconAlertTriangle, IconArrowUpRight, IconBellPlus, IconDashboard, IconReport } from '@tabler/icons-react';
 
 export default function Dashboard(props) {
 	// console.log(props)
 	const auth = props.auth.user;
+
+	const sampleReport = {
+		id: 1,
+		title: 'Kebakaran di Pasar Rakyat',
+		category: 'Kebakaran',
+		location: 'Jl. Gatot Subroto No.12',
+		timestamp: '29 Juli 2025, 16:20 WITA',
+		reporter: 'Budi Santoso',
+		description: 'Asap tebal terlihat dari salah satu kios. Api masih menyala.',
+		helpStatus: 'Belum ada relawan',
+	};
+	const handleHelpClick = (id) => {
+		console.log('Relawan akan bantu laporan ID:', id);
+		// Panggil API, modal, dsb.
+	};
 
 	return (
 		<div className="flex flex-col w-full pb-32 space-y-4">
@@ -32,14 +35,38 @@ export default function Dashboard(props) {
 					icon={IconDashboard}
 				></HeaderTitle>
 			</div>
-			<Button variant="red" size='xl' asChild>
-			<Link href={route('front.reports.create')}>
-				Laporkan Kejadian
-				<IconArrowUpRight className="size-4" />
-			</Link>
+			<Button variant="destructive" size="xl" asChild>
+				<Link href={route('front.reports.create')}>
+					Laporkan Kejadian
+					<IconBellPlus className="size-4" />
+				</Link>
 			</Button>
+<hr className="my-6" />
+			<div className="space-y-2">
+        <h2 className="text-xl font-semibold">Laporan Terbaru</h2>
+        <p className="text-sm text-muted-foreground">
+          Laporan kejadian yang membutuhkan bantuan
+        </p>
 
-			{auth.role.some((role) => ['admin', 'operator'].includes(role)) && (
+        {props.page_data.reports.length === 0 ? (
+          <p className="italic text-muted-foreground">
+            Belum ada laporan aktif saat ini.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {props.page_data.reports.map((report) => (
+              <ReportCard
+                key={report.id}
+                report={report}
+                onHelpClick={handleHelpClick}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <hr className="my-6" />
+			{/* {auth.role.some((role) => ['petugas', 'relawan'].includes(role)) && (
 				<div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
 					<CardStat
 						data={{
@@ -116,10 +143,10 @@ export default function Dashboard(props) {
 						<div className="text-2xl font bold">{formatToRupiah(props.page_data.total_fines)}</div>
 					</CardStat>
 				</div>
-			)}
-			<ChartCustom chartData={props.page_data.transactionChart} />
+			)} */}
+			{/* <ChartCustom chartData={props.page_data.transactionChart} /> */}
 			<div className="flex flex-col justify-between w-full gap-2 lg:flex-row">
-				<Card className="w-full lg:w-1/2">
+				{/* <Card className="w-full lg:w-1/2">
 					<CardHeader>
 						<div className="flex flex-col justify-between gap-y-4 lg:flex-row lg:items-center">
 							<div className="flex flex-col gap-y-2">
@@ -127,7 +154,7 @@ export default function Dashboard(props) {
 								<CardDescription>Anda dapat melihat 5 transaksi terakhir peminjaman</CardDescription>
 							</div>
 							<Button variant="orange" asChild>
-								{auth.role.some((role) => ['admin', 'operator'].includes(role)) ? (
+								{auth.role.some((role) => ['petugas', 'relawan'].includes(role)) ? (
 									<Link href={route('admin.loans.index')}>
 										Lihat Semua
 										<IconArrowUpRight className="size-4" />
@@ -163,8 +190,8 @@ export default function Dashboard(props) {
 							</TableBody>
 						</Table>
 					</CardContent>
-				</Card>
-				<Card className="w-full lg:w-1/2">
+				</Card> */}
+				{/* <Card className="w-full lg:w-1/2">
 					<CardHeader>
 						<div className="flex flex-col justify-between gap-y-4 lg:flex-row lg:items-center">
 							<div className="flex flex-col gap-y-2">
@@ -172,7 +199,7 @@ export default function Dashboard(props) {
 								<CardDescription>Anda dapat melihat 5 transaksi terakhir pengembalian</CardDescription>
 							</div>
 							<Button variant="orange" asChild>
-								{auth.role.some((role) => ['admin', 'operator'].includes(role)) ? (
+								{auth.role.some((role) => ['petugas', 'relawan'].includes(role)) ? (
 									<Link href={route('admin.return-books.index')}>
 										Lihat Semua
 										<IconArrowUpRight className="size-4" />
@@ -208,12 +235,11 @@ export default function Dashboard(props) {
 							</TableBody>
 						</Table>
 					</CardContent>
-				</Card>
-				
+				</Card> */}
 			</div>
 			<div className="mt-6">
-        <InstallPWAButton />
-      </div>
+				<InstallPWAButton />
+			</div>
 		</div>
 	);
 }

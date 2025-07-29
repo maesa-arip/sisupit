@@ -10,6 +10,7 @@ use App\Http\Requests\ReportRequest;
 use App\Models\Report;
 use App\Models\User;
 use App\Notifications\NewReportNotification;
+use App\Notifications\WebPushNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
 
@@ -73,8 +74,10 @@ class ReportController extends Controller
                 'photo' => $this->upload_file($request, 'photo', 'reports'),
             ]);
             flashMessage(MessageType::CREATED->message('Laporan'));
-            $user = User::role(['admin','operator'])->get();
-            Notification::send($user, new NewReportNotification($report));
+            $user = User::role(['petugas','relawan'])->get();
+            // $user->notify(new WebPushNotification());
+            Notification::send($user, new WebPushNotification($report));
+            // Notification::send($user, new NewReportNotification($report));
             return to_route('dashboard');
         } catch (Throwable $e) {
             flashMessage(MessageType::ERROR->message(error: $e->getMessage()), 'error');

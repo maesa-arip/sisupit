@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\Admin\TransactionLoanResource;
 use App\Http\Resources\Admin\TransactionReturnBookResource;
+use App\Http\Resources\ReportResource;
 use App\Models\Book;
 use App\Models\Fine;
 use App\Models\Loan;
@@ -40,6 +41,18 @@ class DashboardController extends Controller
             ->with(['user', 'book'])
             ->get();
 
+            $reports = Report::query()
+            ->select(['id', 'name', 'phone', 'title', 'description','address','photo','created_at'])
+            ->when(auth()->user()->hasAnyRole(['petugas', 'relawan','member']), function ($query) {
+                return $query;
+            }, function ($query) {
+                return $query->where('user_id', auth()->user()->id);
+            })
+            ->latest('created_at')
+            ->limit(5)
+            ->with(['user'])
+            ->get();
+
         return inertia('Dashboard', [
             'page_settings' => [
                 'title' => 'Dashboard',
@@ -49,6 +62,7 @@ class DashboardController extends Controller
                 'transactionChart' => $this->chart(),
                 'loans' => TransactionLoanResource::collection($loans),
                 'return_books' => TransactionReturnBookResource::collection($return_books),
+                'reports' => ReportResource::collection($reports),
                 'total_books' => auth()->user()->hasAnyRole(['admin', 'operator']) ? Book::count() : 0,
                 'total_users' => auth()->user()->hasAnyRole(['admin', 'operator']) ? User::count() : 0,
                 'total_loans' => Loan::query()
