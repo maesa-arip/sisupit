@@ -209,10 +209,11 @@ export default function Dashboard(props) {
 						</Table>
 					</CardContent>
 				</Card>
-				<div className="mt-6">
+				
+			</div>
+			<div className="mt-6">
         <InstallPWAButton />
       </div>
-			</div>
 		</div>
 	);
 }

@@ -1,4 +1,6 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
+import Banner from '@/Components/Banner';
+import ThemeSwitcher from '@/Components/ThemeSwitcher';
 import { Avatar, AvatarFallback, AvatarImage } from '@/Components/ui/avatar';
 import { Button } from '@/Components/ui/button';
 import {
@@ -10,52 +12,48 @@ import {
 	DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu';
 import { Toaster } from '@/Components/ui/sonner';
+import WebPushSubscribe from '@/Components/WebPushSubscribe';
 import { Head, Link, usePage } from '@inertiajs/react';
+import { useEffect } from 'react';
 import Sidebar from './Partials/Sidebar';
 import SidebarResponsive from './Partials/SidebarResponsive';
-import Banner from '@/Components/Banner';
-import ThemeSwitcher from '@/Components/ThemeSwitcher';
-import WebPushSubscribe from '@/Components/WebPushSubscribe';
-import { useEffect } from 'react';
 export default function AppLayout({ title, children }) {
 	const { url } = usePage();
 	const announcemet = usePage().props.announcemet;
 	const auth = usePage().props.auth.user;
 	// console.log(auth)
-useEffect(() => {
-  let audio;
+	useEffect(() => {
+		let audio;
 
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.onmessage = (event) => {
-      if (event.data && event.data.type === 'PLAY_SOUND') {
-        if (!audio) {
-          audio = new Audio(event.data.soundUrl);
-          audio.loop = true;
-          audio.play().catch((error) => {
-            console.warn('Gagal memutar suara:', error);
-          });
-        }
-      }
-    };
+		if ('serviceWorker' in navigator) {
+			navigator.serviceWorker.onmessage = (event) => {
+				if (event.data && event.data.type === 'PLAY_SOUND') {
+					if (!audio) {
+						audio = new Audio(event.data.soundUrl);
+						audio.loop = true;
+						audio.play().catch((error) => {
+							console.warn('Gagal memutar suara:', error);
+						});
+					}
+				}
+			};
 
-    // Hentikan audio saat notifikasi diklik (misalnya jika halaman / sudah terbuka)
-    window.addEventListener('focus', () => {
-      if (audio) {
-        audio.pause();
-        audio = null;
-      }
-    });
-  }
-}, []);
-
+			// Hentikan audio saat notifikasi diklik (misalnya jika halaman / sudah terbuka)
+			window.addEventListener('focus', () => {
+				if (audio) {
+					audio.pause();
+					audio = null;
+				}
+			});
+		}
+	}, []);
 
 	return (
 		<>
 			<Head title={title} />
 			<Toaster position="top-center" richColors />
-			<WebPushSubscribe/>
+			<WebPushSubscribe />
 			<div className="flex flex-row w-full min-h-screen">
-				
 				<div className="hidden w-1/5 border-r lg:block">
 					<div className="flex flex-col h-full min-h-screen gap-2">
 						<div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
@@ -71,10 +69,10 @@ useEffect(() => {
 						{/* sidebar responsive */}
 						<SidebarResponsive url={url} auth={auth} />
 						{/* dropdown */}
-						<ThemeSwitcher/>
+						<ThemeSwitcher />
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
-								<Button variant="ghost" size='lg' className="flex gap-x-2">
+								<Button variant="ghost" size="lg" className="flex gap-x-2">
 									<span>Hi, {auth.name}</span>
 									<Avatar>
 										<AvatarImage src={auth.avatar} />
@@ -106,11 +104,25 @@ useEffect(() => {
 									}}
 								/>
 							</div>
-							<div className="gap-4 p-4 lg:gap-6">{children} {announcemet && announcemet.is_active == 1 && (
-								<Banner message={announcemet.message} url={announcemet.url}/>
-							)}</div>
+							<div className="gap-4 p-4 lg:gap-6">
+								{children}{' '}
+								{announcemet && announcemet.is_active == 1 && (
+									<Banner message={announcemet.message} url={announcemet.url} />
+								)}
+							</div>
 						</div>
 					</main>
+					<footer>
+						<div className="grid grid-cols-2 gap-8 lg:grid-cols-6">
+							<div className="col-span-2 mb-8 lg:mb-0">
+								<div className="flex items-center gap-2 lg:justify-start"></div>
+							</div>
+						</div>
+						<div className="mt-24 flex-col border-t text-sm font-medium text-muted-foreground md:flex-row md:items-center flex h-12 items-center justify-between gap-4 border-b px-4 lg:h-[60px] lg:justify-start lg:px-6 align-middle py-3">
+							<p className='text-center'>Develop by PT. Tawarin Dimana Saja</p>
+							<ul className="flex gap-4"></ul>
+						</div>
+					</footer>
 				</div>
 			</div>
 		</>

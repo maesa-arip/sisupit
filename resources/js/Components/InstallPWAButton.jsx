@@ -27,7 +27,8 @@ export default function InstallPWAButton() {
 
   return (
     canInstall && (
-      <button onClick={handleInstall} className="px-4 py-2 text-white bg-blue-500 rounded">
+        
+      <button onClick={handleInstall} className="w-full inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-white bg-gradient-to-r from-orange-500 via-orange-500 to-orange-500 h-12 rounded-xl px-8">
         Install Aplikasi
       </button>
     )

@@ -39,6 +39,14 @@ self.addEventListener('notificationclick', function(event) {
     })
   );
 });
+self.clients.matchAll({ includeUncontrolled: true, type: 'window' }).then(function(clients) {
+  for (const client of clients) {
+    client.postMessage({
+      type: 'PLAY_SOUND',
+      soundUrl: '/sounds/alert.mp3',
+    });
+  }
+});
 self.addEventListener('install', event => {
   console.log('Service Worker: Installed');
 });

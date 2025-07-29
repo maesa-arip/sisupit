@@ -1,0 +1,6 @@
+import{c as a}from"./createReactComponent-kunTPrTC.js";import{r as n,j as l}from"./app-gtwfAYKC.js";/**
+ * @license @tabler/icons-react v3.30.0 - MIT
+ *
+ * This source code is licensed under the MIT license.
+ * See the LICENSE file in the root directory of this source tree.
+ */var u=a("outline","arrow-up-right","IconArrowUpRight",[["path",{d:"M17 7l-10 10",key:"svg-0"}],["path",{d:"M8 7l9 0l0 9",key:"svg-1"}]]);function d(){const[t,s]=n.useState(null),[o,r]=n.useState(!1);n.useEffect(()=>{window.addEventListener("beforeinstallprompt",e=>{e.preventDefault(),s(e),r(!0)})},[]);const i=async()=>{if(t){t.prompt();const{outcome:e}=await t.userChoice;console.log(e==="accepted"?"User accepted install":"User dismissed install"),s(null)}};return o&&l.jsx("button",{onClick:i,className:"w-full inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-white bg-gradient-to-r from-orange-500 via-orange-500 to-orange-500 h-12 rounded-xl px-8",children:"Install Aplikasi"})}export{u as I,d as a};

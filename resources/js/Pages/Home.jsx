@@ -1,24 +1,9 @@
-import CardStat from '@/Components/CardStat';
-import ChartCustom from '@/Components/ChartCustom';
 import HeaderTitle from '@/Components/HeaderTitle';
 import InstallPWAButton from '@/Components/InstallPWAButton';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
-import AppLayout from '@/Layouts/AppLayout';
 import PublicLayout from '@/Layouts/PublicLayout';
-import { formatToRupiah } from '@/lib/utils';
 import { Link } from '@inertiajs/react';
-import {
-	IconArrowUpRight,
-	IconBooks,
-	IconCreditCardPay,
-	IconCreditCardRefund,
-	IconDashboard,
-	IconMoneybag,
-	IconUsersGroup,
-} from '@tabler/icons-react';
-import { useState } from 'react';
+import { IconArrowUpRight, IconDashboard } from '@tabler/icons-react';
 
 export default function Home(props) {
 	// console.log(props)
@@ -33,15 +18,14 @@ export default function Home(props) {
 					icon={IconDashboard}
 				></HeaderTitle>
 			</div>
-			<Button variant="red" size='xl' asChild>
-			<Link href={route('front.reports.create')}>
-				Laporkan Kejadian
-				<IconArrowUpRight className="size-4" />
-			</Link>
+			<Button variant="red" size="xl" asChild>
+				<Link href={route('front.reports.create')}>
+					Laporkan Kejadian
+					<IconArrowUpRight className="size-4" />
+				</Link>
 			</Button>
 
-
-				{/* <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+			{/* <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
 					<CardStat
 						data={{
 							title: 'Total Laporan',
@@ -164,9 +148,9 @@ export default function Home(props) {
 					</CardContent>
 				</Card>
 			</div> */}
-			<div className="mt-6">
-        <InstallPWAButton />
-      </div>
+			<div className="w-full mt-6">
+				<InstallPWAButton />
+			</div>
 		</div>
 	);
 }
