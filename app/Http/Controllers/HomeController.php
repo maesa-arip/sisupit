@@ -47,8 +47,8 @@ class HomeController extends Controller
 
         return inertia('Home', [
             'page_settings' => [
-                'title' => 'Home',
-                'subtitle' => 'Menampilkan semua statistik yang ada pada platform ini',
+                'title' => 'SiSUPIT DAMKAR',
+                'subtitle' => 'SISTEM INFORMASI KESIAPSIAGAAN UNTUK PEMADAM KEBAKARAN TERINTEGRASI',
             ],
             'page_data' => [
                 'transactionChart' => $this->chart(),

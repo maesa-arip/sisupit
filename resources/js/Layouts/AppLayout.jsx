@@ -1,5 +1,6 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import Banner from '@/Components/Banner';
+import SoundNotificationControl from '@/Components/SoundNotificationControl';
 import ThemeSwitcher from '@/Components/ThemeSwitcher';
 import { Avatar, AvatarFallback, AvatarImage } from '@/Components/ui/avatar';
 import { Button } from '@/Components/ui/button';
@@ -17,11 +18,10 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
 import Sidebar from './Partials/Sidebar';
 import SidebarResponsive from './Partials/SidebarResponsive';
-import SoundNotificationControl from '@/Components/SoundNotificationControl';
 export default function AppLayout({ title, children }) {
 	const { url } = usePage();
 	const announcemet = usePage().props.announcemet;
-	const auth = usePage().props.auth.user;
+	const auth = usePage().props.auth?.user ?? null;
 	// console.log(auth)
 	useEffect(() => {
 		let audio;
@@ -75,20 +75,29 @@ export default function AppLayout({ title, children }) {
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<Button variant="ghost" size="lg" className="flex gap-x-2">
-									<span>{auth.name}</span>
+									<span className='truncate max-w-24'>{auth?.name}</span>
 									<Avatar>
-										<AvatarImage src={auth.avatar} />
-										<AvatarFallback>{auth.name.substring(0, 1)}</AvatarFallback>
+										<AvatarImage src={auth?.avatar} />
+										<AvatarFallback>{auth?.name.substring(0, 1)}</AvatarFallback>
 									</Avatar>
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align="end">
 								<DropdownMenuLabel>Akun Saya</DropdownMenuLabel>
 								<DropdownMenuSeparator />
-								<DropdownMenuItem>Profile</DropdownMenuItem>
+								{auth?.name ? <><DropdownMenuItem><Link href={route('profile.edit')}>Profile</Link></DropdownMenuItem>
 								<DropdownMenuItem asChild>
-									<Link href="#">Logout</Link>
-								</DropdownMenuItem>
+									<Link
+										url={route('logout')}
+										title="Logout"
+										method="post"
+										className="w-full"
+										as="button"
+									>
+										Logout
+									</Link>
+								</DropdownMenuItem></> : <><DropdownMenuItem> <Link href={route('login')}>Masuk</Link> </DropdownMenuItem><DropdownMenuItem><Link href={route('register')}>Daftar</Link></DropdownMenuItem></>}
+								
 							</DropdownMenuContent>
 						</DropdownMenu>
 					</header>
@@ -120,8 +129,8 @@ export default function AppLayout({ title, children }) {
 								<div className="flex items-center gap-2 lg:justify-start"></div>
 							</div>
 						</div>
-						<div className="mt-24 flex-col border-t text-sm font-medium text-muted-foreground md:flex-row md:items-center flex h-12 items-center justify-between gap-4 border-b px-4 lg:h-[60px] lg:justify-start lg:px-6 align-middle py-3">
-							<p className='text-center'>Develop by PT. Tawarin Dimana Saja</p>
+						<div className="mt-24 flex h-12 flex-col items-center justify-between gap-4 border-b border-t px-4 py-3 align-middle text-sm font-medium text-muted-foreground md:flex-row md:items-center lg:h-[60px] lg:justify-start lg:px-6">
+							<p className="text-center">Develop by PT. Tawarin Dimana Saja</p>
 							<ul className="flex gap-4"></ul>
 						</div>
 					</footer>

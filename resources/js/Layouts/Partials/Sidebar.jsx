@@ -8,13 +8,18 @@ import {
 	IconCategory,
 	IconChartDots2,
 	IconCircleKey,
+	IconClipboardPlus,
 	IconCreditCardPay,
 	IconCreditCardRefund,
 	IconDashboard,
+	IconFilePlus,
 	IconKeyframe,
 	IconLayoutKanban,
+	IconLogin,
+	IconLogin2,
 	IconLogout,
 	IconMoneybag,
+	IconRegistered,
 	IconRoute,
 	IconSettings,
 	IconSettingsExclamation,
@@ -27,7 +32,7 @@ import {
 export default function Sidebar({ url, auth }) {
 	return (
 		<nav className="grid items-start px-2 text-sm font-semibold lg:px-4">
-			{auth.role.some((role) => ['petugas', 'relawan', 'member'].includes(role)) && (
+			{/* {auth?.role.some((role) => ['petugas', 'relawan', 'member'].includes(role)) && ( */}
 				<>
 					<div className="px-3 py-2 text-sm font-semibold text-foreground">Dashboard</div>
 					<NavLink
@@ -56,7 +61,7 @@ export default function Sidebar({ url, auth }) {
 						icon={IconCategory}
 					/>
 				</>
-			)}
+			{/* )} */}
 
 			{/* {auth.role.some((role) => ['admin'].includes(role)) && (
 				<>
@@ -208,7 +213,7 @@ export default function Sidebar({ url, auth }) {
 			)} */}
 
 			<div className="px-3 py-2 text-sm font-semibold text-foreground">Lainnya</div>
-			{auth.role.some((role) => ['admin', 'operator'].includes(role)) && (
+			{auth?.role.some((role) => ['admin', 'operator'].includes(role)) && (
 				<NavLink
 					url={route('admin.announcements.index')}
 					active={url.startsWith('/admin/announcements')}
@@ -216,6 +221,7 @@ export default function Sidebar({ url, auth }) {
 					icon={IconAlertCircle}
 				/>
 			)}
+			{auth?.name ? <>
 			<NavLink url={route('profile.edit')} active={url.startsWith('/profile')} title="Profile" icon={IconUser} />
 			<NavLink
 				url={route('logout')}
@@ -224,7 +230,11 @@ export default function Sidebar({ url, auth }) {
 				method="post"
 				as="button"
 				className="w-full"
-			/>
+			/></> : <>
+			<NavLink url={route('login')} title="Masuk" icon={IconLogin2} />
+			<NavLink url={route('register')} title="Daftar" icon={IconClipboardPlus} />
+			</>}
+			
 		</nav>
 	);
 }

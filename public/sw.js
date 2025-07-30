@@ -5,8 +5,8 @@ self.addEventListener('push', function (event) {
         body: data.body,
         icon: '/icon.png',
         data: {
-            url: data.url // agar bisa redirect saat klik notifikasi
-        }
+        url: data.url || '/dashboard' // <- Ambil dari payload
+    }
     };
 
   event.waitUntil(
@@ -26,15 +26,16 @@ self.addEventListener('push', function (event) {
 
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
+  const redirectUrl = event.notification.data?.url || '/dashboard';
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
       for (const client of clientList) {
-        if (client.url === '/' && 'focus' in client) {
+        if (client.url.includes(redirectUrl) && 'focus' in client) {
           return client.focus();
         }
       }
       if (clients.openWindow) {
-        return clients.openWindow('/');
+        return clients.openWindow(redirectUrl + '?refresh=1');
       }
     })
   );

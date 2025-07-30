@@ -5,7 +5,8 @@ import ReportCard from '@/Components/ReportCard';
 import { Button } from '@/Components/ui/button';
 import AppLayout from '@/Layouts/AppLayout';
 import { Link } from '@inertiajs/react';
-import { IconAlertTriangle, IconArrowUpRight, IconBellPlus, IconDashboard, IconReport } from '@tabler/icons-react';
+import { IconAlertTriangle, IconArrowUpRight, IconBell, IconBellPlus, IconDashboard, IconReport } from '@tabler/icons-react';
+import { useEffect } from 'react';
 
 export default function Dashboard(props) {
 	// console.log(props)
@@ -25,6 +26,13 @@ export default function Dashboard(props) {
 		console.log('Relawan akan bantu laporan ID:', id);
 		// Panggil API, modal, dsb.
 	};
+	useEffect(() => {
+		const params = new URLSearchParams(window.location.search);
+		if (params.get('refresh') === '1') {
+			router.reload({ only: ['page_data.reports'] });
+			window.history.replaceState({}, document.title, window.location.pathname);
+		}
+	}, []);
 
 	return (
 		<div className="flex flex-col w-full pb-32 space-y-4">
@@ -35,10 +43,25 @@ export default function Dashboard(props) {
 					icon={IconDashboard}
 				></HeaderTitle>
 			</div>
-			<Button variant="destructive" size="xl" asChild>
+			<Button
+				variant="red"
+				className="relative flex items-center justify-center w-56 h-56 mx-auto overflow-hidden text-lg font-extrabold text-white transition-transform duration-300 rounded-full shadow-2xl animate-pulse bg-gradient-to-br from-red-500 to-red-700 ring-4 ring-red-400/40 hover:scale-105"
+				asChild
+			>
 				<Link href={route('front.reports.create')}>
-					Laporkan Kejadian
-					<IconBellPlus className="size-4" />
+					{/* Icon besar transparan sebagai background */}
+					<IconBell
+						className="absolute text-white/30"
+						style={{
+							width: '200px',
+							height: '200px',
+						}}
+					/>
+
+					{/* Teks di atas icon */}
+					<span className="relative z-10 leading-tight tracking-wide text-center uppercase">
+						Laporkan <br /> Kejadian
+					</span>
 				</Link>
 			</Button>
 <hr className="my-6" />

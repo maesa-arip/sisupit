@@ -42,15 +42,15 @@ class DashboardController extends Controller
             ->get();
 
             $reports = Report::query()
-            ->select(['id', 'name', 'phone', 'title', 'description','address','photo','created_at'])
+            ->select(['id', 'name', 'phone', 'title', 'description','address','location_lat','location_lng','photo','created_at'])
             ->latest('created_at')
             ->with(['user'])
             ->get();
 
         return inertia('Dashboard', [
             'page_settings' => [
-                'title' => 'Dashboard',
-                'subtitle' => 'Menampilkan semua statistik yang ada pada platform ini',
+                'title' => 'SiSUPIT DAMKAR',
+                'subtitle' => 'SISTEM INFORMASI KESIAPSIAGAAN UNTUK PEMADAM KEBAKARAN TERINTEGRASI',
             ],
             'page_data' => [
                 'transactionChart' => $this->chart(),
