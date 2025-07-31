@@ -12,6 +12,7 @@ import {
 	DialogTrigger,
 } from '@/Components/ui/dialog';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/Components/ui/sheet';
+import { flashMessage } from '@/lib/utils';
 import { router } from '@inertiajs/react';
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
 import {
@@ -23,7 +24,9 @@ import {
 	IconSettings,
 	IconUser,
 } from '@tabler/icons-react';
+import { useState } from 'react';
 export default function SidebarResponsive({ url, auth }) {
+	const [open, setOpen] = useState(false);
 	return (
 		<Sheet>
 			<SheetTrigger asChild>
@@ -60,35 +63,55 @@ export default function SidebarResponsive({ url, auth }) {
 						title="Daftar Sebagai Relawan"
 						icon={IconBuilding}
 					/> */}
-						<Dialog>
-							<DialogTrigger asChild>
-								<Button variant="ghost" className="justify-start w-full gap-2 text-left">
-									<IconBuilding className="w-4 h-4" />
-									Daftar Sebagai Relawan
-								</Button>
-							</DialogTrigger>
-							<DialogContent className="max-w-md">
-								<DialogHeader>
-									<DialogTitle>Konfirmasi Pendaftaran Relawan</DialogTitle>
-									<DialogDescription>
-										Dengan mendaftar sebagai relawan, Anda akan dapat membantu menanggapi laporan
-										kejadian yang masuk. Pastikan informasi profil Anda sudah lengkap sebelum
-										melanjutkan.
-									</DialogDescription>
-								</DialogHeader>
-								<DialogFooter className="gap-2 sm:justify-end">
-									<Button
-										variant="outline"
-									onClick={() => router.put(route('admin.relawan.update',auth))}
-									>
-										Ya, Daftarkan Saya
-									</Button>
-									<DialogTrigger asChild>
-										<Button variant="ghost">Batal</Button>
-									</DialogTrigger>
-								</DialogFooter>
-							</DialogContent>
-						</Dialog>
+						<Dialog open={open} onOpenChange={setOpen}>
+											<DialogTrigger asChild>
+												<Button
+													onClick={() => setOpen(true)}
+													variant="ghost"
+													className="justify-start w-full gap-2 text-left"
+												>
+													<IconBuilding className="w-4 h-4" />
+													Daftar Sebagai Relawan
+												</Button>
+											</DialogTrigger>
+											<DialogContent className="max-w-md">
+												<DialogHeader>
+													<DialogTitle>Konfirmasi Pendaftaran Relawan</DialogTitle>
+													<DialogDescription>
+														Dengan mendaftar sebagai relawan, Anda akan dapat membantu menanggapi laporan kejadian
+														yang masuk. Pastikan informasi profil Anda sudah lengkap sebelum melanjutkan.
+													</DialogDescription>
+												</DialogHeader>
+												<DialogFooter className="gap-2 sm:justify-end">
+													<Button
+														variant="outline"
+														onClick={() =>
+															router.put(
+																route('admin.relawan.update', { user: auth.id }),
+																{},
+																{
+																	onSuccess: () => {
+																		setOpen(false); // Tutup dialog
+																		const flash = flashMessage(success);
+																		if (flash) toast[flash.type](flash.message);
+																		// Tidak perlu router.visit, biarkan backend redirect agar flash muncul
+																	},
+																	onError: () => {
+																		// Optionally tangani error jika mau
+																		// toast.error("Pendaftaran gagal.");
+																	},
+																},
+															)
+														}
+													>
+														Ya, Daftarkan Saya
+													</Button>
+													<DialogTrigger asChild>
+														<Button variant="ghost">Batal</Button>
+													</DialogTrigger>
+												</DialogFooter>
+											</DialogContent>
+										</Dialog>
 						<Dialog>
 					<DialogTrigger asChild>
 						<Button variant="ghost" className="justify-start w-full gap-2 text-left">

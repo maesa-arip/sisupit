@@ -64,7 +64,6 @@ export default function Sidebar({ url, auth }) {
 						<DialogFooter className="gap-2 sm:justify-end">
 							<Button
 								variant="outline"
-								
 								onClick={() =>
 									router.put(
 										route('admin.relawan.update', { user: auth.id }),
@@ -73,7 +72,7 @@ export default function Sidebar({ url, auth }) {
 											onSuccess: () => {
 												setOpen(false); // Tutup dialog
 												const flash = flashMessage(success);
-																		if (flash) toast[flash.type](flash.message);
+												if (flash) toast[flash.type](flash.message);
 												// Tidak perlu router.visit, biarkan backend redirect agar flash muncul
 											},
 											onError: () => {

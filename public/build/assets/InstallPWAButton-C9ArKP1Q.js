@@ -1,0 +1,6 @@
+import{c as i}from"./createReactComponent-CFfoC1GO.js";import{r as n,j as r}from"./app-ocVkIojg.js";/**
+ * @license @tabler/icons-react v3.30.0 - MIT
+ *
+ * This source code is licensed under the MIT license.
+ * See the LICENSE file in the root directory of this source tree.
+ */var u=i("outline","bell","IconBell",[["path",{d:"M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6",key:"svg-0"}],["path",{d:"M9 17v1a3 3 0 0 0 6 0v-1",key:"svg-1"}]]);function d(){const[t,s]=n.useState(null),[o,a]=n.useState(!1);n.useEffect(()=>{window.addEventListener("beforeinstallprompt",e=>{e.preventDefault(),s(e),a(!0)})},[]);const l=async()=>{if(t){t.prompt();const{outcome:e}=await t.userChoice;console.log(e==="accepted"?"User accepted install":"User dismissed install"),s(null)}};return o&&r.jsx("button",{onClick:l,className:"w-full inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-white bg-gradient-to-r from-orange-500 via-orange-500 to-orange-500 h-12 rounded-xl px-8",children:"Install Aplikasi"})}export{u as I,d as a};
