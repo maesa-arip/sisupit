@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\BookFrontController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReportHelperController;
 use App\Http\Controllers\ReturnBookFrontController;
 use App\Http\Controllers\SettingController;
 use Illuminate\Support\Facades\Route;
@@ -56,6 +58,20 @@ Route::middleware(['auth', 'verified'])->controller(ReportController::class)->gr
     Route::get('reports/edit/{report}', 'edit')->name('front.reports.edit');
     Route::put('reports/edit/{report}', 'update')->name('front.reports.update');
     Route::delete('reports/destroy/{report}', 'destroy')->name('front.reports.destroy');
+});
+
+Route::middleware(['auth', 'verified'])->controller(UserController::class)->group(function () {
+    Route::put('users/relawan/{user}', 'store_relawan')->name('admin.relawan.update');
+    Route::put('users/detail/{user}', 'store_detail_user')->name('admin.detail.update');
+});
+
+Route::middleware(['auth', 'verified'])->controller(ReportHelperController::class)->group(function () {
+    Route::get('helpers', 'index')->name('front.helpers.index');
+    Route::get('helpers/create', 'create')->name('front.helpers.create');
+    Route::post('helpers/create', 'store')->name('front.helpers.store');
+    Route::get('helpers/edit/{helper}', 'edit')->name('front.helpers.edit');
+    Route::put('helpers/edit/{helper}', 'update')->name('front.helpers.update');
+    Route::delete('helpers/destroy/{helper}', 'destroy')->name('front.helpers.destroy');
 });
 
 Route::middleware(['auth', 'verified'])->controller(DashboardController::class)->group(function () {
@@ -125,7 +141,7 @@ Route::controller(PaymentController::class)->group(function () {
     Route::get('payments/success', 'success')->name('payments.success');
 });
 
-Route::middleware(['auth', 'dynamic.role_permission'])->controller(ProfileController::class)->group(function () {
+Route::middleware(['auth'])->controller(ProfileController::class)->group(function () {
     Route::get('profile', 'edit')->name('profile.edit');
     Route::patch('profile', 'update')->name('profile.update');
     Route::delete('profile', 'destroy')->name('profile.destroy');

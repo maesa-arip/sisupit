@@ -41,11 +41,14 @@ class DashboardController extends Controller
             ->with(['user', 'book'])
             ->get();
 
-            $reports = Report::query()
-            ->select(['id', 'name', 'phone', 'title', 'description','address','location_lat','location_lng','photo','created_at'])
+        $reports = Report::query()->withCount('helpers')->with(['helpers' => function ($q) {
+            $q->where('user_id', auth()->id());
+        }])
+            ->select(['id', 'user_id', 'name', 'phone', 'title', 'description', 'address', 'location_lat', 'location_lng', 'photo', 'created_at'])
             ->latest('created_at')
-            ->with(['user'])
+            ->with(['user','helpers.user'])
             ->get();
+
 
         return inertia('Dashboard', [
             'page_settings' => [

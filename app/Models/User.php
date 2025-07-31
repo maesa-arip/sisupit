@@ -33,6 +33,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'date_of_birth',
         'gender',
         'phone',
+        'ktp',
         'address',
         'email_verified_at',
     ];
@@ -56,6 +57,10 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(SocialAccount::class);
     }
 
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class);
+    }
     public function scopeFilter(Builder $query, array $filters): void
     {
         $query->when($filters['search'] ?? null, function ($query, $search) {

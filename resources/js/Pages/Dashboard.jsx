@@ -1,38 +1,30 @@
-import ChartCustom from '@/Components/ChartCustom';
 import HeaderTitle from '@/Components/HeaderTitle';
+import IncompleteProfileDialog from '@/Components/IncompleteProfileDialog';
 import InstallPWAButton from '@/Components/InstallPWAButton';
 import ReportCard from '@/Components/ReportCard';
 import { Button } from '@/Components/ui/button';
 import AppLayout from '@/Layouts/AppLayout';
-import { Link } from '@inertiajs/react';
-import { IconAlertTriangle, IconArrowUpRight, IconBell, IconBellPlus, IconDashboard, IconReport } from '@tabler/icons-react';
-import { useEffect } from 'react';
+import { Link, router } from '@inertiajs/react';
+import { IconBell, IconDashboard } from '@tabler/icons-react';
+import { useEffect, useState } from 'react';
 
 export default function Dashboard(props) {
-	// console.log(props)
-	const auth = props.auth.user;
+const auth = props.auth.user;
+const [showIncompleteDialog, setShowIncompleteDialog] = useState(false);
 
-	const sampleReport = {
-		id: 1,
-		title: 'Kebakaran di Pasar Rakyat',
-		category: 'Kebakaran',
-		location: 'Jl. Gatot Subroto No.12',
-		timestamp: '29 Juli 2025, 16:20 WITA',
-		reporter: 'Budi Santoso',
-		description: 'Asap tebal terlihat dari salah satu kios. Api masih menyala.',
-		helpStatus: 'Belum ada relawan',
+	useEffect(() => {
+		if (!auth.phone) {
+			setShowIncompleteDialog(true);
+		}
+	}, [auth]);
+	const handleConfirm = () => {
+		router.visit(route('profile.edit'));
 	};
 	const handleHelpClick = (id) => {
 		console.log('Relawan akan bantu laporan ID:', id);
 		// Panggil API, modal, dsb.
 	};
-	useEffect(() => {
-		const params = new URLSearchParams(window.location.search);
-		if (params.get('refresh') === '1') {
-			router.reload({ only: ['page_data.reports'] });
-			window.history.replaceState({}, document.title, window.location.pathname);
-		}
-	}, []);
+	// console.log(props.page_data.reports)
 
 	return (
 		<div className="flex flex-col w-full pb-32 space-y-4">
@@ -43,6 +35,7 @@ export default function Dashboard(props) {
 					icon={IconDashboard}
 				></HeaderTitle>
 			</div>
+			<IncompleteProfileDialog open={showIncompleteDialog} onConfirm={handleConfirm} />
 			<Button
 				variant="red"
 				className="relative flex items-center justify-center w-56 h-56 mx-auto overflow-hidden text-lg font-extrabold text-white transition-transform duration-300 rounded-full shadow-2xl animate-pulse bg-gradient-to-br from-red-500 to-red-700 ring-4 ring-red-400/40 hover:scale-105"
@@ -64,31 +57,23 @@ export default function Dashboard(props) {
 					</span>
 				</Link>
 			</Button>
-<hr className="my-6" />
+			<hr className="my-6" />
 			<div className="space-y-2">
-        <h2 className="text-xl font-semibold">Laporan Terbaru</h2>
-        <p className="text-sm text-muted-foreground">
-          Laporan kejadian yang membutuhkan bantuan
-        </p>
+				<h2 className="text-xl font-semibold">Laporan Terbaru</h2>
+				<p className="text-sm text-muted-foreground">Laporan kejadian yang membutuhkan bantuan</p>
 
-        {props.page_data.reports.length === 0 ? (
-          <p className="italic text-muted-foreground">
-            Belum ada laporan aktif saat ini.
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {props.page_data.reports.map((report) => (
-              <ReportCard
-                key={report.id}
-                report={report}
-                onHelpClick={handleHelpClick}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+				{props.page_data.reports.length === 0 ? (
+					<p className="italic text-muted-foreground">Belum ada laporan aktif saat ini.</p>
+				) : (
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+						{props.page_data.reports.map((report) => (
+							<ReportCard key={report.id} report={report} onHelpClick={handleHelpClick} />
+						))}
+					</div>
+				)}
+			</div>
 
-      <hr className="my-6" />
+			<hr className="my-6" />
 			{/* {auth.role.some((role) => ['petugas', 'relawan'].includes(role)) && (
 				<div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
 					<CardStat

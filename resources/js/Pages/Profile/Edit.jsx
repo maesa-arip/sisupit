@@ -6,6 +6,7 @@ import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 
 export default function Edit(props) {
+	console.log(props)
 	return (
 		<>
 			<div className="flex flex-col w-full pb-32">

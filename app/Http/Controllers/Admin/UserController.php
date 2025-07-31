@@ -134,4 +134,40 @@ class UserController extends Controller
             return to_route('admin.users.index');
         }
     }
+
+    public function store_relawan(User $user)
+    {
+        try {
+            $user->assignRole(2);
+            flashMessage(MessageType::UPDATED->message('Relawan'));
+
+            return to_route('dashboard');
+        } catch (Throwable $e) {
+            flashMessage(MessageType::ERROR->message(error: $e->getMessage()), 'error');
+
+            return to_route('dashboard');
+        }
+
+        
+
+    }
+
+    public function store_detail_user(UserRequest $request,User $user)
+   {
+        try {
+            $user->update([
+                'name' => $name = $request->name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'ktp' => $this->update_file($request, $user, 'ktp', 'users'),
+            ]);
+            flashMessage(MessageType::UPDATED->message('Profil'));
+
+            return to_route('profile.edit');
+        } catch (Throwable $e) {
+            flashMessage(MessageType::ERROR->message(error: $e->getMessage()), 'error');
+
+            return to_route('profile.edit');
+        }
+    }
 }

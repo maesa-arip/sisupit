@@ -1,66 +1,128 @@
 import NavLink from '@/Components/NavLink';
+import { Button } from '@/Components/ui/button';
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from '@/Components/ui/dialog';
+import { router } from '@inertiajs/react';
 import {
 	IconAlertCircle,
-	IconBook,
-	IconBooks,
 	IconBuilding,
-	IconBuildingCommunity,
 	IconCategory,
-	IconChartDots2,
-	IconCircleKey,
 	IconClipboardPlus,
-	IconCreditCardPay,
-	IconCreditCardRefund,
 	IconDashboard,
-	IconFilePlus,
-	IconKeyframe,
-	IconLayoutKanban,
-	IconLogin,
 	IconLogin2,
 	IconLogout,
-	IconMoneybag,
-	IconRegistered,
-	IconRoute,
 	IconSettings,
-	IconSettingsExclamation,
-	IconStack3,
 	IconUser,
-	IconUsersGroup,
-	IconVersions,
 } from '@tabler/icons-react';
 
 export default function Sidebar({ url, auth }) {
 	return (
 		<nav className="grid items-start px-2 text-sm font-semibold lg:px-4">
 			{/* {auth?.role.some((role) => ['petugas', 'relawan', 'member'].includes(role)) && ( */}
-				<>
-					<div className="px-3 py-2 text-sm font-semibold text-foreground">Dashboard</div>
-					<NavLink
-						url={route('dashboard')}
-						active={url.startsWith('/dashboard')}
-						title="Dashboard"
-						icon={IconDashboard}
-					/>
-					<div className="px-3 py-2 text-sm font-semibold text-foreground">Sisupit</div>
-					<NavLink
+			<>
+				<div className="px-3 py-2 text-sm font-semibold text-foreground">Dashboard</div>
+				<NavLink
+					url={route('dashboard')}
+					active={url.startsWith('/dashboard')}
+					title="Dashboard"
+					icon={IconDashboard}
+				/>
+				<div className="px-3 py-2 text-sm font-semibold text-foreground">Sisupit</div>
+				{/* <NavLink
 						url={route('front.companies.index')}
 						active={url.startsWith('/companies')}
 						title="Daftar Sebagai Relawan"
 						icon={IconBuilding}
-					/>
-					<NavLink
-						url={route('front.settings.index')}
-						active={url.startsWith('/settings')}
-						title="Lihat Lokasi Pompa Supit"
-						icon={IconSettings}
-					/>
-					<NavLink
-						url={route('cashiers')}
-						active={url.startsWith('/cashiers2')}
-						title="Lihat Lokasi Pos Damkar Terdekat"
-						icon={IconCategory}
-					/>
-				</>
+					/> */}
+				<Dialog>
+					<DialogTrigger asChild>
+						<Button variant="ghost" className="justify-start w-full gap-2 text-left">
+							<IconBuilding className="w-4 h-4" />
+							Daftar Sebagai Relawan
+						</Button>
+					</DialogTrigger>
+					<DialogContent className="max-w-md">
+						<DialogHeader>
+							<DialogTitle>Konfirmasi Pendaftaran Relawan</DialogTitle>
+							<DialogDescription>
+								Dengan mendaftar sebagai relawan, Anda akan dapat membantu menanggapi laporan kejadian
+								yang masuk. Pastikan informasi profil Anda sudah lengkap sebelum melanjutkan.
+							</DialogDescription>
+						</DialogHeader>
+						<DialogFooter className="gap-2 sm:justify-end">
+							<Button variant="outline" onClick={() => router.put(route('admin.relawan.update',auth))}>
+								Ya, Daftarkan Saya
+							</Button>
+							<DialogTrigger asChild>
+								<Button variant="ghost">Batal</Button>
+							</DialogTrigger>
+						</DialogFooter>
+					</DialogContent>
+				</Dialog>
+				<Dialog>
+					<DialogTrigger asChild>
+						<Button variant="ghost" className="justify-start w-full gap-2 text-left">
+							<IconBuilding className="w-4 h-4" />
+							Lihat Lokasi Pompa Supit
+						</Button>
+					</DialogTrigger>
+					<DialogContent className="max-w-md">
+						<DialogHeader>
+							<DialogTitle>Coming Soon</DialogTitle>
+							<DialogDescription>
+								Fitur ini sedang diproses, mohon untuk bersabar.
+							</DialogDescription>
+						</DialogHeader>
+						<DialogFooter className="gap-2 sm:justify-end">
+							
+							<DialogTrigger asChild>
+								<Button variant="ghost">Batal</Button>
+							</DialogTrigger>
+						</DialogFooter>
+					</DialogContent>
+				</Dialog>
+				<Dialog>
+					<DialogTrigger asChild>
+						<Button variant="ghost" className="justify-start w-full gap-2 text-left">
+							<IconBuilding className="w-4 h-4" />
+							Lihat Lokasi Pos Damkar Terdekat
+						</Button>
+					</DialogTrigger>
+					<DialogContent className="max-w-md">
+						<DialogHeader>
+							<DialogTitle>Coming Soon</DialogTitle>
+							<DialogDescription>
+								Fitur ini sedang diproses, mohon untuk bersabar.
+							</DialogDescription>
+						</DialogHeader>
+						<DialogFooter className="gap-2 sm:justify-end">
+							
+							<DialogTrigger asChild>
+								<Button variant="ghost">Batal</Button>
+							</DialogTrigger>
+						</DialogFooter>
+					</DialogContent>
+				</Dialog>
+				{/* <NavLink
+					url={route('front.settings.index')}
+					active={url.startsWith('/settings')}
+					title="Lihat Lokasi Pompa Supit"
+					icon={IconSettings}
+				/>
+				<NavLink
+					url={route('cashiers')}
+					active={url.startsWith('/cashiers2')}
+					title="Lihat Lokasi Pos Damkar Terdekat"
+					icon={IconCategory}
+				/> */}
+			</>
 			{/* )} */}
 
 			{/* {auth.role.some((role) => ['admin'].includes(role)) && (
@@ -221,20 +283,29 @@ export default function Sidebar({ url, auth }) {
 					icon={IconAlertCircle}
 				/>
 			)}
-			{auth?.name ? <>
-			<NavLink url={route('profile.edit')} active={url.startsWith('/profile')} title="Profile" icon={IconUser} />
-			<NavLink
-				url={route('logout')}
-				title="Logout"
-				icon={IconLogout}
-				method="post"
-				as="button"
-				className="w-full"
-			/></> : <>
-			<NavLink url={route('login')} title="Masuk" icon={IconLogin2} />
-			<NavLink url={route('register')} title="Daftar" icon={IconClipboardPlus} />
-			</>}
-			
+			{auth?.name ? (
+				<>
+					<NavLink
+						url={route('profile.edit')}
+						active={url.startsWith('/profile')}
+						title="Profile"
+						icon={IconUser}
+					/>
+					<NavLink
+						url={route('logout')}
+						title="Logout"
+						icon={IconLogout}
+						method="post"
+						as="button"
+						className="w-full"
+					/>
+				</>
+			) : (
+				<>
+					<NavLink url={route('login')} title="Masuk" icon={IconLogin2} />
+					<NavLink url={route('register')} title="Daftar" icon={IconClipboardPlus} />
+				</>
+			)}
 		</nav>
 	);
 }

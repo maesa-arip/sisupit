@@ -1,12 +1,26 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { IconHeartHandshake, IconSend } from '@tabler/icons-react';
+import { IconSend } from '@tabler/icons-react';
 import { AlertTriangle, Clock, MapPin, User, Users } from 'lucide-react';
+import { useState } from 'react';
+import DialogRelawanDetail from './DialogRelawanDetail';
+import DialogRelawanList from './DialogRelawanList';
+import HelpConfirmAlertDialog from './HelpConfirmAlertDialog';
 
 export default function ReportCard({ report, onHelpClick }) {
-    console.log(report)
-    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${report.location_lat},${report.location_lng}`;
+	const [showList, setShowList] = useState(false);
+	const [selectedHelper, setSelectedHelper] = useState(null);
+	const handleSelectHelper = (helper) => {
+		setSelectedHelper(helper);
+		setShowList(false); // tutup dialog daftar relawan
+	};
+	const handleBackToList = () => {
+		setSelectedHelper(null);
+		setShowList(true);
+	};
+	// console.log(report)
+	const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${report.location_lat},${report.location_lng}`;
 	return (
 		<Card className="border shadow-sm rounded-2xl border-muted">
 			<CardHeader>
@@ -27,17 +41,33 @@ export default function ReportCard({ report, onHelpClick }) {
 					<MapPin size={14} /> {report.address}
 				</div>
 
-				{report.name && (
-					<div className="flex items-center gap-2 text-muted-foreground">
-						<User size={14} /> {report.name}
-					</div>
-				)}
+				{/* {report.name && ( */}
+				<div className="flex items-center gap-2 text-muted-foreground">
+					<User size={14} /> {report.user?.name}
+				</div>
+				{/* )} */}
 
 				<p className="text-foreground">{report.description}</p>
 
 				<div className="flex items-center gap-2 pt-2 text-xs italic text-muted-foreground">
 					{/* <Users size={14} /> Status bantuan: {report.helpStatus} */}
-					<Users size={14} /> Status bantuan: Belum ada relawan
+					{report.helpers?.length > 0 ? (
+						<Button className="w-full" variant="outline" onClick={() => setShowList(true)}>Lihat {report.helpers.length} Relawan</Button>
+					) : (<><Users size={14} /> Status bantuan: Belum ada relawan</>)}
+
+					<DialogRelawanList
+						open={showList}
+						onClose={() => setShowList(false)}
+						helpers={report.helpers}
+						onSelect={handleSelectHelper}
+					/>
+
+					<DialogRelawanDetail
+						open={!!selectedHelper}
+						onClose={() => setSelectedHelper(null)}
+						onBack={handleBackToList}
+						helper={selectedHelper}
+					/>
 				</div>
 				<div className="flex items-center gap-2 pt-2 text-xs italic text-muted-foreground">
 					<Card>
@@ -46,7 +76,7 @@ export default function ReportCard({ report, onHelpClick }) {
 				</div>
 			</CardContent>
 			<CardFooter>
-				<a href={googleMapsUrl} className='w-full' target="_blank" rel="noopener noreferrer">
+				<a href={googleMapsUrl} className="w-full" target="_blank" rel="noopener noreferrer">
 					<Button className="w-full mr-1">
 						<IconSend className="size-4" />
 						Lihat di Maps
@@ -55,14 +85,7 @@ export default function ReportCard({ report, onHelpClick }) {
 			</CardFooter>
 
 			<CardFooter>
-				{/* <Button className="w-full mr-1" onClick={() => onHelpClick(report.id)}>
-					<IconDetails className="size-4" />
-					Detail
-				</Button> */}
-				<Button variant="destructive" className="w-full" onClick={() => onHelpClick(report.id)}>
-					<IconHeartHandshake className="size-4" />
-					Saya Akan Membantu
-				</Button>
+				<HelpConfirmAlertDialog reportId={report.id} />
 			</CardFooter>
 		</Card>
 	);
