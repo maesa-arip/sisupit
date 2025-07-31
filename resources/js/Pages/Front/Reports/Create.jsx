@@ -8,12 +8,14 @@ import { Textarea } from '@/Components/ui/textarea';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
 import { flashMessage } from '@/lib/utils';
-import { Link, useForm } from '@inertiajs/react';
+import { Link, useForm, usePage } from '@inertiajs/react';
 import { IconArrowLeft, IconBuildingCommunity } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function Create(props) {
+	const auth = props.auth.user;
+	// console.log(auth)
 	// const variable array to save the users location
 	const [userLocation, setUserLocation] = useState(null);
 
@@ -129,7 +131,7 @@ export default function Create(props) {
 							/>
 							{errors.location_lng && <InputError message={errors.location_lng} />}
 						</div>
-						<div className="grid w-full items-center gap-1.5">
+						{/* <div className="grid w-full items-center gap-1.5">
 							<Label htmlFor="name">Nama</Label>
 							<Input
 								name="name"
@@ -152,7 +154,7 @@ export default function Create(props) {
 								onChange={onHandleChange}
 							/>
 							{errors.phone && <InputError message={errors.phone} />}
-						</div>
+						</div> */}
 						<div className="grid w-full items-center gap-1.5">
 							<Label htmlFor="title">Judul (Kebakaran/Bencana Alam, dll)</Label>
 							<Input

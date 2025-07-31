@@ -140,8 +140,8 @@ class UserController extends Controller
         try {
             $user->assignRole(2);
             flashMessage(MessageType::UPDATED->message('Relawan'));
-
-            return to_route('dashboard');
+            return redirect()->route('dashboard');
+            // return to_route('dashboard');
         } catch (Throwable $e) {
             flashMessage(MessageType::ERROR->message(error: $e->getMessage()), 'error');
 

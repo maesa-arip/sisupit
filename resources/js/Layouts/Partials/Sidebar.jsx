@@ -9,20 +9,21 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from '@/Components/ui/dialog';
+import { flashMessage } from '@/lib/utils';
 import { router } from '@inertiajs/react';
 import {
 	IconAlertCircle,
 	IconBuilding,
-	IconCategory,
 	IconClipboardPlus,
 	IconDashboard,
 	IconLogin2,
 	IconLogout,
-	IconSettings,
 	IconUser,
 } from '@tabler/icons-react';
+import { useState } from 'react';
 
 export default function Sidebar({ url, auth }) {
+	const [open, setOpen] = useState(false);
 	return (
 		<nav className="grid items-start px-2 text-sm font-semibold lg:px-4">
 			{/* {auth?.role.some((role) => ['petugas', 'relawan', 'member'].includes(role)) && ( */}
@@ -41,9 +42,13 @@ export default function Sidebar({ url, auth }) {
 						title="Daftar Sebagai Relawan"
 						icon={IconBuilding}
 					/> */}
-				<Dialog>
+				<Dialog open={open} onOpenChange={setOpen}>
 					<DialogTrigger asChild>
-						<Button variant="ghost" className="justify-start w-full gap-2 text-left">
+						<Button
+							onClick={() => setOpen(true)}
+							variant="ghost"
+							className="justify-start w-full gap-2 text-left"
+						>
 							<IconBuilding className="w-4 h-4" />
 							Daftar Sebagai Relawan
 						</Button>
@@ -57,7 +62,28 @@ export default function Sidebar({ url, auth }) {
 							</DialogDescription>
 						</DialogHeader>
 						<DialogFooter className="gap-2 sm:justify-end">
-							<Button variant="outline" onClick={() => router.put(route('admin.relawan.update',auth))}>
+							<Button
+								variant="outline"
+								
+								onClick={() =>
+									router.put(
+										route('admin.relawan.update', { user: auth.id }),
+										{},
+										{
+											onSuccess: () => {
+												setOpen(false); // Tutup dialog
+												const flash = flashMessage(success);
+																		if (flash) toast[flash.type](flash.message);
+												// Tidak perlu router.visit, biarkan backend redirect agar flash muncul
+											},
+											onError: () => {
+												// Optionally tangani error jika mau
+												// toast.error("Pendaftaran gagal.");
+											},
+										},
+									)
+								}
+							>
 								Ya, Daftarkan Saya
 							</Button>
 							<DialogTrigger asChild>
@@ -66,6 +92,7 @@ export default function Sidebar({ url, auth }) {
 						</DialogFooter>
 					</DialogContent>
 				</Dialog>
+
 				<Dialog>
 					<DialogTrigger asChild>
 						<Button variant="ghost" className="justify-start w-full gap-2 text-left">
@@ -76,12 +103,9 @@ export default function Sidebar({ url, auth }) {
 					<DialogContent className="max-w-md">
 						<DialogHeader>
 							<DialogTitle>Coming Soon</DialogTitle>
-							<DialogDescription>
-								Fitur ini sedang diproses, mohon untuk bersabar.
-							</DialogDescription>
+							<DialogDescription>Fitur ini sedang diproses, mohon untuk bersabar.</DialogDescription>
 						</DialogHeader>
 						<DialogFooter className="gap-2 sm:justify-end">
-							
 							<DialogTrigger asChild>
 								<Button variant="ghost">Batal</Button>
 							</DialogTrigger>
@@ -98,12 +122,9 @@ export default function Sidebar({ url, auth }) {
 					<DialogContent className="max-w-md">
 						<DialogHeader>
 							<DialogTitle>Coming Soon</DialogTitle>
-							<DialogDescription>
-								Fitur ini sedang diproses, mohon untuk bersabar.
-							</DialogDescription>
+							<DialogDescription>Fitur ini sedang diproses, mohon untuk bersabar.</DialogDescription>
 						</DialogHeader>
 						<DialogFooter className="gap-2 sm:justify-end">
-							
 							<DialogTrigger asChild>
 								<Button variant="ghost">Batal</Button>
 							</DialogTrigger>
