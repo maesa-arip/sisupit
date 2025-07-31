@@ -89,7 +89,51 @@ export default function SidebarResponsive({ url, auth }) {
 								</DialogFooter>
 							</DialogContent>
 						</Dialog>
-						<NavLink
+						<Dialog>
+					<DialogTrigger asChild>
+						<Button variant="ghost" className="justify-start w-full gap-2 text-left">
+							<IconBuilding className="w-4 h-4" />
+							Lihat Lokasi Pompa Supit
+						</Button>
+					</DialogTrigger>
+					<DialogContent className="max-w-md">
+						<DialogHeader>
+							<DialogTitle>Coming Soon</DialogTitle>
+							<DialogDescription>
+								Fitur ini sedang diproses, mohon untuk bersabar.
+							</DialogDescription>
+						</DialogHeader>
+						<DialogFooter className="gap-2 sm:justify-end">
+							
+							<DialogTrigger asChild>
+								<Button variant="ghost">Batal</Button>
+							</DialogTrigger>
+						</DialogFooter>
+					</DialogContent>
+				</Dialog>
+				<Dialog>
+					<DialogTrigger asChild>
+						<Button variant="ghost" className="justify-start w-full gap-2 text-left">
+							<IconBuilding className="w-4 h-4" />
+							Lihat Lokasi Pos Damkar Terdekat
+						</Button>
+					</DialogTrigger>
+					<DialogContent className="max-w-md">
+						<DialogHeader>
+							<DialogTitle>Coming Soon</DialogTitle>
+							<DialogDescription>
+								Fitur ini sedang diproses, mohon untuk bersabar.
+							</DialogDescription>
+						</DialogHeader>
+						<DialogFooter className="gap-2 sm:justify-end">
+							
+							<DialogTrigger asChild>
+								<Button variant="ghost">Batal</Button>
+							</DialogTrigger>
+						</DialogFooter>
+					</DialogContent>
+				</Dialog>
+						{/* <NavLink
 							url={route('front.settings.index')}
 							active={url.startsWith('/settings')}
 							title="Lihat Lokasi Pompa Supit"
@@ -100,7 +144,7 @@ export default function SidebarResponsive({ url, auth }) {
 							active={url.startsWith('/cashiers2')}
 							title="Lihat Lokasi Pos Damkar Terdekat"
 							icon={IconCategory}
-						/>
+						/> */}
 
 						<div className="px-3 py-2 text-sm font-semibold text-foreground">Lainnya</div>
 
