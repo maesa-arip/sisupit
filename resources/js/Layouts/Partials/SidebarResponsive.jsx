@@ -18,8 +18,10 @@ import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
 import {
 	IconBuilding,
 	IconCategory,
+	IconClipboardPlus,
 	IconDashboard,
 	IconLayoutSidebar,
+	IconLogin2,
 	IconLogout,
 	IconSettings,
 	IconUser,
@@ -171,7 +173,30 @@ export default function SidebarResponsive({ url, auth }) {
 
 						<div className="px-3 py-2 text-sm font-semibold text-foreground">Lainnya</div>
 
-						<NavLinkResponsive
+{auth?.name ? (
+				<>
+					<NavLinkResponsive
+						url={route('profile.edit')}
+						active={url.startsWith('/profile')}
+						title="Profile"
+						icon={IconUser}
+					/>
+					<NavLinkResponsive
+						url={route('logout')}
+						title="Logout"
+						icon={IconLogout}
+						method="post"
+						as="button"
+						className="w-full"
+					/>
+				</>
+			) : (
+				<>
+					<NavLinkResponsive url={route('login')} title="Masuk" icon={IconLogin2} />
+					<NavLinkResponsive url={route('register')} title="Daftar" icon={IconClipboardPlus} />
+				</>
+			)}
+						{/* <NavLinkResponsive
 							url={route('profile.edit')}
 							active={url.startsWith('/profile')}
 							title="Profile"
@@ -184,7 +209,7 @@ export default function SidebarResponsive({ url, auth }) {
 							method="post"
 							as="button"
 							className="w-full"
-						/>
+						/> */}
 					</nav>
 				</nav>
 			</SheetContent>
