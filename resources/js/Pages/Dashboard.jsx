@@ -2,254 +2,140 @@ import HeaderTitle from '@/Components/HeaderTitle';
 import IncompleteProfileDialog from '@/Components/IncompleteProfileDialog';
 import InstallPWAButton from '@/Components/InstallPWAButton';
 import ReportCard from '@/Components/ReportCard';
-import { Button } from '@/Components/ui/button';
 import AppLayout from '@/Layouts/AppLayout';
 import { Link, router } from '@inertiajs/react';
-import { IconBell, IconDashboard } from '@tabler/icons-react';
+import { IconBell, IconDashboard, IconAlertCircle, IconDroplet, IconFiretruck } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/Components/ui/dialog';
+import { Button } from '@/Components/ui/button';
 
 export default function Dashboard(props) {
-const auth = props.auth.user;
-const [showIncompleteDialog, setShowIncompleteDialog] = useState(false);
+    const auth = props.auth.user;
+    const [showIncompleteDialog, setShowIncompleteDialog] = useState(false);
 
-	useEffect(() => {
-		if (!auth.phone) {
-			setShowIncompleteDialog(true);
-		}
-	}, [auth]);
-	const handleConfirm = () => {
-		router.visit(route('profile.edit'));
-	};
-	const handleHelpClick = (id) => {
-		console.log('Relawan akan bantu laporan ID:', id);
-		// Panggil API, modal, dsb.
-	};
-	// console.log(props.page_data.reports)
+    useEffect(() => {
+        if (!auth.phone) {
+            setShowIncompleteDialog(true);
+        }
+    }, [auth]);
 
-	return (
-		<div className="flex flex-col w-full pb-32 space-y-4">
-			<div className="flex flex-col items-start justify-between gap-y-4 lg:flex-row lg:items-center">
-				<HeaderTitle
-					title={props.page_settings.title}
-					subtitle={props.page_settings.subtitle}
-					icon={IconDashboard}
-				></HeaderTitle>
-			</div>
-			<IncompleteProfileDialog open={showIncompleteDialog} onConfirm={handleConfirm} />
-			<Button
-				variant="red"
-				className="relative flex items-center justify-center w-56 h-56 mx-auto overflow-hidden text-lg font-extrabold text-white transition-transform duration-300 rounded-full shadow-2xl animate-pulse bg-gradient-to-br from-red-500 to-red-700 ring-4 ring-red-400/40 hover:scale-105"
-				asChild
-			>
-				<Link href={route('front.reports.create')}>
-					{/* Icon besar transparan sebagai background */}
-					<IconBell
-						className="absolute text-white/30"
-						style={{
-							width: '200px',
-							height: '200px',
-						}}
-					/>
+    const handleConfirm = () => {
+        router.visit(route('profile.edit'));
+    };
 
-					{/* Teks di atas icon */}
-					<span className="relative z-10 leading-tight tracking-wide text-center uppercase">
-						Laporkan <br /> Kejadian
-					</span>
-				</Link>
-			</Button>
-			<hr className="my-6" />
-			<div className="space-y-2">
-				<h2 className="text-xl font-semibold">Laporan Terbaru</h2>
-				<p className="text-sm text-muted-foreground">Laporan kejadian yang membutuhkan bantuan</p>
+    const handleHelpClick = (id) => {
+        console.log('Relawan akan bantu laporan ID:', id);
+    };
 
-				{props.page_data.reports.length === 0 ? (
-					<p className="italic text-muted-foreground">Belum ada laporan aktif saat ini.</p>
-				) : (
-					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-						{props.page_data.reports.map((report) => (
-							<ReportCard key={report.id} report={report} onHelpClick={handleHelpClick} />
-						))}
-					</div>
-				)}
-			</div>
+    return (
+        <div className="flex flex-col w-full pb-32 mx-auto space-y-6 max-w-7xl">
+            <div className="flex flex-col items-start justify-between lg:flex-row lg:items-center">
+                <HeaderTitle
+                    title={props.page_settings.title}
+                    subtitle={props.page_settings.subtitle}
+                    icon={IconDashboard}
+                />
+            </div>
 
-			<hr className="my-6" />
-			{/* {auth.role.some((role) => ['petugas', 'relawan'].includes(role)) && (
-				<div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-					<CardStat
-						data={{
-							title: 'Total Laporan',
-							icon: IconBooks,
-							background: 'text-white bg-gradient-to-r from-blue-400 via-blue-500 to-blue-500',
-							iconClassName: 'text-white',
-						}}
-					>
-						<div className="text-2xl font bold">{props.page_data.total_books}</div>
-					</CardStat>
-					<CardStat
-						data={{
-							title: 'Total Relawan',
-							icon: IconUsersGroup,
-							background: 'text-white bg-gradient-to-r from-purple-400 via-purple-500 to-purple-500',
-							iconClassName: 'text-white',
-						}}
-					>
-						<div className="text-2xl font bold">{props.page_data.total_users}</div>
-					</CardStat>
-					<CardStat
-						data={{
-							title: 'Total Kejadian',
-							icon: IconCreditCardPay,
-							background: 'text-white bg-gradient-to-r from-rose-400 via-rose-500 to-rose-500',
-							iconClassName: 'text-white',
-						}}
-					>
-						<div className="text-2xl font bold">{props.page_data.total_loans}</div>
-					</CardStat>
-					<CardStat
-						data={{
-							title: 'Total Petugas',
-							icon: IconCreditCardRefund,
-							background: 'text-white bg-gradient-to-r from-lime-400 via-lime-500 to-lime-500',
-							iconClassName: 'text-white',
-						}}
-					>
-						<div className="text-2xl font bold">{props.page_data.total_returns}</div>
-					</CardStat>
-				</div>
-			)}
-			{auth.role.some((role) => ['member'].includes(role)) && (
-				<div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
-					<CardStat
-						data={{
-							title: 'Total Peminjaman',
-							icon: IconCreditCardPay,
-							background: 'text-white bg-gradient-to-r from-blue-400 via-blue-500 to-blue-500',
-							iconClassName: 'text-white',
-						}}
-					>
-						<div className="text-2xl font bold">{props.page_data.total_loans}</div>
-					</CardStat>
-					<CardStat
-						data={{
-							title: 'Total Pengembalian',
-							icon: IconCreditCardRefund,
-							background: 'text-white bg-gradient-to-r from-purple-400 via-purple-500 to-purple-500',
-							iconClassName: 'text-white',
-						}}
-					>
-						<div className="text-2xl font bold">{props.page_data.total_returns}</div>
-					</CardStat>
-					<CardStat
-						data={{
-							title: 'Total Denda',
-							icon: IconMoneybag,
-							background: 'text-white bg-gradient-to-r from-rose-400 via-rose-500 to-rose-500',
-							iconClassName: 'text-white',
-						}}
-					>
-						<div className="text-2xl font bold">{formatToRupiah(props.page_data.total_fines)}</div>
-					</CardStat>
-				</div>
-			)} */}
-			{/* <ChartCustom chartData={props.page_data.transactionChart} /> */}
-			<div className="flex flex-col justify-between w-full gap-2 lg:flex-row">
-				{/* <Card className="w-full lg:w-1/2">
-					<CardHeader>
-						<div className="flex flex-col justify-between gap-y-4 lg:flex-row lg:items-center">
-							<div className="flex flex-col gap-y-2">
-								<CardTitle>Transaksi Peminjaman</CardTitle>
-								<CardDescription>Anda dapat melihat 5 transaksi terakhir peminjaman</CardDescription>
-							</div>
-							<Button variant="orange" asChild>
-								{auth.role.some((role) => ['petugas', 'relawan'].includes(role)) ? (
-									<Link href={route('admin.loans.index')}>
-										Lihat Semua
-										<IconArrowUpRight className="size-4" />
-									</Link>
-								) : (
-									<Link href="#">
-										Lihat Semua
-										<IconArrowUpRight className="size-4" />
-									</Link>
-								)}
-							</Button>
-						</div>
-					</CardHeader>
-					<CardContent className="p-0 [&_td]:whitespace-nowrap [&_td]:px-6 [&_th]:px-6">
-						<Table className="w-full">
-							<TableHeader>
-								<TableRow>
-									<TableHead>#</TableHead>
-									<TableHead>Kode Peminjaman</TableHead>
-									<TableHead>Buku</TableHead>
-									<TableHead>Member</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{props.page_data.loans.map((loan, index) => (
-									<TableRow key={index}>
-										<TableCell>{index + 1}</TableCell>
-										<TableCell>{loan.loan_code}</TableCell>
-										<TableCell>{loan.book.title}</TableCell>
-										<TableCell>{loan.user.name}</TableCell>
-									</TableRow>
-								))}
-							</TableBody>
-						</Table>
-					</CardContent>
-				</Card> */}
-				{/* <Card className="w-full lg:w-1/2">
-					<CardHeader>
-						<div className="flex flex-col justify-between gap-y-4 lg:flex-row lg:items-center">
-							<div className="flex flex-col gap-y-2">
-								<CardTitle>Transaksi Pengembalian</CardTitle>
-								<CardDescription>Anda dapat melihat 5 transaksi terakhir pengembalian</CardDescription>
-							</div>
-							<Button variant="orange" asChild>
-								{auth.role.some((role) => ['petugas', 'relawan'].includes(role)) ? (
-									<Link href={route('admin.return-books.index')}>
-										Lihat Semua
-										<IconArrowUpRight className="size-4" />
-									</Link>
-								) : (
-									<Link href="#">
-										Lihat Semua
-										<IconArrowUpRight className="size-4" />
-									</Link>
-								)}
-							</Button>
-						</div>
-					</CardHeader>
-					<CardContent className="p-0 [&_td]:whitespace-nowrap [&_td]:px-6 [&_th]:px-6">
-						<Table className="w-full">
-							<TableHeader>
-								<TableRow>
-									<TableHead>#</TableHead>
-									<TableHead>Kode Pengembalian</TableHead>
-									<TableHead>Buku</TableHead>
-									<TableHead>Member</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{props.page_data.return_books.map((return_book, index) => (
-									<TableRow key={index}>
-										<TableCell>{index + 1}</TableCell>
-										<TableCell>{return_book.return_book_code}</TableCell>
-										<TableCell>{return_book.book.title}</TableCell>
-										<TableCell>{return_book.user.name}</TableCell>
-									</TableRow>
-								))}
-							</TableBody>
-						</Table>
-					</CardContent>
-				</Card> */}
-			</div>
-			<div className="mt-6">
-				<InstallPWAButton />
-			</div>
-		</div>
-	);
+            <IncompleteProfileDialog open={showIncompleteDialog} onConfirm={handleConfirm} />
+
+            {/* --- MENU GRID QUICK ACTIONS --- */}
+            <div className="grid grid-cols-2 gap-4 mt-2 mb-4">
+                {/* Menu Pompa Sisupit */}
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <button className="flex flex-col items-center justify-center p-5 bg-white dark:bg-slate-900 rounded-[24px] border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
+                            <div className="flex items-center justify-center mb-3 text-blue-500 transition-transform duration-300 rounded-full w-14 h-14 bg-blue-50 dark:bg-blue-900/20 group-hover:scale-110">
+                                <IconDroplet size={28} />
+                            </div>
+                            <span className="text-sm font-bold leading-tight text-center text-gray-800 dark:text-slate-200">Lokasi Pompa<br/>Sisupit</span>
+                        </button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md rounded-[24px] dark:bg-slate-900 dark:border-slate-800">
+                        <DialogHeader>
+                            <DialogTitle className="dark:text-slate-100">Segera Hadir</DialogTitle>
+                            <DialogDescription className="dark:text-slate-400">Peta Lokasi Pompa Sisupit sedang dalam tahap pengembangan. Mohon bersabar.</DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <DialogTrigger asChild>
+                                <Button variant="outline" className="border-gray-300 rounded-xl dark:border-slate-700">Tutup</Button>
+                            </DialogTrigger>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Menu Pos Damkar */}
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <button className="flex flex-col items-center justify-center p-5 bg-white dark:bg-slate-900 rounded-[24px] border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
+                            <div className="flex items-center justify-center mb-3 text-red-500 transition-transform duration-300 rounded-full w-14 h-14 bg-red-50 dark:bg-red-900/20 group-hover:scale-110">
+                                <IconFiretruck size={28} />
+                            </div>
+                            <span className="text-sm font-bold leading-tight text-center text-gray-800 dark:text-slate-200">Pos Damkar<br/>Terdekat</span>
+                        </button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md rounded-[24px] dark:bg-slate-900 dark:border-slate-800">
+                        <DialogHeader>
+                            <DialogTitle className="dark:text-slate-100">Segera Hadir</DialogTitle>
+                            <DialogDescription className="dark:text-slate-400">Fitur pelacakan Pos Damkar terdekat sedang diproses.</DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <DialogTrigger asChild>
+                                <Button variant="outline" className="border-gray-300 rounded-xl dark:border-slate-700">Tutup</Button>
+                            </DialogTrigger>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            </div>
+
+            {/* --- TOMBOL LAPOR --- */}
+            <div className="flex justify-center w-full">
+                <Link href={route('front.reports.create')} className="block w-full max-w-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-500 rounded-3xl">
+                    <div className="relative flex items-center justify-between p-6 overflow-hidden transition-all duration-300 shadow-lg sm:p-8 bg-gradient-to-br from-amber-500 to-orange-600 dark:from-amber-600 dark:to-orange-700 rounded-3xl hover:shadow-amber-500/30 dark:hover:shadow-amber-900/40 hover:-translate-y-1 group">
+                        <div className="relative z-10 flex flex-col">
+                            <span className="mb-1 text-sm font-bold tracking-wider uppercase text-amber-100">Pusat Bantuan</span>
+                            <span className="text-2xl font-extrabold leading-tight text-white sm:text-3xl">Laporkan<br />Kejadian</span>
+                        </div>
+                        <div className="relative z-10 p-4 transition-transform duration-300 rounded-full bg-white/20 backdrop-blur-md group-hover:scale-110 group-hover:rotate-12">
+                             <IconBell className="w-12 h-12 text-white" />
+                        </div>
+                        <div className="absolute top-0 right-0 w-40 h-40 transform translate-x-12 -translate-y-12 rounded-full bg-white/10 blur-2xl"></div>
+                        <div className="absolute bottom-0 left-0 w-32 h-32 transform -translate-x-12 translate-y-12 rounded-full bg-black/10 blur-xl"></div>
+                    </div>
+                </Link>
+            </div>
+
+            <hr className="my-2 border-gray-200 dark:border-slate-800" />
+
+            {/* --- FEED LAPORAN --- */}
+            <div className="space-y-6">
+                <div>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">Laporan Terbaru</h2>
+                    <p className="text-sm text-gray-500 dark:text-slate-400">Kejadian di sekitar yang membutuhkan bantuan</p>
+                </div>
+
+                {props.page_data.reports.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center p-12 text-center border border-gray-200 border-dashed bg-gray-50 dark:bg-slate-900/50 rounded-3xl dark:border-slate-800">
+                        <div className="p-4 mb-4 rounded-full bg-amber-100 dark:bg-amber-900/20">
+                            <IconAlertCircle className="w-10 h-10 text-amber-500" />
+                        </div>
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-slate-200">Situasi Terkendali</h3>
+                        <p className="max-w-sm mt-1 text-sm text-gray-500 dark:text-slate-400">Belum ada laporan aktif saat ini. Tetap waspada dan jaga keselamatan.</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                        {props.page_data.reports.map((report) => (
+                            <ReportCard key={report.id} report={report} onHelpClick={handleHelpClick} />
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            <div className="mt-4">
+                <InstallPWAButton />
+            </div>
+        </div>
+    );
 }
 
 Dashboard.layout = (page) => <AppLayout children={page} title={'Dashboard'} />;

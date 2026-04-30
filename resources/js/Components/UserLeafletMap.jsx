@@ -34,7 +34,7 @@ const UserLeafletMap = () => {
 
 	return (
 		<div>
-			<h2>Peta Lokasi Anda</h2>
+			{/* <h2>Peta Lokasi Anda</h2> */}
 			<div
 				id="map"
 				ref={mapRef}

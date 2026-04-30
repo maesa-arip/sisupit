@@ -76,6 +76,7 @@ Route::middleware(['auth', 'verified'])->controller(ReportHelperController::clas
 
 Route::middleware(['auth', 'verified'])->controller(DashboardController::class)->group(function () {
     Route::get('dashboard', 'index')->name('dashboard');
+    Route::get('dashboard2', 'dashboard2')->name('dashboard2');
     Route::get('cashiers', 'cashier')->name('cashiers');
 });
 

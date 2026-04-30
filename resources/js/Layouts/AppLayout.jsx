@@ -2,140 +2,152 @@ import ApplicationLogo from '@/Components/ApplicationLogo';
 import Banner from '@/Components/Banner';
 import SoundNotificationControl from '@/Components/SoundNotificationControl';
 import ThemeSwitcher from '@/Components/ThemeSwitcher';
-import { Avatar, AvatarFallback, AvatarImage } from '@/Components/ui/avatar';
-import { Button } from '@/Components/ui/button';
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from '@/Components/ui/dropdown-menu';
 import { Toaster } from '@/Components/ui/sonner';
 import WebPushSubscribe from '@/Components/WebPushSubscribe';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
 import Sidebar from './Partials/Sidebar';
-import SidebarResponsive from './Partials/SidebarResponsive';
+import MobileBottomNav from './Partials/MobileBottomNav';
+
+// Dropdown Menu untuk Profil User
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuTrigger,
+} from '@/Components/ui/dropdown-menu';
+
 export default function AppLayout({ title, children }) {
-	const { url } = usePage();
-	const announcemet = usePage().props.announcemet;
-	const auth = usePage().props.auth?.user ?? null;
-	// console.log(auth)
-	useEffect(() => {
-		let audio;
+    const { url } = usePage();
+    const announcemet = usePage().props.announcemet;
+    const auth = usePage().props.auth?.user ?? null;
 
-		if ('serviceWorker' in navigator) {
-			navigator.serviceWorker.onmessage = (event) => {
-				if (event.data && event.data.type === 'PLAY_SOUND') {
-					if (!audio) {
-						audio = new Audio(event.data.soundUrl);
-						audio.loop = true;
-						audio.play().catch((error) => {
-							console.warn('Gagal memutar suara:', error);
-						});
-					}
-				}
-			};
+    useEffect(() => {
+        let audio;
 
-			// Hentikan audio saat notifikasi diklik (misalnya jika halaman / sudah terbuka)
-			window.addEventListener('focus', () => {
-				if (audio) {
-					audio.pause();
-					audio = null;
-				}
-			});
-		}
-	}, []);
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.onmessage = (event) => {
+                if (event.data && event.data.type === 'PLAY_SOUND') {
+                    if (!audio) {
+                        audio = new Audio(event.data.soundUrl);
+                        audio.loop = true;
+                        audio.play().catch((error) => {
+                            console.warn('Gagal memutar suara:', error);
+                        });
+                    }
+                }
+            };
 
-	return (
-		<>
-			<Head title={title} />
-			<Toaster position="top-center" richColors />
-			<WebPushSubscribe />
-			<SoundNotificationControl />
-			<div className="flex flex-row w-full min-h-screen">
-				<div className="hidden w-1/5 border-r lg:block">
-					<div className="flex flex-col h-full min-h-screen gap-2">
-						<div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-							<ApplicationLogo />
-						</div>
-						<div className="flex-1">
-							<Sidebar url={url} auth={auth} />
-						</div>
-					</div>
-				</div>
-				<div className="flex flex-col w-full lg:w-4/5">
-					<header className="flex h-12 items-center justify-between gap-4 border-b px-4 lg:h-[60px] lg:justify-end lg:px-6">
-						{/* sidebar responsive */}
-						<SidebarResponsive url={url} auth={auth} />
-						{/* dropdown */}
-						<ThemeSwitcher />
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<Button variant="ghost" size="lg" className="flex gap-x-2">
-									<span className='truncate max-w-24'>{auth?.name}</span>
-									<Avatar>
-										<AvatarImage src={auth?.avatar} />
-										<AvatarFallback>{auth?.name.substring(0, 1)}</AvatarFallback>
-									</Avatar>
-								</Button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end">
-								<DropdownMenuLabel>Akun Saya</DropdownMenuLabel>
-								<DropdownMenuSeparator />
-								{auth?.name ? <><DropdownMenuItem><Link href={route('profile.edit')}>Profile</Link></DropdownMenuItem>
-								<DropdownMenuItem asChild>
-									<Link
-										url={route('logout')}
-										title="Logout"
-										method="post"
-										className="w-full"
-										as="button"
-									>
-										Logout
-									</Link>
-								</DropdownMenuItem></> : <><DropdownMenuItem> <Link href={route('login')}>Masuk</Link> </DropdownMenuItem><DropdownMenuItem><Link href={route('register')}>Daftar</Link></DropdownMenuItem></>}
-								
-							</DropdownMenuContent>
-						</DropdownMenu>
-					</header>
-					<main className="w-full">
-						<div className="relative">
-							<div
-								className="absolute inset-x-0 overflow-hidden -top-40 -z-10 transform-gpu blur-3xl sm:-top-80"
-								aria-hidden="true"
-							>
-								<div
-									className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-orange-100 to-orange-200 opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
-									style={{
-										clipPath:
-											'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
-									}}
-								/>
-							</div>
-							<div className="gap-4 p-4 lg:gap-6">
-								{children}{' '}
-								{announcemet && announcemet.is_active == 1 && (
-									<Banner message={announcemet.message} url={announcemet.url} />
-								)}
-							</div>
-						</div>
-					</main>
-					<footer>
-						<div className="grid grid-cols-2 gap-8 lg:grid-cols-6">
-							<div className="col-span-2 mb-8 lg:mb-0">
-								<div className="flex items-center gap-2 lg:justify-start"></div>
-							</div>
-						</div>
-						<div className="mt-24 flex h-12 flex-col items-center justify-between gap-4 border-b border-t px-4 py-3 align-middle text-sm font-medium text-muted-foreground md:flex-row md:items-center lg:h-[60px] lg:justify-start lg:px-6">
-							<p className="text-center">Develop by PT. Tawarin Dimana Saja</p>
-							<ul className="flex gap-4"></ul>
-						</div>
-					</footer>
-				</div>
-			</div>
-		</>
-	);
+            window.addEventListener('focus', () => {
+                if (audio) {
+                    audio.pause();
+                    audio = null;
+                }
+            });
+        }
+    }, []);
+
+    return (
+        <>
+            <Head title={title} />
+            <Toaster position="top-center" richColors />
+            <WebPushSubscribe />
+            <SoundNotificationControl />
+            <div className="flex flex-row w-full min-h-screen pb-28 lg:pb-0">
+                
+                {/* SIDEBAR HANYA MUNCUL DI DESKTOP (lg:block) */}
+                <div className="z-10 hidden w-1/5 bg-white border-r lg:block dark:border-slate-800 dark:bg-slate-950">
+                    <div className="sticky top-0 flex flex-col h-full min-h-screen gap-2">
+                        <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6 dark:border-slate-800">
+                            <ApplicationLogo />
+                        </div>
+                        <div className="flex-1 overflow-y-auto">
+                            <Sidebar url={url} auth={auth} />
+                        </div>
+                    </div>
+                </div>
+                
+                {/* AREA KONTEN UTAMA */}
+                <div className="flex flex-col w-full lg:w-4/5">
+                    
+                    {/* HEADER: Ubah justify-between menjadi justify-end karena tombol hamburger di kiri sudah dihapus */}
+                    <header className="flex h-14 items-center justify-end gap-4 border-b px-4 lg:h-[60px] lg:px-6 dark:border-slate-800 dark:bg-slate-900/70 bg-white/70 backdrop-blur-md sticky top-0 z-40">
+                        
+                        <div className="flex items-center gap-3">
+                            {/* --- LABEL NAMA USER (BISA DIKLIK) --- */}
+                            {auth?.name && (
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <button className="flex items-center gap-2.5 px-3 py-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-full shadow-sm hover:bg-amber-50 dark:hover:bg-slate-700 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer group">
+                                            <div className="flex items-center justify-center w-6 h-6 overflow-hidden text-xs font-bold transition-transform rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-500 shrink-0 group-hover:scale-105">
+                                                {auth.avatar ? (
+                                                    <img src={auth.avatar} alt="Avatar" className="object-cover w-full h-full" />
+                                                ) : (
+                                                    auth.name.substring(0, 1).toUpperCase()
+                                                )}
+                                            </div>
+                                            <span className="text-sm font-bold text-gray-700 dark:text-slate-200 truncate max-w-[100px] sm:max-w-[150px]">
+                                                {auth.name}
+                                            </span>
+                                        </button>
+                                    </DropdownMenuTrigger>
+                                    
+                                    <DropdownMenuContent align="end" className="w-64 p-5 mt-1 shadow-xl rounded-3xl dark:bg-slate-900 dark:border-slate-800">
+                                        <div className="flex flex-col items-center space-y-3 text-center">
+                                            <div className="flex items-center justify-center w-16 h-16 overflow-hidden text-2xl font-extrabold border-2 rounded-full shadow-sm border-amber-200 dark:border-amber-900/50 bg-gradient-to-br from-amber-100 to-amber-200 dark:from-amber-900/40 dark:to-orange-900/40 text-amber-700 dark:text-amber-500">
+                                                {auth.avatar ? (
+                                                    <img src={auth.avatar} alt="User Avatar" className="object-cover w-full h-full" />
+                                                ) : (
+                                                    auth.name.substring(0, 1).toUpperCase()
+                                                )}
+                                            </div>
+                                            <div>
+                                                <h4 className="text-base font-bold text-gray-900 break-words dark:text-slate-100">
+                                                    {auth.name}
+                                                </h4>
+                                                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 break-words">
+                                                    {auth.email}
+                                                </p>
+                                            </div>
+                                            {auth.role && auth.role.length > 0 && (
+                                                <div className="flex flex-wrap justify-center gap-1.5 mt-2">
+                                                    {auth.role.map((role_name, i) => (
+                                                        <span key={i} className="px-3 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-amber-100 dark:border-amber-900/30">
+                                                            {role_name}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            )}
+
+                            {/* Theme Switcher */}
+                            <ThemeSwitcher />
+                        </div>
+                    </header>
+                    
+                    <main className="w-full">
+                        <div className="relative">
+                            <div className="gap-4 p-4 lg:gap-6">
+                                {children}
+                                {announcemet && announcemet.is_active == 1 && (
+                                    <Banner message={announcemet.message} url={announcemet.url} />
+                                )}
+                            </div>
+                        </div>
+                    </main>
+                    
+                    <footer>
+                        <div className="mt-24 flex h-12 flex-col items-center justify-between gap-4 border-t border-gray-200 dark:border-slate-800 px-4 py-3 align-middle text-sm font-medium text-gray-500 dark:text-slate-400 md:flex-row md:items-center lg:h-[60px] lg:justify-start lg:px-6">
+                            <p className="text-center">Developed by PT. Tawarin Dimana Saja</p>
+                        </div>
+                    </footer>
+                </div>
+            </div>
+
+            {/* Bottom Nav hanya akan merender jika di mobile karena ada class lg:hidden di dalamnya */}
+            <MobileBottomNav url={url} auth={auth} />
+        </>
+    );
 }

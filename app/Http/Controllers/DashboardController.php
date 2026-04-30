@@ -80,6 +80,18 @@ class DashboardController extends Controller
             ],
         ]);
     }
+    public function dashboard2(): Response
+    {
+        return inertia('Dashboard2', [
+            'page_settings' => [
+                'title' => 'SiSUPIT DAMKAR',
+                'subtitle' => 'SISTEM INFORMASI KESIAPSIAGAAN UNTUK PEMADAM KEBAKARAN TERINTEGRASI',
+            ],
+            'page_data' => [
+                
+            ],
+        ]);
+    }
 
     public function chart(): array
     {
