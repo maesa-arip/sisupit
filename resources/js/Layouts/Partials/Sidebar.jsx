@@ -20,7 +20,8 @@ import {
     IconLogout,
     IconUser,
     IconDroplet,
-    IconFiretruck
+    IconFiretruck,
+    IconUsersGroup
 } from '@tabler/icons-react';
 import { useState } from 'react';
 
@@ -62,7 +63,13 @@ export default function Sidebar({ url, auth }) {
                 
 
                 <NavHeading>Sisupit</NavHeading>
-                <NavLink
+                {/* <NavLink
+                        url={route('front.volunteers.index')}
+                        active={url.startsWith('/volunteers')}
+                        title="Relawan Sekitar"
+                        icon={IconUsersGroup}
+                /> */}
+                 <NavLink
                         url={route('front.companies.index')}
                         active={url.startsWith('/companies')}
                         title="Daftar Sebagai Relawan"

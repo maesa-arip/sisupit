@@ -32,13 +32,13 @@ class ReportRequest extends FormRequest
                 'max:15',
             ],
             'title' => [
-                'nullable',
+                'required',
                 'min:3',
                 'max:255',
                 'string',
             ],
             'description' => [
-                'nullable',
+                'required',
                 'min:3',
                 'max:255',
                 'string',
@@ -54,12 +54,13 @@ class ReportRequest extends FormRequest
                 'max:255',
             ],
             'address' => [
-                'nullable',
+                'required',
+                'min:3',
                 'max:255',
                 'string',
             ],
             'photo' => [
-                'nullable',
+                'required',
                 'mimes:png,jpg,jpeg,webp',
                 'max:2048',
             ],

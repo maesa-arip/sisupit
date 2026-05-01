@@ -8,6 +8,9 @@ use App\Http\Controllers\CashierFrontController;
 use App\Http\Controllers\CategoryFrontController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FineFrontController;
+use App\Http\Controllers\Front\PompaController;
+use App\Http\Controllers\Front\PosPemadamController;
+use App\Http\Controllers\Front\RelawanController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LoanFrontController;
 use App\Http\Controllers\PaymentController;
@@ -32,6 +35,14 @@ Route::controller(HomeController::class)->group(function () {
     Route::get('/testnotif', 'testnotif')->name('home.testnotif');
     Route::get('/kirim-notifikasi', 'kirimNotifikasi')->name('home.kirim-notifikasi');
 });
+Route::get('/relawan', [RelawanController::class, 'index'])->name('front.volunteers.index');
+// Route BARU untuk Detail Relawan
+Route::get('/relawan/{id}', [RelawanController::class, 'show'])->name('front.volunteers.show');
+
+Route::get('/lokasi-pompa', [PompaController::class, 'index'])->name('front.pumps.index');
+
+// Route untuk Pos Pemadam
+Route::get('/pos-pemadam', [PosPemadamController::class, 'index'])->name('front.fire_stations.index');
 
 Route::get('/webpush/public-key', function () {
     return ['publicKey' => config('webpush.vapid.public_key')];

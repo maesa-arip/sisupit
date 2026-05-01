@@ -4,6 +4,7 @@ import DialogRelawanDetail from './DialogRelawanDetail';
 import DialogRelawanList from './DialogRelawanList';
 import HelpConfirmAlertDialog from './HelpConfirmAlertDialog';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import VolunteerAction from './VolunteerAction';
 
 export default function ReportCard({ report }) {
     const [showList, setShowList] = useState(false);
@@ -75,6 +76,7 @@ export default function ReportCard({ report }) {
                     <p className="text-sm leading-relaxed text-gray-700 dark:text-slate-300 line-clamp-3">
                         {report.description}
                     </p>
+                    
                 </div>
             </div>
 
