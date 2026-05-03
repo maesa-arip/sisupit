@@ -47,7 +47,7 @@ class DashboardController extends Controller
             ->select(['id', 'user_id', 'name', 'phone', 'title', 'description', 'address', 'location_lat', 'location_lng', 'photo', 'created_at'])
             ->latest('created_at')
             ->with(['user','helpers.user'])
-            ->get();
+            ->paginate(6);
 
 
         return inertia('Dashboard', [

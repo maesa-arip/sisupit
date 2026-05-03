@@ -61,6 +61,8 @@ class ReportController extends Controller
 
     public function store(ReportRequest $request): RedirectResponse
     {
+        // $user = User::role(['petugas','relawan'])->get();
+        // dd($user);
         try {
             $report = Report::create([
                 'user_id' => auth()->user()->id,
@@ -77,7 +79,7 @@ class ReportController extends Controller
             flashMessage(MessageType::CREATED->message('Laporan'));
 
             // Ambil user untuk dinotifikasi
-            $user = User::role(['petugas','relawan'])->get();
+            $user = User::role(['petugas','relawan'])->whereNot('id', auth()->user()->id)->get();
 
             // Kirim notifikasi jika ada user yang akan dikirimi (Best practice: gunakan queue)
             if ($user->isNotEmpty()) {

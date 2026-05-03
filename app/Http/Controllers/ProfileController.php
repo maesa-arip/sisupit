@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Traits\HasFile;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,6 +14,8 @@ use Inertia\Response;
 
 class ProfileController extends Controller
 {
+
+use HasFile;
     /**
      * Display the user's profile form.
      */
@@ -43,11 +46,18 @@ class ProfileController extends Controller
 
         $user = auth()->user();
 
+        // dd($request);
+
         // Simpan file jika ada
         if ($request->hasFile('ktp')) {
-            $this->upload_file($request, 'ktp', 'users');
-            // $this->update_file($request, $user, 'ktp', 'users');
+            // Tangkap path kembaliannya dan timpa ke array $data['ktp']
+            $data['ktp'] = $this->update_file($request, $user, 'ktp', 'users');
+        } else {
+            // Hapus ktp dari data jika tidak ada file, agar file lama tidak tertimpa null
+            unset($data['ktp']);
         }
+
+        $user->update($data);
 
         $user->update($data);
         // dd($request->validated());

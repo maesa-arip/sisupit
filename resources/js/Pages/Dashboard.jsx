@@ -2,6 +2,7 @@ import HeaderTitle from '@/Components/HeaderTitle';
 import IncompleteProfileDialog from '@/Components/IncompleteProfileDialog';
 import InstallPWAButton from '@/Components/InstallPWAButton';
 import ReportCard from '@/Components/ReportCard';
+import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import AppLayout from '@/Layouts/AppLayout';
 import { Link, router } from '@inertiajs/react';
@@ -12,13 +13,53 @@ import {
 	IconDashboard,
 	IconDroplet,
 	IconFiretruck,
-	IconUsers,
+	IconUsers,IconLoader2, IconRefresh
 } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 
 export default function Dashboard(props) {
 	const auth = props.auth.user;
 	const [showIncompleteDialog, setShowIncompleteDialog] = useState(false);
+	// Cek data array-nya
+    const initialReports = props.page_data?.reports?.data || [];
+    
+    // PERBAIKAN: Ambil dari links.next (sesuai log console Anda)
+    const initialNextPageUrl = props.page_data?.reports?.links?.next || null;
+
+    const [reports, setReports] = useState(initialReports); 
+    const [nextPageUrl, setNextPageUrl] = useState(initialNextPageUrl);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+	console.log('Data laporan awal (props):', props.page_data.reports);
+	console.log('Data laporan awal (state):', reports);
+	console.log('Next page URL:', nextPageUrl);
+	const handleLoadMore = () => {
+        if (!nextPageUrl) return;
+
+        setIsLoadingMore(true);
+
+        router.get(nextPageUrl, {}, {
+            preserveState: true,
+            preserveScroll: true,
+            only: ['page_data'], 
+            onSuccess: (page) => {
+                // Ambil data laporan baru
+                const newReports = page.props.page_data.reports.data;
+                
+                // PERBAIKAN: Ambil URL next baru dari links.next
+                const nextUrl = page.props.page_data.reports.links.next || null;
+
+                setReports((prevReports) => [...prevReports, ...newReports]);
+                setNextPageUrl(nextUrl); // Update state dengan URL halaman berikutnya
+                
+                setIsLoadingMore(false);
+            },
+            onError: () => {
+                setIsLoadingMore(false);
+                alert('Gagal memuat data tambahan.');
+            }
+        });
+    };
 
 	useEffect(() => {
 		if (!auth.phone) {
@@ -63,30 +104,8 @@ export default function Dashboard(props) {
 						Sisupit
 					</span>
 				</Link>
-				{/* <Dialog>
-                    <DialogTrigger asChild>
-                        <button className="flex flex-col items-center justify-center p-5 bg-white dark:bg-slate-900 rounded-[24px] border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
-                            <div className="flex items-center justify-center mb-3 text-blue-500 transition-transform duration-300 rounded-full w-14 h-14 bg-blue-50 dark:bg-blue-900/20 group-hover:scale-110">
-                                <IconDroplet size={28} />
-                            </div>
-                            <span className="text-sm font-bold leading-tight text-center text-gray-800 dark:text-slate-200">Lokasi Pompa<br/>Sisupit123</span>
-                        </button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-md rounded-[24px] dark:bg-slate-900 dark:border-slate-800">
-                        <DialogHeader>
-                            <DialogTitle className="dark:text-slate-100">Segera Hadir</DialogTitle>
-                            <DialogDescription className="dark:text-slate-400">Peta Lokasi Pompa Sisupit sedang dalam tahap pengembangan. Mohon bersabar.</DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter>
-                            <DialogTrigger asChild>
-                                <Button variant="outline" className="border-gray-300 rounded-xl dark:border-slate-700">Tutup</Button>
-                            </DialogTrigger>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog> */}
-
+				
 				{/* Menu Pos Damkar */}
-
 				<Link
 					href={route('front.fire_stations.index')}
 					className="group flex flex-col items-center justify-center rounded-[24px] border border-gray-100 bg-white p-5 shadow-sm outline-none transition-all hover:shadow-md focus-visible:ring-2 focus-visible:ring-amber-500 dark:border-slate-800 dark:bg-slate-900"
@@ -100,11 +119,11 @@ export default function Dashboard(props) {
 						Terdekat
 					</span>
 				</Link>
-                {/* TOMBOL DAFTAR PENGGUNA */}
-{/* Tambahkan col-span-2 di sini agar membentang penuh di bawah 2 tombol lainnya */}
-<Link href={route('front.volunteers.index')} className="block w-full col-span-2">
-    <Card className="overflow-hidden transition-all duration-300 border border-gray-100 shadow-sm cursor-pointer rounded-2xl dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 backdrop-blur-sm hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-700 group">
-        <CardContent className="flex flex-row items-center gap-4 p-4 flex-nowrap">
+				{/* TOMBOL DAFTAR PENGGUNA */}
+				{/* Tambahkan col-span-2 di sini agar membentang penuh di bawah 2 tombol lainnya */}
+				<Link href={route('front.volunteers.index')} className="block w-full col-span-2">
+					<Card className="overflow-hidden transition-all duration-300 border border-gray-100 shadow-sm cursor-pointer group rounded-2xl bg-white/80 backdrop-blur-sm hover:border-indigo-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/60 dark:hover:border-indigo-700">
+						<CardContent className="flex flex-row items-center gap-4 p-4 flex-nowrap">
 							{/* KIRI: Ikon Pengguna (Menggunakan warna Indigo/Ungu khas Admin) */}
 							<div className="flex items-center justify-center w-12 h-12 text-indigo-600 transition-transform border border-indigo-100 rounded-full shadow-inner shrink-0 bg-indigo-50 group-hover:scale-110 dark:border-indigo-800/50 dark:bg-indigo-900/30 dark:text-indigo-400">
 								<IconUsers className="w-6 h-6" />
@@ -127,9 +146,8 @@ export default function Dashboard(props) {
 								</div>
 							</div>
 						</CardContent>
-    </Card>
-</Link>
-				
+					</Card>
+				</Link>
 			</div>
 
 			{/* --- TOMBOL LAPOR --- */}
@@ -169,7 +187,7 @@ export default function Dashboard(props) {
 					</p>
 				</div>
 
-				{props.page_data.reports.length === 0 ? (
+				{reports.length === 0 ? (
 					<div className="flex flex-col items-center justify-center p-12 text-center border border-gray-200 border-dashed rounded-3xl bg-gray-50 dark:border-slate-800 dark:bg-slate-900/50">
 						<div className="p-4 mb-4 rounded-full bg-amber-100 dark:bg-amber-900/20">
 							<IconAlertCircle className="w-10 h-10 text-amber-500" />
@@ -180,17 +198,42 @@ export default function Dashboard(props) {
 						</p>
 					</div>
 				) : (
+					<>
 					<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-						{props.page_data.reports.map((report) => (
+						{reports.map((report) => (
 							<ReportCard key={report.id} report={report} onHelpClick={handleHelpClick} />
 						))}
 					</div>
+					{/* 5. TOMBOL LOAD MORE (Tampil hanya jika nextPageUrl tidak null) */}
+                        {nextPageUrl && (
+                            <div className="flex justify-center w-full pt-4 pb-8">
+                                <Button 
+                                    variant="outline" 
+                                    onClick={handleLoadMore} 
+                                    disabled={isLoadingMore}
+                                    className="flex items-center gap-2 px-6 font-bold transition-all border-gray-200 h-11 rounded-xl text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:border-slate-800 dark:text-amber-500 dark:hover:bg-amber-900/20"
+                                >
+                                    {isLoadingMore ? (
+                                        <>
+                                            <IconLoader2 className="w-5 h-5 animate-spin" />
+                                            Memuat Data...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <IconRefresh className="w-5 h-5" />
+                                            Muat Lebih Banyak
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        )}
+					</>
 				)}
 			</div>
 
-			<div className="mt-4">
+			{/* <div className="mt-4">
 				<InstallPWAButton />
-			</div>
+			</div> */}
 		</div>
 	);
 }

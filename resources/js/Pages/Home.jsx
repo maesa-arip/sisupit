@@ -6,7 +6,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/Components/ui/dialog';
 import AppLayout from '@/Layouts/AppLayout';
 import { Link } from '@inertiajs/react';
-import { IconBell, IconBellRinging, IconDashboard, IconDroplet, IconFiretruck, IconNews } from '@tabler/icons-react';
+import { IconBell, IconBellRinging, IconDashboard, IconDroplet, IconFiretruck, IconNews,IconUsers,IconChevronRight } from '@tabler/icons-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { useRef } from 'react';
 
@@ -30,54 +30,67 @@ export default function Home(props) {
 						</div>
 			
 			
-						{/* --- MENU GRID QUICK ACTIONS --- */}
 						<div className="grid grid-cols-2 gap-4 mt-2 mb-4">
-							{/* Menu Pompa Sisupit */}
-							<Dialog>
-								<DialogTrigger asChild>
-									<button className="flex flex-col items-center justify-center p-5 bg-white dark:bg-slate-900 rounded-[24px] border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
-										<div className="flex items-center justify-center mb-3 text-blue-500 transition-transform duration-300 rounded-full w-14 h-14 bg-blue-50 dark:bg-blue-900/20 group-hover:scale-110">
-											<IconDroplet size={28} />
-										</div>
-										<span className="text-sm font-bold leading-tight text-center text-gray-800 dark:text-slate-200">Lokasi Pompa<br/>Sisupit</span>
-									</button>
-								</DialogTrigger>
-								<DialogContent className="max-w-md rounded-[24px] dark:bg-slate-900 dark:border-slate-800">
-									<DialogHeader>
-										<DialogTitle className="dark:text-slate-100">Segera Hadir</DialogTitle>
-										<DialogDescription className="dark:text-slate-400">Peta Lokasi Pompa Sisupit sedang dalam tahap pengembangan. Mohon bersabar.</DialogDescription>
-									</DialogHeader>
-									<DialogFooter>
-										<DialogTrigger asChild>
-											<Button variant="outline" className="border-gray-300 rounded-xl dark:border-slate-700">Tutup</Button>
-										</DialogTrigger>
-									</DialogFooter>
-								</DialogContent>
-							</Dialog>
-			
-							{/* Menu Pos Damkar */}
-							<Dialog>
-								<DialogTrigger asChild>
-									<button className="flex flex-col items-center justify-center p-5 bg-white dark:bg-slate-900 rounded-[24px] border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
-										<div className="flex items-center justify-center mb-3 text-red-500 transition-transform duration-300 rounded-full w-14 h-14 bg-red-50 dark:bg-red-900/20 group-hover:scale-110">
-											<IconFiretruck size={28} />
-										</div>
-										<span className="text-sm font-bold leading-tight text-center text-gray-800 dark:text-slate-200">Pos Damkar<br/>Terdekat</span>
-									</button>
-								</DialogTrigger>
-								<DialogContent className="max-w-md rounded-[24px] dark:bg-slate-900 dark:border-slate-800">
-									<DialogHeader>
-										<DialogTitle className="dark:text-slate-100">Segera Hadir</DialogTitle>
-										<DialogDescription className="dark:text-slate-400">Fitur pelacakan Pos Damkar terdekat sedang diproses.</DialogDescription>
-									</DialogHeader>
-									<DialogFooter>
-										<DialogTrigger asChild>
-											<Button variant="outline" className="border-gray-300 rounded-xl dark:border-slate-700">Tutup</Button>
-										</DialogTrigger>
-									</DialogFooter>
-								</DialogContent>
-							</Dialog>
-						</div>
+				{/* Menu Pompa Sisupit */}
+
+				<Link
+					href={route('front.pumps.index')}
+					className="group flex flex-col items-center justify-center rounded-[24px] border border-gray-100 bg-white p-5 shadow-sm outline-none transition-all hover:shadow-md focus-visible:ring-2 focus-visible:ring-amber-500 dark:border-slate-800 dark:bg-slate-900"
+				>
+					<div className="flex items-center justify-center mb-3 text-blue-500 transition-transform duration-300 rounded-full h-14 w-14 bg-blue-50 group-hover:scale-110 dark:bg-blue-900/20">
+						<IconDroplet size={28} />
+					</div>
+					<span className="text-sm font-bold leading-tight text-center text-gray-800 dark:text-slate-200">
+						Lokasi Pompa
+						<br />
+						Sisupit
+					</span>
+				</Link>
+				
+				{/* Menu Pos Damkar */}
+				<Link
+					href={route('front.fire_stations.index')}
+					className="group flex flex-col items-center justify-center rounded-[24px] border border-gray-100 bg-white p-5 shadow-sm outline-none transition-all hover:shadow-md focus-visible:ring-2 focus-visible:ring-amber-500 dark:border-slate-800 dark:bg-slate-900"
+				>
+					<div className="flex items-center justify-center mb-3 text-red-500 transition-transform duration-300 rounded-full h-14 w-14 bg-red-50 group-hover:scale-110 dark:bg-red-900/20">
+						<IconFiretruck size={28} />
+					</div>
+					<span className="text-sm font-bold leading-tight text-center text-gray-800 dark:text-slate-200">
+						Pos Damkar
+						<br />
+						Terdekat
+					</span>
+				</Link>
+				{/* TOMBOL DAFTAR PENGGUNA */}
+				{/* Tambahkan col-span-2 di sini agar membentang penuh di bawah 2 tombol lainnya */}
+				<Link href={route('front.volunteers.index')} className="block w-full col-span-2">
+					<Card className="overflow-hidden transition-all duration-300 border border-gray-100 shadow-sm cursor-pointer group rounded-2xl bg-white/80 backdrop-blur-sm hover:border-indigo-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/60 dark:hover:border-indigo-700">
+						<CardContent className="flex flex-row items-center gap-4 p-4 flex-nowrap">
+							{/* KIRI: Ikon Pengguna (Menggunakan warna Indigo/Ungu khas Admin) */}
+							<div className="flex items-center justify-center w-12 h-12 text-indigo-600 transition-transform border border-indigo-100 rounded-full shadow-inner shrink-0 bg-indigo-50 group-hover:scale-110 dark:border-indigo-800/50 dark:bg-indigo-900/30 dark:text-indigo-400">
+								<IconUsers className="w-6 h-6" />
+							</div>
+
+							{/* TENGAH: Teks & Keterangan */}
+							<div className="flex-1 w-full min-w-0 py-1">
+								<h3 className="truncate text-[15px] font-bold text-gray-900 transition-colors group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">
+									Daftar Pengguna
+								</h3>
+								<p className="mt-0.5 truncate text-[13px] text-gray-500 dark:text-slate-400">
+									Kelola data admin, relawan, dan hak akses.
+								</p>
+							</div>
+
+							{/* KANAN: Ikon Panah (Indikator bisa di-klik) */}
+							<div className="flex flex-col items-end justify-center shrink-0">
+								<div className="flex items-center justify-center w-8 h-8 text-gray-400 transition-colors rounded-full bg-gray-50 group-hover:bg-indigo-50 group-hover:text-indigo-600 dark:bg-slate-800 dark:group-hover:bg-indigo-900/30 dark:group-hover:text-indigo-400">
+									<IconChevronRight className="w-5 h-5" />
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+				</Link>
+			</div>
 			
 						{/* --- TOMBOL LAPOR --- */}
 						<div className="flex justify-center w-full">
