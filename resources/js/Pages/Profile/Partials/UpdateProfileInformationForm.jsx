@@ -65,9 +65,10 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 		<Card className={`overflow-hidden border-gray-200 shadow-sm dark:border-slate-800 ${className}`}>
 			<CardHeader className="pb-6 border-b border-gray-100 bg-gray-50/50 dark:border-slate-800 dark:bg-slate-800/20">
 				<div className="flex items-center gap-3">
-					<div className="rounded-xl bg-amber-100 p-2.5 text-amber-600 dark:bg-amber-500/20 dark:text-amber-500">
-						<IconUserEdit size={24} stroke={1.5} />
-					</div>
+					{/* REVISI: Ikon menjadi Biru */}
+        <div className="rounded-xl bg-blue-100 p-2.5 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400">
+            <IconUserEdit size={24} stroke={1.5} />
+        </div>
 					<div>
 						<CardTitle className="text-xl">Informasi Profil</CardTitle>
 						<CardDescription className="mt-1.5">
@@ -88,7 +89,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 								value={data.name}
 								onChange={onHandleChange}
 								autoComplete="name"
-								className="focus-visible:ring-amber-500 dark:bg-slate-900"
+								className="focus-visible:ring-blue-500 dark:bg-slate-900"
 							/>
 							{errors.name && <InputError message={errors.name} />}
 						</div>
@@ -101,7 +102,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 								value={data.email}
 								onChange={onHandleChange}
 								autoComplete="email"
-								className="focus-visible:ring-amber-500 dark:bg-slate-900"
+								className="focus-visible:ring-blue-500 dark:bg-slate-900"
 							/>
 							{errors.email && <InputError message={errors.email} />}
 						</div>
@@ -114,7 +115,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 								value={data.phone}
 								onChange={onHandleChange}
 								autoComplete="phone"
-								className="focus-visible:ring-amber-500 dark:bg-slate-900"
+								className="focus-visible:ring-blue-500 dark:bg-slate-900"
 							/>
 							{errors.phone && <InputError message={errors.phone} />}
 						</div>
@@ -123,26 +124,37 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
                                 <IconCamera className="w-4 h-4" /> Dokumen KTP (Opsional)
                             </Label>
                             
-                            {/* 3. LOGIKA PREVIEW TERBAIK */}
-                            {/* Tampilkan jika ada preview baru ATAU jika user sudah punya KTP di DB */}
-                            {(previewUrl || user.ktp) && (
+                            
+                            {/* {(previewUrl || user.ktp) && (
                                 <div className="relative inline-block mb-4">
                                     <img
-                                        // Prioritaskan previewUrl (file baru), jika tidak ada tampilkan user.ktp (file lama)
-                                        // src={previewUrl ? previewUrl : `/storage/${user.ktp}`}
                                         src={previewUrl ? previewUrl : `${user.ktp}`}
                                         alt="Preview KTP"
-                                        className={`object-cover h-32 border shadow-sm w-44 rounded-xl ${previewUrl ? 'border-amber-400 ring-2 ring-amber-400/50' : 'border-gray-200 dark:border-slate-700'}`}
+                                        className={`object-cover h-32 border shadow-sm w-44 rounded-xl ${previewUrl ? 'border-blue-400 ring-2 ring-blue-400/50' : 'border-gray-200 dark:border-slate-700'}`}
                                     />
-                                    
-                                    {/* Badge Indikator agar user tahu ini belum tersimpan */}
                                     {previewUrl && (
-                                        <span className="absolute top-2 left-2 rounded-md bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+                                        <span className="absolute top-2 left-2 rounded-md bg-blue-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
                                             File Baru Terpilih
                                         </span>
                                     )}
                                 </div>
-                            )}
+                            )} */}
+{(previewUrl || user.ktp) && (
+    <div className="relative inline-block mb-4 group">
+        <img
+            // REVISI: Pastikan menambahkan /storage/ untuk file yang diupload ke server lokal
+            src={previewUrl ? previewUrl : (user.ktp.startsWith('http') ? user.ktp : `/storage/${user.ktp}`)}
+            alt="Preview KTP"
+            className={`object-cover h-32 border shadow-sm w-44 rounded-xl transition-all ${previewUrl ? 'border-blue-400 ring-2 ring-blue-400/50' : 'border-gray-200 dark:border-slate-700'}`}
+        />
+        
+        {previewUrl && (
+            <span className="absolute top-2 left-2 rounded-md bg-blue-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm animate-pulse">
+    File Baru
+</span>
+        )}
+    </div>
+)}
 
                             <div className="relative">
                                 <Input
@@ -152,44 +164,24 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
                                     accept="image/*"
                                     ref={fileInputKTP}
                                     onChange={onHandleChange}
-                                    className="h-12 cursor-pointer rounded-xl pt-2.5 file:mr-4 file:cursor-pointer file:rounded-md file:border-0 file:bg-amber-100 file:px-4 file:py-1 file:text-xs file:font-bold file:text-amber-700 focus-visible:ring-amber-500 dark:bg-slate-900 dark:file:bg-amber-900/30 dark:file:text-amber-400"
+                                    className="h-12 cursor-pointer rounded-xl pt-2.5 file:mr-4 file:cursor-pointer file:rounded-md file:border-0 file:bg-blue-100 file:px-4 file:py-1 file:text-xs file:font-bold file:text-blue-700 focus-visible:ring-blue-500 dark:bg-slate-900 dark:file:bg-blue-900/30 dark:file:text-blue-400"
                                 />
                             </div>
                             {errors.ktp && <InputError message={errors.ktp} />}
                         </div>
 
-						{/* <div className="space-y-2">
-                            <Label htmlFor="ktp">Dokumen KTP (Opsional)</Label>
-                            {user.ktp && (
-                                <div className="mb-4">
-                                    <img 
-                                        src={`${user.ktp}`} 
-                                        alt="Preview KTP" 
-                                        className="object-cover h-32 border border-gray-200 shadow-sm w-44 rounded-xl dark:border-slate-700"
-                                    />
-                                </div>
-                            )}
-                            <Input
-                                name="ktp"
-                                id="ktp"
-                                type="file"
-                                ref={fileInputKTP}
-                                onChange={onHandleChange}
-                                className="cursor-pointer file:text-amber-700 file:bg-amber-50 file:border-0 file:rounded-md file:px-3 file:py-1 file:mr-4 file:font-medium dark:file:bg-amber-500/20 dark:file:text-amber-400 focus-visible:ring-amber-500 dark:bg-slate-900"
-                            />
-                            {errors.ktp && <InputError message={errors.ktp} />}
-                        </div> */}
+						
 					</div>
 
 					{mustVerifyEmail && user.email_verified_at === null && (
-						<div className="p-4 mt-4 border rounded-xl border-amber-200 bg-amber-50 dark:border-amber-900/30 dark:bg-amber-900/10">
-							<p className="text-sm text-amber-800 dark:text-amber-300">
+						<div className="p-4 mt-4 border border-blue-200 rounded-xl bg-blue-50 dark:border-blue-900/30 dark:bg-blue-900/10">
+							<p className="text-sm text-blue-800 dark:text-blue-300">
 								Alamat email Anda belum diverifikasi.
 								<Link
 									href={route('verification.send')}
 									method="post"
 									as="button"
-									className="ml-2 font-semibold underline rounded-md hover:text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:hover:text-amber-100 dark:focus:ring-offset-slate-900"
+									className="ml-2 font-semibold underline rounded-md hover:text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:hover:text-blue-100 dark:focus:ring-offset-slate-900"
 								>
 									Klik di sini untuk mengirim ulang email verifikasi.
 								</Link>
@@ -207,7 +199,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 
 					<div className="flex items-center gap-4 pt-2">
 						<Button
-							className="px-8 text-white rounded-xl bg-amber-600 hover:bg-amber-700"
+							className="px-8 text-white bg-blue-600 rounded-xl hover:bg-blue-700"
 							disabled={processing}
 						>
 							Simpan Perubahan
@@ -222,8 +214,8 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 							leaveFrom="opacity-100"
 							leaveTo="opacity-0"
 						>
-							<p className="flex items-center gap-1.5 text-sm font-medium text-amber-600 dark:text-amber-500">
-								<span className="w-2 h-2 rounded-full animate-pulse bg-amber-500"></span>
+							<p className="flex items-center gap-1.5 text-sm font-medium text-blue-600 dark:text-blue-500">
+								<span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
 								Tersimpan.
 							</p>
 						</Transition>

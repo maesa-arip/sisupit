@@ -7,47 +7,87 @@ export default function MobileBottomNav({ url, auth }) {
         return url.startsWith(path);
     };
 
-    const navItems = [
-        { name: 'Beranda', href: route('dashboard'), icon: IconHome, active: isActive('/dashboard') },
-        { name: 'Darurat', href: route('front.reports.create'), icon: IconAlertTriangle, active: isActive('/reports/create') },
-        { name: auth?.name ? 'Profil' : 'Masuk', href: auth?.name ? route('profile.edit') : route('login'), icon: auth?.name ? IconUser : IconLogin2, active: auth?.name ? isActive('/profile') : isActive('/login') }
-    ];
-
     return (
-        <div className="fixed bottom-6 left-0 right-0 z-[60] flex justify-center px-4 pointer-events-none lg:hidden">
-            <div className="pointer-events-auto w-full max-w-[360px] bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border border-gray-200 dark:border-slate-600 rounded-full shadow-[0_15px_40px_-5px_rgba(0,0,0,0.15)] dark:shadow-[0_10px_40px_-10px_rgba(0,0,0,0.8)] p-1.5">
-                <div className="flex items-center justify-between w-full gap-1">
-                    {navItems.map((item, index) => {
-                        const Icon = item.icon;
-                        const isDarurat = item.name === 'Darurat';
+        // Gunakan pb-[env(safe-area-inset-bottom)] agar tidak tertutup garis home iPhone
+        <div className="fixed bottom-0 left-0 right-0 z-[60] pb-[env(safe-area-inset-bottom)] lg:hidden">
+            <div className="relative flex items-center justify-between w-full h-16 px-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-t border-gray-200 dark:border-slate-800 shadow-[0_-5px_20px_rgba(0,0,0,0.05)] dark:shadow-[0_-5px_20px_rgba(0,0,0,0.4)]">
+                
+                {/* KIRI: Beranda */}
+                <Link 
+                    href={route('dashboard')} 
+                    className="flex flex-col items-center justify-center flex-1 gap-1 outline-none group"
+                >
+                    <IconHome 
+                        size={24} 
+                        stroke={isActive('/dashboard') ? 2.5 : 1.5} 
+                        className={`transition-colors duration-200 ${
+                            isActive('/dashboard') 
+                            ? 'text-blue-600 dark:text-blue-400' 
+                            : 'text-gray-400 group-hover:text-gray-600 dark:text-slate-500 dark:group-hover:text-slate-300'
+                        }`} 
+                    />
+                    <span className={`text-[10px] font-semibold transition-colors duration-200 ${
+                        isActive('/dashboard') 
+                        ? 'text-blue-600 dark:text-blue-400' 
+                        : 'text-gray-400 group-hover:text-gray-600 dark:text-slate-500 dark:group-hover:text-slate-300'
+                    }`}>
+                        Beranda
+                    </span>
+                </Link>
 
-                        return (
-                            <Link 
-                                key={index} 
-                                href={item.href} 
-                                /* PERBAIKAN: flex-1 membuat semua item punya ruang yang sama besar, jadi lebarnya tidak ikut panjang teks */
-                                className={`relative flex items-center justify-center outline-none group flex-1`}
-                            >
-                                <div className={`flex w-full items-center justify-center gap-2 px-2 py-3 rounded-full transition-all duration-500 ease-out ${
-                                    item.active 
-                                        ? (isDarurat ? 'bg-red-500 text-white shadow-md shadow-red-500/20' : 'bg-amber-500 text-white shadow-md shadow-amber-500/20') 
-                                        : 'bg-transparent text-gray-500 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700'
-                                }`}>
-                                    <div className="relative flex items-center justify-center shrink-0">
-                                        <Icon 
-                                            className={`transition-all duration-500 ${!item.active && (isDarurat ? 'group-hover:text-red-500 group-hover:scale-105' : 'group-hover:text-amber-600 dark:group-hover:text-amber-400 group-hover:scale-105')}`} 
-                                            stroke={item.active ? 2.5 : 1.5} 
-                                            size={22} 
-                                        />
-                                    </div>
-                                    <div className={`overflow-hidden transition-all duration-500 ease-in-out flex items-center justify-center ${item.active ? 'max-w-[100px] opacity-100' : 'max-w-0 opacity-0'}`}>
-                                        <span className="text-[13px] font-bold tracking-wide whitespace-nowrap">{item.name}</span>
-                                    </div>
-                                </div>
-                            </Link>
-                        );
-                    })}
+                {/* TENGAH: TOMBOL DARURAT (Center Prominent Button) */}
+                <div className="relative flex justify-center flex-1">
+                    <Link 
+                        href={route('front.reports.create')}
+                        className="absolute flex flex-col items-center justify-center w-16 h-16 transition-transform duration-300 border-[4px] border-white dark:border-slate-900 rounded-full shadow-lg outline-none bg-gradient-to-br from-red-500 to-rose-600 dark:from-red-600 dark:to-rose-800 -top-8 hover:scale-105 hover:shadow-red-500/40 focus:ring-4 focus:ring-red-500/30"
+                    >
+                        <IconAlertTriangle 
+                            size={28} 
+                            stroke={2.5} 
+                            className="text-white" 
+                        />
+                        {/* Opsional: Jika ingin teks 'Lapor' di dalam/bawah tombol tengah */}
+                        <span className="text-[9px] font-bold text-white uppercase tracking-wider mt-0.5">
+                            Lapor
+                        </span>
+                    </Link>
                 </div>
+
+                {/* KANAN: Profil / Masuk */}
+                <Link 
+                    href={auth?.name ? route('profile.edit') : route('login')} 
+                    className="flex flex-col items-center justify-center flex-1 gap-1 outline-none group"
+                >
+                    {auth?.name ? (
+                        <IconUser 
+                            size={24} 
+                            stroke={isActive('/profile') ? 2.5 : 1.5} 
+                            className={`transition-colors duration-200 ${
+                                isActive('/profile') 
+                                ? 'text-blue-600 dark:text-blue-400' 
+                                : 'text-gray-400 group-hover:text-gray-600 dark:text-slate-500 dark:group-hover:text-slate-300'
+                            }`} 
+                        />
+                    ) : (
+                        <IconLogin2 
+                            size={24} 
+                            stroke={isActive('/login') ? 2.5 : 1.5} 
+                            className={`transition-colors duration-200 ${
+                                isActive('/login') 
+                                ? 'text-blue-600 dark:text-blue-400' 
+                                : 'text-gray-400 group-hover:text-gray-600 dark:text-slate-500 dark:group-hover:text-slate-300'
+                            }`} 
+                        />
+                    )}
+                    <span className={`text-[10px] font-semibold transition-colors duration-200 ${
+                        isActive('/profile') || isActive('/login')
+                        ? 'text-blue-600 dark:text-blue-400' 
+                        : 'text-gray-400 group-hover:text-gray-600 dark:text-slate-500 dark:group-hover:text-slate-300'
+                    }`}>
+                        {auth?.name ? 'Profil' : 'Masuk'}
+                    </span>
+                </Link>
+
             </div>
         </div>
     );

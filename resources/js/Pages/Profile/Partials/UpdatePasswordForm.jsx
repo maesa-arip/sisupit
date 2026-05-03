@@ -42,9 +42,9 @@ export default function UpdatePasswordForm({ className = '' }) {
         <Card className={`overflow-hidden border-gray-200 dark:border-slate-800 shadow-sm ${className}`}>
             <CardHeader className="pb-6 border-b border-gray-100 bg-gray-50/50 dark:bg-slate-800/20 dark:border-slate-800">
                 <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-500 rounded-xl">
-                        <IconLock size={24} stroke={1.5} />
-                    </div>
+                    <div className="p-2.5 bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 rounded-xl">
+            <IconLock size={24} stroke={1.5} />
+        </div>
                     <div>
                         <CardTitle className="text-xl">Keamanan Kata Sandi</CardTitle>
                         <CardDescription className="mt-1.5">
@@ -66,7 +66,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                             onChange={onHandleChange}
                             type="password"
                             autoComplete="current-password"
-                            className="focus-visible:ring-amber-500 dark:bg-slate-900"
+                            className="focus-visible:ring-blue-500 dark:bg-slate-900"
                         />
                         {errors.current_password && (
                             <InputError message={errors.current_password} />
@@ -83,7 +83,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                             onChange={onHandleChange}
                             type="password"
                             autoComplete="new-password"
-                            className="focus-visible:ring-amber-500 dark:bg-slate-900"
+                            className="focus-visible:ring-blue-500 dark:bg-slate-900"
                         />
                         {errors.password && (
                             <InputError message={errors.password} />
@@ -99,7 +99,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                             onChange={onHandleChange}
                             type="password"
                             autoComplete="new-password"
-                            className="focus-visible:ring-amber-500 dark:bg-slate-900"
+                            className="focus-visible:ring-blue-500 dark:bg-slate-900"
                         />
                         {errors.password_confirmation && (
                             <InputError message={errors.password_confirmation} />
@@ -108,7 +108,7 @@ export default function UpdatePasswordForm({ className = '' }) {
 
                     <div className="flex items-center gap-4 pt-2">
                         <Button 
-                            className="px-8 text-white bg-amber-600 hover:bg-amber-700 rounded-xl" 
+                            className="px-8 text-white bg-blue-600 hover:bg-blue-700 rounded-xl" 
                             disabled={processing}
                         >
                             Perbarui Kata Sandi
@@ -123,8 +123,8 @@ export default function UpdatePasswordForm({ className = '' }) {
                             leaveFrom="opacity-100"
                             leaveTo="opacity-0"
                         >
-                            <p className="text-sm font-medium text-amber-600 dark:text-amber-500 flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                            <p className="text-sm font-medium text-blue-600 dark:text-blue-500 flex items-center gap-1.5">
+                                <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
                                 Tersimpan.
                             </p>
                         </Transition>

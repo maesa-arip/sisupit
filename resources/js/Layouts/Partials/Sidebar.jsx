@@ -39,7 +39,7 @@ export default function Sidebar({ url, auth }) {
     const SidebarButton = ({ icon: Icon, children, ...props }) => (
         <Button
             variant="ghost"
-            className="justify-start w-full h-auto gap-3 px-3 py-2.5 font-medium text-left transition-colors rounded-xl text-gray-700 dark:text-slate-300 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-slate-800 dark:hover:text-amber-400 outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+            className="justify-start w-full h-auto gap-3 px-3 py-2.5 font-medium text-left transition-colors rounded-xl text-gray-700 dark:text-slate-300 hover:text-red-600 hover:bg-red-50 dark:hover:bg-slate-800 dark:hover:text-red-400 outline-none focus-visible:ring-2 focus-visible:ring-red-500"
             {...props}
         >
             <Icon className="w-5 h-5 shrink-0" />
