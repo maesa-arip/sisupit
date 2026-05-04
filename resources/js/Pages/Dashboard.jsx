@@ -91,8 +91,8 @@ export default function Dashboard(props) {
 			<div className="flex flex-col items-start justify-between lg:flex-row lg:items-center">
 				<HeaderTitle
 					title={props.page_settings.title}
-					subtitle={props.page_settings.subtitle}
-					icon={IconDashboard}
+					// subtitle={props.page_settings.subtitle}
+					icon={IconFiretruck}
 				/>
 			</div>
 

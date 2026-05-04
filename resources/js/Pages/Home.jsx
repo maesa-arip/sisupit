@@ -33,9 +33,8 @@ export default function Home(props) {
             <div className="flex flex-col items-start justify-between gap-3 lg:flex-row lg:items-center">
                 <HeaderTitle
                     title={props.page_settings.title}
-                    subtitle={props.page_settings.subtitle}
-                    icon={IconDashboard}
-                />
+                    // subtitle={props.page_settings.subtitle}
+                    icon={IconFiretruck}               />
                 
                 {/* REVISI: Indikator Sistem Online (Memberikan rasa aman pada warga) */}
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-full dark:bg-emerald-950/30 dark:border-emerald-900/50 w-fit">

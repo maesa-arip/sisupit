@@ -62,7 +62,7 @@ class RelawanController extends Controller
         $volunteers->getCollection()->transform(function ($user) {
             return [
                 'id'     => $user->id,
-                'name   '  => $user->name,
+                'name'   => $user->name,
                 // Format area dengan ternary agar aman jika datanya kosong
                 'area'   => ($user->kecamatan && $user->kabupaten) 
                             ? "Kec. {$user->kecamatan}, {$user->kabupaten}" 
