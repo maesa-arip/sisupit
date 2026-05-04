@@ -41,9 +41,9 @@ export default function Edit(props) {
         <div className="relative w-full pb-32">
             
             {/* REVISI: Latar Belakang Ambient diubah ke Blue (Menyejukkan/Aman) */}
-            <div className="absolute inset-x-0 top-0 h-[400px] overflow-hidden pointer-events-none -z-10">
+            {/* <div className="absolute inset-x-0 top-0 h-[400px] overflow-hidden pointer-events-none -z-10">
                 <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-blue-500/10 dark:bg-blue-500/5 rounded-full blur-[100px]"></div>
-            </div>
+            </div> */}
 
             <div className="relative z-10 flex flex-col w-full max-w-3xl mx-auto space-y-6">
                 

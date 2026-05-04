@@ -43,7 +43,9 @@ export default function HelpConfirmAlertDialog({ reportId, isAlreadyHelping = fa
           toast.success("Berhasil! Terima kasih atas bantuan Anda.");
           setHasHelped(true); // Ubah tombol menjadi warna hijau
           setIsOpen(false);   // Tutup dialog setelah sukses
-          onSuccess?.();
+          if (onSuccess) {
+                    onSuccess();
+                }
         } catch (error) {
           if (error.response?.status === 409) {
             toast.warning("Anda sudah terdaftar sebagai relawan di kejadian ini.");

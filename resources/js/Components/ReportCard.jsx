@@ -6,7 +6,7 @@ import HelpConfirmAlertDialog from './HelpConfirmAlertDialog';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 // import VolunteerAction from './VolunteerAction'; // Pastikan jika tidak dipakai dihapus saja
 
-export default function ReportCard({ report, currentUser }) {
+export default function ReportCard({ report, currentUser, onSuccess }) {
     const [showList, setShowList] = useState(false);
     const [selectedHelper, setSelectedHelper] = useState(null);
     const [showImage, setShowImage] = useState(false);
@@ -144,6 +144,7 @@ export default function ReportCard({ report, currentUser }) {
                             <HelpConfirmAlertDialog 
                                 reportId={report.id} 
                                 className="flex items-center justify-center w-full text-sm font-bold text-white transition-colors bg-blue-600 shadow-md h-11 rounded-xl hover:bg-blue-700 focus:ring-4 focus:ring-blue-500/30" 
+                                onSuccess={onSuccess}
                             />
                         )}
                     </div>

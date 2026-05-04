@@ -286,7 +286,7 @@ export default function Create(props) {
                                     disabled={processing || locationLoading}
                                 >
                                     {processing ? <IconLoader2 className="w-6 h-6 animate-spin" /> : <IconSend className="w-6 h-6" />}
-                                    KIRIM LAPORAN SEKARANG
+                                    Kirim Laporan
                                 </Button>
                             </div>
                             

@@ -62,7 +62,7 @@ export default function Index({ pumps, filters, ...props }) {
 	return (
 		<div className="relative flex flex-col w-full pb-32 space-y-6">
 			<div className="absolute top-0 left-0 right-0 flex justify-center w-full pointer-events-none -z-10">
-				<div className="-mt-10 h-[300px] w-[80vw] max-w-[600px] rounded-[100%] bg-amber-500/10 blur-[80px] dark:bg-amber-500/5"></div>
+				<div className="-mt-10 h-[300px] w-[80vw] max-w-[600px] rounded-[100%] bg-blue-500/10 blur-[80px] dark:bg-blue-500/5"></div>
 			</div>
 
 			<div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
@@ -101,7 +101,7 @@ export default function Index({ pumps, filters, ...props }) {
 									<Input
 										type="text"
 										placeholder="Cari nama area atau jalan..."
-										className="w-full h-12 bg-white border-gray-200 rounded-xl pl-11 focus-visible:ring-amber-500 dark:border-slate-800 dark:bg-slate-900"
+										className="w-full h-12 bg-white border-gray-200 rounded-xl pl-11 focus-visible:ring-blue-500 dark:border-slate-800 dark:bg-slate-900"
 										value={data.search}
 										onChange={(e) => setData('search', e.target.value)}
 									/>
@@ -110,7 +110,7 @@ export default function Index({ pumps, filters, ...props }) {
 								<div className="flex gap-2 pb-1 overflow-x-auto scrollbar-hide">
 									<button
 										type="button"
-										className="px-4 py-2 text-xs font-bold text-white rounded-lg shadow-sm whitespace-nowrap bg-amber-600"
+										className="px-4 py-2 text-xs font-bold text-white bg-blue-600 rounded-lg shadow-sm whitespace-nowrap"
 									>
 										Semua
 									</button>
@@ -137,7 +137,7 @@ export default function Index({ pumps, filters, ...props }) {
 							pumps.data.map((pump) => (
 								<Card
 									key={pump.id}
-									className="overflow-hidden transition-all duration-300 border border-gray-100 shadow-sm cursor-pointer group shrink-0 rounded-2xl bg-white/80 backdrop-blur-sm hover:border-amber-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/60 dark:hover:border-amber-700"
+									className="overflow-hidden transition-all duration-300 border border-gray-100 shadow-sm cursor-pointer group shrink-0 rounded-2xl bg-white/80 backdrop-blur-sm hover:border-blue-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/60 dark:hover:border-blue-700"
 								>
 									<CardContent className="flex flex-row items-center gap-3 p-3 flex-nowrap sm:gap-4 sm:p-4">
 										{/* KIRI: Ikon */}
@@ -157,7 +157,7 @@ export default function Index({ pumps, filters, ...props }) {
 
 										{/* TENGAH: Info Text */}
 										<div className="flex-1 w-full min-w-0 py-1">
-											<h3 className="truncate text-[14px] font-bold text-gray-900 transition-colors group-hover:text-amber-600 dark:text-slate-100 dark:group-hover:text-amber-400 sm:text-[15px]">
+											<h3 className="truncate text-[14px] font-bold text-gray-900 transition-colors group-hover:text-blue-600 dark:text-slate-100 dark:group-hover:text-blue-400 sm:text-[15px]">
 												{pump.name}
 											</h3>
 											<p className="mt-0.5 truncate text-[12px] text-gray-500 dark:text-slate-400 sm:text-[13px]">
@@ -216,7 +216,7 @@ export default function Index({ pumps, filters, ...props }) {
                     
                     {/* Header Peta (Sekarang di Luar Peta) */}
                     <div className="flex items-center gap-2 px-1">
-                        <IconMapPinFilled className="w-5 h-5 text-amber-500" />
+                        <IconMapPinFilled className="w-5 h-5 text-blue-500" />
                         <h2 className="text-[16px] font-bold text-gray-800 dark:text-slate-200">Sebaran Titik Pompa</h2>
                     </div>
 
