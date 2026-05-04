@@ -1,0 +1,6 @@
+import{j as e,$ as n}from"./app-3vmFlCVl.js";import{c as t}from"./button-C5k1O4y9.js";import{c as i}from"./createReactComponent-By3jzQz6.js";/**
+ * @license @tabler/icons-react v3.30.0 - MIT
+ *
+ * This source code is licensed under the MIT license.
+ * See the LICENSE file in the root directory of this source tree.
+ */var d=i("outline","inner-shadow-bottom-right","IconInnerShadowBottomRight",[["path",{d:"M12 21a9 9 0 1 1 0 -18a9 9 0 0 1 0 18z",key:"svg-0"}],["path",{d:"M18 12a6 6 0 0 1 -6 6",key:"svg-1"}]]);function m({url:r="/",size:a="size-7",isTitle:o=!0,className:s}){return e.jsxs(n,{href:r,className:t("flex items-center gap-3 outline-none group focus-visible:ring-2 focus-visible:ring-red-500 rounded-lg rounded-r-2xl",s),children:[e.jsx("div",{className:"flex items-center justify-center p-2.5 transition-all rounded-[14px] bg-gradient-to-br from-red-500 to-orange-600 shadow-sm group-hover:shadow-md group-hover:scale-105",children:e.jsx(d,{className:t("text-white",a),stroke:2.5})}),o&&e.jsxs("div",{className:"flex flex-col justify-center",children:[e.jsx("span",{className:"text-xl font-extrabold leading-none tracking-tight text-gray-900 dark:text-slate-100",children:"Sisupit"}),e.jsx("span",{className:"text-[10px] sm:text-[11px] font-bold text-red-600 dark:text-red-500 uppercase tracking-widest mt-1",children:"Pahlawan Sekitar"})]})]})}export{m as A};
