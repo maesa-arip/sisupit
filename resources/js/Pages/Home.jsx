@@ -22,13 +22,11 @@ export default function Home(props) {
     
     // Pastikan aman jika user belum login
     const auth = props.auth?.user ?? null;
-<<<<<<< HEAD
-    const isAdmin = auth && auth.role === 'admin'; 
-=======
+
     
    const userRoles = Array.isArray(auth?.role) ? auth.role : (auth?.role ? [auth.role] : []);
      const isAdmin = userRoles.includes('petugas') || userRoles.includes('admin');
->>>>>>> dev
+
 
     // Default 'true' agar tombol tersembunyi sepersekian detik awal untuk mencegah kedipan (layout shift)
     const [isWebView, setIsWebView] = useState(true); 
