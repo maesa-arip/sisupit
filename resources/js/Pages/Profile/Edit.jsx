@@ -24,7 +24,10 @@ export default function Edit(props) {
     const user = usePage().props.auth.user;
     const [openRelawan, setOpenRelawan] = useState(false);
 
-    const isVolunteer = user.role === 'volunteer' || user.role === 'admin';
+    const userRoles = Array.isArray(user?.role) ? user.role : (user?.role ? [user.role] : []);
+     const isVolunteer = userRoles.includes('relawan');
+     const isAdmin = userRoles.includes('petugas') || userRoles.includes('admin');
+     console.log('User Roles:', userRoles, 'Is Volunteer:', isVolunteer);
 
     const handleDaftarRelawan = () => {
         router.put(route('admin.relawan.update', { user: user.id }), {}, {
@@ -46,7 +49,7 @@ export default function Edit(props) {
                     <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
                         <div className="relative flex items-center justify-center w-20 h-20 text-3xl font-semibold text-gray-700 bg-gray-50 border border-[#e5e5e5] dark:bg-[#1f1f1f] dark:border-[#262626] dark:text-gray-300 rounded-full shrink-0">
                             {user.name?.[0]?.toUpperCase() ?? 'U'}
-                            {isVolunteer && (
+                            {isVolunteer || isAdmin && (
                                 <div className="absolute bottom-0 right-0 p-1 text-white bg-blue-600 border-2 border-white rounded-full dark:border-[#151515]">
                                     <IconShieldCheck size={14} stroke={2} />
                                 </div>
@@ -55,8 +58,8 @@ export default function Edit(props) {
                         <div className="flex flex-col items-center mt-2 text-center sm:items-start sm:text-left sm:mt-0">
                             <h2 className="text-xl font-semibold leading-tight text-gray-900 dark:text-gray-100">{user.name}</h2>
                             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{user.email}</p>
-                            <span className={`px-2.5 py-1 mt-2 text-[10px] font-semibold tracking-wider uppercase rounded-md border ${isVolunteer ? 'bg-blue-50 text-blue-600 border-blue-100 dark:bg-[#111e36] dark:text-[#60a5fa] dark:border-[#1e3a5f]' : 'bg-gray-50 text-gray-600 border-[#e5e5e5] dark:bg-[#1f1f1f] dark:text-gray-400 dark:border-[#262626]'}`}>
-                                {isVolunteer ? 'Relawan Aktif' : 'Anggota Masyarakat'}
+                            <span className={`px-2.5 py-1 mt-2 text-[10px] font-semibold tracking-wider uppercase rounded-md border ${isVolunteer ? 'bg-blue-50 text-blue-600 border-blue-100 dark:bg-[#111e36] dark:text-[#60a5fa] dark:border-[#1e3a5f]' : isAdmin ? 'bg-green-50 text-green-600 border-green-100 dark:bg-[#112a1d] dark:text-[#4ade80] dark:border-[#1e402c]' : 'bg-gray-50 text-gray-600 border-[#e5e5e5] dark:bg-[#1f1f1f] dark:text-gray-400 dark:border-[#262626]'}`}>
+                                {isVolunteer ? 'Relawan Aktif' : isAdmin ? 'Administrator' : 'Anggota Masyarakat'}
                             </span>
                         </div>
                     </div>
@@ -65,7 +68,7 @@ export default function Edit(props) {
                         href={route('logout')} 
                         method="post" 
                         as="button" 
-                        className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-[#b42826] dark:text-[#e54845] transition-colors outline-none border-red-200 bg-red-50 hover:bg-red-200 dark:hover:bg-[#2a1313] rounded-md focus-visible:ring-2 focus-visible:ring-[#b42826]/50"
+                        className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-[#b42826] transition-colors border border-red-100  bg-red-50 rounded-md hover:bg-red-100 dark:bg-[#2a1313] dark:border-[#4a1c1c] dark:text-[#e54845] dark:hover:bg-[#3f1919]"
                     >
                         <IconLogout size={16} stroke={2} /> 
                         Keluar
@@ -88,7 +91,7 @@ export default function Edit(props) {
                         <IconChevronRight className="w-5 h-5 text-gray-400 transition-colors dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
                     </Link>
 
-                    {!isVolunteer && (
+                    {!isVolunteer && !isAdmin && (
                         <div className="flex flex-col items-start justify-between gap-4 p-5 text-white bg-slate-800 dark:bg-[#101010] border border-slate-700 dark:border-[#262626] rounded-xl sm:p-6 sm:flex-row sm:items-center relative overflow-hidden">
                             <div className="relative z-10">
                                 <h3 className="flex items-center gap-2 text-base font-semibold">

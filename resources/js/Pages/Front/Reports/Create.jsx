@@ -28,7 +28,6 @@ export default function Create(props) {
     const [locationLoading, setLocationLoading] = useState(true);
     const [friendlyAddress, setFriendlyAddress] = useState('');
     
-    // State baru untuk preview foto
     const [previewUrl, setPreviewUrl] = useState(null);
     const fileInputPhoto = useRef(null);
 
@@ -121,7 +120,6 @@ export default function Create(props) {
     useEffect(() => {
         getUserLocation();
         
-        // Cleanup function untuk URL preview gambar demi mencegah memory leak
         return () => {
             if (previewUrl) URL.revokeObjectURL(previewUrl);
         };
@@ -129,7 +127,6 @@ export default function Create(props) {
 
     const onHandleChange = (e) => setData(e.target.name, e.target.value);
 
-    // Fungsi untuk menangani perubahan file foto & generate preview
     const handlePhotoChange = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -138,7 +135,6 @@ export default function Create(props) {
         }
     };
 
-    // Fungsi untuk menghapus foto yang sudah dipilih
     const removePhoto = () => {
         setData('photo', null);
         setPreviewUrl(null);
@@ -195,69 +191,66 @@ export default function Create(props) {
                             Kirim Laporan Darurat
                         </CardTitle>
                         <CardDescription className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                            Lokasi Anda dilacak secara otomatis. Silakan lengkapi detail kejadian di bawah.
+                            Mohon lengkapi formulir di bawah agar relawan dapat segera membantu Anda.
                         </CardDescription>
                     </CardHeader>
 
                     <CardContent className="p-5 sm:p-6">
                         <form className="space-y-6" onSubmit={onHandleSubmit}>
                             
-                            {/* --- BAGIAN LOKASI --- */}
-                            <div className="space-y-4">
-                                <h3 className="flex items-center gap-2 pb-2 text-xs font-semibold tracking-wider text-gray-900 uppercase border-b border-[#e5e5e5] dark:border-[#262626] dark:text-gray-100">
-                                    <IconMapPinFilled className="w-4 h-4 text-[#b42826] dark:text-[#e54845]" />
-                                    Deteksi Lokasi
-                                </h3>
-
-                                <div className="flex flex-col gap-3 rounded-lg border border-[#e5e5e5] bg-gray-50 p-4 dark:border-[#262626] dark:bg-[#101010]">
-                                    <div className="flex items-center justify-between px-1">
-                                        <div className="flex items-center gap-3">
-                                            {locationLoading ? (
-                                                <IconLoader2 className="w-5 h-5 text-blue-500 animate-spin" />
-                                            ) : userLocation ? (
-                                                <span className="flex items-center justify-center w-8 h-8 text-green-600 bg-green-100/50 rounded-md dark:bg-[#112a1d] dark:text-green-500 border border-green-200 dark:border-green-900/50">
-                                                    <IconMapPinFilled className="w-4 h-4" />
-                                                </span>
-                                            ) : (
-                                                <IconAlertTriangle className="w-5 h-5 text-[#b42826] dark:text-[#e54845]" />
-                                            )}
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                                    {locationLoading
-                                                        ? 'Mencari satelit GPS...'
-                                                        : userLocation
-                                                            ? 'Satelit Terkunci'
-                                                            : 'Gagal melacak lokasi'}
-                                                </p>
-                                                {friendlyAddress && (
-                                                    <p className="text-xs text-gray-500 truncate dark:text-gray-400 mt-0.5">
-                                                        {friendlyAddress}
-                                                    </p>
-                                                )}
-                                            </div>
+                            {/* --- BAGIAN LOKASI (Disederhanakan) --- */}
+                            <div className="space-y-3">
+                                {/* Header Lokasi & Status Digabung */}
+                                <div className="flex items-center gap-3 pb-1 border-b border-[#e5e5e5] dark:border-[#262626]">
+                                    {locationLoading ? (
+                                        <div className="flex items-center justify-center w-8 h-8 rounded-md bg-blue-50 text-blue-600 dark:bg-[#111e36] dark:text-blue-500 mb-2">
+                                            <IconLoader2 className="w-4 h-4 animate-spin" />
                                         </div>
-                                    </div>
-
-                                    {/* Map Display */}
-                                    <div className="relative z-0 h-[200px] w-full overflow-hidden rounded-md border border-[#e5e5e5] bg-white shadow-inner dark:border-[#262626] dark:bg-[#151515] sm:h-[300px]">
-                                        <UserLeafletMap lat={data.location_lat} lng={data.location_lng} />
+                                    ) : userLocation ? (
+                                        <div className="flex items-center justify-center w-8 h-8 rounded-md bg-green-50 text-green-600 dark:bg-[#112a1d] dark:text-green-500 mb-2">
+                                            <IconMapPinFilled className="w-4 h-4" />
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center justify-center w-8 h-8 rounded-md bg-red-50 text-[#b42826] dark:bg-[#2a1313] dark:text-[#e54845] mb-2">
+                                            <IconAlertTriangle className="w-4 h-4" />
+                                        </div>
+                                    )}
+                                    
+                                    <div className="flex-1 min-w-0 pb-2">
+                                        <p className="text-sm font-semibold tracking-wide text-gray-900 uppercase dark:text-gray-100">
+                                            {locationLoading
+                                                ? 'Mencari Koordinat...'
+                                                : userLocation
+                                                    ? 'Lokasi Terdeteksi'
+                                                    : 'GPS Tidak Aktif'}
+                                        </p>
+                                        {friendlyAddress && !locationLoading && (
+                                            <p className="text-[13px] text-gray-500 truncate dark:text-gray-400 mt-0.5">
+                                                {friendlyAddress}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
 
-                                {/* Input Patokan Manual */}
-                                <div className="space-y-1.5 pt-2">
+                                {/* Peta */}
+                                <div className="relative z-0 h-[200px] w-full overflow-hidden rounded-md border border-[#e5e5e5] bg-gray-50 shadow-inner dark:border-[#333] dark:bg-[#101010] sm:h-[250px]">
+                                    <UserLeafletMap lat={data.location_lat} lng={data.location_lng} />
+                                </div>
+
+                                {/* Patokan Manual */}
+                                <div className="pt-2">
                                     <Label htmlFor="address" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        Detail Patokan Lokasi <span className="font-normal text-gray-400">(Opsional)</span>
+                                        Detail Patokan Lokasi 
                                     </Label>
                                     <Input
                                         name="address"
                                         id="address"
                                         value={data.address}
                                         onChange={onHandleChange}
-                                        className="h-10 rounded-md border-[#e5e5e5] bg-white focus-visible:ring-1 focus-visible:ring-[#b42826] dark:border-[#262626] dark:bg-[#151515] dark:text-gray-100"
+                                        className="h-10 mt-1.5 rounded-md border-[#e5e5e5] bg-white focus-visible:ring-1 focus-visible:ring-[#b42826] dark:border-[#333] dark:bg-[#101010] dark:text-gray-100"
                                         placeholder="Contoh: Samping warung cat biru, gang buntu..."
                                     />
-                                    {errors.address && <InputError message={errors.address} />}
+                                    {errors.address && <InputError message={errors.address} className="mt-1" />}
                                 </div>
 
                                 {/* Data Administratif (Hidden) */}
@@ -276,7 +269,7 @@ export default function Create(props) {
                                     Informasi Laporan
                                 </h3>
 
-                                <div className="space-y-1.5">
+                                <div>
                                     <Label htmlFor="title" className="text-sm font-medium text-gray-700 dark:text-gray-300">Apa yang terjadi?</Label>
                                     <Input
                                         name="title"
@@ -285,12 +278,12 @@ export default function Create(props) {
                                         type="text"
                                         placeholder="Contoh: Kebakaran Rumah, Pohon Tumbang..."
                                         onChange={onHandleChange}
-                                        className="h-10 rounded-md border-[#e5e5e5] bg-white focus-visible:ring-1 focus-visible:ring-[#b42826] dark:border-[#262626] dark:bg-[#151515] dark:text-gray-100"
+                                        className="h-10 mt-1.5 rounded-md border-[#e5e5e5] bg-white focus-visible:ring-1 focus-visible:ring-[#b42826] dark:border-[#333] dark:bg-[#101010] dark:text-gray-100"
                                     />
-                                    {errors.title && <InputError message={errors.title} />}
+                                    {errors.title && <InputError message={errors.title} className="mt-1" />}
                                 </div>
 
-                                <div className="space-y-1.5">
+                                <div>
                                     <Label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                         Detail Kejadian <span className="font-normal text-gray-400">(Opsional)</span>
                                     </Label>
@@ -300,23 +293,22 @@ export default function Create(props) {
                                         value={data.description}
                                         placeholder="Jelaskan detail situasi saat ini jika memungkinkan..."
                                         onChange={onHandleChange}
-                                        className="min-h-[100px] resize-y rounded-md border-[#e5e5e5] bg-white p-3 text-sm focus-visible:ring-1 focus-visible:ring-[#b42826] dark:border-[#262626] dark:bg-[#151515] dark:text-gray-100"
+                                        className="min-h-[100px] mt-1.5 resize-y rounded-md border-[#e5e5e5] bg-white p-3 text-sm focus-visible:ring-1 focus-visible:ring-[#b42826] dark:border-[#333] dark:bg-[#101010] dark:text-gray-100"
                                     />
-                                    {errors.description && <InputError message={errors.description} />}
+                                    {errors.description && <InputError message={errors.description} className="mt-1" />}
                                 </div>
 
-                                {/* --- REVISI: BAGIAN UPLOAD FOTO --- */}
-                                <div className="pt-2 space-y-3">
-                                    <div>
-                                        <Label className="text-base font-semibold text-gray-900 dark:text-gray-100">Foto Bukti Kejadian</Label>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                                {/* --- BAGIAN UPLOAD FOTO --- */}
+                                <div className="pt-2">
+                                    <div className="mb-3">
+                                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Foto Bukti Kejadian</Label>
+                                        <p className="text-[13px] text-gray-500 dark:text-gray-400 mt-0.5">
                                             Sertakan foto agar relawan dapat menilai skala prioritas.
                                         </p>
                                     </div>
 
                                     {previewUrl ? (
-                                        /* Tampilan Preview Foto */
-                                        <div className="relative w-full h-56 sm:h-64 rounded-xl overflow-hidden border border-[#e5e5e5] dark:border-[#262626] shadow-sm group">
+                                        <div className="relative w-full h-56 sm:h-64 rounded-md overflow-hidden border border-[#e5e5e5] dark:border-[#333] shadow-sm group">
                                             <img src={previewUrl} alt="Preview Bukti Kejadian" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" />
                                             <div className="absolute inset-0 transition-colors bg-black/0 group-hover:bg-black/10"></div>
                                             <button
@@ -329,16 +321,15 @@ export default function Create(props) {
                                             </button>
                                         </div>
                                     ) : (
-                                        /* Tampilan Upload (Sesuai Gambar Referensi) */
-                                        <div className="border border-dashed border-[#e5e5e5] dark:border-[#333] rounded-xl p-8 flex flex-col items-center justify-center text-center bg-gray-50/50 dark:bg-[#101010] transition-colors hover:bg-gray-50 dark:hover:bg-[#151515]">
-                                            <div className="w-12 h-12 bg-gray-100 dark:bg-[#1f1f1f] rounded-xl flex items-center justify-center mb-4 border border-gray-200 dark:border-[#262626]">
-                                                <IconCloudUpload className="w-6 h-6 text-gray-900 dark:text-gray-100" stroke={1.5} />
+                                        <div className="border border-dashed border-[#e5e5e5] dark:border-[#333] rounded-md p-8 flex flex-col items-center justify-center text-center bg-gray-50/50 dark:bg-[#101010] transition-colors hover:bg-gray-50 dark:hover:bg-[#1a1a1a]">
+                                            <div className="w-12 h-12 bg-white dark:bg-[#151515] rounded-md flex items-center justify-center mb-4 border border-[#e5e5e5] dark:border-[#333] shadow-sm">
+                                                <IconCloudUpload className="w-6 h-6 text-gray-600 dark:text-gray-400" stroke={1.5} />
                                             </div>
-                                            <p className="text-base font-semibold text-gray-900 dark:text-gray-100">Upload files</p>
-                                            <p className="mt-1 mb-5 text-sm text-gray-500 dark:text-gray-400">PNG, JPG up to 10MB</p>
+                                            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Pilih foto kejadian</p>
+                                            <p className="mt-1 mb-5 text-[13px] text-gray-500 dark:text-gray-400">Format PNG/JPG (Maks. 10MB)</p>
                                             
-                                            <label className="cursor-pointer inline-flex items-center justify-center h-10 px-5 rounded-md bg-[#b42826] text-sm font-medium text-white hover:bg-[#9a2220] transition-colors focus-within:ring-2 focus-within:ring-[#b42826]/50">
-                                                Browse Files
+                                            <label className="cursor-pointer inline-flex items-center justify-center h-9 px-5 rounded-md bg-[#b42826] text-sm font-medium text-white hover:bg-[#9a2220] transition-colors focus-within:ring-2 focus-within:ring-[#b42826]/50">
+                                                Jelajahi File
                                                 <input
                                                     name="photo"
                                                     id="photo"
@@ -346,12 +337,12 @@ export default function Create(props) {
                                                     accept="image/*"
                                                     ref={fileInputPhoto}
                                                     onChange={handlePhotoChange}
-                                                    className="sr-only" // Menyembunyikan input asli
+                                                    className="sr-only"
                                                 />
                                             </label>
                                         </div>
                                     )}
-                                    {errors.photo && <InputError message={errors.photo} />}
+                                    {errors.photo && <InputError message={errors.photo} className="mt-1" />}
                                 </div>
                             </div>
 

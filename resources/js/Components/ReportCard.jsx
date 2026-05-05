@@ -24,7 +24,9 @@ export default function ReportCard({ report, currentUser, onSuccess }) {
     const hasHelpers = report.helpers?.length > 0;
     const hasPhoto = !!report.photo;
 
-    const isOwner = currentUser && currentUser.id === report.user_id;
+    const isOwner = currentUser && currentUser.id === report.user.id;
+    // console.log(currentUser.id, report.user.id);
+    // console.log('ReportCard Rendered - Report ID:', report.id, 'Current User ID:', currentUser?.id, 'Is Owner:', isOwner);
 
     return (
         <div className="flex flex-col h-full bg-white dark:bg-[#151515] rounded-xl overflow-hidden border border-[#e5e5e5] dark:border-[#262626] shadow-sm hover:border-gray-300 dark:hover:border-[#333] transition-colors duration-200 group">
@@ -58,7 +60,7 @@ export default function ReportCard({ report, currentUser, onSuccess }) {
                     </span>
                     <span className="flex items-center gap-1.5">
                         <User size={14} />
-                        <span className="truncate max-w-[120px]">{report.user?.name}</span>
+                        <span className="max-w-full truncate">{report.user?.name}</span>
                     </span>
                 </div>
 

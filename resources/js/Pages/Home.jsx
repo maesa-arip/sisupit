@@ -25,8 +25,8 @@ export default function Home(props) {
     // Pastikan aman jika user belum login
     const auth = props.auth?.user ?? null;
     
-    // Pengecekan peran admin
-    const isAdmin = auth && auth.role === 'admin'; 
+   const userRoles = Array.isArray(auth?.role) ? auth.role : (auth?.role ? [auth.role] : []);
+     const isAdmin = userRoles.includes('petugas') || userRoles.includes('admin');
 
     // State untuk mendeteksi apakah aplikasi dibuka di dalam WebView
     const [isWebView, setIsWebView] = useState(true); // Default true agar tidak terjadi layout shift tiba-tiba
@@ -47,6 +47,8 @@ export default function Home(props) {
 
         setIsWebView(checkWebView());
     }, []);
+
+    
 
     return (
         <div className="relative flex flex-col w-full pb-32 space-y-6">
@@ -123,7 +125,7 @@ export default function Home(props) {
                 {/* MENU KHUSUS ADMIN */}
                 {isAdmin && (
                     <Link href={route('front.volunteers.index')} className="block w-full col-span-2 mt-1 outline-none focus-visible:ring-2 focus-visible:ring-gray-300 rounded-xl">
-                        <Card className="overflow-hidden transition-colors border border-[#e5e5e5] shadow-sm cursor-pointer group rounded-xl bg-gray-50 hover:border-gray-300 dark:border-[#262626] dark:bg-[#1f1f1f] dark:hover:border-[#333]">
+                        <Card className="overflow-hidden transition-colors border border-[#e5e5e5] cursor-pointer group rounded-xl bg-gray-50 hover:border-gray-300 dark:border-[#262626] dark:bg-[#1f1f1f] dark:hover:border-[#333]">
                             <CardContent className="flex flex-row items-center gap-4 p-4 flex-nowrap">
                                 <div className="flex items-center justify-center w-10 h-10 text-gray-700 bg-white border border-[#e5e5e5] rounded-lg shrink-0 dark:border-[#333] dark:bg-[#151515] dark:text-gray-300">
                                     <IconUsers className="w-5 h-5" stroke={1.5} />
