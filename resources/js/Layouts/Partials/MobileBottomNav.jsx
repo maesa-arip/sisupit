@@ -41,7 +41,7 @@ export default function MobileBottomNav({ url, auth }) {
                     <Link
                         href={route('front.reports.create')}
                         className="relative flex flex-col items-center justify-center transition-all duration-200 outline-none
-                            w-[56px] h-[56px] rounded-xl
+                            w-[60px] h-[60px] rounded-xl
                             bg-[#b42826] hover:bg-[#9a2220] text-white
                             border border-[#9a2220] dark:border-[#b42826]
                             shadow-sm

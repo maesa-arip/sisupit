@@ -66,7 +66,7 @@ export default function AppLayout({ title, children }) {
                 <div className="flex flex-col flex-1 min-w-0 min-h-screen pb-20 lg:pb-0">
                     
                     {/* HEADER */}
-                    <header className="sticky top-0 z-40 flex items-center justify-end h-16 px-4 border-b lg:px-8 border-[#e5e5e5] dark:border-[#262626] bg-white/95 dark:bg-[#151515]/95 backdrop-blur-md">
+                    <header className="sticky top-0 z-40 flex items-center justify-end h-16 px-4 border-b lg:px-8 border-[#e5e5e5] dark:border-[#262626] bg-white/95 dark:bg-[#101010] backdrop-blur-md">
                         
                         <div className="flex items-center gap-2 lg:gap-4">
                             {auth?.name && (
