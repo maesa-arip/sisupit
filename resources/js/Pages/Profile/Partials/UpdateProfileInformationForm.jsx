@@ -6,190 +6,182 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Transition } from '@headlessui/react';
 import { Link, useForm, usePage } from '@inertiajs/react';
-import { IconCamera, IconUserEdit } from '@tabler/icons-react';
+import { IconCamera, IconUserEdit, IconX } from '@tabler/icons-react';
 import { useRef, useState } from 'react';
 
 export default function UpdateProfileInformation({ mustVerifyEmail, status, className = '' }) {
 	const user = usePage().props.auth.user;
 	const fileInputKTP = useRef(null);
 
-	// 1. Tambahkan state untuk local preview gambar baru
 	const [previewUrl, setPreviewUrl] = useState(null);
 
-	// Ekstrak 'post', bukan 'patch'
 	const { data, setData, post, errors, processing, recentlySuccessful, reset } = useForm({
 		name: user.name ?? '',
 		email: user.email ?? '',
 		phone: user.phone ?? '',
-		ktp: null, // WAJIB null, jangan gunakan user.ktp agar validasi backend tidak error
-		_method: 'patch', // Tambahkan method spoofing di sini
+		ktp: null,
+		_method: 'patch',
 	});
-	console.log(data);
-	// const onHandleChange = (e) => {
-	// 	const key = e.target.name;
-	// 	const value = e.target.type === 'file' ? e.target.files[0] : e.target.value;
-	// 	setData(key, value);
-	// };
+
 	const onHandleChange = (e) => {
 		const key = e.target.name;
 		const value = e.target.type === 'file' ? e.target.files[0] : e.target.value;
 
-		// 2. Jika input yang berubah adalah file dan ada isinya, buat local preview
 		if (e.target.type === 'file' && value) {
 			setPreviewUrl(URL.createObjectURL(value));
-		}
-		// Opsional: jika user cancel (memilih file tapi kemudian batal), hapus preview
-		else if (e.target.type === 'file' && !value) {
+		} else if (e.target.type === 'file' && !value) {
 			setPreviewUrl(null);
 		}
 
 		setData(key, value);
 	};
+	
+	// Fungsi ini sekarang hanya membatalkan file baru yang dipilih
+	const removePhoto = () => {
+		setData('ktp', null);
+		setPreviewUrl(null);
+		if (fileInputKTP.current) {
+			fileInputKTP.current.value = '';
+		}
+	};
 
 	const onHandleSubmit = (e) => {
 		e.preventDefault();
 		post(route('profile.update'), {
-			preserveScroll: true, // Agar halaman tidak loncat ke atas saat disave
-			// Opsional: Setelah sukses, kita bisa mereset previewUrl karena user.ktp akan terupdate dari server
+			preserveScroll: true,
 			onSuccess: () => {
 				setPreviewUrl(null);
-				fileInputKTP.current.value = null;
-				reset('ktp'); // Reset data ktp ke null
+				if (fileInputKTP.current) fileInputKTP.current.value = null;
+				reset('ktp');
 			},
 		});
 	};
 
 	return (
-		<Card className={`overflow-hidden border-gray-200 shadow-sm dark:border-slate-800 ${className}`}>
-			<CardHeader className="pb-6 border-b border-gray-100 bg-gray-50/50 dark:border-slate-800 dark:bg-slate-800/20">
+		<Card className={`overflow-hidden border border-[#e5e5e5] bg-white shadow-sm dark:bg-[#151515] dark:border-[#262626] rounded-xl ${className}`}>
+			<CardHeader className="pb-5 border-b border-[#e5e5e5] bg-transparent dark:border-[#262626]">
 				<div className="flex items-center gap-3">
-					{/* REVISI: Ikon menjadi Biru */}
-					<div className="rounded-xl bg-blue-100 p-2.5 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400">
-						<IconUserEdit size={24} stroke={1.5} />
+					<div className="rounded-lg bg-gray-50 border border-[#e5e5e5] p-2 text-gray-600 dark:bg-[#1f1f1f] dark:border-[#262626] dark:text-gray-300">
+						<IconUserEdit size={20} stroke={1.5} />
 					</div>
 					<div>
-						<CardTitle className="text-xl">Informasi Profil</CardTitle>
-						<CardDescription className="mt-1.5">
+						<CardTitle className="text-base font-semibold text-gray-900 dark:text-gray-100">Informasi Profil</CardTitle>
+						<CardDescription className="mt-1 text-sm text-gray-500 dark:text-gray-400">
 							Perbarui informasi akun dan alamat email Anda di sini.
 						</CardDescription>
 					</div>
 				</div>
 			</CardHeader>
 
-			<CardContent className="pt-6">
-				<form onSubmit={onHandleSubmit} className="space-y-6">
-					<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-						<div className="space-y-2">
-							<Label htmlFor="name">Nama Lengkap</Label>
+			<CardContent className="pt-5">
+				<form onSubmit={onHandleSubmit} className="space-y-5">
+					<div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+						<div className="space-y-1.5">
+							<Label htmlFor="name" className="text-sm font-medium text-gray-700 dark:text-gray-300">Nama Lengkap</Label>
 							<Input
 								id="name"
 								name="name"
 								value={data.name}
 								onChange={onHandleChange}
 								autoComplete="name"
-								className="focus-visible:ring-blue-500 dark:bg-slate-900"
+								className="h-10 rounded-md border-[#e5e5e5] bg-white focus-visible:ring-1 focus-visible:ring-[#b42826] dark:border-[#262626] dark:bg-[#101010] dark:text-gray-100"
 							/>
 							{errors.name && <InputError message={errors.name} />}
 						</div>
 
-						<div className="space-y-2">
-							<Label htmlFor="email">Email</Label>
+						<div className="space-y-1.5">
+							<Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">Email</Label>
 							<Input
 								id="email"
 								name="email"
 								value={data.email}
 								onChange={onHandleChange}
 								autoComplete="email"
-								className="focus-visible:ring-blue-500 dark:bg-slate-900"
+								className="h-10 rounded-md border-[#e5e5e5] bg-white focus-visible:ring-1 focus-visible:ring-[#b42826] dark:border-[#262626] dark:bg-[#101010] dark:text-gray-100"
 							/>
 							{errors.email && <InputError message={errors.email} />}
 						</div>
 
-						<div className="space-y-2">
-							<Label htmlFor="phone">Nomor Telepon</Label>
+						<div className="space-y-1.5">
+							<Label htmlFor="phone" className="text-sm font-medium text-gray-700 dark:text-gray-300">Nomor Telepon</Label>
 							<Input
 								id="phone"
 								name="phone"
 								value={data.phone}
 								onChange={onHandleChange}
 								autoComplete="phone"
-								className="focus-visible:ring-blue-500 dark:bg-slate-900"
+								className="h-10 rounded-md border-[#e5e5e5] bg-white focus-visible:ring-1 focus-visible:ring-[#b42826] dark:border-[#262626] dark:bg-[#101010] dark:text-gray-100"
 							/>
 							{errors.phone && <InputError message={errors.phone} />}
 						</div>
-						<div className="space-y-2">
-							<Label htmlFor="ktp" className="flex items-center gap-2">
-								<IconCamera className="w-4 h-4" /> Dokumen KTP (Opsional)
-							</Label>
+						
+						{/* --- REVISI: BAGIAN KTP --- */}
+						<div className="space-y-2 md:col-span-2 lg:col-span-1">
+							<Label htmlFor="ktp" className="text-sm font-medium text-gray-700 dark:text-gray-300">Dokumen KTP (Opsional)</Label>
+							
+							<div className="flex flex-col gap-4 sm:flex-row">
+								{/* Menampilkan Foto jika sudah ada atau sedang dipreview */}
+								{(previewUrl || user.ktp) && (
+									<div className="relative w-full sm:w-48 h-32 rounded-lg overflow-hidden border border-[#e5e5e5] dark:border-[#262626] shadow-sm group shrink-0">
+										<img
+											src={previewUrl ? previewUrl : (user.ktp.startsWith('http') ? user.ktp : `${user.ktp}`)}
+											alt="Preview KTP"
+											className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+										/>
+										{/* Tombol X hanya muncul jika user sedang mem-preview file baru */}
+										{previewUrl && (
+											<button
+												type="button"
+												onClick={removePhoto}
+												className="absolute flex items-center justify-center text-red-600 transition-colors border border-transparent rounded-md shadow-sm top-2 right-2 w-7 h-7 bg-white/90 dark:bg-black/80 hover:bg-red-50 dark:text-red-400 backdrop-blur-sm hover:border-red-200 dark:hover:border-red-900/50"
+												title="Batal gunakan file ini"
+											>
+												<IconX stroke={2} className="w-4 h-4" />
+											</button>
+										)}
+									</div>
+								)}
 
-							{/* {(previewUrl || user.ktp) && (
-                                <div className="relative inline-block mb-4">
-                                    <img
-                                        src={previewUrl ? previewUrl : `${user.ktp}`}
-                                        alt="Preview KTP"
-                                        className={`object-cover h-32 border shadow-sm w-44 rounded-xl ${previewUrl ? 'border-blue-400 ring-2 ring-blue-400/50' : 'border-gray-200 dark:border-slate-700'}`}
-                                    />
-                                    {previewUrl && (
-                                        <span className="absolute top-2 left-2 rounded-md bg-blue-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
-                                            File Baru Terpilih
-                                        </span>
-                                    )}
-                                </div>
-                            )} */}
-							{(previewUrl || user.ktp) && (
-								<div className="relative inline-block mb-4 group">
-									<img
-										// REVISI: Pastikan menambahkan /storage/ untuk file yang diupload ke server lokal
-										src={
-											previewUrl
-												? previewUrl
-												: user.ktp.startsWith('http')
-													? user.ktp
-													: `${user.ktp}`
-										}
-										alt="Preview KTP"
-										className={`h-32 w-44 rounded-xl border object-cover shadow-sm transition-all ${previewUrl ? 'border-blue-400 ring-2 ring-blue-400/50' : 'border-gray-200 dark:border-slate-700'}`}
-									/>
-
-									{previewUrl && (
-										<span className="absolute left-2 top-2 animate-pulse rounded-md bg-blue-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
-											File Baru
-										</span>
-									)}
+								{/* Kotak Upload selalu ditampilkan agar bisa "Ganti File" */}
+								<div className={`border border-dashed border-[#e5e5e5] dark:border-[#333] rounded-lg p-4 flex flex-col items-center justify-center text-center bg-gray-50/50 dark:bg-[#101010] transition-colors hover:bg-gray-50 dark:hover:bg-[#151515] ${
+									(previewUrl || user.ktp) ? 'w-full sm:w-auto flex-1 h-32' : 'w-full'
+								}`}>
+									<IconCamera className="w-5 h-5 text-gray-500 mb-1.5" />
+									<p className="mb-3 text-xs text-gray-500 dark:text-gray-400">PNG, JPG up to 5MB</p>
+									<label className="cursor-pointer inline-flex items-center justify-center h-8 px-4 rounded-md bg-white border border-[#e5e5e5] text-xs font-medium text-gray-700 hover:bg-gray-50 dark:bg-[#1f1f1f] dark:border-[#333] dark:text-gray-300 dark:hover:bg-[#262626] transition-colors focus-within:ring-2 focus-within:ring-[#b42826]/50">
+										{(previewUrl || user.ktp) ? 'Ganti File' : 'Browse Files'}
+										<input
+											name="ktp"
+											id="ktp"
+											type="file"
+											accept="image/*"
+											ref={fileInputKTP}
+											onChange={onHandleChange}
+											className="sr-only"
+										/>
+									</label>
 								</div>
-							)}
-
-							<div className="relative">
-								<Input
-									name="ktp"
-									id="ktp"
-									type="file"
-									accept="image/*"
-									ref={fileInputKTP}
-									onChange={onHandleChange}
-									className="h-12 cursor-pointer rounded-xl pt-2.5 file:mr-4 file:cursor-pointer file:rounded-md file:border-0 file:bg-blue-100 file:px-4 file:py-1 file:text-xs file:font-bold file:text-blue-700 focus-visible:ring-blue-500 dark:bg-slate-900 dark:file:bg-blue-900/30 dark:file:text-blue-400"
-								/>
 							</div>
 							{errors.ktp && <InputError message={errors.ktp} />}
 						</div>
 					</div>
 
 					{mustVerifyEmail && user.email_verified_at === null && (
-						<div className="p-4 mt-4 border border-blue-200 rounded-xl bg-blue-50 dark:border-blue-900/30 dark:bg-blue-900/10">
-							<p className="text-sm text-blue-800 dark:text-blue-300">
+						<div className="p-4 mt-2 border border-[#e5e5e5] rounded-md bg-gray-50 dark:border-[#333] dark:bg-[#101010]">
+							<p className="text-sm text-gray-700 dark:text-gray-300">
 								Alamat email Anda belum diverifikasi.
 								<Link
 									href={route('verification.send')}
 									method="post"
 									as="button"
-									className="ml-2 font-semibold underline rounded-md hover:text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:hover:text-blue-100 dark:focus:ring-offset-slate-900"
+									className="ml-1 font-semibold underline rounded-sm hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#b42826] dark:hover:text-gray-100"
 								>
-									Klik di sini untuk mengirim ulang email verifikasi.
+									Klik di sini untuk mengirim ulang.
 								</Link>
 							</p>
 
 							{status === 'verification-link-sent' && (
-								<Alert className="mt-3 text-green-800 border-green-200 bg-green-50 dark:border-green-900/30 dark:bg-green-900/20 dark:text-green-400">
+								<Alert className="mt-3 text-green-800 border-green-200 bg-green-50 dark:border-[#112a1d] dark:bg-[#0a1811] dark:text-green-400">
 									<AlertDescription>
 										Tautan verifikasi baru telah dikirim ke alamat email Anda.
 									</AlertDescription>
@@ -200,7 +192,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 
 					<div className="flex items-center gap-4 pt-2">
 						<Button
-							className="px-8 text-white bg-blue-600 rounded-xl hover:bg-blue-700"
+							className="h-9 px-4 rounded-md text-sm font-medium text-white transition-colors bg-[#b42826] hover:bg-[#9a2220] focus-visible:ring-2 focus-visible:ring-[#b42826]/50"
 							disabled={processing}
 						>
 							Simpan Perubahan
@@ -215,8 +207,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 							leaveFrom="opacity-100"
 							leaveTo="opacity-0"
 						>
-							<p className="flex items-center gap-1.5 text-sm font-medium text-blue-600 dark:text-blue-500">
-								<span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+							<p className="text-sm font-medium text-gray-600 dark:text-gray-400">
 								Tersimpan.
 							</p>
 						</Transition>

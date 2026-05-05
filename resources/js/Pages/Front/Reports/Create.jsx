@@ -10,324 +10,372 @@ import AppLayout from '@/Layouts/AppLayout';
 import { flashMessage } from '@/lib/utils';
 import { Link, useForm } from '@inertiajs/react';
 import {
-	IconAlertTriangle,
-	IconArrowLeft,
-	IconCamera,
-	IconLoader2,
-	IconMapPinFilled,
-	IconSend,
+    IconAlertTriangle,
+    IconArrowLeft,
+    IconCloudUpload,
+    IconLoader2,
+    IconMapPinFilled,
+    IconSend,
+    IconX,
 } from '@tabler/icons-react';
 import axios from 'axios';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function Create(props) {
-	const auth = props.auth.user;
-	const [userLocation, setUserLocation] = useState(null);
-	const [locationLoading, setLocationLoading] = useState(true);
-	const [friendlyAddress, setFriendlyAddress] = useState(''); // State baru untuk alamat singkat
-	const fileInputPhoto = useRef(null);
+    const auth = props.auth.user;
+    const [userLocation, setUserLocation] = useState(null);
+    const [locationLoading, setLocationLoading] = useState(true);
+    const [friendlyAddress, setFriendlyAddress] = useState('');
+    
+    // State baru untuk preview foto
+    const [previewUrl, setPreviewUrl] = useState(null);
+    const fileInputPhoto = useRef(null);
 
-	const { data, setData, post, processing, errors } = useForm({
-		name: auth?.name || '',
-		address: '', // Ini sekarang kita pakai khusus untuk "Patokan"
-		title: '',
-		description: '',
-		location_lat: '',
-		location_lng: '',
-		provinsi: '',
-		kabupaten: '',
-		kecamatan: '',
-		desa: '',
-		road: '',
-		phone: auth?.phone || '',
-		photo: null,
-		_method: props.page_settings.method,
-	});
+    const { data, setData, post, processing, errors } = useForm({
+        name: auth?.name || '',
+        address: '', 
+        title: '',
+        description: '',
+        location_lat: '',
+        location_lng: '',
+        provinsi: '',
+        kabupaten: '',
+        kecamatan: '',
+        desa: '',
+        road: '',
+        phone: auth?.phone || '',
+        photo: null,
+        _method: props.page_settings.method,
+    });
 
-	const getUserLocation = () => {
-		if (navigator.geolocation) {
-			navigator.geolocation.getCurrentPosition(
-				async (position) => {
-					const { latitude, longitude } = position.coords;
-					setUserLocation({ latitude, longitude });
+    const getUserLocation = () => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const { latitude, longitude } = position.coords;
+                    setUserLocation({ latitude, longitude });
 
-					try {
-						const response = await axios.get(
-							`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
-						);
+                    try {
+                        const response = await axios.get(
+                            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+                        );
 
-						const addressData = response.data.address;
+                        const addressData = response.data.address;
 
-						if (addressData) {
-							const roadName = addressData.road || addressData.street || addressData.pedestrian || '';
-							const villageName = addressData.village || addressData.suburb || '';
-							const districtName = addressData.city_district || addressData.district || '';
+                        if (addressData) {
+                            const roadName = addressData.road || addressData.street || addressData.pedestrian || '';
+                            const villageName = addressData.village || addressData.suburb || '';
+                            const districtName = addressData.city_district || addressData.district || '';
 
-							// Buat string alamat yang ramah dibaca untuk UI
-							const displayAddr = [roadName, villageName, districtName].filter(Boolean).join(', ');
-							setFriendlyAddress(displayAddr || 'Lokasi terdeteksi');
+                            const displayAddr = [roadName, villageName, districtName].filter(Boolean).join(', ');
+                            setFriendlyAddress(displayAddr || 'Lokasi terdeteksi');
 
-							setData((prevData) => ({
-								...prevData,
-								location_lat: latitude,
-								location_lng: longitude,
-								provinsi: addressData.state || addressData.region || '',
-								kabupaten:
-									addressData.city ||
-									addressData.town ||
-									addressData.county ||
-									addressData.municipality ||
-									'',
-								kecamatan: districtName,
-								desa: villageName,
-								road: roadName,
-							}));
-						} else {
-							fallbackLocation(latitude, longitude);
-						}
-					} catch (error) {
-						console.error('Gagal mengambil data wilayah:', error);
-						fallbackLocation(latitude, longitude);
-					} finally {
-						setLocationLoading(false);
-					}
-				},
-				(error) => {
-					console.error('Error getting user location:', error);
-					toast.error('Gagal melacak lokasi akurat. Pastikan GPS aktif.');
-					setLocationLoading(false);
-				},
-				{ enableHighAccuracy: true },
-			);
-		} else {
-			toast.error('Browser Anda tidak mendukung deteksi lokasi.');
-			setLocationLoading(false);
-		}
-	};
+                            setData((prevData) => ({
+                                ...prevData,
+                                location_lat: latitude,
+                                location_lng: longitude,
+                                provinsi: addressData.state || addressData.region || '',
+                                kabupaten:
+                                    addressData.city ||
+                                    addressData.town ||
+                                    addressData.county ||
+                                    addressData.municipality ||
+                                    '',
+                                kecamatan: districtName,
+                                desa: villageName,
+                                road: roadName,
+                            }));
+                        } else {
+                            fallbackLocation(latitude, longitude);
+                        }
+                    } catch (error) {
+                        console.error('Gagal mengambil data wilayah:', error);
+                        fallbackLocation(latitude, longitude);
+                    } finally {
+                        setLocationLoading(false);
+                    }
+                },
+                (error) => {
+                    console.error('Error getting user location:', error);
+                    toast.error('Gagal melacak lokasi akurat. Pastikan GPS aktif.');
+                    setLocationLoading(false);
+                },
+                { enableHighAccuracy: true },
+            );
+        } else {
+            toast.error('Browser Anda tidak mendukung deteksi lokasi.');
+            setLocationLoading(false);
+        }
+    };
 
-	const fallbackLocation = (latitude, longitude) => {
-		setFriendlyAddress('Titik GPS terdeteksi');
-		setData((prevData) => ({
-			...prevData,
-			location_lat: latitude,
-			location_lng: longitude,
-		}));
-	};
+    const fallbackLocation = (latitude, longitude) => {
+        setFriendlyAddress('Titik GPS terdeteksi');
+        setData((prevData) => ({
+            ...prevData,
+            location_lat: latitude,
+            location_lng: longitude,
+        }));
+    };
 
-	useEffect(() => {
-		getUserLocation();
-	}, []);
+    useEffect(() => {
+        getUserLocation();
+        
+        // Cleanup function untuk URL preview gambar demi mencegah memory leak
+        return () => {
+            if (previewUrl) URL.revokeObjectURL(previewUrl);
+        };
+    }, []);
 
-	const onHandleChange = (e) => setData(e.target.name, e.target.value);
+    const onHandleChange = (e) => setData(e.target.name, e.target.value);
 
-	const onHandleSubmit = (e) => {
-		e.preventDefault();
+    // Fungsi untuk menangani perubahan file foto & generate preview
+    const handlePhotoChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setData('photo', file);
+            setPreviewUrl(URL.createObjectURL(file));
+        }
+    };
 
-		if ((!data.location_lat || !data.location_lng) && !data.address) {
-			toast.warning('Lokasi gagal dilacak, mohon isi Detail Patokan Lokasi secara manual.');
-			return;
-		}
+    // Fungsi untuk menghapus foto yang sudah dipilih
+    const removePhoto = () => {
+        setData('photo', null);
+        setPreviewUrl(null);
+        if (fileInputPhoto.current) {
+            fileInputPhoto.current.value = '';
+        }
+    };
 
-		post(props.page_settings.action, {
-			preserveScroll: true,
-			preserveState: true,
-			onSuccess: (success) => {
-				const flash = flashMessage(success);
-				if (flash) toast[flash.type](flash.message);
-			},
-		});
-	};
+    const onHandleSubmit = (e) => {
+        e.preventDefault();
 
-	// FUNGSI RESET DIHAPUS (Mencegah salah pencet saat panik)
+        if ((!data.location_lat || !data.location_lng) && !data.address) {
+            toast.warning('Lokasi gagal dilacak, mohon isi Detail Patokan Lokasi secara manual.');
+            return;
+        }
 
-	return (
-		<div className="relative w-full pb-32">
-			{/* REVISI: Latar Belakang Dekoratif menggunakan Merah (Darurat) */}
-			<div className="absolute top-0 left-0 right-0 flex justify-center w-full pointer-events-none -z-10">
-				<div className="-mt-10 h-[250px] w-[80vw] max-w-[600px] rounded-[100%] bg-red-500/15 blur-[80px] dark:bg-red-500/10 sm:-mt-20 sm:h-[400px] sm:blur-[120px]"></div>
-			</div>
+        post(props.page_settings.action, {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: (success) => {
+                const flash = flashMessage(success);
+                if (flash) toast[flash.type](flash.message);
+            },
+        });
+    };
 
-			<div className="flex flex-col w-full max-w-3xl mx-auto space-y-6">
-				{' '}
-				{/* max-w-3xl agar lebih terpusat */}
-				{/* Header Section */}
-				<div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
-					<HeaderTitle
-						title={props.page_settings.title}
-						subtitle={props.page_settings.subtitle}
-						icon={IconAlertTriangle}
-					/>
-					<Button
-						variant="outline"
-						className="border-gray-300 shadow-sm rounded-xl bg-white/50 backdrop-blur-sm hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-900/50 dark:hover:bg-slate-800"
-						asChild
-					>
-						<Link href={route('dashboard')}>
-							<IconArrowLeft className="w-4 h-4 mr-2" />
-							Batal
-						</Link>
-					</Button>
-				</div>
-				{/* Form Card */}
-				<Card className="overflow-hidden rounded-[24px] border-gray-200 shadow-xl dark:border-slate-800">
-					<CardHeader className="pb-6 border-b border-red-100 bg-red-50/50 dark:border-red-900/20 dark:bg-red-900/10">
-						<CardTitle className="text-xl text-red-700 dark:text-red-500">Kirim Laporan Darurat</CardTitle>
-						<CardDescription className="dark:text-slate-400">
-							Lokasi Anda dilacak secara otomatis. Silakan lengkapi detail kejadian di bawah.
-						</CardDescription>
-					</CardHeader>
+    return (
+        <div className="relative w-full pb-32">
+            <div className="flex flex-col w-full max-w-3xl mx-auto space-y-6">
+                
+                {/* Header Section */}
+                <div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
+                    <HeaderTitle
+                        title={props.page_settings.title}
+                        subtitle={props.page_settings.subtitle}
+                        icon={IconAlertTriangle}
+                    />
+                    <Button
+                        variant="outline"
+                        className="h-9 px-4 rounded-md border-[#e5e5e5] bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-[#262626] dark:bg-[#151515] dark:text-gray-300 dark:hover:bg-[#1f1f1f] shadow-sm transition-colors"
+                        asChild
+                    >
+                        <Link href={route('dashboard')}>
+                            <IconArrowLeft className="w-4 h-4 mr-2" />
+                            Batal
+                        </Link>
+                    </Button>
+                </div>
+                
+                {/* Form Card */}
+                <Card className="overflow-hidden rounded-xl border border-[#e5e5e5] shadow-sm bg-white dark:border-[#262626] dark:bg-[#151515]">
+                    <CardHeader className="pb-5 border-b border-[#e5e5e5] dark:border-[#262626] bg-transparent">
+                        <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                            Kirim Laporan Darurat
+                        </CardTitle>
+                        <CardDescription className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            Lokasi Anda dilacak secara otomatis. Silakan lengkapi detail kejadian di bawah.
+                        </CardDescription>
+                    </CardHeader>
 
-					<CardContent className="p-6 sm:p-8">
-						<form className="space-y-8" onSubmit={onHandleSubmit}>
-							{/* --- BAGIAN LOKASI (Disederhanakan) --- */}
-							<div className="space-y-4">
-								<h3 className="flex items-center gap-2 pb-2 text-sm font-bold tracking-wider text-gray-900 uppercase border-b border-gray-100 dark:border-slate-800 dark:text-slate-100">
-									<IconMapPinFilled className="w-5 h-5 text-red-500" />
-									Deteksi Lokasi
-								</h3>
+                    <CardContent className="p-5 sm:p-6">
+                        <form className="space-y-6" onSubmit={onHandleSubmit}>
+                            
+                            {/* --- BAGIAN LOKASI --- */}
+                            <div className="space-y-4">
+                                <h3 className="flex items-center gap-2 pb-2 text-xs font-semibold tracking-wider text-gray-900 uppercase border-b border-[#e5e5e5] dark:border-[#262626] dark:text-gray-100">
+                                    <IconMapPinFilled className="w-4 h-4 text-[#b42826] dark:text-[#e54845]" />
+                                    Deteksi Lokasi
+                                </h3>
 
-								{/* Indikator Status Lokasi Minimalis */}
-								<div className="flex flex-col gap-4 rounded-[20px] border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-700/80 dark:bg-slate-900">
-									<div className="flex items-center justify-between px-1">
-										<div className="flex items-center gap-3">
-											{locationLoading ? (
-												<IconLoader2 className="w-5 h-5 text-blue-500 animate-spin" />
-											) : userLocation ? (
-												<span className="flex items-center justify-center w-8 h-8 text-green-600 bg-green-100 rounded-full dark:bg-green-900/30 dark:text-green-400">
-													<IconMapPinFilled className="w-4 h-4" />
-												</span>
-											) : (
-												<IconAlertTriangle className="w-5 h-5 text-red-500" />
-											)}
-											<div className="flex-1 min-w-0">
-												<p className="text-sm font-bold text-gray-900 dark:text-slate-100">
-													{locationLoading
-														? 'Mencari satelit GPS...'
-														: userLocation
-															? 'Satelit Terkunci'
-															: 'Gagal melacak lokasi'}
-												</p>
-												{friendlyAddress && (
-													<p className="text-xs text-gray-500 truncate dark:text-slate-400">
-														{friendlyAddress}
-													</p>
-												)}
-											</div>
-										</div>
-									</div>
+                                <div className="flex flex-col gap-3 rounded-lg border border-[#e5e5e5] bg-gray-50 p-4 dark:border-[#262626] dark:bg-[#101010]">
+                                    <div className="flex items-center justify-between px-1">
+                                        <div className="flex items-center gap-3">
+                                            {locationLoading ? (
+                                                <IconLoader2 className="w-5 h-5 text-blue-500 animate-spin" />
+                                            ) : userLocation ? (
+                                                <span className="flex items-center justify-center w-8 h-8 text-green-600 bg-green-100/50 rounded-md dark:bg-[#112a1d] dark:text-green-500 border border-green-200 dark:border-green-900/50">
+                                                    <IconMapPinFilled className="w-4 h-4" />
+                                                </span>
+                                            ) : (
+                                                <IconAlertTriangle className="w-5 h-5 text-[#b42826] dark:text-[#e54845]" />
+                                            )}
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                                    {locationLoading
+                                                        ? 'Mencari satelit GPS...'
+                                                        : userLocation
+                                                            ? 'Satelit Terkunci'
+                                                            : 'Gagal melacak lokasi'}
+                                                </p>
+                                                {friendlyAddress && (
+                                                    <p className="text-xs text-gray-500 truncate dark:text-gray-400 mt-0.5">
+                                                        {friendlyAddress}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
 
-									{/* Map Display */}
-									<div className="relative z-0 h-[250px] w-full overflow-hidden rounded-[14px] border border-gray-100 bg-gray-50 shadow-inner dark:border-slate-800 dark:bg-slate-800 sm:h-[350px]">
-										<UserLeafletMap lat={data.location_lat} lng={data.location_lng} />
-									</div>
-								</div>
+                                    {/* Map Display */}
+                                    <div className="relative z-0 h-[200px] w-full overflow-hidden rounded-md border border-[#e5e5e5] bg-white shadow-inner dark:border-[#262626] dark:bg-[#151515] sm:h-[300px]">
+                                        <UserLeafletMap lat={data.location_lat} lng={data.location_lng} />
+                                    </div>
+                                </div>
 
-								{/* Input Patokan Manual */}
-								<div className="space-y-1.5 pt-2">
-									<Label htmlFor="address">
-										Detail Patokan Lokasi{' '}
-										<span className="font-normal text-gray-400">(Opsional tapi disarankan)</span>
-									</Label>
-									<Input
-										name="address"
-										id="address"
-										value={data.address}
-										onChange={onHandleChange}
-										className="h-12 border-gray-300 rounded-xl focus-visible:ring-red-500 dark:bg-slate-900"
-										placeholder="Contoh: Samping warung cat biru, gang buntu..."
-									/>
-									{errors.address && <InputError message={errors.address} />}
-								</div>
+                                {/* Input Patokan Manual */}
+                                <div className="space-y-1.5 pt-2">
+                                    <Label htmlFor="address" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Detail Patokan Lokasi <span className="font-normal text-gray-400">(Opsional)</span>
+                                    </Label>
+                                    <Input
+                                        name="address"
+                                        id="address"
+                                        value={data.address}
+                                        onChange={onHandleChange}
+                                        className="h-10 rounded-md border-[#e5e5e5] bg-white focus-visible:ring-1 focus-visible:ring-[#b42826] dark:border-[#262626] dark:bg-[#151515] dark:text-gray-100"
+                                        placeholder="Contoh: Samping warung cat biru, gang buntu..."
+                                    />
+                                    {errors.address && <InputError message={errors.address} />}
+                                </div>
 
-								{/* REVISI: Data Administratif Disembunyikan sepenuhnya! */}
-								<input type="hidden" name="location_lat" value={data.location_lat} />
-								<input type="hidden" name="location_lng" value={data.location_lng} />
-								<input type="hidden" name="provinsi" value={data.provinsi} />
-								<input type="hidden" name="kabupaten" value={data.kabupaten} />
-								<input type="hidden" name="kecamatan" value={data.kecamatan} />
-								<input type="hidden" name="desa" value={data.desa} />
-								<input type="hidden" name="road" value={data.road} />
-							</div>
+                                {/* Data Administratif (Hidden) */}
+                                <input type="hidden" name="location_lat" value={data.location_lat} />
+                                <input type="hidden" name="location_lng" value={data.location_lng} />
+                                <input type="hidden" name="provinsi" value={data.provinsi} />
+                                <input type="hidden" name="kabupaten" value={data.kabupaten} />
+                                <input type="hidden" name="kecamatan" value={data.kecamatan} />
+                                <input type="hidden" name="desa" value={data.desa} />
+                                <input type="hidden" name="road" value={data.road} />
+                            </div>
 
-							{/* --- BAGIAN FORM INFORMASI --- */}
-							<div className="pt-4 space-y-5">
-								<h3 className="pb-2 text-sm font-bold tracking-wider text-gray-900 uppercase border-b border-gray-100 dark:border-slate-800 dark:text-slate-100">
-									Informasi Laporan
-								</h3>
+                            {/* --- BAGIAN FORM INFORMASI --- */}
+                            <div className="pt-2 space-y-4">
+                                <h3 className="pb-2 text-xs font-semibold tracking-wider text-gray-900 uppercase border-b border-[#e5e5e5] dark:border-[#262626] dark:text-gray-100">
+                                    Informasi Laporan
+                                </h3>
 
-								<div className="space-y-2">
-									<Label htmlFor="title">Apa yang terjadi?</Label>
-									<Input
-										name="title"
-										id="title"
-										value={data.title}
-										type="text"
-										placeholder="Contoh: Kebakaran Rumah, Pohon Tumbang..."
-										onChange={onHandleChange}
-										className="h-12 border-gray-300 rounded-xl focus-visible:ring-red-500 dark:bg-slate-900"
-									/>
-									{errors.title && <InputError message={errors.title} />}
-								</div>
+                                <div className="space-y-1.5">
+                                    <Label htmlFor="title" className="text-sm font-medium text-gray-700 dark:text-gray-300">Apa yang terjadi?</Label>
+                                    <Input
+                                        name="title"
+                                        id="title"
+                                        value={data.title}
+                                        type="text"
+                                        placeholder="Contoh: Kebakaran Rumah, Pohon Tumbang..."
+                                        onChange={onHandleChange}
+                                        className="h-10 rounded-md border-[#e5e5e5] bg-white focus-visible:ring-1 focus-visible:ring-[#b42826] dark:border-[#262626] dark:bg-[#151515] dark:text-gray-100"
+                                    />
+                                    {errors.title && <InputError message={errors.title} />}
+                                </div>
 
-								<div className="space-y-2">
-									<Label htmlFor="description">
-										Detail Kejadian <span className="font-normal text-gray-400">(Opsional)</span>
-									</Label>
-									<Textarea
-										name="description"
-										id="description"
-										value={data.description}
-										placeholder="Jelaskan detail situasi saat ini jika memungkinkan..."
-										onChange={onHandleChange}
-										className="min-h-[100px] resize-y rounded-xl focus-visible:ring-red-500 dark:bg-slate-900"
-									/>
-									{errors.description && <InputError message={errors.description} />}
-								</div>
+                                <div className="space-y-1.5">
+                                    <Label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Detail Kejadian <span className="font-normal text-gray-400">(Opsional)</span>
+                                    </Label>
+                                    <Textarea
+                                        name="description"
+                                        id="description"
+                                        value={data.description}
+                                        placeholder="Jelaskan detail situasi saat ini jika memungkinkan..."
+                                        onChange={onHandleChange}
+                                        className="min-h-[100px] resize-y rounded-md border-[#e5e5e5] bg-white p-3 text-sm focus-visible:ring-1 focus-visible:ring-[#b42826] dark:border-[#262626] dark:bg-[#151515] dark:text-gray-100"
+                                    />
+                                    {errors.description && <InputError message={errors.description} />}
+                                </div>
 
-								<div className="pt-2 space-y-2">
-									<Label htmlFor="photo" className="flex items-center gap-2">
-										<IconCamera className="w-5 h-5 text-gray-500" /> Foto Bukti Kejadian
-									</Label>
-									<div className="relative">
-										<Input
-											name="photo"
-											id="photo"
-											type="file"
-											accept="image/*"
-											ref={fileInputPhoto}
-											onChange={(e) => setData(e.target.name, e.target.files[0])}
-											className="h-12 cursor-pointer rounded-xl border-gray-300 pt-2.5 file:mr-4 file:cursor-pointer file:rounded-md file:border-0 file:bg-gray-100 file:px-4 file:py-1 file:text-xs file:font-bold file:text-gray-700 focus-visible:ring-red-500 dark:bg-slate-900 dark:file:bg-slate-800 dark:file:text-slate-300"
-										/>
-									</div>
-									<p className="text-[11px] text-gray-500">
-										*Sertakan foto agar relawan dapat menilai skala prioritas.
-									</p>
-									{errors.photo && <InputError message={errors.photo} />}
-								</div>
-							</div>
+                                {/* --- REVISI: BAGIAN UPLOAD FOTO --- */}
+                                <div className="pt-2 space-y-3">
+                                    <div>
+                                        <Label className="text-base font-semibold text-gray-900 dark:text-gray-100">Foto Bukti Kejadian</Label>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                                            Sertakan foto agar relawan dapat menilai skala prioritas.
+                                        </p>
+                                    </div>
 
-							{/* --- ACTIONS (Lebih aman dan tegas) --- */}
-							<div className="pt-6 mt-6 border-t border-gray-100 dark:border-slate-800">
-								<Button
-									type="submit"
-									className="flex h-14 w-full items-center justify-center gap-2 rounded-[16px] bg-red-600 px-8 text-lg font-extrabold text-white transition-all hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/30"
-									disabled={processing || locationLoading}
-								>
-									{processing ? (
-										<IconLoader2 className="w-6 h-6 animate-spin" />
-									) : (
-										<IconSend className="w-6 h-6" />
-									)}
-									Kirim Laporan
-								</Button>
-							</div>
-						</form>
-					</CardContent>
-				</Card>
-			</div>
-		</div>
-	);
+                                    {previewUrl ? (
+                                        /* Tampilan Preview Foto */
+                                        <div className="relative w-full h-56 sm:h-64 rounded-xl overflow-hidden border border-[#e5e5e5] dark:border-[#262626] shadow-sm group">
+                                            <img src={previewUrl} alt="Preview Bukti Kejadian" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" />
+                                            <div className="absolute inset-0 transition-colors bg-black/0 group-hover:bg-black/10"></div>
+                                            <button
+                                                type="button"
+                                                onClick={removePhoto}
+                                                className="absolute flex items-center justify-center w-8 h-8 text-red-600 transition-colors border border-transparent rounded-md shadow-sm top-3 right-3 bg-white/90 dark:bg-black/80 hover:bg-red-50 dark:text-red-400 backdrop-blur-sm hover:border-red-200 dark:hover:border-red-900/50"
+                                                title="Hapus foto"
+                                            >
+                                                <IconX stroke={2.5} className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        /* Tampilan Upload (Sesuai Gambar Referensi) */
+                                        <div className="border border-dashed border-[#e5e5e5] dark:border-[#333] rounded-xl p-8 flex flex-col items-center justify-center text-center bg-gray-50/50 dark:bg-[#101010] transition-colors hover:bg-gray-50 dark:hover:bg-[#151515]">
+                                            <div className="w-12 h-12 bg-gray-100 dark:bg-[#1f1f1f] rounded-xl flex items-center justify-center mb-4 border border-gray-200 dark:border-[#262626]">
+                                                <IconCloudUpload className="w-6 h-6 text-gray-900 dark:text-gray-100" stroke={1.5} />
+                                            </div>
+                                            <p className="text-base font-semibold text-gray-900 dark:text-gray-100">Upload files</p>
+                                            <p className="mt-1 mb-5 text-sm text-gray-500 dark:text-gray-400">PNG, JPG up to 10MB</p>
+                                            
+                                            <label className="cursor-pointer inline-flex items-center justify-center h-10 px-5 rounded-md bg-[#b42826] text-sm font-medium text-white hover:bg-[#9a2220] transition-colors focus-within:ring-2 focus-within:ring-[#b42826]/50">
+                                                Browse Files
+                                                <input
+                                                    name="photo"
+                                                    id="photo"
+                                                    type="file"
+                                                    accept="image/*"
+                                                    ref={fileInputPhoto}
+                                                    onChange={handlePhotoChange}
+                                                    className="sr-only" // Menyembunyikan input asli
+                                                />
+                                            </label>
+                                        </div>
+                                    )}
+                                    {errors.photo && <InputError message={errors.photo} />}
+                                </div>
+                            </div>
+
+                            {/* --- ACTIONS --- */}
+                            <div className="pt-5 mt-5 border-t border-[#e5e5e5] dark:border-[#262626]">
+                                <Button
+                                    type="submit"
+                                    className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-[#b42826] px-8 text-sm font-medium text-white transition-colors hover:bg-[#9a2220] focus-visible:ring-2 focus-visible:ring-[#b42826]/50 disabled:opacity-70 disabled:cursor-not-allowed"
+                                    disabled={processing || locationLoading}
+                                >
+                                    {processing ? (
+                                        <IconLoader2 className="w-5 h-5 animate-spin" />
+                                    ) : (
+                                        <IconSend className="w-5 h-5" />
+                                    )}
+                                    Kirim Laporan
+                                </Button>
+                            </div>
+                        </form>
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+    );
 }
 
 Create.layout = (page) => <AppLayout children={page} title="Buat Laporan Baru" />;

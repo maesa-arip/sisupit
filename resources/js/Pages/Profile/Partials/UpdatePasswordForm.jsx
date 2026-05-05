@@ -39,25 +39,25 @@ export default function UpdatePasswordForm({ className = '' }) {
     };
 
     return (
-        <Card className={`overflow-hidden border-gray-200 dark:border-slate-800 shadow-sm ${className}`}>
-            <CardHeader className="pb-6 border-b border-gray-100 bg-gray-50/50 dark:bg-slate-800/20 dark:border-slate-800">
+        <Card className={`overflow-hidden border border-[#e5e5e5] bg-white shadow-sm dark:bg-[#151515] dark:border-[#262626] rounded-xl ${className}`}>
+            <CardHeader className="pb-5 border-b border-[#e5e5e5] bg-transparent dark:border-[#262626]">
                 <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 rounded-xl">
-            <IconLock size={24} stroke={1.5} />
-        </div>
+                    <div className="rounded-lg bg-gray-50 border border-[#e5e5e5] p-2 text-gray-600 dark:bg-[#1f1f1f] dark:border-[#262626] dark:text-gray-300">
+                        <IconLock size={20} stroke={1.5} />
+                    </div>
                     <div>
-                        <CardTitle className="text-xl">Keamanan Kata Sandi</CardTitle>
-                        <CardDescription className="mt-1.5">
+                        <CardTitle className="text-base font-semibold text-gray-900 dark:text-gray-100">Keamanan Kata Sandi</CardTitle>
+                        <CardDescription className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                             Pastikan akun Anda menggunakan kata sandi yang panjang dan acak agar tetap aman.
                         </CardDescription>
                     </div>
                 </div>
             </CardHeader>
             
-            <CardContent className="pt-6">
-                <form onSubmit={updatePassword} className="max-w-2xl space-y-6">
-                    <div className="space-y-2">
-                        <Label htmlFor="current_password">Kata Sandi Saat Ini</Label>
+            <CardContent className="pt-5">
+                <form onSubmit={updatePassword} className="max-w-xl space-y-5">
+                    <div className="space-y-1.5">
+                        <Label htmlFor="current_password" className="text-sm font-medium text-gray-700 dark:text-gray-300">Kata Sandi Saat Ini</Label>
                         <Input
                             id="current_password"
                             name="current_password"
@@ -66,15 +66,15 @@ export default function UpdatePasswordForm({ className = '' }) {
                             onChange={onHandleChange}
                             type="password"
                             autoComplete="current-password"
-                            className="focus-visible:ring-blue-500 dark:bg-slate-900"
+                            className="h-10 rounded-md border-[#e5e5e5] bg-white focus-visible:ring-1 focus-visible:ring-[#b42826] dark:border-[#262626] dark:bg-[#101010] dark:text-gray-100"
                         />
                         {errors.current_password && (
                             <InputError message={errors.current_password} />
                         )}
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="password">Kata Sandi Baru</Label>
+                    <div className="space-y-1.5">
+                        <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">Kata Sandi Baru</Label>
                         <Input
                             id="password"
                             name="password"
@@ -83,15 +83,15 @@ export default function UpdatePasswordForm({ className = '' }) {
                             onChange={onHandleChange}
                             type="password"
                             autoComplete="new-password"
-                            className="focus-visible:ring-blue-500 dark:bg-slate-900"
+                            className="h-10 rounded-md border-[#e5e5e5] bg-white focus-visible:ring-1 focus-visible:ring-[#b42826] dark:border-[#262626] dark:bg-[#101010] dark:text-gray-100"
                         />
                         {errors.password && (
                             <InputError message={errors.password} />
                         )}
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="password_confirmation">Konfirmasi Kata Sandi Baru</Label>
+                    <div className="space-y-1.5">
+                        <Label htmlFor="password_confirmation" className="text-sm font-medium text-gray-700 dark:text-gray-300">Konfirmasi Kata Sandi Baru</Label>
                         <Input
                             id="password_confirmation"
                             name="password_confirmation"
@@ -99,7 +99,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                             onChange={onHandleChange}
                             type="password"
                             autoComplete="new-password"
-                            className="focus-visible:ring-blue-500 dark:bg-slate-900"
+                            className="h-10 rounded-md border-[#e5e5e5] bg-white focus-visible:ring-1 focus-visible:ring-[#b42826] dark:border-[#262626] dark:bg-[#101010] dark:text-gray-100"
                         />
                         {errors.password_confirmation && (
                             <InputError message={errors.password_confirmation} />
@@ -108,7 +108,7 @@ export default function UpdatePasswordForm({ className = '' }) {
 
                     <div className="flex items-center gap-4 pt-2">
                         <Button 
-                            className="px-8 text-white bg-blue-600 hover:bg-blue-700 rounded-xl" 
+                            className="h-9 px-4 rounded-md text-sm font-medium text-white transition-colors bg-[#b42826] hover:bg-[#9a2220] focus-visible:ring-2 focus-visible:ring-[#b42826]/50" 
                             disabled={processing}
                         >
                             Perbarui Kata Sandi
@@ -123,8 +123,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                             leaveFrom="opacity-100"
                             leaveTo="opacity-0"
                         >
-                            <p className="text-sm font-medium text-blue-600 dark:text-blue-500 flex items-center gap-1.5">
-                                <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+                            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
                                 Tersimpan.
                             </p>
                         </Transition>

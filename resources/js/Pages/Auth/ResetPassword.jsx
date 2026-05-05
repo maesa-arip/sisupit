@@ -28,51 +28,66 @@ export default function ResetPassword({ token, email }) {
     };
 
     return (
-        <div className="w-full bg-white dark:bg-slate-950 lg:grid lg:min-h-screen lg:grid-cols-2">
-            {/* PANE KIRI */}
-            <div className="relative flex flex-col px-6 py-6 lg:px-12">
-                <div className="absolute top-0 left-0 right-0 flex justify-center w-full pointer-events-none -z-10">
-                    <div className="w-[80vw] max-w-[600px] h-[300px] bg-red-500/10 dark:bg-red-500/5 rounded-[100%] blur-[80px] sm:blur-[120px] -mt-20"></div>
-                </div>
-
+        <div className="w-full bg-white dark:bg-[#101010] lg:grid lg:min-h-screen lg:grid-cols-2">
+            {/* PANE KIRI: AREA FORM */}
+            <div className="relative flex flex-col px-6 py-6 lg:px-12 bg-white dark:bg-[#101010] z-0">
+                
+                {/* Header: Logo & Theme Switcher */}
                 <div className="flex items-center justify-between w-full pt-2 mb-12 lg:mb-0">
                     <ApplicationLogo />
                     <ThemeSwitcher />
                 </div>
 
-                <div className="flex flex-col justify-center flex-1">
+                {/* Container Form */}
+                <div className="z-10 flex flex-col justify-center flex-1">
                     <div className="w-full max-w-sm mx-auto space-y-8">
+                        
+                        {/* Judul */}
                         <div className="text-center">
-                            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-slate-100">
+                            <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
                                 Buat Sandi Baru
                             </h1>
-                            <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">
+                            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                                 Silakan buat kata sandi baru yang aman dan mudah Anda ingat.
                             </p>
                         </div>
 
-                        <form onSubmit={onHandleSubmit} className="space-y-5">
-                            <div className="space-y-2">
-                                <Label htmlFor="email" className="text-sm font-semibold text-gray-700 dark:text-slate-300">Email</Label>
+                        <form onSubmit={onHandleSubmit} className="space-y-4">
+                            {/* Input Email (Read-Only) */}
+                            <div className="space-y-1.5">
+                                <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">Email</Label>
                                 <Input
-                                    id="email" type="email" name="email" value={data.email} autoComplete="username" readOnly
+                                    id="email" 
+                                    type="email" 
+                                    name="email" 
+                                    value={data.email} 
+                                    autoComplete="username" 
+                                    readOnly
                                     onChange={(e) => setData('email', e.target.value)}
-                                    className="h-12 text-gray-500 border-gray-200 bg-gray-50 rounded-xl dark:border-slate-800 dark:bg-slate-900/50"
+                                    className="w-full h-11 border-[#e5e5e5] bg-gray-50 text-gray-500 rounded-md focus-visible:ring-0 cursor-not-allowed dark:border-[#333] dark:bg-[#151515]/50 dark:text-gray-400 transition-colors"
                                 />
                                 {errors.email && <InputError message={errors.email} />}
                             </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-slate-300">Kata Sandi Baru</Label>
-                                <div className="relative">
+                            {/* Input Kata Sandi Baru */}
+                            <div className="space-y-1.5">
+                                <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">Kata Sandi Baru</Label>
+                                <div className="relative flex items-center">
                                     <Input
-                                        id="password" name="password" type={showPassword ? 'text' : 'password'} value={data.password} autoComplete="new-password"
-                                        placeholder="••••••••" onChange={(e) => setData('password', e.target.value)}
-                                        className="h-12 pr-12 transition-all duration-200 border-gray-200 rounded-xl focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500 dark:border-slate-800 dark:bg-slate-900"
+                                        id="password" 
+                                        name="password" 
+                                        type={showPassword ? 'text' : 'password'} 
+                                        value={data.password} 
+                                        autoComplete="new-password"
+                                        placeholder="••••••••" 
+                                        onChange={(e) => setData('password', e.target.value)}
+                                        className="w-full h-11 pr-11 border-[#e5e5e5] bg-white rounded-md focus-visible:ring-1 focus-visible:ring-[#b42826] focus-visible:border-[#b42826] dark:border-[#333] dark:bg-[#151515] dark:text-gray-100 dark:focus-visible:ring-gray-500 dark:focus-visible:border-gray-500 transition-colors"
                                     />
                                     <button
-                                        type="button" onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute flex items-center justify-center w-10 h-10 transition-colors -translate-y-1/2 rounded-full right-1 top-1/2 text-slate-400 hover:text-red-600 dark:hover:text-red-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                                        type="button" 
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute z-10 flex items-center justify-center w-10 h-10 transition-colors -translate-y-1/2 rounded-md right-0.5 top-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none"
+                                        aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
                                     >
                                         {showPassword ? <IconEyeOff className="w-5 h-5" stroke={1.5} /> : <IconEye className="w-5 h-5" stroke={1.5} />}
                                     </button>
@@ -80,17 +95,25 @@ export default function ResetPassword({ token, email }) {
                                 {errors.password && <InputError message={errors.password} />}
                             </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="password_confirmation" className="text-sm font-semibold text-gray-700 dark:text-slate-300">Konfirmasi Sandi Baru</Label>
-                                <div className="relative">
+                            {/* Input Konfirmasi Kata Sandi */}
+                            <div className="space-y-1.5">
+                                <Label htmlFor="password_confirmation" className="text-sm font-medium text-gray-700 dark:text-gray-300">Konfirmasi Sandi Baru</Label>
+                                <div className="relative flex items-center">
                                     <Input
-                                        id="password_confirmation" name="password_confirmation" type={showConfirmPassword ? 'text' : 'password'} value={data.password_confirmation} autoComplete="new-password"
-                                        placeholder="••••••••" onChange={(e) => setData('password_confirmation', e.target.value)}
-                                        className="h-12 pr-12 transition-all duration-200 border-gray-200 rounded-xl focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500 dark:border-slate-800 dark:bg-slate-900"
+                                        id="password_confirmation" 
+                                        name="password_confirmation" 
+                                        type={showConfirmPassword ? 'text' : 'password'} 
+                                        value={data.password_confirmation} 
+                                        autoComplete="new-password"
+                                        placeholder="••••••••" 
+                                        onChange={(e) => setData('password_confirmation', e.target.value)}
+                                        className="w-full h-11 pr-11 border-[#e5e5e5] bg-white rounded-md focus-visible:ring-1 focus-visible:ring-[#b42826] focus-visible:border-[#b42826] dark:border-[#333] dark:bg-[#151515] dark:text-gray-100 dark:focus-visible:ring-gray-500 dark:focus-visible:border-gray-500 transition-colors"
                                     />
                                     <button
-                                        type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        className="absolute flex items-center justify-center w-10 h-10 transition-colors -translate-y-1/2 rounded-full right-1 top-1/2 text-slate-400 hover:text-red-600 dark:hover:text-red-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                                        type="button" 
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute z-10 flex items-center justify-center w-10 h-10 transition-colors -translate-y-1/2 rounded-md right-0.5 top-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none"
+                                        aria-label={showConfirmPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
                                     >
                                         {showConfirmPassword ? <IconEyeOff className="w-5 h-5" stroke={1.5} /> : <IconEye className="w-5 h-5" stroke={1.5} />}
                                     </button>
@@ -99,8 +122,9 @@ export default function ResetPassword({ token, email }) {
                             </div>
 
                             <Button
-                                type="submit" disabled={processing}
-                                className="w-full h-12 mt-2 text-base font-bold text-white transition-all duration-200 shadow-md rounded-xl bg-red-600 hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/20 active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100"
+                                type="submit" 
+                                disabled={processing}
+                                className="w-full h-11 mt-4 text-sm font-medium text-white transition-colors rounded-md bg-[#b42826] hover:bg-[#9a2220] focus-visible:ring-2 focus-visible:ring-[#b42826]/50 disabled:opacity-70 disabled:cursor-not-allowed"
                             >
                                 {processing ? <IconLoader2 className="w-5 h-5 animate-spin" /> : 'Simpan Sandi Baru'}
                             </Button>
@@ -109,13 +133,13 @@ export default function ResetPassword({ token, email }) {
                 </div>
             </div>
 
-            {/* PANE KANAN */}
-            <div className="relative hidden lg:block bg-slate-100 dark:bg-slate-900">
-                <div className="absolute inset-0 z-10 bg-slate-900/20 mix-blend-multiply dark:bg-slate-900/70"></div>
-                <div className="absolute inset-0 z-20 pointer-events-none bg-gradient-to-t from-red-900/30 to-transparent dark:from-red-900/40"></div>
+            {/* PANE KANAN: AREA GAMBAR */}
+            <div className="relative hidden lg:block bg-gray-100 dark:bg-[#151515] border-l border-[#e5e5e5] dark:border-[#262626] z-0">
+                <div className="absolute inset-0 z-10 bg-black/10 dark:bg-[#101010]/60 mix-blend-multiply"></div>
                 <img src="/images/login.webp" alt="Reset Password" className="object-cover w-full h-full" />
             </div>
         </div>
     );
 }
+
 ResetPassword.layout = (page) => <GuestLayout children={page} title="Reset Password" />;

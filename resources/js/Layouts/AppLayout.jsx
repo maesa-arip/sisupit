@@ -20,7 +20,6 @@ export default function AppLayout({ title, children }) {
     const announcemet = usePage().props.announcemet;
     const auth = usePage().props.auth?.user ?? null;
 
-    // Sugesti: Di masa depan, pindahkan logika ini ke custom hook misal: usePushNotificationAudio()
     useEffect(() => {
         let audio;
         if ('serviceWorker' in navigator) {
@@ -49,12 +48,12 @@ export default function AppLayout({ title, children }) {
             <WebPushSubscribe />
             <SoundNotificationControl />
             
-            <div className="flex w-full min-h-screen bg-gray-50/50 dark:bg-slate-950">
+            <div className="flex w-full min-h-screen bg-gray-50 dark:bg-[#101010]">
                 
                 {/* SIDEBAR */}
-                <div className="z-20 hidden w-64 bg-white border-r shrink-0 lg:block dark:border-slate-800 dark:bg-slate-950">
+                <div className="z-20 hidden w-64 bg-white border-r border-[#e5e5e5] shrink-0 lg:block dark:border-[#262626] dark:bg-[#151515]">
                     <div className="sticky top-0 flex flex-col h-screen">
-                        <div className="flex items-center h-16 px-6 border-b dark:border-slate-800 shrink-0">
+                        <div className="flex items-center h-16 px-6 border-b border-[#e5e5e5] dark:border-[#262626] shrink-0">
                             <ApplicationLogo />
                         </div>
                         <div className="flex-1 overflow-y-auto">
@@ -64,35 +63,32 @@ export default function AppLayout({ title, children }) {
                 </div>
                 
                 {/* AREA KONTEN UTAMA */}
-                {/* Perbaikan: Menggunakan flex-col dan min-h-screen di sini agar Footer bisa menempel di bawah */}
                 <div className="flex flex-col flex-1 min-w-0 min-h-screen pb-20 lg:pb-0">
                     
                     {/* HEADER */}
-                    <header className="sticky top-0 z-40 flex items-center justify-end h-16 px-4 border-b lg:px-8 border-gray-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl">
+                    <header className="sticky top-0 z-40 flex items-center justify-end h-16 px-4 border-b lg:px-8 border-[#e5e5e5] dark:border-[#262626] bg-white/95 dark:bg-[#151515]/95 backdrop-blur-md">
                         
                         <div className="flex items-center gap-2 lg:gap-4">
                             {auth?.name && (
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        {/* Perbaikan Desain Tombol: Menggunakan gaya 'Ghost' agar menyatu dengan Glassmorphism */}
-                                        <button className="flex items-center gap-2.5 px-2 py-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-slate-500 cursor-pointer group">
-                                            <div className="flex items-center justify-center w-8 h-8 overflow-hidden text-sm font-bold transition-transform rounded-full shadow-inner bg-slate-100 dark:bg-slate-900/40 text-slate-600 dark:text-slate-500 shrink-0 group-hover:scale-105">
+                                        <button className="flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-[#1f1f1f] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-gray-300 cursor-pointer group">
+                                            <div className="flex items-center justify-center w-8 h-8 overflow-hidden text-sm font-semibold transition-transform rounded-md shadow-sm border border-[#e5e5e5] bg-gray-50 dark:bg-[#1f1f1f] dark:border-[#262626] text-gray-600 dark:text-gray-400 shrink-0 group-hover:scale-105">
                                                 {auth.avatar ? (
                                                     <img src={auth.avatar} alt="Avatar" className="object-cover w-full h-full" />
                                                 ) : (
                                                     auth.name.substring(0, 1).toUpperCase()
                                                 )}
                                             </div>
-                                            {/* Menyembunyikan nama di layar super kecil (mobile portrait) agar header tidak sesak */}
-                                            <span className="hidden sm:block text-sm font-semibold text-gray-700 dark:text-slate-200 truncate max-w-[120px]">
+                                            <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-gray-200 truncate max-w-[120px]">
                                                 {auth.name}
                                             </span>
                                         </button>
                                     </DropdownMenuTrigger>
                                     
-                                    <DropdownMenuContent align="end" className="w-64 p-5 mt-2 shadow-2xl rounded-3xl dark:bg-slate-900 dark:border-slate-800">
+                                    <DropdownMenuContent align="end" className="w-64 p-5 mt-2 shadow-md rounded-xl bg-white border-[#e5e5e5] dark:bg-[#151515] dark:border-[#262626]">
                                         <div className="flex flex-col items-center space-y-3 text-center">
-                                            <div className="flex items-center justify-center w-16 h-16 overflow-hidden text-2xl font-extrabold border-2 rounded-full shadow-sm border-slate-200 dark:border-slate-900/50 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900/40 dark:to-orange-900/40 text-slate-700 dark:text-slate-500">
+                                            <div className="flex items-center justify-center w-16 h-16 overflow-hidden text-2xl font-semibold border border-[#e5e5e5] rounded-full shadow-sm dark:border-[#262626] bg-gray-50 dark:bg-[#1f1f1f] text-gray-700 dark:text-gray-400">
                                                 {auth.avatar ? (
                                                     <img src={auth.avatar} alt="User Avatar" className="object-cover w-full h-full" />
                                                 ) : (
@@ -100,17 +96,17 @@ export default function AppLayout({ title, children }) {
                                                 )}
                                             </div>
                                             <div>
-                                                <h4 className="text-base font-bold text-gray-900 break-words dark:text-slate-100">
+                                                <h4 className="text-base font-semibold text-gray-900 break-words dark:text-gray-100">
                                                     {auth.name}
                                                 </h4>
-                                                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 break-words">
+                                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 break-words">
                                                     {auth.email}
                                                 </p>
                                             </div>
                                             {auth.role && auth.role.length > 0 && (
                                                 <div className="flex flex-wrap justify-center gap-1.5 mt-2">
                                                     {auth.role.map((role_name, i) => (
-                                                        <span key={i} className="px-3 py-1 bg-slate-50 dark:bg-slate-900/20 text-slate-700 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-slate-100 dark:border-slate-900/30">
+                                                        <span key={i} className="px-2.5 py-1 bg-gray-100 dark:bg-[#1f1f1f] text-gray-700 dark:text-gray-300 text-[10px] font-medium uppercase tracking-wider rounded-md border border-[#e5e5e5] dark:border-[#333]">
                                                             {role_name}
                                                         </span>
                                                     ))}
@@ -121,21 +117,21 @@ export default function AppLayout({ title, children }) {
                                 </DropdownMenu>
                             )}
 
-                            {/* Divider halus antara profil dan theme switcher */}
-                            <div className="w-px h-6 mx-1 bg-gray-200 dark:bg-slate-700"></div>
+                            {/* Divider */}
+                            <div className="w-px h-5 mx-1 bg-[#e5e5e5] dark:bg-[#262626]"></div>
 
                             <ThemeSwitcher />
                         </div>
                     </header>
 
-                    {/* BANNER GLOBAL (Sekarang merentang penuh di bawah header) */}
+                    {/* BANNER GLOBAL */}
                     {announcemet && announcemet.is_active == 1 && (
                         <div className="w-full">
                             <Banner message={announcemet.message} url={announcemet.url} />
                         </div>
                     )}
                     
-                    {/* MAIN CONTENT (Menggunakan flex-1 agar mendesak footer ke bawah) */}
+                    {/* MAIN CONTENT */}
                     <main className="flex-1 w-full mx-auto max-w-7xl">
                         <div className="p-4 lg:p-8">
                             {children}
@@ -143,8 +139,8 @@ export default function AppLayout({ title, children }) {
                     </main>
                     
                     {/* FOOTER */}
-                    <footer className="w-full px-4 py-6 mt-auto border-t lg:px-8 border-gray-200/60 dark:border-slate-800/60 shrink-0">
-                        <p className="text-sm font-medium text-center text-gray-400 lg:text-left dark:text-slate-500">
+                    <footer className="w-full px-4 py-6 mt-auto border-t lg:px-8 border-[#e5e5e5] dark:border-[#262626] shrink-0">
+                        <p className="text-xs font-medium text-center text-gray-400 lg:text-left dark:text-gray-500">
                             &copy; {new Date().getFullYear()} Sisupit. Developed by PT. Tawarin Dimana Saja.
                         </p>
                     </footer>

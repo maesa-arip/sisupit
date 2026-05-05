@@ -46,49 +46,49 @@ export default function DeleteUserForm({ className = '' }) {
     };
 
     return (
-        <Card className={`overflow-hidden border-red-200 dark:border-red-900/30 shadow-sm ${className}`}>
-            <CardHeader className="pb-6 border-b border-red-100 bg-red-50/50 dark:bg-red-900/10 dark:border-red-900/20">
+        <Card className={`overflow-hidden border border-[#e5e5e5] bg-white shadow-sm dark:bg-[#151515] dark:border-[#262626] rounded-xl ${className}`}>
+            <CardHeader className="pb-5 border-b border-[#e5e5e5] bg-transparent dark:border-[#262626]">
                 <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-500 rounded-xl">
-                        <IconAlertTriangle size={24} stroke={1.5} />
+                    <div className="rounded-lg bg-red-50 border border-red-100 p-2 text-red-600 dark:bg-[#2a1313] dark:border-[#4a1c1c] dark:text-[#ff6b6b]">
+                        <IconAlertTriangle size={20} stroke={1.5} />
                     </div>
                     <div>
-                        <CardTitle className="text-xl text-red-700 dark:text-red-400">Hapus Akun</CardTitle>
-                        <CardDescription className="mt-1.5 dark:text-slate-400">
+                        <CardTitle className="text-base font-semibold text-gray-900 dark:text-gray-100">Hapus Akun</CardTitle>
+                        <CardDescription className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                             Setelah akun Anda dihapus, semua sumber daya dan datanya akan dihapus secara permanen.
                         </CardDescription>
                     </div>
                 </div>
             </CardHeader>
             
-            <CardContent className="pt-6">
+            <CardContent className="pt-5">
                 <div className="max-w-2xl">
-                    <p className="mb-6 text-sm text-gray-600 dark:text-slate-400">
+                    <p className="mb-5 text-sm text-gray-600 dark:text-gray-400">
                         Sebelum menghapus akun Anda, harap unduh data atau informasi apa pun yang ingin Anda simpan. Proses ini tidak dapat dibatalkan.
                     </p>
                     
                     <Button 
                         variant="destructive" 
                         onClick={confirmUserDeletion}
-                        className="px-8 rounded-xl"
+                        className="h-9 px-4 rounded-md text-sm font-medium transition-colors bg-[#b42826] hover:bg-[#9a2220] focus-visible:ring-2 focus-visible:ring-[#b42826]/50"
                     >
                         Hapus Akun Permanen
                     </Button>
                 </div>
 
                 <Modal show={confirmingUserDeletion} onClose={closeModal}>
-                    <form onSubmit={deleteUser} className="p-6 sm:p-8 dark:bg-slate-900">
-                        <h2 className="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-slate-100">
-                            <IconAlertTriangle className="text-red-500" />
+                    <form onSubmit={deleteUser} className="p-6 sm:p-8 bg-white dark:bg-[#151515] rounded-xl border border-[#e5e5e5] dark:border-[#262626]">
+                        <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                            <IconAlertTriangle className="text-[#b42826] w-5 h-5" />
                             Apakah Anda yakin?
                         </h2>
 
-                        <p className="mt-3 text-sm leading-relaxed text-gray-600 dark:text-slate-400">
+                        <p className="mt-3 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
                             Setelah akun Anda dihapus, semua sumber daya dan datanya akan dihapus secara permanen. 
                             Silakan masukkan kata sandi Anda untuk mengonfirmasi bahwa Anda ingin menghapus akun Anda secara permanen.
                         </p>
 
-                        <div className="mt-6">
+                        <div className="mt-5">
                             <Label htmlFor="password" className="sr-only">Password</Label>
                             <Input
                                 id="password"
@@ -97,7 +97,7 @@ export default function DeleteUserForm({ className = '' }) {
                                 ref={passwordInput}
                                 value={data.password}
                                 onChange={(e) => setData('password', e.target.value)}
-                                className="block w-full sm:w-3/4 focus-visible:ring-red-500 dark:bg-slate-800"
+                                className="h-10 block w-full sm:w-3/4 rounded-md border-[#e5e5e5] bg-white focus-visible:ring-1 focus-visible:ring-[#b42826] dark:border-[#262626] dark:bg-[#101010] dark:text-gray-100"
                                 placeholder="Masukkan kata sandi Anda"
                             />
                             {errors.password && (
@@ -106,12 +106,12 @@ export default function DeleteUserForm({ className = '' }) {
                         </div>
 
                         <div className="flex justify-end gap-3 mt-8">
-                            <Button type="button" variant="outline" className="rounded-xl" onClick={closeModal}>
+                            <Button type="button" variant="outline" className="h-9 rounded-md border-[#e5e5e5] dark:border-[#333] dark:text-gray-300 dark:bg-[#151515] dark:hover:bg-[#1f1f1f]" onClick={closeModal}>
                                 Batal
                             </Button>
                             <Button 
                                 variant="destructive" 
-                                className="rounded-xl" 
+                                className="h-9 rounded-md bg-[#b42826] hover:bg-[#9a2220] focus-visible:ring-2 focus-visible:ring-[#b42826]/50" 
                                 disabled={processing}
                             >
                                 Ya, Hapus Akun Saya

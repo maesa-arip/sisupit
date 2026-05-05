@@ -28,30 +28,26 @@ import { useState } from 'react';
 export default function Sidebar({ url, auth }) {
     const [open, setOpen] = useState(false);
 
-    // Komponen Helper untuk Heading Menu agar konsisten
     const NavHeading = ({ children }) => (
-        <div className="px-3 py-2 mt-4 mb-1 text-xs font-bold tracking-wider text-gray-500 uppercase dark:text-slate-400">
+        <div className="px-3 py-2 mt-4 mb-1 text-[10px] font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {children}
         </div>
     );
 
-    // Komponen Helper untuk Button Dialog agar tidak melewati batas (Bug Fix) & konsisten
     const SidebarButton = ({ icon: Icon, children, ...props }) => (
         <Button
             variant="ghost"
-            className="justify-start w-full h-auto gap-3 px-3 py-2.5 font-medium text-left transition-colors rounded-xl text-gray-700 dark:text-slate-300 hover:text-red-600 hover:bg-red-50 dark:hover:bg-slate-800 dark:hover:text-red-400 outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+            className="justify-start w-full h-auto gap-3 px-3 py-2.5 text-sm font-medium text-left transition-colors rounded-md text-gray-700 dark:text-gray-300 hover:text-[#b42826] hover:bg-red-50 dark:hover:bg-[#2a1313] dark:hover:text-[#e54845] outline-none focus-visible:ring-2 focus-visible:ring-[#b42826]/50"
             {...props}
         >
-            <Icon className="w-5 h-5 shrink-0" />
+            <Icon className="w-5 h-5 shrink-0" stroke={2} />
             <span className="truncate">{children}</span>
         </Button>
     );
 
     return (
-        // BUG FIX: Mengganti grid menjadi flex-col, memastikan w-full dan overflow-hidden agar tidak melewati garis
-        <nav className="flex flex-col items-start w-full gap-1 px-2 pb-24 overflow-hidden text-sm lg:px-4">
+        <nav className="flex flex-col items-start w-full gap-1 px-3 pb-24 overflow-hidden text-sm lg:px-4">
             
-            {/* {auth?.role.some((role) => ['petugas', 'relawan', 'member'].includes(role)) && ( */}
             <>
                 <NavHeading>Dashboard</NavHeading>
                 <NavLink
@@ -61,19 +57,12 @@ export default function Sidebar({ url, auth }) {
                     icon={IconDashboard}
                 />
                 
-
                 <NavHeading>Sisupit</NavHeading>
-                {/* <NavLink
-                        url={route('front.volunteers.index')}
-                        active={url.startsWith('/volunteers')}
-                        title="Relawan Sekitar"
-                        icon={IconUsersGroup}
-                /> */}
-                 <NavLink
-                        url={route('front.companies.index')}
-                        active={url.startsWith('/companies')}
-                        title="Daftar Sebagai Relawan"
-                        icon={IconBuilding}
+                <NavLink
+                    url={route('front.companies.index')}
+                    active={url.startsWith('/companies')}
+                    title="Daftar Sebagai Relawan"
+                    icon={IconBuilding}
                 />
 
                 {/* --- Dialog Pompa Supit --- */}
@@ -83,14 +72,18 @@ export default function Sidebar({ url, auth }) {
                             Lihat Lokasi Pompa Supit
                         </SidebarButton>
                     </DialogTrigger>
-                    <DialogContent className="max-w-md rounded-[24px] dark:bg-slate-900 dark:border-slate-800">
-                        <DialogHeader>
-                            <DialogTitle className="dark:text-slate-100">Segera Hadir</DialogTitle>
-                            <DialogDescription className="dark:text-slate-400">Fitur pelacakan lokasi pompa sedang diproses, mohon untuk bersabar.</DialogDescription>
+                    <DialogContent className="max-w-md rounded-xl bg-white border-[#e5e5e5] dark:bg-[#151515] dark:border-[#262626]">
+                        <DialogHeader className="p-1">
+                            <DialogTitle className="text-base font-semibold text-gray-900 dark:text-gray-100">Segera Hadir</DialogTitle>
+                            <DialogDescription className="text-sm text-gray-500 dark:text-gray-400 mt-1.5">
+                                Fitur pelacakan lokasi pompa sedang diproses, mohon untuk bersabar.
+                            </DialogDescription>
                         </DialogHeader>
-                        <DialogFooter className="gap-2 sm:justify-end">
+                        <DialogFooter className="gap-2 mt-4 sm:justify-end">
                             <DialogTrigger asChild>
-                                <Button variant="outline" className="border-gray-300 rounded-xl dark:border-slate-700">Tutup</Button>
+                                <Button variant="outline" className="border-[#e5e5e5] rounded-md h-9 text-gray-700 dark:text-gray-300 dark:border-[#333] dark:bg-[#1f1f1f] hover:bg-gray-50 dark:hover:bg-[#262626]">
+                                    Tutup
+                                </Button>
                             </DialogTrigger>
                         </DialogFooter>
                     </DialogContent>
@@ -103,27 +96,23 @@ export default function Sidebar({ url, auth }) {
                             Lihat Lokasi Pos Damkar Terdekat
                         </SidebarButton>
                     </DialogTrigger>
-                    <DialogContent className="max-w-md rounded-[24px] dark:bg-slate-900 dark:border-slate-800">
-                        <DialogHeader>
-                            <DialogTitle className="dark:text-slate-100">Segera Hadir</DialogTitle>
-                            <DialogDescription className="dark:text-slate-400">Fitur rute ke Pos Damkar terdekat sedang diproses, mohon untuk bersabar.</DialogDescription>
+                    <DialogContent className="max-w-md rounded-xl bg-white border-[#e5e5e5] dark:bg-[#151515] dark:border-[#262626]">
+                        <DialogHeader className="p-1">
+                            <DialogTitle className="text-base font-semibold text-gray-900 dark:text-gray-100">Segera Hadir</DialogTitle>
+                            <DialogDescription className="text-sm text-gray-500 dark:text-gray-400 mt-1.5">
+                                Fitur rute ke Pos Damkar terdekat sedang diproses, mohon untuk bersabar.
+                            </DialogDescription>
                         </DialogHeader>
-                        <DialogFooter className="gap-2 sm:justify-end">
+                        <DialogFooter className="gap-2 mt-4 sm:justify-end">
                             <DialogTrigger asChild>
-                                <Button variant="outline" className="border-gray-300 rounded-xl dark:border-slate-700">Tutup</Button>
+                                <Button variant="outline" className="border-[#e5e5e5] rounded-md h-9 text-gray-700 dark:text-gray-300 dark:border-[#333] dark:bg-[#1f1f1f] hover:bg-gray-50 dark:hover:bg-[#262626]">
+                                    Tutup
+                                </Button>
                             </DialogTrigger>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
             </>
-            {/* )} */}
-
-            {/* KOMENTAR MENU LAINNYA TETAP DIPERTAHANKAN SESUAI KODE ASLI */}
-            {/* {auth.role.some((role) => ['admin'].includes(role)) && ( ... )} */}
-            {/* {auth.role.some((role) => ['admin', 'operator'].includes(role)) && ( ... )} */}
-            {/* {auth.role.some((role) => ['admin'].includes(role)) && ( ... )} */}
-            {/* {auth.role.some((role) => ['admin', 'operator'].includes(role)) && ( ... )} */}
-            {/* {auth.role.some((role) => ['member'].includes(role)) && ( ... )} */}
 
             <NavHeading>Lainnya</NavHeading>
             
@@ -150,7 +139,7 @@ export default function Sidebar({ url, auth }) {
                         icon={IconLogout}
                         method="post"
                         as="button"
-                        className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                        className="w-full text-[#b42826] hover:text-[#9a2220] hover:bg-red-50 dark:text-[#e54845] dark:hover:bg-[#2a1313]"
                     />
                 </>
             ) : (

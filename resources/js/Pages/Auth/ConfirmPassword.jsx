@@ -23,26 +23,30 @@ export default function ConfirmPassword() {
     };
 
     return (
-        <Card className="max-w-md mx-auto mt-10 border-gray-200 shadow-lg dark:border-slate-800 rounded-2xl">
-            <CardHeader className="pb-4 border-b border-gray-100 dark:border-slate-800">
-                <CardTitle className="text-xl text-gray-900 dark:text-slate-100">Konfirmasi Kata Sandi</CardTitle>
-                <CardDescription className="dark:text-slate-400">
+        <Card className="max-w-md mx-auto mt-10 border border-[#e5e5e5] bg-white shadow-sm dark:bg-[#151515] dark:border-[#262626] rounded-xl">
+            <CardHeader className="pb-5 border-b border-[#e5e5e5] bg-transparent dark:border-[#262626]">
+                <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">Konfirmasi Kata Sandi</CardTitle>
+                <CardDescription className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     Ini adalah area aman aplikasi. Harap konfirmasi kata sandi Anda sebelum melanjutkan ke halaman berikutnya.
                 </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
                 <form onSubmit={onHandleSubmit}>
-                    <div className="space-y-2">
-                        <Label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-slate-300">Kata Sandi</Label>
-                        <div className="relative">
+                    <div className="space-y-1.5">
+                        <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">Kata Sandi</Label>
+                        <div className="relative flex items-center">
                             <Input
-                                id="password" name="password" type={showPassword ? 'text' : 'password'} value={data.password}
+                                id="password" 
+                                name="password" 
+                                type={showPassword ? 'text' : 'password'} 
+                                value={data.password}
                                 onChange={(e) => setData('password', e.target.value)}
-                                className="h-12 pr-12 transition-all duration-200 border-gray-200 rounded-xl focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500 dark:border-slate-800 dark:bg-slate-900"
+                                className="w-full h-11 pr-11 border-[#e5e5e5] bg-white rounded-md focus-visible:ring-1 focus-visible:ring-[#b42826] focus-visible:border-[#b42826] dark:border-[#333] dark:bg-[#101010] dark:text-gray-100 dark:focus-visible:ring-gray-500 dark:focus-visible:border-gray-500 transition-colors"
                             />
                             <button
-                                type="button" onClick={() => setShowPassword(!showPassword)}
-                                className="absolute flex items-center justify-center w-10 h-10 transition-colors -translate-y-1/2 rounded-full right-1 top-1/2 text-slate-400 hover:text-red-600 dark:hover:text-red-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                                type="button" 
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute z-10 flex items-center justify-center w-10 h-10 transition-colors -translate-y-1/2 rounded-md right-0.5 top-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none"
                             >
                                 {showPassword ? <IconEyeOff className="w-5 h-5" stroke={1.5} /> : <IconEye className="w-5 h-5" stroke={1.5} />}
                             </button>
@@ -52,8 +56,9 @@ export default function ConfirmPassword() {
 
                     <div className="flex items-center justify-end mt-6">
                         <Button 
-                            type="submit" disabled={processing}
-                            className="h-11 px-6 font-bold text-white transition-all duration-200 shadow-sm rounded-xl bg-red-600 hover:bg-red-700 hover:shadow-red-600/20 active:scale-[0.98] disabled:opacity-70"
+                            type="submit" 
+                            disabled={processing}
+                            className="h-10 px-6 text-sm font-medium text-white transition-colors rounded-md bg-[#b42826] hover:bg-[#9a2220] focus-visible:ring-2 focus-visible:ring-[#b42826]/50 disabled:opacity-70 disabled:cursor-not-allowed"
                         >
                             {processing ? <IconLoader2 className="w-5 h-5 mr-2 animate-spin" /> : null}
                             Konfirmasi
@@ -64,4 +69,5 @@ export default function ConfirmPassword() {
         </Card>
     );
 }
+
 ConfirmPassword.layout = (page) => <AppLayout children={page} title="Konfirmasi Password" />;

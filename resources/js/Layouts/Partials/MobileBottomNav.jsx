@@ -10,56 +10,51 @@ export default function MobileBottomNav({ url, auth }) {
     return (
         <div className="fixed bottom-0 left-0 right-0 z-[60] pb-[env(safe-area-inset-bottom)] lg:hidden">
             
-            <div className="relative flex items-center justify-between w-full h-[72px] px-8 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-t-[32px] border-t border-gray-200/50 dark:border-slate-800/50 shadow-[0_-8px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_-8px_30px_rgba(0,0,0,0.4)]">
+            {/* Latar Navbar dengan lengkungan (rounded-t-xl) yang konsisten dengan desain Card di gambar */}
+            <div className="relative flex items-center justify-between w-full h-[64px] px-8 bg-white dark:bg-[#151515] border-t border-[#e5e5e5] dark:border-[#262626] rounded-t-xl shadow-sm">
 
                 {/* KIRI: Beranda */}
                 <Link
                     href={route('dashboard')}
-                    className="flex flex-col items-center justify-center w-16 gap-1.5 py-2 outline-none group transition-transform duration-200 active:scale-[0.92]"
+                    className="flex flex-col items-center justify-center w-16 gap-1 transition-transform duration-200 outline-none group active:scale-95"
                 >
                     <IconHome
-                        size={26}
-                        stroke={isActive('/dashboard') ? 2.5 : 2}
+                        size={22}
+                        stroke={isActive('/dashboard') ? 2 : 1.5}
                         className={`transition-colors duration-300 ${
                             isActive('/dashboard')
-                            ? 'text-blue-600 dark:text-blue-500'
-                            : 'text-gray-400 group-hover:text-blue-500/70 dark:text-slate-500'
+                            ? 'text-gray-900 dark:text-gray-100'
+                            : 'text-gray-400 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-400'
                         }`}
                     />
-                    <span className={`text-[10px] font-bold tracking-wide transition-all duration-300 ${
+                    <span className={`text-[10px] font-medium tracking-wide transition-colors duration-300 ${
                         isActive('/dashboard')
-                        ? 'text-blue-600 dark:text-blue-500 translate-y-0 opacity-100'
-                        : 'text-gray-400 dark:text-slate-500 translate-y-0.5 opacity-80'
+                        ? 'text-gray-900 dark:text-gray-100'
+                        : 'text-gray-400 dark:text-gray-500'
                     }`}>
                         Beranda
                     </span>
                 </Link>
 
-                {/* TENGAH: Tombol Darurat */}
-                {/* REVISI: Tombol diturunkan menjadi -top-[14px] agar lebih membumi / terbenam */}
-                <div className="absolute left-1/2 -translate-x-1/2 -top-[14px]">
-                    
-                    {/* Efek Glow Merah Berdenyut di Belakang Tombol */}
-                    <div className="absolute inset-0 translate-y-2 rounded-full bg-red-500/30 dark:bg-red-600/30 blur-xl animate-pulse"></div>
-                    
+                {/* TENGAH: Tombol Darurat (Bentuk Rounded Rectangle menyesuaikan tombol di referensi) */}
+                <div className="absolute left-1/2 -translate-x-1/2 -top-[18px]">
                     <Link
                         href={route('front.reports.create')}
-                        className="relative flex flex-col items-center justify-center transition-all duration-300 rounded-full outline-none
-                            w-[68px] h-[68px]
-                            border-[6px] border-white dark:border-slate-900
-                            bg-gradient-to-b from-red-500 to-red-600 dark:from-red-600 dark:to-red-700
-                            shadow-xl shadow-red-500/40
-                            hover:-translate-y-0.5 hover:shadow-red-500/60
-                            focus:ring-4 focus:ring-red-500/30 focus:outline-none
-                            active:scale-95 active:translate-y-0"
+                        className="relative flex flex-col items-center justify-center transition-all duration-200 outline-none
+                            w-[56px] h-[56px] rounded-xl
+                            bg-[#b42826] hover:bg-[#9a2220] text-white
+                            border border-[#9a2220] dark:border-[#b42826]
+                            shadow-sm
+                            focus:ring-2 focus:ring-[#b42826]/50 focus:outline-none
+                            active:scale-95"
                         aria-label="Laporkan Kejadian Darurat"
                     >
                         <IconAlertTriangle
-                            size={28}
-                            stroke={2.5}
-                            className="text-white drop-shadow-sm"
+                            size={22}
+                            stroke={2}
+                            className="mb-0.5"
                         />
-                        <span className="text-[9px] font-black text-white uppercase tracking-widest mt-0.5 drop-shadow-sm leading-none">
+                        <span className="text-[10px] font-medium leading-none tracking-wide">
                             Lapor
                         </span>
                     </Link>
@@ -68,43 +63,43 @@ export default function MobileBottomNav({ url, auth }) {
                 {/* KANAN: Profil / Masuk */}
                 <Link
                     href={auth?.name ? route('profile.edit') : route('login')}
-                    className="flex flex-col items-center justify-center w-16 gap-1.5 py-2 outline-none group transition-transform duration-200 active:scale-[0.92]"
+                    className="flex flex-col items-center justify-center w-16 gap-1 transition-transform duration-200 outline-none group active:scale-95"
                 >
                     {auth?.name ? (
                         auth.avatar ? (
                             <img
                                 src={auth.avatar}
                                 alt="Avatar"
-                                className={`w-[26px] h-[26px] rounded-full object-cover transition-all duration-300 ${
+                                className={`w-[22px] h-[22px] rounded-md object-cover transition-all duration-300 ${
                                     isActive('/profile')
-                                    ? 'ring-[2.5px] ring-blue-600 dark:ring-blue-500 ring-offset-2 dark:ring-offset-white dark:ring-offset-slate-900'
-                                    : 'ring-2 ring-transparent opacity-80 group-hover:opacity-100'
+                                    ? 'border border-gray-900 dark:border-gray-100'
+                                    : 'border border-transparent opacity-80 group-hover:opacity-100'
                                 }`}
                             />
                         ) : (
-                            <div className={`flex items-center justify-center w-[26px] h-[26px] rounded-full text-xs font-black transition-all duration-300 ${
+                            <div className={`flex items-center justify-center w-[22px] h-[22px] rounded-md text-[10px] font-medium transition-all duration-300 ${
                                 isActive('/profile')
-                                ? 'bg-blue-600 text-white dark:bg-blue-500 shadow-md shadow-blue-500/30 ring-[2.5px] ring-blue-600/30 ring-offset-2 dark:ring-offset-white dark:ring-offset-slate-900'
-                                : 'bg-gray-200 text-gray-500 dark:bg-slate-700 dark:text-slate-400'
+                                ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-[#101010]'
+                                : 'bg-gray-100 text-gray-500 border border-[#e5e5e5] dark:bg-[#1f1f1f] dark:text-gray-400 dark:border-[#262626]'
                             }`}>
                                 {auth.name.substring(0, 1).toUpperCase()}
                             </div>
                         )
                     ) : (
                         <IconLogin2
-                            size={26}
-                            stroke={isActive('/login') ? 2.5 : 2}
+                            size={22}
+                            stroke={isActive('/login') ? 2 : 1.5}
                             className={`transition-colors duration-300 ${
                                 isActive('/login')
-                                ? 'text-blue-600 dark:text-blue-500'
-                                : 'text-gray-400 group-hover:text-blue-500/70 dark:text-slate-500'
+                                ? 'text-gray-900 dark:text-gray-100'
+                                : 'text-gray-400 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-400'
                             }`}
                         />
                     )}
-                    <span className={`text-[10px] font-bold tracking-wide transition-all duration-300 ${
+                    <span className={`text-[10px] font-medium tracking-wide transition-colors duration-300 ${
                         isActive('/profile') || isActive('/login')
-                        ? 'text-blue-600 dark:text-blue-500 translate-y-0 opacity-100'
-                        : 'text-gray-400 dark:text-slate-500 translate-y-0.5 opacity-80'
+                        ? 'text-gray-900 dark:text-gray-100'
+                        : 'text-gray-400 dark:text-gray-500'
                     }`}>
                         {auth?.name ? 'Profil' : 'Masuk'}
                     </span>

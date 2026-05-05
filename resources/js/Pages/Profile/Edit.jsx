@@ -8,7 +8,6 @@ import {
     IconSettings, 
     IconShieldCheck, 
     IconChevronRight,
-    IconUserCircle
 } from '@tabler/icons-react';
 import { toast } from 'sonner';
 import { flashMessage } from '@/lib/utils';
@@ -23,7 +22,6 @@ export default function Edit(props) {
     const user = usePage().props.auth.user;
     const [openRelawan, setOpenRelawan] = useState(false);
 
-    // Asumsi: Anda memiliki field role atau is_volunteer di database
     const isVolunteer = user.role === 'volunteer' || user.role === 'admin';
 
     const handleDaftarRelawan = () => {
@@ -39,118 +37,106 @@ export default function Edit(props) {
 
     return (
         <div className="relative w-full pb-32">
-            
-            {/* REVISI: Latar Belakang Ambient diubah ke Blue (Menyejukkan/Aman) */}
-            {/* <div className="absolute inset-x-0 top-0 h-[400px] overflow-hidden pointer-events-none -z-10">
-                <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-blue-500/10 dark:bg-blue-500/5 rounded-full blur-[100px]"></div>
-            </div> */}
-
             <div className="relative z-10 flex flex-col w-full max-w-3xl mx-auto space-y-6">
                 
                 {/* --- 1. HEADER PROFIL & LOGOUT --- */}
-                {/* REVISI: Dibuat dalam satu Card agar rapi, dan tombol Logout ditaruh di sini */}
-                <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between p-6 mt-4 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-[28px] shadow-sm gap-4">
-                    <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-start">
-                        {/* REVISI: Avatar menggunakan gradasi Biru/Slate untuk kesan profesional */}
-                        <div className="relative flex items-center justify-center w-24 h-24 text-4xl font-extrabold text-blue-700 border-4 border-white rounded-full shadow-md dark:border-slate-800 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/40 dark:to-indigo-900/40 dark:text-blue-400 shrink-0">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between p-5 sm:p-6 mt-4 bg-white dark:bg-[#151515] border border-[#e5e5e5] dark:border-[#262626] rounded-xl shadow-sm gap-4">
+                    <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+                        <div className="relative flex items-center justify-center w-20 h-20 text-3xl font-semibold text-gray-700 border border-[#e5e5e5] bg-gray-50 dark:bg-[#1f1f1f] dark:border-[#262626] dark:text-gray-300 rounded-full shrink-0">
                             {user.name?.[0]?.toUpperCase() ?? 'U'}
                             {isVolunteer && (
-                                <div className="absolute bottom-0 right-0 p-1 text-white bg-blue-500 border-2 border-white rounded-full dark:border-slate-800">
-                                    <IconShieldCheck size={16} stroke={2.5} />
+                                <div className="absolute bottom-0 right-0 p-1 text-white bg-blue-600 border-2 border-white rounded-full dark:border-[#151515]">
+                                    <IconShieldCheck size={14} stroke={2} />
                                 </div>
                             )}
                         </div>
                         <div className="flex flex-col items-center mt-2 text-center sm:items-start sm:text-left sm:mt-0">
-                            <h2 className="text-2xl font-bold leading-tight text-gray-900 dark:text-slate-100">{user.name}</h2>
-                            <p className="text-sm font-medium text-gray-500 dark:text-slate-400">{user.email}</p>
-                            <span className={`px-3 py-1 mt-3 text-[11px] font-bold tracking-wider uppercase rounded-full ${isVolunteer ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-300'}`}>
+                            <h2 className="text-xl font-semibold leading-tight text-gray-900 dark:text-gray-100">{user.name}</h2>
+                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{user.email}</p>
+                            <span className={`px-2.5 py-1 mt-2 text-[10px] font-semibold tracking-wider uppercase rounded-md border ${isVolunteer ? 'bg-blue-50 text-blue-600 border-blue-100 dark:bg-[#111e36] dark:text-[#60a5fa] dark:border-[#1e3a5f]' : 'bg-gray-50 text-gray-600 border-[#e5e5e5] dark:bg-[#1f1f1f] dark:text-gray-400 dark:border-[#262626]'}`}>
                                 {isVolunteer ? 'Relawan Aktif' : 'Anggota Masyarakat'}
                             </span>
                         </div>
                     </div>
                     
-                    {/* Tombol Logout Pindah ke Atas */}
                     <Link 
                         href={route('logout')} 
                         method="post" 
                         as="button" 
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-red-600 transition-colors outline-none bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 rounded-xl focus-visible:ring-2 focus-visible:ring-red-500"
+                        className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-[#b42826] dark:text-[#e54845] transition-colors outline-none bg-transparent hover:bg-red-50 dark:hover:bg-[#2a1313] rounded-md focus-visible:ring-2 focus-visible:ring-[#b42826]/50"
                     >
-                        <IconLogout size={18} stroke={2.5} /> 
+                        <IconLogout size={16} stroke={2} /> 
                         Keluar
                     </Link>
                 </div>
 
                 {/* --- 2. QUICK ACTIONS (Riwayat & Banner) --- */}
                 <div className="space-y-4">
-                    {/* Riwayat Laporan */}
                     <Link 
                         href={route('front.reports.index')} 
-                        className="flex items-center gap-4 p-4 bg-white dark:bg-slate-900 rounded-[20px] border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                        className="flex items-center gap-4 p-4 bg-white dark:bg-[#151515] rounded-xl border border-[#e5e5e5] dark:border-[#262626] shadow-sm hover:border-gray-300 dark:hover:border-[#333] transition-colors group outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
                     >
-                        <div className="p-3 text-blue-600 transition-transform duration-300 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400 rounded-2xl group-hover:scale-110 shrink-0">
-                            <IconHistory size={24} />
+                        <div className="p-2.5 text-gray-600 bg-gray-50 border border-[#e5e5e5] dark:bg-[#1f1f1f] dark:border-[#262626] dark:text-gray-300 rounded-lg group-hover:bg-gray-100 dark:group-hover:bg-[#262626] transition-colors shrink-0">
+                            <IconHistory size={20} />
                         </div>
                         <div className="flex-1">
-                            <h3 className="font-bold text-gray-900 dark:text-slate-100">Riwayat Laporan Saya</h3>
-                            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Pantau status kejadian yang pernah Anda laporkan</p>
+                            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Riwayat Laporan Saya</h3>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Pantau status kejadian yang pernah Anda laporkan</p>
                         </div>
-                        <IconChevronRight className="text-gray-400 transition-colors dark:text-slate-500 group-hover:text-blue-500" />
+                        <IconChevronRight className="w-5 h-5 text-gray-400 transition-colors dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
                     </Link>
 
-                    {/* REVISI: Banner hanya muncul jika BUKAN relawan */}
                     {!isVolunteer && (
-                        <div className="flex flex-col items-start justify-between gap-4 p-6 text-white shadow-md bg-gradient-to-br from-blue-500 to-sky-600 dark:from-blue-600 dark:to-sky-800 rounded-[20px] sm:flex-row sm:items-center relative overflow-hidden">
+                        <div className="flex flex-col items-start justify-between gap-4 p-5 sm:p-6 text-white bg-slate-800 dark:bg-[#101010] border border-slate-700 dark:border-[#262626] rounded-xl sm:flex-row sm:items-center relative overflow-hidden">
                             <div className="relative z-10">
-                                <h3 className="flex items-center gap-2 text-lg font-bold">
-                                    <IconAward size={22} /> Panggilan Kemanusiaan
+                                <h3 className="flex items-center gap-2 text-base font-semibold">
+                                    <IconAward size={20} /> Panggilan Kemanusiaan
                                 </h3>
-                                <p className="max-w-md mt-1 text-sm leading-relaxed text-blue-50 opacity-90">
+                                <p className="max-w-md mt-1.5 text-sm leading-relaxed text-slate-300 dark:text-gray-400">
                                     Jadilah pahlawan di sekitar Anda. Daftar sebagai relawan untuk merespons keadaan darurat lebih cepat.
                                 </p>
                             </div>
                             <Button 
                                 onClick={() => setOpenRelawan(true)}
-                                className="relative z-10 w-full font-bold text-blue-700 bg-white shadow-sm sm:w-auto hover:bg-gray-50 rounded-xl h-11 shrink-0"
+                                className="relative z-10 w-full text-sm font-medium text-slate-800 bg-white border border-[#e5e5e5] sm:w-auto hover:bg-gray-50 rounded-md h-9 shrink-0 dark:bg-[#1f1f1f] dark:text-gray-200 dark:border-[#333] dark:hover:bg-[#262626]"
                             >
                                 Daftar Relawan
                             </Button>
-                            <IconShieldCheck size={120} className="absolute pointer-events-none -right-6 -bottom-6 text-white/10 rotate-12" />
+                            <IconShieldCheck size={100} className="absolute pointer-events-none -right-4 -bottom-6 text-white/5 rotate-12" />
                         </div>
                     )}
                 </div>
 
                 {/* --- 3. PENGATURAN AKUN --- */}
-                <div className="pt-6">
-                    <h3 className="flex items-center gap-2 px-2 mb-4 text-lg font-bold text-gray-900 dark:text-slate-100">
-                        <IconSettings size={22} className="text-gray-500 dark:text-slate-400" /> Pengaturan & Keamanan
+                <div className="pt-4">
+                    <h3 className="flex items-center gap-2 px-1 mb-4 text-sm font-semibold tracking-wider text-gray-900 uppercase dark:text-gray-100">
+                        <IconSettings size={18} className="text-gray-500 dark:text-gray-400" /> Pengaturan & Keamanan
                     </h3>
                     
-                    <div className="space-y-6">
-                        <UpdateProfileInformationForm mustVerifyEmail={props.mustVerifyEmail} status={props.status} className="rounded-[24px]" />
-                        <UpdatePasswordForm className="rounded-[24px]" />
+                    <div className="space-y-4">
+                        <UpdateProfileInformationForm mustVerifyEmail={props.mustVerifyEmail} status={props.status} />
+                        <UpdatePasswordForm />
                         
-                        {/* Zona Berbahaya */}
-                        <div className="pt-8">
-                            <DeleteUserForm className="rounded-[24px] border-red-200 dark:border-red-900/50" />
+                        <div className="pt-4">
+                            <DeleteUserForm />
                         </div>
                     </div>
                 </div>
 
             </div>
 
-            {/* MODAL DAFTAR RELAWAN (Tetap sama) */}
+            {/* MODAL DAFTAR RELAWAN */}
             <Dialog open={openRelawan} onOpenChange={setOpenRelawan}>
-                <DialogContent className="max-w-md w-[95vw] rounded-[24px] dark:bg-slate-900 dark:border-slate-800">
-                    <DialogHeader>
-                        <DialogTitle className="text-xl font-bold dark:text-slate-100">Konfirmasi Pendaftaran</DialogTitle>
-                        <DialogDescription className="mt-2 dark:text-slate-400">
+                <DialogContent className="max-w-md w-[95vw] rounded-xl p-0 bg-white border border-[#e5e5e5] shadow-sm dark:bg-[#151515] dark:border-[#262626]">
+                    <DialogHeader className="p-5 border-b border-[#e5e5e5] dark:border-[#262626]">
+                        <DialogTitle className="text-base font-semibold text-gray-900 dark:text-gray-100">Konfirmasi Pendaftaran</DialogTitle>
+                        <DialogDescription className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                             Dengan mendaftar sebagai relawan, lokasi Anda akan dapat dilacak saat menuju lokasi kejadian untuk membantu pelapor. Pastikan profil (KTP & No. HP) Anda sudah diisi dengan data asli.
                         </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter className="gap-3 mt-4 sm:justify-end">
-                        <Button variant="outline" className="border-gray-300 rounded-xl dark:border-slate-700 h-11" onClick={() => setOpenRelawan(false)}>Batal</Button>
-                        <Button className="font-bold text-white rounded-xl bg-amber-600 hover:bg-amber-700 h-11" onClick={handleDaftarRelawan}>
+                    <DialogFooter className="gap-2 p-5 sm:justify-end">
+                        <Button variant="outline" className="border-[#e5e5e5] dark:border-[#333] rounded-md h-9 text-gray-700 dark:text-gray-300 dark:bg-[#151515] hover:bg-gray-50 dark:hover:bg-[#1f1f1f]" onClick={() => setOpenRelawan(false)}>Batal</Button>
+                        <Button className="font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 h-9" onClick={handleDaftarRelawan}>
                             Ya, Daftarkan Saya
                         </Button>
                     </DialogFooter>
