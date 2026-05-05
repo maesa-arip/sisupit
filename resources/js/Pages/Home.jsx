@@ -1,5 +1,5 @@
 import HeaderTitle from '@/Components/HeaderTitle';
-import InstallPWAButton from '@/Components/InstallPWAButton';
+// import InstallPWAButton from '@/Components/InstallPWAButton';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import AppLayout from '@/Layouts/AppLayout';
@@ -12,10 +12,12 @@ import {
     IconUsers,
     IconChevronRight,
     IconAlertTriangle,
-    IconPhoneCall
+    IconPhoneCall,
+    IconBrandAndroid,
+    IconDownload
 } from '@tabler/icons-react';
 import Autoplay from 'embla-carousel-autoplay';
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
 export default function Home(props) {
     const plugin = useRef(Autoplay({ delay: 3500, stopOnInteraction: true }));
@@ -25,6 +27,26 @@ export default function Home(props) {
     
     // Pengecekan peran admin
     const isAdmin = auth && auth.role === 'admin'; 
+
+    // State untuk mendeteksi apakah aplikasi dibuka di dalam WebView
+    const [isWebView, setIsWebView] = useState(true); // Default true agar tidak terjadi layout shift tiba-tiba
+
+    useEffect(() => {
+        // Fungsi deteksi WebView (Android & iOS)
+        const checkWebView = () => {
+            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            
+            // Aturan umum WebView Android: Terdapat string "wv" ATAU "Android" bersandingan dengan "Version/X.X"
+            const isAndroidWebView = /wv/.test(userAgent) || (/Android/.test(userAgent) && /Version\/[\d.]+/.test(userAgent));
+            
+            // Aturan umum WebView iOS: Terdapat AppleWebkit tapi TIDAK terdapat Safari
+            const isIOSWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(userAgent);
+
+            return isAndroidWebView || isIOSWebView;
+        };
+
+        setIsWebView(checkWebView());
+    }, []);
 
     return (
         <div className="relative flex flex-col w-full pb-32 space-y-6">
@@ -64,7 +86,7 @@ export default function Home(props) {
                 </Link>
 
                 {/* Tombol Alternatif: Telepon Langsung */}
-                <a href="tel:113" className="flex items-center justify-center w-full gap-2 py-3.5 text-sm font-semibold text-[#b42826] transition-colors border border-red-200 shadow-sm bg-red-50 rounded-xl hover:bg-red-100 dark:bg-[#2a1313] dark:border-[#4a1c1c] dark:text-[#e54845] dark:hover:bg-[#3f1919]">
+                <a href="tel:113" className="flex items-center justify-center w-full gap-2 py-3.5 text-sm font-semibold text-[#b42826] transition-colors border border-red-200 shadow-sm bg-red-50 rounded-xl hover:bg-red-100 dark:bg-[#2a1313] dark:border-[#4a1c1c] dark:text-[#e54845] dark:hover:bg-[#3f1919] outline-none focus-visible:ring-2 focus-visible:ring-red-500">
                     <IconPhoneCall size={20} stroke={2} />
                     <span>Telepon Darurat (113)</span>
                 </a>
@@ -179,12 +201,23 @@ export default function Home(props) {
                 </Carousel>
             </div>
 
-            {/* --- SECTION 4: INSTALL PWA --- */}
-            {/* <div className="flex justify-center w-full mt-6">
-                <div className="w-full max-w-sm">
-                    <InstallPWAButton />
+            {/* --- SECTION 4: UNDUH APLIKASI (Disembunyikan di Webview) --- */}
+            {!isWebView && (
+                <div className="flex flex-col items-center w-full mt-4">
+                    <a
+                        href="/apk/sisupit.apk"
+                        download="Sisupit-App.apk"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center w-full sm:w-auto h-12 px-6 gap-3 font-medium text-gray-700 transition-colors bg-white border border-[#e5e5e5] rounded-xl dark:bg-[#151515] dark:border-[#262626] dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#1f1f1f] outline-none focus-visible:ring-2 focus-visible:ring-gray-300 shadow-sm"
+                    >
+                        <div className="flex items-center justify-center p-1 rounded-md bg-green-50 dark:bg-[#112a1d]">
+                            <IconBrandAndroid className="w-5 h-5 text-green-600 dark:text-green-500" stroke={2} />
+                        </div>
+                        <span className="text-sm">Unduh Aplikasi Android</span>
+                        <IconDownload className="w-4 h-4 ml-1 text-gray-400 dark:text-gray-500" stroke={2} />
+                    </a>
                 </div>
-            </div> */}
+            )}
 
         </div>
     );
