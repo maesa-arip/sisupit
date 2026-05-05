@@ -1,11 +1,9 @@
 import HeaderTitle from '@/Components/HeaderTitle';
-// import InstallPWAButton from '@/Components/InstallPWAButton';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import AppLayout from '@/Layouts/AppLayout';
 import { Link } from '@inertiajs/react';
 import { 
-    IconDashboard, 
     IconDroplet, 
     IconFiretruck, 
     IconNews,
@@ -24,25 +22,25 @@ export default function Home(props) {
     
     // Pastikan aman jika user belum login
     const auth = props.auth?.user ?? null;
-    
-    // Pengecekan peran admin
     const isAdmin = auth && auth.role === 'admin'; 
 
-    // State untuk mendeteksi apakah aplikasi dibuka di dalam WebView
-    const [isWebView, setIsWebView] = useState(true); // Default true agar tidak terjadi layout shift tiba-tiba
+    // Default 'true' agar tombol tersembunyi sepersekian detik awal untuk mencegah kedipan (layout shift)
+    const [isWebView, setIsWebView] = useState(true); 
 
     useEffect(() => {
-        // Fungsi deteksi WebView (Android & iOS)
         const checkWebView = () => {
-            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
             
-            // Aturan umum WebView Android: Terdapat string "wv" ATAU "Android" bersandingan dengan "Version/X.X"
-            const isAndroidWebView = /wv/.test(userAgent) || (/Android/.test(userAgent) && /Version\/[\d.]+/.test(userAgent));
-            
-            // Aturan umum WebView iOS: Terdapat AppleWebkit tapi TIDAK terdapat Safari
-            const isIOSWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(userAgent);
+            // 1. Deteksi WebView Android bawaan 
+            const isAndroidWebView = /wv|Android.*Version\/[\d\.]+/i.test(ua);
+            // 2. Deteksi WebView iOS 
+            const isIOSWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(ua);
+            // 3. Deteksi In-App Browser Populer (Medsos & Chat)
+            const isInAppBrowser = /FBAV|FBAN|Instagram|Line|Twitter|MicroMessenger/i.test(ua);
+            // 4. Deteksi Custom App buatan Anda (jika ditambahkan di Java/Kotlin)
+            const isMyOwnApp = /SisupitApp/i.test(ua); 
 
-            return isAndroidWebView || isIOSWebView;
+            return isAndroidWebView || isIOSWebView || isInAppBrowser || isMyOwnApp;
         };
 
         setIsWebView(checkWebView());
@@ -72,7 +70,7 @@ export default function Home(props) {
             
             {/* --- SECTION 1: AKSI DARURAT (PRIORITAS UTAMA) --- */}
             <div className="flex flex-col items-center w-full gap-3 mt-1">
-                {/* Tombol Lapor Utama (Merah Solid) */}
+                {/* Tombol Lapor Utama */}
                 <Link href={route('front.reports.create')} className="block w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b42826] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#101010] rounded-xl">
                     <div className="relative flex items-center justify-between p-6 overflow-hidden transition-colors duration-200 shadow-sm sm:p-8 bg-[#b42826] hover:bg-[#9a2220] rounded-xl group">
                         <div className="relative z-10 flex flex-col">
@@ -86,7 +84,7 @@ export default function Home(props) {
                 </Link>
 
                 {/* Tombol Alternatif: Telepon Langsung */}
-                <a href="tel:113" className="flex items-center justify-center w-full gap-2 py-3.5 text-sm font-semibold text-[#b42826] transition-colors border border-red-200 shadow-sm bg-red-50 rounded-xl hover:bg-red-100 dark:bg-[#2a1313] dark:border-[#4a1c1c] dark:text-[#e54845] dark:hover:bg-[#3f1919] outline-none focus-visible:ring-2 focus-visible:ring-red-500">
+                <a href="tel:113" className="flex items-center justify-center w-full gap-2 py-3.5 text-sm font-semibold text-[#b42826] transition-colors border border-red-200 shadow-sm bg-red-50 rounded-xl hover:bg-red-100 dark:bg-[#2a1313] dark:border-[#4a1c1c] dark:text-[#e54845] dark:hover:bg-[#3f1919] outline-none focus-visible:ring-2 focus-visible:ring-[#b42826]">
                     <IconPhoneCall size={20} stroke={2} />
                     <span>Telepon Darurat (113)</span>
                 </a>
@@ -94,7 +92,7 @@ export default function Home(props) {
 
             {/* --- SECTION 2: MENU INFORMASIONAL & UTILITAS --- */}
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                {/* Menu Pompa Sisupit */}
+                {/* Menu Lokasi Pompa */}
                 <Link
                     href={route('front.pumps.index')}
                     className="group flex flex-col items-center justify-center rounded-xl border border-[#e5e5e5] bg-white p-5 sm:p-6 shadow-sm outline-none transition-colors hover:border-gray-300 dark:border-[#262626] dark:bg-[#151515] dark:hover:border-[#333] focus-visible:ring-2 focus-visible:ring-gray-300"
@@ -201,13 +199,12 @@ export default function Home(props) {
                 </Carousel>
             </div>
 
-            {/* --- SECTION 4: UNDUH APLIKASI (Disembunyikan di Webview) --- */}
+            {/* --- SECTION 4: UNDUH APLIKASI (Hanya Muncul Jika Bukan di WebView) --- */}
             {!isWebView && (
                 <div className="flex flex-col items-center w-full mt-4">
                     <a
-                        href="/apk/sisupit.apk"
-                        download="Sisupit-App.apk"
-                        rel="noopener noreferrer"
+                        href="/apk/sisupit.apk" 
+                        download="Sisupit.apk"
                         className="flex items-center justify-center w-full sm:w-auto h-12 px-6 gap-3 font-medium text-gray-700 transition-colors bg-white border border-[#e5e5e5] rounded-xl dark:bg-[#151515] dark:border-[#262626] dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#1f1f1f] outline-none focus-visible:ring-2 focus-visible:ring-gray-300 shadow-sm"
                     >
                         <div className="flex items-center justify-center p-1 rounded-md bg-green-50 dark:bg-[#112a1d]">
