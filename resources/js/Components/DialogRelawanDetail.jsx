@@ -12,7 +12,8 @@ export default function DialogRelawanDetail({ open, onClose, helper, onBack }) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="p-0 sm:max-w-md w-[95vw] max-h-[calc(100vh-120px)] mb-[80px] sm:mb-0 flex flex-col rounded-xl border border-[#e5e5e5] shadow-sm dark:bg-[#151515] dark:border-[#262626] outline-none">
+      {/* PERBAIKAN: Menambahkan 'overflow-hidden' agar background anak elemen tidak bocor di sudut-sudutnya */}
+      <DialogContent className="p-0 sm:max-w-md w-[95vw] max-h-[calc(100vh-120px)] mb-[80px] sm:mb-0 flex flex-col rounded-xl overflow-hidden border border-[#e5e5e5] shadow-sm dark:bg-[#151515] dark:border-[#262626] outline-none">
         
         {/* HEADER */}
         <DialogHeader className="z-10 flex flex-row items-center gap-3 px-4 py-4 space-y-0 overflow-hidden border-b border-[#e5e5e5] shrink-0 dark:border-[#262626] bg-white dark:bg-[#151515]">
