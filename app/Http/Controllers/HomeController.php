@@ -27,6 +27,21 @@ class HomeController extends Controller
             ],
         ]);
     }
+    public function spotlight(): Response
+    {
+        return inertia('Spotlight', [
+            'page_settings' => [
+                'title' => 'SiSUPIT DAMKAR',
+                'subtitle' => 'SISTEM INFORMASI KESIAPSIAGAAN UNTUK PEMADAM KEBAKARAN TERINTEGRASI',
+            ],
+            'page_data' => [
+                'reportChart' => $this->chart(),
+                'total_reports' => Report::count(),
+                'total_handled_reports' => Report::where('status', 'TERKENDALI')->count(),
+                'total_users' => User::role(['petugas', 'relawan'])->count(),
+            ],
+        ]);
+    }
 
     public function chart(): array
     {

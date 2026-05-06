@@ -4,62 +4,43 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import AppLayout from '@/Layouts/AppLayout';
 import { Link } from '@inertiajs/react';
 import { 
+    IconBrandAndroid,
+    IconDownload,
     IconDroplet, 
     IconFiretruck, 
+    IconInfoCircle,
     IconNews,
-    IconUsers,
-    IconChevronRight,
-    IconAlertTriangle,
-    IconPhoneCall,
-    IconBrandAndroid,
-    IconDownload
+    IconPhoneCall
 } from '@tabler/icons-react';
 import Autoplay from 'embla-carousel-autoplay';
-import { useRef, useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function Home(props) {
     const plugin = useRef(Autoplay({ delay: 3500, stopOnInteraction: true }));
-    
-    // Pastikan aman jika user belum login
-    const auth = props.auth?.user ?? null;
-
-    
-   const userRoles = Array.isArray(auth?.role) ? auth.role : (auth?.role ? [auth.role] : []);
-     const isAdmin = userRoles.includes('petugas') || userRoles.includes('admin');
-
-
-    // Default 'true' agar tombol tersembunyi sepersekian detik awal untuk mencegah kedipan (layout shift)
     const [isWebView, setIsWebView] = useState(true); 
 
     useEffect(() => {
         const checkWebView = () => {
             const ua = navigator.userAgent || navigator.vendor || window.opera;
-            
-            // 1. Deteksi WebView Android bawaan 
             const isAndroidWebView = /wv|Android.*Version\/[\d\.]+/i.test(ua);
-            // 2. Deteksi WebView iOS 
             const isIOSWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(ua);
-            // 3. Deteksi In-App Browser Populer (Medsos & Chat)
             const isInAppBrowser = /FBAV|FBAN|Instagram|Line|Twitter|MicroMessenger/i.test(ua);
-            // 4. Deteksi Custom App buatan Anda (jika ditambahkan di Java/Kotlin)
             const isMyOwnApp = /SisupitApp/i.test(ua); 
 
             return isAndroidWebView || isIOSWebView || isInAppBrowser || isMyOwnApp;
         };
-
         setIsWebView(checkWebView());
     }, []);
-
-    
 
     return (
         <div className="relative flex flex-col w-full pb-32 space-y-6">
             
-            {/* --- HEADER & STATUS SISTEM --- */}
+            {/* --- HEADER --- */}
             <div className="flex flex-col items-start justify-between gap-3 lg:flex-row lg:items-center">
                 <HeaderTitle
-                    title={props.page_settings.title}
-                    icon={IconFiretruck}               
+                    title="Informasi Publik"
+                    subtitle="Fasilitas dan edukasi keselamatan warga."
+                    icon={IconInfoCircle}              
                 />
                 
                 {/* Indikator Sistem Online */}
@@ -74,30 +55,8 @@ export default function Home(props) {
                 </div>
             </div>
             
-            {/* --- SECTION 1: AKSI DARURAT (PRIORITAS UTAMA) --- */}
-            <div className="flex flex-col items-center w-full gap-3 mt-1">
-                {/* Tombol Lapor Utama */}
-                <Link href={route('front.reports.create')} className="block w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b42826] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#101010] rounded-xl">
-                    <div className="relative flex items-center justify-between p-6 overflow-hidden transition-colors duration-200 shadow-sm sm:p-8 bg-[#b42826] hover:bg-[#9a2220] rounded-xl group">
-                        <div className="relative z-10 flex flex-col">
-                            <span className="mb-1 text-xs font-semibold tracking-wider uppercase text-red-100/80">Pusat Bantuan Darurat</span>
-                            <span className="text-2xl font-bold leading-tight text-white sm:text-3xl">Laporkan<br />Kejadian!</span>
-                        </div>
-                        <div className="relative z-10 p-3 transition-transform duration-300 rounded-lg bg-black/10 group-hover:scale-105 group-hover:-rotate-6">
-                            <IconAlertTriangle className="w-10 h-10 text-white" stroke={2} />
-                        </div>
-                    </div>
-                </Link>
-
-                {/* Tombol Alternatif: Telepon Langsung */}
-                <a href="tel:113" className="flex items-center justify-center w-full gap-2 py-3.5 text-sm font-semibold text-[#b42826] transition-colors border border-red-200 shadow-sm bg-red-50 rounded-xl hover:bg-red-100 dark:bg-[#2a1313] dark:border-[#4a1c1c] dark:text-[#e54845] dark:hover:bg-[#3f1919] outline-none focus-visible:ring-2 focus-visible:ring-[#b42826]">
-                    <IconPhoneCall size={20} stroke={2} />
-                    <span>Telepon Darurat (113)</span>
-                </a>
-            </div>
-
-            {/* --- SECTION 2: MENU INFORMASIONAL & UTILITAS --- */}
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            {/* --- PINTASAN UTILITAS WARGA --- */}
+            <div className="grid grid-cols-2 gap-3 mt-1 sm:gap-4">
                 {/* Menu Lokasi Pompa */}
                 <Link
                     href={route('front.pumps.index')}
@@ -124,34 +83,16 @@ export default function Home(props) {
                     </span>
                 </Link>
 
-                {/* MENU KHUSUS ADMIN */}
-                {isAdmin && (
-                    <Link href={route('front.volunteers.index')} className="block w-full col-span-2 mt-1 outline-none focus-visible:ring-2 focus-visible:ring-gray-300 rounded-xl">
-                        <Card className="overflow-hidden transition-colors border border-[#e5e5e5] cursor-pointer group rounded-xl bg-gray-50 hover:border-gray-300 dark:border-[#262626] dark:bg-[#1f1f1f] dark:hover:border-[#333]">
-                            <CardContent className="flex flex-row items-center gap-4 p-4 flex-nowrap">
-                                <div className="flex items-center justify-center w-10 h-10 text-gray-700 bg-white border border-[#e5e5e5] rounded-lg shrink-0 dark:border-[#333] dark:bg-[#151515] dark:text-gray-300">
-                                    <IconUsers className="w-5 h-5" stroke={1.5} />
-                                </div>
-                                <div className="flex-1 w-full min-w-0 py-1">
-                                    <h3 className="text-sm font-semibold text-gray-900 truncate dark:text-gray-100">
-                                        Manajemen Pengguna
-                                    </h3>
-                                    <p className="mt-0.5 truncate text-xs text-gray-500 dark:text-gray-400">
-                                        Kelola data admin & relawan.
-                                    </p>
-                                </div>
-                                <div className="flex flex-col items-end justify-center shrink-0">
-                                    <IconChevronRight className="w-5 h-5 text-gray-400 transition-transform group-hover:translate-x-1 dark:text-gray-500" />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </Link>
-                )}
+                {/* Tombol Telepon Darurat */}
+                <a href="tel:113" className="flex items-center justify-center w-full col-span-2 gap-2 h-11 text-sm font-semibold text-[#b42826] transition-colors border border-red-200 shadow-sm bg-red-50 rounded-xl hover:bg-red-100 dark:bg-[#2a1313] dark:border-[#4a1c1c] dark:text-[#e54845] dark:hover:bg-[#3f1919] outline-none focus-visible:ring-2 focus-visible:ring-[#b42826]">
+                    <IconPhoneCall size={18} stroke={2} />
+                    <span>Telepon Darurat (113)</span>
+                </a>
             </div>
 
             <hr className="my-2 border-[#e5e5e5] dark:border-[#262626]" />
 
-            {/* --- SECTION 3: CAROUSEL INFORMASI --- */}
+            {/* --- CAROUSEL INFORMASI --- */}
             <div className="flex flex-col items-center w-full space-y-4">
                 <div className="w-full px-1 text-left">
                     <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
@@ -171,7 +112,6 @@ export default function Home(props) {
                     <CarouselContent className="-ml-3 md:-ml-4">
                         {Array.from({ length: 4 }).map((_, index) => {
                             const isWarning = index === 0; 
-                            
                             return (
                                 <CarouselItem key={index} className="pl-3 md:pl-4 md:basis-1/2 lg:basis-1/3">
                                     <Card className="h-full overflow-hidden transition-colors border border-[#e5e5e5] shadow-sm dark:border-[#262626] rounded-xl dark:bg-[#151515] hover:border-gray-300 dark:hover:border-[#333] group bg-white">
@@ -196,8 +136,6 @@ export default function Home(props) {
                             );
                         })}
                     </CarouselContent>
-                    
-                    {/* Navigasi Desktop */}
                     <div className="hidden lg:block">
                         <CarouselPrevious className="text-gray-600 border-[#e5e5e5] bg-white dark:border-[#333] dark:bg-[#151515] dark:text-gray-300 dark:hover:bg-[#1f1f1f] dark:hover:text-white" />
                         <CarouselNext className="text-gray-600 border-[#e5e5e5] bg-white dark:border-[#333] dark:bg-[#151515] dark:text-gray-300 dark:hover:bg-[#1f1f1f] dark:hover:text-white" />
@@ -205,7 +143,7 @@ export default function Home(props) {
                 </Carousel>
             </div>
 
-            {/* --- SECTION 4: UNDUH APLIKASI (Hanya Muncul Jika Bukan di WebView) --- */}
+            {/* --- UNDUH APLIKASI --- */}
             {!isWebView && (
                 <div className="flex flex-col items-center w-full mt-4">
                     <a
@@ -221,9 +159,8 @@ export default function Home(props) {
                     </a>
                 </div>
             )}
-
         </div>
     );
 }
 
-Home.layout = (page) => <AppLayout children={page} title={page.props.page_settings?.title || 'Home'} />;
+Home.layout = (page) => <AppLayout children={page} title={page.props.page_settings?.title || 'Beranda'} />;

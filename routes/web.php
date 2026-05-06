@@ -31,7 +31,8 @@ use Illuminate\Http\Request;
 Route::get('/auth/{provider}', [SocialiteController::class, 'redirectToProvider']);
 Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProvideCallback']);
 Route::controller(HomeController::class)->group(function () {
-    Route::get('/', 'index')->name('home.index');
+    Route::get('/', 'spotlight')->name('home.spotlight');
+    Route::get('/home', 'index')->name('home.index');
     Route::get('/testnotif', 'testnotif')->name('home.testnotif');
     Route::get('/kirim-notifikasi', 'kirimNotifikasi')->name('home.kirim-notifikasi');
 });
@@ -39,10 +40,12 @@ Route::get('/relawan', [RelawanController::class, 'index'])->name('front.volunte
 // Route BARU untuk Detail Relawan
 Route::get('/relawan/{id}', [RelawanController::class, 'show'])->name('front.volunteers.show');
 
-Route::get('/lokasi-pompa', [PompaController::class, 'index'])->name('front.pumps.index');
+Route::get('/pumps', [PompaController::class, 'index'])->name('front.pumps.index');
+
+
 
 // Route untuk Pos Pemadam
-Route::get('/pos-pemadam', [PosPemadamController::class, 'index'])->name('front.fire_stations.index');
+Route::get('/fire-stations', [PosPemadamController::class, 'index'])->name('front.fire_stations.index');
 
 Route::get('/webpush/public-key', function () {
     return ['publicKey' => config('webpush.vapid.public_key')];

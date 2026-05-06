@@ -1,6 +1,6 @@
 import AppLayout from '@/Layouts/AppLayout';
 import { Link, router, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { 
     IconAward, 
     IconHistory, 
@@ -9,7 +9,9 @@ import {
     IconShieldCheck, 
     IconChevronRight,
     IconUserEdit,
-    IconLock
+    IconLock,
+    IconBrandAndroid,
+    IconDownload
 } from '@tabler/icons-react';
 import { toast } from 'sonner';
 import { flashMessage } from '@/lib/utils';
@@ -24,10 +26,25 @@ export default function Edit(props) {
     const user = usePage().props.auth.user;
     const [openRelawan, setOpenRelawan] = useState(false);
 
+    const [isWebView, setIsWebView] = useState(true); 
+    
+        useEffect(() => {
+            const checkWebView = () => {
+                const ua = navigator.userAgent || navigator.vendor || window.opera;
+                const isAndroidWebView = /wv|Android.*Version\/[\d\.]+/i.test(ua);
+                const isIOSWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(ua);
+                const isInAppBrowser = /FBAV|FBAN|Instagram|Line|Twitter|MicroMessenger/i.test(ua);
+                const isMyOwnApp = /SisupitApp/i.test(ua); 
+    
+                return isAndroidWebView || isIOSWebView || isInAppBrowser || isMyOwnApp;
+            };
+            setIsWebView(checkWebView());
+        }, []);
+
     const userRoles = Array.isArray(user?.role) ? user.role : (user?.role ? [user.role] : []);
      const isVolunteer = userRoles.includes('relawan');
      const isAdmin = userRoles.includes('petugas') || userRoles.includes('admin');
-     console.log('User Roles:', userRoles, 'Is Volunteer:', isVolunteer);
+    //  console.log('User Roles:', userRoles, 'Is Volunteer:', isVolunteer);
 
     const handleDaftarRelawan = () => {
         router.put(route('admin.relawan.update', { user: user.id }), {}, {
@@ -145,6 +162,22 @@ export default function Edit(props) {
                 </div>
 
             </div>
+            {/* --- UNDUH APLIKASI --- */}
+            {!isWebView && (
+                <div className="flex flex-col items-center w-full mt-4">
+                    <a
+                        href="/apk/sisupit.apk" 
+                        download="Sisupit.apk"
+                        className="flex items-center justify-center w-full sm:w-auto h-12 px-6 gap-3 font-medium text-gray-700 transition-colors bg-white border border-[#e5e5e5] rounded-xl dark:bg-[#151515] dark:border-[#262626] dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#1f1f1f] outline-none focus-visible:ring-2 focus-visible:ring-gray-300 shadow-sm"
+                    >
+                        <div className="flex items-center justify-center p-1 rounded-md bg-green-50 dark:bg-[#112a1d]">
+                            <IconBrandAndroid className="w-5 h-5 text-green-600 dark:text-green-500" stroke={2} />
+                        </div>
+                        <span className="text-sm">Unduh Aplikasi Android</span>
+                        <IconDownload className="w-4 h-4 ml-1 text-gray-400 dark:text-gray-500" stroke={2} />
+                    </a>
+                </div>
+            )}
 
             {/* MODAL DAFTAR RELAWAN */}
             <Dialog open={openRelawan} onOpenChange={setOpenRelawan}>
