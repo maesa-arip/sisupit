@@ -70,11 +70,20 @@ class ReportSeeder extends Seeder
             $lat = $anchor['lat'] + $latOffset;
             $lng = $anchor['lng'] + $lngOffset;
             
-            // Status Distribusi (Sedikit TERLAPOR, banyak yg resolved)
-            $status = $faker->randomElement(['TERLAPOR', 'pending', 'handling', 'handling', 'resolved', 'resolved', 'resolved']);
-            $createdAt = Carbon::now()->subDays(rand(0, 14))->subHours(rand(1, 24));
+            // 👇 FIX: BOBOt 'handling' DIPERBANYAK AGAR DOMINAN 👇
+            $status = $faker->randomElement([
+                'TERLAPOR', 
+                'pending', 
+                'handling', 'handling', 'handling', 'handling', 'handling', // 50% Peluang Handling
+                'resolved', 'resolved', 'resolved'
+            ]);
 
-            // 👇 MASUKKAN DATA LENGKAP SAMPAI VILLAGE_CODE 👇
+            // Jika status handling, pastikan kejadiannya tidak terlalu lama (baru beberapa menit/jam lalu)
+            $createdAt = $status === 'handling' 
+                ? Carbon::now()->subMinutes(rand(5, 45)) 
+                : Carbon::now()->subDays(rand(0, 14))->subHours(rand(1, 24));
+
+            // MASUKKAN DATA LENGKAP SAMPAI VILLAGE_CODE
             $report = Report::create([
                 'user_id'       => $warga->id,
                 'name'          => $warga->name,
@@ -99,7 +108,11 @@ class ReportSeeder extends Seeder
             if (in_array($status, ['handling', 'resolved'])) {
                 
                 $assignedPetugas = $petugasList->random(rand(1, 2));
-                $assignedRelawan = $relawanList->random(rand(1, 3));
+                
+                // 👇 FIX: JIKA HANDLING, MINIMAL 2 RELAWAN MENUJU LOKASI 👇
+                $assignedRelawan = $relawanList->random(
+                    $status === 'handling' ? rand(2, 4) : rand(1, 3)
+                );
 
                 // Eksekusi Penugasan & Tracking Log untuk PETUGAS
                 foreach ($assignedPetugas as $petugas) {
@@ -107,24 +120,33 @@ class ReportSeeder extends Seeder
                 }
 
                 // Eksekusi Penugasan & Tracking Log untuk RELAWAN
+                $relawanCount = 0;
                 foreach ($assignedRelawan as $relawan) {
-                    $this->createAssignmentAndTracking($report, $relawan, 'report_helpers', $status, $createdAt);
+                    $relawanCount++;
+                    // Paksa 2 Relawan Pertama menjadi 'en_route' (Menuju Lokasi) jika status handling
+                    $forceEnRoute = ($status === 'handling' && $relawanCount <= 2);
+                    $this->createAssignmentAndTracking($report, $relawan, 'report_helpers', $status, $createdAt, $forceEnRoute);
                 }
             }
         }
 
-        $this->command->info('✅ ReportSeeder: Berhasil men-generate 30 Laporan Daratan lengkap sampai Tingkat Desa/Kelurahan.');
+        $this->command->info('✅ ReportSeeder: Berhasil men-generate Laporan dengan Mayoritas Dalam Penanganan & Relawan Meluncur.');
     }
 
     /**
      * Fungsi Helper untuk membuat Manifes Penugasan sekaligus mensimulasikan pergerakan Tracking di Darat.
      */
-    private function createAssignmentAndTracking($report, $user, $tableName, $reportStatus, $reportCreatedAt)
+    private function createAssignmentAndTracking($report, $user, $tableName, $reportStatus, $reportCreatedAt, $forceEnRoute = false)
     {
         $isFinished = ($reportStatus === 'resolved');
-        $isArrived = $isFinished || rand(0, 1); 
         
-        $userStatus = $isFinished ? 'finished' : ($isArrived ? 'arrived' : 'en_route');
+        // 👇 FIX: PAKSA STATUS MENJADI 'en_route' JIKA DIMINTA 👇
+        if ($forceEnRoute) {
+            $userStatus = 'en_route';
+        } else {
+            $isArrived = $isFinished || rand(0, 1); 
+            $userStatus = $isFinished ? 'finished' : ($isArrived ? 'arrived' : 'en_route');
+        }
 
         $dispatchedAt = $reportCreatedAt->copy()->addMinutes(rand(1, 5));
         $arrivedAt = in_array($userStatus, ['arrived', 'finished']) ? $dispatchedAt->copy()->addMinutes(rand(10, 30)) : null;
@@ -145,7 +167,7 @@ class ReportSeeder extends Seeder
 
         $userType = $tableName === 'report_officers' ? 'petugas' : 'relawan';
 
-        // 3. Simulasikan Perjalanan (Tracking Logs) dari titik 1km - 2km saja agar tidak kena laut
+        // 3. Simulasikan Perjalanan (Tracking Logs) dari titik 1km - 2km
         $trackLatOffset = (rand(100, 200) / 10000) * (rand(0, 1) ? 1 : -1);
         $trackLngOffset = (rand(100, 200) / 10000) * (rand(0, 1) ? 1 : -1);
 
@@ -158,6 +180,7 @@ class ReportSeeder extends Seeder
 
         for ($step = 1; $step <= $steps; $step++) {
             
+            // Jika status masih meluncur, hentikan simulasi langkah sebelum titik akhir (seolah-olah berhenti di tengah jalan)
             if ($userStatus === 'en_route' && $step == $steps) break;
 
             $logTime = $dispatchedAt->copy()->addMinutes($step * 2);

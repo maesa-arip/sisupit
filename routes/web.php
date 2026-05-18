@@ -13,6 +13,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportHelperController;
 use App\Http\Controllers\Admin\HydrantController as AdminHydrantController;
 use App\Http\Controllers\ReportActionController;
+use App\Http\Controllers\VolunteerController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -161,6 +162,7 @@ Route::middleware(['auth'])->controller(ProfileController::class)->group(functio
     Route::get('profile', 'edit')->name('profile.edit');
     Route::patch('profile', 'update')->name('profile.update');
     Route::delete('profile', 'destroy')->name('profile.destroy');
+    Route::post('/volunteer/register', [VolunteerController::class, 'register'])->name('volunteer.register');
 });
 
 require __DIR__ . '/auth.php';
