@@ -11,6 +11,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravolt\Indonesia\Models\City;
+use Laravolt\Indonesia\Models\District;
+use Laravolt\Indonesia\Models\Province;
+use Laravolt\Indonesia\Models\Village;
 use NotificationChannels\WebPush\HasPushSubscriptions;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -24,19 +28,7 @@ class User extends Authenticatable implements MustVerifyEmail
      *
      * @var list<string>
      */
-    protected $fillable = [
-        'name',
-        'username',
-        'email',
-        'password',
-        'avatar',
-        'date_of_birth',
-        'gender',
-        'phone',
-        'ktp',
-        'address',
-        'email_verified_at',
-    ];
+    protected $guarded = []; 
 
     /**
      * The attributes that should be hidden for serialization.
@@ -47,10 +39,31 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'remember_token',
     ];
-    public function companies(): HasMany
+    // Tambahkan Local Scope ini di dalam Model User
+    public function scopeIsAdmin(Builder $query)
     {
-        return $this->hasMany(Company::class);
+        $admin = auth()->user();
+
+        // Jika Superadmin, jangan di-filter (bisa lihat semua)
+        if ($admin->hasRole('superadmin')) {
+            return $query;
+        }
+
+        // Filter berdasarkan Yurisdiksi Admin yang login
+        if ($admin->village_code) {
+            $query->where('village_code', $admin->village_code);
+        } elseif ($admin->district_code) {
+            $query->where('district_code', $admin->district_code);
+        } elseif ($admin->city_code) {
+            $query->where('city_code', $admin->city_code);
+        } elseif ($admin->province_code) {
+            $query->where('province_code', $admin->province_code);
+        }
+
+        return $query;
     }
+
+
 
     public function socialAccounts()
     {

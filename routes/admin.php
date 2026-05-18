@@ -3,61 +3,15 @@
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\AssignPermissionController;
 use App\Http\Controllers\Admin\AssignUserController;
-use App\Http\Controllers\Admin\BookController;
-use App\Http\Controllers\Admin\BookStockReportController;
-use App\Http\Controllers\Admin\CategoryController;
-use App\Http\Controllers\Admin\FineController;
-use App\Http\Controllers\Admin\FineReportController;
-use App\Http\Controllers\Admin\FineSettingController;
-use App\Http\Controllers\Admin\LoanController;
-use App\Http\Controllers\Admin\LoanStatisticController;
 use App\Http\Controllers\Admin\PermissionController;
-use App\Http\Controllers\Admin\PublisherController;
-use App\Http\Controllers\Admin\ReturnBookController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\RouteAccessController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'verified', 'dynamic.role_permission'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
 
-    Route::controller(LoanStatisticController::class)->group(function () {
-        Route::get('loan-statistics', 'index')->name('admin.loan-statistics.index');
-    });
-    Route::controller(FineReportController::class)->group(function () {
-        Route::get('fine-reports', 'index')->name('admin.fine-reports.index');
-    });
-
-    Route::controller(BookStockReportController::class)->group(function () {
-        Route::get('book-stock-reports', 'index')->name('admin.book-stock-reports.index');
-        Route::get('book-stock-reports/edit/{stock}', 'edit')->name('admin.book-stock-reports.edit');
-        Route::put('book-stock-reports/edit/{stock}', 'update')->name('admin.book-stock-reports.update');
-    });
-
-    Route::controller(CategoryController::class)->group(function () {
-        Route::get('categories', 'index')->name('admin.categories.index');
-        Route::get('categories/create', 'create')->name('admin.categories.create');
-        Route::post('categories/create', 'store')->name('admin.categories.store');
-        Route::get('categories/edit/{category}', 'edit')->name('admin.categories.edit');
-        Route::put('categories/edit/{category}', 'update')->name('admin.categories.update');
-        Route::delete('categories/destroy/{category}', 'destroy')->name('admin.categories.destroy');
-    });
-    Route::controller(PublisherController::class)->group(function () {
-        Route::get('publishers', 'index')->name('admin.publishers.index');
-        Route::get('publishers/create', 'create')->name('admin.publishers.create');
-        Route::post('publishers/create', 'store')->name('admin.publishers.store');
-        Route::get('publishers/edit/{publisher}', 'edit')->name('admin.publishers.edit');
-        Route::put('publishers/edit/{publisher}', 'update')->name('admin.publishers.update');
-        Route::delete('publishers/destroy/{publisher}', 'destroy')->name('admin.publishers.destroy');
-    });
-    Route::controller(BookController::class)->group(function () {
-        Route::get('books', 'index')->name('admin.books.index');
-        Route::get('books/create', 'create')->name('admin.books.create');
-        Route::post('books/create', 'store')->name('admin.books.store');
-        Route::get('books/edit/{book}', 'edit')->name('admin.books.edit');
-        Route::put('books/edit/{book}', 'update')->name('admin.books.update');
-        Route::delete('books/destroy/{book}', 'destroy')->name('admin.books.destroy');
-    });
+   
     Route::controller(UserController::class)->group(function () {
         Route::get('users', 'index')->name('admin.users.index');
         Route::get('users/create', 'create')->name('admin.users.create');
@@ -65,28 +19,6 @@ Route::middleware(['auth', 'verified', 'dynamic.role_permission'])->prefix('admi
         Route::get('users/edit/{user}', 'edit')->name('admin.users.edit');
         Route::put('users/edit/{user}', 'update')->name('admin.users.update');
         Route::delete('users/destroy/{user}', 'destroy')->name('admin.users.destroy');
-    });
-    Route::controller(FineSettingController::class)->group(function () {
-        Route::get('fine-settings/create', 'create')->name('admin.fine-settings.create');
-        Route::put('fine-settings/create', 'store')->name('admin.fine-settings.store');
-    });
-    Route::controller(LoanController::class)->group(function () {
-        Route::get('loans', 'index')->name('admin.loans.index');
-        Route::get('loans/create', 'create')->name('admin.loans.create');
-        Route::post('loans/create', 'store')->name('admin.loans.store');
-        Route::get('loans/edit/{loan}', 'edit')->name('admin.loans.edit');
-        Route::put('loans/edit/{loan}', 'update')->name('admin.loans.update');
-        Route::delete('loans/destroy/{loan}', 'destroy')->name('admin.loans.destroy');
-    });
-    Route::controller(ReturnBookController::class)->group(function () {
-        Route::get('return-books', 'index')->name('admin.return-books.index');
-        Route::get('return-books/{loan:loan_code}/create', 'create')->name('admin.return-books.create');
-        Route::put('return-books/{loan:loan_code}/create', 'store')->name('admin.return-books.store');
-        Route::put('return-books/{returnBook:return_book_code}/approve', 'approve')->name('admin.return-books.approve');
-    });
-
-    Route::controller(FineController::class)->group(function () {
-        Route::get('fines/{returnBook:return_book_code}/create', 'create')->name('admin.fines.create');
     });
 
     Route::controller(AnnouncementController::class)->group(function () {

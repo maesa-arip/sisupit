@@ -2,134 +2,152 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\Admin\TransactionLoanResource;
-use App\Http\Resources\Admin\TransactionReturnBookResource;
-use App\Http\Resources\ReportResource;
-use App\Models\Book;
-use App\Models\Fine;
-use App\Models\Loan;
-use App\Models\Report;
-use App\Models\ReturnBook;
 use App\Models\User;
-use Carbon\Carbon;
-use Inertia\Response;
+use App\Models\Hydrant;
+use App\Models\Report;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
-    public function index(): Response
+    public function index()
     {
-        $loans = Loan::query()
-            ->select(['id', 'loan_code', 'book_id', 'user_id', 'created_at'])
-            ->when(auth()->user()->hasAnyRole(['admin', 'operator']), function ($query) {
-                return $query;
-            }, function ($query) {
-                return $query->where('user_id', auth()->user()->id);
-            })
-            ->latest('created_at')
-            ->limit(5)
-            ->with(['user', 'book'])
-            ->get();
-        $return_books = ReturnBook::query()
-            ->select(['id', 'return_book_code', 'book_id', 'user_id', 'created_at'])
-            ->when(auth()->user()->hasAnyRole(['admin', 'operator']), function ($query) {
-                return $query;
-            }, function ($query) {
-                return $query->where('user_id', auth()->user()->id);
-            })
-            ->latest('created_at')
-            ->limit(5)
-            ->with(['user', 'book'])
-            ->get();
+        $user = auth()->user();
 
-        $reports = Report::query()->withCount('helpers')->with(['helpers' => function ($q) {
-            $q->where('user_id', auth()->id());
-        }])
-            ->select(['id', 'user_id', 'name', 'phone', 'title', 'description', 'address', 'location_lat', 'location_lng', 'photo', 'created_at'])
-            ->latest('created_at')
-            ->with(['user','helpers.user'])
-            ->paginate(6);
+        // ====================================================================
+        // JALUR 1: DASHBOARD PEJABAT, ADMIN, & SUPERADMIN (PUSAT KOMANDO)
+        // ====================================================================
+        if ($user->hasAnyRole(['admin', 'superadmin', 'pejabat'])) {
+            
+            $queryHelpers = User::role(['relawan', 'petugas']);
+            $queryHydrant = Hydrant::query(); 
+            $queryReportsActive = Report::whereIn('status', ['pending', 'handling', 'TERLAPOR']);
+            $queryReportsResolved = Report::where('status', 'resolved')->whereMonth('created_at', now()->month);
+            $queryRecentList = Report::query();
 
-
-        return inertia('Dashboard', [
-            'page_settings' => [
-                'title' => 'SiSUPIT DAMKAR',
-                'subtitle' => 'SISTEM INFORMASI KESIAPSIAGAAN UNTUK PEMADAM KEBAKARAN TERINTEGRASI',
-            ],
-            'page_data' => [
-                'transactionChart' => $this->chart(),
-                'loans' => TransactionLoanResource::collection($loans),
-                'return_books' => TransactionReturnBookResource::collection($return_books),
-                'reports' => ReportResource::collection($reports),
-                'total_books' => auth()->user()->hasAnyRole(['admin', 'operator']) ? Book::count() : 0,
-                'total_users' => auth()->user()->hasAnyRole(['admin', 'operator']) ? User::count() : 0,
-                'total_loans' => Loan::query()
-                    ->when(auth()->user()->hasAnyRole(['admin', 'operator']), function ($query) {
-                        return $query;
-                    }, function ($query) {
-                        return $query->where('user_id', auth()->user()->id);
-                    })->count(),
-                'total_returns' => ReturnBook::query()
-                    ->when(auth()->user()->hasAnyRole(['admin', 'operator']), function ($query) {
-                        return $query;
-                    }, function ($query) {
-                        return $query->where('user_id', auth()->user()->id);
-                    })->count(),
-                'total_fines' => auth()->user()->hasAnyRole('member') ? Fine::query()
-                    ->where('user_id', auth()->user()->id)
-                    ->sum('total_fee') : 0,
-            ],
-        ]);
-    }
-    public function dashboard2(): Response
-    {
-        return inertia('Dashboard2', [
-            'page_settings' => [
-                'title' => 'SiSUPIT DAMKAR',
-                'subtitle' => 'SISTEM INFORMASI KESIAPSIAGAAN UNTUK PEMADAM KEBAKARAN TERINTEGRASI',
-            ],
-            'page_data' => [
+            // ISOLASI YURISDIKSI
+            if (!$user->hasRole('superadmin')) {
+                $levelCode = $user->village_code ?? $user->district_code ?? $user->city_code ?? $user->province_code;
+                $column = $user->village_code ? 'village_code' : ($user->district_code ? 'district_code' : ($user->city_code ? 'city_code' : 'province_code'));
                 
-            ],
-        ]);
-    }
+                if ($levelCode) {
+                    $queryHelpers->where($column, $levelCode);
+                    $queryHydrant->where($column, $levelCode);
+                    $queryReportsActive->where($column, $levelCode);
+                    $queryReportsResolved->where($column, $levelCode);
+                    $queryRecentList->where($column, $levelCode);
+                }
+            }
 
-    public function chart(): array
-    {
-        $end_date = Carbon::now();
-        $start_date = $end_date->copy()->subMonth()->startOfMonth();
-        $loans = Report::query()
-            ->selectRaw('DATE(created_at) as date, COUNT(*) as loan')
-            ->when(auth()->user()->hasAnyRole(['god']), function ($query) {
-                return $query;
-            })
-            ->whereBetween('created_at', [$start_date, $end_date])
-            ->groupBy('date')
-            ->orderBy('date')
-            ->pluck('loan', 'date');
+            $mapMarkers = (clone $queryHydrant)->whereNotNull('lat')->whereNotNull('lng')
+                ->get(['id', 'name', 'lat', 'lng', 'type', 'status']);
 
-        $return_books = Report::query()
-            ->selectRaw('DATE(created_at) as date, COUNT(*) as returns')
-            ->when(auth()->user()->hasAnyRole(['god']), function ($query) {
-                return $query;
-            }, function ($query) {
-                return $query->where('status', 'TERKENDALI');
-            })
-            ->whereNotNull('created_at')
-            ->whereBetween('created_at', [$start_date, $end_date])
-            ->groupBy('date')
-            ->orderBy('date')
-            ->pluck('returns', 'date');
-        $charts = [];
-        $period = Carbon::parse($start_date)->daysUntil($end_date);
-        foreach ($period as $date) {
-            $date_string = $date->toDateString();
-            $charts[] = [
-                'date' => $date_string,
-                'loan' => $loans->get($date_string, 0),
-                'return_book' => $return_books->get($date_string, 0),
+            $activeIncidents = (clone $queryReportsActive)->whereNotNull('lat')->whereNotNull('lng')
+                ->get(['id', 'title', 'lat', 'lng', 'status']);
+
+            $stats = [
+                'active_reports'      => (clone $queryReportsActive)->count(),
+                'standby_helpers'     => (clone $queryHelpers)->count(),
+                'active_hydrants'     => (clone $queryHydrant)->count(),
+                'resolved_this_month' => (clone $queryReportsResolved)->count()
             ];
+
+            $recentReports = (clone $queryRecentList)->orderBy('created_at', 'desc')->limit(5)->get()
+                ->map(fn($report) => [
+                    'id'       => $report->id,
+                    'title'    => $report->title,
+                    'location' => $report->address,
+                    'time'     => $report->created_at->diffForHumans(),
+                    'status'   => $report->status,
+                ]);
+
+            // Jika dia Pejabat (tapi bukan Admin/Superadmin), kirim flag isPejabat untuk menyembunyikan tombol Edit
+            $isPejabat = $user->hasRole('pejabat') && !$user->hasAnyRole(['admin', 'superadmin']);
+
+            return Inertia::render('Admin/Dashboard', [
+                'stats'           => $stats,
+                'recentReports'   => $recentReports->toArray(),
+                'mapMarkers'      => $mapMarkers->toArray(),
+                'activeIncidents' => $activeIncidents->toArray(),
+                'isPejabat'       => $isPejabat
+            ]);
         }
 
-        return $charts;
+        // ====================================================================
+        // JALUR 2: DASHBOARD PETUGAS DAMKAR (OPERASIONAL TAKTIS)
+        // ====================================================================
+        if ($user->hasRole('petugas')) {
+            $queryMissions = Report::whereIn('status', ['pending', 'handling', 'TERLAPOR']);
+            
+            // Isolasi Misi: Petugas hanya melihat misi di wilayah penugasannya
+            $levelCode = $user->village_code ?? $user->district_code ?? $user->city_code ?? $user->province_code;
+            $column = $user->village_code ? 'village_code' : ($user->district_code ? 'district_code' : ($user->city_code ? 'city_code' : 'province_code'));
+            if ($levelCode) {
+                $queryMissions->where($column, $levelCode);
+            }
+
+            $activeMissions = $queryMissions->orderBy('created_at', 'desc')->get()->map(fn($report) => [
+                'id'       => $report->id,
+                'title'    => $report->title,
+                'location' => $report->address,
+                'lat'      => $report->lat,
+                'lng'      => $report->lng,
+                'time'     => $report->created_at->diffForHumans(),
+                'status'   => $report->status,
+            ]);
+
+            return Inertia::render('Petugas/Dashboard', [
+                'activeMissions' => $activeMissions->toArray()
+            ]);
+        }
+
+        // ====================================================================
+        // JALUR 3: DASHBOARD PUBLIK (WARGA & RELAWAN)
+        // ====================================================================
+        
+        // 1. Data Riwayat Laporan Milik Sendiri (Di-bypass Tenantable agar terlihat walau melapor di luar kota)
+        $myReports = Report::withoutGlobalScopes() 
+            ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+
+        // 2. Data Radar Khusus Relawan (Di-filter berdasarkan area relawan)
+        $nearbyEmergencies = [];
+        if ($user->hasRole('relawan')) {
+            $queryEmergencies = Report::whereIn('status', ['pending', 'TERLAPOR']);
+            
+            $levelCode = $user->village_code ?? $user->district_code ?? $user->city_code ?? $user->province_code;
+            $column = $user->village_code ? 'village_code' : ($user->district_code ? 'district_code' : ($user->city_code ? 'city_code' : 'province_code'));
+            
+            if ($levelCode) {
+                $queryEmergencies->where($column, $levelCode);
+            }
+
+            $nearbyEmergencies = $queryEmergencies->orderBy('created_at', 'desc')->get()->map(fn($report) => [
+                'id'       => $report->id,
+                'title'    => $report->title,
+                'location' => $report->address,
+                'time'     => $report->created_at->diffForHumans(),
+                'status'   => $report->status,
+            ]);
+        }
+
+        // 3. Data Feed Laporan untuk TABS (Butuh Respons / Tugas Saya / Semua Laporan)
+        // Ini yang sebelumnya KURANG. Wajib include helpers.user agar React tahu laporan mana yang sudah/belum diambil relawan.
+        $reportsFeed = Report::withoutGlobalScopes()
+            ->with(['helpers.user']) 
+            ->latest('created_at')
+            ->paginate(request()->load ?? 6)
+            ->withQueryString();
+
+        return Inertia::render('Dashboard', [
+            'myReports'         => $myReports,
+            'isRelawan'         => $user->hasRole('relawan'),
+            'nearbyEmergencies' => $nearbyEmergencies,
+            'page_data'         => [
+                'reports' => $reportsFeed  // Sekarang page_data.reports terisi dengan sempurna!
+            ]
+        ]);
     }
 }

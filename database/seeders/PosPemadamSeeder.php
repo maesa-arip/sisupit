@@ -7,21 +7,25 @@ use App\Models\PosPemadam;
 
 class PosPemadamSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $stations = [
+            // ==========================================
+            // KOTA DENPASAR (Prov: 51, Kota: 5171)
+            // ==========================================
             [
                 'name'          => 'Pos Induk BPBD Kota Denpasar',
                 'address'       => 'Jl. Imam Bonjol No. 182, Pemecutan Klod, Denpasar Barat',
-                'phone'         => '0361-223333', // Bisa diganti dengan 112 jika sistem menggunakan panggilan darurat terpadu
+                'phone'         => '0361-223333',
                 'vehicle_count' => 5,
                 'type'          => 'Pos Induk',
                 'status'        => 'Aktif',
-                'location_lat'  => -8.675124,
-                'location_lng'  => 115.191782,
+                'lat'           => -8.675124, 
+                'lng'           => 115.191782, 
+                'province_code' => '51',
+                'city_code'     => '5171',
+                'district_code' => '517102', // Denpasar Barat
+                'village_code'  => '5171022002', // Pemecutan Klod
             ],
             [
                 'name'          => 'Pos Pemadam Sektor Juanda (Renon)',
@@ -30,8 +34,12 @@ class PosPemadamSeeder extends Seeder
                 'vehicle_count' => 2,
                 'type'          => 'Pos Sektor',
                 'status'        => 'Aktif',
-                'location_lat'  => -8.669894,
-                'location_lng'  => 115.234123,
+                'lat'           => -8.669894,
+                'lng'           => 115.234123,
+                'province_code' => '51',
+                'city_code'     => '5171',
+                'district_code' => '517101', // Denpasar Selatan
+                'village_code'  => '5171012002', // Renon
             ],
             [
                 'name'          => 'Pos Pemadam Sektor Mahendradatta',
@@ -40,8 +48,12 @@ class PosPemadamSeeder extends Seeder
                 'vehicle_count' => 3,
                 'type'          => 'Pos Sektor',
                 'status'        => 'Aktif',
-                'location_lat'  => -8.660123,
-                'location_lng'  => 115.185234,
+                'lat'           => -8.660123,
+                'lng'           => 115.185234,
+                'province_code' => '51',
+                'city_code'     => '5171',
+                'district_code' => '517102', // Denpasar Barat
+                'village_code'  => '5171022003', // Padangsambian
             ],
             [
                 'name'          => 'Pos Pemadam Sektor Ubung',
@@ -49,9 +61,13 @@ class PosPemadamSeeder extends Seeder
                 'phone'         => '0361-223333',
                 'vehicle_count' => 2,
                 'type'          => 'Pos Sektor',
-                'status'        => 'Siaga', // Sedang standby penuh
-                'location_lat'  => -8.632145,
-                'location_lng'  => 115.201456,
+                'status'        => 'Perbaikan',
+                'lat'           => -8.632145,
+                'lng'           => 115.201456,
+                'province_code' => '51',
+                'city_code'     => '5171',
+                'district_code' => '517103', // Denpasar Utara
+                'village_code'  => '5171032001', // Ubung
             ],
             [
                 'name'          => 'Posko Relawan Damkar Sanur',
@@ -60,8 +76,44 @@ class PosPemadamSeeder extends Seeder
                 'vehicle_count' => 1,
                 'type'          => 'Pos Relawan',
                 'status'        => 'Aktif',
-                'location_lat'  => -8.681234,
-                'location_lng'  => 115.258901,
+                'lat'           => -8.681234,
+                'lng'           => 115.258901,
+                'province_code' => '51',
+                'city_code'     => '5171',
+                'district_code' => '517101', // Denpasar Selatan
+                'village_code'  => '5171012001', // Sanur Kaja
+            ],
+
+            // ==========================================
+            // KABUPATEN BADUNG (Prov: 51, Kota: 5103)
+            // ==========================================
+            [
+                'name'          => 'Pos Pemadam Kebakaran Kuta',
+                'address'       => 'Jl. Majapahit, Kuta, Kabupaten Badung',
+                'phone'         => '0361-751113',
+                'vehicle_count' => 4,
+                'type'          => 'Pos Induk',
+                'status'        => 'Aktif',
+                'lat'           => -8.723145,
+                'lng'           => 115.176456,
+                'province_code' => '51',
+                'city_code'     => '5103',
+                'district_code' => '510301', // Kuta
+                'village_code'  => '5103011001', // Kuta
+            ],
+            [
+                'name'          => 'Pos Damkar Mengwi',
+                'address'       => 'Jl. Raya Mengwi, Kabupaten Badung',
+                'phone'         => '0361-8941113',
+                'vehicle_count' => 2,
+                'type'          => 'Pos Sektor',
+                'status'        => 'Aktif',
+                'lat'           => -8.543210,
+                'lng'           => 115.165432,
+                'province_code' => '51',
+                'city_code'     => '5103',
+                'district_code' => '510302', // Mengwi
+                'village_code'  => '5103022001', // Mengwi
             ],
         ];
 

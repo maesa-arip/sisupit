@@ -24,8 +24,8 @@ return new class extends Migration
             $table->integer('capacity_lpm')->nullable()->comment('Kapasitas Liter Per Menit');
             
             // Titik Koordinat (Best practice: Decimal presisi tinggi untuk GPS)
-            $table->decimal('location_lat', 10, 8)->nullable();
-            $table->decimal('location_lng', 11, 8)->nullable();
+            $table->decimal('lat', 10, 8)->nullable();
+            $table->decimal('lng', 11, 8)->nullable();
             
             // Keterangan Tambahan
             $table->text('description')->nullable();

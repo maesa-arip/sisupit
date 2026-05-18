@@ -31,6 +31,22 @@ class ReportRequest extends FormRequest
                 'nullable',
                 'max:15',
             ],
+            'province_code' => [
+                'required',
+                'exists:indonesia_provinces,code',
+            ],
+            'city_code' => [
+                'required',
+                'exists:indonesia_cities,code',
+            ],
+            'district_code' => [
+                'required',
+                'exists:indonesia_districts,code',
+            ],
+            'village_code' => [
+                'required',
+                'exists:indonesia_villages,code',
+            ],
             'title' => [
                 'required',
                 'min:3',
@@ -43,12 +59,12 @@ class ReportRequest extends FormRequest
                 'max:255',
                 'string',
             ],
-            'location_lat' => [
+            'lat' => [
                 'required',
                 'min:3',
                 'max:255',
             ],
-            'location_lng' => [
+            'lng' => [
                 'required',
                 'min:3',
                 'max:255',
@@ -74,8 +90,12 @@ class ReportRequest extends FormRequest
             'phone' => 'Nomor Handphone',
             'title' => 'Judul',
             'description' => 'Deskripsi',
-            'location_lat' => 'Lattitude',
-            'location_lng' => 'Longitude',
+            'province_code' => 'Provinsi',
+            'city_code' => 'Kota',
+            'district_code' => 'Kecamatan',
+            'village_code' => 'Desa',
+            'lat' => 'Lattitude',
+            'lng' => 'Longitude',
             'address' => 'Alamat',
             'photo' => 'Photo',
         ];

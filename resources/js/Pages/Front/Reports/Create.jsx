@@ -8,7 +8,7 @@ import { Textarea } from '@/Components/ui/textarea';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
 import { flashMessage } from '@/lib/utils';
-import { Link, useForm } from '@inertiajs/react';
+import { Link, useForm, usePage } from '@inertiajs/react';
 import {
     IconAlertTriangle,
     IconArrowLeft,
@@ -22,8 +22,41 @@ import axios from 'axios';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
+// Helper: Algoritma Pencocokan "Sapu Jagat" (Omni-Search)
+const matchRegionName = (dbList, osmNamesArray, removeWords = []) => {
+    if (!osmNamesArray || osmNamesArray.length === 0 || !dbList || dbList.length === 0) return null;
+    
+    const cleanOsmNames = osmNamesArray.map(name => {
+        let clean = name.toLowerCase();
+        removeWords.forEach(w => { clean = clean.replace(new RegExp(`\\b${w}\\b`, 'gi'), ''); });
+        return clean.replace(/[^\w\s]/gi, '').trim();
+    }).filter(n => n.length > 0);
+
+    let matched = dbList.find(dbItem => {
+        let itemName = dbItem.name.toLowerCase();
+        removeWords.forEach(w => { itemName = itemName.replace(new RegExp(`\\b${w}\\b`, 'gi'), ''); });
+        itemName = itemName.replace(/[^\w\s]/gi, '').trim();
+        return cleanOsmNames.includes(itemName);
+    });
+
+    if (!matched) {
+        matched = dbList.find(dbItem => {
+            let itemName = dbItem.name.toLowerCase();
+            removeWords.forEach(w => { itemName = itemName.replace(new RegExp(`\\b${w}\\b`, 'gi'), ''); });
+            itemName = itemName.replace(/[^\w\s]/gi, '').trim();
+            return cleanOsmNames.some(osmName => itemName.includes(osmName) || osmName.includes(itemName));
+        });
+    }
+
+    return matched;
+};
+
 export default function Create(props) {
     const auth = props.auth.user;
+    
+    // Pastikan Controller mengirim data 'provinces' agar sistem bisa memulai pencocokan
+    const provinces = props.provinces || []; 
+
     const [userLocation, setUserLocation] = useState(null);
     const [locationLoading, setLocationLoading] = useState(true);
     const [friendlyAddress, setFriendlyAddress] = useState('');
@@ -36,18 +69,19 @@ export default function Create(props) {
         address: '', 
         title: '',
         description: '',
-        location_lat: '',
-        location_lng: '',
-        provinsi: '',
-        kabupaten: '',
-        kecamatan: '',
-        desa: '',
+        lat: '',
+        lng: '',
+        province_code: '',
+        city_code: '',
+        district_code: '',
+        village_code: '',
         road: '',
         phone: auth?.phone || '',
         photo: null,
         _method: props.page_settings.method,
     });
 
+    // AUTO DETECT LOKASI & YURISDIKSI SILENTLY
     const getUserLocation = () => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
@@ -56,35 +90,72 @@ export default function Create(props) {
                     setUserLocation({ latitude, longitude });
 
                     try {
+                        // 1. Ambil Data Reverse Geocoding dari OSM
                         const response = await axios.get(
-                            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+                            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1&accept-language=id`,
                         );
 
-                        const addressData = response.data.address;
+                        const addr = response.data.address;
 
-                        if (addressData) {
-                            const roadName = addressData.road || addressData.street || addressData.pedestrian || '';
-                            const villageName = addressData.village || addressData.suburb || '';
-                            const districtName = addressData.city_district || addressData.district || '';
-
+                        if (addr) {
+                            // Siapkan Alamat Ramah Manusia untuk UI
+                            const roadName = addr.road || addr.street || addr.pedestrian || '';
+                            const villageName = addr.village || addr.suburb || addr.town || '';
+                            const districtName = addr.city_district || addr.district || '';
                             const displayAddr = [roadName, villageName, districtName].filter(Boolean).join(', ');
-                            setFriendlyAddress(displayAddr || 'Lokasi terdeteksi');
+                            
+                            setFriendlyAddress(displayAddr || response.data.display_name?.split(',')[0] || 'Lokasi terdeteksi');
 
+                            // 2. AUTO-FILL YURISDIKSI (OMNI-SEARCH GAIB)
+                            let pCode = '', cCode = '', dCode = '', vCode = '';
+                            
+                            const rawOsmNames = [
+                                addr.state, addr.region, addr.city, addr.county, addr.regency, 
+                                addr.town, addr.city_district, addr.municipality, addr.district, 
+                                addr.suburb, addr.village, addr.neighbourhood, addr.hamlet
+                            ];
+                            const osmNames = rawOsmNames.filter(n => n && !n.toLowerCase().includes('no name'));
+                            const removeWords = ['provinsi', 'prov', 'kota', 'kabupaten', 'kab', 'kecamatan', 'kec', 'kelurahan', 'desa'];
+
+                            // Level 1: Provinsi
+                            if (osmNames.length > 0 && provinces.length > 0) {
+                                const matchedProv = matchRegionName(provinces, osmNames, removeWords);
+                                if (matchedProv) pCode = matchedProv.code;
+                            }
+
+                            // Level 2: Kota
+                            if (pCode) {
+                                const resCity = await axios.get(`/api/regions/cities/${pCode}`);
+                                const matchedCity = matchRegionName(resCity.data, osmNames, removeWords);
+                                if (matchedCity) cCode = matchedCity.code;
+                            }
+
+                            // Level 3: Kecamatan
+                            if (cCode) {
+                                const resDist = await axios.get(`/api/regions/districts/${cCode}`);
+                                const matchedDist = matchRegionName(resDist.data, osmNames, removeWords);
+                                if (matchedDist) dCode = matchedDist.code;
+                            }
+
+                            // Level 4: Desa
+                            if (dCode) {
+                                const resVill = await axios.get(`/api/regions/villages/${dCode}`);
+                                const matchedVill = matchRegionName(resVill.data, osmNames, removeWords);
+                                if (matchedVill) vCode = matchedVill.code;
+                            }
+
+                            // 3. Simpan semua kode ke State Formulir
                             setData((prevData) => ({
                                 ...prevData,
-                                location_lat: latitude,
-                                location_lng: longitude,
-                                provinsi: addressData.state || addressData.region || '',
-                                kabupaten:
-                                    addressData.city ||
-                                    addressData.town ||
-                                    addressData.county ||
-                                    addressData.municipality ||
-                                    '',
-                                kecamatan: districtName,
-                                desa: villageName,
+                                lat: latitude,
+                                lng: longitude,
+                                province_code: pCode,
+                                city_code: cCode,
+                                district_code: dCode,
+                                village_code: vCode,
                                 road: roadName,
                             }));
+
                         } else {
                             fallbackLocation(latitude, longitude);
                         }
@@ -100,7 +171,7 @@ export default function Create(props) {
                     toast.error('Gagal melacak lokasi akurat. Pastikan GPS aktif.');
                     setLocationLoading(false);
                 },
-                { enableHighAccuracy: true },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }, // Optimalisasi GPS Darurat
             );
         } else {
             toast.error('Browser Anda tidak mendukung deteksi lokasi.');
@@ -109,11 +180,11 @@ export default function Create(props) {
     };
 
     const fallbackLocation = (latitude, longitude) => {
-        setFriendlyAddress('Titik GPS terdeteksi');
+        setFriendlyAddress('Titik GPS terdeteksi (Mode Darurat)');
         setData((prevData) => ({
             ...prevData,
-            location_lat: latitude,
-            location_lng: longitude,
+            lat: latitude,
+            lng: longitude,
         }));
     };
 
@@ -146,7 +217,7 @@ export default function Create(props) {
     const onHandleSubmit = (e) => {
         e.preventDefault();
 
-        if ((!data.location_lat || !data.location_lng) && !data.address) {
+        if ((!data.lat || !data.lng) && !data.address) {
             toast.warning('Lokasi gagal dilacak, mohon isi Detail Patokan Lokasi secara manual.');
             return;
         }
@@ -167,11 +238,6 @@ export default function Create(props) {
                 
                 {/* Header Section */}
                 <div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
-                    <HeaderTitle
-                        title={props.page_settings.title}
-                        subtitle={props.page_settings.subtitle}
-                        icon={IconAlertTriangle}
-                    />
                     <Button
                         variant="outline"
                         className="h-9 px-4 rounded-md border-[#e5e5e5] bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-[#262626] dark:bg-[#151515] dark:text-gray-300 dark:hover:bg-[#1f1f1f] shadow-sm transition-colors"
@@ -198,7 +264,7 @@ export default function Create(props) {
                     <CardContent className="p-5 sm:p-6">
                         <form className="space-y-6" onSubmit={onHandleSubmit}>
                             
-                            {/* --- BAGIAN LOKASI (Disederhanakan) --- */}
+                            {/* --- BAGIAN LOKASI --- */}
                             <div className="space-y-3">
                                 {/* Header Lokasi & Status Digabung */}
                                 <div className="flex items-center gap-3 pb-1 border-b border-[#e5e5e5] dark:border-[#262626]">
@@ -219,7 +285,7 @@ export default function Create(props) {
                                     <div className="flex-1 min-w-0 pb-2">
                                         <p className="text-sm font-semibold tracking-wide text-gray-900 uppercase dark:text-gray-100">
                                             {locationLoading
-                                                ? 'Mencari Koordinat...'
+                                                ? 'Memindai Koordinat...'
                                                 : userLocation
                                                     ? 'Lokasi Terdeteksi'
                                                     : 'GPS Tidak Aktif'}
@@ -234,7 +300,7 @@ export default function Create(props) {
 
                                 {/* Peta */}
                                 <div className="relative z-0 h-[200px] w-full overflow-hidden rounded-md border border-[#e5e5e5] bg-gray-50 shadow-inner dark:border-[#333] dark:bg-[#101010] sm:h-[250px]">
-                                    <UserLeafletMap lat={data.location_lat} lng={data.location_lng} />
+                                    <UserLeafletMap lat={data.lat} lng={data.lng} />
                                 </div>
 
                                 {/* Patokan Manual */}
@@ -253,13 +319,13 @@ export default function Create(props) {
                                     {errors.address && <InputError message={errors.address} className="mt-1" />}
                                 </div>
 
-                                {/* Data Administratif (Hidden) */}
-                                <input type="hidden" name="location_lat" value={data.location_lat} />
-                                <input type="hidden" name="location_lng" value={data.location_lng} />
-                                <input type="hidden" name="provinsi" value={data.provinsi} />
-                                <input type="hidden" name="kabupaten" value={data.kabupaten} />
-                                <input type="hidden" name="kecamatan" value={data.kecamatan} />
-                                <input type="hidden" name="desa" value={data.desa} />
+                                {/* Data Administratif (DISEMBUNYIKAN SEPENUHNYA DARI USER) */}
+                                <input type="hidden" name="lat" value={data.lat} />
+                                <input type="hidden" name="lng" value={data.lng} />
+                                <input type="hidden" name="province_code" value={data.province_code} />
+                                <input type="hidden" name="city_code" value={data.city_code} />
+                                <input type="hidden" name="district_code" value={data.district_code} />
+                                <input type="hidden" name="village_code" value={data.village_code} />
                                 <input type="hidden" name="road" value={data.road} />
                             </div>
 

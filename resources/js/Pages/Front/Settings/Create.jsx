@@ -42,7 +42,7 @@ export default function Create(props) {
 					icon={IconBuilding}
 				/>
 				<Button variant="orange" size="sm" asChild>
-					<Link href={route('front.companies.index')}>
+					<Link href={"#"}>
 						<IconArrowLeft className="size-4" />
 						Kembali
 					</Link>

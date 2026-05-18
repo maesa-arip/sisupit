@@ -13,9 +13,11 @@
 		"inertiajs/inertia-laravel": "^2.0",
 		"laravel-notification-channels/webpush": "^10.2",
 		"laravel/framework": "^11.31",
+		"laravel/reverb": "^1.0",
 		"laravel/sanctum": "^4.0",
 		"laravel/socialite": "^5.21",
 		"laravel/tinker": "^2.9",
+		"laravolt/indonesia": "^0.41.0",
 		"midtrans/midtrans-php": "^2.6",
 		"spatie/laravel-permission": "^6.17",
 		"tightenco/ziggy": "^2.0"

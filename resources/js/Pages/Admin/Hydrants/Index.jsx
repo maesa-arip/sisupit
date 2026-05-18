@@ -1,0 +1,305 @@
+import HeaderTitle from '@/Components/HeaderTitle';
+import { Button } from '@/Components/ui/button';
+import { Card, CardContent } from '@/Components/ui/card';
+import { Input } from '@/Components/ui/input';
+import AppLayout from '@/Layouts/AppLayout';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import {
+	IconAlertTriangle,
+	IconArrowDown,
+	IconDroplet,
+	IconEdit,
+	IconMapPinFilled,
+	IconPlus,
+	IconSearch,
+	IconTool,
+	IconTrash,
+} from '@tabler/icons-react';
+import { useEffect, useRef, useState } from 'react';
+
+export default function Index({ hydrants, filters, tenant_location }) {
+	const [hydrantToDelete, setHydrantToDelete] = useState(null);
+	const [activeHydrantId, setActiveHydrantId] = useState(null);
+
+	const { data, setData, get } = useForm({
+		search: filters?.search || '',
+		status: filters?.status || 'Semua',
+	});
+
+	const mapRef = useRef(null);
+	const mapInstanceRef = useRef(null);
+	const markersLayerRef = useRef(null);
+	const mapContainerRef = useRef(null);
+
+	useEffect(() => {
+		if (!window.L || !mapRef.current) return;
+
+		if (!mapInstanceRef.current) {
+			// Peta akan selalu berpusat di wilayah admin masing-masing
+			const defaultLat = tenant_location?.lat || -8.65;
+			const defaultLng = tenant_location?.lng || 115.22;
+			mapInstanceRef.current = window.L.map(mapRef.current).setView([defaultLat, defaultLng], 12);
+			window.L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+				attribution: '&copy; OpenStreetMap',
+			}).addTo(mapInstanceRef.current);
+			markersLayerRef.current = window.L.layerGroup().addTo(mapInstanceRef.current);
+		}
+
+		markersLayerRef.current.clearLayers();
+		const bounds = [];
+
+		if (hydrants.data && hydrants.data.length > 0) {
+			hydrants.data.forEach((hydrant) => {
+				const lat = parseFloat(hydrant.lat),
+					lng = parseFloat(hydrant.lng);
+				if (!isNaN(lat) && !isNaN(lng)) {
+					const iconColor = hydrant.status === 'Aktif' ? 'text-teal-600' : 'text-amber-500';
+					const customIcon = window.L.divIcon({
+						html: `<div class="${iconColor} drop-shadow-md hover:scale-110 transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
+						className: 'bg-transparent border-none',
+						iconSize: [32, 32],
+						iconAnchor: [16, 32],
+					});
+					const marker = window.L.marker([lat, lng], { icon: customIcon }).addTo(markersLayerRef.current);
+					marker.bindPopup(
+						`<b>${hydrant.name}</b><br><span class="text-xs text-gray-500">${hydrant.address}</span>`,
+					);
+					bounds.push([lat, lng]);
+				}
+			});
+			if (bounds.length > 0 && !activeHydrantId) mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50] });
+		}
+	}, [hydrants.data]);
+
+	const focusToHydrant = (id, lat, lng) => {
+		setActiveHydrantId(id);
+		const parsedLat = parseFloat(lat),
+			parsedLng = parseFloat(lng);
+		if (!isNaN(parsedLat) && !isNaN(parsedLng) && mapInstanceRef.current) {
+			mapInstanceRef.current.flyTo([parsedLat, parsedLng], 17, { animate: true, duration: 1.5 });
+			if (window.innerWidth < 1024 && mapContainerRef.current) {
+				mapContainerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			}
+		}
+	};
+
+	const handleSearch = (e) => {
+		e.preventDefault();
+		get(route('admin.hydrants.index'), { preserveState: true, preserveScroll: true });
+	};
+	const applyStatusFilter = (val) => {
+		setData('status', val);
+		router.get(
+			route('admin.hydrants.index'),
+			{ ...data, status: val },
+			{ preserveState: true, preserveScroll: true },
+		);
+	};
+	const confirmDelete = () => {
+		if (hydrantToDelete)
+			router.delete(route('admin.hydrants.destroy', hydrantToDelete), {
+				preserveScroll: true,
+				onSuccess: () => setHydrantToDelete(null),
+			});
+	};
+
+	return (
+		<div className="flex flex-col w-full h-full space-y-6">
+			<Head title="Manajemen Hydrant" />
+
+			{hydrantToDelete && (
+				<div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+					<div className="w-full max-w-md p-6 border shadow-xl rounded-2xl bg-background">
+						<div className="flex items-center gap-3 text-red-500">
+							<IconAlertTriangle className="w-6 h-6" />{' '}
+							<h3 className="text-lg font-bold">Hapus Data Aset?</h3>
+						</div>
+						<p className="mt-2 text-sm text-muted-foreground">
+							Menghapus hydrant ini akan menghilangkan koordinatnya dari peta operasional secara permanen.
+						</p>
+						<div className="flex justify-end gap-3 mt-6">
+							<Button variant="ghost" onClick={() => setHydrantToDelete(null)}>
+								Batal
+							</Button>
+							<Button
+								className="text-white bg-red-600 shadow-none hover:bg-red-700"
+								onClick={confirmDelete}
+							>
+								Hapus Permanen
+							</Button>
+						</div>
+					</div>
+				</div>
+			)}
+
+			<div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
+				<HeaderTitle
+					title="Manajemen Jaringan Hydrant"
+					subtitle="Kelola fasilitas hydrant pemadam di wilayah Anda."
+					icon={IconDroplet}
+				/>
+				<Button size="sm" className="text-white bg-teal-600 border-none shadow-none hover:bg-teal-700" asChild>
+					<Link href={route('admin.hydrants.create')}>
+						<IconPlus className="mr-1.5 h-4 w-4" /> Tambah Hydrant
+					</Link>
+				</Button>
+			</div>
+
+			<div className="flex flex-col items-start w-full gap-5 lg:flex-row lg:gap-6">
+				<div className="flex flex-col w-full gap-4 shrink-0 lg:w-5/12 xl:w-1/3">
+					<div className="flex flex-col gap-3">
+						<form onSubmit={handleSearch} className="relative">
+							<IconSearch className="absolute w-4 h-4 -translate-y-1/2 left-3 top-1/2 text-muted-foreground" />
+							<Input
+								type="text"
+								placeholder="Cari nama area atau jalan..."
+								className="h-10 pl-9 focus-visible:ring-teal-500"
+								value={data.search}
+								onChange={(e) => setData('search', e.target.value)}
+							/>
+						</form>
+						<div className="flex gap-2">
+							{['Semua', 'Aktif', 'Perbaikan'].map((status) => (
+								<button
+									key={status}
+									type="button"
+									onClick={() => applyStatusFilter(status)}
+									className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-all ${
+										data.status === status
+											? 'border-teal-200 bg-teal-50 text-teal-700 dark:border-teal-800 dark:bg-teal-900/30'
+											: 'border-input bg-transparent text-muted-foreground hover:bg-accent'
+									}`}
+								>
+									{status === 'Aktif'
+										? 'Kondisi Baik'
+										: status === 'Perbaikan'
+											? 'Perbaikan'
+											: 'Semua'}
+								</button>
+							))}
+						</div>
+					</div>
+
+					{/* Area Scroll Daftar Hydrant */}
+					<div className="flex h-[500px] flex-col gap-3 overflow-y-auto pb-4 pr-1 lg:h-[calc(100vh-240px)] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar]:w-1.5">
+						{hydrants.data && hydrants.data.length > 0 ? (
+							<>
+								{hydrants.data.map((hydrant) => (
+									<Card
+										key={hydrant.id}
+										onClick={() => focusToHydrant(hydrant.id, hydrant.lat, hydrant.lng)}
+										className={`cursor-pointer transition-colors ${activeHydrantId === hydrant.id ? 'border-teal-500 bg-teal-50/50 dark:bg-teal-950/10' : 'hover:border-teal-300'}`}
+									>
+										<CardContent className="flex flex-col gap-3 p-3 sm:p-4">
+											<div className="flex flex-row items-center gap-3">
+												<div
+													className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${hydrant.status === 'Aktif' ? 'bg-teal-100 text-teal-600 dark:bg-teal-950/30' : 'bg-amber-100 text-amber-600 dark:bg-amber-950/30'}`}
+												>
+													{hydrant.status === 'Aktif' ? (
+														<IconDroplet className="w-5 h-5" />
+													) : (
+														<IconTool className="w-5 h-5" />
+													)}
+												</div>
+												<div className="flex-1 w-full min-w-0">
+													<h3
+														className={`truncate text-sm font-semibold ${activeHydrantId === hydrant.id ? 'text-teal-700 dark:text-teal-400' : 'text-foreground'}`}
+													>
+														{hydrant.name}
+													</h3>
+													<p className="mt-0.5 truncate text-xs text-muted-foreground">
+														{hydrant.address}
+													</p>
+												</div>
+												<div
+													className="flex gap-1 shrink-0"
+													onClick={(e) => e.stopPropagation()}
+												>
+													<Button
+														variant="ghost"
+														size="icon"
+														asChild
+														className="w-8 h-8 text-muted-foreground hover:text-blue-500"
+													>
+														<Link href={route('admin.hydrants.edit', hydrant.id)}>
+															<IconEdit className="w-4 h-4" />
+														</Link>
+													</Button>
+													<Button
+														variant="ghost"
+														size="icon"
+														onClick={() => setHydrantToDelete(hydrant.id)}
+														className="w-8 h-8 text-muted-foreground hover:text-red-500"
+													>
+														<IconTrash className="w-4 h-4" />
+													</Button>
+												</div>
+											</div>
+											<div className="mt-1 flex items-center justify-center gap-1 rounded-md bg-teal-50 py-1.5 text-[10px] font-bold text-teal-600 dark:bg-teal-950/30 lg:hidden">
+												<IconArrowDown className="w-3 h-3" /> Lihat Peta Lokasi
+											</div>
+										</CardContent>
+									</Card>
+								))}
+
+								{/* ========================================== */}
+								{/* BAGIAN PAGINASI SHADCN-STYLE */}
+								{/* ========================================== */}
+								<div className="flex flex-col items-center gap-3 pt-4 mt-4 border-t border-dashed border-border">
+									<span className="text-[11px] font-medium text-muted-foreground">
+										Menampilkan {hydrants.from} - {hydrants.to} dari {hydrants.total} aset
+									</span>
+
+									{hydrants.links && hydrants.links.length > 3 && (
+										<div className="flex flex-wrap justify-center gap-1">
+											{hydrants.links.map((link, index) => {
+												return link.url ? (
+													<Link
+														key={index}
+														href={link.url}
+														preserveScroll
+														className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
+															link.active
+																? 'border-teal-600 bg-teal-600 text-white shadow-sm'
+																: 'border-input bg-background text-muted-foreground hover:bg-accent hover:text-foreground'
+														}`}
+														dangerouslySetInnerHTML={{ __html: link.label }}
+													/>
+												) : (
+													<span
+														key={index}
+														className="cursor-not-allowed rounded-md border border-transparent px-3 py-1.5 text-xs font-semibold text-muted-foreground opacity-50"
+														dangerouslySetInnerHTML={{ __html: link.label }}
+													/>
+												);
+											})}
+										</div>
+									)}
+								</div>
+							</>
+						) : (
+							<div className="p-10 text-center border border-dashed rounded-xl border-input">
+								<span className="text-sm text-muted-foreground">Tidak ada data ditemukan.</span>
+							</div>
+						)}
+					</div>
+				</div>
+
+				<div
+					ref={mapContainerRef}
+					className="flex h-[450px] w-full scroll-mt-24 flex-col lg:h-[calc(100vh-140px)] lg:flex-1"
+				>
+					<div className="flex items-center gap-2 px-1 mb-3">
+						<IconMapPinFilled className="w-4 h-4 text-teal-600" />
+						<h2 className="text-sm font-semibold text-foreground">Peta Sebaran Interaktif</h2>
+					</div>
+					<div
+						ref={mapRef}
+						className="relative z-0 w-full h-full overflow-hidden border rounded-2xl bg-accent"
+					></div>
+				</div>
+			</div>
+		</div>
+	);
+}
+Index.layout = (page) => <AppLayout children={page} title="Manajemen Hydrant" />;

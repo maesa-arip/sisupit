@@ -1,18 +1,5 @@
 import NavLink from '@/Components/NavLink';
-import { Button } from '@/Components/ui/button';
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/Components/ui/dialog';
-import { flashMessage } from '@/lib/utils';
-import { router } from '@inertiajs/react';
-import {
-    IconAlertCircle,
     IconBuilding,
     IconClipboardPlus,
     IconDashboard,
@@ -21,121 +8,142 @@ import {
     IconUser,
     IconDroplet,
     IconFiretruck,
-    IconUsersGroup
+    IconUsersGroup,
+    IconMapPin,
+    IconFlame,
+    IconHistory,
+    IconSpeakerphone,
+    IconFireHydrant
 } from '@tabler/icons-react';
-import { useState } from 'react';
 
 export default function Sidebar({ url, auth }) {
-    const [open, setOpen] = useState(false);
+    // 🛠️ Detektor Role Sapu Jagat (Kebal Segala Format Output Spatie)
+    const rawRoles = auth?.roles || auth?.role || auth?.user?.roles || auth?.user?.role || [];
+    const rolesArray = Array.isArray(rawRoles) ? rawRoles : [rawRoles];
+    const userRoles = rolesArray.map(r => (typeof r === 'object' && r !== null) ? r.name : r);
+    
+    // Pengecekan Otoritas
+    const isAdminOrSuperadmin = userRoles.includes('admin') || userRoles.includes('superadmin');
+    const isPetugas = userRoles.includes('petugas');
+    const isStaff = isAdminOrSuperadmin || isPetugas;
 
+    // Komponen Header Seksi Menu (Tipografi Taktis/Militeristik)
     const NavHeading = ({ children }) => (
-        <div className="px-3 py-2 mt-4 mb-1 text-[10px] font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">
+        <div className="px-3 py-2 mt-6 mb-1 text-[10px] font-black tracking-widest text-gray-400 uppercase dark:text-gray-500 first:mt-2">
             {children}
         </div>
     );
 
-    const SidebarButton = ({ icon: Icon, children, ...props }) => (
-        <Button
-            variant="ghost"
-            className="justify-start w-full h-auto gap-3 px-3 py-2.5 text-sm font-medium text-left transition-colors rounded-md text-gray-700 dark:text-gray-300 hover:text-[#b42826] hover:bg-red-50 dark:hover:bg-[#2a1313] dark:hover:text-[#e54845] outline-none focus-visible:ring-2 focus-visible:ring-[#b42826]/50"
-            {...props}
-        >
-            <Icon className="w-5 h-5 shrink-0" stroke={2} />
-            <span className="truncate">{children}</span>
-        </Button>
-    );
-
     return (
-        <nav className="flex flex-col items-start w-full gap-1 px-3 pb-24 overflow-hidden text-sm lg:px-4">
+        <nav className="flex flex-col items-start w-full gap-0.5 px-3 pb-24 overflow-y-auto no-scrollbar text-sm lg:px-4">
             
-            <>
-                <NavHeading>Dashboard</NavHeading>
-                <NavLink
-                    url={route('dashboard')}
-                    active={url.startsWith('/dashboard')}
-                    title="Dashboard"
-                    icon={IconDashboard}
-                />
-                
-                <NavHeading>Sisupit</NavHeading>
-                <NavLink
-                    url={route('front.companies.index')}
-                    active={url.startsWith('/companies')}
-                    title="Daftar Sebagai Relawan"
-                    icon={IconBuilding}
-                />
+            {/* --- SEKSI UTAMA --- */}
+            <NavHeading>Pusat Komando</NavHeading>
+            <NavLink
+                url={route('dashboard')}
+                active={url.startsWith('/dashboard') || url === '/home'}
+                title="Beranda Dashboard"
+                icon={IconDashboard}
+            />
+            <NavLink
+                url={"/"}
+                active={url === '/'}
+                title="Peta Pantauan"
+                icon={IconMapPin}
+            />
 
-                {/* --- Dialog Pompa Supit --- */}
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <SidebarButton icon={IconDroplet}>
-                            Lihat Lokasi Pompa Supit
-                        </SidebarButton>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-md rounded-xl bg-white border-[#e5e5e5] dark:bg-[#151515] dark:border-[#262626]">
-                        <DialogHeader className="p-1">
-                            <DialogTitle className="text-base font-semibold text-gray-900 dark:text-gray-100">Segera Hadir</DialogTitle>
-                            <DialogDescription className="text-sm text-gray-500 dark:text-gray-400 mt-1.5">
-                                Fitur pelacakan lokasi pompa sedang diproses, mohon untuk bersabar.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter className="gap-2 mt-4 sm:justify-end">
-                            <DialogTrigger asChild>
-                                <Button variant="outline" className="border-[#e5e5e5] rounded-md h-9 text-gray-700 dark:text-gray-300 dark:border-[#333] dark:bg-[#1f1f1f] hover:bg-gray-50 dark:hover:bg-[#262626]">
-                                    Tutup
-                                </Button>
-                            </DialogTrigger>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-
-                {/* --- Dialog Pos Damkar --- */}
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <SidebarButton icon={IconFiretruck}>
-                            Lihat Lokasi Pos Damkar Terdekat
-                        </SidebarButton>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-md rounded-xl bg-white border-[#e5e5e5] dark:bg-[#151515] dark:border-[#262626]">
-                        <DialogHeader className="p-1">
-                            <DialogTitle className="text-base font-semibold text-gray-900 dark:text-gray-100">Segera Hadir</DialogTitle>
-                            <DialogDescription className="text-sm text-gray-500 dark:text-gray-400 mt-1.5">
-                                Fitur rute ke Pos Damkar terdekat sedang diproses, mohon untuk bersabar.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter className="gap-2 mt-4 sm:justify-end">
-                            <DialogTrigger asChild>
-                                <Button variant="outline" className="border-[#e5e5e5] rounded-md h-9 text-gray-700 dark:text-gray-300 dark:border-[#333] dark:bg-[#1f1f1f] hover:bg-gray-50 dark:hover:bg-[#262626]">
-                                    Tutup
-                                </Button>
-                            </DialogTrigger>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-            </>
-
-            <NavHeading>Lainnya</NavHeading>
-            
-            {auth?.role?.some((role) => ['admin', 'operator'].includes(role)) && (
-                <NavLink
-                    url={route('admin.announcements.index')}
-                    active={url.startsWith('/admin/announcements')}
-                    title="Pengumuman"
-                    icon={IconAlertCircle}
-                />
+            {/* --- SEKSI OPERASIONAL --- */}
+            {auth?.user && (
+                <>
+                    <NavHeading>Operasional</NavHeading>
+                    <NavLink
+                        url={route('front.reports.create')}
+                        active={url.startsWith('/reports/create')}
+                        title="Lapor Darurat!"
+                        icon={IconFlame}
+                        className="text-[#b42826] dark:text-[#e54845] hover:bg-red-50 dark:hover:bg-red-950/30"
+                    />
+                    <NavLink
+                        url={route('front.reports.index', { filter: 'mine' })}
+                        active={url.startsWith('/reports') && !url.startsWith('/reports/create')}
+                        title="Arsip & Riwayat"
+                        icon={IconHistory}
+                    />
+                </>
             )}
 
-            {auth?.name ? (
+            {/* --- SEKSI FASILITAS PUBLIK --- */}
+            <NavHeading>Fasilitas Publik</NavHeading>
+            <NavLink
+                url={route('front.pumps.index')} 
+                active={url.startsWith('/pumps')}
+                title="Lokasi Pompa Air"
+                icon={IconDroplet}
+            />
+            <NavLink
+                url={route('front.fire_stations.index')} 
+                active={url.startsWith('/fire-stations')}
+                title="Pos Pemadam"
+                icon={IconFiretruck}
+            />
+            <NavLink
+                url={route('front.hydrants.index')} 
+                active={url.startsWith('/hydrants')}
+                title="Lokasi Hydrant"
+                icon={IconFireHydrant}
+            />
+
+            {/* --- SEKSI ADMINISTRASI (KHUSUS ADMIN/PETUGAS) --- */}
+            {isStaff && (
+                <>
+                    <NavHeading>Administrasi</NavHeading>
+                    
+                    {isAdminOrSuperadmin && (
+                        <NavLink
+                            url={route('admin.users.index')}
+                            active={url.startsWith('/admin/users')}
+                            title="Manajemen Pengguna"
+                            icon={IconUsersGroup}
+                        />
+                    )}
+                    
+                    <NavLink
+                        url={route('admin.reports.index')}
+                        active={url.startsWith('/admin/reports')}
+                        title="Verifikasi Laporan"
+                        icon={IconClipboardPlus}
+                    />
+                    
+                    <NavLink
+                        url={route('admin.hydrants.index')}
+                        active={url.startsWith('/admin/facilities') || url.startsWith('/admin/hydrants')}
+                        title="Manajemen Fasilitas"
+                        icon={IconBuilding}
+                    />
+                    
+                    <NavLink
+                        url={route('admin.announcements.index')}
+                        active={url.startsWith('/admin/announcements')}
+                        title="Pengumuman Sistem"
+                        icon={IconSpeakerphone}
+                    />
+                </>
+            )}
+
+            {/* --- SEKSI AKUN & SISTEM --- */}
+            <NavHeading>Akun & Sistem</NavHeading>
+            
+            {auth?.user?.name || auth?.name ? (
                 <>
                     <NavLink
                         url={route('profile.edit')}
                         active={url.startsWith('/profile')}
-                        title="Profile"
+                        title="Profil Saya"
                         icon={IconUser}
                     />
                     <NavLink
                         url={route('logout')}
-                        title="Logout"
+                        title="Keluar (Logout)"
                         icon={IconLogout}
                         method="post"
                         as="button"
@@ -144,8 +152,8 @@ export default function Sidebar({ url, auth }) {
                 </>
             ) : (
                 <>
-                    <NavLink url={route('login')} title="Masuk" icon={IconLogin2} />
-                    <NavLink url={route('register')} title="Daftar" icon={IconClipboardPlus} />
+                    <NavLink url={route('login')} title="Masuk Akun" icon={IconLogin2} />
+                    <NavLink url={route('register')} title="Daftar Baru" icon={IconClipboardPlus} />
                 </>
             )}
         </nav>

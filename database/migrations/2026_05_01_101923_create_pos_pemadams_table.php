@@ -24,8 +24,8 @@ return new class extends Migration
             $table->string('status')->default('Aktif'); // Aktif, Siaga
             
             // Titik Koordinat (Decimal presisi tinggi)
-            $table->decimal('location_lat', 10, 8)->nullable();
-            $table->decimal('location_lng', 11, 8)->nullable();
+            $table->decimal('lat', 10, 8)->nullable();
+            $table->decimal('lng', 11, 8)->nullable();
             
             $table->timestamps();
             $table->softDeletes();

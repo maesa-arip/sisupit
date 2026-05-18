@@ -3,76 +3,97 @@
 namespace Database\Seeders;
 
 use App\Models\Pompa;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class PompaSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $pompas = [
+            // ==========================================
+            // KOTA DENPASAR (Prov: 51, Kota: 5171)
+            // ==========================================
             [
-                'name'         => 'Hydrant Sentral Pasar Badung',
-                'address'      => 'Jl. Sulawesi No. 1, Dauh Puri Kangin, Denpasar Barat',
-                'type'         => 'Statis (Hydrant)',
-                'status'       => 'Aktif',
-                'capacity_lpm' => 1500,
-                'location_lat' => -8.655299,
-                'location_lng' => 115.212003,
-                'description'  => 'Hydrant utama untuk area pusat perbelanjaan Pasar Badung. Debit air tinggi.',
+                'name'          => 'Pompa Sentral Pasar Badung',
+                'address'       => 'Jl. Sulawesi No. 1, Dauh Puri Kangin, Denpasar Barat',
+                'type'          => 'Statis (Pompa Besar)',
+                'status'        => 'Aktif',
+                'lat'           => -8.655299, 
+                'lng'           => 115.212003, 
+                'province_code' => '51',
+                'city_code'     => '5171',
+                'district_code' => '517102', // Denpasar Barat
+                'village_code'  => '5171022001', // Dauh Puri Kangin
+                'description'   => 'Pompa utama untuk area pusat perbelanjaan Pasar Badung. Debit air tinggi.',
             ],
             [
-                'name'         => 'Pompa Portable Relawan Sanur',
-                'address'      => 'Posko Relawan Pantai Sanur, Jl. Hang Tuah',
-                'type'         => 'Portable (Mobil)',
-                'status'       => 'Aktif',
-                'capacity_lpm' => 800,
-                'location_lat' => -8.673891,
-                'location_lng' => 115.263300,
-                'description'  => 'Pompa portabel di atas mobil bak terbuka, siap dikerahkan ke titik evakuasi sempit.',
+                'name'          => 'Pompa Portable Relawan Sanur',
+                'address'       => 'Posko Relawan Pantai Sanur, Jl. Hang Tuah',
+                'type'          => 'Portable (Mobil)',
+                'status'        => 'Aktif',
+                'lat'           => -8.673891,
+                'lng'           => 115.263300,
+                'province_code' => '51',
+                'city_code'     => '5171',
+                'district_code' => '517101', // Denpasar Selatan
+                'village_code'  => '5171012001', // Sanur Kaja
+                'description'   => 'Pompa portabel di atas mobil bak terbuka, siap dikerahkan ke titik evakuasi sempit.',
             ],
             [
-                'name'         => 'Hydrant Monumen Bajra Sandhi',
-                'address'      => 'Kawasan Lapangan Renon, Denpasar Selatan',
-                'type'         => 'Statis (Hydrant)',
-                'status'       => 'Dalam Perbaikan',
-                'capacity_lpm' => 1200,
-                'location_lat' => -8.671694,
-                'location_lng' => 115.233889,
-                'description'  => 'Sedang ada perbaikan pada katup pipa utama. Estimasi selesai minggu depan.',
+                'name'          => 'Pompa Air Desa Pemecutan',
+                'address'       => 'Balai Banjar Tegal, Pemecutan Kelod',
+                'type'          => 'Mesin Diesel',
+                'status'        => 'Aktif',
+                'lat'           => -8.658012,
+                'lng'           => 115.195023,
+                'province_code' => '51',
+                'city_code'     => '5171',
+                'district_code' => '517102', // Denpasar Barat
+                'village_code'  => '5171022002', // Pemecutan Klod
+                'description'   => 'Pompa cadangan bertenaga solar, cocok untuk pemadaman atau penyedotan banjir lokal.',
             ],
             [
-                'name'         => 'Pompa Air Desa Pemecutan',
-                'address'      => 'Balai Banjar Tegal, Pemecutan Kelod',
-                'type'         => 'Mesin Diesel',
-                'status'       => 'Aktif',
-                'capacity_lpm' => 500,
-                'location_lat' => -8.658012,
-                'location_lng' => 115.195023,
-                'description'  => 'Pompa cadangan bertenaga solar, cocok untuk pemadaman atau penyedotan banjir lokal.',
+                'name'          => 'Pompa Apung Suwung',
+                'address'       => 'Area TPA Suwung, Denpasar Selatan',
+                'type'          => 'Pompa Apung',
+                'status'        => 'Aktif',
+                'lat'           => -8.724501,
+                'lng'           => 115.221567,
+                'province_code' => '51',
+                'city_code'     => '5171',
+                'district_code' => '517101', // Denpasar Selatan
+                'village_code'  => '5171012003', // Suwung/Sesetan
+                'description'   => 'Dapat mengapung di atas permukaan air. Digunakan untuk mengatasi genangan air/banjir.',
+            ],
+
+            // ==========================================
+            // KABUPATEN BADUNG (Prov: 51, Kota: 5103)
+            // ==========================================
+            [
+                'name'          => 'Pompa Portable ITDC Nusa Dua',
+                'address'       => 'Kawasan ITDC Nusa Dua, Badung',
+                'type'          => 'Portable (Mobil)',
+                'status'        => 'Aktif',
+                'lat'           => -8.798432,
+                'lng'           => 115.223456,
+                'province_code' => '51',
+                'city_code'     => '5103',
+                'district_code' => '510305', // Kuta Selatan
+                'village_code'  => '5103052001', // Benoa
+                'description'   => 'Pompa taktis untuk area pariwisata elit.',
             ],
             [
-                'name'         => 'Hydrant BPBD Kota Denpasar',
-                'address'      => 'Jl. Imam Bonjol No. 182, Pemecutan Klod',
-                'type'         => 'Statis (Hydrant)',
-                'status'       => 'Aktif',
-                'capacity_lpm' => 2000,
-                'location_lat' => -8.675124,
-                'location_lng' => 115.191782,
-                'description'  => 'Terhubung langsung dengan reservoir utama BPBD. Tekanan air paling stabil.',
-            ],
-            [
-                'name'         => 'Pompa Apung Suwung',
-                'address'      => 'Area TPA Suwung, Denpasar Selatan',
-                'type'         => 'Pompa Apung',
-                'status'       => 'Aktif',
-                'capacity_lpm' => 450,
-                'location_lat' => -8.724501,
-                'location_lng' => 115.221567,
-                'description'  => 'Dapat mengapung di atas permukaan air. Digunakan untuk mengatasi genangan air/banjir.',
+                'name'          => 'Pompa Hisap Petang',
+                'address'       => 'Kecamatan Petang, Kabupaten Badung',
+                'type'          => 'Mesin Diesel',
+                'status'        => 'Perbaikan',
+                'lat'           => -8.384210,
+                'lng'           => 115.212345,
+                'province_code' => '51',
+                'city_code'     => '5103',
+                'district_code' => '510304', // Petang
+                'village_code'  => '5103042001', // Petang
+                'description'   => 'Klep hisap sedang diganti. Selesai minggu depan.',
             ],
         ];
 
