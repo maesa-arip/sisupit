@@ -12,7 +12,7 @@ class PompaController extends Controller
     public function index(Request $request)
     {
         // 1. Inisiasi Query Database (Ganti 'pompas' dengan nama tabel asli Anda jika berbeda)
-        $query = Pompa::query();
+        $query = Pompa::withoutGlobalScope('tenant');
 
         // 2. Filter Pencarian Teks (Nama atau Alamat Pompa)
         if ($request->filled('search')) {
@@ -35,10 +35,10 @@ class PompaController extends Controller
             // Ganti 'pompas.*' sesuai nama tabel database Anda
             $query->selectRaw("pompas.*, 
                 ( 6371 * acos( cos( radians(?) ) * 
-                cos( radians( location_lat ) ) * 
-                cos( radians( location_lng ) - radians(?) ) + 
+                cos( radians( lat ) ) * 
+                cos( radians( lng ) - radians(?) ) + 
                 sin( radians(?) ) * 
-                sin( radians( location_lat ) ) ) 
+                sin( radians( lat ) ) ) 
                 ) AS distance", [$userLat, $userLng, $userLat])
             ->orderBy('distance', 'asc'); // Urutkan dari yang paling dekat
         } else {
@@ -60,8 +60,8 @@ class PompaController extends Controller
                 // Jika hasil pencarian terdekat digunakan, format angkanya. Jika tidak, kosongkan.
                 'distance' => isset($pump->distance) ? number_format($pump->distance, 1) . ' km' : '-',
                 // Kirim koordinat ke React agar bisa di-render jadi pin/marker di Peta
-                'lat'      => $pump->location_lat,
-                'lng'      => $pump->location_lng,
+                'lat'      => $pump->lat,
+                'lng'      => $pump->lng,
             ];
         });
 

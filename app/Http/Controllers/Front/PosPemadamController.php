@@ -11,7 +11,7 @@ class PosPemadamController extends Controller
 {
     public function index(Request $request)
     {
-        $query = PosPemadam::query();
+        $query = PosPemadam::withoutGlobalScope('tenant');
 
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
@@ -31,10 +31,10 @@ class PosPemadamController extends Controller
 
             $query->selectRaw("pos_pemadams.*, 
                 ( 6371 * acos( cos( radians(?) ) * 
-                cos( radians( location_lat ) ) * 
-                cos( radians( location_lng ) - radians(?) ) + 
+                cos( radians( lat ) ) * 
+                cos( radians( lng ) - radians(?) ) + 
                 sin( radians(?) ) * 
-                sin( radians( location_lat ) ) ) 
+                sin( radians( lat ) ) ) 
                 ) AS distance", [$userLat, $userLng, $userLat])
             ->orderBy('distance', 'asc');
         } else {
@@ -53,8 +53,8 @@ class PosPemadamController extends Controller
                 'status'        => $station->status ?? 'Aktif',
                 'type'          => $station->type ?? 'Pos Induk',
                 'distance'      => isset($station->distance) ? number_format($station->distance, 1) . ' km' : '-',
-                'lat'           => $station->location_lat,
-                'lng'           => $station->location_lng,
+                'lat'           => $station->lat,
+                'lng'           => $station->lng,
                 // Kita tambahkan flag category agar peta tahu ini Pos Pemadam
                 'category'      => 'pos_pemadam' 
             ];

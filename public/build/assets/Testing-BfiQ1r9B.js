@@ -1,1 +1,0 @@
-import{j as t}from"./app-DDo9jpoK.js";import{A as i}from"./AppLayout-CFkdrPIz.js";import"./ThemeSwitcher-Czor4a7K.js";import"./button-BblynBPX.js";import"./createReactComponent-Cz3MHDh5.js";import"./index-B0rcd7f8.js";import"./check-H6wTPWVx.js";function s(){return t.jsx(i,{title:"Testing",children:"Ini adalah testing layout"})}export{s as default};

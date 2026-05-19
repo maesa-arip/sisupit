@@ -38,7 +38,7 @@ export default function Register() {
     return (
         <div className="w-full bg-white dark:bg-[#101010] lg:grid lg:min-h-screen lg:grid-cols-2">
             {/* PANE KIRI: AREA FORM */}
-            <div className="relative flex flex-col px-6 py-6 lg:px-12 bg-white dark:bg-[#101010] z-0">
+            <div className="relative z-0 flex flex-col px-6 py-6 bg-white lg:px-12 dark:bg-[#101010]">
                 
                 {/* Header: Logo & Theme Switcher */}
                 <div className="flex items-center justify-between w-full pt-2 mb-8 lg:mb-0">
@@ -90,11 +90,11 @@ export default function Register() {
                                     <Input
                                         id="password" name="password" type={showPassword ? 'text' : 'password'} value={data.password} autoComplete="new-password"
                                         placeholder="••••••••" onChange={onHandleChange}
-                                        className="w-full h-11 pr-11 border-[#e5e5e5] bg-white rounded-md focus-visible:ring-1 focus-visible:ring-[#b42826] focus-visible:border-[#b42826] dark:border-[#333] dark:bg-[#151515] dark:text-gray-100 dark:focus-visible:ring-gray-500 dark:focus-visible:border-gray-500 transition-colors"
+                                        className="w-full h-11 pr-12 border-[#e5e5e5] bg-white rounded-md focus-visible:ring-1 focus-visible:ring-[#b42826] focus-visible:border-[#b42826] dark:border-[#333] dark:bg-[#151515] dark:text-gray-100 dark:focus-visible:ring-gray-500 dark:focus-visible:border-gray-500 transition-colors"
                                     />
                                     <button
                                         type="button" onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute z-10 flex items-center justify-center w-10 h-10 transition-colors -translate-y-1/2 rounded-md right-0.5 top-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none"
+                                        className="absolute z-10 flex items-center justify-center w-10 h-10 text-gray-400 transition-colors -translate-y-1/2 rounded-md right-1 top-1/2 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none"
                                         aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
                                     >
                                         {showPassword ? <IconEyeOff className="w-5 h-5" stroke={1.5} /> : <IconEye className="w-5 h-5" stroke={1.5} />}
@@ -110,11 +110,11 @@ export default function Register() {
                                     <Input
                                         id="password_confirmation" name="password_confirmation" type={showConfirmPassword ? 'text' : 'password'} value={data.password_confirmation} autoComplete="new-password"
                                         placeholder="••••••••" onChange={onHandleChange}
-                                        className="w-full h-11 pr-11 border-[#e5e5e5] bg-white rounded-md focus-visible:ring-1 focus-visible:ring-[#b42826] focus-visible:border-[#b42826] dark:border-[#333] dark:bg-[#151515] dark:text-gray-100 dark:focus-visible:ring-gray-500 dark:focus-visible:border-gray-500 transition-colors"
+                                        className="w-full h-11 pr-12 border-[#e5e5e5] bg-white rounded-md focus-visible:ring-1 focus-visible:ring-[#b42826] focus-visible:border-[#b42826] dark:border-[#333] dark:bg-[#151515] dark:text-gray-100 dark:focus-visible:ring-gray-500 dark:focus-visible:border-gray-500 transition-colors"
                                     />
                                     <button
                                         type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        className="absolute z-10 flex items-center justify-center w-10 h-10 transition-colors -translate-y-1/2 rounded-md right-0.5 top-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none"
+                                        className="absolute z-10 flex items-center justify-center w-10 h-10 text-gray-400 transition-colors -translate-y-1/2 rounded-md right-1 top-1/2 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none"
                                         aria-label={showConfirmPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
                                     >
                                         {showConfirmPassword ? <IconEyeOff className="w-5 h-5" stroke={1.5} /> : <IconEye className="w-5 h-5" stroke={1.5} />}
@@ -168,11 +168,27 @@ export default function Register() {
                 </div>
             </div>
 
-            {/* PANE KANAN: AREA GAMBAR */}
-            <div className="relative hidden lg:block bg-gray-100 dark:bg-[#151515] border-l border-[#e5e5e5] dark:border-[#262626] z-0">
-                {/* Overlay minimalis */}
-                <div className="absolute inset-0 z-10 bg-black/10 dark:bg-[#101010]/60 mix-blend-multiply"></div>
-                <img src="/images/login.webp" alt="Register Illustration" className="object-cover w-full h-full" />
+            {/* PANE KANAN: AREA GAMBAR (KONSISTEN DENGAN LOGIN) */}
+            <div className="relative z-0 hidden border-l bg-gray-900 lg:block border-[#e5e5e5] dark:border-[#262626]">
+                {/* Overlay gelap merata ringan */}
+                <div className="absolute inset-0 z-10 bg-black/20 dark:bg-black/60 mix-blend-multiply"></div>
+                
+                {/* Overlay gradient dari bawah ke atas agar teks kontras dan terbaca jelas */}
+                <div className="absolute inset-x-0 bottom-0 z-20 h-[60%] bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+                
+                <img src="/images/Damkar.png" alt="Ilustrasi Damkar" className="object-cover w-full h-full" />
+
+                {/* Teks Overlay (Damkar Kota Denpasar) */}
+                <div className="absolute z-30 left-12 bottom-16">
+                    <h2 className="text-4xl font-black tracking-tight text-white uppercase drop-shadow-lg">
+                        Damkar Kota<br />Denpasar
+                    </h2>
+                    {/* Garis aksen merah taktis */}
+                    <div className="w-16 h-1.5 mt-5 bg-[#b42826] rounded-full"></div>
+                    <p className="mt-4 text-sm font-bold tracking-[0.2em] text-gray-300 uppercase">
+                        Pantang Pulang Sebelum Padam
+                    </p>
+                </div>
             </div>
             
         </div>

@@ -216,7 +216,7 @@ export default function AdminDashboard({ auth, stats, recentReports, mapMarkers 
                                 return (
                                     <Link key={report.id} href={route('reports.show', report.id)}>
                                     <div key={report.id} className="group relative flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 hover:bg-white dark:hover:bg-[#1a1a1a] transition-all duration-200">
-                                        <Link href={`/admin/reports`} className="absolute inset-0 z-0"></Link>
+                                        <Link href={route('reports.show', report.id)} className="absolute inset-0 z-0"></Link>
                                         <div className="relative z-10 flex items-start w-full gap-4 overflow-hidden sm:w-auto">
                                             <div className={cn("p-2.5 rounded-xl shrink-0 mt-0.5", colorStyle)}>
                                                 <ReportIcon className="w-5 h-5" stroke={2} />
