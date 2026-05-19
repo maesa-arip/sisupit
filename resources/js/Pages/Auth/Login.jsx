@@ -36,7 +36,7 @@ export default function Login({ status, canResetPassword }) {
     return (
         <div className="w-full bg-white dark:bg-[#101010] lg:grid lg:min-h-screen lg:grid-cols-2">
             {/* PANE KIRI: AREA FORM */}
-            <div className="relative flex flex-col px-6 py-6 lg:px-12 bg-white dark:bg-[#101010] z-0">
+            <div className="relative z-0 flex flex-col px-6 py-6 bg-white lg:px-12 dark:bg-[#101010]">
                 
                 {/* Header: Logo & Theme Switcher */}
                 <div className="flex items-center justify-between w-full pt-2 mb-12 lg:mb-0">
@@ -109,11 +109,9 @@ export default function Login({ status, canResetPassword }) {
                                         value={data.password}
                                         placeholder="••••••••"
                                         onChange={(e) => setData(e.target.name, e.target.value)}
-                                        // PERBAIKAN: w-full dan pr-12 agar teks tidak tertimpa tombol mata
                                         className="w-full h-11 pr-12 border-[#e5e5e5] bg-white rounded-md focus-visible:ring-1 focus-visible:ring-[#b42826] focus-visible:border-[#b42826] dark:border-[#333] dark:bg-[#151515] dark:text-gray-100 dark:focus-visible:ring-gray-500 dark:focus-visible:border-gray-500 transition-colors"
                                     />
                                     
-                                    {/* PERBAIKAN: z-10 dan right-2 untuk memastikan bisa diklik dan posisinya di kanan */}
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
@@ -136,7 +134,6 @@ export default function Login({ status, canResetPassword }) {
                                     id="remember"
                                     name="remember"
                                     checked={data.remember}
-                                    // PERBAIKAN: Menambahkan dukungan `onChange` untuk kompatibilitas dengan bawaan Laravel Breeze
                                     onChange={(e) => setData('remember', e.target.checked)}
                                     onCheckedChange={(checked) => setData('remember', checked)}
                                     className="border-gray-300 dark:border-gray-600 data-[state=checked]:border-[#b42826] data-[state=checked]:bg-[#b42826] dark:data-[state=checked]:border-[#b42826] dark:data-[state=checked]:bg-[#b42826] focus-visible:ring-[#b42826] rounded-sm"
@@ -206,9 +203,27 @@ export default function Login({ status, canResetPassword }) {
             </div>
 
             {/* PANE KANAN: AREA GAMBAR */}
-            <div className="relative hidden bg-gray-100 dark:bg-[#151515] lg:block border-l border-[#e5e5e5] dark:border-[#262626] z-0">
-                <div className="absolute inset-0 z-10 bg-black/10 dark:bg-[#101010]/60 mix-blend-multiply"></div>
-                <img src="/images/login.webp" alt="Login Illustration" className="object-cover w-full h-full" />
+            <div className="relative z-0 hidden border-l bg-gray-900 lg:block border-[#e5e5e5] dark:border-[#262626]">
+                {/* Overlay gelap merata ringan */}
+                <div className="absolute inset-0 z-10 bg-black/20 dark:bg-black/60 mix-blend-multiply"></div>
+                
+                {/* Overlay gradient dari bawah ke atas agar teks kontras dan terbaca jelas */}
+                <div className="absolute inset-x-0 bottom-0 z-20 h-[60%] bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+                
+                {/* Ganti nama file gambar sesuai dengan yang Anda upload */}
+                <img src="/images/Damkar.png" alt="Ilustrasi Damkar" className="object-cover w-full h-full" />
+
+                {/* Teks Overlay (Damkar Kota Denpasar) */}
+                <div className="absolute z-30 left-12 bottom-16">
+                    <h2 className="text-4xl font-black tracking-tight text-white uppercase drop-shadow-lg">
+                        Damkar Kota<br />Denpasar
+                    </h2>
+                    {/* Garis aksen merah taktis */}
+                    <div className="w-16 h-1.5 mt-5 bg-[#b42826] rounded-full"></div>
+                    <p className="mt-4 text-sm font-bold tracking-[0.2em] text-gray-300 uppercase">
+                        Pantang Pulang Sebelum Padam
+                    </p>
+                </div>
             </div>
         </div>
     );
