@@ -40,26 +40,40 @@ export default function AppLayout({ title, children }) {
             });
         }
     }, []);
+
     useEffect(() => {
-        // 1. Buat Jembatan Global untuk WebView Android/iOS
+        // PENTING: Hanya jalankan jika user sudah login
+        if (!auth?.user) return;
+
+        // 1. SIAPKAN PENANGKAP TOKEN (DARI ANDROID KE REACT)
         window.receiveFcmTokenFromNative = (token) => {
-            console.log("Token FCM diterima dari Native:", token);
+            console.log("🎯 Token FCM berhasil ditangkap oleh React:", token);
             
-            // 2. Kirim ke Laravel menggunakan Axios (Otomatis membawa Cookies Login)
+            // React yang bertugas mengirim ke Laravel (Karena React punya Session & CSRF Token yang valid!)
             axios.post(route('fcm.store'), {
                 token: token,
-                device_type: 'android' // Bisa disesuaikan
+                device_type: 'android'
             }).then(response => {
-                console.log("Token sukses disimpan di database!");
+                console.log("✅ Token sukses disimpan di Database Laravel!");
             }).catch(error => {
-                console.error("Gagal menyimpan token:", error);
+                console.error("❌ Gagal menyimpan token ke Laravel:", error);
             });
         };
+
+        // 2. TRIGGER ANDROID UNTUK MENGAMBIL TOKEN (INI YANG SEBELUMNYA KURANG!)
+        // Kita cek apakah aplikasi dibuka di dalam WebView Android Sisupit
+        if (window.AndroidBridge && typeof window.AndroidBridge.postToken === 'function') {
+            console.log("📱 Meminta Token dari Aplikasi Android...");
+            // Panggil fungsi Java! Kita kirim string kosong '' karena kita tidak pakai Bearer Token
+            window.AndroidBridge.postToken(''); 
+        } else {
+            console.log("💻 Dibuka di Browser biasa, mengabaikan jembatan Android.");
+        }
 
         return () => {
             delete window.receiveFcmTokenFromNative;
         };
-    }, []);
+    }, [auth]); // Akan dijalankan ulang jika status auth berubah
 
     return (
         <>
