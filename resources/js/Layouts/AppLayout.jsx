@@ -41,62 +41,59 @@ export default function AppLayout({ title, children }) {
         }
     }, []);
 
-    // useEffect(() => {
-    //     // PENTING: Hanya jalankan jika user sudah login
-    //     if (!auth) return;
-
-    //     // 1. Definisikan fungsi penangkap token
-    //     window.receiveFcmTokenFromNative = (token) => {
-    //         console.log("🎯 Token FCM berhasil ditangkap oleh React:", token);
-    //         axios.post(route('fcm.store'), {
-    //             token: token,
-    //             device_type: 'android'
-    //         }).then(() => {
-    //             console.log("✅ Token sukses disimpan di Database Laravel!");
-    //         }).catch(error => {
-    //             console.error("❌ Gagal menyimpan token ke Laravel:", error);
-    //         });
-    //     };
-
-    //     // 2. Fungsi untuk mencoba memanggil AndroidBridge (dengan retry)
-    //     const tryPostToken = (retries = 5) => {
-    //         if (window.AndroidBridge && typeof window.AndroidBridge.postToken === 'function') {
-    //             console.log("📱 AndroidBridge terdeteksi! Meminta Token...");
-    //             window.AndroidBridge.postToken(''); 
-    //         } else if (retries > 0) {
-    //             console.log(`⏳ Bridge belum siap, mencoba lagi... (${retries})`);
-    //             setTimeout(() => tryPostToken(retries - 1), 500); // Coba lagi setiap 500ms
-    //         } else {
-    //             console.log("💻 AndroidBridge tidak ditemukan (Mungkin di browser biasa).");
-    //         }
-    //     };
-
-    //     // Jalankan percobaan
-    //     tryPostToken();
-
-    //     return () => {
-    //         delete window.receiveFcmTokenFromNative;
-    //     };
-    // }, [auth]);
-
-useEffect(() => {
+   useEffect(() => {
     if (!auth) return;
 
-    // Fungsi ini akan terus mencari sampai BRIDGE ditemukan, 
-    // bahkan jika halaman me-reload atau redirect.
+    window.receiveFcmTokenFromNative = (token) => {
+        console.log("Token FCM dari Android:", token);
+
+        axios.post(route('fcm.store'), {
+            token: token,
+            device_type: 'android',
+        })
+        .then(() => {
+            console.log("Token FCM berhasil disimpan ke database");
+        })
+        .catch((error) => {
+            console.error("Gagal menyimpan token FCM:", error.response?.data || error);
+        });
+    };
+
     const interval = setInterval(() => {
-        if (window.AndroidBridge) {
-            console.log("✅ AndroidBridge terdeteksi, mengirim permintaan token...");
+        if (window.AndroidBridge && typeof window.AndroidBridge.postToken === 'function') {
+            console.log("AndroidBridge terdeteksi, meminta token FCM...");
             window.AndroidBridge.postToken('');
-            clearInterval(interval); // Berhenti mencari jika sudah ketemu
+            clearInterval(interval);
         }
     }, 500);
 
-    // Stop mencari setelah 10 detik agar tidak memakan memori
-    setTimeout(() => clearInterval(interval), 10000);
+    const timeout = setTimeout(() => clearInterval(interval), 10000);
 
-    return () => clearInterval(interval);
+    return () => {
+        clearInterval(interval);
+        clearTimeout(timeout);
+        delete window.receiveFcmTokenFromNative;
+    };
 }, [auth]);
+
+// useEffect(() => {
+//     if (!auth) return;
+
+//     // Fungsi ini akan terus mencari sampai BRIDGE ditemukan, 
+//     // bahkan jika halaman me-reload atau redirect.
+//     const interval = setInterval(() => {
+//         if (window.AndroidBridge) {
+//             console.log("✅ AndroidBridge terdeteksi, mengirim permintaan token...");
+//             window.AndroidBridge.postToken('');
+//             clearInterval(interval); // Berhenti mencari jika sudah ketemu
+//         }
+//     }, 500);
+
+//     // Stop mencari setelah 10 detik agar tidak memakan memori
+//     setTimeout(() => clearInterval(interval), 10000);
+
+//     return () => clearInterval(interval);
+// }, [auth]);
     return (
         <>
             <Head title={title} />
