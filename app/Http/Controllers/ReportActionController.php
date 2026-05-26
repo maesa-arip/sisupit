@@ -7,6 +7,7 @@ use App\Models\TrackingLog;
 use App\Models\User; // <-- Wajib ditambahkan
 use Illuminate\Http\Request;
 use App\Events\ResponderLocationUpdated;
+use App\Notifications\EmergencyAlertNotification;
 use App\Notifications\WebPushNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -22,9 +23,13 @@ class ReportActionController extends Controller
         // Ambil seluruh akun petugas dan relawan di lapangan untuk dikirimi Notifikasi Push
         $responders = User::role(['petugas', 'relawan'])->whereNot('id', auth()->id())->get();
 
+        // if ($responders->isNotEmpty()) {
+        //     Notification::send($responders, new WebPushNotification($report));
+        // }
         if ($responders->isNotEmpty()) {
-            Notification::send($responders, new WebPushNotification($report));
-        }
+        // Kirim notifikasi! (Akan diproses di background queue)
+        Notification::send($responders, new EmergencyAlertNotification($report));
+    }
 
         return back()->with('success', 'Laporan berhasil divalidasi dan disiarkan ke lapangan!');
     }

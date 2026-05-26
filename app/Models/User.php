@@ -74,6 +74,18 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Report::class);
     }
+    // Relasi ke tabel fcm_tokens
+    public function fcmTokens()
+    {
+        return $this->hasMany(FcmToken::class);
+    }
+
+    // Fungsi wajib agar Laravel tahu ke mana token harus dikirim
+    public function routeNotificationForFcm()
+    {
+        return $this->fcmTokens()->pluck('token')->toArray();
+    }
+    
     public function scopeFilter(Builder $query, array $filters): void
     {
         $query->when($filters['search'] ?? null, function ($query, $search) {
