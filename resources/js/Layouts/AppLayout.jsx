@@ -40,6 +40,26 @@ export default function AppLayout({ title, children }) {
             });
         }
     }, []);
+    useEffect(() => {
+        // 1. Buat Jembatan Global untuk WebView Android/iOS
+        window.receiveFcmTokenFromNative = (token) => {
+            console.log("Token FCM diterima dari Native:", token);
+            
+            // 2. Kirim ke Laravel menggunakan Axios (Otomatis membawa Cookies Login)
+            axios.post(route('fcm.store'), {
+                token: token,
+                device_type: 'android' // Bisa disesuaikan
+            }).then(response => {
+                console.log("Token sukses disimpan di database!");
+            }).catch(error => {
+                console.error("Gagal menyimpan token:", error);
+            });
+        };
+
+        return () => {
+            delete window.receiveFcmTokenFromNative;
+        };
+    }, []);
 
     return (
         <>

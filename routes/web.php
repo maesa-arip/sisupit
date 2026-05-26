@@ -12,6 +12,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportHelperController;
 use App\Http\Controllers\Admin\HydrantController as AdminHydrantController;
+use App\Http\Controllers\Api\FcmController;
 use App\Http\Controllers\ReportActionController;
 use App\Http\Controllers\VolunteerController;
 use Illuminate\Support\Facades\Route;
@@ -24,6 +25,9 @@ use Illuminate\Support\Facades\DB;
  * socialite auth
  */
 
+Route::middleware('auth')->group(function () {
+    Route::post('/fcm-token', [FcmController::class, 'store'])->name('fcm.store');
+});
 Route::middleware(['auth', 'verified'])->group(function () {
 
     // Rute tunggal se-arah untuk memisahkan view dashboard secara otomatis
