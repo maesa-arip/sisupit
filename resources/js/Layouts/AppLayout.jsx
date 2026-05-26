@@ -79,22 +79,23 @@ export default function AppLayout({ title, children }) {
     //     };
     // }, [auth]);
 
-    useEffect(() => {
+useEffect(() => {
     if (!auth) return;
 
-    // Fungsi untuk memanggil Bridge dengan pengecekan berulang
-    const checkBridge = () => {
+    // Fungsi ini akan terus mencari sampai BRIDGE ditemukan, 
+    // bahkan jika halaman me-reload atau redirect.
+    const interval = setInterval(() => {
         if (window.AndroidBridge) {
-            console.log("✅ AndroidBridge terdeteksi!");
+            console.log("✅ AndroidBridge terdeteksi, mengirim permintaan token...");
             window.AndroidBridge.postToken('');
-        } else {
-            console.log("⏳ Menunggu AndroidBridge...");
-            setTimeout(checkBridge, 500); // Cek setiap 500ms
+            clearInterval(interval); // Berhenti mencari jika sudah ketemu
         }
-    };
+    }, 500);
 
-    // Jalankan pengecekan setelah 1 detik halaman dimuat
-    setTimeout(checkBridge, 1000);
+    // Stop mencari setelah 10 detik agar tidak memakan memori
+    setTimeout(() => clearInterval(interval), 10000);
+
+    return () => clearInterval(interval);
 }, [auth]);
     return (
         <>
