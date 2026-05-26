@@ -43,37 +43,41 @@ export default function AppLayout({ title, children }) {
 
     useEffect(() => {
         // PENTING: Hanya jalankan jika user sudah login
-        if (!auth?.user) return;
+        if (!auth) return;
 
-        // 1. SIAPKAN PENANGKAP TOKEN (DARI ANDROID KE REACT)
+        // 1. Definisikan fungsi penangkap token
         window.receiveFcmTokenFromNative = (token) => {
             console.log("🎯 Token FCM berhasil ditangkap oleh React:", token);
-            
-            // React yang bertugas mengirim ke Laravel (Karena React punya Session & CSRF Token yang valid!)
             axios.post(route('fcm.store'), {
                 token: token,
                 device_type: 'android'
-            }).then(response => {
+            }).then(() => {
                 console.log("✅ Token sukses disimpan di Database Laravel!");
             }).catch(error => {
                 console.error("❌ Gagal menyimpan token ke Laravel:", error);
             });
         };
 
-        // 2. TRIGGER ANDROID UNTUK MENGAMBIL TOKEN (INI YANG SEBELUMNYA KURANG!)
-        // Kita cek apakah aplikasi dibuka di dalam WebView Android Sisupit
-        if (window.AndroidBridge && typeof window.AndroidBridge.postToken === 'function') {
-            console.log("📱 Meminta Token dari Aplikasi Android...");
-            // Panggil fungsi Java! Kita kirim string kosong '' karena kita tidak pakai Bearer Token
-            window.AndroidBridge.postToken(''); 
-        } else {
-            console.log("💻 Dibuka di Browser biasa, mengabaikan jembatan Android.");
-        }
+        // 2. Fungsi untuk mencoba memanggil AndroidBridge (dengan retry)
+        const tryPostToken = (retries = 5) => {
+            if (window.AndroidBridge && typeof window.AndroidBridge.postToken === 'function') {
+                console.log("📱 AndroidBridge terdeteksi! Meminta Token...");
+                window.AndroidBridge.postToken(''); 
+            } else if (retries > 0) {
+                console.log(`⏳ Bridge belum siap, mencoba lagi... (${retries})`);
+                setTimeout(() => tryPostToken(retries - 1), 500); // Coba lagi setiap 500ms
+            } else {
+                console.log("💻 AndroidBridge tidak ditemukan (Mungkin di browser biasa).");
+            }
+        };
+
+        // Jalankan percobaan
+        tryPostToken();
 
         return () => {
             delete window.receiveFcmTokenFromNative;
         };
-    }, [auth]); // Akan dijalankan ulang jika status auth berubah
+    }, [auth]);
 
     return (
         <>
