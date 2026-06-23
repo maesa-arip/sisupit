@@ -9,6 +9,7 @@ use App\Enums\MessageType;
 use App\Http\Requests\ReportRequest;
 use App\Models\Report;
 use App\Models\User;
+use App\Notifications\EmergencyAlertNotification;
 use App\Notifications\WebPushNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -131,7 +132,8 @@ class ReportController extends Controller
             // SOP ANTI HOAX: Notifikasi AWAL HANYA ke PUSAT KOMANDO (Petugas/Admin)
             $commandCenterUsers = User::role(['petugas', 'admin', 'superadmin'])->whereNot('id', auth()->id())->get();
             if ($commandCenterUsers->isNotEmpty()) {
-                Notification::send($commandCenterUsers, new WebPushNotification($report));
+                Notification::send($commandCenterUsers, new EmergencyAlertNotification($report));
+                // Notification::send($commandCenterUsers, new WebPushNotification($report));
             }
 
             return to_route('dashboard');
