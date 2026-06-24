@@ -1,0 +1,49 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mbstring, pdo_sqlite, sqlite3, curl
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Install NPM dependencies
+        run: npm ci
+
+      - name: Build frontend assets
+        run: npm run build
+
+      - name: Run tests
+        run: php artisan test
+
+      # Informational only (continue-on-error): the repo has pre-existing style debt
+      # (Pint: ~35 files incl. config/*, migrations, seeders; Prettier: ~144 files)
+      # that predates this gate. Flip to blocking once that debt is cleaned up in a
+      # dedicated formatting task - see prompt/docs/FINDINGS_LOG.md #9.
+      - name: Check PHP style (Pint, informational)
+        run: vendor/bin/pint --test
+        continue-on-error: true
+
+      - name: Check JS/CSS style (Prettier, informational)
+        run: npx prettier --check .
+        continue-on-error: true

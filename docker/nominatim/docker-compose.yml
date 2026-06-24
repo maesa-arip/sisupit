@@ -1,0 +1,32 @@
+services:
+  nominatim:
+    image: mediagis/nominatim:4.4
+    container_name: sisupit-nominatim
+    restart: unless-stopped
+    ports:
+      - "${NOMINATIM_HOST_PORT:-8080}:8080"
+    environment:
+      # File PBF di-mount ke /nominatim/data lalu dirujuk lewat nama filenya saja.
+      PBF_PATH: /nominatim/data/${PBF_FILENAME}
+      # Import sekali di awal - tidak perlu replikasi data OSM yang terus berjalan.
+      REPLICATION_URL: ""
+      IMPORT_WIKIPEDIA: "false"
+      IMPORT_GB_POSTCODES: "false"
+      IMPORT_US_POSTCODES: "false"
+      NOMINATIM_PASSWORD: ${NOMINATIM_PASSWORD:-changeme}
+      # Sesuaikan dengan jumlah core VPS. Import lambat jika terlalu kecil.
+      THREADS: ${NOMINATIM_THREADS:-4}
+      FREEZE: "true"
+    volumes:
+      - ./data:/nominatim/data
+      - nominatim-db:/var/lib/postgresql/14/main
+    shm_size: 1g
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/status.php"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 5m
+
+volumes:
+  nominatim-db:
