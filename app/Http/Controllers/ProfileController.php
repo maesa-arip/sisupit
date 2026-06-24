@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
+use Laravolt\Indonesia\Models\Province;
 
 class ProfileController extends Controller
 {
@@ -40,13 +41,11 @@ use HasFile;
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
-            'phone' => 'required|string|max:20',
+            'phone' => 'nullable|string|max:20',
             'ktp' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
         $user = auth()->user();
-
-        // dd($request);
 
         // Simpan file jika ada
         if ($request->hasFile('ktp')) {
@@ -57,17 +56,45 @@ use HasFile;
             unset($data['ktp']);
         }
 
-        $user->update($data);
+        if ($data['email'] !== $user->email) {
+            $data['email_verified_at'] = null;
+        }
 
         $user->update($data);
-        // dd($request->validated());
-        // $request->user()->fill($request->validated());
-        // if ($request->user()->isDirty('email')) {
-        //     $request->user()->email_verified_at = null;
-        // }
-        // $request->user()->save();
 
         return Redirect::route('profile.edit');
+    }
+
+    /**
+     * Halaman wajib lengkapi profil (no. HP + wilayah sampai desa) di login pertama.
+     * Diarahkan ke sini oleh middleware EnsureProfileComplete.
+     */
+    public function completeProfile(Request $request): Response
+    {
+        return Inertia::render('Profile/CompleteProfile', [
+            'provinces' => Province::select('code', 'name')->get(),
+            'user' => [
+                'phone' => $request->user()->phone,
+            ],
+        ]);
+    }
+
+    /**
+     * Simpan no. HP + wilayah hasil onboarding, lalu lanjut ke dashboard.
+     */
+    public function storeCompleteProfile(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'phone' => 'required|string|max:20',
+            'province_code' => 'required|exists:indonesia_provinces,code',
+            'city_code' => 'required|exists:indonesia_cities,code',
+            'district_code' => 'required|exists:indonesia_districts,code',
+            'village_code' => 'required|exists:indonesia_villages,code',
+        ]);
+
+        $request->user()->update($data);
+
+        return Redirect::route('dashboard');
     }
 
     /**

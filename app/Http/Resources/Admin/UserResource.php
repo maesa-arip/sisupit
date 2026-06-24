@@ -18,7 +18,6 @@ class UserResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'name' => $this->name,
             'username' => $this->username,
             'email' => $this->email,
             'phone' => $this->phone,
@@ -27,6 +26,8 @@ class UserResource extends JsonResource
             'date_of_birth' => $this->date_of_birth?->format('d M Y'),
             'address' => $this->address,
             'created_at' => $this->created_at->format('d M Y'),
+            'roles' => $this->roles->pluck('name'),
+            'region' => $this->village?->name ?? $this->district?->name ?? $this->city?->name ?? $this->province?->name ?? 'Nasional',
         ];
     }
 }

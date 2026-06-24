@@ -62,7 +62,7 @@ class SocialiteController extends Controller
                     'email' => $socialUser->getEmail(),
                     'email_verified_at' => Carbon::now(),
                     'username' => str($socialUser->getNickname() ?? $socialUser->getName())->slug() . '-' . Str::lower(Str::random(6)),
-                ])->assignRole('relawan'); // Gunakan nama role, bukan ID
+                ])->assignRole('masyarakat');
             }
 
             // Buat Social Account baru

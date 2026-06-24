@@ -24,6 +24,7 @@ class UserSingleResource extends JsonResource
             'city_code' => $this->city_code,
             'district_code' => $this->district_code,
             'village_code' => $this->village_code,
+            'is_standby' => $this->is_standby,
             'avatar' => $this->avatar ? Storage::url($this->avatar) : null,
             'ktp' => $this->ktp ? Storage::url($this->ktp) : null,
             'role' => $this->getRoleNames(),

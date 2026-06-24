@@ -10,6 +10,7 @@ use App\Http\Resources\Admin\UserResource;
 use App\Models\User;
 use App\Traits\HasFile;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Response;
 
@@ -20,7 +21,9 @@ class UserController extends Controller
     public function index(): Response
     {
         $users = User::query()
-            ->select(['id', 'name', 'username', 'email', 'phone', 'avatar', 'gender', 'date_of_birth', 'address', 'created_at'])
+            ->select(['id', 'name', 'username', 'email', 'phone', 'avatar', 'gender', 'date_of_birth', 'address', 'created_at', 'province_code', 'city_code', 'district_code', 'village_code'])
+            ->with(['roles:id,name', 'province:code,name', 'city:code,name', 'district:code,name', 'village:code,name'])
+            ->isAdmin()
             ->filter(request()->only(['search']))
             ->sorting(request()->only(['field', 'direction']))
             ->latest('created_at')
@@ -47,6 +50,8 @@ class UserController extends Controller
 
     public function create(): Response
     {
+        $admin = auth()->user();
+
         return inertia('Admin/Users/Create', [
             'page_settings' => [
                 'title' => 'Tambah Pengguna',
@@ -55,11 +60,14 @@ class UserController extends Controller
                 'action' => route('admin.users.store'),
             ],
             'genders' => UserGender::options(),
+            ...$this->regionFormProps($admin),
         ]);
     }
 
     public function store(UserRequest $request): RedirectResponse
     {
+        $admin = auth()->user();
+
         try {
             $user = User::create([
                 'name' => $name = $request->name,
@@ -71,6 +79,10 @@ class UserController extends Controller
                 'date_of_birth' => $request->date_of_birth,
                 'password' => Hash::make(request()->password),
                 'avatar' => $this->upload_file($request, 'avatar', 'users'),
+                'province_code' => $admin->province_code ?? $request->province_code,
+                'city_code' => $admin->city_code ?? $request->city_code,
+                'district_code' => $admin->district_code ?? $request->district_code,
+                'village_code' => $admin->village_code ?? $request->village_code,
             ]);
             flashMessage(MessageType::CREATED->message('Pengguna'));
 
@@ -84,6 +96,10 @@ class UserController extends Controller
 
     public function edit(User $user): Response
     {
+        $this->authorize('view', $user);
+
+        $admin = auth()->user();
+
         return inertia('Admin/Users/Edit', [
             'page_settings' => [
                 'title' => 'Edit Pengguna',
@@ -93,11 +109,16 @@ class UserController extends Controller
             ],
             'genders' => UserGender::options(),
             'user' => $user,
+            ...$this->regionFormProps($admin, $user),
         ]);
     }
 
     public function update(UserRequest $request, User $user): RedirectResponse
     {
+        $this->authorize('update', $user);
+
+        $admin = auth()->user();
+
         try {
             $user->update([
                 'name' => $name = $request->name,
@@ -109,6 +130,10 @@ class UserController extends Controller
                 'date_of_birth' => $request->date_of_birth,
                 'password' => Hash::make(request()->password),
                 'avatar' => $this->update_file($request, $user, 'avatar', 'users'),
+                'province_code' => $admin->province_code ?? $request->province_code,
+                'city_code' => $admin->city_code ?? $request->city_code,
+                'district_code' => $admin->district_code ?? $request->district_code,
+                'village_code' => $admin->village_code ?? $request->village_code,
             ]);
             flashMessage(MessageType::UPDATED->message('Pengguna'));
 
@@ -122,23 +147,76 @@ class UserController extends Controller
 
     public function destroy(User $user): RedirectResponse
     {
+        $this->authorize('delete', $user);
+
         try {
-            $this->delete_file($user, 'cover');
+            $this->delete_file($user, 'avatar');
             $user->delete();
             flashMessage(MessageType::DELETED->message('Pengguna'));
 
             return to_route('admin.users.index');
         } catch (\Throwable $e) {
-            flashMessage(MessageType::ERROR->message(error: $e->getMessae()), 'error');
+            flashMessage(MessageType::ERROR->message(error: $e->getMessage()), 'error');
 
             return to_route('admin.users.index');
         }
     }
 
-    public function store_relawan(User $user)
+    /**
+     * Siapkan opsi wilayah & status kunci yurisdiksi untuk form Create/Edit,
+     * mengikuti pola yang sama dengan HydrantController agar pengguna baru
+     * otomatis terikat ke wilayah admin yang membuatnya.
+     */
+    private function regionFormProps(User $admin, ?User $target = null): array
     {
+        $provinces = [];
+        $cities = [];
+        $districts = [];
+        $targetProvinceCode = null;
+
+        if (! $admin->province_code) {
+            $provinces = DB::table('indonesia_provinces')->get();
+            if ($target?->city_code) {
+                $targetProvinceCode = DB::table('indonesia_cities')->where('code', $target->city_code)->value('province_code');
+                $cities = DB::table('indonesia_cities')->where('province_code', $targetProvinceCode)->get();
+                $districts = DB::table('indonesia_districts')->where('city_code', $target->city_code)->get();
+            }
+        } elseif (! $admin->city_code) {
+            $cities = DB::table('indonesia_cities')->where('province_code', $admin->province_code)->get();
+            if ($target?->city_code) {
+                $districts = DB::table('indonesia_districts')->where('city_code', $target->city_code)->get();
+            }
+        } else {
+            $districts = DB::table('indonesia_districts')->where('city_code', $admin->city_code)->get();
+        }
+
+        return [
+            'provinces' => $provinces,
+            'cities' => $cities,
+            'districts' => $districts,
+            'target_province_code' => $targetProvinceCode,
+            'admin_region_names' => [
+                'province' => $admin->province_code ? DB::table('indonesia_provinces')->where('code', $admin->province_code)->value('name') : null,
+                'city' => $admin->city_code ? DB::table('indonesia_cities')->where('code', $admin->city_code)->value('name') : null,
+                'district' => $admin->district_code ? DB::table('indonesia_districts')->where('code', $admin->district_code)->value('name') : null,
+                'village' => $admin->village_code ? DB::table('indonesia_villages')->where('code', $admin->village_code)->value('name') : null,
+            ],
+            'admin_level' => [
+                'province_code' => $admin->province_code,
+                'city_code' => $admin->city_code,
+                'district_code' => $admin->district_code,
+                'village_code' => $admin->village_code,
+            ],
+        ];
+    }
+
+    public function storeRelawan(User $user)
+    {
+        // Self-service: hanya user yang bersangkutan yang boleh mendaftarkan dirinya jadi relawan.
+        abort_unless($user->id === auth()->id(), 403);
+
         try {
-            $user->assignRole(2);
+            $user->assignRole('relawan');
             flashMessage(MessageType::UPDATED->message('Relawan'));
             return redirect()->route('dashboard');
             // return to_route('dashboard');
@@ -152,8 +230,11 @@ class UserController extends Controller
 
     }
 
-    public function store_detail_user(UserRequest $request,User $user)
+    public function storeDetailUser(UserRequest $request, User $user)
    {
+        // Self-service: hanya user yang bersangkutan yang boleh melengkapi profilnya sendiri.
+        abort_unless($user->id === auth()->id(), 403);
+
         try {
             $user->update([
                 'name' => $name = $request->name,

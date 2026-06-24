@@ -41,6 +41,14 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
+        $user = \App\Models\User::where('email', $this->input('email'))->first();
+
+        if ($user && is_null($user->password) && $user->socialAccounts()->exists()) {
+            throw ValidationException::withMessages([
+                'email' => 'Akun ini terdaftar menggunakan Google. Silakan login dengan tombol "Masuk dengan Google".',
+            ]);
+        }
+
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 

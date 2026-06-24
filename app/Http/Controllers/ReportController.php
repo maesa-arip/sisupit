@@ -6,11 +6,12 @@ use App\Traits\HasFile;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Response;
 use App\Enums\MessageType;
+use App\Enums\TenantLevel;
 use App\Http\Requests\ReportRequest;
 use App\Models\Report;
+use App\Models\Setting;
 use App\Models\User;
 use App\Notifications\EmergencyAlertNotification;
-use App\Notifications\WebPushNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -129,11 +130,17 @@ class ReportController extends Controller
 
             flashMessage(MessageType::CREATED->message('Laporan'));
 
-            // SOP ANTI HOAX: Notifikasi AWAL HANYA ke PUSAT KOMANDO (Petugas/Admin)
-            $commandCenterUsers = User::role(['petugas', 'admin', 'superadmin'])->whereNot('id', auth()->id())->get();
+            // SOP ANTI HOAX: Notifikasi AWAL HANYA ke PUSAT KOMANDO (Petugas/Admin),
+            // disiarkan sesuai tingkat wilayah yang dikonfigurasi admin (cascade naik dari desa laporan).
+            $petugasCeiling = TenantLevel::from(
+                Setting::getValue(Setting::KEY_NOTIFY_LEVEL_PETUGAS, TenantLevel::KABUPATEN->value)
+            );
+            $commandCenterUsers = User::role(['petugas', 'admin', 'superadmin'])
+                ->notifiableForReport($report, $petugasCeiling)
+                ->whereNot('id', auth()->id())
+                ->get();
             if ($commandCenterUsers->isNotEmpty()) {
-                Notification::send($commandCenterUsers, new EmergencyAlertNotification($report));
-                // Notification::send($commandCenterUsers, new WebPushNotification($report));
+                Notification::send($commandCenterUsers, new EmergencyAlertNotification($report, 'petugas'));
             }
 
             return to_route('dashboard');
@@ -149,6 +156,8 @@ class ReportController extends Controller
     public function edit($id): Response
     {
         $report = Report::withoutGlobalScopes()->findOrFail($id);
+        $this->authorizeReportAccess($report);
+
         return inertia('Front/Reports/Edit', [
             'page_settings' => [
                 'title' => 'Edit Laporan',
@@ -163,6 +172,8 @@ class ReportController extends Controller
     public function update($id, ReportRequest $request): RedirectResponse
     {
         $report = Report::withoutGlobalScopes()->findOrFail($id);
+        $this->authorizeReportAccess($report);
+
         try {
             $report->update([
                 'name' => $request->name,
@@ -185,6 +196,8 @@ class ReportController extends Controller
     public function destroy($id): RedirectResponse
     {
         $report = Report::withoutGlobalScopes()->findOrFail($id);
+        $this->authorizeReportAccess($report);
+
         try {
             $this->delete_file($report, 'photo');
             $report->delete();
@@ -193,6 +206,22 @@ class ReportController extends Controller
         } catch (Throwable $e) {
             flashMessage(MessageType::ERROR->message(error: $e->getMessage()), 'error');
             return back();
+        }
+    }
+
+    /**
+     * edit/update/destroy bypass Report's Tenantable global scope (so a report can be
+     * looked up by ID regardless of tenant), so ownership/staff must be re-checked here -
+     * otherwise any authenticated user could edit or delete someone else's report.
+     */
+    private function authorizeReportAccess(Report $report): void
+    {
+        $user = auth()->user();
+        $isReporter = $user->id === $report->user_id;
+        $isStaff = $user->hasAnyRole(['admin', 'superadmin', 'petugas']);
+
+        if (!$isReporter && !$isStaff) {
+            abort(403, 'Anda tidak memiliki wewenang untuk mengubah laporan ini.');
         }
     }
 }

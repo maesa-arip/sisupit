@@ -11,22 +11,35 @@ use NotificationChannels\Fcm\FcmMessage;
 use NotificationChannels\Fcm\Resources\Notification as FcmNotification;
 use NotificationChannels\Fcm\Resources\AndroidConfig;
 use NotificationChannels\Fcm\Resources\AndroidNotification;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 class EmergencyAlertNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
     public $report;
+    public $userRole;
 
-    public function __construct(Report $report)
+    public function __construct(Report $report, string $userRole)
     {
         $this->report = $report;
+        $this->userRole = $userRole;
     }
 
     public function via($notifiable)
     {
-        // Kirim via Firebase dan simpan di database (lonceng web)
-        return [FcmChannel::class, 'database', 'broadcast'];
+        // Kirim via Firebase (mobile), WebPush (browser), simpan di database (lonceng web), dan broadcast (live map)
+        return [FcmChannel::class, WebPushChannel::class, 'database', 'broadcast'];
+    }
+
+    public function toWebPush($notifiable, $notification)
+    {
+        return (new WebPushMessage)
+            ->title('🚨 DARURAT ' . strtoupper($this->report->category ?? 'KEBAKARAN') . '!')
+            ->body($this->report->address)
+            ->action('Lihat', 'view_app')
+            ->data(['url' => url('/reports/show/' . $this->report->id)]);
     }
 
     public function toFcm($notifiable)
@@ -36,7 +49,8 @@ class EmergencyAlertNotification extends Notification implements ShouldQueue
             ->setData([
                 'report_id' => (string) $this->report->id,
                 'action_url' => url('/reports/' . $this->report->id),
-                'type' => 'emergency'
+                'type' => 'emergency',
+                'user_role' => $this->userRole, // Tambahkan role pengguna untuk logika di client
             ])
             // 2. VISUAL NOTIFIKASI
             ->setNotification(FcmNotification::create()

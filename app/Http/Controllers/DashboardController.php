@@ -19,7 +19,9 @@ class DashboardController extends Controller
         // ====================================================================
         if ($user->hasAnyRole(['admin', 'superadmin', 'pejabat'])) {
             
-            $queryHelpers = User::role(['relawan', 'petugas']);
+            // Relawan yang menonaktifkan siaga tidak dihitung sebagai "siaga"; petugas selalu dianggap siaga.
+            $queryHelpers = User::role(['relawan', 'petugas'])
+                ->where(fn ($q) => $q->where('is_standby', true)->orWhereDoesntHave('roles', fn ($r) => $r->where('name', 'relawan')));
             $queryHydrant = Hydrant::query(); 
             $queryReportsActive = Report::whereIn('status', ['pending', 'handling', 'TERLAPOR']);
             $queryReportsResolved = Report::where('status', 'resolved')->whereMonth('created_at', now()->month);
@@ -134,9 +136,10 @@ class DashboardController extends Controller
         }
 
         // 3. Data Feed Laporan untuk TABS (Butuh Respons / Tugas Saya / Semua Laporan)
-        // Ini yang sebelumnya KURANG. Wajib include helpers.user agar React tahu laporan mana yang sudah/belum diambil relawan.
-        $reportsFeed = Report::withoutGlobalScopes()
-            ->with(['helpers.user']) 
+        // Tanpa withoutGlobalScopes() agar tunduk ke scope Tenantable: feed otomatis
+        // terbatas ke wilayah (desa/kecamatan/kabupaten/provinsi) milik warga yang melihat,
+        // konsisten dengan $nearbyEmergencies di atas.
+        $reportsFeed = Report::with(['helpers.user'])
             ->latest('created_at')
             ->paginate(request()->load ?? 6)
             ->withQueryString();

@@ -51,4 +51,11 @@ return [
         'redirect' => env('GOOGLE_CLIENT_REDIRECT'),
     ],
 
+    'nominatim' => [
+        // Ganti ke instance self-hosted (mis. http://<vps-ip>:8080) saat sudah siap - lihat docker/nominatim/.
+        'base_url' => env('NOMINATIM_BASE_URL', 'https://nominatim.openstreetmap.org'),
+        // Wajib diisi sesuai kebijakan penggunaan Nominatim saat memakai instance publik.
+        'user_agent' => env('NOMINATIM_USER_AGENT', 'SISUPIT-Damkar/1.0 (admin@sisupit.test)'),
+    ],
+
 ];

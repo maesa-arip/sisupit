@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
+use App\Enums\TenantLevel;
 use App\Enums\UserGender;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
@@ -28,7 +29,24 @@ class User extends Authenticatable implements MustVerifyEmail
      *
      * @var list<string>
      */
-    protected $guarded = []; 
+    protected $fillable = [
+        'name',
+        'username',
+        'email',
+        'email_verified_at',
+        'password',
+        'phone',
+        'avatar',
+        'gender',
+        'date_of_birth',
+        'address',
+        'ktp',
+        'province_code',
+        'city_code',
+        'district_code',
+        'village_code',
+        'is_standby',
+    ];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -70,6 +88,26 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(SocialAccount::class);
     }
 
+    public function province()
+    {
+        return $this->belongsTo(Province::class, 'province_code', 'code');
+    }
+
+    public function city()
+    {
+        return $this->belongsTo(City::class, 'city_code', 'code');
+    }
+
+    public function district()
+    {
+        return $this->belongsTo(District::class, 'district_code', 'code');
+    }
+
+    public function village()
+    {
+        return $this->belongsTo(Village::class, 'village_code', 'code');
+    }
+
     public function reports(): HasMany
     {
         return $this->hasMany(Report::class);
@@ -109,6 +147,45 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Notifikasi laporan selalu mulai dari wilayah desa laporan, lalu cascade naik
+     * (kecamatan -> kabupaten -> provinsi) sampai batas $ceiling yang dikonfigurasi
+     * via Setting. Superadmin dan user tanpa kode wilayah (admin nasional) selalu
+     * ikut, mengikuti pola bypass yang sama dengan Tenantable::bootTenantable().
+     */
+    public function scopeNotifiableForReport(Builder $query, Report $report, TenantLevel $ceiling): Builder
+    {
+        return $query->where(function (Builder $query) use ($report, $ceiling) {
+            $query->whereHas('roles', fn ($q) => $q->where('name', 'superadmin'));
+
+            $query->orWhere(function (Builder $q) {
+                $q->whereNull('village_code')
+                    ->whereNull('district_code')
+                    ->whereNull('city_code')
+                    ->whereNull('province_code');
+            });
+
+            if ($report->village_code) {
+                $query->orWhere('village_code', $report->village_code);
+            }
+
+            foreach ([
+                [TenantLevel::KECAMATAN, 'district_code', ['village_code']],
+                [TenantLevel::KABUPATEN, 'city_code', ['village_code', 'district_code']],
+                [TenantLevel::PROVINSI, 'province_code', ['village_code', 'district_code', 'city_code']],
+            ] as [$level, $column, $mustBeNull]) {
+                if ($ceiling->rank() <= $level->rank() && $report->$column) {
+                    $query->orWhere(function (Builder $q) use ($column, $report, $mustBeNull) {
+                        foreach ($mustBeNull as $nullColumn) {
+                            $q->whereNull($nullColumn);
+                        }
+                        $q->where($column, $report->$column);
+                    });
+                }
+            }
+        });
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -120,6 +197,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'gender' => UserGender::class,
             'date_of_birth' => 'date',
+            'is_standby' => 'boolean',
         ];
     }
 }

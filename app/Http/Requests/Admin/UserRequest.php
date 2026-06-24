@@ -60,6 +60,10 @@ class UserRequest extends FormRequest
                     'min:3',
                     'max:255',
                 ],
+            'province_code' => ['nullable', 'exists:indonesia_provinces,code'],
+            'city_code' => ['nullable', 'exists:indonesia_cities,code'],
+            'district_code' => ['nullable', 'exists:indonesia_districts,code'],
+            'village_code' => ['nullable', 'exists:indonesia_villages,code'],
         ];
     }
 
@@ -73,6 +77,10 @@ class UserRequest extends FormRequest
             'avatar' => 'Avatar',
             'password' => 'Password',
             'date_of_birth' => 'Tanggal Lahir',
+            'province_code' => 'Provinsi',
+            'city_code' => 'Kabupaten/Kota',
+            'district_code' => 'Kecamatan',
+            'village_code' => 'Kelurahan/Desa',
         ];
     }
 }

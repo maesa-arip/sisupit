@@ -3,11 +3,7 @@
 namespace App\Http\Controllers;
 use App\Models\Report;
 use App\Models\User;
-use App\Notifications\AlertNotification;
-use App\Notifications\NewReportNotification;
-use App\Notifications\WebPushNotification;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Notification;
 use Inertia\Response;
 
 class HomeController extends Controller
@@ -23,7 +19,7 @@ class HomeController extends Controller
                 'reportChart' => $this->chart(),
                 'total_reports' => Report::count(),
                 'total_handled_reports' => Report::where('status', 'TERKENDALI')->count(),
-                'total_users' => User::role(['petugas', 'relawan'])->count(),
+                'total_users' => $this->countRespondersByRole(),
             ],
         ]);
     }
@@ -38,9 +34,21 @@ class HomeController extends Controller
                 'reportChart' => $this->chart(),
                 'total_reports' => Report::count(),
                 'total_handled_reports' => Report::where('status', 'TERKENDALI')->count(),
-                'total_users' => User::role(['petugas', 'relawan'])->count(),
+                'total_users' => $this->countRespondersByRole(),
             ],
         ]);
+    }
+
+    /**
+     * User::role() throws RoleDoesNotExist if the role row hasn't been seeded yet
+     * (e.g. fresh install before RolePermissionSeeder runs), which would crash this
+     * public landing page. whereHas() on the relation simply returns 0 instead.
+     */
+    private function countRespondersByRole(): int
+    {
+        return User::whereHas('roles', function ($query) {
+            $query->whereIn('name', ['petugas', 'relawan']);
+        })->count();
     }
 
     public function chart(): array

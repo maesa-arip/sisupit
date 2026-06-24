@@ -6,10 +6,11 @@ use App\Http\Controllers\Admin\AssignUserController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\RouteAccessController;
+use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'verified', 'role:admin|superadmin'])->prefix('admin')->group(function () {
 
    
     Route::controller(UserController::class)->group(function () {
@@ -67,5 +68,11 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
         Route::get('route-accesses/edit/{routeAccess}','edit')->name('admin.route-accesses.edit');
         Route::put('route-accesses/edit/{routeAccess}','update')->name('admin.route-accesses.update');
         Route::delete('route-accesses/destroy/{routeAccess}','destroy')->name('admin.route-accesses.destroy');
+    });
+
+    // Kebijakan notifikasi bersifat global (lintas tenant), jadi dibatasi superadmin saja.
+    Route::middleware('role:superadmin')->controller(SettingController::class)->group(function () {
+        Route::get('settings', 'edit')->name('admin.settings.edit');
+        Route::put('settings', 'update')->name('admin.settings.update');
     });
 });

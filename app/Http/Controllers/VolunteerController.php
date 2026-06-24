@@ -27,4 +27,19 @@ class VolunteerController extends Controller
         // Return back akan otomatis memicu Inertia untuk merefresh props (termasuk auth.user.role)
         return back();
     }
+
+    /**
+     * Toggle status siaga relawan. Saat nonaktif, relawan tidak disiarkan
+     * notifikasi insiden (lihat ReportActionController::approve).
+     */
+    public function toggleStandby(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        abort_unless($user->hasRole('relawan'), 403);
+
+        $user->update(['is_standby' => ! $user->is_standby]);
+
+        return back();
+    }
 }
