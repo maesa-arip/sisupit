@@ -128,7 +128,7 @@ export default function Create({ tenant_location, provinces, cities, districts, 
 		window.L.control.zoom({ position: 'bottomright' }).addTo(mapInstanceRef.current);
 
 		const customIcon = window.L.divIcon({
-			html: `<div class="text-teal-600"><svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
+			html: `<div class="text-teal-600 dark:text-teal"><svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
 			className: 'bg-transparent border-none drop-shadow-md',
 			iconSize: [42, 42],
 			iconAnchor: [21, 42],
@@ -157,7 +157,7 @@ export default function Create({ tenant_location, provinces, cities, districts, 
 // Tambahkan parameter ke-3: customSearchText = null
     const updateLocationData = async (lat, lng, customSearchText = null) => {
         try {
-            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&accept-language=id`);
+            const response = await fetch(route('api.geocode.reverse', { lat, lng }));
             const result = await response.json();
             
             const addr = result?.address || {};
@@ -272,7 +272,7 @@ export default function Create({ tenant_location, provinces, cities, districts, 
         // 3. DEBOUNCE: Tunggu 1000ms setelah user berhenti mengetik
         const delayDebounceFn = setTimeout(async () => {
             try {
-                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${searchQuery}&limit=4&accept-language=id`);
+                const response = await fetch(route('api.geocode.search', { q: searchQuery }));
                 setSearchResults(await response.json());
             } catch (error) { 
                 console.error("Pencarian gagal", error); 
@@ -368,7 +368,7 @@ export default function Create({ tenant_location, provinces, cities, districts, 
 					<Card className="shadow-none border-border">
 						<CardContent className="p-6">
 							<form className="space-y-5" onSubmit={onHandleSubmit}>
-								<div className="flex items-start gap-3 p-3 text-teal-700 border border-teal-100 rounded-md bg-teal-50 dark:border-teal-900 dark:bg-teal-950/30 dark:text-teal-400">
+								<div className="flex items-start gap-3 p-3 text-teal-700 dark:text-teal border border-teal-100 dark:border-teal/30 rounded-md bg-teal-50 dark:bg-teal/10">
 									<IconInfoCircle className="mt-0.5 h-5 w-5 shrink-0" />
 									<p className="text-xs font-medium leading-relaxed">{getHelperText()}</p>
 								</div>
@@ -391,13 +391,13 @@ export default function Create({ tenant_location, provinces, cities, districts, 
             onChange={(e) => setSearchQuery(e.target.value)} 
             placeholder="Ketik jalan atau desa..." 
             // pl-9 untuk spasi kiri, pr-10 untuk spasi kanan, h-9 agar tinggi sejajar dengan Combobox
-            className="w-full pr-10 shadow-sm pl-9 h-9 focus-visible:ring-teal-500" 
+            className="w-full pr-10 shadow-sm pl-9 h-9 focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
         />
-        
+
         {/* Spinner Loading (Kanan) - Dibungkus div flex agar rotasinya sentris sempurna */}
         {isSearching && (
             <div className="absolute flex items-center justify-center -translate-y-1/2 pointer-events-none right-3 top-1/2">
-                <IconLoader2 className="w-4 h-4 text-teal-600 animate-spin" />
+                <IconLoader2 className="w-4 h-4 text-teal-600 dark:text-teal animate-spin" />
             </div>
         )}
     </div>
@@ -412,7 +412,7 @@ export default function Create({ tenant_location, provinces, cities, districts, 
                     onClick={() => selectSearchResult(res)} 
                     className="w-full text-left px-3 py-2.5 hover:bg-accent border-b border-border last:border-0 text-xs flex gap-2 transition-colors"
                 >
-                    <IconCurrentLocation className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+                    <IconCurrentLocation className="w-4 h-4 text-teal-600 dark:text-teal shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
                         <p className="font-semibold truncate">{res.name || res.display_name.split(',')[0]}</p>
                         <p className="text-muted-foreground truncate mt-0.5">{res.display_name}</p>
@@ -428,7 +428,7 @@ export default function Create({ tenant_location, provinces, cities, districts, 
 									<h4 className="flex items-center justify-between text-xs font-bold uppercase text-muted-foreground">
 										Area Yurisdiksi{' '}
 										{currentStep === 2 && (
-											<span className="rounded-full bg-teal-100 px-2 py-0.5 text-[10px] text-teal-700 dark:bg-teal-900/50 dark:text-teal-400">
+											<span className="rounded-full bg-teal-100 dark:bg-teal/10 px-2 py-0.5 text-[10px] text-teal-700 dark:text-teal">
 												Auto-detected
 											</span>
 										)}
@@ -533,7 +533,7 @@ export default function Create({ tenant_location, provinces, cities, districts, 
 										id="name"
 										value={data.name}
 										onChange={onHandleChange}
-										className="focus-visible:ring-teal-500"
+										className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
 										placeholder="Misal: Hydrant Pasar Badung"
 									/>
 									{errors.name && <InputError message={errors.name} />}
@@ -547,7 +547,7 @@ export default function Create({ tenant_location, provinces, cities, districts, 
 										rows="2"
 										value={data.address}
 										onChange={onHandleChange}
-										className="resize-none focus-visible:ring-teal-500"
+										className="resize-none focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
 									/>
 									{errors.address && <InputError message={errors.address} />}
 								</div>
@@ -559,7 +559,7 @@ export default function Create({ tenant_location, provinces, cities, districts, 
 											defaultValue={data.type}
 											onValueChange={(value) => setData('type', value)}
 										>
-											<SelectTrigger className="focus-visible:ring-teal-500">
+											<SelectTrigger className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal">
 												<SelectValue placeholder="Pilih Jenis" />
 											</SelectTrigger>
 											<SelectContent>
@@ -575,7 +575,7 @@ export default function Create({ tenant_location, provinces, cities, districts, 
 											defaultValue={data.status}
 											onValueChange={(value) => setData('status', value)}
 										>
-											<SelectTrigger className="focus-visible:ring-teal-500">
+											<SelectTrigger className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal">
 												<SelectValue placeholder="Pilih Status" />
 											</SelectTrigger>
 											<SelectContent>
@@ -588,7 +588,7 @@ export default function Create({ tenant_location, provinces, cities, districts, 
 								</div>
                                 <div className="grid gap-1.5">
                                     <Label htmlFor="description">Catatan (Opsional)</Label>
-                                    <Input name="description" id="description" value={data.description} onChange={onHandleChange} className="focus-visible:ring-teal-500" />
+                                    <Input name="description" id="description" value={data.description} onChange={onHandleChange} className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal" />
                                 </div>
 
 								<div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
@@ -628,7 +628,7 @@ export default function Create({ tenant_location, provinces, cities, districts, 
 									<Button
 										type="submit"
 										disabled={processing}
-										className="text-white bg-teal-600 border-transparent shadow-none hover:bg-teal-700"
+										className="text-white bg-teal-600 dark:bg-teal border-transparent shadow-none hover:bg-teal-700 dark:hover:bg-teal/90"
 									>
 										<IconDeviceFloppy className="w-4 h-4 mr-2" /> Simpan
 									</Button>
@@ -642,12 +642,12 @@ export default function Create({ tenant_location, provinces, cities, districts, 
 					<div className="pointer-events-none absolute left-4 top-4 z-[400]">
 						<div className="flex flex-wrap w-full gap-2">
 							<div
-								className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm transition-all ${currentStep === 1 ? 'animate-pulse bg-teal-600 text-white' : 'border bg-background text-muted-foreground'}`}
+								className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm transition-all ${currentStep === 1 ? 'animate-pulse bg-teal-600 dark:bg-teal text-white' : 'border bg-background text-muted-foreground'}`}
 							>
 								<IconClick className="h-3.5 w-3.5" /> <span>1. Klik Area Peta</span>
 							</div>
 							<div
-								className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm transition-all ${currentStep === 2 ? 'bg-teal-600 text-white' : 'border bg-background text-muted-foreground'}`}
+								className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm transition-all ${currentStep === 2 ? 'bg-teal-600 dark:bg-teal text-white' : 'border bg-background text-muted-foreground'}`}
 							>
 								<IconArrowsMove className="h-3.5 w-3.5" /> <span>2. Geser Pin</span>
 							</div>

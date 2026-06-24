@@ -12,7 +12,7 @@ export default function Success() {
             <div className='max-w-sm mx-auto'>
                 <Card>
                     <CardHeader className='flex flex-row items-center gap-x-2'>
-                        <IconCircleCheck className='text-green-500'/>
+                        <IconCircleCheck className='text-green-500 dark:text-success'/>
                         <div>
                             <CardTitle>Berhasil</CardTitle>
                             <CardDescription>Pembayaran Telah Sukses Diproses</CardDescription>

@@ -11,6 +11,7 @@ import {
 	AlertDialogTrigger,
 } from '@/Components/ui/alert-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/Components/ui/avatar';
+import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
@@ -105,19 +106,7 @@ export default function Index(props) {
 										className="inline-flex group"
 										onClick={() => onSortable('name')}
 									>
-										Nama
-										<span className="flex-none ml-2 rounded text-muted-foreground">
-											<IconArrowsDownUp className="size-4 text-muted-foreground" />
-										</span>
-									</Button>
-								</TableHead>
-								<TableHead>
-									<Button
-										variant="ghost"
-										className="inline-flex group"
-										onClick={() => onSortable('username')}
-									>
-										Username
+										Pengguna
 										<span className="flex-none ml-2 rounded text-muted-foreground">
 											<IconArrowsDownUp className="size-4 text-muted-foreground" />
 										</span>
@@ -147,7 +136,8 @@ export default function Index(props) {
 										</span>
 									</Button>
 								</TableHead>
-								<TableHead>Avatar</TableHead>
+								<TableHead>Peran</TableHead>
+								<TableHead>Wilayah</TableHead>
 								<TableHead>
 									<Button
 										variant="ghost"
@@ -155,30 +145,6 @@ export default function Index(props) {
 										onClick={() => onSortable('gender')}
 									>
 										Jenis Kelamin
-										<span className="flex-none ml-2 rounded text-muted-foreground">
-											<IconArrowsDownUp className="size-4 text-muted-foreground" />
-										</span>
-									</Button>
-								</TableHead>
-								<TableHead>
-									<Button
-										variant="ghost"
-										className="inline-flex group"
-										onClick={() => onSortable('date_of_birth')}
-									>
-										Tanggal Lahir
-										<span className="flex-none ml-2 rounded text-muted-foreground">
-											<IconArrowsDownUp className="size-4 text-muted-foreground" />
-										</span>
-									</Button>
-								</TableHead>
-								<TableHead>
-									<Button
-										variant="ghost"
-										className="inline-flex group"
-										onClick={() => onSortable('address')}
-									>
-										Alamat
 										<span className="flex-none ml-2 rounded text-muted-foreground">
 											<IconArrowsDownUp className="size-4 text-muted-foreground" />
 										</span>
@@ -203,19 +169,33 @@ export default function Index(props) {
 							{users.map((user, index) => (
 								<TableRow key={index}>
 									<TableCell>{index + 1 + (meta.current_page - 1) * meta.per_page}</TableCell>
-									<TableCell>{user.name}</TableCell>
-									<TableCell>{user.username}</TableCell>
+									<TableCell>
+										<div className="flex items-center gap-x-3">
+											<Avatar>
+												<AvatarImage src={user.avatar} />
+												<AvatarFallback>{user.name.substring(0, 1)}</AvatarFallback>
+											</Avatar>
+											<div className="flex flex-col">
+												<span className="font-medium">{user.name}</span>
+												<span className="text-xs text-muted-foreground">@{user.username}</span>
+											</div>
+										</div>
+									</TableCell>
 									<TableCell>{user.email}</TableCell>
 									<TableCell>{user.phone}</TableCell>
 									<TableCell>
-										<Avatar>
-											<AvatarImage src={user.cover} />
-											<AvatarFallback>{user.name.substring(0, 1)}</AvatarFallback>
-										</Avatar>
+										{user.roles.length > 0 ? (
+											user.roles.map((role, roleIndex) => (
+												<Badge variant="outline" className="my-0.5 mr-1" key={roleIndex}>
+													{role}
+												</Badge>
+											))
+										) : (
+											<span className="text-xs text-muted-foreground">Tanpa Peran</span>
+										)}
 									</TableCell>
+									<TableCell>{user.region}</TableCell>
 									<TableCell>{user.gender}</TableCell>
-									<TableCell>{user.date_of_birth}</TableCell>
-									<TableCell>{user.address}</TableCell>
 									<TableCell>{user.created_at}</TableCell>
 									<TableCell>
 										<div className="flex items-center gap-x-1">
@@ -272,7 +252,7 @@ export default function Index(props) {
 				</CardContent>
 				<CardFooter className="flex flex-col items-center justify-between w-full py-2 border-t lg:flex-row">
 					<p className="mb-2 text-sm text-muted-foreground">
-						Menamplikan <span className="font-medium text-orange-500">{meta.from ?? 0}</span> dari{' '}
+						Menamplikan <span className="font-medium text-orange-500 dark:text-warning">{meta.from ?? 0}</span> dari{' '}
 						{meta.total} Pengguna
 					</p>
 					<div className="overflow-x-auto">

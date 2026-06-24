@@ -200,7 +200,7 @@ export default function Index(props) {
 				</CardContent>
 				<CardFooter className="flex flex-col items-center justify-between w-full py-2 border-t lg:flex-row">
 					<p className="mb-2 text-sm text-muted-foreground">
-						Menamplikan <span className="font-medium text-orange-500">{meta.from ?? 0}</span> dari{' '}
+						Menamplikan <span className="font-medium text-orange-500 dark:text-warning">{meta.from ?? 0}</span> dari{' '}
 						{meta.total} Peran
 					</p>
 					<div className="overflow-x-auto">

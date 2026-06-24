@@ -25,7 +25,7 @@ export default function ThemeSwitcher() {
             onClick={toggleTheme}
             aria-label="Toggle Theme"
             // PERBAIKAN: Hapus mr-auto, ubah jadi rounded-full, tambah efek hover Amber
-            className="w-10 h-10 text-gray-500 transition-all bg-white border-gray-200 rounded-full shadow-sm outline-none dark:border-slate-700 dark:bg-slate-800 hover:text-amber-500 dark:text-slate-400 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-slate-700 focus-visible:ring-2 focus-visible:ring-amber-500 shrink-0"
+            className="w-10 h-10 text-muted-foreground transition-all bg-card border-border rounded-full shadow-sm outline-none hover:text-amber-500 dark:hover:text-warning hover:bg-amber-50 dark:hover:bg-warning/10 focus-visible:ring-2 focus-visible:ring-amber-500 dark:focus-visible:ring-warning shrink-0"
         >
             {/* LOGIKA UX: Jika dark mode, tampilkan Matahari. Jika light mode, tampilkan Bulan */}
             {theme === 'dark' ? (

@@ -53,7 +53,7 @@ export default function Index({ hydrants, filters, tenant_location }) {
 				const lat = parseFloat(hydrant.lat),
 					lng = parseFloat(hydrant.lng);
 				if (!isNaN(lat) && !isNaN(lng)) {
-					const iconColor = hydrant.status === 'Aktif' ? 'text-teal-600' : 'text-amber-500';
+					const iconColor = hydrant.status === 'Aktif' ? 'text-teal-600 dark:text-teal' : 'text-amber-500 dark:text-warning';
 					const customIcon = window.L.divIcon({
 						html: `<div class="${iconColor} drop-shadow-md hover:scale-110 transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
 						className: 'bg-transparent border-none',
@@ -62,7 +62,7 @@ export default function Index({ hydrants, filters, tenant_location }) {
 					});
 					const marker = window.L.marker([lat, lng], { icon: customIcon }).addTo(markersLayerRef.current);
 					marker.bindPopup(
-						`<b>${hydrant.name}</b><br><span class="text-xs text-gray-500">${hydrant.address}</span>`,
+						`<b>${hydrant.name}</b><br><span class="text-xs text-muted-foreground">${hydrant.address}</span>`,
 					);
 					bounds.push([lat, lng]);
 				}
@@ -110,7 +110,7 @@ export default function Index({ hydrants, filters, tenant_location }) {
 			{hydrantToDelete && (
 				<div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
 					<div className="w-full max-w-md p-6 border shadow-xl rounded-2xl bg-background">
-						<div className="flex items-center gap-3 text-red-500">
+						<div className="flex items-center gap-3 text-red-500 dark:text-destructive">
 							<IconAlertTriangle className="w-6 h-6" />{' '}
 							<h3 className="text-lg font-bold">Hapus Data Aset?</h3>
 						</div>
@@ -122,7 +122,7 @@ export default function Index({ hydrants, filters, tenant_location }) {
 								Batal
 							</Button>
 							<Button
-								className="text-white bg-red-600 shadow-none hover:bg-red-700"
+								className="text-white bg-red-600 dark:bg-destructive shadow-none hover:bg-red-700 dark:hover:bg-destructive/90"
 								onClick={confirmDelete}
 							>
 								Hapus Permanen
@@ -138,7 +138,7 @@ export default function Index({ hydrants, filters, tenant_location }) {
 					subtitle="Kelola fasilitas hydrant pemadam di wilayah Anda."
 					icon={IconDroplet}
 				/>
-				<Button size="sm" className="text-white bg-teal-600 border-none shadow-none hover:bg-teal-700" asChild>
+				<Button size="sm" className="text-white bg-teal-600 dark:bg-teal border-none shadow-none hover:bg-teal-700 dark:hover:bg-teal/90" asChild>
 					<Link href={route('admin.hydrants.create')}>
 						<IconPlus className="mr-1.5 h-4 w-4" /> Tambah Hydrant
 					</Link>
@@ -153,7 +153,7 @@ export default function Index({ hydrants, filters, tenant_location }) {
 							<Input
 								type="text"
 								placeholder="Cari nama area atau jalan..."
-								className="h-10 pl-9 focus-visible:ring-teal-500"
+								className="h-10 pl-9 focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
 								value={data.search}
 								onChange={(e) => setData('search', e.target.value)}
 							/>
@@ -166,7 +166,7 @@ export default function Index({ hydrants, filters, tenant_location }) {
 									onClick={() => applyStatusFilter(status)}
 									className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-all ${
 										data.status === status
-											? 'border-teal-200 bg-teal-50 text-teal-700 dark:border-teal-800 dark:bg-teal-900/30'
+											? 'border-teal-200 dark:border-teal/30 bg-teal-50 dark:bg-teal/10 text-teal-700 dark:text-teal'
 											: 'border-input bg-transparent text-muted-foreground hover:bg-accent'
 									}`}
 								>
@@ -188,12 +188,12 @@ export default function Index({ hydrants, filters, tenant_location }) {
 									<Card
 										key={hydrant.id}
 										onClick={() => focusToHydrant(hydrant.id, hydrant.lat, hydrant.lng)}
-										className={`cursor-pointer transition-colors ${activeHydrantId === hydrant.id ? 'border-teal-500 bg-teal-50/50 dark:bg-teal-950/10' : 'hover:border-teal-300'}`}
+										className={`cursor-pointer transition-colors ${activeHydrantId === hydrant.id ? 'border-teal-500 dark:border-teal bg-teal-50/50 dark:bg-teal/5' : 'hover:border-teal-300 dark:hover:border-teal/50'}`}
 									>
 										<CardContent className="flex flex-col gap-3 p-3 sm:p-4">
 											<div className="flex flex-row items-center gap-3">
 												<div
-													className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${hydrant.status === 'Aktif' ? 'bg-teal-100 text-teal-600 dark:bg-teal-950/30' : 'bg-amber-100 text-amber-600 dark:bg-amber-950/30'}`}
+													className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${hydrant.status === 'Aktif' ? 'bg-teal-100 dark:bg-teal/10 text-teal-600 dark:text-teal' : 'bg-amber-100 dark:bg-warning/10 text-amber-600 dark:text-warning'}`}
 												>
 													{hydrant.status === 'Aktif' ? (
 														<IconDroplet className="w-5 h-5" />
@@ -203,7 +203,7 @@ export default function Index({ hydrants, filters, tenant_location }) {
 												</div>
 												<div className="flex-1 w-full min-w-0">
 													<h3
-														className={`truncate text-sm font-semibold ${activeHydrantId === hydrant.id ? 'text-teal-700 dark:text-teal-400' : 'text-foreground'}`}
+														className={`truncate text-sm font-semibold ${activeHydrantId === hydrant.id ? 'text-teal-700 dark:text-teal' : 'text-foreground'}`}
 													>
 														{hydrant.name}
 													</h3>
@@ -219,7 +219,7 @@ export default function Index({ hydrants, filters, tenant_location }) {
 														variant="ghost"
 														size="icon"
 														asChild
-														className="w-8 h-8 text-muted-foreground hover:text-blue-500"
+														className="w-8 h-8 text-muted-foreground hover:text-blue-500 dark:hover:text-info"
 													>
 														<Link href={route('admin.hydrants.edit', hydrant.id)}>
 															<IconEdit className="w-4 h-4" />
@@ -229,13 +229,13 @@ export default function Index({ hydrants, filters, tenant_location }) {
 														variant="ghost"
 														size="icon"
 														onClick={() => setHydrantToDelete(hydrant.id)}
-														className="w-8 h-8 text-muted-foreground hover:text-red-500"
+														className="w-8 h-8 text-muted-foreground hover:text-red-500 dark:hover:text-destructive"
 													>
 														<IconTrash className="w-4 h-4" />
 													</Button>
 												</div>
 											</div>
-											<div className="mt-1 flex items-center justify-center gap-1 rounded-md bg-teal-50 py-1.5 text-[10px] font-bold text-teal-600 dark:bg-teal-950/30 lg:hidden">
+											<div className="mt-1 flex items-center justify-center gap-1 rounded-md bg-teal-50 dark:bg-teal/10 py-1.5 text-[10px] font-bold text-teal-600 dark:text-teal lg:hidden">
 												<IconArrowDown className="w-3 h-3" /> Lihat Peta Lokasi
 											</div>
 										</CardContent>
@@ -260,7 +260,7 @@ export default function Index({ hydrants, filters, tenant_location }) {
 														preserveScroll
 														className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
 															link.active
-																? 'border-teal-600 bg-teal-600 text-white shadow-sm'
+																? 'border-teal-600 bg-teal-600 dark:border-teal dark:bg-teal text-white shadow-sm'
 																: 'border-input bg-background text-muted-foreground hover:bg-accent hover:text-foreground'
 														}`}
 														dangerouslySetInnerHTML={{ __html: link.label }}
@@ -290,7 +290,7 @@ export default function Index({ hydrants, filters, tenant_location }) {
 					className="flex h-[450px] w-full scroll-mt-24 flex-col lg:h-[calc(100vh-140px)] lg:flex-1"
 				>
 					<div className="flex items-center gap-2 px-1 mb-3">
-						<IconMapPinFilled className="w-4 h-4 text-teal-600" />
+						<IconMapPinFilled className="w-4 h-4 text-teal-600 dark:text-teal" />
 						<h2 className="text-sm font-semibold text-foreground">Peta Sebaran Interaktif</h2>
 					</div>
 					<div

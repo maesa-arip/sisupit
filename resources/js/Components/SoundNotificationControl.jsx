@@ -26,10 +26,10 @@ export default function SoundNotificationControl() {
   if (!isPlaying) return null;
 
   return (
-    <div className="fixed z-50 p-2 bg-white rounded shadow bottom-4 right-4">
+    <div className="fixed z-50 p-2 rounded shadow bottom-4 right-4 bg-card">
       <button
         onClick={stopSound}
-        className="font-bold text-red-600 hover:underline"
+        className="font-bold text-red-600 dark:text-destructive hover:underline"
       >
         🔇 Matikan Notifikasi Suara
       </button>

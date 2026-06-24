@@ -13,35 +13,35 @@ export default function DialogRelawanDetail({ open, onClose, helper, onBack }) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
       {/* PERBAIKAN: Menambahkan 'overflow-hidden' agar background anak elemen tidak bocor di sudut-sudutnya */}
-      <DialogContent className="p-0 sm:max-w-md w-[95vw] max-h-[calc(100vh-120px)] mb-[80px] sm:mb-0 flex flex-col rounded-xl overflow-hidden border border-[#e5e5e5] shadow-sm dark:bg-[#151515] dark:border-[#262626] outline-none">
-        
+      <DialogContent className="p-0 sm:max-w-md w-[95vw] max-h-[calc(100vh-120px)] mb-[80px] sm:mb-0 flex flex-col rounded-xl overflow-hidden border border-border shadow-sm bg-card outline-none">
+
         {/* HEADER */}
-        <DialogHeader className="z-10 flex flex-row items-center gap-3 px-4 py-4 space-y-0 overflow-hidden border-b border-[#e5e5e5] shrink-0 dark:border-[#262626] bg-white dark:bg-[#151515]">
-          <Button 
-            variant="ghost" 
-            size="icon" 
+        <DialogHeader className="z-10 flex flex-row items-center gap-3 px-4 py-4 space-y-0 overflow-hidden border-b border-border shrink-0 bg-card">
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onBack}
-            className="w-8 h-8 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-[#1f1f1f]"
+            className="w-8 h-8 transition-colors rounded-lg hover:bg-accent"
           >
-            <ArrowLeft size={18} className="text-gray-600 dark:text-gray-400" />
+            <ArrowLeft size={18} className="text-muted-foreground" />
           </Button>
-          <DialogTitle className="text-base font-semibold text-gray-900 dark:text-gray-100">
+          <DialogTitle className="text-base font-semibold text-foreground">
             Profil Relawan
           </DialogTitle>
         </DialogHeader>
 
         {/* KONTEN TENGAH */}
-        <div className="flex-1 p-5 overflow-y-auto bg-gray-50 dark:bg-[#101010]">
+        <div className="flex-1 p-5 overflow-y-auto bg-muted">
           {helper && (
             <>
               <div className="flex flex-col items-center mb-6">
-                 <div className="flex items-center justify-center w-20 h-20 mb-3 text-3xl font-semibold text-gray-700 border border-[#e5e5e5] rounded-full shadow-sm bg-white dark:bg-[#1f1f1f] dark:border-[#262626] dark:text-gray-300">
+                 <div className="flex items-center justify-center w-20 h-20 mb-3 text-3xl font-semibold text-foreground border border-border rounded-full shadow-sm bg-card">
                     {helper.user?.name?.[0]?.toUpperCase() ?? '?'}
                  </div>
-                 <h3 className="text-lg font-semibold text-center text-gray-900 dark:text-gray-100">
+                 <h3 className="text-lg font-semibold text-center text-foreground">
                     {helper.user?.name}
                  </h3>
-                 <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md mt-2 border border-blue-100 dark:bg-[#111e36] dark:border-[#1e3a5f] dark:text-[#60a5fa] uppercase tracking-wider">
+                 <span className="text-[10px] font-semibold text-info bg-info/10 px-2.5 py-1 rounded-md mt-2 border border-info/20 uppercase tracking-wider">
                     Relawan Terdaftar
                  </span>
               </div>
@@ -81,10 +81,10 @@ export default function DialogRelawanDetail({ open, onClose, helper, onBack }) {
         </div>
 
         {/* FOOTER */}
-        <div className="px-5 pt-3 pb-4 border-t border-[#e5e5e5] shrink-0 dark:border-[#262626] bg-white dark:bg-[#151515]">
-          <Button 
-            className="w-full font-medium text-gray-700 transition-colors border border-[#e5e5e5] bg-transparent h-10 rounded-lg hover:bg-gray-50 dark:border-[#262626] dark:text-gray-300 dark:hover:bg-[#1f1f1f]" 
-            variant="outline" 
+        <div className="px-5 pt-3 pb-4 border-t border-border shrink-0 bg-card">
+          <Button
+            className="w-full font-medium text-foreground transition-colors border border-border bg-transparent h-10 rounded-lg hover:bg-accent"
+            variant="outline"
             onClick={onClose}
           >
             Tutup
@@ -107,26 +107,26 @@ function DetailItem({ icon, label, value, href, actionIcon }) {
   } : {};
 
   return (
-    <ContentWrapper 
+    <ContentWrapper
         {...linkProps}
-        className={`flex items-center gap-3 p-3.5 border border-[#e5e5e5] bg-white rounded-lg shadow-sm dark:border-[#262626] dark:bg-[#151515] transition-colors ${
-            href ? 'hover:border-gray-300 dark:hover:border-[#333] group cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-gray-300' : ''
+        className={`flex items-center gap-3 p-3.5 border border-border bg-card rounded-lg shadow-sm transition-colors ${
+            href ? 'hover:border-muted-foreground/50 group cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-muted-foreground/50' : ''
         }`}
     >
-      <div className={`mt-0.5 [&>svg]:w-[16px] [&>svg]:h-[16px] transition-colors ${href ? 'text-gray-600 dark:text-gray-300 group-hover:scale-105' : 'text-gray-400 dark:text-gray-500'}`}>
+      <div className={`mt-0.5 [&>svg]:w-[16px] [&>svg]:h-[16px] transition-colors ${href ? 'text-muted-foreground group-hover:scale-105' : 'text-muted-foreground/70'}`}>
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-0.5">
+        <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">
           {label}
         </p>
-        <p className={`text-[13px] font-medium break-words leading-tight transition-colors ${href ? 'text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'}`}>
+        <p className={`text-[13px] font-medium break-words leading-tight transition-colors ${href ? 'text-foreground' : 'text-muted-foreground'}`}>
           {value}
         </p>
       </div>
-      
+
       {actionIcon && (
-          <div className="text-gray-400 transition-colors dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300 shrink-0">
+          <div className="text-muted-foreground/70 transition-colors group-hover:text-muted-foreground shrink-0">
               <ExternalLink size={14} />
           </div>
       )}

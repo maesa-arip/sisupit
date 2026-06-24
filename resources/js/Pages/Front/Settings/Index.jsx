@@ -129,8 +129,8 @@ export default function Index(props) {
 									<TableCell>{setting.display_name}</TableCell>
 									<TableCell>
 										<Alert>
-											{/* <AlertCircle className="w-4 h-4 text-gray-500" /> */}
-											{/* <AlertTitle className='text-gray-500'>Keterangan</AlertTitle> */}
+											{/* <AlertCircle className="w-4 h-4 text-muted-foreground" /> */}
+											{/* <AlertTitle className='text-muted-foreground'>Keterangan</AlertTitle> */}
 											<AlertDescription className="text-muted-foreground">
 												{setting.description}
 											</AlertDescription>
@@ -157,7 +157,7 @@ export default function Index(props) {
 													// }
 												/>
 											)}
-											<span className={setting.status ? 'text-green-600' : 'text-gray-400'}>
+											<span className={setting.status ? 'text-green-600 dark:text-success' : 'text-muted-foreground'}>
 												{setting.status ? 'Aktif' : 'Tidak Aktif'}
 											</span>
 										</div>
@@ -183,7 +183,7 @@ export default function Index(props) {
 				</CardContent>
 				<CardFooter className="flex flex-col items-center justify-between w-full py-2 border-t lg:flex-row">
 					<p className="mb-2 text-sm text-muted-foreground">
-						Menamplikan <span className="font-medium text-orange-500">{meta.from ?? 0}</span> dari{' '}
+						Menamplikan <span className="font-medium text-primary">{meta.from ?? 0}</span> dari{' '}
 						{meta.total} Pengaturan
 					</p>
 					<div className="overflow-x-auto">

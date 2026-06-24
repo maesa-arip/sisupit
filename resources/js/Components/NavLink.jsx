@@ -8,14 +8,14 @@ export default function NavLink({ active = false, url = '#', title, icon: Icon, 
             href={url}
             className={cn(
                 // Base classes: w-full memastikan rentang full, overflow tersembunyi
-                'flex items-center w-full gap-3 rounded-xl p-3 font-medium transition-all outline-none focus-visible:ring-2 focus-visible:ring-red-500',
-                
-                // Active State: Gradasi red ke rose (mendukung dark mode)
+                'flex items-center w-full gap-3 rounded-xl p-3 font-medium transition-all outline-none focus-visible:ring-2 focus-visible:ring-destructive',
+
+                // Active State: warna destructive solid (mendukung dark mode otomatis)
                 active
-                    ? 'bg-gradient-to-r from-red-500 to-rose-500 dark:from-red-600 dark:to-rose-600 font-bold text-white shadow-sm'
-                    
-                // Inactive State: Warna redup dengan efek hover red
-                    : 'text-muted-foreground hover:bg-red-50 dark:hover:bg-slate-800/50 hover:text-red-600 dark:hover:text-red-400',
+                    ? 'bg-destructive font-bold text-destructive-foreground shadow-sm'
+
+                // Inactive State: Warna redup dengan efek hover destructive
+                    : 'text-muted-foreground hover:bg-destructive/10 hover:text-destructive',
                 className
             )}
         >

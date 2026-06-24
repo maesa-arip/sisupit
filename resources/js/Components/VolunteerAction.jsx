@@ -34,10 +34,10 @@ export default function VolunteerAction({ incidentId, alreadyHelping = false }) 
         <div className="w-full mt-4">
             {!isHelping ? (
                 // Tombol "Saya Akan Bantu" (Warna utama / Amber)
-                <Button 
+                <Button
                     onClick={handleVolunteerAction}
                     disabled={isLoading}
-                    className="flex items-center justify-center w-full h-11 gap-2 text-white transition-all shadow-md bg-amber-600 hover:bg-amber-700 rounded-xl hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
+                    className="flex items-center justify-center w-full h-11 gap-2 text-white dark:text-warning-foreground transition-all shadow-md bg-amber-600 dark:bg-warning hover:bg-amber-700 dark:hover:bg-warning/90 rounded-xl hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
                 >
                     {isLoading ? (
                         <IconLoader2 className="w-5 h-5 animate-spin" />
@@ -48,7 +48,7 @@ export default function VolunteerAction({ incidentId, alreadyHelping = false }) 
                 </Button>
             ) : (
                 // Tampilan setelah diklik (Berubah menjadi Hijau/Sukses)
-                <div className="flex items-center justify-center w-full gap-2 text-green-800 border-2 border-green-200 h-11 bg-green-50 rounded-xl dark:bg-green-900/30 dark:text-green-400 dark:border-green-800/50">
+                <div className="flex items-center justify-center w-full gap-2 text-green-800 dark:text-success border-2 border-green-200 dark:border-success/20 h-11 bg-green-50 dark:bg-success/10 rounded-xl">
                     <IconCheck className="w-5 h-5" />
                     <span className="font-bold">Anda Sedang Menuju Lokasi</span>
                 </div>

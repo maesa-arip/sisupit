@@ -34,10 +34,10 @@ export default function Login({ status, canResetPassword }) {
     };
 
     return (
-        <div className="w-full bg-white dark:bg-[#101010] lg:grid lg:min-h-screen lg:grid-cols-2">
+        <div className="w-full bg-background lg:grid lg:min-h-screen lg:grid-cols-2">
             {/* PANE KIRI: AREA FORM */}
-            <div className="relative z-0 flex flex-col px-6 py-6 bg-white lg:px-12 dark:bg-[#101010]">
-                
+            <div className="relative z-0 flex flex-col px-6 py-6 bg-background lg:px-12">
+
                 {/* Header: Logo & Theme Switcher */}
                 <div className="flex items-center justify-between w-full pt-2 mb-12 lg:mb-0">
                     <ApplicationLogo />
@@ -49,10 +49,10 @@ export default function Login({ status, canResetPassword }) {
                     <div className="w-full max-w-sm mx-auto space-y-8">
                         {/* Judul */}
                         <div className="text-center">
-                            <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+                            <h1 className="text-2xl font-bold tracking-tight text-foreground">
                                 Selamat Datang
                             </h1>
-                            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                            <p className="mt-2 text-sm text-muted-foreground">
                                 Portal Akses Sistem Pelaporan Darurat
                             </p>
                         </div>
@@ -60,7 +60,7 @@ export default function Login({ status, canResetPassword }) {
                         {status && (
                             <Alert
                                 variant="success"
-                                className="text-green-800 border-green-200 bg-green-50 dark:border-[#112a1d] dark:bg-[#0a1811] dark:text-green-500 rounded-md"
+                                className="text-green-800 dark:text-success border-green-200 dark:border-success/20 bg-green-50 dark:bg-success/10 rounded-md"
                             >
                                 <AlertDescription>{status}</AlertDescription>
                             </Alert>
@@ -69,7 +69,7 @@ export default function Login({ status, canResetPassword }) {
                         <form onSubmit={onHandleSubmit} className="space-y-5">
                             {/* Input Email */}
                             <div className="space-y-1.5">
-                                <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <Label htmlFor="email" className="text-sm font-medium text-foreground">
                                     Email
                                 </Label>
                                 <Input
@@ -80,7 +80,7 @@ export default function Login({ status, canResetPassword }) {
                                     autoComplete="username"
                                     placeholder="nama@email.com"
                                     onChange={(e) => setData(e.target.name, e.target.value)}
-                                    className="w-full h-11 border-[#e5e5e5] bg-white rounded-md focus-visible:ring-1 focus-visible:ring-[#b42826] focus-visible:border-[#b42826] dark:border-[#333] dark:bg-[#151515] dark:text-gray-100 dark:focus-visible:ring-gray-500 dark:focus-visible:border-gray-500 transition-colors"
+                                    className="w-full h-11 border-border bg-background rounded-md focus-visible:ring-1 focus-visible:ring-destructive focus-visible:border-destructive transition-colors"
                                 />
                                 {errors.email && <InputError message={errors.email} />}
                             </div>
@@ -88,13 +88,13 @@ export default function Login({ status, canResetPassword }) {
                             {/* Input Password */}
                             <div className="space-y-1.5">
                                 <div className="flex items-center justify-between">
-                                    <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <Label htmlFor="password" className="text-sm font-medium text-foreground">
                                         Kata Sandi
                                     </Label>
                                     {canResetPassword && (
                                         <Link
                                             href={route('password.request')}
-                                            className="text-sm font-medium text-gray-500 transition-colors hover:text-[#b42826] dark:text-gray-400 dark:hover:text-gray-200"
+                                            className="text-sm font-medium text-muted-foreground transition-colors hover:text-destructive"
                                         >
                                             Lupa Password?
                                         </Link>
@@ -109,13 +109,13 @@ export default function Login({ status, canResetPassword }) {
                                         value={data.password}
                                         placeholder="••••••••"
                                         onChange={(e) => setData(e.target.name, e.target.value)}
-                                        className="w-full h-11 pr-12 border-[#e5e5e5] bg-white rounded-md focus-visible:ring-1 focus-visible:ring-[#b42826] focus-visible:border-[#b42826] dark:border-[#333] dark:bg-[#151515] dark:text-gray-100 dark:focus-visible:ring-gray-500 dark:focus-visible:border-gray-500 transition-colors"
+                                        className="w-full h-11 pr-12 border-border bg-background rounded-md focus-visible:ring-1 focus-visible:ring-destructive focus-visible:border-destructive transition-colors"
                                     />
-                                    
+
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute z-10 flex items-center justify-center w-10 h-10 text-gray-400 transition-colors -translate-y-1/2 rounded-md right-1 top-1/2 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none"
+                                        className="absolute z-10 flex items-center justify-center w-10 h-10 text-muted-foreground transition-colors -translate-y-1/2 rounded-md right-1 top-1/2 hover:text-foreground focus:outline-none"
                                         aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
                                     >
                                         {showPassword ? (
@@ -136,11 +136,11 @@ export default function Login({ status, canResetPassword }) {
                                     checked={data.remember}
                                     onChange={(e) => setData('remember', e.target.checked)}
                                     onCheckedChange={(checked) => setData('remember', checked)}
-                                    className="border-gray-300 dark:border-gray-600 data-[state=checked]:border-[#b42826] data-[state=checked]:bg-[#b42826] dark:data-[state=checked]:border-[#b42826] dark:data-[state=checked]:bg-[#b42826] focus-visible:ring-[#b42826] rounded-sm"
+                                    className="border-input data-[state=checked]:border-destructive data-[state=checked]:bg-destructive focus-visible:ring-destructive rounded-sm"
                                 />
                                 <Label
                                     htmlFor="remember"
-                                    className="text-sm font-medium text-gray-600 cursor-pointer select-none dark:text-gray-400"
+                                    className="text-sm font-medium text-muted-foreground cursor-pointer select-none"
                                 >
                                     Ingat Saya
                                 </Label>
@@ -149,7 +149,7 @@ export default function Login({ status, canResetPassword }) {
                             <Button
                                 type="submit"
                                 disabled={processing || isGoogleLoading}
-                                className="w-full h-11 mt-2 text-sm font-medium text-white transition-colors rounded-md bg-[#b42826] hover:bg-[#9a2220] focus-visible:ring-2 focus-visible:ring-[#b42826]/50 disabled:opacity-70 disabled:cursor-not-allowed"
+                                className="w-full h-11 mt-2 text-sm font-medium text-destructive-foreground transition-colors rounded-md bg-destructive hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:opacity-70 disabled:cursor-not-allowed"
                             >
                                 {processing ? <IconLoader2 className="w-5 h-5 animate-spin" /> : 'Masuk Akun'}
                             </Button>
@@ -158,10 +158,10 @@ export default function Login({ status, canResetPassword }) {
                         {/* Garis Pemisah (Divider) */}
                         <div className="relative">
                             <div className="absolute inset-0 flex items-center">
-                                <span className="w-full border-t border-[#e5e5e5] dark:border-[#262626]" />
+                                <span className="w-full border-t border-border" />
                             </div>
                             <div className="relative flex justify-center text-xs uppercase">
-                                <span className="px-3 text-gray-500 bg-white dark:bg-[#101010] dark:text-gray-400">
+                                <span className="px-3 text-muted-foreground bg-background">
                                     Atau lanjutkan dengan
                                 </span>
                             </div>
@@ -173,10 +173,10 @@ export default function Login({ status, canResetPassword }) {
                             variant="outline"
                             disabled={processing || isGoogleLoading}
                             onClick={handleGoogleLogin}
-                            className="flex items-center justify-center w-full h-11 gap-2.5 text-sm font-medium text-gray-700 transition-colors bg-white border border-[#e5e5e5] rounded-md dark:bg-[#151515] dark:border-[#333] dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#1f1f1f] disabled:opacity-70 disabled:cursor-not-allowed"
+                            className="flex items-center justify-center w-full h-11 gap-2.5 text-sm font-medium text-foreground transition-colors bg-background border border-border rounded-md hover:bg-accent disabled:opacity-70 disabled:cursor-not-allowed"
                         >
                             {isGoogleLoading ? (
-                                <IconLoader2 className="w-5 h-5 text-gray-500 animate-spin" />
+                                <IconLoader2 className="w-5 h-5 text-muted-foreground animate-spin" />
                             ) : (
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M23.7449 12.27C23.7449 11.48 23.6749 10.73 23.5549 10H12.2549V14.51H18.7249C18.4349 15.99 17.5849 17.24 16.3249 18.09V21.09H20.1849C22.4449 19.01 23.7449 15.92 23.7449 12.27Z" fill="#4285F4"/>
@@ -189,11 +189,11 @@ export default function Login({ status, canResetPassword }) {
                         </Button>
 
                         {/* Link Daftar */}
-                        <div className="text-sm text-center text-gray-600 dark:text-gray-400">
+                        <div className="text-sm text-center text-muted-foreground">
                             Belum punya akun?{' '}
                             <Link
                                 href={route('register')}
-                                className="font-medium text-[#b42826] transition-colors hover:text-[#9a2220] hover:underline dark:text-[#e54845] dark:hover:text-[#ff6b6b]"
+                                className="font-medium text-destructive transition-colors hover:text-destructive/80 hover:underline"
                             >
                                 Daftar Sekarang
                             </Link>
@@ -203,24 +203,24 @@ export default function Login({ status, canResetPassword }) {
             </div>
 
             {/* PANE KANAN: AREA GAMBAR */}
-            <div className="relative z-0 hidden border-l bg-gray-900 lg:block border-[#e5e5e5] dark:border-[#262626]">
-                {/* Overlay gelap merata ringan */}
-                <div className="absolute inset-0 z-10 bg-black/20 dark:bg-black/60 mix-blend-multiply"></div>
-                
+            <div className="relative z-0 hidden border-l bg-foreground lg:block border-border">
+                {/* Overlay gelap merata ringan (fixed dark scrim atas foto, tidak ikut tema) */}
+                <div className="absolute inset-0 z-10 bg-black/20 mix-blend-multiply"></div>
+
                 {/* Overlay gradient dari bawah ke atas agar teks kontras dan terbaca jelas */}
                 <div className="absolute inset-x-0 bottom-0 z-20 h-[60%] bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
-                
+
                 {/* Ganti nama file gambar sesuai dengan yang Anda upload */}
                 <img src="/images/Damkar.png" alt="Ilustrasi Damkar" className="object-cover w-full h-full" />
 
-                {/* Teks Overlay (Damkar Kota Denpasar) */}
+                {/* Teks Overlay (Damkar Kota Denpasar) — putih fixed di atas foto, bukan token tema */}
                 <div className="absolute z-30 left-12 bottom-16">
                     <h2 className="text-4xl font-black tracking-tight text-white uppercase drop-shadow-lg">
                         Damkar Kota<br />Denpasar
                     </h2>
                     {/* Garis aksen merah taktis */}
-                    <div className="w-16 h-1.5 mt-5 bg-[#b42826] rounded-full"></div>
-                    <p className="mt-4 text-sm font-bold tracking-[0.2em] text-gray-300 uppercase">
+                    <div className="w-16 h-1.5 mt-5 bg-destructive rounded-full"></div>
+                    <p className="mt-4 text-sm font-bold tracking-[0.2em] text-white/70 uppercase">
                         Pantang Pulang Sebelum Padam
                     </p>
                 </div>

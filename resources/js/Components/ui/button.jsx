@@ -9,17 +9,17 @@ const buttonVariants = cva(
 	{
 		variants: {
 			variant: {
-				default: 'text-white bg-gradient-to-r from-gray-700 via-gray-800 to-gray-800',
+				default: 'text-primary-foreground bg-gradient-to-r from-primary via-primary to-primary',
 				destructive: 'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
 				outline: 'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground',
 				secondary: 'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80',
 				ghost: 'hover:bg-accent hover:text-accent-foreground',
-				link: 'text-orange-500 underline-offset-4 hover:underline',
-				orange: 'text-white bg-gradient-to-r from-orange-500 via-orange-500 to-orange-500',
-				red: 'text-white bg-gradient-to-r from-red-500 via-red-500 to-red-500',
-				blue: 'text-white bg-gradient-to-r from-blue-500 via-blue-500 to-blue-500',
-				green: 'text-white bg-gradient-to-r from-green-500 via-green-500 to-green-500',
-				purple: 'text-white bg-gradient-to-r from-purple-500 via-purple-500 to-purple-500',
+				link: 'text-primary underline-offset-4 hover:underline',
+				orange: 'text-primary-foreground bg-gradient-to-r from-primary via-primary to-primary',
+				red: 'text-destructive-foreground bg-gradient-to-r from-destructive via-destructive to-destructive',
+				blue: 'text-info-foreground bg-gradient-to-r from-info via-info to-info',
+				green: 'text-success-foreground bg-gradient-to-r from-success via-success to-success',
+				purple: 'text-secondary-foreground bg-gradient-to-r from-secondary via-secondary to-secondary',
 			},
 			size: {
 				default: 'h-9 px-4 py-2',

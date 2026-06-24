@@ -13,7 +13,8 @@ import {
     IconFlame,
     IconHistory,
     IconSpeakerphone,
-    IconFireHydrant
+    IconFireHydrant,
+    IconSettings
 } from '@tabler/icons-react';
 
 export default function Sidebar({ url, auth }) {
@@ -24,12 +25,13 @@ export default function Sidebar({ url, auth }) {
     
     // Pengecekan Otoritas
     const isAdminOrSuperadmin = userRoles.includes('admin') || userRoles.includes('superadmin');
+    const isSuperadmin = userRoles.includes('superadmin');
     const isPetugas = userRoles.includes('petugas');
     const isStaff = isAdminOrSuperadmin || isPetugas;
 
     // Komponen Header Seksi Menu (Tipografi Taktis/Militeristik)
     const NavHeading = ({ children }) => (
-        <div className="px-3 py-2 mt-6 mb-1 text-[10px] font-black tracking-widest text-gray-400 uppercase dark:text-gray-500 first:mt-2">
+        <div className="px-3 py-2 mt-6 mb-1 text-[10px] font-black tracking-widest text-muted-foreground uppercase first:mt-2">
             {children}
         </div>
     );
@@ -61,7 +63,7 @@ export default function Sidebar({ url, auth }) {
                         active={url.startsWith('/reports/create')}
                         title="Lapor Darurat!"
                         icon={IconFlame}
-                        className="text-[#b42826] dark:text-[#e54845] hover:bg-red-50 dark:hover:bg-red-950/30"
+                        className="text-destructive hover:bg-destructive/10"
                     />
                     <NavLink
                         url={route('front.reports.index', { filter: 'mine' })}
@@ -77,7 +79,7 @@ export default function Sidebar({ url, auth }) {
             <NavLink
                 url={route('front.pumps.index')} 
                 active={url.startsWith('/pumps')}
-                title="Lokasi Pompa Air"
+                title="Lokasi SKKL"
                 icon={IconDroplet}
             />
             <NavLink
@@ -127,6 +129,15 @@ export default function Sidebar({ url, auth }) {
                         title="Pengumuman Sistem"
                         icon={IconSpeakerphone}
                     />
+
+                    {isSuperadmin && (
+                        <NavLink
+                            url={route('admin.settings.edit')}
+                            active={url.startsWith('/admin/settings')}
+                            title="Pengaturan Notifikasi"
+                            icon={IconSettings}
+                        />
+                    )}
                 </>
             )}
 
@@ -147,7 +158,7 @@ export default function Sidebar({ url, auth }) {
                         icon={IconLogout}
                         method="post"
                         as="button"
-                        className="w-full text-[#b42826] hover:text-[#9a2220] hover:bg-red-50 dark:text-[#e54845] dark:hover:bg-[#2a1313]"
+                        className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
                     />
                 </>
             ) : (

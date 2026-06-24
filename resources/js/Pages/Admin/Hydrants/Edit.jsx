@@ -109,7 +109,7 @@ export default function Edit({ hydrant, hydrant_province, tenant_location, provi
         window.L.control.zoom({ position: 'bottomright' }).addTo(mapInstanceRef.current);
 
         const customIcon = window.L.divIcon({
-            html: `<div class="text-teal-600"><svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
+            html: `<div class="text-teal-600 dark:text-teal"><svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
             className: 'bg-transparent border-none drop-shadow-md', iconSize: [42, 42], iconAnchor: [21, 42],
         });
 
@@ -127,7 +127,7 @@ export default function Edit({ hydrant, hydrant_province, tenant_location, provi
     // FUNGSI AUTO-FILL DATA WILAYAH
     const updateLocationData = async (lat, lng, customSearchText = null) => {
         try {
-            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&accept-language=id`);
+            const response = await fetch(route('api.geocode.reverse', { lat, lng }));
             const result = await response.json();
             
             const addr = result?.address || {};
@@ -234,7 +234,7 @@ export default function Edit({ hydrant, hydrant_province, tenant_location, provi
 
         const delayDebounceFn = setTimeout(async () => {
             try {
-                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${searchQuery}&limit=4&accept-language=id`);
+                const response = await fetch(route('api.geocode.search', { q: searchQuery }));
                 setSearchResults(await response.json());
             } catch (error) { 
                 console.error("Pencarian gagal", error); 
@@ -306,7 +306,7 @@ export default function Edit({ hydrant, hydrant_province, tenant_location, provi
                         <CardContent className="p-6">
                             <form className="space-y-5" onSubmit={onHandleSubmit}>
                                 
-                                <div className="flex items-start gap-3 p-3 text-teal-700 border border-teal-100 rounded-md bg-teal-50 dark:bg-teal-950/30 dark:text-teal-400 dark:border-teal-900">
+                                <div className="flex items-start gap-3 p-3 text-teal-700 dark:text-teal border border-teal-100 dark:border-teal/30 rounded-md bg-teal-50 dark:bg-teal/10">
                                     <IconInfoCircle className="w-5 h-5 shrink-0 mt-0.5" />
                                     <p className="text-xs font-medium leading-relaxed">{getHelperText()}</p>
                                 </div>
@@ -325,11 +325,11 @@ export default function Edit({ hydrant, hydrant_province, tenant_location, provi
                                             onChange={(e) => setSearchQuery(e.target.value)} 
                                             onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }} 
                                             placeholder="Ketik jalan atau desa..." 
-                                            className="w-full pr-10 shadow-sm pl-9 h-9 focus-visible:ring-teal-500" 
+                                            className="w-full pr-10 shadow-sm pl-9 h-9 focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
                                         />
                                         {isSearching && (
                                             <div className="absolute flex items-center justify-center -translate-y-1/2 pointer-events-none right-3 top-1/2">
-                                                <IconLoader2 className="w-4 h-4 text-teal-600 animate-spin" />
+                                                <IconLoader2 className="w-4 h-4 text-teal-600 dark:text-teal animate-spin" />
                                             </div>
                                         )}
                                     </div>
@@ -343,7 +343,7 @@ export default function Edit({ hydrant, hydrant_province, tenant_location, provi
                                                     onClick={() => selectSearchResult(res)} 
                                                     className="w-full text-left px-3 py-2.5 hover:bg-accent border-b border-border last:border-0 text-xs flex gap-2 transition-colors"
                                                 >
-                                                    <IconCurrentLocation className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+                                                    <IconCurrentLocation className="w-4 h-4 text-teal-600 dark:text-teal shrink-0 mt-0.5" />
                                                     <div className="flex-1 min-w-0">
                                                         <p className="font-semibold truncate">{res.name || res.display_name.split(',')[0]}</p>
                                                         <p className="text-muted-foreground truncate mt-0.5">{res.display_name}</p>
@@ -356,7 +356,7 @@ export default function Edit({ hydrant, hydrant_province, tenant_location, provi
 
                                 <div className="flex flex-col gap-4 p-4 border rounded-lg bg-accent/30 border-border">
                                     <h4 className="flex items-center justify-between text-xs font-bold uppercase text-muted-foreground">
-                                        Area Yurisdiksi <span className="text-[10px] bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-400 px-2 py-0.5 rounded-full">Auto-detected</span>
+                                        Area Yurisdiksi <span className="text-[10px] bg-teal-100 dark:bg-teal/10 text-teal-700 dark:text-teal px-2 py-0.5 rounded-full">Auto-detected</span>
                                     </h4>
                                     
                                     <div className="grid gap-1.5">
@@ -382,32 +382,32 @@ export default function Edit({ hydrant, hydrant_province, tenant_location, provi
 
                                 <div className="grid gap-1.5">
                                     <Label htmlFor="name">Nama Fasilitas</Label>
-                                    <Input name="name" id="name" value={data.name} onChange={onHandleChange} className="focus-visible:ring-teal-500" />
+                                    <Input name="name" id="name" value={data.name} onChange={onHandleChange} className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal" />
                                     {errors.name && <InputError message={errors.name} />}
                                 </div>
 
                                 <div className="grid gap-1.5">
                                     <Label htmlFor="address">Alamat Detail Lapangan</Label>
-                                    <Textarea name="address" id="address" rows="2" value={data.address} onChange={onHandleChange} className="resize-none focus-visible:ring-teal-500" />
+                                    <Textarea name="address" id="address" rows="2" value={data.address} onChange={onHandleChange} className="resize-none focus-visible:ring-teal-500 dark:focus-visible:ring-teal" />
                                     {errors.address && <InputError message={errors.address} />}
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="grid gap-1.5">
                                         <Label>Jenis Konstruksi</Label>
-                                        <Select defaultValue={data.type} onValueChange={(value) => setData('type', value)}><SelectTrigger className="focus-visible:ring-teal-500"><SelectValue placeholder="Pilih Jenis" /></SelectTrigger><SelectContent><SelectItem value="Stick">Stick</SelectItem><SelectItem value="Jongkok">Jongkok</SelectItem></SelectContent></Select>
+                                        <Select defaultValue={data.type} onValueChange={(value) => setData('type', value)}><SelectTrigger className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal"><SelectValue placeholder="Pilih Jenis" /></SelectTrigger><SelectContent><SelectItem value="Stick">Stick</SelectItem><SelectItem value="Jongkok">Jongkok</SelectItem></SelectContent></Select>
                                         {errors.type && <InputError message={errors.type} />}
                                     </div>
                                     <div className="grid gap-1.5">
                                         <Label>Status Operasional</Label>
-                                        <Select defaultValue={data.status} onValueChange={(value) => setData('status', value)}><SelectTrigger className="focus-visible:ring-teal-500"><SelectValue placeholder="Pilih Status" /></SelectTrigger><SelectContent><SelectItem value="Aktif">Kondisi Baik</SelectItem><SelectItem value="Perbaikan">Perbaikan</SelectItem></SelectContent></Select>
+                                        <Select defaultValue={data.status} onValueChange={(value) => setData('status', value)}><SelectTrigger className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal"><SelectValue placeholder="Pilih Status" /></SelectTrigger><SelectContent><SelectItem value="Aktif">Kondisi Baik</SelectItem><SelectItem value="Perbaikan">Perbaikan</SelectItem></SelectContent></Select>
                                         {errors.status && <InputError message={errors.status} />}
                                     </div>
                                 </div>
 
                                 <div className="grid gap-1.5">
                                     <Label htmlFor="description">Catatan (Opsional)</Label>
-                                    <Input name="description" id="description" value={data.description} onChange={onHandleChange} className="focus-visible:ring-teal-500" />
+                                    <Input name="description" id="description" value={data.description} onChange={onHandleChange} className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal" />
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
@@ -417,7 +417,7 @@ export default function Edit({ hydrant, hydrant_province, tenant_location, provi
 
                                 <div className="flex justify-end gap-2 pt-2">
                                     <Button type="button" variant="secondary" asChild><Link href={route('admin.hydrants.index')}>Batal</Link></Button>
-                                    <Button type="submit" disabled={processing} className="text-white bg-teal-600 border-transparent shadow-none hover:bg-teal-700"><IconDeviceFloppy className="w-4 h-4 mr-2" /> Simpan Update</Button>
+                                    <Button type="submit" disabled={processing} className="text-white bg-teal-600 dark:bg-teal border-transparent shadow-none hover:bg-teal-700 dark:hover:bg-teal/90"><IconDeviceFloppy className="w-4 h-4 mr-2" /> Simpan Update</Button>
                                 </div>
                             </form>
                         </CardContent>
@@ -427,7 +427,7 @@ export default function Edit({ hydrant, hydrant_province, tenant_location, provi
                 <div className="flex flex-col w-full h-[500px] lg:flex-1 lg:h-[calc(100vh-140px)] relative rounded-2xl overflow-hidden border bg-accent">
                     <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[400] pointer-events-none">
                         <div className="flex items-center gap-2 px-4 py-2 border rounded-full shadow-sm bg-background/80 backdrop-blur-md border-border">
-                            <IconArrowsMove className="w-4 h-4 text-teal-600" />
+                            <IconArrowsMove className="w-4 h-4 text-teal-600 dark:text-teal" />
                             <span className="text-xs font-medium text-foreground">Geser pin pada peta untuk koreksi akurasi</span>
                         </div>
                     </div>

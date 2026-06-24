@@ -67,13 +67,13 @@ export default function HelpConfirmAlertDialog({ reportId, isAlreadyHelping = fa
   // Status jika sudah membantu (Menuju Lokasi)
   if (hasHelped) {
       return (
-          <div className="flex items-center justify-center w-full h-10 gap-2.5 px-4 text-green-700 bg-green-50 border border-green-200 rounded-md dark:bg-[#112a1d] dark:text-green-500 dark:border-[#1e402c] transition-colors cursor-default">
+          <div className="flex items-center justify-center w-full h-10 gap-2.5 px-4 text-green-700 dark:text-success bg-green-50 dark:bg-success/10 border border-green-200 dark:border-success/20 rounded-md transition-colors cursor-default">
               {/* Animasi Titik Berdenyut (Pulse Dot) */}
               <div className="relative flex items-center justify-center w-2.5 h-2.5">
-                  <span className="absolute inline-flex w-full h-full bg-green-500 rounded-full opacity-75 animate-ping dark:bg-green-400"></span>
-                  <span className="relative inline-flex w-2 h-2 bg-green-600 rounded-full dark:bg-green-500"></span>
+                  <span className="absolute inline-flex w-full h-full bg-green-500 dark:bg-success rounded-full opacity-75 animate-ping"></span>
+                  <span className="relative inline-flex w-2 h-2 bg-green-600 dark:bg-success rounded-full"></span>
               </div>
-              
+
               <span className="text-sm font-semibold tracking-wide">Status: Menuju Lokasi</span>
           </div>
       );
@@ -83,35 +83,35 @@ export default function HelpConfirmAlertDialog({ reportId, isAlreadyHelping = fa
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
       <AlertDialogTrigger asChild>
-        <Button className={`flex items-center gap-2 font-medium w-full h-10 rounded-md bg-[#b42826] hover:bg-[#9a2220] text-white focus-visible:ring-2 focus-visible:ring-[#b42826]/50 transition-colors ${className}`}>
+        <Button className={`flex items-center gap-2 font-medium w-full h-10 rounded-md bg-destructive hover:bg-destructive/90 text-destructive-foreground focus-visible:ring-2 focus-visible:ring-destructive/50 transition-colors ${className}`}>
             <HeartHandshake className="w-4 h-4" />
             Saya Akan Bantu
         </Button>
       </AlertDialogTrigger>
-      
-      <AlertDialogContent className="rounded-xl border-[#e5e5e5] bg-white shadow-sm dark:bg-[#151515] dark:border-[#262626]">
+
+      <AlertDialogContent className="rounded-xl border-border bg-card shadow-sm">
         <AlertDialogHeader>
-          <div className="flex items-center justify-center mx-auto mb-3 rounded-md w-12 h-12 bg-red-50 border border-red-100 dark:bg-[#2a1313] dark:border-[#4a1c1c]">
-            <HeartHandshake className="w-6 h-6 text-[#b42826] dark:text-[#e54845]" />
+          <div className="flex items-center justify-center mx-auto mb-3 rounded-md w-12 h-12 bg-destructive/10 border border-destructive/20">
+            <HeartHandshake className="w-6 h-6 text-destructive" />
           </div>
-          <AlertDialogTitle className="text-lg font-semibold text-center text-gray-900 dark:text-gray-100">Konfirmasi Bantuan</AlertDialogTitle>
-          <AlertDialogDescription className="mt-1.5 text-sm text-center text-gray-500 dark:text-gray-400">
+          <AlertDialogTitle className="text-lg font-semibold text-center text-foreground">Konfirmasi Bantuan</AlertDialogTitle>
+          <AlertDialogDescription className="mt-1.5 text-sm text-center text-muted-foreground">
             Dengan melanjutkan, lokasi terkini Anda akan dibagikan ke sistem agar petugas mengetahui posisi Anda. Pastikan Anda menuju lokasi dengan aman.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        
+
         <AlertDialogFooter className="flex gap-2 mt-6 sm:justify-center">
-          <AlertDialogCancel 
-            disabled={loading} 
-            className="w-full sm:w-auto h-9 font-medium text-gray-700 bg-white border border-[#e5e5e5] rounded-md hover:bg-gray-50 dark:bg-[#151515] dark:border-[#333] dark:text-gray-300 dark:hover:bg-[#1f1f1f]"
+          <AlertDialogCancel
+            disabled={loading}
+            className="w-full sm:w-auto h-9 font-medium text-foreground bg-card border border-border rounded-md hover:bg-accent"
           >
               Batal
           </AlertDialogCancel>
-          
-          <AlertDialogAction 
-            onClick={handleConfirm} 
+
+          <AlertDialogAction
+            onClick={handleConfirm}
             disabled={loading}
-            className="w-full sm:w-auto h-9 font-medium text-white bg-[#b42826] hover:bg-[#9a2220] rounded-md focus-visible:ring-2 focus-visible:ring-[#b42826]/50"
+            className="w-full sm:w-auto h-9 font-medium text-destructive-foreground bg-destructive hover:bg-destructive/90 rounded-md focus-visible:ring-2 focus-visible:ring-destructive/50"
           >
             {loading ? (
                 <>

@@ -101,47 +101,47 @@ export default function AppLayout({ title, children }) {
             <WebPushSubscribe />
             <SoundNotificationControl />
             
-            <div className="flex w-full min-h-screen bg-gray-50 dark:bg-[#101010]">
-                
+            <div className="flex w-full min-h-screen bg-background">
+
                 {/* SIDEBAR */}
-                <div className="z-20 hidden w-64 bg-white border-r border-[#e5e5e5] shrink-0 lg:block dark:border-[#262626] dark:bg-[#151515]">
+                <div className="z-20 hidden w-64 border-r bg-card border-border shrink-0 lg:block">
                     <div className="sticky top-0 flex flex-col h-screen">
-                        <div className="flex items-center h-16 px-6 border-b border-[#e5e5e5] dark:border-[#262626] shrink-0">
-                            <ApplicationLogo />
+                        <div className="flex items-center h-16 px-6 border-b border-border shrink-0">
+                            {/* <ApplicationLogo /> */}
                         </div>
                         <div className="flex-1 overflow-y-auto">
                             <Sidebar url={url} auth={auth} />
                         </div>
                     </div>
                 </div>
-                
+
                 {/* AREA KONTEN UTAMA */}
                 <div className="flex flex-col flex-1 min-w-0 min-h-screen pb-20 lg:pb-0">
-                    
+
                     {/* HEADER */}
-                    <header className="sticky top-0 z-40 flex items-center justify-between h-16 px-4 border-b lg:px-8 border-[#e5e5e5] dark:border-[#262626] bg-white/95 dark:bg-[#101010] backdrop-blur-md">
+                    <header className="sticky top-0 z-40 flex items-center justify-between h-16 px-4 border-b lg:px-8 border-border bg-background/95 backdrop-blur-md">
                         <ApplicationLogo />
                         <div className="flex items-center gap-2 lg:gap-4">
                             {auth?.name && (
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <button className="flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-[#1f1f1f] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-gray-300 cursor-pointer group">
-                                            <div className="flex items-center justify-center w-8 h-8 overflow-hidden text-sm font-semibold transition-transform rounded-md shadow-sm border border-[#e5e5e5] bg-gray-50 dark:bg-[#1f1f1f] dark:border-[#262626] text-gray-600 dark:text-gray-400 shrink-0 group-hover:scale-105">
+                                        <button className="flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-accent transition-colors outline-none focus-visible:ring-2 focus-visible:ring-muted-foreground/50 cursor-pointer group">
+                                            <div className="flex items-center justify-center w-8 h-8 overflow-hidden text-sm font-semibold transition-transform border rounded-md shadow-sm border-border bg-muted text-muted-foreground shrink-0 group-hover:scale-105">
                                                 {auth.avatar ? (
                                                     <img src={auth.avatar} alt="Avatar" className="object-cover w-full h-full" />
                                                 ) : (
                                                     auth.name.substring(0, 1).toUpperCase()
                                                 )}
                                             </div>
-                                            <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-gray-200 truncate max-w-[120px]">
+                                            <span className="hidden sm:block text-sm font-medium text-foreground truncate max-w-[120px]">
                                                 {auth.name}
                                             </span>
                                         </button>
                                     </DropdownMenuTrigger>
-                                    
-                                    <DropdownMenuContent align="end" className="w-64 p-5 mt-2 shadow-md rounded-xl bg-white border-[#e5e5e5] dark:bg-[#151515] dark:border-[#262626]">
+
+                                    <DropdownMenuContent align="end" className="w-64 p-5 mt-2 shadow-md rounded-xl bg-card border-border">
                                         <div className="flex flex-col items-center space-y-3 text-center">
-                                            <div className="flex items-center justify-center w-16 h-16 overflow-hidden text-2xl font-semibold border border-[#e5e5e5] rounded-full shadow-sm dark:border-[#262626] bg-gray-50 dark:bg-[#1f1f1f] text-gray-700 dark:text-gray-400">
+                                            <div className="flex items-center justify-center w-16 h-16 overflow-hidden text-2xl font-semibold border rounded-full shadow-sm border-border bg-muted text-muted-foreground">
                                                 {auth.avatar ? (
                                                     <img src={auth.avatar} alt="User Avatar" className="object-cover w-full h-full" />
                                                 ) : (
@@ -149,17 +149,17 @@ export default function AppLayout({ title, children }) {
                                                 )}
                                             </div>
                                             <div>
-                                                <h4 className="text-base font-semibold text-gray-900 break-words dark:text-gray-100">
+                                                <h4 className="text-base font-semibold break-words text-foreground">
                                                     {auth.name}
                                                 </h4>
-                                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 break-words">
+                                                <p className="text-xs text-muted-foreground mt-0.5 break-words">
                                                     {auth.email}
                                                 </p>
                                             </div>
                                             {auth.role && auth.role.length > 0 && (
                                                 <div className="flex flex-wrap justify-center gap-1.5 mt-2">
                                                     {auth.role.map((role_name, i) => (
-                                                        <span key={i} className="px-2.5 py-1 bg-gray-100 dark:bg-[#1f1f1f] text-gray-700 dark:text-gray-300 text-[10px] font-medium uppercase tracking-wider rounded-md border border-[#e5e5e5] dark:border-[#333]">
+                                                        <span key={i} className="px-2.5 py-1 bg-muted text-muted-foreground text-[10px] font-medium uppercase tracking-wider rounded-md border border-border">
                                                             {role_name}
                                                         </span>
                                                     ))}
@@ -171,7 +171,7 @@ export default function AppLayout({ title, children }) {
                             )}
 
                             {/* Divider */}
-                            <div className="w-px h-5 mx-1 bg-[#e5e5e5] dark:bg-[#262626]"></div>
+                            <div className="w-px h-5 mx-1 bg-border"></div>
 
                             <ThemeSwitcher />
                         </div>
@@ -192,8 +192,8 @@ export default function AppLayout({ title, children }) {
                     </main>
                     
                     {/* FOOTER */}
-                    <footer className="w-full px-4 py-6 mt-auto border-t lg:px-8 border-[#e5e5e5] dark:border-[#262626] shrink-0">
-                        <p className="text-xs font-medium text-center text-gray-400 lg:text-left dark:text-gray-500">
+                    <footer className="w-full px-4 py-6 mt-auto border-t lg:px-8 border-border shrink-0">
+                        <p className="text-xs font-medium text-center text-muted-foreground lg:text-left">
                             &copy; {new Date().getFullYear()} Sisupit. Developed by PT. Tawarin Dimana Saja.
                         </p>
                     </footer>
