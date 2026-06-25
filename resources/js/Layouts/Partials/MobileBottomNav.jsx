@@ -14,7 +14,10 @@ import {
     IconBuilding,
     IconDashboard,
     IconLogout,
-    IconClipboardPlus
+    IconClipboardPlus,
+    IconHeartHandshake,
+    IconSpeakerphone,
+    IconSettings
 } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -28,6 +31,7 @@ export default function MobileBottomNav({ auth }) {
     
     const isDashboardRedirect = userRoles.some(r => ['petugas', 'admin', 'relawan', 'superadmin'].includes(r));
     const isAdmin = userRoles.includes('admin') || userRoles.includes('superadmin');
+    const isSuperadmin = userRoles.includes('superadmin');
     
     const [showFasilitas, setShowFasilitas] = useState(false);
     const fasilitasRef = useRef(null);
@@ -36,7 +40,7 @@ export default function MobileBottomNav({ auth }) {
     const adminMenuRef = useRef(null);
 
     const isActive = (path) => url.startsWith(path);
-    const isFasilitasActive = isActive('/fire-stations') || isActive('/pumps') || isActive('/hydrants');
+    const isFasilitasActive = isActive('/fire-stations') || isActive('/pumps') || isActive('/hydrants') || isActive('/relawan');
     const isAdminActive = isActive('/admin');
 
     useEffect(() => {
@@ -56,7 +60,7 @@ export default function MobileBottomNav({ auth }) {
                 <div className="fixed inset-0 z-40 bg-black/5 dark:bg-black/20" onClick={() => { setShowFasilitas(false); setShowAdminMenu(false); }}></div>
             )}
 
-            <div className="fixed bottom-0 left-0 z-50 w-full h-16 bg-card border-t border-border sm:hidden">
+            <div className="fixed bottom-0 left-0 z-50 w-full h-16 bg-card border-t border-border lg:hidden">
                 <div className="grid h-full max-w-md grid-cols-5 px-1 mx-auto">
 
                     {/* 1. Beranda */}
@@ -75,6 +79,7 @@ export default function MobileBottomNav({ auth }) {
                                 <FloatingLink href={route('front.pumps.index')} active={isActive('/pumps')} icon={IconDroplet} label="SKKL" colorClass="text-info" bgClass="bg-info/10 text-info" onClick={() => setShowFasilitas(false)} />
                                 <FloatingLink href={route('front.fire_stations.index')} active={isActive('/fire-stations')} icon={IconFiretruck} label="Pos Damkar" colorClass="text-destructive" bgClass="bg-destructive/10 text-destructive" onClick={() => setShowFasilitas(false)} />
                                 <FloatingLink href={route('front.hydrants.index')} active={isActive('/hydrants')} icon={IconFireHydrant} label="Lokasi Hydrant" colorClass="text-teal" bgClass="bg-teal/10 text-teal" onClick={() => setShowFasilitas(false)} />
+                                <FloatingLink href={route('front.volunteers.index')} active={isActive('/relawan')} icon={IconHeartHandshake} label="Daftar Relawan" colorClass="text-info" bgClass="bg-info/10 text-info" onClick={() => setShowFasilitas(false)} />
                                 <div className="absolute left-1/2 -bottom-[6px] -translate-x-1/2 w-3 h-3 bg-card border-b border-r border-border transform rotate-45"></div>
                             </div>
                         )}
@@ -114,7 +119,11 @@ export default function MobileBottomNav({ auth }) {
                                     <FloatingLink href={route('dashboard')} active={url === '/dashboard'} icon={IconDashboard} label="Dashboard Admin" colorClass="text-muted-foreground" bgClass="bg-destructive/10 text-destructive" onClick={() => setShowAdminMenu(false)} />
                                     <FloatingLink href={route('admin.users.index')} active={url.startsWith('/admin/users')} icon={IconUsersGroup} label="Kelola Pengguna" colorClass="text-muted-foreground" bgClass="bg-destructive/10 text-destructive" onClick={() => setShowAdminMenu(false)} />
                                     <FloatingLink href={route('admin.hydrants.index')} active={url.startsWith('/admin/facilities') || url.startsWith('/admin/hydrants')} icon={IconBuilding} label="Kelola Fasilitas" colorClass="text-muted-foreground" bgClass="bg-destructive/10 text-destructive" onClick={() => setShowAdminMenu(false)} />
-                                    <FloatingLink href={route('front.reports.index')} active={url.startsWith('/reports')} icon={IconClipboardPlus} label="Verifikasi Laporan" colorClass="text-muted-foreground" bgClass="bg-destructive/10 text-destructive" onClick={() => setShowAdminMenu(false)} />
+                                    <FloatingLink href={route('admin.reports.index')} active={url.startsWith('/admin/reports')} icon={IconClipboardPlus} label="Verifikasi Laporan" colorClass="text-muted-foreground" bgClass="bg-destructive/10 text-destructive" onClick={() => setShowAdminMenu(false)} />
+                                    <FloatingLink href={route('admin.announcements.index')} active={url.startsWith('/admin/announcements')} icon={IconSpeakerphone} label="Pengumuman Sistem" colorClass="text-muted-foreground" bgClass="bg-destructive/10 text-destructive" onClick={() => setShowAdminMenu(false)} />
+                                    {isSuperadmin && (
+                                        <FloatingLink href={route('admin.settings.edit')} active={url.startsWith('/admin/settings')} icon={IconSettings} label="Pengaturan Notifikasi" colorClass="text-muted-foreground" bgClass="bg-destructive/10 text-destructive" onClick={() => setShowAdminMenu(false)} />
+                                    )}
 
                                     <div className="h-px w-full bg-border my-1.5"></div>
                                     <FloatingLink href={route('profile.edit')} active={isActive('/profile')} icon={IconUser} label="Profil Saya" colorClass="text-muted-foreground" bgClass="bg-destructive/10 text-destructive" onClick={() => setShowAdminMenu(false)} />

@@ -6,6 +6,7 @@ use App\Traits\Tenantable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravolt\Indonesia\Models\City;
 use Laravolt\Indonesia\Models\District;
 use Laravolt\Indonesia\Models\Province;
@@ -13,7 +14,7 @@ use Laravolt\Indonesia\Models\Village;
 
 class Report extends Model
 {
-    use Tenantable;
+    use Tenantable, SoftDeletes;
     protected $fillable = [ 
         'user_id',
         'name',

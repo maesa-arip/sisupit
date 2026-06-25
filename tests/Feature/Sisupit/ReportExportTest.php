@@ -66,10 +66,11 @@ it('only includes reports from the admin own tenant in the exported file', funct
     $path = $response->baseResponse->getFile()->getPathname();
 
     $sheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($path)->getActiveSheet();
-    $rows = $sheet->toArray();
-    $titles = array_column(array_slice($rows, 1), 1);
+    // Layout punya kop + kolom yang ditata ulang, jadi pindai seluruh sel (bukan kolom tetap)
+    // supaya assertion tenant tetap valid meski tata letak berubah.
+    $cells = collect($sheet->toArray())->flatten()->filter()->values()->all();
 
-    expect($titles)->toContain('Kejadian di Bali');
-    expect($titles)->not->toContain('Kejadian di Jabar');
+    expect($cells)->toContain('Kejadian di Bali');
+    expect($cells)->not->toContain('Kejadian di Jabar');
     expect($reportInBali->province_code)->toBe('51');
 });

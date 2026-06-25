@@ -14,7 +14,13 @@ import {
     IconHistory,
     IconSpeakerphone,
     IconFireHydrant,
-    IconSettings
+    IconSettings,
+    IconHeartHandshake,
+    IconShieldLock,
+    IconKey,
+    IconLockAccess,
+    IconUserShield,
+    IconRoute
 } from '@tabler/icons-react';
 
 export default function Sidebar({ url, auth }) {
@@ -23,11 +29,14 @@ export default function Sidebar({ url, auth }) {
     const rolesArray = Array.isArray(rawRoles) ? rawRoles : [rawRoles];
     const userRoles = rolesArray.map(r => (typeof r === 'object' && r !== null) ? r.name : r);
     
-    // Pengecekan Otoritas
+    // Pengecekan Otoritas.
+    // Catatan: SEMUA halaman /admin/* digating role:admin|superadmin di backend
+    // (routes/web.php & routes/admin.php). Petugas TIDAK punya akses ke sana — ia
+    // bekerja lewat Dashboard taktis + aksi di halaman detail laporan. Jadi seksi
+    // Administrasi di bawah HARUS digating isAdminOrSuperadmin, bukan "staff",
+    // agar petugas tidak melihat link yang berujung 403.
     const isAdminOrSuperadmin = userRoles.includes('admin') || userRoles.includes('superadmin');
     const isSuperadmin = userRoles.includes('superadmin');
-    const isPetugas = userRoles.includes('petugas');
-    const isStaff = isAdminOrSuperadmin || isPetugas;
 
     // Komponen Header Seksi Menu (Tipografi Taktis/Militeristik)
     const NavHeading = ({ children }) => (
@@ -50,12 +59,12 @@ export default function Sidebar({ url, auth }) {
             <NavLink
                 url={"/"}
                 active={url === '/'}
-                title="Peta Pantauan"
+                title="Spotlight"
                 icon={IconMapPin}
             />
 
             {/* --- SEKSI OPERASIONAL --- */}
-            {auth?.user && (
+            {auth?.name && (
                 <>
                     <NavHeading>Operasional</NavHeading>
                     <NavLink
@@ -63,7 +72,10 @@ export default function Sidebar({ url, auth }) {
                         active={url.startsWith('/reports/create')}
                         title="Lapor Darurat!"
                         icon={IconFlame}
-                        className="text-destructive hover:bg-destructive/10"
+                        // Warna merah hanya untuk state non-active; saat active biarkan
+                        // NavLink memakai text-destructive-foreground bawaannya (kalau
+                        // text-destructive ikut dikirim, ia menimpa warna teks active → teks tak terlihat).
+                        className={url.startsWith('/reports/create') ? undefined : 'text-destructive hover:bg-destructive/10'}
                     />
                     <NavLink
                         url={route('front.reports.index', { filter: 'mine' })}
@@ -89,26 +101,30 @@ export default function Sidebar({ url, auth }) {
                 icon={IconFiretruck}
             />
             <NavLink
-                url={route('front.hydrants.index')} 
+                url={route('front.hydrants.index')}
                 active={url.startsWith('/hydrants')}
                 title="Lokasi Hydrant"
                 icon={IconFireHydrant}
             />
+            <NavLink
+                url={route('front.volunteers.index')}
+                active={url.startsWith('/relawan')}
+                title="Daftar Relawan"
+                icon={IconHeartHandshake}
+            />
 
-            {/* --- SEKSI ADMINISTRASI (KHUSUS ADMIN/PETUGAS) --- */}
-            {isStaff && (
+            {/* --- SEKSI ADMINISTRASI (KHUSUS ADMIN/SUPERADMIN) --- */}
+            {isAdminOrSuperadmin && (
                 <>
                     <NavHeading>Administrasi</NavHeading>
-                    
-                    {isAdminOrSuperadmin && (
-                        <NavLink
-                            url={route('admin.users.index')}
-                            active={url.startsWith('/admin/users')}
-                            title="Manajemen Pengguna"
-                            icon={IconUsersGroup}
-                        />
-                    )}
-                    
+
+                    <NavLink
+                        url={route('admin.users.index')}
+                        active={url.startsWith('/admin/users')}
+                        title="Manajemen Pengguna"
+                        icon={IconUsersGroup}
+                    />
+
                     <NavLink
                         url={route('admin.reports.index')}
                         active={url.startsWith('/admin/reports')}
@@ -130,13 +146,50 @@ export default function Sidebar({ url, auth }) {
                         icon={IconSpeakerphone}
                     />
 
+                    {/* --- KONTROL AKSES (RBAC) — admin|superadmin, sesuai gating route admin.php --- */}
+                    <NavHeading>Kontrol Akses</NavHeading>
+
+                    <NavLink
+                        url={route('admin.roles.index')}
+                        active={url.startsWith('/admin/roles')}
+                        title="Manajemen Role"
+                        icon={IconShieldLock}
+                    />
+                    <NavLink
+                        url={route('admin.permissions.index')}
+                        active={url.startsWith('/admin/permissions')}
+                        title="Hak Akses"
+                        icon={IconKey}
+                    />
+                    <NavLink
+                        url={route('admin.assign-permissions.index')}
+                        active={url.startsWith('/admin/assign-permissions')}
+                        title="Assign Hak Akses"
+                        icon={IconLockAccess}
+                    />
+                    <NavLink
+                        url={route('admin.assign-users.index')}
+                        active={url.startsWith('/admin/assign-users')}
+                        title="Assign Pengguna"
+                        icon={IconUserShield}
+                    />
+                    <NavLink
+                        url={route('admin.route-accesses.index')}
+                        active={url.startsWith('/admin/route-accesses')}
+                        title="Akses Route"
+                        icon={IconRoute}
+                    />
+
                     {isSuperadmin && (
-                        <NavLink
-                            url={route('admin.settings.edit')}
-                            active={url.startsWith('/admin/settings')}
-                            title="Pengaturan Notifikasi"
-                            icon={IconSettings}
-                        />
+                        <>
+                            <NavHeading>Sistem</NavHeading>
+                            <NavLink
+                                url={route('admin.settings.edit')}
+                                active={url.startsWith('/admin/settings')}
+                                title="Pengaturan Notifikasi"
+                                icon={IconSettings}
+                            />
+                        </>
                     )}
                 </>
             )}
