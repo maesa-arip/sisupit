@@ -10,6 +10,7 @@ use App\Enums\TenantLevel;
 use App\Http\Requests\ReportRequest;
 use App\Models\Report;
 use App\Models\Setting;
+use App\Models\TrackingLog;
 use App\Models\User;
 use App\Notifications\EmergencyAlertNotification;
 use Illuminate\Http\Request;
@@ -86,8 +87,27 @@ class ReportController extends Controller
             'village'
         ]);
 
+        // Jejak yang sudah ditempuh tiap responder yang masih aktif (belum selesai),
+        // diurutkan kronologis agar bisa digambar sebagai garis rute berurutan di peta
+        // (sesuai desain tracking_logs). Titik 'koreksi_lokasi' bukan jejak responder,
+        // jadi tidak ikut.
+        $activeResponderIds = $report->officers->where('status', '!=', 'finished')->pluck('user_id')
+            ->merge($report->helpers->where('status', '!=', 'finished')->pluck('user_id'))
+            ->unique()
+            ->values();
+
+        $trails = TrackingLog::query()
+            ->where('report_id', $report->id)
+            ->whereIn('user_type', ['petugas', 'relawan'])
+            ->whereIn('user_id', $activeResponderIds)
+            ->orderBy('recorded_at')
+            ->get(['user_id', 'lat', 'lng'])
+            ->groupBy('user_id')
+            ->map(fn ($points) => $points->map(fn ($p) => ['lat' => (float) $p->lat, 'lng' => (float) $p->lng])->values());
+
         return inertia('Front/Reports/Show', [
-            'report' => $report
+            'report' => $report,
+            'trails' => $trails,
         ]);
     }
 
