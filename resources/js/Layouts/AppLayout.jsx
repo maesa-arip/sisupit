@@ -50,6 +50,10 @@ export default function AppLayout({ title, children }) {
             console.warn("Token FCM kosong dari native, diabaikan");
             return;
         }
+        // Simpan token device agar bisa DILEPAS saat logout (dikirim sebagai body
+        // request logout → AuthenticatedSessionController::destroy menghapusnya),
+        // supaya HP ini berhenti menerima notifikasi sirine setelah user keluar.
+        window.__sisupitFcmToken = token;
         console.log("Token FCM dari Android diterima");
         postTokenWithRetry(token);
     };

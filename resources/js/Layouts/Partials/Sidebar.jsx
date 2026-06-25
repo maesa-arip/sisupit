@@ -211,6 +211,9 @@ export default function Sidebar({ url, auth }) {
                         icon={IconLogout}
                         method="post"
                         as="button"
+                        // Lepas token FCM device ini saat logout agar HP berhenti menerima
+                        // notif sirine. globalThis aman saat SSR (window undefined di server).
+                        data={{ fcm_token: globalThis.__sisupitFcmToken }}
                         className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
                     />
                 </>

@@ -82,7 +82,7 @@ docker/nominatim/ Artifact self-hosted geocoding (docker-compose + .env.example 
 | Relawan | Self-register, toggle siaga, radar insiden di area relawan | `app/Http/Controllers/VolunteerController.php` |
 | Pengumuman | Broadcast info publik | `app/Http/Controllers/Admin/AnnouncementController.php` |
 | Geocoding Proxy | Reverse & search Nominatim, cache 24h, lock rate-limit 1 req/detik | `app/Http/Controllers/Api/GeocodeController.php` |
-| Push Notification | FCM (native Android) untuk insiden; WebPush dimatikan & PWA web dihapus | `app/Notifications/EmergencyAlertNotification.php` |
+| Push Notification | FCM (native Android) untuk insiden; WebPush dimatikan & PWA web dihapus. Lifecycle token per-DEVICE: login memindahkan token ke user aktif (`FcmController::store`), logout melepas token device ini (`AuthenticatedSessionController::destroy` menerima `fcm_token` di body) agar HP berhenti dapat sirine setelah keluar | `app/Notifications/EmergencyAlertNotification.php` |
 | Dashboard per Role | Command center (admin) / misi aktif (petugas) / riwayat+radar (publik/relawan) | `app/Http/Controllers/DashboardController.php` |
 | Setting Global | Tingkat siaran notifikasi (superadmin-only) | `app/Models/Setting.php`, `app/Http/Controllers/Admin/SettingController.php` |
 

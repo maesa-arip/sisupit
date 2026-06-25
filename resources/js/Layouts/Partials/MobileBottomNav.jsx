@@ -128,7 +128,7 @@ export default function MobileBottomNav({ auth }) {
                                     <div className="h-px w-full bg-border my-1.5"></div>
                                     <FloatingLink href={route('profile.edit')} active={isActive('/profile')} icon={IconUser} label="Profil Saya" colorClass="text-muted-foreground" bgClass="bg-destructive/10 text-destructive" onClick={() => setShowAdminMenu(false)} />
 
-                                    <Link href={route('logout')} method="post" as="button" className="flex items-center w-full gap-2.5 p-2.5 text-sm font-medium text-left text-destructive rounded-lg hover:bg-destructive/10 transition-colors mt-1">
+                                    <Link href={route('logout')} method="post" as="button" data={{ fcm_token: globalThis.__sisupitFcmToken }} className="flex items-center w-full gap-2.5 p-2.5 text-sm font-medium text-left text-destructive rounded-lg hover:bg-destructive/10 transition-colors mt-1">
                                         <IconLogout size={18} /> Keluar
                                     </Link>
                                     <div className="absolute right-[22px] -bottom-[6px] w-3 h-3 bg-card border-b border-r border-border transform rotate-45"></div>
