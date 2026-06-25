@@ -60,7 +60,7 @@ export default function MobileBottomNav({ auth }) {
                 <div className="fixed inset-0 z-40 bg-black/5 dark:bg-black/20" onClick={() => { setShowFasilitas(false); setShowAdminMenu(false); }}></div>
             )}
 
-            <div className="fixed bottom-0 left-0 z-50 w-full h-16 bg-card border-t border-border lg:hidden">
+            <div className="fixed bottom-0 left-0 z-50 w-full h-16 border-t bg-card border-border lg:hidden">
                 <div className="grid h-full max-w-md grid-cols-5 px-1 mx-auto">
 
                     {/* 1. Beranda */}
@@ -95,15 +95,18 @@ export default function MobileBottomNav({ auth }) {
                     </div>
 
                     {/* 3. SOS Spotlight */}
-                    <div className="relative flex items-center justify-center w-full h-full">
-                        <Link
-                            href={route('home.spotlight')}
-                            className={cn("absolute -top-5 flex items-center justify-center w-[52px] h-[52px] text-white transition-all bg-red-700 rounded-xl shadow-sm hover:scale-105 active:scale-95 focus-visible:outline-none", url === '/' || url === '/reports/create' ? "ring-4 ring-red-100 dark:ring-red-950 scale-105" : "focus-visible:ring-2 focus-visible:ring-red-700/50")}
-                        >
-                            <div className="absolute inset-0 rounded-xl bg-white/20 animate-ping opacity-20"></div>
-                            <IconFlame className="relative z-10 w-6 h-6" stroke={2} />
-                        </Link>
-                    </div>
+<div className="relative flex items-center justify-center w-full h-full px-1 py-2">
+    <Link
+        href={route('home.spotlight')}
+        className={cn(
+            "relative flex items-center justify-center w-full h-full text-white transition-all bg-red-700 rounded-lg shadow-sm hover:scale-105 active:scale-95 focus-visible:outline-none", 
+            url === '/' || url === '/reports/create' ? "ring-2 ring-red-100 dark:ring-red-950 scale-105" : "focus-visible:ring-2 focus-visible:ring-red-700/50"
+        )}
+    >
+        <div className="absolute inset-0 rounded-lg bg-white/20 animate-ping opacity-20"></div>
+        <IconFlame className="relative z-10 w-6 h-6" stroke={2} />
+    </Link>
+</div>
 
                     {/* 4. Riwayat */}
                     <NavItem href={route('front.reports.index', { filter: 'mine' })} icon={IconHistory} label="Riwayat" />
