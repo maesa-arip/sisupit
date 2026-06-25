@@ -7,7 +7,7 @@ import { Checkbox } from '@/Components/ui/checkbox';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Link, useForm } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import { IconLoader2, IconEye, IconEyeOff, IconBrandAndroid, IconDownload } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 
@@ -41,8 +41,34 @@ export default function Login({ status, canResetPassword }) {
         });
     };
 
+    // Di aplikasi WebView, account picker native HP mengembalikan Google ID token ke sini.
+    useEffect(() => {
+        window.onGoogleCredential = (idToken) => {
+            if (!idToken) {
+                setIsGoogleLoading(false);
+                return;
+            }
+            router.post(route('google.native'), { credential: idToken }, {
+                onError: () => setIsGoogleLoading(false),
+                onFinish: () => setIsGoogleLoading(false),
+            });
+        };
+        // Dipanggil native saat user membatalkan atau gagal memilih akun.
+        window.onGoogleSignInCancelled = () => setIsGoogleLoading(false);
+        return () => {
+            delete window.onGoogleCredential;
+            delete window.onGoogleSignInCancelled;
+        };
+    }, []);
+
     const handleGoogleLogin = () => {
         setIsGoogleLoading(true);
+        // Di dalam aplikasi WebView: gunakan account picker bawaan HP via jembatan native.
+        if (window.AndroidBridge && typeof window.AndroidBridge.signInWithGoogle === 'function') {
+            window.AndroidBridge.signInWithGoogle();
+            return; // hasil kembali lewat window.onGoogleCredential
+        }
+        // Browser biasa: alur OAuth redirect standar.
         window.location.href = '/auth/google';
     };
 

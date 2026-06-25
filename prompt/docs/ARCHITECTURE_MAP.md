@@ -50,7 +50,7 @@ app/
     HasFile.php      Helper upload/update/delete file ke disk 'public'
   Enums/         MessageType, UserGender, TenantLevel (desa/kecamatan/kabupaten/provinsi)
   Events/        ResponderLocationUpdated, IncidentLocationCorrected (broadcast via Reverb)
-  Notifications/ EmergencyAlertNotification (FCM + WebPush + database + broadcast)
+  Notifications/ EmergencyAlertNotification (FCM + database + broadcast; WebPush dimatikan, PWA dihapus)
   Helpers/helpers.php   flashMessage(), usernameGenerator(), signatureMidtrans() (lihat anti-pola)
   Http/Middleware/HandleInertiaRequests.php  shared props: auth, ziggy, flash_message, announcemet (typo, lihat anti-pola)
 routes/
@@ -82,7 +82,7 @@ docker/nominatim/ Artifact self-hosted geocoding (docker-compose + .env.example 
 | Relawan | Self-register, toggle siaga, radar insiden di area relawan | `app/Http/Controllers/VolunteerController.php` |
 | Pengumuman | Broadcast info publik | `app/Http/Controllers/Admin/AnnouncementController.php` |
 | Geocoding Proxy | Reverse & search Nominatim, cache 24h, lock rate-limit 1 req/detik | `app/Http/Controllers/Api/GeocodeController.php` |
-| Push Notification | FCM + WebPush untuk insiden | `app/Notifications/EmergencyAlertNotification.php` |
+| Push Notification | FCM (native Android) untuk insiden; WebPush dimatikan & PWA web dihapus | `app/Notifications/EmergencyAlertNotification.php` |
 | Dashboard per Role | Command center (admin) / misi aktif (petugas) / riwayat+radar (publik/relawan) | `app/Http/Controllers/DashboardController.php` |
 | Setting Global | Tingkat siaran notifikasi (superadmin-only) | `app/Models/Setting.php`, `app/Http/Controllers/Admin/SettingController.php` |
 
@@ -102,7 +102,7 @@ POST /reports/{id}/approve
   → DB::transaction: update status 'pending' + hitung cascade wilayah via
     Setting::KEY_NOTIFY_LEVEL_PETUGAS / _RELAWAN (TenantLevel enum)
   → User::role('petugas'|'relawan')->notifiableForReport(...)
-  → Notification::send(..., EmergencyAlertNotification)  (FCM+WebPush+DB+broadcast)
+  → Notification::send(..., EmergencyAlertNotification)  (FCM+DB+broadcast; WebPush off)
 ```
 
 **2. Tracking lokasi real-time**

@@ -55,6 +55,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 Route::get('/auth/{provider}', [SocialiteController::class, 'redirectToProvider']);
 Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProvideCallback']);
+// Login native dari aplikasi WebView: menerima Google ID token dari account picker HP.
+Route::post('/auth/google/native', [SocialiteController::class, 'handleNativeGoogle'])->name('google.native');
 Route::controller(HomeController::class)->group(function () {
     Route::get('/', 'spotlight')->name('home.spotlight');
     Route::get('/home', 'index')->name('home.index');

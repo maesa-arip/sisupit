@@ -208,3 +208,27 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
   Verifikasi device-side: chrome://inspect + logcat tag `FCM`/`SisupitFCM`, dan `Log::info`
   "FCM token registered" di server.
 - **Status:** FIXED (2026-06-25)
+
+### #12 — Hapus PWA web (shell saja; WebPush backend dibiarkan dorman)
+- **Severity:** —, perubahan atas permintaan user (bukan bug). Notifikasi dipusatkan ke FCM native.
+- **Scope keputusan user (2026-06-25):** hapus *shell* PWA saja; backend WebPush
+  (`/webpush/*`, trait `HasPushSubscriptions`, `toWebPush()`, package, tabel `push_subscriptions`)
+  **tetap ada tapi dorman** agar mudah diaktifkan lagi. Channel WebPush sudah dimatikan di #11.
+- **Perubahan:**
+  - `public/sw.js` → diganti jadi **kill-switch** (`skipWaiting` + `caches.delete` +
+    `registration.unregister()` + reload klien). Sengaja TIDAK dihapus agar service worker
+    yang sudah ter-install di browser/HP pengguna lama mencabut diri saat update berkala.
+    Hapus permanen beberapa minggu kemudian.
+  - Dihapus: `public/manifest.webmanifest`, `public/manifest.json` (yatim),
+    `resources/js/Components/InstallPWAButton.jsx` (dead, tak dipakai),
+    `resources/js/Components/WebPushSubscribe.jsx` (satu-satunya pendaftar `/sw.js`).
+  - `resources/views/app.blade.php` — hapus `<link rel="manifest">` & meta
+    `apple-mobile-web-app-capable`/`-status-bar-style`. `theme-color`, favicon,
+    `apple-touch-icon` dibiarkan (web umum, bukan khusus PWA).
+  - `resources/js/Layouts/AppLayout.jsx` — hapus import & render `<WebPushSubscribe/>`,
+    dan blok `serviceWorker.onmessage` PLAY_SOUND (sudah mati: `sw.js` tak pernah kirim
+    pesan itu).
+- **Verifikasi:** `php artisan test` 74 passed (181 assertions, `WebPushSubscribeAuthTest`
+  tetap hijau karena rute backend dipertahankan); `npm run build` sukses; nol referensi
+  dangling ke komponen/manifest yang dihapus.
+- **Status:** DONE (2026-06-25)

@@ -3,7 +3,6 @@ import Banner from '@/Components/Banner';
 import SoundNotificationControl from '@/Components/SoundNotificationControl';
 import ThemeSwitcher from '@/Components/ThemeSwitcher';
 import { Toaster } from '@/Components/ui/sonner';
-import WebPushSubscribe from '@/Components/WebPushSubscribe';
 import { Head, usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
 import Sidebar from './Partials/Sidebar';
@@ -19,27 +18,6 @@ export default function AppLayout({ title, children }) {
     const { url } = usePage();
     const announcemet = usePage().props.announcemet;
     const auth = usePage().props.auth?.user ?? null;
-
-    useEffect(() => {
-        let audio;
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.onmessage = (event) => {
-                if (event.data && event.data.type === 'PLAY_SOUND') {
-                    if (!audio) {
-                        audio = new Audio(event.data.soundUrl);
-                        audio.loop = true;
-                        audio.play().catch((error) => console.warn('Gagal memutar suara:', error));
-                    }
-                }
-            };
-            window.addEventListener('focus', () => {
-                if (audio) {
-                    audio.pause();
-                    audio = null;
-                }
-            });
-        }
-    }, []);
 
    useEffect(() => {
     if (!auth) return;
@@ -114,7 +92,6 @@ export default function AppLayout({ title, children }) {
         <>
             <Head title={title} />
             <Toaster position="top-center" richColors />
-            <WebPushSubscribe />
             <SoundNotificationControl />
             
             <div className="flex w-full min-h-screen bg-background">

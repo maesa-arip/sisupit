@@ -17,7 +17,7 @@ createInertiaApp({
 			return;
 		}
 		const appElement = (
-			<ThemeProvider defaultTheme='dark' storageKey='current-theme'>
+			<ThemeProvider defaultTheme='system' storageKey='current-theme'>
 				<App {...props} />
 			</ThemeProvider>
 		)
