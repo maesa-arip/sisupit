@@ -26,6 +26,7 @@ export default function Login({ status, canResetPassword }) {
                     setIsWebView(checkWebView());
                 }, []);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+    const [googleError, setGoogleError] = useState(null);
     const [showPassword, setShowPassword] = useState(false);
 
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -55,13 +56,21 @@ export default function Login({ status, canResetPassword }) {
         };
         // Dipanggil native saat user membatalkan atau gagal memilih akun.
         window.onGoogleSignInCancelled = () => setIsGoogleLoading(false);
+        // Dipanggil native saat login Google gagal (mis. SHA-1 belum terdaftar di Google Cloud).
+        // Tanpa ini picker bisa muncul lalu "diam" saat memilih akun.
+        window.onGoogleSignInError = (msg) => {
+            setIsGoogleLoading(false);
+            setGoogleError(msg || 'Login Google gagal. Silakan coba lagi.');
+        };
         return () => {
             delete window.onGoogleCredential;
             delete window.onGoogleSignInCancelled;
+            delete window.onGoogleSignInError;
         };
     }, []);
 
     const handleGoogleLogin = () => {
+        setGoogleError(null);
         setIsGoogleLoading(true);
         // Di dalam aplikasi WebView: gunakan account picker bawaan HP via jembatan native.
         if (window.AndroidBridge && typeof window.AndroidBridge.signInWithGoogle === 'function') {
@@ -104,6 +113,12 @@ export default function Login({ status, canResetPassword }) {
                                 className="text-green-800 border-green-200 rounded-md dark:text-success dark:border-success/20 bg-green-50 dark:bg-success/10"
                             >
                                 <AlertDescription>{status}</AlertDescription>
+                            </Alert>
+                        )}
+
+                        {googleError && (
+                            <Alert variant="destructive" className="rounded-md">
+                                <AlertDescription>{googleError}</AlertDescription>
                             </Alert>
                         )}
 

@@ -5,9 +5,9 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Link, useForm } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import { IconLoader2, IconEye, IconEyeOff } from '@tabler/icons-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function Register() {
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -22,7 +22,7 @@ export default function Register() {
     });
 
     const onHandleChange = (e) => setData(e.target.name, e.target.value);
-    
+
     const submit = (e) => {
         e.preventDefault();
         post(route('register'), {
@@ -30,8 +30,37 @@ export default function Register() {
         });
     };
 
+    // Di aplikasi WebView, account picker native HP mengembalikan Google ID token ke sini.
+    // findOrCreateUser() di backend otomatis membuat akun baru bila belum ada — jadi "daftar
+    // dengan Google" = pilih akun → akun dibuat & langsung login (sama seperti halaman Login).
+    useEffect(() => {
+        window.onGoogleCredential = (idToken) => {
+            if (!idToken) {
+                setIsGoogleLoading(false);
+                return;
+            }
+            router.post(route('google.native'), { credential: idToken }, {
+                onError: () => setIsGoogleLoading(false),
+                onFinish: () => setIsGoogleLoading(false),
+            });
+        };
+        window.onGoogleSignInCancelled = () => setIsGoogleLoading(false);
+        window.onGoogleSignInError = () => setIsGoogleLoading(false);
+        return () => {
+            delete window.onGoogleCredential;
+            delete window.onGoogleSignInCancelled;
+            delete window.onGoogleSignInError;
+        };
+    }, []);
+
     const handleGoogleRegister = () => {
         setIsGoogleLoading(true);
+        // Di dalam aplikasi WebView: gunakan account picker bawaan HP via jembatan native.
+        if (window.AndroidBridge && typeof window.AndroidBridge.signInWithGoogle === 'function') {
+            window.AndroidBridge.signInWithGoogle();
+            return; // hasil kembali lewat window.onGoogleCredential
+        }
+        // Browser biasa: alur OAuth redirect standar.
         window.location.href = '/auth/google';
     };
 
