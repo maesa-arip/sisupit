@@ -66,7 +66,10 @@ class EmergencyAlertNotification extends Notification implements ShouldQueue
                     'priority' => 'high',
                     'notification' => [
                         'sound' => 'sirine', // file sirine di res/raw Android
-                        'channel_id' => 'emergency_channel', // WAJIB sama dgn channel di Android
+                        // WAJIB sama dgn channel di Android. App memakai "emergency_channel_v2"
+                        // (channel lama "emergency_channel" sudah dihapus di app — memakai ID lama
+                        // membuat notifikasi jatuh ke channel fallback tanpa sirine).
+                        'channel_id' => 'emergency_channel_v2',
                         'color' => '#b42826', // warna icon merah Damkar
                         'default_vibrate_timings' => false,
                         'vibrate_timings' => ['1.0s', '1.0s', '1.0s', '1.0s'], // getar ekstrim
