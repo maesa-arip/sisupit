@@ -8,10 +8,23 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Link, useForm } from '@inertiajs/react';
-import { IconLoader2, IconEye, IconEyeOff } from '@tabler/icons-react';
-import { useState } from 'react';
+import { IconLoader2, IconEye, IconEyeOff, IconBrandAndroid, IconDownload } from '@tabler/icons-react';
+import { useEffect, useState } from 'react';
 
 export default function Login({ status, canResetPassword }) {
+    const [isWebView, setIsWebView] = useState(true); 
+    useEffect(() => {
+                    const checkWebView = () => {
+                        const ua = navigator.userAgent || navigator.vendor || window.opera;
+                        const isAndroidWebView = /wv|Android.*Version\/[\d\.]+/i.test(ua);
+                        const isIOSWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(ua);
+                        const isInAppBrowser = /FBAV|FBAN|Instagram|Line|Twitter|MicroMessenger/i.test(ua);
+                        const isMyOwnApp = /SisupitApp/i.test(ua); 
+            
+                        return isAndroidWebView || isIOSWebView || isInAppBrowser || isMyOwnApp;
+                    };
+                    setIsWebView(checkWebView());
+                }, []);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
@@ -32,6 +45,8 @@ export default function Login({ status, canResetPassword }) {
         setIsGoogleLoading(true);
         window.location.href = '/auth/google';
     };
+
+    
 
     return (
         <div className="w-full bg-background lg:grid lg:min-h-screen lg:grid-cols-2">
@@ -60,7 +75,7 @@ export default function Login({ status, canResetPassword }) {
                         {status && (
                             <Alert
                                 variant="success"
-                                className="text-green-800 dark:text-success border-green-200 dark:border-success/20 bg-green-50 dark:bg-success/10 rounded-md"
+                                className="text-green-800 border-green-200 rounded-md dark:text-success dark:border-success/20 bg-green-50 dark:bg-success/10"
                             >
                                 <AlertDescription>{status}</AlertDescription>
                             </Alert>
@@ -80,7 +95,7 @@ export default function Login({ status, canResetPassword }) {
                                     autoComplete="username"
                                     placeholder="nama@email.com"
                                     onChange={(e) => setData(e.target.name, e.target.value)}
-                                    className="w-full h-11 border-border bg-background rounded-md focus-visible:ring-1 focus-visible:ring-destructive focus-visible:border-destructive transition-colors"
+                                    className="w-full transition-colors rounded-md h-11 border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive focus-visible:border-destructive"
                                 />
                                 {errors.email && <InputError message={errors.email} />}
                             </div>
@@ -94,7 +109,7 @@ export default function Login({ status, canResetPassword }) {
                                     {canResetPassword && (
                                         <Link
                                             href={route('password.request')}
-                                            className="text-sm font-medium text-muted-foreground transition-colors hover:text-destructive"
+                                            className="text-sm font-medium transition-colors text-muted-foreground hover:text-destructive"
                                         >
                                             Lupa Password?
                                         </Link>
@@ -109,13 +124,13 @@ export default function Login({ status, canResetPassword }) {
                                         value={data.password}
                                         placeholder="••••••••"
                                         onChange={(e) => setData(e.target.name, e.target.value)}
-                                        className="w-full h-11 pr-12 border-border bg-background rounded-md focus-visible:ring-1 focus-visible:ring-destructive focus-visible:border-destructive transition-colors"
+                                        className="w-full pr-12 transition-colors rounded-md h-11 border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive focus-visible:border-destructive"
                                     />
 
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute z-10 flex items-center justify-center w-10 h-10 text-muted-foreground transition-colors -translate-y-1/2 rounded-md right-1 top-1/2 hover:text-foreground focus:outline-none"
+                                        className="absolute z-10 flex items-center justify-center w-10 h-10 transition-colors -translate-y-1/2 rounded-md text-muted-foreground right-1 top-1/2 hover:text-foreground focus:outline-none"
                                         aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
                                     >
                                         {showPassword ? (
@@ -140,7 +155,7 @@ export default function Login({ status, canResetPassword }) {
                                 />
                                 <Label
                                     htmlFor="remember"
-                                    className="text-sm font-medium text-muted-foreground cursor-pointer select-none"
+                                    className="text-sm font-medium cursor-pointer select-none text-muted-foreground"
                                 >
                                     Ingat Saya
                                 </Label>
@@ -149,7 +164,7 @@ export default function Login({ status, canResetPassword }) {
                             <Button
                                 type="submit"
                                 disabled={processing || isGoogleLoading}
-                                className="w-full h-11 mt-2 text-sm font-medium text-destructive-foreground transition-colors rounded-md bg-destructive hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:opacity-70 disabled:cursor-not-allowed"
+                                className="w-full mt-2 text-sm font-medium transition-colors rounded-md h-11 text-destructive-foreground bg-destructive hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:opacity-70 disabled:cursor-not-allowed"
                             >
                                 {processing ? <IconLoader2 className="w-5 h-5 animate-spin" /> : 'Masuk Akun'}
                             </Button>
@@ -193,11 +208,27 @@ export default function Login({ status, canResetPassword }) {
                             Belum punya akun?{' '}
                             <Link
                                 href={route('register')}
-                                className="font-medium text-destructive transition-colors hover:text-destructive/80 hover:underline"
+                                className="font-medium transition-colors text-destructive hover:text-destructive/80 hover:underline"
                             >
                                 Daftar Sekarang
                             </Link>
                         </div>
+                        {/* --- UNDUH APLIKASI --- */}
+            {!isWebView && (
+                <div className="flex flex-col items-center w-full mt-4">
+                    <a
+                        href="/apk/sisupit.apk"
+                        download="Sisupit.apk"
+                        className="flex items-center justify-center w-full h-12 gap-3 px-6 font-medium transition-colors border shadow-sm outline-none sm:w-auto text-foreground bg-card border-border rounded-xl hover:bg-accent focus-visible:ring-2 focus-visible:ring-muted-foreground/50"
+                    >
+                        <div className="flex items-center justify-center p-1 rounded-md bg-green-50 dark:bg-success/10">
+                            <IconBrandAndroid className="w-5 h-5 text-green-600 dark:text-success" stroke={2} />
+                        </div>
+                        <span className="text-sm">Unduh Aplikasi Android</span>
+                        <IconDownload className="w-4 h-4 ml-1 text-muted-foreground" stroke={2} />
+                    </a>
+                </div>
+            )}
                     </div>
                 </div>
             </div>

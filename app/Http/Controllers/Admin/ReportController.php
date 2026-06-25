@@ -31,6 +31,7 @@ class ReportController extends Controller
 
         return inertia('Admin/Reports/Index', [
             'reports' => $reports,
+            'tenant_location' => $this->getTenantDefaultLocation(),
             'page_settings' => [
                 'title' => 'Verifikasi Laporan',
                 'subtitle' => 'Pantau dan verifikasi laporan kejadian di wilayah tenant Anda.',
@@ -41,6 +42,20 @@ class ReportController extends Controller
                 'load' => $request->load ?? 10,
             ],
         ]);
+    }
+
+    /**
+     * Pusat peta default = lokasi admin yang login (fallback ke Bali).
+     * Selaras dengan Admin\HydrantController::getTenantDefaultLocation().
+     */
+    private function getTenantDefaultLocation(): array
+    {
+        $user = auth()->user();
+
+        return [
+            'lat' => $user->lat ?? -8.650000,
+            'lng' => $user->lng ?? 115.220000,
+        ];
     }
 
     public function export(Request $request): BinaryFileResponse
