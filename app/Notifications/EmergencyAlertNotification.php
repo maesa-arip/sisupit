@@ -9,8 +9,6 @@ use Illuminate\Notifications\Notification;
 use NotificationChannels\Fcm\FcmChannel;
 use NotificationChannels\Fcm\FcmMessage;
 use NotificationChannels\Fcm\Resources\Notification as FcmNotification;
-use NotificationChannels\Fcm\Resources\AndroidConfig;
-use NotificationChannels\Fcm\Resources\AndroidNotification;
 use NotificationChannels\WebPush\WebPushChannel;
 use NotificationChannels\WebPush\WebPushMessage;
 
@@ -44,31 +42,34 @@ class EmergencyAlertNotification extends Notification implements ShouldQueue
 
     public function toFcm($notifiable)
     {
+        $title = '🚨 DARURAT ' . strtoupper($this->report->category ?? 'KEBAKARAN') . '!';
+
         return FcmMessage::create()
-            // 1. DATA PAYLOAD (Untuk Deep Linking di WebView)
-            ->setData([
+            // 1. VISUAL NOTIFIKASI
+            ->notification(new FcmNotification(
+                title: $title,
+                body: $this->report->address,
+            ))
+            // 2. DATA PAYLOAD (Untuk Deep Linking di WebView) — nilai wajib string
+            ->data([
                 'report_id' => (string) $this->report->id,
                 'action_url' => url('/reports/' . $this->report->id),
                 'type' => 'emergency',
-                'user_role' => $this->userRole, // Tambahkan role pengguna untuk logika di client
+                'user_role' => $this->userRole, // role pengguna untuk logika di client
             ])
-            // 2. VISUAL NOTIFIKASI
-            ->setNotification(FcmNotification::create()
-                ->setTitle('🚨 DARURAT ' . strtoupper($this->report->category ?? 'KEBAKARAN') . '!')
-                ->setBody($this->report->address)
-            )
-            // 3. KONFIGURASI ANDROID (BYPASS DO NOT DISTURB & SUARA SIRINE)
-            ->setAndroid(
-                AndroidConfig::create()
-                    ->setPriority('high')
-                    ->setNotification(AndroidNotification::create()
-                        ->setSound('sirine') // Pastikan file sirine.mp3 ada di folder res/raw di Android
-                        ->setChannelId('emergency_channel') // WAJIB SAMA dengan channel di Android
-                        ->setColor('#b42826') // Warna icon merah Damkar
-                        ->setDefaultVibrateTimings(false)
-                        ->setVibrateTimings(['1.0s', '1.0s', '1.0s', '1.0s']) // Getar ekstrim
-                    )
-            );
+            // 3. KONFIGURASI ANDROID (struktur FCM HTTP v1) — sirine & bypass DnD
+            ->custom([
+                'android' => [
+                    'priority' => 'high',
+                    'notification' => [
+                        'sound' => 'sirine', // file sirine di res/raw Android
+                        'channel_id' => 'emergency_channel', // WAJIB sama dgn channel di Android
+                        'color' => '#b42826', // warna icon merah Damkar
+                        'default_vibrate_timings' => false,
+                        'vibrate_timings' => ['1.0s', '1.0s', '1.0s', '1.0s'], // getar ekstrim
+                    ],
+                ],
+            ]);
     }
 
     public function toArray($notifiable)
