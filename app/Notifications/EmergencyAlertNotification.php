@@ -27,8 +27,11 @@ class EmergencyAlertNotification extends Notification implements ShouldQueue
 
     public function via($notifiable)
     {
-        // Kirim via Firebase (mobile), WebPush (browser), simpan di database (lonceng web), dan broadcast (live map)
-        return [FcmChannel::class, WebPushChannel::class, 'database', 'broadcast'];
+        // WebPush (browser) sementara DIMATIKAN — fokus hanya FCM (mobile) dulu.
+        // toWebPush() & import WebPush sengaja dibiarkan agar mudah diaktifkan lagi:
+        // cukup kembalikan WebPushChannel::class ke array di bawah.
+        // Kirim via Firebase (mobile), simpan di database (lonceng web), broadcast (live map).
+        return [FcmChannel::class, 'database', 'broadcast'];
     }
 
     public function toWebPush($notifiable, $notification)

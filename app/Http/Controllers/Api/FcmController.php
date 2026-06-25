@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\FcmToken;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class FcmController extends Controller
 {
@@ -23,10 +24,19 @@ class FcmController extends Controller
             ->where('user_id', '!=', $request->user()->id)
             ->delete();
 
-        $request->user()->fcmTokens()->updateOrCreate(
+        $record = $request->user()->fcmTokens()->updateOrCreate(
             ['token' => $request->token],
             ['device_type' => $request->device_type ?? 'android']
         );
+
+        // Audit: bantu lacak kasus "device baru tidak terdaftar". Token disingkat agar
+        // tidak membocorkan token penuh ke log.
+        Log::info('FCM token registered', [
+            'user_id' => $request->user()->id,
+            'device_type' => $record->device_type,
+            'token_tail' => substr($request->token, -10),
+            'was_new' => $record->wasRecentlyCreated,
+        ]);
 
         return response()->json(['status' => 'success', 'message' => 'FCM Token registered.']);
     }

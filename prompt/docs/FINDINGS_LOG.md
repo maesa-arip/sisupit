@@ -177,3 +177,34 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
   (`resources/js/Pages/Profile/Edit.jsx:50`) tidak berubah karena keduanya hanya
   mereferensikan nama route, bukan nama method.
 - **Status:** FIXED (TASK_04)
+
+### #11 — Device baru tidak terdaftar di `fcm_tokens` (registrasi sekali-tembak tanpa retry)
+- **Severity:** P2 (notifikasi darurat tidak sampai ke device yang gagal registrasi)
+- **Lokasi:** `resources/js/Layouts/AppLayout.jsx` (poll bridge + POST), proyek WebView
+  `SisupitWebView/app/.../MainActivity.java#postToken`, `.../SisupitFirebaseMessagingService.java#onNewToken`
+- **Gejala:** Login dari device lain tidak menambah baris di tabel `fcm_tokens`, padahal
+  wiring FCM benar (package `com.sisupit.app` cocok, service terdaftar, `default_notification_channel_id`
+  ada, route `fcm.store` + Ziggy `@routes` tersedia). **Bukan** pembatasan akun — `fcmTokens`
+  adalah `hasMany` tanpa cap; unique hanya di kolom `token` (per-device).
+- **Akar masalah:** Registrasi token bersifat sekali-tembak tanpa retry di beberapa titik:
+  (1) `MainActivity#postToken` memanggil `getToken()` sekali — di fresh install panggilan
+  pertama bisa gagal/lambat (Firebase Instance ID belum siap) lalu hanya di-log & `return`;
+  (2) `onNewToken` tidak meng-upload (hanya `Log`); (3) sisi JS POST sekali tanpa retry dan
+  `delete window.receiveFcmTokenFromNative` di cleanup menghapus callback selagi `getToken()`
+  async masih berjalan → token jatuh ke `undefined` saat user pindah halaman. Device dev
+  yang sudah "warm" selalu sukses; device baru yang kena satu hambatan jadi permanen tidak terdaftar.
+- **Fix:**
+  - `EmergencyAlertNotification::via()` — WebPush dimatikan sementara (per permintaan user),
+    hanya `[FcmChannel, 'database', 'broadcast']`. `toWebPush()` & import dibiarkan agar mudah diaktifkan lagi.
+  - `AppLayout.jsx` — POST token dengan retry (4x, backoff), callback TIDAK lagi dihapus di
+    cleanup, guard token kosong, timeout poll 10s→15s.
+  - `FcmController::store` — `Log::info` audit (user_id, device_type, token_tail, was_new).
+  - `MainActivity.java` — `getToken()` retry 4x (backoff 2/4/6s); injeksi JS di-guard
+    `if (window.receiveFcmTokenFromNative)` agar tidak error di halaman login/guest.
+- **Catatan:** `SisupitFirebaseMessagingService#onNewToken` sengaja TIDAK upload langsung —
+  service background tidak punya sesi/cookie auth; registrasi tetap lewat WebView (poll per
+  halaman ber-AppLayout sudah memanggil `getToken()` ulang tiap mount).
+- **Verifikasi:** `php artisan test` 74 passed (181 assertions, tanpa regresi); `npm run build` sukses.
+  Verifikasi device-side: chrome://inspect + logcat tag `FCM`/`SisupitFCM`, dan `Log::info`
+  "FCM token registered" di server.
+- **Status:** FIXED (2026-06-25)

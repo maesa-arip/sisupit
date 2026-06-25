@@ -44,9 +44,11 @@ export default function AppLayout({ title, children }) {
    useEffect(() => {
     if (!auth) return;
 
-    window.receiveFcmTokenFromNative = (token) => {
-        console.log("Token FCM dari Android:", token);
-
+    // Kirim token ke server dengan RETRY. Registrasi FCM tidak boleh gagal permanen
+    // hanya karena satu hambatan sesaat (jaringan/sesi belum siap) di device baru —
+    // ini penyebab "device baru tidak terdaftar di fcm_tokens".
+    const postTokenWithRetry = (token, attempt = 1) => {
+        const maxAttempts = 4;
         axios.post(route('fcm.store'), {
             token: token,
             device_type: 'android',
@@ -55,8 +57,23 @@ export default function AppLayout({ title, children }) {
             console.log("Token FCM berhasil disimpan ke database");
         })
         .catch((error) => {
-            console.error("Gagal menyimpan token FCM:", error.response?.data || error);
+            console.error(`Gagal menyimpan token FCM (percobaan ${attempt}/${maxAttempts}):`, error.response?.data || error);
+            if (attempt < maxAttempts) {
+                setTimeout(() => postTokenWithRetry(token, attempt + 1), attempt * 2000);
+            }
         });
+    };
+
+    // Callback dipanggil oleh WebView Android. JANGAN dihapus saat cleanup: getToken()
+    // di sisi native bersifat async dan bisa balik SETELAH user pindah halaman —
+    // kalau fungsi ini sudah terhapus, token jatuh ke "undefined" tanpa jejak.
+    window.receiveFcmTokenFromNative = (token) => {
+        if (!token) {
+            console.warn("Token FCM kosong dari native, diabaikan");
+            return;
+        }
+        console.log("Token FCM dari Android diterima");
+        postTokenWithRetry(token);
     };
 
     const interval = setInterval(() => {
@@ -67,12 +84,11 @@ export default function AppLayout({ title, children }) {
         }
     }, 500);
 
-    const timeout = setTimeout(() => clearInterval(interval), 10000);
+    const timeout = setTimeout(() => clearInterval(interval), 15000);
 
     return () => {
         clearInterval(interval);
         clearTimeout(timeout);
-        delete window.receiveFcmTokenFromNative;
     };
 }, [auth]);
 
