@@ -24,9 +24,13 @@ export default function ReportShow(props) {
     const mapInstance = useRef(null);
     const markersRef = useRef({});
     const incidentMarkerRef = useRef(null);
+    const trailLinesRef = useRef({});
+    const headingLinesRef = useRef({});
 
     const [officerList, setOfficerList] = useState(report.officers || []);
     const [helperList, setHelperList] = useState(report.helpers || []);
+    // Jejak GPS yang sudah ditempuh tiap responder aktif (dari tracking_logs), keyed by user_id
+    const [trails, setTrails] = useState(() => props.trails || {});
     const [showImageModal, setShowImageModal] = useState(false);
 
     const [confirmApprove, setConfirmApprove] = useState(false);
@@ -50,6 +54,10 @@ export default function ReportShow(props) {
         setOfficerList(props.report.officers || []);
         setHelperList(props.report.helpers || []);
     }, [props.report]);
+
+    useEffect(() => {
+        setTrails(props.trails || {});
+    }, [props.trails]);
 
     const myOfficerRecord = officerList.find(o => o.user_id === auth.user.id);
     const myHelperRecord = helperList.find(h => h.user_id === auth.user.id);
@@ -203,8 +211,47 @@ export default function ReportShow(props) {
             return marker;
         };
 
-        officerList.forEach(o => { const m = renderMarker(o.user_id, o.user?.name, 'petugas', o.location_lat, o.location_lng); if (m) boundsGroup.push(m); });
-        helperList.forEach(h => { const m = renderMarker(h.user_id, h.user?.name, 'relawan', h.location_lat, h.location_lng); if (m) boundsGroup.push(m); });
+        // Bersihkan garis lama agar tidak menumpuk tiap redraw
+        Object.values(trailLinesRef.current).forEach(l => l.remove());
+        Object.values(headingLinesRef.current).forEach(l => l.remove());
+        trailLinesRef.current = {};
+        headingLinesRef.current = {};
+
+        const incLat = parseFloat(incidentLocation.lat);
+        const incLng = parseFloat(incidentLocation.lng);
+
+        // Garis jejak yang sudah ditempuh + garis arah ke titik insiden, untuk responder aktif
+        const drawResponderTrail = (userId, type, status, curLatStr, curLngStr) => {
+            if (status === 'finished') return;
+            const color = type === 'petugas' ? '#dc2626' : '#2563eb';
+
+            const recorded = (trails[userId] || [])
+                .map(p => [parseFloat(p.lat), parseFloat(p.lng)])
+                .filter(([la, ln]) => !isNaN(la) && !isNaN(ln));
+
+            const curLat = parseFloat(curLatStr);
+            const curLng = parseFloat(curLngStr);
+            const hasCur = !isNaN(curLat) && !isNaN(curLng);
+
+            const path = [...recorded];
+            const last = path[path.length - 1];
+            if (hasCur && (!last || last[0] !== curLat || last[1] !== curLng)) path.push([curLat, curLng]);
+
+            if (path.length >= 2) {
+                trailLinesRef.current[userId] = window.L.polyline(path, { color, weight: 3, opacity: 0.85 }).addTo(map);
+            }
+
+            // Garis putus-putus posisi terkini → titik insiden (arah "menuju lokasi"),
+            // hanya selama responder masih meluncur & insiden belum selesai
+            if (hasCur && status === 'en_route' && report.status !== 'resolved' && !isNaN(incLat) && !isNaN(incLng)) {
+                headingLinesRef.current[userId] = window.L.polyline([[curLat, curLng], [incLat, incLng]], {
+                    color, weight: 2, opacity: 0.5, dashArray: '6 8'
+                }).addTo(map);
+            }
+        };
+
+        officerList.forEach(o => { const m = renderMarker(o.user_id, o.user?.name, 'petugas', o.location_lat, o.location_lng); if (m) boundsGroup.push(m); drawResponderTrail(o.user_id, 'petugas', o.status, o.location_lat, o.location_lng); });
+        helperList.forEach(h => { const m = renderMarker(h.user_id, h.user?.name, 'relawan', h.location_lat, h.location_lng); if (m) boundsGroup.push(m); drawResponderTrail(h.user_id, 'relawan', h.status, h.location_lat, h.location_lng); });
 
         if (boundsGroup.length > 0) map.fitBounds(new window.L.featureGroup(boundsGroup).getBounds().pad(0.3));
 
@@ -218,6 +265,8 @@ export default function ReportShow(props) {
                 } else {
                     setHelperList(prev => prev.map(h => h.user_id === responderId ? { ...h, location_lat: lat, location_lng: lng } : h));
                 }
+                // Tambahkan titik baru ke jejak yang sudah ditempuh agar garis rute ikut tumbuh
+                setTrails(prev => ({ ...prev, [responderId]: [...(prev[responderId] || []), { lat, lng }] }));
                 renderMarker(responderId, responderName, responderType, lat, lng);
             });
             channel.listen('IncidentLocationCorrected', (e) => {
@@ -225,7 +274,7 @@ export default function ReportShow(props) {
             });
         }
         return () => { if (channel) window.Echo.leave(`report-tracking.${report.id}`); };
-    }, [report.id, incidentLocation.lat, incidentLocation.lng, report.status, officerList, helperList, isCorrectingMode]);
+    }, [report.id, incidentLocation.lat, incidentLocation.lng, report.status, officerList, helperList, trails, isCorrectingMode]);
 
     return (
         <div className="flex flex-col w-full pb-32 mx-auto space-y-6 max-w-7xl">
