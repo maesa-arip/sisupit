@@ -19,6 +19,7 @@ Route::middleware(['auth', 'verified', 'role:admin|superadmin'])->prefix('admin'
         Route::post('users/create', 'store')->name('admin.users.store');
         Route::get('users/edit/{user}', 'edit')->name('admin.users.edit');
         Route::put('users/edit/{user}', 'update')->name('admin.users.update');
+        Route::put('users/assign-role/{user}', 'assignRole')->name('admin.users.assign-role');
         Route::delete('users/destroy/{user}', 'destroy')->name('admin.users.destroy');
     });
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\MessageType;
+use App\Enums\TenantLevel;
 use App\Enums\UserGender;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UserRequest;
@@ -10,13 +11,24 @@ use App\Http\Resources\Admin\UserResource;
 use App\Models\User;
 use App\Traits\HasFile;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Response;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
     use HasFile;
+
+    /**
+     * Peran yang yurisdiksinya ditentukan oleh kode wilayah (lihat scopeIsAdmin/UserPolicy).
+     * Saat salah satunya ditetapkan, admin juga memilih tingkat wilayah & kode dipangkas
+     * ke tingkat itu — peran lain (masyarakat/relawan) memakai alamat lengkap apa adanya.
+     */
+    private const JURISDICTIONAL_ROLES = ['admin', 'petugas', 'pejabat'];
 
     public function index(): Response
     {
@@ -40,6 +52,10 @@ class UserController extends Controller
                 'title' => 'Pengguna',
                 'subtitle' => 'Menampilkan semua data pengguna yang tersedia pada platform ini',
             ],
+            'roles' => $this->roleOptions(array_values(array_diff($this->allRoleNames(), ['superadmin']))),
+            'assignable_roles' => $this->assignableRoleNames(),
+            'assignable_levels' => $this->assignableLevels(),
+            'jurisdictional_roles' => self::JURISDICTIONAL_ROLES,
             'state' => [
                 'page' => request()->page ?? 1,
                 'search' => request()->search ?? '',
@@ -160,6 +176,159 @@ class UserController extends Controller
 
             return to_route('admin.users.index');
         }
+    }
+
+    public function assignRole(Request $request, User $user): RedirectResponse
+    {
+        // Penetapan peran memakai guard yurisdiksi yang sama dengan edit/hapus (UserPolicy),
+        // sehingga admin hanya bisa mengubah peran pengguna di wilayahnya sendiri.
+        $this->authorize('update', $user);
+
+        // Rule::in memakai daftar peran yang boleh diberikan admin ini — server menolak
+        // upaya menetapkan peran di atas kewenangannya (mis. admin mengangkat superadmin/admin).
+        $validated = $request->validate([
+            'role' => ['required', 'string', Rule::in($this->assignableRoleNames())],
+        ]);
+
+        $role = $validated['role'];
+        $regionCodes = null;
+
+        if (in_array($role, self::JURISDICTIONAL_ROLES, true)) {
+            // Tingkat dibatasi: admin tak boleh memberi yurisdiksi lebih luas dari dirinya
+            // (assignableLevels) DAN pengguna harus punya kode wilayah sampai tingkat itu.
+            $request->validate([
+                'level' => ['required', Rule::in(array_column($this->assignableLevels(), 'value'))],
+            ]);
+
+            $level = TenantLevel::from($request->level);
+
+            if ($this->regionRank($user) < $level->rank()) {
+                throw ValidationException::withMessages([
+                    'level' => "Pengguna belum memiliki data wilayah sampai tingkat {$level->label()}. Lengkapi wilayah pengguna lebih dulu.",
+                ]);
+            }
+
+            $regionCodes = $this->trimRegionToLevel($user, $level);
+        }
+
+        try {
+            DB::transaction(function () use ($user, $role, $regionCodes) {
+                $user->syncRoles([$role]);
+                if ($regionCodes !== null) {
+                    $user->update($regionCodes);
+                }
+            });
+            flashMessage("Berhasil menetapkan peran {$role} ke pengguna {$user->name}");
+
+            return to_route('admin.users.index');
+        } catch (\Throwable $e) {
+            flashMessage(MessageType::ERROR->message(error: $e->getMessage()), 'error');
+
+            return to_route('admin.users.index');
+        }
+    }
+
+    /**
+     * Tingkat wilayah {value,label,rank} yang boleh diberikan admin yang sedang login.
+     * Tidak boleh memberi tingkat yang lebih luas dari yurisdiksi admin itu sendiri
+     * (rank lebih besar = lebih spesifik; superadmin/admin nasional bebas semua tingkat).
+     */
+    private function assignableLevels(): array
+    {
+        $minRank = max($this->regionRank(auth()->user()), TenantLevel::PROVINSI->rank());
+
+        return collect(TenantLevel::cases())
+            ->filter(fn (TenantLevel $level) => $level->rank() >= $minRank)
+            ->map(fn (TenantLevel $level) => [
+                'value' => $level->value,
+                'label' => $level->label(),
+                'rank' => $level->rank(),
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Rank wilayah terdalam yang dimiliki user (desa=4 … provinsi=1, 0 jika tanpa wilayah).
+     */
+    private function regionRank(User $user): int
+    {
+        return match (true) {
+            (bool) $user->village_code => TenantLevel::DESA->rank(),
+            (bool) $user->district_code => TenantLevel::KECAMATAN->rank(),
+            (bool) $user->city_code => TenantLevel::KABUPATEN->rank(),
+            (bool) $user->province_code => TenantLevel::PROVINSI->rank(),
+            default => 0,
+        };
+    }
+
+    /**
+     * Kosongkan kode wilayah yang lebih dalam dari tingkat yang dipilih, sehingga
+     * yurisdiksi (scopeIsAdmin/Tenantable) berhenti tepat di tingkat itu.
+     */
+    private function trimRegionToLevel(User $user, TenantLevel $level): array
+    {
+        $codes = [
+            'province_code' => $user->province_code,
+            'city_code' => $user->city_code,
+            'district_code' => $user->district_code,
+            'village_code' => $user->village_code,
+        ];
+
+        return match ($level) {
+            TenantLevel::PROVINSI => array_merge($codes, ['city_code' => null, 'district_code' => null, 'village_code' => null]),
+            TenantLevel::KABUPATEN => array_merge($codes, ['district_code' => null, 'village_code' => null]),
+            TenantLevel::KECAMATAN => array_merge($codes, ['village_code' => null]),
+            TenantLevel::DESA => $codes,
+        };
+    }
+
+    /**
+     * Semua peran (guard web) sebagai {value,label} untuk ditampilkan di dialog —
+     * peran yang tidak boleh diberikan admin ini tetap tampil (mis. peran user saat ini)
+     * tapi dinonaktifkan di frontend berdasarkan prop `assignable_roles`.
+     */
+    private function roleOptions(array $names): array
+    {
+        $labels = [
+            'masyarakat' => 'Masyarakat',
+            'relawan' => 'Relawan',
+            'petugas' => 'Petugas',
+            'pejabat' => 'Pejabat',
+            'admin' => 'Admin',
+            'superadmin' => 'Superadmin',
+        ];
+
+        return collect($names)
+            ->map(fn ($name) => [
+                'value' => $name,
+                'label' => $labels[$name] ?? ucfirst($name),
+            ])
+            ->values()
+            ->all();
+    }
+
+    private function allRoleNames(): array
+    {
+        return Role::query()
+            ->where('guard_name', 'web')
+            ->orderBy('id')
+            ->pluck('name')
+            ->all();
+    }
+
+    /**
+     * Superadmin tidak pernah bisa diberikan lewat panel (peran developer pusat). Hanya
+     * superadmin yang boleh mengangkat admin; admin wilayah dibatasi sampai petugas untuk
+     * mencegah eskalasi hak akses (keputusan 2026-06-27).
+     */
+    private function assignableRoleNames(): array
+    {
+        if (auth()->user()->hasRole('superadmin')) {
+            return array_values(array_diff($this->allRoleNames(), ['superadmin']));
+        }
+
+        return ['masyarakat', 'relawan', 'petugas', 'pejabat'];
     }
 
     /**

@@ -28,6 +28,9 @@ class UserResource extends JsonResource
             'created_at' => $this->created_at->format('d M Y'),
             'roles' => $this->roles->pluck('name'),
             'region' => $this->village?->name ?? $this->district?->name ?? $this->city?->name ?? $this->province?->name ?? 'Nasional',
+            // Rank wilayah terdalam (desa=4 … provinsi=1, 0 jika tanpa wilayah) — dipakai
+            // dialog penetapan peran untuk membatasi tingkat yurisdiksi yang bisa dipilih.
+            'region_level' => $this->village_code ? 4 : ($this->district_code ? 3 : ($this->city_code ? 2 : ($this->province_code ? 1 : 0))),
         ];
     }
 }

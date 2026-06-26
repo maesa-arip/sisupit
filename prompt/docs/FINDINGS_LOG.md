@@ -36,6 +36,7 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 | 11 | P2 | Sidebar pasang seksi "Administrasi" dengan gating `isStaff` (termasuk `petugas`), padahal semua route `/admin/*` digating `role:admin\|superadmin` | `resources/js/Layouts/Partials/Sidebar.jsx` (gating `isStaff`) | Petugas melihat link Verifikasi Laporan/Manajemen Fasilitas/Pengumuman yang berujung **403** saat diklik (menu menyesatkan) | FIXED | (nav cleanup) |
 | 12 | P3 | Seksi "Operasional" sidebar (Lapor Darurat, Arsip & Riwayat) di-gating `auth?.user`, padahal `AppLayout` mengoper objek user langsung sebagai prop `auth` → `auth.user` selalu undefined | `resources/js/Layouts/Partials/Sidebar.jsx` (`auth?.user`), `resources/js/Layouts/AppLayout.jsx:21,113` | Dua link operasional tidak pernah tampil di sidebar desktop untuk user login | FIXED | (nav cleanup) |
 | 13 | P3 | Navigasi tidak lengkap & tidak sinkron desktop↔mobile: Daftar Relawan & suite RBAC (roles/permissions/assign/route-access) tanpa entri; bottom nav `sm:hidden` membuat tablet (640–1023px) tanpa navigasi; target "Verifikasi Laporan" beda (front vs admin) | `resources/js/Layouts/Partials/Sidebar.jsx`, `MobileBottomNav.jsx` | Halaman tak terjangkau lewat menu; tablet tanpa navigasi; menu desktop/mobile inkonsisten | FIXED | (nav cleanup) |
+| 14 | P1 | `AssignUserController` (Tetapkan Peran) tanpa `authorize()`/cek yurisdiksi & index tanpa `isAdmin()` scope | `app/Http/Controllers/Admin/AssignUserController.php:16-78` | Admin wilayah mana pun bisa melihat & me-`syncRoles()` SEMUA user lintas wilayah (termasuk mengangkat `admin`/`superadmin`) — eskalasi hak akses & bypass yurisdiksi. Berbeda dengan `UserController` yang sudah benar pakai `UserPolicy` + `isAdmin()` | OPEN | — |
 
 ---
 
@@ -232,3 +233,23 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
   tetap hijau karena rute backend dipertahankan); `npm run build` sukses; nol referensi
   dangling ke komponen/manifest yang dihapus.
 - **Status:** DONE (2026-06-25)
+
+### #14 — `AssignUserController` (Tetapkan Peran) tanpa authorize/yurisdiksi
+- **Severity:** P1 (eskalasi hak akses lintas wilayah)
+- **Lokasi:** `app/Http/Controllers/Admin/AssignUserController.php:16-78`
+- **Gejala:** `index()` menampilkan SEMUA user tanpa scope `isAdmin()`; `edit()`/`update()`
+  tidak memanggil `$this->authorize(...)` maupun cek yurisdiksi. `update()` langsung
+  `$user->syncRoles($request->roles)` dengan validasi `exists:roles,id` saja — tidak
+  membatasi peran apa yang boleh diberikan.
+- **Dampak:** Admin wilayah mana pun (lewat menu "Tetapkan Peran" di `routes/admin.php:58-62`)
+  bisa melihat & mengubah peran user di luar wilayahnya, termasuk mengangkat siapa pun jadi
+  `admin`/`superadmin`. Berbeda jauh dari `UserController` yang sudah benar memakai
+  `UserPolicy::withinJurisdiction` (edit/update/destroy) + scope `isAdmin()` (index).
+- **Ditemukan saat:** menambah fitur penetapan peran di halaman Manajemen Pengguna
+  (2026-06-27). Fitur baru itu sengaja TIDAK reuse endpoint ini; dibuat sebagai
+  `UserController::assignRole` dengan `$this->authorize('update', $user)` + whitelist peran
+  (admin maksimal memberi `petugas`, hanya superadmin yang boleh `admin`/`superadmin`).
+- **Rekomendasi:** Beri `AssignUserController` perlakuan yang sama (authorize via `UserPolicy`,
+  scope `isAdmin()` di index, whitelist peran via `Rule::in`), atau pertimbangkan menghapus
+  menu "Tetapkan Peran" lama karena kini tumpang tindih dengan fitur di Manajemen Pengguna.
+- **Status:** OPEN (dicatat, tidak diperbaiki di task ini — di luar scope)
