@@ -8,7 +8,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use NotificationChannels\Fcm\FcmChannel;
 use NotificationChannels\Fcm\FcmMessage;
-use NotificationChannels\Fcm\Resources\Notification as FcmNotification;
 use NotificationChannels\WebPush\WebPushChannel;
 use NotificationChannels\WebPush\WebPushMessage;
 
@@ -47,33 +46,28 @@ class EmergencyAlertNotification extends Notification implements ShouldQueue
     {
         $title = '🚨 DARURAT ' . strtoupper($this->report->category ?? 'KEBAKARAN') . '!';
 
+        // PESAN DATA-ONLY (tanpa blok notification()).
+        // Alasan: dengan notification message, saat app di background sistem yang menangani
+        // tampilan & klik → onMessageReceived() di Android TIDAK dipanggil, sehingga:
+        //   - sirine hanya bergantung pada channel (sering tidak bunyi saat HP silent), dan
+        //   - klik notifikasi tidak bisa deep-link ke detail (jatuh ke dashboard).
+        // Data-only membuat onMessageReceived() SELALU jalan (foreground & background) sehingga
+        // app bisa: memutar sirine manual lewat stream ALARM (tahan mode silent) + deep-link
+        // akurat ke detail laporan. title/body ikut di data karena tak ada blok notification.
         return FcmMessage::create()
-            // 1. VISUAL NOTIFIKASI
-            ->notification(new FcmNotification(
-                title: $title,
-                body: $this->report->address,
-            ))
-            // 2. DATA PAYLOAD (Untuk Deep Linking di WebView) — nilai wajib string
             ->data([
+                'title' => $title,
+                'body' => (string) $this->report->address,
                 'report_id' => (string) $this->report->id,
                 'action_url' => url('/reports/' . $this->report->id),
                 'type' => 'emergency',
                 'user_role' => $this->userRole, // role pengguna untuk logika di client
             ])
-            // 3. KONFIGURASI ANDROID (struktur FCM HTTP v1) — sirine & bypass DnD
+            // priority "high" WAJIB agar data-only message tetap dikirim cepat saat app di
+            // background / device dalam mode Doze.
             ->custom([
                 'android' => [
                     'priority' => 'high',
-                    'notification' => [
-                        'sound' => 'sirine', // file sirine di res/raw Android
-                        // WAJIB sama dgn channel di Android. App memakai "emergency_channel_v2"
-                        // (channel lama "emergency_channel" sudah dihapus di app — memakai ID lama
-                        // membuat notifikasi jatuh ke channel fallback tanpa sirine).
-                        'channel_id' => 'emergency_channel_v2',
-                        'color' => '#b42826', // warna icon merah Damkar
-                        'default_vibrate_timings' => false,
-                        'vibrate_timings' => ['1.0s', '1.0s', '1.0s', '1.0s'], // getar ekstrim
-                    ],
                 ],
             ]);
     }
