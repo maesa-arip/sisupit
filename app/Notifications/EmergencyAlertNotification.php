@@ -59,7 +59,9 @@ class EmergencyAlertNotification extends Notification implements ShouldQueue
                 'title' => $title,
                 'body' => (string) $this->report->address,
                 'report_id' => (string) $this->report->id,
-                'action_url' => url('/reports/' . $this->report->id),
+                // Rute detail laporan = reports/show/{report} (name reports.show); URL lama
+                // '/reports/{id}' tidak ada → 404 saat deep-link. Pakai route() agar ikut prefix.
+                'action_url' => route('reports.show', $this->report->id),
                 'type' => 'emergency',
                 'user_role' => $this->userRole, // role pengguna untuk logika di client
             ])
