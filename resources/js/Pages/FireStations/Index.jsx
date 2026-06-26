@@ -14,6 +14,7 @@ import {
 } from '@tabler/icons-react';
 import { useState } from 'react';
 import UserLeafletMap from '@/Components/UserLeafletMap';
+import { GEO_OPTIONS } from '@/lib/utils';
 
 export default function Index({ stations, filters, ...props }) {
     const [isLocating, setIsLocating] = useState(false);
@@ -47,7 +48,8 @@ export default function Index({ stations, filters, ...props }) {
                 (error) => {
                     alert('Gagal mendapatkan lokasi. Pastikan izin GPS aktif.');
                     setIsLocating(false);
-                }
+                },
+                GEO_OPTIONS.oneShot
             );
         } else {
             alert('Browser Anda tidak mendukung fitur lokasi.');

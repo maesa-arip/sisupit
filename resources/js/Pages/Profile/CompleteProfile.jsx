@@ -8,6 +8,7 @@ import AppLayout from '@/Layouts/AppLayout';
 import { useForm } from '@inertiajs/react';
 import { IconLoader2, IconMapPin, IconShieldCheck } from '@tabler/icons-react';
 import axios from 'axios';
+import { GEO_OPTIONS } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 
 // Helper: Algoritma Pencocokan "Sapu Jagat" (Omni-Search) - sama seperti Front/Reports/Create.jsx
@@ -129,7 +130,7 @@ export default function CompleteProfile({ provinces, user }) {
                 }
             },
             () => setIsDetecting(false),
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+            GEO_OPTIONS.oneShot,
         );
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

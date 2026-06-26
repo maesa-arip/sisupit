@@ -9,6 +9,18 @@ export function flashMessage(params) {
 	return params.props.flash_message;
 }
 
+// Opsi navigator.geolocation bersama. Default browser (timeout: Infinity, maximumAge: 0)
+// membuat request bisa menggantung selamanya, dan maximumAge:0 melarang pakai fix terbaru
+// sehingga selalu menunggu cold fix GPS. Preset di bawah memberi timeout tegas + mengizinkan
+// reuse fix yang baru agar deteksi lebih cepat dan tidak sering gagal (terutama di WebView).
+export const GEO_OPTIONS = {
+	// Deteksi sekali (form lapor darurat, cari aset terdekat, lengkapi profil):
+	// akurat, boleh pakai fix <= 30 dtk terakhir, beri 20 dtk untuk cold fix.
+	oneShot: { enableHighAccuracy: true, timeout: 20000, maximumAge: 30000 },
+	// Pelacakan live (watchPosition responder): tetap akurat & cukup segar, timeout longgar.
+	tracking: { enableHighAccuracy: true, timeout: 20000, maximumAge: 5000 },
+};
+
 export const messages = {
 	503: {
 		title: 'Service Unavailable',

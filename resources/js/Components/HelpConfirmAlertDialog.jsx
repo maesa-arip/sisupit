@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/Components/ui/button";
+import { GEO_OPTIONS } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -60,7 +61,8 @@ export default function HelpConfirmAlertDialog({ reportId, isAlreadyHelping = fa
       (err) => {
         toast.error("Gagal mendapatkan lokasi: " + err.message);
         setLoading(false);
-      }
+      },
+      GEO_OPTIONS.oneShot
     );
   };
 

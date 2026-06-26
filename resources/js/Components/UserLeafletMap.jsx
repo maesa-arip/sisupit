@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { GEO_OPTIONS } from '@/lib/utils';
 
 const UserLeafletMap = ({ markers = [], lat = null, lng = null }) => {
     const mapRef = useRef(null);
@@ -89,7 +90,8 @@ const UserLeafletMap = ({ markers = [], lat = null, lng = null }) => {
                 (position) => {
                     plotUserLocation(position.coords.latitude, position.coords.longitude);
                 },
-                (err) => console.warn('Gagal mendapatkan lokasi GPS (Leaflet):', err.message)
+                (err) => console.warn('Gagal mendapatkan lokasi GPS (Leaflet):', err.message),
+                GEO_OPTIONS.oneShot
             );
         }
     }, [lat, lng]);

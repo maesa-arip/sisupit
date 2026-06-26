@@ -9,6 +9,7 @@ import { Link, useForm } from '@inertiajs/react';
 import { IconMapPinFilled, IconMedal, IconPhone, IconRadar, IconSearch, IconUsersGroup } from '@tabler/icons-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { GEO_OPTIONS } from '@/lib/utils';
 
 export default function Index({ volunteers2, filters, ...props }) {
     const [isLocating, setIsLocating] = useState(false);
@@ -52,6 +53,7 @@ export default function Index({ volunteers2, filters, ...props }) {
                     toast.error('Gagal mendapatkan lokasi. Pastikan GPS aktif.');
                     setIsLocating(false);
                 },
+                GEO_OPTIONS.oneShot,
             );
         } else {
             toast.error('Browser Anda tidak mendukung Geolokasi.');

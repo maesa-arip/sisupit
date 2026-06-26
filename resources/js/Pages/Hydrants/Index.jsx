@@ -3,6 +3,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import UserLeafletMap from '@/Components/UserLeafletMap';
+import { GEO_OPTIONS } from '@/lib/utils';
 import AppLayout from '@/Layouts/AppLayout';
 import { Link, router, useForm } from '@inertiajs/react';
 import {
@@ -70,7 +71,8 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
                     console.error('Gagal akses GPS:', error);
                     alert('Gagal mendapatkan lokasi. Pastikan izin GPS aktif.');
                     setIsLocating(false);
-                }
+                },
+                GEO_OPTIONS.oneShot
             );
         } else {
             alert('Browser Anda tidak mendukung fitur lokasi.');

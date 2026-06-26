@@ -7,7 +7,7 @@ import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
-import { flashMessage } from '@/lib/utils';
+import { flashMessage, GEO_OPTIONS } from '@/lib/utils';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import {
     IconAlertTriangle,
@@ -171,7 +171,7 @@ export default function Create(props) {
                     toast.error('Gagal melacak lokasi akurat. Pastikan GPS aktif.');
                     setLocationLoading(false);
                 },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }, // Optimalisasi GPS Darurat
+                GEO_OPTIONS.oneShot, // Optimalisasi GPS Darurat
             );
         } else {
             toast.error('Browser Anda tidak mendukung deteksi lokasi.');

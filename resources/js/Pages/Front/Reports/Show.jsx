@@ -12,7 +12,7 @@ import {
     IconLoader2, IconTrash, IconMap
 } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
-import { cn } from '@/lib/utils';
+import { cn, GEO_OPTIONS } from '@/lib/utils';
 import { toast } from 'sonner';
 import axios from 'axios';
 
@@ -160,7 +160,7 @@ export default function ReportShow(props) {
         if (!isCurrentlyResponding) return;
         const watchId = navigator.geolocation.watchPosition(
             (pos) => axios.post(`/reports/${report.id}/update-location`, { lat: pos.coords.latitude, lng: pos.coords.longitude }).catch(() => {}),
-            (err) => console.error(err), { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            (err) => console.error(err), GEO_OPTIONS.tracking
         );
         return () => navigator.geolocation.clearWatch(watchId);
     }, [isCurrentlyResponding, report.id]);
