@@ -1,0 +1,27 @@
+# =============================================================================
+# Contoh systemd service agar `php artisan reverb:start` jalan terus & auto-restart.
+# -----------------------------------------------------------------------------
+# Salin ke server:
+#   sudo cp deploy/reverb.service.example /etc/systemd/system/reverb.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now reverb
+#   sudo systemctl status reverb        # cek jalan
+#   sudo journalctl -u reverb -f        # lihat log
+#
+# Sesuaikan: User, WorkingDirectory, path php.
+# =============================================================================
+[Unit]
+Description=Laravel Reverb WebSocket Server (sisupit.com)
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/sisupit
+# --host 0.0.0.0 --port 8080 cocok dengan proxy_pass Nginx ke 127.0.0.1:8080
+ExecStart=/usr/bin/php /var/www/sisupit/artisan reverb:start --host=0.0.0.0 --port=8080
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

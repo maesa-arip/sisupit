@@ -1,0 +1,108 @@
+# =============================================================================
+# Contoh konfigurasi Nginx untuk sisupit.com (Laravel + Inertia + Reverb WS)
+# -----------------------------------------------------------------------------
+# Salin ke server: /etc/nginx/sites-available/sisupit.com
+#   sudo cp deploy/nginx-sisupit.conf.example /etc/nginx/sites-available/sisupit.com
+#   sudo ln -s /etc/nginx/sites-available/sisupit.com /etc/nginx/sites-enabled/
+#   sudo nginx -t && sudo systemctl reload nginx
+#
+# Sesuaikan:
+#   - root           → path ke folder public Laravel di server
+#   - ssl_certificate / ssl_certificate_key → path sertifikat (mis. Certbot)
+#   - fastcgi_pass   → versi PHP-FPM yang terpasang (cek: ls /run/php/)
+#
+# Prasyarat WebSocket:
+#   - Reverb berjalan sebagai service: `php artisan reverb:start` (lihat
+#     deploy/reverb.service.example) → mendengarkan di 127.0.0.1:8080
+#   - .env server: REVERB_HOST=sisupit.com, REVERB_SCHEME=https, REVERB_PORT=443
+#     REVERB_SERVER_HOST=0.0.0.0, REVERB_SERVER_PORT=8080
+# =============================================================================
+
+# --- Redirect semua HTTP ke HTTPS -------------------------------------------
+server {
+    listen 80;
+    listen [::]:80;
+    server_name sisupit.com www.sisupit.com;
+    return 301 https://$host$request_uri;
+}
+
+# --- Server HTTPS utama ------------------------------------------------------
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name sisupit.com www.sisupit.com;
+
+    root /var/www/sisupit/public;
+    index index.php;
+
+    charset utf-8;
+
+    # --- SSL (sesuaikan path; contoh Certbot/Let's Encrypt) -----------------
+    ssl_certificate     /etc/letsencrypt/live/sisupit.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/sisupit.com/privkey.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
+
+    # Upload bukti foto laporan bisa besar — naikkan batas body.
+    client_max_body_size 25M;
+
+    # =========================================================================
+    # WebSocket Reverb — HARUS sebelum blok `location /` agar tidak tertelan.
+    # Frontend connect ke wss://sisupit.com/app/<key> → diteruskan ke Reverb.
+    # =========================================================================
+    location /app {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Upgrade koneksi ke WebSocket
+        proxy_set_header Upgrade    $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+
+        # Jaga koneksi WS tetap hidup (default 60s memutus koneksi idle)
+        proxy_read_timeout  3600s;
+        proxy_send_timeout  3600s;
+    }
+
+    # Endpoint event broadcasting Reverb (HTTP POST dari server, opsional jika
+    # publish via koneksi lokal — aman disertakan).
+    location /apps {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade    $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+    }
+
+    # --- Laravel front controller -------------------------------------------
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    error_page 404 /index.php;
+
+    # --- PHP-FPM -------------------------------------------------------------
+    location ~ \.php$ {
+        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+        fastcgi_hide_header X-Powered-By;
+    }
+
+    # Jangan layani file dotfile (kecuali .well-known untuk Certbot)
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+
+    access_log /var/log/nginx/sisupit.com-access.log;
+    error_log  /var/log/nginx/sisupit.com-error.log;
+}
