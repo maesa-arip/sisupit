@@ -25,7 +25,7 @@ Status per 2026-06-25 (hasil audit onboarding pertama — lihat FINDINGS_LOG.md 
 - [ ] CORS/header keamanan — **tidak diperiksa mendalam saat onboarding ini** (`?`)
 - [x] Rate limit ada untuk `report-create` (5/10menit) — hanya 1 limiter terdaftar
 - [x] Upload file lewat trait `HasFile`, validasi tipe/ukuran via Form Request
-- [x] Tidak ada alur finansial aktif (Midtrans terpasang tapi tidak terhubung) — N/A
+- [x] Tidak ada alur finansial aktif (scaffolding Midtrans dihapus total, FINDINGS_LOG #15) — N/A
 
 ## 2. Korektness / Bug (P1)
 

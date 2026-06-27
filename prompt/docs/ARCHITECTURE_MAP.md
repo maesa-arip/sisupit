@@ -51,7 +51,7 @@ app/
   Enums/         MessageType, UserGender, TenantLevel (desa/kecamatan/kabupaten/provinsi)
   Events/        ResponderLocationUpdated, IncidentLocationCorrected (broadcast via Reverb)
   Notifications/ EmergencyAlertNotification (FCM + database + broadcast; WebPush dimatikan, PWA dihapus)
-  Helpers/helpers.php   flashMessage(), usernameGenerator(), signatureMidtrans() (lihat anti-pola)
+  Helpers/helpers.php   flashMessage(), usernameGenerator()
   Http/Middleware/HandleInertiaRequests.php  shared props: auth, ziggy, flash_message, announcemet (typo, lihat anti-pola)
 routes/
   web.php         Rute publik + front (reports, profile, geocode proxy, dashboard, webpush)

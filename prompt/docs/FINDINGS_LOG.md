@@ -37,6 +37,7 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 | 12 | P3 | Seksi "Operasional" sidebar (Lapor Darurat, Arsip & Riwayat) di-gating `auth?.user`, padahal `AppLayout` mengoper objek user langsung sebagai prop `auth` → `auth.user` selalu undefined | `resources/js/Layouts/Partials/Sidebar.jsx` (`auth?.user`), `resources/js/Layouts/AppLayout.jsx:21,113` | Dua link operasional tidak pernah tampil di sidebar desktop untuk user login | FIXED | (nav cleanup) |
 | 13 | P3 | Navigasi tidak lengkap & tidak sinkron desktop↔mobile: Daftar Relawan & suite RBAC (roles/permissions/assign/route-access) tanpa entri; bottom nav `sm:hidden` membuat tablet (640–1023px) tanpa navigasi; target "Verifikasi Laporan" beda (front vs admin) | `resources/js/Layouts/Partials/Sidebar.jsx`, `MobileBottomNav.jsx` | Halaman tak terjangkau lewat menu; tablet tanpa navigasi; menu desktop/mobile inkonsisten | FIXED | (nav cleanup) |
 | 14 | P1 | `AssignUserController` (Tetapkan Peran) tanpa `authorize()`/cek yurisdiksi & index tanpa `isAdmin()` scope | `app/Http/Controllers/Admin/AssignUserController.php:16-78` | Admin wilayah mana pun bisa melihat & me-`syncRoles()` SEMUA user lintas wilayah (termasuk mengangkat `admin`/`superadmin`) — eskalasi hak akses & bypass yurisdiksi. Berbeda dengan `UserController` yang sudah benar pakai `UserPolicy` + `isAdmin()` | OPEN | — |
+| 15 | P3 | Scaffolding Midtrans (dead code) menyuntik `snap.js` ke setiap halaman | `resources/views/app.blade.php:42`, `app/Helpers/helpers.php`, `config/services.php`, `composer.json`, `.env`/`.env.testing` | Midtrans tidak dipakai (tak ada `window.snap`/controller pembayaran) tapi `snap.js` dimuat global → warning `data-client-key` + telemetri gopay/faro di console produksi. Membingungkan kontributor (seolah ada flow uang) | FIXED | — |
 
 ---
 
@@ -97,9 +98,10 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **Fix:** `signatureMidtrans()` dipindah jadi blok `if (!function_exists(...))` top-level
   tersendiri di `app/Helpers/helpers.php`, sejajar dengan `flashMessage`/`usernameGenerator`.
   Diverifikasi via `php -r "require 'vendor/autoload.php'; var_dump(function_exists('signatureMidtrans'));"`
-  → `true` tanpa memanggil `usernameGenerator()` dulu. Regression test:
+  → `true` tanpa memanggil `usernameGenerator()` dulu. Regression test (saat itu):
   `tests/Unit/Sisupit/HelpersFunctionExistenceTest.php`.
-- **Status:** FIXED (TASK_04)
+- **Status:** FIXED (TASK_04) — kemudian **SUPERSEDED oleh #15**: `signatureMidtrans()`
+  beserta seluruh scaffolding Midtrans dihapus total 2026-06-27 (test regresi ikut dihapus).
 
 ### #6 — Dua jalur akses ke `report_officers`/`report_helpers`
 - **Severity:** P2
@@ -253,3 +255,26 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
   scope `isAdmin()` di index, whitelist peran via `Rule::in`), atau pertimbangkan menghapus
   menu "Tetapkan Peran" lama karena kini tumpang tindih dengan fitur di Manajemen Pengguna.
 - **Status:** OPEN (dicatat, tidak diperbaiki di task ini — di luar scope)
+
+### #15 — Scaffolding Midtrans (dead code) menyuntik `snap.js` ke setiap halaman
+- **Severity:** P3
+- **Lokasi:** `resources/views/app.blade.php:42` (script global), `app/Helpers/helpers.php`
+  (`signatureMidtrans()`), `config/services.php` (`midtrans`), `composer.json`/`composer.lock`
+  (`midtrans/midtrans-php`), `.env`/`.env.testing` (`MIDTRANS_*`), test
+  `tests/Unit/Sisupit/HelpersFunctionExistenceTest.php`.
+- **Gejala:** Layout global memuat `https://app.sandbox.midtrans.com/snap/snap.js` di SETIAP
+  halaman → console produksi memunculkan warning `data-client-key` + memuat
+  `snap-popup-app.sandbox...` + mengirim telemetri ke `faro.katulampa.gopay.sh` (GoPay).
+- **Akar masalah:** Midtrans tidak pernah dipakai di sisupit — nol pemakaian `window.snap`
+  di `resources/js`, tidak ada controller/route pembayaran; `signatureMidtrans()` hanya
+  dipanggil oleh test-nya sendiri. Semua peninggalan template (bersama eks subsistem
+  Book/Loan/Fine & #7 `formatToRupiah`).
+- **Fix (2026-06-27):** Hapus total — script tag di `app.blade.php` (commit fa142cd, sudah
+  deploy + `view:clear` di VPS), lalu helper `signatureMidtrans()`, blok `config/services.midtrans`,
+  key `MIDTRANS_*` di `.env`+`.env.testing`, paket via `composer remove midtrans/midtrans-php`,
+  dan test khusus Midtrans dihapus. Mengganti/menutup #5 (lihat catatan di sana).
+- **Verifikasi:** `vendor/bin/pest` 84 passed (214 assertions; baseline 85 − 1 test Midtrans
+  yang dihapus), nol referensi `midtrans` di kode app (di luar dokumen ini), HTML live
+  `https://sisupit.com/` 0 referensi midtrans.
+- **Catatan:** `formatToRupiah()` di frontend (kosmetik) sengaja dibiarkan.
+- **Status:** FIXED

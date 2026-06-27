@@ -78,9 +78,10 @@ Sisupit khususnya:
   satu Policy `UserPolicy`) — saat menambah endpoint mutasi baru yang menerima model lain
   (mis. `User $user` dari route binding), **selalu** tambahkan authorize check eksplisit,
   jangan andalkan middleware grup saja (route grup bisa salah, terbukti pernah terjadi).
-- **Tidak ada alur finansial aktif** (Midtrans terpasang tapi tidak terhubung) — jika
-  task membuka jalur uang baru, treat sebagai keputusan arsitektur, bukan fix kecil:
-  transaction + lock + idempotent + tidak ada hard delete transaksi.
+- **Tidak ada alur finansial aktif** (scaffolding Midtrans sudah dihapus total
+  2026-06-27, FINDINGS_LOG #15) — jika task membuka jalur uang baru, treat sebagai
+  keputusan arsitektur, bukan fix kecil: transaction + lock + idempotent + tidak ada
+  hard delete transaksi.
 - **Role check pakai `hasRole()`/`hasAnyRole()`** dari Spatie Permission — jangan
   bandingkan kolom string manual.
 

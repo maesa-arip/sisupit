@@ -25,10 +25,3 @@ if (! function_exists('usernameGenerator')) {
         return $username;
     }
 }
-
-if (! function_exists('signatureMidtrans')) {
-    function signatureMidtrans($order_id, $status_code, $gross_amount, $server_key)
-    {
-        return hash('sha512', $order_id . $status_code . $gross_amount . $server_key);
-    }
-}

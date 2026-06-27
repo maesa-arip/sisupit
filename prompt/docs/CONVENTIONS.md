@@ -21,7 +21,7 @@
 | Rate limit aksi sensitif | `RateLimiter::for()` di `AppServiceProvider::boot()` — saat ini hanya **satu** limiter: `report-create` (5/10menit per user/IP) | `app/Providers/AppServiceProvider.php:34-36` |
 | Setting global vs tenant | `Setting::getValue()`/`setValue()` (cache permanen, invalidate saat set) untuk kebijakan lintas-tenant — jangan dicampur dengan data per-tenant yang harus pakai `Tenantable` | `app/Models/Setting.php` |
 | Region/wilayah | Selalu `*_code` (province/city/district/village_code), relasi ke tabel `indonesia_*` (package `laravolt/indonesia`) | migrasi `2026_05_15_132259_add_hierarchical_tenant_columns_to_sisupit_tables.php` |
-| Uang | **Tidak ada alur uang aktif** — `midtrans/midtrans-php` terpasang + `signatureMidtrans()` helper + `formatToRupiah()` di frontend, semua tidak terhubung ke controller/halaman manapun. Jangan asumsikan ada flow pembayaran berjalan | lihat ANTI-POLA |
+| Uang | **Tidak ada alur uang aktif.** Sisa scaffolding Midtrans (paket `midtrans/midtrans-php`, helper `signatureMidtrans()`, config `services.midtrans`, key `.env`, script `snap.js` di layout) sudah **dihapus total** 2026-06-27 (lihat FINDINGS_LOG #15). Yang tersisa hanya `formatToRupiah()` di frontend (kosmetik). Jangan asumsikan ada flow pembayaran | — |
 
 ## Frontend
 
@@ -73,11 +73,10 @@
   kedua model dan di atas `ReportActionController`, serta `FINDINGS_LOG.md` #6. **Jangan
   konsolidasi ke Eloquent tanpa mempertahankan locking yang sama.** Jangan tambah jalur
   akses ketiga.
-- **`signatureMidtrans()` dideklarasikan nested di dalam `usernameGenerator()`**
-  (`app/Helpers/helpers.php:18-29`) — function-in-function PHP berarti `signatureMidtrans`
-  baru terdefinisi setelah `usernameGenerator` dipanggil pertama kali. Berkaitan dengan
-  Midtrans yang sendiri tidak terhubung ke alur manapun. Jangan tambah helper baru dengan
-  pola nested seperti ini.
+- **Jangan tambah helper dengan pola nested function-in-function** (deklarasi `function`
+  di dalam body `if (!function_exists(...))` milik helper lain) — pernah terjadi pada eks
+  `signatureMidtrans()` (sudah dihapus bersama scaffolding Midtrans, FINDINGS_LOG #15).
+  Tiap helper harus punya blok `if (!function_exists('namanya'))` top-level sendiri.
 - **Shared prop Inertia bertypo**: `'announcemet'` (bukan `announcement`) di
   `HandleInertiaRequests.php:48` — sudah dipakai konsisten di frontend dengan ejaan yang
   sama, jadi **jangan diam-diam diperbaiki** (akan memutus semua referensi frontend) tanpa
