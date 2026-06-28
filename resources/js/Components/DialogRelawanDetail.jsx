@@ -3,8 +3,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+} from "@/Components/ui/dialog";
+import { Button } from "@/Components/ui/button";
 import { ArrowLeft, Calendar, Mail, MapPin, Phone, ExternalLink } from "lucide-react";
 
 export default function DialogRelawanDetail({ open, onClose, helper, onBack }) {

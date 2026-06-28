@@ -21,11 +21,24 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : (belum ada — backlog FINDINGS_LOG #1-#8,#10 closed; #9 mass-reformat
-                dijadwalkan terpisah, lihat prompt/tasks/TASK_05_documentation_and_deferred.md)
-Backlog      : prompt/docs/FINDINGS_LOG.md — semua temuan FIXED/WONTFIX (dengan alasan)
-               kecuali #9 (mass-reformat Pint/Prettier, sengaja dijadwalkan sebagai PR
-               terpisah, bukan dikerjakan sekarang)
+Task aktif   : BELUM DIPILIH — TASK_10, 06, 11, 14, 12, 13, 07, 15 SELESAI 2026-06-28
+                (8 task). TASK_08 (chat) DITUNDA atas keputusan user. Sisa: #30 (edit
+                laporan rusak, P2, perlu keputusan scope) & TASK_09 armada (P3 BLOCKED).
+Backlog (urut prioritas, sumber: prompt/docs/FINDINGS_LOG.md) :
+   1. #24 P1  [SELESAI] Tolak Data rusak (route salah) → status `ditolak` + arsip  (TASK_10)
+   2. #16 P2  [SELESAI] Notif balik ke pelapor tiap transisi status  (TASK_06)
+      + #25 P2 [SELESAI] Lonceng/inbox notifikasi web di header AppLayout  (TASK_11)
+   3. #28 P2  [SELESAI] Broadcast perubahan status → halaman Show update real-time  (TASK_14)
+   4. #26 P2  [SELESAI] take-action/arrive dibatasi ke wilayah laporan  (TASK_12)
+   5. #27 P2  [SELESAI] Aksi "Batal Meluncur" (un-respond) bagi responder  (TASK_13)
+   6. #17 P2  [SELESAI] Laporan multi-foto (galeri report_photos)  (TASK_07)
+   6. #17 P2  Laporan multi-foto (galeri)  (TASK_07)
+   7. #18 P2  Kanal chat/koordinasi per insiden  (TASK_08 — DITUNDA atas keputusan user 2026-06-28)
+   8. #30 P2  Edit laporan rusak (Reports/Edit.jsx = form Publisher salah)  (— perlu keputusan scope edit)
+   9. #29 P3  [SELESAI] Batch minor: category dead ref, guard status aksi, casing import  (TASK_15)
+   9. #9  P3  Mass-reformat Pint/Prettier (terpisah)  (prompt/tasks/TASK_05_documentation_and_deferred.md)
+  10. #19 P3  Manajemen armada/Unit & dispatch  (TASK_09 — BLOCKED, perlu keputusan scope)
+   Temuan lama #1-#8,#10-#15,#20-#23 closed (FIXED).
 Selesai      : TASK_01 (onboarding), TASK_02 (P0 IDOR relawan/profil),
                TASK_03 (P1 PII feed dashboard), TASK_04 (batch P2/P3: route debug,
                webpush auth, helper nested, dead code, CI lint informational, naming),

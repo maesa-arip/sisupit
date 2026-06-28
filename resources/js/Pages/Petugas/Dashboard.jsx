@@ -1,4 +1,5 @@
 import AppLayout from '@/Layouts/AppLayout';
+import StatusBadge from '@/Components/StatusBadge';
 import { Head, Link } from '@inertiajs/react';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
@@ -7,6 +8,7 @@ import {
     IconFiretruck, IconShieldCheck, IconRadar, IconCheck
 } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
+import { useEffect, useRef } from 'react';
 
 export default function PetugasDashboard({ auth, activeMissions = [] }) {
     const user = auth.user;
@@ -14,16 +16,61 @@ export default function PetugasDashboard({ auth, activeMissions = [] }) {
     // Ambil nama depan saja untuk sapaan
     const firstName = user?.name ? user.name.split(' ')[0] : 'Komandan';
 
-    const StatusBadge = ({ status }) => {
-        const variants = {
-            pending: { className: "bg-red-50 dark:bg-destructive/10 text-red-700 dark:text-destructive border-red-200 dark:border-destructive/30", label: "Menunggu" },
-            handling: { className: "bg-amber-50 dark:bg-warning/10 text-amber-700 dark:text-warning border-amber-200 dark:border-warning/30", label: "Penanganan" },
-            resolved: { className: "bg-teal-50 dark:bg-success/10 text-teal-700 dark:text-success border-teal-200 dark:border-success/30", label: "Selesai" },
-            TERLAPOR: { className: "bg-red-50 dark:bg-destructive/10 text-red-700 dark:text-destructive border-red-200 dark:border-destructive/30", label: "Darurat" },
+    // Peta taktis misi — petugas adalah peran lapangan yang paling butuh peta.
+    // Pola Leaflet manual mengikuti Admin/Dashboard (window.L sudah dimuat global di app.blade.php).
+    const miniMapRef = useRef(null);
+    const mapInstanceRef = useRef(null);
+    const missionsWithCoords = activeMissions.filter((m) => m.lat && m.lng);
+
+    useEffect(() => {
+        if (!miniMapRef.current || !window.L) return;
+
+        if (mapInstanceRef.current) {
+            mapInstanceRef.current.remove();
+            mapInstanceRef.current = null;
+        }
+
+        const map = window.L.map(miniMapRef.current, {
+            zoomControl: false,
+            scrollWheelZoom: false,
+            dragging: !window.L.Browser.mobile,
+            tap: !window.L.Browser.mobile,
+        }).setView([-8.65, 115.216667], 12);
+
+        window.L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
+        mapInstanceRef.current = map;
+
+        const markers = [];
+        missionsWithCoords.forEach((mission) => {
+            const lat = parseFloat(mission.lat);
+            const lng = parseFloat(mission.lng);
+            if (isNaN(lat) || isNaN(lng)) return;
+
+            const incidentIcon = window.L.divIcon({
+                html: `<div class="text-destructive animate-pulse"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7.58 2 4 5.58 4 10c0 4.42 8 12 8 12s8-7.58 8-12c0-4.42-3.58-8-8-8zm0 11c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/></svg></div>`,
+                className: 'bg-transparent border-none filter drop-shadow-md',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32],
+            });
+
+            const marker = window.L.marker([lat, lng], { icon: incidentIcon })
+                .addTo(map)
+                .bindPopup(`<div class="text-xs font-bold text-destructive font-sans">⚠️ ${mission.title}</div>`);
+            markers.push(marker);
+        });
+
+        if (markers.length > 0) {
+            const group = new window.L.featureGroup(markers);
+            map.fitBounds(group.getBounds().pad(0.3));
+        }
+
+        return () => {
+            if (mapInstanceRef.current) {
+                mapInstanceRef.current.remove();
+                mapInstanceRef.current = null;
+            }
         };
-        const active = variants[status] || variants.pending;
-        return <Badge variant="outline" className={cn("font-bold px-2.5 py-0.5 rounded-md shadow-sm", active.className)}>{active.label}</Badge>;
-    };
+    }, [activeMissions]);
 
     return (
         <div className="flex flex-col w-full pb-32 mx-auto space-y-6 max-w-7xl">
@@ -31,7 +78,7 @@ export default function PetugasDashboard({ auth, activeMissions = [] }) {
 
             {/* --- HEADER WELCOME --- */}
             <div>
-                <h1 className="text-2xl font-bold tracking-tight text-foreground uppercase">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">
                     Siaga, {firstName}!
                 </h1>
                 <div className="flex flex-wrap items-center gap-2 mt-2">
@@ -76,6 +123,21 @@ export default function PetugasDashboard({ auth, activeMissions = [] }) {
             )}
 
             <hr className="border-border" />
+
+            {/* --- PETA TAKTIS MISI --- */}
+            <Card className="relative flex flex-col h-[300px] overflow-hidden border shadow-sm border-border rounded-xl sm:h-[360px]">
+                <div className="absolute top-0 left-0 right-0 z-10 flex items-center gap-2 px-4 py-2.5 border-b bg-card/90 backdrop-blur-sm">
+                    <IconMapPin className="w-4 h-4 text-destructive" stroke={2.5} />
+                    <span className="text-[11px] font-extrabold uppercase tracking-widest text-foreground">Peta Taktis Misi</span>
+                </div>
+                <div ref={miniMapRef} className="z-0 w-full h-full pt-11 bg-accent/30"></div>
+                {missionsWithCoords.length === 0 && (
+                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none pt-11 bg-background/40 backdrop-blur-[2px]">
+                        <IconMapPin className="w-8 h-8 mb-2 text-muted-foreground/50" />
+                        <p className="text-xs font-medium text-muted-foreground">Belum ada titik misi</p>
+                    </div>
+                )}
+            </Card>
 
             {/* --- DAFTAR MISI AKTIF --- */}
             <div className="space-y-4">

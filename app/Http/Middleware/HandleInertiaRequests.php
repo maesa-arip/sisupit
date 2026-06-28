@@ -46,6 +46,20 @@ class HandleInertiaRequests extends Middleware
                 'message' => $request->session()->get('message'),
             ],
             'announcemet' => fn () => Announcement::query()->where('is_active', true)->first(),
+            // Lonceng notifikasi web (FINDINGS #25): daftar terbaru + jumlah belum dibaca.
+            'notifications' => fn () => $request->user()
+                ? $request->user()->notifications()->latest()->take(8)->get()->map(fn ($n) => [
+                    'id' => $n->id,
+                    'title' => $n->data['title'] ?? 'Notifikasi',
+                    'message' => $n->data['message'] ?? $n->data['address'] ?? null,
+                    'report_id' => $n->data['report_id'] ?? null,
+                    'read_at' => $n->read_at,
+                    'created_at' => $n->created_at,
+                ])->all()
+                : [],
+            'unread_notifications_count' => fn () => $request->user()
+                ? $request->user()->unreadNotifications()->count()
+                : 0,
         ];
     }
 }

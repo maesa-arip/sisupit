@@ -35,7 +35,7 @@ it('lets a citizen create a report which alerts the command center only', functi
         'lat' => '-8.6500',
         'lng' => '115.2200',
         'address' => 'Jl. Pemogan No. 1',
-        'photo' => UploadedFile::fake()->image('kejadian.jpg'),
+        'photos' => [UploadedFile::fake()->image('kejadian.jpg')],
     ]);
 
     $response->assertRedirect(route('dashboard'));

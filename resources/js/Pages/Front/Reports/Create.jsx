@@ -61,12 +61,13 @@ export default function Create(props) {
     const [locationLoading, setLocationLoading] = useState(true);
     const [friendlyAddress, setFriendlyAddress] = useState('');
     
-    const [previewUrl, setPreviewUrl] = useState(null);
+    const [previews, setPreviews] = useState([]); // galeri foto (FINDINGS #17)
+    const previewsRef = useRef([]);
     const fileInputPhoto = useRef(null);
 
     const { data, setData, post, processing, errors } = useForm({
         name: auth?.name || '',
-        address: '', 
+        address: '',
         title: '',
         description: '',
         lat: '',
@@ -77,7 +78,7 @@ export default function Create(props) {
         village_code: '',
         road: '',
         phone: auth?.phone || '',
-        photo: null,
+        photos: [],
         _method: props.page_settings.method,
     });
 
@@ -190,28 +191,40 @@ export default function Create(props) {
 
     useEffect(() => {
         getUserLocation();
-        
+
         return () => {
-            if (previewUrl) URL.revokeObjectURL(previewUrl);
+            previewsRef.current.forEach((p) => URL.revokeObjectURL(p.url));
         };
     }, []);
 
     const onHandleChange = (e) => setData(e.target.name, e.target.value);
 
-    const handlePhotoChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setData('photo', file);
-            setPreviewUrl(URL.createObjectURL(file));
-        }
+    const MAX_PHOTOS = 6;
+
+    const handlePhotosChange = (e) => {
+        const files = Array.from(e.target.files || []);
+        if (!files.length) return;
+
+        const combined = [...data.photos, ...files].slice(0, MAX_PHOTOS);
+        setData('photos', combined);
+
+        // Buat ulang object URL untuk seluruh set (revoke yang lama agar tak bocor).
+        previewsRef.current.forEach((p) => URL.revokeObjectURL(p.url));
+        const nextPreviews = combined.map((f) => ({ url: URL.createObjectURL(f), name: f.name }));
+        previewsRef.current = nextPreviews;
+        setPreviews(nextPreviews);
+
+        if (fileInputPhoto.current) fileInputPhoto.current.value = '';
     };
 
-    const removePhoto = () => {
-        setData('photo', null);
-        setPreviewUrl(null);
-        if (fileInputPhoto.current) {
-            fileInputPhoto.current.value = '';
-        }
+    const removePhoto = (index) => {
+        const nextPhotos = data.photos.filter((_, i) => i !== index);
+        setData('photos', nextPhotos);
+
+        if (previews[index]) URL.revokeObjectURL(previews[index].url);
+        const nextPreviews = previews.filter((_, i) => i !== index);
+        previewsRef.current = nextPreviews;
+        setPreviews(nextPreviews);
     };
 
     const onHandleSubmit = (e) => {
@@ -369,46 +382,64 @@ export default function Create(props) {
                                     <div className="mb-3">
                                         <Label className="text-sm font-medium text-foreground/80">Foto Bukti Kejadian</Label>
                                         <p className="text-[13px] text-muted-foreground mt-0.5">
-                                            Sertakan foto agar relawan dapat menilai skala prioritas.
+                                            Sertakan satu atau beberapa foto (maks. {MAX_PHOTOS}) agar relawan dapat menilai skala prioritas.
                                         </p>
                                     </div>
 
-                                    {previewUrl ? (
-                                        <div className="relative w-full h-56 sm:h-64 rounded-md overflow-hidden border border-border shadow-sm group">
-                                            <img src={previewUrl} alt="Preview Bukti Kejadian" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" />
-                                            <div className="absolute inset-0 transition-colors bg-black/0 group-hover:bg-black/10"></div>
-                                            <button
-                                                type="button"
-                                                onClick={removePhoto}
-                                                className="absolute flex items-center justify-center w-8 h-8 text-red-600 dark:text-destructive transition-colors border border-transparent rounded-md shadow-sm top-3 right-3 bg-card/90 hover:bg-red-50 dark:hover:bg-destructive/10 backdrop-blur-sm hover:border-red-200 dark:hover:border-destructive/30"
-                                                title="Hapus foto"
-                                            >
-                                                <IconX stroke={2.5} className="w-4 h-4" />
-                                            </button>
+                                    {/* Satu input file tersembunyi, dipakai upload box & tombol "Tambah" */}
+                                    <input
+                                        name="photos"
+                                        id="photos"
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        ref={fileInputPhoto}
+                                        onChange={handlePhotosChange}
+                                        className="sr-only"
+                                    />
+
+                                    {previews.length > 0 ? (
+                                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                                            {previews.map((p, i) => (
+                                                <div key={i} className="relative w-full h-32 overflow-hidden border rounded-md shadow-sm border-border group">
+                                                    <img src={p.url} alt={`Preview ${i + 1}`} className="object-cover w-full h-full" />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removePhoto(i)}
+                                                        className="absolute flex items-center justify-center w-7 h-7 text-red-600 dark:text-destructive transition-colors border border-transparent rounded-md shadow-sm top-2 right-2 bg-card/90 hover:bg-red-50 dark:hover:bg-destructive/10 backdrop-blur-sm hover:border-red-200 dark:hover:border-destructive/30"
+                                                        title="Hapus foto"
+                                                    >
+                                                        <IconX stroke={2.5} className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            {data.photos.length < MAX_PHOTOS && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => fileInputPhoto.current?.click()}
+                                                    className="flex flex-col items-center justify-center w-full h-32 text-center transition-colors border border-dashed rounded-md border-border bg-muted/50 hover:bg-muted text-muted-foreground"
+                                                >
+                                                    <IconCloudUpload className="w-6 h-6 mb-1" stroke={1.5} />
+                                                    <span className="text-xs font-semibold">Tambah foto</span>
+                                                </button>
+                                            )}
                                         </div>
                                     ) : (
-                                        <div className="border border-dashed border-border rounded-md p-8 flex flex-col items-center justify-center text-center bg-muted/50 transition-colors hover:bg-muted">
-                                            <div className="w-12 h-12 bg-card rounded-md flex items-center justify-center mb-4 border border-border shadow-sm">
+                                        <div
+                                            onClick={() => fileInputPhoto.current?.click()}
+                                            className="flex flex-col items-center justify-center p-8 text-center transition-colors border border-dashed rounded-md cursor-pointer border-border bg-muted/50 hover:bg-muted"
+                                        >
+                                            <div className="flex items-center justify-center w-12 h-12 mb-4 border rounded-md shadow-sm bg-card border-border">
                                                 <IconCloudUpload className="w-6 h-6 text-muted-foreground" stroke={1.5} />
                                             </div>
                                             <p className="text-sm font-semibold text-foreground">Pilih foto kejadian</p>
-                                            <p className="mt-1 mb-5 text-[13px] text-muted-foreground">Format PNG/JPG (Maks. 10MB)</p>
-
-                                            <label className="cursor-pointer inline-flex items-center justify-center h-9 px-5 rounded-md bg-destructive text-sm font-medium text-destructive-foreground hover:bg-destructive/90 transition-colors focus-within:ring-2 focus-within:ring-destructive/50">
+                                            <p className="mt-1 mb-5 text-[13px] text-muted-foreground">Format PNG/JPG/WEBP (Maks. 4MB / foto)</p>
+                                            <span className="inline-flex items-center justify-center h-9 px-5 rounded-md bg-destructive text-sm font-medium text-destructive-foreground hover:bg-destructive/90 transition-colors">
                                                 Jelajahi File
-                                                <input
-                                                    name="photo"
-                                                    id="photo"
-                                                    type="file"
-                                                    accept="image/*"
-                                                    ref={fileInputPhoto}
-                                                    onChange={handlePhotoChange}
-                                                    className="sr-only"
-                                                />
-                                            </label>
+                                            </span>
                                         </div>
                                     )}
-                                    {errors.photo && <InputError message={errors.photo} className="mt-1" />}
+                                    {errors.photos && <InputError message={errors.photos} className="mt-1" />}
                                 </div>
                             </div>
 

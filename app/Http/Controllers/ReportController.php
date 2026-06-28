@@ -40,9 +40,10 @@ class ReportController extends Controller
             // JALUR 1: Tab "Riwayat Saya" (Bypass Tenantable & Bisa lihat status TERLAPOR miliknya)
             $query->withoutGlobalScopes()->where('user_id', $user->id);
         } else {
-            // JALUR 2: Tab "Semua Laporan" (Sembunyikan TERLAPOR dari Publik/Relawan)
+            // JALUR 2: Tab "Semua Laporan" (Sembunyikan TERLAPOR & ditolak dari Publik/Relawan;
+            // laporan ditolak hanya terlihat staff di arsip + pemilik di Riwayat Saya)
             if (!$user->hasAnyRole(['admin', 'superadmin', 'petugas'])) {
-                $query->where('status', '!=', 'TERLAPOR');
+                $query->whereNotIn('status', ['TERLAPOR', 'ditolak']);
             }
         }
 
@@ -81,6 +82,7 @@ class ReportController extends Controller
             'user:id,name,phone',
             'officers.user:id,name,phone',
             'helpers.user:id,name,phone',
+            'photos:id,report_id,path',
             'province',
             'city',
             'district',
@@ -131,6 +133,13 @@ class ReportController extends Controller
     public function store(ReportRequest $request): RedirectResponse
     {
         try {
+            // Galeri foto (FINDINGS #17): simpan semua foto; foto pertama jadi sampul
+            // (kolom `photo` lama) agar feed/dashboard yang membaca report.photo tetap jalan.
+            $photoPaths = [];
+            foreach ((array) $request->file('photos', []) as $file) {
+                $photoPaths[] = $file->store('reports', 'public');
+            }
+
             $report = Report::create([
                 'user_id' => auth()->id(),
                 'name' => $request->name,
@@ -145,8 +154,12 @@ class ReportController extends Controller
                 'village_code' => $request->village_code,
                 'address' => $request->address,
                 'status' => 'TERLAPOR', // Masih Mentah
-                'photo' => $this->upload_file($request, 'photo', 'reports'),
+                'photo' => $photoPaths[0] ?? null,
             ]);
+
+            foreach ($photoPaths as $path) {
+                $report->photos()->create(['path' => $path]);
+            }
 
             flashMessage(MessageType::CREATED->message('Laporan'));
 

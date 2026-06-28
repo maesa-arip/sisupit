@@ -46,6 +46,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'district_code',
         'village_code',
         'is_standby',
+        'skills',
     ];
 
     /**
@@ -198,6 +199,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'gender' => UserGender::class,
             'date_of_birth' => 'date',
             'is_standby' => 'boolean',
+            'skills' => 'array',
         ];
     }
 }

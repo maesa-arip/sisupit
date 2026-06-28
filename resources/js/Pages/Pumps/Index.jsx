@@ -5,7 +5,7 @@ import { Input } from '@/Components/ui/input';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import { GEO_OPTIONS } from '@/lib/utils';
 import AppLayout from '@/Layouts/AppLayout';
-import { useForm } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import {
     IconDroplet,
     IconLoader2,
@@ -20,7 +20,11 @@ import { useState } from 'react';
 export default function Index({ pumps, filters, ...props }) {
     const [isLocating, setIsLocating] = useState(false);
 
-    const { data, setData, get, processing } = useForm({
+    // Sorot tombol berdasarkan filter yang BENAR-BENAR diterapkan server (prop `filters`),
+    // bukan state lokal `data` yang bisa tidak sinkron — agar tombol selalu sesuai hasil.
+    const activeStatus = filters?.status || 'Semua';
+
+    const { data, setData, processing } = useForm({
         search: filters?.search || '',
         status: filters?.status || 'Semua',
         is_nearest: filters?.is_nearest || false,
@@ -28,9 +32,20 @@ export default function Index({ pumps, filters, ...props }) {
         lng: filters?.lng || '',
     });
 
+    // Kirim filter dengan payload terbaru agar tidak menunggu state React yang asynchronous.
+    const applyFilter = (key, value) => {
+        setData(key, value); // Update UI state
+        const payload = { ...data, [key]: value };
+
+        router.get(route('front.pumps.index'), payload, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
     const handleSearch = (e) => {
         e.preventDefault();
-        get(route('front.pumps.index'), { preserveState: true, preserveScroll: true });
+        applyFilter('search', data.search);
     };
 
     const handleNearestSearch = () => {
@@ -39,10 +54,16 @@ export default function Index({ pumps, filters, ...props }) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     const { latitude, longitude } = position.coords;
-                    data.is_nearest = true;
-                    data.lat = latitude;
-                    data.lng = longitude;
-                    get(route('front.pumps.index'), {
+                    setData('is_nearest', true);
+                    setData('lat', latitude);
+                    setData('lng', longitude);
+
+                    router.get(route('front.pumps.index'), {
+                        ...data,
+                        is_nearest: true,
+                        lat: latitude,
+                        lng: longitude,
+                    }, {
                         preserveState: true,
                         preserveScroll: true,
                         onFinish: () => setIsLocating(false),
@@ -110,9 +131,9 @@ export default function Index({ pumps, filters, ...props }) {
                                 <div className="flex gap-2 pb-1 overflow-x-auto scrollbar-hide">
                                     <button
                                         type="button"
-                                        onClick={() => { setData('status', 'Semua'); get(route('front.pumps.index')); }}
+                                        onClick={() => applyFilter('status', 'Semua')}
                                         className={`px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap transition-colors border ${
-                                            data.status === 'Semua' || !data.status
+                                            activeStatus === 'Semua'
                                             ? 'bg-foreground text-background border-transparent'
                                             : 'bg-card text-foreground/80 border-border hover:bg-muted'
                                         }`}
@@ -121,9 +142,9 @@ export default function Index({ pumps, filters, ...props }) {
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => { setData('status', 'Aktif'); get(route('front.pumps.index')); }}
+                                        onClick={() => applyFilter('status', 'Aktif')}
                                         className={`px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap transition-colors border ${
-                                            data.status === 'Aktif'
+                                            activeStatus === 'Aktif'
                                             ? 'bg-foreground text-background border-transparent'
                                             : 'bg-card text-foreground/80 border-border hover:bg-muted'
                                         }`}
@@ -132,9 +153,9 @@ export default function Index({ pumps, filters, ...props }) {
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => { setData('status', 'Perbaikan'); get(route('front.pumps.index')); }}
+                                        onClick={() => applyFilter('status', 'Perbaikan')}
                                         className={`px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap transition-colors border ${
-                                            data.status === 'Perbaikan'
+                                            activeStatus === 'Perbaikan'
                                             ? 'bg-foreground text-background border-transparent'
                                             : 'bg-card text-foreground/80 border-border hover:bg-muted'
                                         }`}

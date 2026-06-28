@@ -48,6 +48,7 @@ export default function ReportIndex(props) {
             pending: { className: "bg-destructive/10 text-destructive border-destructive/20", label: "MENUNGGU" },
             handling: { className: "bg-warning/10 text-warning border-warning/20", label: "PENANGANAN" },
             resolved: { className: "bg-success/10 text-success border-success/20", label: "SELESAI" },
+            ditolak: { className: "bg-muted text-muted-foreground border-border", label: "DITOLAK" },
         };
         const active = variants[status] || variants.pending;
         return (

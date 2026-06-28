@@ -3,7 +3,7 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/Components/ui/dialog";
 import { ChevronRight, Users } from "lucide-react";
 
 export default function DialogRelawanList({ open, onClose, helpers = [], onSelect }) {

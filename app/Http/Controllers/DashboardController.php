@@ -140,6 +140,7 @@ class DashboardController extends Controller
         // terbatas ke wilayah (desa/kecamatan/kabupaten/provinsi) milik warga yang melihat,
         // konsisten dengan $nearbyEmergencies di atas.
         $reportsFeed = Report::with(['helpers.user'])
+            ->where('status', '!=', 'ditolak') // laporan ditolak tak tampil di radar/feed publik
             ->latest('created_at')
             ->paginate(request()->load ?? 6)
             ->withQueryString();

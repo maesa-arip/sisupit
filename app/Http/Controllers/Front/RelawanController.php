@@ -3,115 +3,123 @@
 namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Carbon\Carbon; // Pastikan Carbon di-import untuk format tanggal
+use Laravolt\Indonesia\Models\City;
+use Laravolt\Indonesia\Models\District;
+use Laravolt\Indonesia\Models\Village;
 
 class RelawanController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. Ambil data User yang memiliki role 'relawan'
-        // (Asumsi menggunakan Spatie Permission atau kolom role)
-        $query = User::query()->whereHas('roles', function($q) {
-            $q->where('name', 'relawan');
-        });
+        // Hanya user ber-role 'relawan', dan hanya dalam yurisdiksi petugas/admin
+        // yang login (scopeIsAdmin; superadmin lihat semua). Eager load wilayah agar
+        // area bisa dirangkai dari nama (bukan kolom mentah yang tidak ada di tabel users).
+        $query = User::query()
+            ->isAdmin()
+            ->whereHas('roles', fn ($q) => $q->where('name', 'relawan'))
+            ->with(['city', 'district', 'village']);
 
-        // 2. Filter Pencarian Teks (Nama Relawan)
         if ($request->filled('search')) {
             $query->where('name', 'like', '%' . $request->search . '%');
         }
 
-        // 3. Filter Wilayah (Dropdown)
+        // Filter wilayah memakai kolom *_code yang sebenarnya ada di tabel users.
         if ($request->filled('kabupaten')) {
-            $query->where('kabupaten', $request->kabupaten);
+            $query->where('city_code', $request->kabupaten);
         }
         if ($request->filled('kecamatan')) {
-            $query->where('kecamatan', $request->kecamatan);
+            $query->where('district_code', $request->kecamatan);
         }
         if ($request->filled('desa')) {
-            $query->where('desa', $request->desa);
+            $query->where('village_code', $request->desa);
         }
 
-        // 4. Fitur Geolokasi "Relawan di Daerah Saya" (Haversine Formula)
-        if ($request->boolean('is_my_area') && $request->filled('lat') && $request->filled('lng')) {
-            $userLat = $request->lat;
-            $userLng = $request->lng;
-            $radius = 15; // Jangkauan pencarian: 15 Kilometer
+        $volunteers = $query->latest()->paginate(12)->withQueryString();
 
-            // Asumsi kolom di database bernama 'location_lat' dan 'location_lng'
-            $query->selectRaw("users.*, 
-                ( 6371 * acos( cos( radians(?) ) * 
-                cos( radians( location_lat ) ) * 
-                cos( radians( location_lng ) - radians(?) ) + 
-                sin( radians(?) ) * 
-                sin( radians( location_lat ) ) ) 
-                ) AS distance", [$userLat, $userLng, $userLat])
-            ->having('distance', '<=', $radius)
-            ->orderBy('distance', 'asc'); // Urutkan dari yang paling dekat
-        } else {
-            // Jika tidak pakai GPS, urutkan dari yang terbaru
-            $query->latest();
-        }
+        $volunteers->getCollection()->transform(fn (User $user) => $this->transformList($user));
 
-        // 5. Pagination
-        $volunteers = $query->paginate(12)->withQueryString();
-
-        // 6. Mapping / Formatting data agar rapi saat dibaca oleh React (Frontend)
-        $volunteers->getCollection()->transform(function ($user) {
-            return [
-                'id'     => $user->id,
-                'name'   => $user->name,
-                // Format area dengan ternary agar aman jika datanya kosong
-                'area'   => ($user->kecamatan && $user->kabupaten) 
-                            ? "Kec. {$user->kecamatan}, {$user->kabupaten}" 
-                            : ($user->address ?? 'Lokasi tidak diketahui'),
-                // Contoh dummy skills, sesuaikan jika Anda punya relasi tabel keahlian
-                'skills' => $user->skills ?? ['Siaga Darurat'], 
-                'avatar' => $user->avatar ? asset('storage/' . $user->avatar) : null,
-                'status' => $user->is_active ? 'Aktif' : 'Sibuk',
-            ];
-        });
-
-        // 7. Render ke halaman Inertia
         return Inertia::render('Volunteers/Index', [
-            // Kirim data relawan
             'volunteers' => $volunteers,
-            
-            // Kirim kembali filter yang sedang aktif agar form tetap terisi setelah halaman refresh
-            'filters' => $request->only(['search', 'kabupaten', 'kecamatan', 'desa', 'is_my_area', 'lat', 'lng'])
+            'filterOptions' => $this->regionFilterOptions(),
+            'filters' => $request->only(['search', 'kabupaten', 'kecamatan', 'desa']),
         ]);
     }
+
     public function show($id)
     {
-        // Cari user berdasarkan ID, pastikan dia memiliki role 'relawan'
-        $user = User::whereHas('roles', function($q) {
-            // $q->where('name', 'relawan');
-        })->findOrFail($id);
-    // dd($user);
-        // Format data agar sesuai dengan yang dibutuhkan oleh React Show.jsx
+        // isAdmin() membatasi ke yurisdiksi petugas/admin yang login — relawan di
+        // luar wilayah → 404 (cegah akses detail lintas yurisdiksi via ID).
+        $user = User::query()
+            ->isAdmin()
+            ->whereHas('roles', fn ($q) => $q->where('name', 'relawan'))
+            ->with(['city', 'district', 'village'])
+            ->findOrFail($id);
+
         $volunteer = [
             'id'              => $user->id,
             'name'            => $user->name,
             'email'           => $user->email,
-            'phone'           => $user->phone ?? 'Tidak ada nomor telepon',
-            'status'          => $user->is_active ? 'Aktif' : 'Sibuk',
-            'kabupaten'       => $user->kabupaten ?? 'Tidak diketahui',
-            'kecamatan'       => $user->kecamatan ?? '-',
-            'desa'            => $user->desa ?? '-',
+            'phone'           => $user->phone,
+            'status'          => $user->is_standby ? 'Siaga' : 'Nonaktif',
+            'kabupaten'       => $user->city?->name ?? '-',
+            'kecamatan'       => $user->district?->name ?? '-',
+            'desa'            => $user->village?->name ?? '-',
             'address'         => $user->address ?? 'Tidak ada detail alamat.',
-            // Format tanggal menggunakan Carbon (contoh: 12 Agustus 2023)
             'join_date'       => Carbon::parse($user->created_at)->translatedFormat('d F Y'),
             'avatar'          => $user->avatar ? asset('storage/' . $user->avatar) : null,
-            // Asumsi: jika belum ada tabel/kolom keahlian, kita set default array
-            'skills'          => $user->skills ?? ['Siaga Darurat', 'Bantuan Umum'],
-            // Asumsi: menghitung jumlah laporan/kasus yang pernah ditangani relawan ini
-            'reports_handled' => $user->reports()->count() ?? 0, 
+            'skills'          => $user->skills ?? [],
+            'reports_handled' => $user->reports()->count(),
         ];
 
         return Inertia::render('Volunteers/Show', [
-            'volunteer' => $volunteer
+            'volunteer' => $volunteer,
         ]);
+    }
+
+    /**
+     * Rangkai data kartu relawan untuk daftar.
+     */
+    private function transformList(User $user): array
+    {
+        $area = $user->district?->name && $user->city?->name
+            ? "Kec. {$user->district->name}, {$user->city->name}"
+            : ($user->city?->name ?? $user->address ?? 'Lokasi tidak diketahui');
+
+        return [
+            'id'     => $user->id,
+            'name'   => $user->name,
+            'area'   => $area,
+            'skills' => $user->skills ?? [],
+            'avatar' => $user->avatar ? asset('storage/' . $user->avatar) : null,
+            'status' => $user->is_standby ? 'Siaga' : 'Nonaktif',
+        ];
+    }
+
+    /**
+     * Opsi dropdown wilayah, dibatasi hanya wilayah yang benar-benar dihuni
+     * relawan agar filter tidak menampilkan ribuan wilayah kosong.
+     */
+    private function regionFilterOptions(): array
+    {
+        $relawan = User::query()
+            ->isAdmin()
+            ->whereHas('roles', fn ($q) => $q->where('name', 'relawan'));
+
+        $cityCodes = (clone $relawan)->whereNotNull('city_code')->distinct()->pluck('city_code');
+        $districtCodes = (clone $relawan)->whereNotNull('district_code')->distinct()->pluck('district_code');
+        $villageCodes = (clone $relawan)->whereNotNull('village_code')->distinct()->pluck('village_code');
+
+        return [
+            'kabupaten' => City::whereIn('code', $cityCodes)->orderBy('name')->get(['code', 'name'])
+                ->map(fn ($r) => ['value' => $r->code, 'label' => $r->name])->all(),
+            'kecamatan' => District::whereIn('code', $districtCodes)->orderBy('name')->get(['code', 'name'])
+                ->map(fn ($r) => ['value' => $r->code, 'label' => $r->name])->all(),
+            'desa' => Village::whereIn('code', $villageCodes)->orderBy('name')->get(['code', 'name'])
+                ->map(fn ($r) => ['value' => $r->code, 'label' => $r->name])->all(),
+        ];
     }
 }

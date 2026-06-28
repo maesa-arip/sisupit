@@ -1,12 +1,12 @@
 import NavLink from '@/Components/NavLink';
 import {
-    IconBuilding,
     IconClipboardPlus,
     IconDashboard,
     IconLogin2,
     IconLogout,
     IconUser,
     IconDroplet,
+    IconEngine,
     IconFiretruck,
     IconUsersGroup,
     IconMapPin,
@@ -19,7 +19,6 @@ import {
     IconShieldLock,
     IconKey,
     IconLockAccess,
-    IconUserShield,
     IconRoute
 } from '@tabler/icons-react';
 
@@ -37,10 +36,12 @@ export default function Sidebar({ url, auth }) {
     // agar petugas tidak melihat link yang berujung 403.
     const isAdminOrSuperadmin = userRoles.includes('admin') || userRoles.includes('superadmin');
     const isSuperadmin = userRoles.includes('superadmin');
+    // Daftar relawan = Pusat Komando saja (petugas/admin/superadmin), selaras gating route.
+    const isStaff = userRoles.includes('petugas') || isAdminOrSuperadmin;
 
     // Komponen Header Seksi Menu (Tipografi Taktis/Militeristik)
     const NavHeading = ({ children }) => (
-        <div className="px-3 py-2 mt-6 mb-1 text-[10px] font-black tracking-widest text-muted-foreground uppercase first:mt-2">
+        <div className="px-3 py-2 mt-6 mb-1 text-[11px] font-black tracking-widest text-muted-foreground uppercase first:mt-2">
             {children}
         </div>
     );
@@ -49,17 +50,17 @@ export default function Sidebar({ url, auth }) {
         <nav className="flex flex-col items-start w-full gap-0.5 px-3 pb-24 overflow-y-auto no-scrollbar text-sm lg:px-4">
             
             {/* --- SEKSI UTAMA --- */}
-            <NavHeading>Pusat Komando</NavHeading>
+            <NavHeading>Menu Utama</NavHeading>
             <NavLink
                 url={route('dashboard')}
-                active={url.startsWith('/dashboard') || url === '/home'}
-                title="Beranda Dashboard"
+                active={url.startsWith('/dashboard')}
+                title="Beranda"
                 icon={IconDashboard}
             />
             <NavLink
                 url={"/"}
                 active={url === '/'}
-                title="Spotlight"
+                title="Pusat Bantuan"
                 icon={IconMapPin}
             />
 
@@ -106,12 +107,14 @@ export default function Sidebar({ url, auth }) {
                 title="Lokasi Hydrant"
                 icon={IconFireHydrant}
             />
-            <NavLink
-                url={route('front.volunteers.index')}
-                active={url.startsWith('/relawan')}
-                title="Daftar Relawan"
-                icon={IconHeartHandshake}
-            />
+            {isStaff && (
+                <NavLink
+                    url={route('front.volunteers.index')}
+                    active={url.startsWith('/relawan')}
+                    title="Daftar Relawan"
+                    icon={IconHeartHandshake}
+                />
+            )}
 
             {/* --- SEKSI ADMINISTRASI (KHUSUS ADMIN/SUPERADMIN) --- */}
             {isAdminOrSuperadmin && (
@@ -135,53 +138,61 @@ export default function Sidebar({ url, auth }) {
                     <NavLink
                         url={route('admin.hydrants.index')}
                         active={url.startsWith('/admin/facilities') || url.startsWith('/admin/hydrants')}
-                        title="Manajemen Fasilitas"
-                        icon={IconBuilding}
+                        title="Manajemen Hydrant"
+                        icon={IconFireHydrant}
+                    />
+
+                    <NavLink
+                        url={route('admin.pumps.index')}
+                        active={url.startsWith('/admin/pumps')}
+                        title="Manajemen Pompa"
+                        icon={IconEngine}
+                    />
+
+                    <NavLink
+                        url={route('admin.fire-stations.index')}
+                        active={url.startsWith('/admin/fire-stations')}
+                        title="Manajemen Pos Pemadam"
+                        icon={IconFiretruck}
                     />
                     
-                    <NavLink
-                        url={route('admin.announcements.index')}
-                        active={url.startsWith('/admin/announcements')}
-                        title="Pengumuman Sistem"
-                        icon={IconSpeakerphone}
-                    />
-
-                    {/* --- KONTROL AKSES (RBAC) — admin|superadmin, sesuai gating route admin.php --- */}
-                    <NavHeading>Kontrol Akses</NavHeading>
-
-                    <NavLink
-                        url={route('admin.roles.index')}
-                        active={url.startsWith('/admin/roles')}
-                        title="Manajemen Role"
-                        icon={IconShieldLock}
-                    />
-                    <NavLink
-                        url={route('admin.permissions.index')}
-                        active={url.startsWith('/admin/permissions')}
-                        title="Hak Akses"
-                        icon={IconKey}
-                    />
-                    <NavLink
-                        url={route('admin.assign-permissions.index')}
-                        active={url.startsWith('/admin/assign-permissions')}
-                        title="Assign Hak Akses"
-                        icon={IconLockAccess}
-                    />
-                    <NavLink
-                        url={route('admin.assign-users.index')}
-                        active={url.startsWith('/admin/assign-users')}
-                        title="Assign Pengguna"
-                        icon={IconUserShield}
-                    />
-                    <NavLink
-                        url={route('admin.route-accesses.index')}
-                        active={url.startsWith('/admin/route-accesses')}
-                        title="Akses Route"
-                        icon={IconRoute}
-                    />
-
+                    {/* Pengumuman global + RBAC + Sistem = lintas-tenant, superadmin saja
+                        (sesuai gating route admin.php). Admin wilayah tak melihat menu ini. */}
                     {isSuperadmin && (
                         <>
+                            <NavLink
+                                url={route('admin.announcements.index')}
+                                active={url.startsWith('/admin/announcements')}
+                                title="Pengumuman Sistem"
+                                icon={IconSpeakerphone}
+                            />
+
+                            <NavHeading>Kontrol Akses</NavHeading>
+                            <NavLink
+                                url={route('admin.roles.index')}
+                                active={url.startsWith('/admin/roles')}
+                                title="Manajemen Role"
+                                icon={IconShieldLock}
+                            />
+                            <NavLink
+                                url={route('admin.permissions.index')}
+                                active={url.startsWith('/admin/permissions')}
+                                title="Hak Akses"
+                                icon={IconKey}
+                            />
+                            <NavLink
+                                url={route('admin.assign-permissions.index')}
+                                active={url.startsWith('/admin/assign-permissions')}
+                                title="Assign Hak Akses"
+                                icon={IconLockAccess}
+                            />
+                            <NavLink
+                                url={route('admin.route-accesses.index')}
+                                active={url.startsWith('/admin/route-accesses')}
+                                title="Akses Route"
+                                icon={IconRoute}
+                            />
+
                             <NavHeading>Sistem</NavHeading>
                             <NavLink
                                 url={route('admin.settings.edit')}

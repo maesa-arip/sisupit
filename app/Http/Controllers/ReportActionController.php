@@ -10,7 +10,9 @@ use App\Models\User; // <-- Wajib ditambahkan
 use Illuminate\Http\Request;
 use App\Events\ResponderLocationUpdated;
 use App\Events\IncidentLocationCorrected;
+use App\Events\ReportStatusChanged;
 use App\Notifications\EmergencyAlertNotification;
+use App\Notifications\ReportStatusUpdatedNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 
@@ -30,6 +32,12 @@ class ReportActionController extends Controller
         }
 
         $report = Report::withoutGlobalScopes()->findOrFail($id);
+
+        // Hanya laporan mentah (TERLAPOR) yang divalidasi; cegah approve ganda / atas
+        // laporan yang sudah diproses atau ditolak.
+        if ($report->status !== 'TERLAPOR') {
+            abort(403, 'Laporan ini sudah diproses.');
+        }
 
         DB::transaction(function () use ($report) {
             $report->update(['status' => 'pending']);
@@ -55,7 +63,43 @@ class ReportActionController extends Controller
             }
         });
 
+        // Loop-balik ke pelapor: laporannya sudah divalidasi.
+        $this->notifyReporter($report, 'approved');
+        broadcast(new ReportStatusChanged($report->id, 'pending'));
+
         return back()->with('success', 'Laporan berhasil divalidasi dan disiarkan ke lapangan!');
+    }
+
+    // 1b. Saat Pusat Komando menolak laporan (hoax / tidak valid)
+    // Tolak = set status 'ditolak' + simpan alasan (arsip), BUKAN hapus. Laporan tetap
+    // bisa ditelusuri staff & terlihat di riwayat pemilik. Endpoint hapus-milik-sendiri
+    // (ReportController::destroy) sengaja dipisah dari sini.
+    public function reject(Request $request, $id)
+    {
+        if (!auth()->user()->hasAnyRole(['petugas', 'admin', 'superadmin'])) {
+            abort(403, 'Akses Ditolak.');
+        }
+
+        $request->validate([
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        $report = Report::withoutGlobalScopes()->findOrFail($id);
+
+        // Insiden yang sudah selesai tidak bisa ditolak.
+        if ($report->status === 'resolved') {
+            abort(403, 'Insiden yang sudah selesai tidak dapat ditolak.');
+        }
+
+        $report->update([
+            'status' => 'ditolak',
+            'rejected_reason' => $request->reason,
+            'rejected_at' => now(),
+        ]);
+
+        broadcast(new ReportStatusChanged($report->id, 'ditolak', $request->reason));
+
+        return back()->with('success', 'Laporan ditandai ditolak dan diarsipkan.');
     }
 
     // 2. Saat Relawan / Petugas merespons panggilan (Tombol "Meluncur")
@@ -67,12 +111,23 @@ class ReportActionController extends Controller
         }
 
         $report = Report::withoutGlobalScopes()->findOrFail($id);
+        $this->ensureWithinJurisdiction($report, $user);
+
+        // Tak bisa merespons insiden yang sudah ditutup/ditolak.
+        if (in_array($report->status, ['resolved', 'ditolak'], true)) {
+            abort(403, 'Insiden ini sudah ditutup.');
+        }
+
         $isPetugas = $user->hasRole('petugas');
 
         $table = $isPetugas ? 'report_officers' : 'report_helpers';
         $timeColumn = $isPetugas ? 'dispatched_at' : 'started_at';
 
-        DB::transaction(function () use ($report, $user, $table, $timeColumn) {
+        // Apakah transisi pending -> handling benar terjadi pada panggilan ini (responder
+        // pertama). Dipakai agar notifikasi ke pelapor TIDAK spam tiap responder bergabung.
+        $becameHandling = false;
+
+        DB::transaction(function () use ($report, $user, $table, $timeColumn, &$becameHandling) {
             // Mencegah Double Insert
             $exists = DB::table($table)->where('report_id', $report->id)->where('user_id', $user->id)->lockForUpdate()->exists();
 
@@ -89,11 +144,60 @@ class ReportActionController extends Controller
                 // Jika status masih pending, ubah jadi handling (sedang ditangani)
                 if ($report->status === 'pending') {
                     $report->update(['status' => 'handling']);
+                    $becameHandling = true;
                 }
             }
         });
 
+        // Loop-balik ke pelapor hanya saat responder PERTAMA meluncur (pending -> handling).
+        if ($becameHandling) {
+            $this->notifyReporter($report, 'en_route');
+            broadcast(new ReportStatusChanged($report->id, 'handling'));
+        }
+
         return back()->with('success', 'Berhasil merespons! Harap segera menuju lokasi.');
+    }
+
+    // 2b. Saat Relawan/Petugas membatalkan keberangkatan (Tombol "Batal Meluncur")
+    // Hanya boleh saat masih 'en_route' (belum tiba). Menghapus baris responder agar
+    // GPS-nya berhenti & ia hilang dari manifes. Bila responder aktif terakhir mundur,
+    // status laporan dikembalikan handling -> pending (FINDINGS #27).
+    public function cancelResponse($id)
+    {
+        $user = auth()->user();
+        if (!$user->hasAnyRole(['petugas', 'relawan'])) {
+            abort(403, 'Akses Ditolak.');
+        }
+
+        $report = Report::withoutGlobalScopes()->findOrFail($id);
+        $table = $user->hasRole('petugas') ? 'report_officers' : 'report_helpers';
+
+        $record = DB::table($table)->where('report_id', $report->id)->where('user_id', $user->id)->first();
+        if (!$record || $record->status !== 'en_route') {
+            abort(403, 'Hanya penugasan yang masih "Meluncur" yang bisa dibatalkan.');
+        }
+
+        $reverted = false;
+
+        DB::transaction(function () use ($report, $user, $table, &$reverted) {
+            DB::table($table)->where('report_id', $report->id)->where('user_id', $user->id)->delete();
+
+            // Bila tak ada lagi responder aktif (en_route/arrived) di insiden ini, kembalikan
+            // status handling -> pending agar dashboard menandainya butuh respons lagi.
+            $stillActive = DB::table('report_officers')->where('report_id', $report->id)->whereIn('status', ['en_route', 'arrived'])->exists()
+                || DB::table('report_helpers')->where('report_id', $report->id)->whereIn('status', ['en_route', 'arrived'])->exists();
+
+            if (!$stillActive && $report->status === 'handling') {
+                $report->update(['status' => 'pending']);
+                $reverted = true;
+            }
+        });
+
+        if ($reverted) {
+            broadcast(new ReportStatusChanged($report->id, 'pending'));
+        }
+
+        return back()->with('success', 'Keberangkatan dibatalkan.');
     }
 
     // 3. Saat Relawan/Petugas Tiba di Lokasi
@@ -105,7 +209,18 @@ class ReportActionController extends Controller
         }
 
         $report = Report::withoutGlobalScopes()->findOrFail($id);
+        $this->ensureWithinJurisdiction($report, $user);
+
+        if (in_array($report->status, ['resolved', 'ditolak'], true)) {
+            abort(403, 'Insiden ini sudah ditutup.');
+        }
+
         $table = $user->hasRole('petugas') ? 'report_officers' : 'report_helpers';
+
+        // Apakah ini kedatangan PERTAMA di insiden ini (di kedua tabel responder)? Dicek
+        // sebelum update agar notifikasi "responder tiba" ke pelapor hanya sekali.
+        $isFirstArrival = !DB::table('report_officers')->where('report_id', $report->id)->where('status', 'arrived')->exists()
+            && !DB::table('report_helpers')->where('report_id', $report->id)->where('status', 'arrived')->exists();
 
         DB::table($table)
             ->where('report_id', $report->id)
@@ -115,6 +230,10 @@ class ReportActionController extends Controller
                 'arrived_at' => now(),
                 'updated_at' => now()
             ]);
+
+        if ($isFirstArrival) {
+            $this->notifyReporter($report, 'arrived');
+        }
 
         return back()->with('success', 'Status Anda berhasil diupdate menjadi Tiba.');
     }
@@ -136,6 +255,10 @@ class ReportActionController extends Controller
             DB::table('report_officers')->where('report_id', $report->id)->update(['status' => 'finished', 'finished_at' => now()]);
             DB::table('report_helpers')->where('report_id', $report->id)->update(['status' => 'finished', 'finished_at' => now()]);
         });
+
+        // Loop-balik ke pelapor: insiden ditutup.
+        $this->notifyReporter($report, 'resolved');
+        broadcast(new ReportStatusChanged($report->id, 'resolved'));
 
         return back()->with('success', 'Insiden Selesai Ditangani.');
     }
@@ -241,5 +364,45 @@ class ReportActionController extends Controller
         broadcast(new IncidentLocationCorrected($report->id, $request->lat, $request->lng, $report->address));
 
         return back()->with('success', 'Titik lokasi insiden berhasil dikoreksi.');
+    }
+
+    /**
+     * Pastikan responder (relawan/petugas) hanya bisa merespons insiden DI WILAYAH
+     * penugasannya. Report di-fetch withoutGlobalScopes (bisa dicari lewat ID lintas
+     * tenant), jadi batas wilayah harus dicek manual di sini (ATURAN EMAS #7) — selaras
+     * dengan siapa yang disiarkan saat approve & dengan scope feed dashboard (FINDINGS #26).
+     * Superadmin & user tanpa kode wilayah (admin nasional) tidak dibatasi, mengikuti pola
+     * Tenantable/scopeIsAdmin.
+     */
+    private function ensureWithinJurisdiction(Report $report, $user): void
+    {
+        if ($user->hasRole('superadmin')) {
+            return;
+        }
+
+        $levelCode = $user->village_code ?? $user->district_code ?? $user->city_code ?? $user->province_code;
+        if (!$levelCode) {
+            return;
+        }
+
+        $column = $user->village_code ? 'village_code'
+            : ($user->district_code ? 'district_code'
+            : ($user->city_code ? 'city_code' : 'province_code'));
+
+        if ($report->$column !== $levelCode) {
+            abort(403, 'Insiden ini di luar wilayah penugasan Anda.');
+        }
+    }
+
+    /**
+     * Kirim notifikasi balik ke PELAPOR (FCM + lonceng web) saat status laporannya berubah.
+     * Lewati jika laporan tak punya pelapor (data lama) atau bila aktornya adalah pelapor
+     * itu sendiri (mis. petugas yang melapor lalu memproses sendiri — hindari notif ke diri).
+     */
+    private function notifyReporter(Report $report, string $event): void
+    {
+        if ($report->user && $report->user_id !== auth()->id()) {
+            $report->user->notify(new ReportStatusUpdatedNotification($report, $event));
+        }
     }
 }

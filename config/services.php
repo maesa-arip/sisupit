@@ -53,4 +53,11 @@ return [
         'user_agent' => env('NOMINATIM_USER_AGENT', 'SISUPIT-Damkar/1.0 (admin@sisupit.test)'),
     ],
 
+    'osrm' => [
+        // Engine routing (rute mengikuti jalan). Default: server demo OSRM publik.
+        // Ganti ke instance self-hosted (mis. http://<vps-ip>:5000) untuk produksi - lihat docker/nominatim/ untuk pola serupa.
+        'base_url' => env('OSRM_BASE_URL', 'https://router.project-osrm.org'),
+        'user_agent' => env('OSRM_USER_AGENT', 'SISUPIT-Damkar/1.0 (admin@sisupit.test)'),
+    ],
+
 ];

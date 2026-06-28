@@ -3,7 +3,8 @@ import { Head, Link, router } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Textarea } from '@/Components/ui/textarea';
+import { Dialog, DialogContent } from '@/Components/ui/dialog';
 import { 
     IconMapPin, IconPhone, IconUser,
     IconFiretruck, IconUsersGroup, IconChevronLeft,
@@ -16,6 +17,40 @@ import { cn, GEO_OPTIONS } from '@/lib/utils';
 import { toast } from 'sonner';
 import axios from 'axios';
 
+// Ambil ulang rute jalan hanya saat responder bergeser lebih dari ambang ini (meter),
+// supaya pergerakan kecil tidak terus-menerus memanggil OSRM.
+const ROUTE_REFETCH_METERS = 30;
+
+// Jarak haversine kasar (meter) antara dua titik koordinat.
+function distanceMeters(lat1, lng1, lat2, lng2) {
+    const R = 6371000;
+    const toRad = (d) => (d * Math.PI) / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLng = toRad(lng2 - lng1);
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+// Gerakkan marker Leaflet secara halus dari posisi sekarang ke posisi baru (interpolasi),
+// supaya pergerakan responden "maju" mulus alih-alih melompat tiap update dari database.
+// Lompatan jauh (mis. data awal saat halaman dibuka) langsung diset tanpa animasi.
+function animateMarkerTo(marker, to, duration = 1500) {
+    if (marker._moveRaf) cancelAnimationFrame(marker._moveRaf);
+    const from = marker.getLatLng();
+    if (distanceMeters(from.lat, from.lng, to[0], to[1]) > 1500) {
+        marker.setLatLng(to);
+        return;
+    }
+    const start = performance.now();
+    const tick = (now) => {
+        const t = Math.min(1, (now - start) / duration);
+        const e = t * (2 - t); // easeOutQuad
+        marker.setLatLng([from.lat + (to[0] - from.lat) * e, from.lng + (to[1] - from.lng) * e]);
+        if (t < 1) marker._moveRaf = requestAnimationFrame(tick);
+    };
+    marker._moveRaf = requestAnimationFrame(tick);
+}
+
 export default function ReportShow(props) {
     const auth = props.auth;
     const report = props.report;
@@ -24,17 +59,29 @@ export default function ReportShow(props) {
     const mapInstance = useRef(null);
     const markersRef = useRef({});
     const incidentMarkerRef = useRef(null);
-    const trailLinesRef = useRef({});
-    const headingLinesRef = useRef({});
+    // Garis rute jalan asli (mengikuti jalan via OSRM) dari posisi responder ke titik insiden
+    const routeLinesRef = useRef({});
+    // Cache rute per responder: { originLat, originLng, incLat, incLng, coords } agar tidak
+    // memanggil OSRM tiap redraw / pergerakan kecil
+    const routeCacheRef = useRef({});
+    // Pas-kan batas peta hanya sekali di awal supaya tidak melompat tiap update posisi
+    const hasFitRef = useRef(false);
 
     const [officerList, setOfficerList] = useState(report.officers || []);
     const [helperList, setHelperList] = useState(report.helpers || []);
-    // Jejak GPS yang sudah ditempuh tiap responder aktif (dari tracking_logs), keyed by user_id
-    const [trails, setTrails] = useState(() => props.trails || {});
-    const [showImageModal, setShowImageModal] = useState(false);
+    // Status & alasan tolak disimpan di state agar bisa update real-time via broadcast
+    // ReportStatusChanged (FINDINGS #28) tanpa refresh halaman.
+    const [reportStatus, setReportStatus] = useState(report.status);
+    const [rejectedReason, setRejectedReason] = useState(report.rejected_reason);
+    // Galeri foto (FINDINGS #17): pakai relasi photos bila ada, fallback ke kolom `photo` lama.
+    const photos = (report.photos && report.photos.length > 0)
+        ? report.photos.map((p) => p.path)
+        : (report.photo ? [report.photo] : []);
+    const [modalPhoto, setModalPhoto] = useState(null);
 
     const [confirmApprove, setConfirmApprove] = useState(false);
     const [confirmReject, setConfirmReject] = useState(false);
+    const [rejectReason, setRejectReason] = useState('');
     const [confirmResolve, setConfirmResolve] = useState(false);
 
     const [isProcessing, setIsProcessing] = useState(false);
@@ -53,11 +100,9 @@ export default function ReportShow(props) {
     useEffect(() => {
         setOfficerList(props.report.officers || []);
         setHelperList(props.report.helpers || []);
+        setReportStatus(props.report.status);
+        setRejectedReason(props.report.rejected_reason);
     }, [props.report]);
-
-    useEffect(() => {
-        setTrails(props.trails || {});
-    }, [props.trails]);
 
     const myOfficerRecord = officerList.find(o => o.user_id === auth.user.id);
     const myHelperRecord = helperList.find(h => h.user_id === auth.user.id);
@@ -73,6 +118,7 @@ export default function ReportShow(props) {
             case 'pending': return { label: 'Menunggu Bantuan', color: 'bg-amber-50 dark:bg-warning/10 text-amber-700 dark:text-warning border-amber-200 dark:border-warning/20' };
             case 'handling': return { label: 'Dalam Penanganan', color: 'bg-blue-50 dark:bg-info/10 text-blue-700 dark:text-info border-blue-200 dark:border-info/20' };
             case 'resolved': return { label: 'Selesai', color: 'bg-emerald-50 dark:bg-success/10 text-emerald-700 dark:text-success border-emerald-200 dark:border-success/20' };
+            case 'ditolak': return { label: 'Ditolak', color: 'bg-muted text-muted-foreground border-border' };
             default: return { label: status, color: 'bg-muted text-muted-foreground border-border' };
         }
     };
@@ -86,7 +132,7 @@ export default function ReportShow(props) {
         }
     };
 
-    const currentStatus = getReportStatus(report.status);
+    const currentStatus = getReportStatus(reportStatus);
 
     // -----------------------------------------------------------------
     // AKSI OPERASIONAL
@@ -100,8 +146,10 @@ export default function ReportShow(props) {
 
     const executeReject = () => {
         setIsProcessing(true);
-        router.post(route('reports.destroy', report.id), { _method: 'DELETE' }, { 
-            onSuccess: () => { setConfirmReject(false); toast.error('Laporan diarsipkan.'); }, onFinish: () => setIsProcessing(false)
+        router.post(route('reports.reject', report.id), { reason: rejectReason }, {
+            preserveScroll: true,
+            onSuccess: () => { setConfirmReject(false); setRejectReason(''); toast.success('Laporan ditolak & diarsipkan.'); },
+            onFinish: () => setIsProcessing(false)
         });
     };
 
@@ -114,8 +162,18 @@ export default function ReportShow(props) {
 
     const handleArrive = () => {
         setIsActionLoading(true);
-        router.post(route('reports.arrive', report.id), {}, { 
+        router.post(route('reports.arrive', report.id), {}, {
             preserveScroll: true, onSuccess: () => toast.success('Status diperbarui: Tiba di lokasi.'), onFinish: () => setIsActionLoading(false)
+        });
+    };
+
+    const handleCancelResponse = () => {
+        setIsActionLoading(true);
+        router.post(route('reports.cancel-response', report.id), {}, {
+            preserveScroll: true,
+            onSuccess: () => toast.success('Keberangkatan dibatalkan.'),
+            onError: () => toast.error('Gagal membatalkan keberangkatan.'),
+            onFinish: () => setIsActionLoading(false)
         });
     };
 
@@ -178,7 +236,7 @@ export default function ReportShow(props) {
         const boundsGroup = [];
 
         const dangerIcon = window.L.divIcon({
-            html: `<div class="text-destructive ${report.status !== 'resolved' ? 'animate-pulse' : ''}"><svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7.58 2 4 5.58 4 10c0 4.42 8 12 8 12s8-7.58 8-12c0-4.42-3.58-8-8-8zm0 11c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/></svg></div>`,
+            html: `<div class="text-destructive ${reportStatus !== 'resolved' ? 'animate-pulse' : ''}"><svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7.58 2 4 5.58 4 10c0 4.42 8 12 8 12s8-7.58 8-12c0-4.42-3.58-8-8-8zm0 11c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/></svg></div>`,
             className: 'bg-transparent border-none', iconSize: [36, 36], iconAnchor: [16, 36],
         });
 
@@ -197,7 +255,13 @@ export default function ReportShow(props) {
             const lat = parseFloat(latStr);
             const lng = parseFloat(lngStr);
             if (isNaN(lat) || isNaN(lng)) return null;
-            if (markersRef.current[userId]) markersRef.current[userId].remove();
+
+            // Pakai ulang marker yang sudah ada → animasikan ke posisi baru (mulus, tidak melompat)
+            const existing = markersRef.current[userId];
+            if (existing) {
+                animateMarkerTo(existing, [lat, lng]);
+                return existing;
+            }
 
             const iconEmoji = type === 'petugas' ? '🚒' : '🏃‍♂️';
             const iconColor = type === 'petugas' ? 'bg-destructive text-destructive-foreground' : 'bg-blue-600 dark:bg-info text-white dark:text-info-foreground';
@@ -206,75 +270,100 @@ export default function ReportShow(props) {
             const marker = window.L.marker([lat, lng], {
                 icon: window.L.divIcon({ html: htmlMarkup, className: 'bg-transparent border-none', iconSize: [28, 28], iconAnchor: [14, 14] })
             }).addTo(map).bindPopup(`<div class="text-xs font-bold">${name}</div>`);
-            
+
             markersRef.current[userId] = marker;
             return marker;
         };
 
-        // Bersihkan garis lama agar tidak menumpuk tiap redraw
-        Object.values(trailLinesRef.current).forEach(l => l.remove());
-        Object.values(headingLinesRef.current).forEach(l => l.remove());
-        trailLinesRef.current = {};
-        headingLinesRef.current = {};
+        // Bersihkan garis rute lama agar tidak menumpuk tiap redraw. Cache rute (routeCacheRef)
+        // sengaja TIDAK dibersihkan agar rute jalan bisa digambar ulang instan dari cache
+        // tanpa memanggil OSRM tiap redraw.
+        Object.values(routeLinesRef.current).forEach(l => l.remove());
+        routeLinesRef.current = {};
 
         const incLat = parseFloat(incidentLocation.lat);
         const incLng = parseFloat(incidentLocation.lng);
 
-        // Garis jejak yang sudah ditempuh + garis arah ke titik insiden, untuk responder aktif
-        const drawResponderTrail = (userId, type, status, curLatStr, curLngStr) => {
-            if (status === 'finished') return;
-            const color = type === 'petugas' ? '#dc2626' : '#2563eb';
-
-            const recorded = (trails[userId] || [])
-                .map(p => [parseFloat(p.lat), parseFloat(p.lng)])
-                .filter(([la, ln]) => !isNaN(la) && !isNaN(ln));
-
-            const curLat = parseFloat(curLatStr);
-            const curLng = parseFloat(curLngStr);
-            const hasCur = !isNaN(curLat) && !isNaN(curLng);
-
-            const path = [...recorded];
-            const last = path[path.length - 1];
-            if (hasCur && (!last || last[0] !== curLat || last[1] !== curLng)) path.push([curLat, curLng]);
-
-            if (path.length >= 2) {
-                trailLinesRef.current[userId] = window.L.polyline(path, { color, weight: 3, opacity: 0.85 }).addTo(map);
-            }
-
-            // Garis putus-putus posisi terkini → titik insiden (arah "menuju lokasi"),
-            // hanya selama responder masih meluncur & insiden belum selesai
-            if (hasCur && status === 'en_route' && report.status !== 'resolved' && !isNaN(incLat) && !isNaN(incLng)) {
-                headingLinesRef.current[userId] = window.L.polyline([[curLat, curLng], [incLat, incLng]], {
-                    color, weight: 2, opacity: 0.5, dashArray: '6 8'
+        // Gambar garis rute jalan asli (mengikuti jalan via proxy OSRM) dari posisi terkini
+        // responder ke titik insiden. Dipakai cache + ambang pergerakan agar tidak memanggil
+        // OSRM tiap redraw/gerakan kecil; bila routing gagal fallback ke garis lurus.
+        const drawRouteLine = (userId, color, curLat, curLng) => {
+            const paint = (coords) => {
+                if (!coords || coords.length < 2 || !mapInstance.current) return;
+                if (routeLinesRef.current[userId]) routeLinesRef.current[userId].remove();
+                routeLinesRef.current[userId] = window.L.polyline(coords, {
+                    color, weight: 4, opacity: 0.75, lineJoin: 'round', lineCap: 'round'
                 }).addTo(map);
-            }
+            };
+
+            const cache = routeCacheRef.current[userId];
+            const fresh = cache && cache.incLat === incLat && cache.incLng === incLng
+                && distanceMeters(cache.originLat, cache.originLng, curLat, curLng) <= ROUTE_REFETCH_METERS;
+
+            // Selalu gambar dari cache dulu (instan) supaya garis tidak hilang saat redraw
+            if (cache?.coords) paint(cache.coords);
+            if (fresh) return;
+
+            axios.get(route('api.route.directions'), {
+                params: { from_lat: curLat, from_lng: curLng, to_lat: incLat, to_lng: incLng },
+            }).then((res) => {
+                const coords = res.data?.route;
+                const finalCoords = (coords && coords.length >= 2) ? coords : [[curLat, curLng], [incLat, incLng]];
+                routeCacheRef.current[userId] = { originLat: curLat, originLng: curLng, incLat, incLng, coords: finalCoords };
+                paint(finalCoords);
+            }).catch(() => {
+                const straight = [[curLat, curLng], [incLat, incLng]];
+                routeCacheRef.current[userId] = { originLat: curLat, originLng: curLng, incLat, incLng, coords: straight };
+                paint(straight);
+            });
         };
 
-        officerList.forEach(o => { const m = renderMarker(o.user_id, o.user?.name, 'petugas', o.location_lat, o.location_lng); if (m) boundsGroup.push(m); drawResponderTrail(o.user_id, 'petugas', o.status, o.location_lat, o.location_lng); });
-        helperList.forEach(h => { const m = renderMarker(h.user_id, h.user?.name, 'relawan', h.location_lat, h.location_lng); if (m) boundsGroup.push(m); drawResponderTrail(h.user_id, 'relawan', h.status, h.location_lat, h.location_lng); });
+        // Hanya gambar rute jalan DI DEPAN (posisi sekarang → titik insiden) untuk responder
+        // yang masih meluncur. Jejak yang sudah dilalui sengaja tidak digambar agar peta bersih.
+        const drawResponderRoute = (userId, type, status, curLatStr, curLngStr) => {
+            if (status !== 'en_route' || reportStatus === 'resolved') return;
+            const curLat = parseFloat(curLatStr);
+            const curLng = parseFloat(curLngStr);
+            if (isNaN(curLat) || isNaN(curLng) || isNaN(incLat) || isNaN(incLng)) return;
+            const color = type === 'petugas' ? '#dc2626' : '#2563eb';
+            drawRouteLine(userId, color, curLat, curLng);
+        };
 
-        if (boundsGroup.length > 0) map.fitBounds(new window.L.featureGroup(boundsGroup).getBounds().pad(0.3));
+        officerList.forEach(o => { const m = renderMarker(o.user_id, o.user?.name, 'petugas', o.location_lat, o.location_lng); if (m) boundsGroup.push(m); drawResponderRoute(o.user_id, 'petugas', o.status, o.location_lat, o.location_lng); });
+        helperList.forEach(h => { const m = renderMarker(h.user_id, h.user?.name, 'relawan', h.location_lat, h.location_lng); if (m) boundsGroup.push(m); drawResponderRoute(h.user_id, 'relawan', h.status, h.location_lat, h.location_lng); });
+
+        // Pas-kan batas peta sekali saja di awal (saat sudah ada marker) supaya tidak melompat
+        // tiap update posisi — pengguna bebas menggeser/zoom setelahnya.
+        if (!hasFitRef.current && boundsGroup.length > 0) {
+            map.fitBounds(new window.L.featureGroup(boundsGroup).getBounds().pad(0.3));
+            hasFitRef.current = true;
+        }
 
         let channel = null;
         if (window.Echo) {
             channel = window.Echo.private(`report-tracking.${report.id}`);
             channel.listen('ResponderLocationUpdated', (e) => {
-                const { responderId, responderType, responderName, lat, lng } = e;
+                const { responderId, responderType, lat, lng } = e;
+                // Cukup update state posisi; effect akan menjalankan ulang & menganimasikan marker
+                // mulus ke posisi baru serta memperbarui rute jalan di depan.
                 if (responderType === 'petugas') {
                     setOfficerList(prev => prev.map(o => o.user_id === responderId ? { ...o, location_lat: lat, location_lng: lng } : o));
                 } else {
                     setHelperList(prev => prev.map(h => h.user_id === responderId ? { ...h, location_lat: lat, location_lng: lng } : h));
                 }
-                // Tambahkan titik baru ke jejak yang sudah ditempuh agar garis rute ikut tumbuh
-                setTrails(prev => ({ ...prev, [responderId]: [...(prev[responderId] || []), { lat, lng }] }));
-                renderMarker(responderId, responderName, responderType, lat, lng);
             });
             channel.listen('IncidentLocationCorrected', (e) => {
                 setIncidentLocation({ lat: e.lat, lng: e.lng, address: e.address });
             });
+            // Status laporan berubah dari sisi lain (approve/reject/handling/resolve) —
+            // perbarui badge, panel aksi, dan banner tanpa perlu refresh.
+            channel.listen('ReportStatusChanged', (e) => {
+                setReportStatus(e.status);
+                setRejectedReason(e.rejectedReason ?? null);
+            });
         }
         return () => { if (channel) window.Echo.leave(`report-tracking.${report.id}`); };
-    }, [report.id, incidentLocation.lat, incidentLocation.lng, report.status, officerList, helperList, trails, isCorrectingMode]);
+    }, [report.id, incidentLocation.lat, incidentLocation.lng, reportStatus, officerList, helperList, isCorrectingMode]);
 
     return (
         <div className="flex flex-col w-full pb-32 mx-auto space-y-6 max-w-7xl">
@@ -296,7 +385,7 @@ export default function ReportShow(props) {
             </div>
 
             {/* --- 🛡️ PANEL VERIFIKASI --- */}
-            {report.status === 'TERLAPOR' && isStaffOrAdmin && (
+            {reportStatus === 'TERLAPOR' && isStaffOrAdmin && (
                 <Card className="border border-border bg-card rounded-xl shadow-none">
                     <CardContent className="flex flex-col items-start justify-between gap-4 p-4 sm:p-5 md:flex-row md:items-center">
                         <div className="flex items-start gap-3">
@@ -378,16 +467,22 @@ export default function ReportShow(props) {
                                 </p>
                             </div>
 
-                            {report.photo && (
+                            {photos.length > 0 && (
                                 <div className="pt-2 space-y-2">
-                                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Lampiran Foto:</label>
-                                    <div onClick={() => setShowImageModal(true)} className="relative border border-border rounded-lg overflow-hidden h-48 w-full max-w-sm bg-muted cursor-zoom-in group">
-                                        <img src={`/storage/${report.photo}`} onError={(e) => e.target.src = report.photo} className="object-cover w-full h-full transition-all duration-300" alt="Bukti" />
-                                        <div className="absolute inset-0 flex items-center justify-center transition-colors bg-black/5 group-hover:bg-black/40">
-                                            <span className="bg-card/95 text-foreground px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <IconZoomIn className="w-4 h-4" /> Perbesar
-                                            </span>
-                                        </div>
+                                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                                        Lampiran Foto {photos.length > 1 && `(${photos.length})`}:
+                                    </label>
+                                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                                        {photos.map((path, i) => (
+                                            <div key={i} onClick={() => setModalPhoto(path)} className="relative border border-border rounded-lg overflow-hidden h-32 w-full bg-muted cursor-zoom-in group">
+                                                <img src={`/storage/${path}`} onError={(e) => e.target.src = path} className="object-cover w-full h-full transition-all duration-300" alt={`Bukti ${i + 1}`} />
+                                                <div className="absolute inset-0 flex items-center justify-center transition-colors bg-black/5 group-hover:bg-black/40">
+                                                    <span className="bg-card/95 text-foreground px-2.5 py-1 rounded-md text-[11px] font-bold flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <IconZoomIn className="w-3.5 h-3.5" /> Perbesar
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             )}
@@ -396,7 +491,7 @@ export default function ReportShow(props) {
 
                     <Card className="overflow-hidden border border-border rounded-xl shadow-none h-[400px] relative">
                         <div className="absolute top-4 left-4 z-10 bg-card/95 px-3 py-1.5 rounded-lg border border-border flex items-center gap-2 text-xs font-bold text-foreground shadow-none">
-                            <IconRadar className={`w-4 h-4 text-destructive ${report.status !== 'resolved' ? 'animate-pulse' : ''}`} />
+                            <IconRadar className={`w-4 h-4 text-destructive ${reportStatus !== 'resolved' ? 'animate-pulse' : ''}`} />
                             PETA DISPATCHER KOMANDO
                         </div>
                         <div ref={mapRef} className="w-full h-full z-0 bg-muted"></div>
@@ -405,15 +500,33 @@ export default function ReportShow(props) {
 
                 {/* BLOK KANAN: MANIFEST & KONTROL */}
                 <div className="space-y-4">
-                    
-                    {report.status !== 'TERLAPOR' && (isRelawan || isStaffOrAdmin) && (
+
+                    {reportStatus === 'ditolak' && (
+                        <Card className="border border-border bg-card shadow-none rounded-xl">
+                            <CardContent className="p-4 space-y-2 sm:p-5">
+                                <h2 className="text-xs font-black tracking-widest text-muted-foreground uppercase flex items-center gap-1.5">
+                                    <IconX className="w-4 h-4" /> Laporan Ditolak
+                                </h2>
+                                <p className="text-xs leading-relaxed text-muted-foreground">
+                                    Laporan ini ditandai tidak valid/hoax oleh Pusat Komando dan diarsipkan.
+                                </p>
+                                {rejectedReason && (
+                                    <div className="p-3 mt-1 text-xs border rounded-lg bg-muted border-border text-foreground/80">
+                                        <span className="font-bold">Alasan: </span>{rejectedReason}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {reportStatus !== 'TERLAPOR' && reportStatus !== 'ditolak' && (isRelawan || isStaffOrAdmin) && (
                         <Card className="border border-border bg-card shadow-none rounded-xl">
                             <CardContent className="p-4 space-y-4 sm:p-5">
                                 <h2 className="text-xs font-black tracking-widest text-foreground uppercase flex items-center gap-1.5">
                                     <IconShieldCheck className="w-4 h-4 text-blue-600 dark:text-info" /> Panel Tindakan Anda
                                 </h2>
 
-                                {report.status === 'resolved' ? (
+                                {reportStatus === 'resolved' ? (
                                     <div className="flex items-center justify-center gap-2 p-3 text-xs font-bold text-center border rounded-lg bg-emerald-50 dark:bg-success/10 text-emerald-700 dark:text-success border-emerald-200 dark:border-success/20">
                                         <IconCheck className="w-4 h-4" /> INSIDEN SELESAI DITANGANI
                                     </div>
@@ -425,9 +538,14 @@ export default function ReportShow(props) {
                                                 {isActionLoading ? <IconLoader2 className="w-4 h-4 animate-spin" /> : <><IconFlag className="w-4 h-4" /> Meluncur ke Lokasi</>}
                                             </Button>
                                         ) : myRecord.status === 'en_route' ? (
-                                            <Button onClick={handleArrive} disabled={isActionLoading} className="flex items-center justify-center w-full h-12 gap-2 text-xs font-bold tracking-wider text-white dark:text-info-foreground uppercase transition-colors bg-blue-600 dark:bg-info rounded-lg shadow-none hover:bg-blue-700 dark:hover:bg-info/90 animate-pulse">
-                                                {isActionLoading ? <IconLoader2 className="w-4 h-4 animate-spin" /> : <><IconMapPin className="w-4 h-4" /> Tiba di Lokasi</>}
-                                            </Button>
+                                            <>
+                                                <Button onClick={handleArrive} disabled={isActionLoading} className="flex items-center justify-center w-full h-12 gap-2 text-xs font-bold tracking-wider text-white dark:text-info-foreground uppercase transition-colors bg-blue-600 dark:bg-info rounded-lg shadow-none hover:bg-blue-700 dark:hover:bg-info/90 animate-pulse">
+                                                    {isActionLoading ? <IconLoader2 className="w-4 h-4 animate-spin" /> : <><IconMapPin className="w-4 h-4" /> Tiba di Lokasi</>}
+                                                </Button>
+                                                <Button onClick={handleCancelResponse} disabled={isActionLoading} variant="outline" className="flex items-center justify-center w-full h-10 gap-2 mt-2 text-xs font-bold tracking-wider uppercase transition-colors border-border text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg shadow-none">
+                                                    <IconX className="w-4 h-4" /> Batal Meluncur
+                                                </Button>
+                                            </>
                                         ) : (
                                             <div className="p-3 text-xs font-bold text-center text-blue-700 dark:text-info border border-blue-200 dark:border-info/20 rounded-lg bg-blue-50 dark:bg-info/10">
                                                 Anda Sedang di Lokasi.
@@ -527,7 +645,17 @@ export default function ReportShow(props) {
                             <IconTrash className="w-6 h-6" />
                         </div>
                         <h2 className="text-lg font-bold text-foreground">Tolak Laporan?</h2>
-                        <p className="text-sm leading-relaxed text-muted-foreground">Data akan ditandai sebagai hoax dan diarsipkan dari sistem.</p>
+                        <p className="text-sm leading-relaxed text-muted-foreground">Laporan ditandai <b>ditolak</b> dan diarsipkan (tidak dihapus) — tetap bisa ditelusuri Pusat Komando.</p>
+                        <div className="w-full text-left">
+                            <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Alasan penolakan <span className="font-normal normal-case">(opsional)</span></label>
+                            <Textarea
+                                value={rejectReason}
+                                onChange={(e) => setRejectReason(e.target.value)}
+                                placeholder="Contoh: tidak dapat dihubungi, lokasi tidak ditemukan, duplikat..."
+                                maxLength={500}
+                                className="min-h-[72px] mt-1.5 resize-y rounded-lg border-border bg-card text-sm focus-visible:ring-1 focus-visible:ring-destructive"
+                            />
+                        </div>
                         <div className="flex w-full gap-3 mt-2 pt-4 border-t border-border">
                             <Button onClick={() => setConfirmReject(false)} variant="outline" className="flex-1 h-10 border-border text-foreground/80 shadow-none bg-transparent">Batal</Button>
                             <Button onClick={executeReject} className="flex-1 h-10 font-bold text-white dark:text-destructive-foreground bg-red-600 dark:bg-destructive shadow-none hover:bg-red-700 dark:hover:bg-destructive/90" disabled={isProcessing}>
@@ -556,11 +684,11 @@ export default function ReportShow(props) {
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={showImageModal} onOpenChange={setShowImageModal}>
+            <Dialog open={modalPhoto !== null} onOpenChange={(open) => !open && setModalPhoto(null)}>
                 <DialogContent className="max-w-4xl w-[95vw] md:w-full p-0 bg-transparent border-none shadow-none flex justify-center items-center [&>button]:hidden outline-none">
                     <div className="relative inline-flex items-center justify-center w-full h-full">
-                        <button onClick={() => setShowImageModal(false)} className="absolute z-50 flex items-center justify-center w-10 h-10 text-foreground bg-card hover:bg-muted rounded-full top-2 right-2 border border-border shadow-none"><IconX size={20} /></button>
-                        <img src={`/storage/${report.photo}`} onError={(e) => e.target.src = report.photo} className="w-auto h-auto max-w-[100vw] max-h-[90vh] object-contain rounded-md shadow-none border border-border bg-black/20" alt="Bukti" />
+                        <button onClick={() => setModalPhoto(null)} className="absolute z-50 flex items-center justify-center w-10 h-10 text-foreground bg-card hover:bg-muted rounded-full top-2 right-2 border border-border shadow-none"><IconX size={20} /></button>
+                        {modalPhoto && <img src={`/storage/${modalPhoto}`} onError={(e) => e.target.src = modalPhoto} className="w-auto h-auto max-w-[100vw] max-h-[90vh] object-contain rounded-md shadow-none border border-border bg-black/20" alt="Bukti" />}
                     </div>
                 </DialogContent>
             </Dialog>

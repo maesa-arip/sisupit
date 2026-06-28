@@ -36,8 +36,8 @@ export default function Spotlight(props) {
                     Damkar Kota Denpasar
                 </h1>
 
-                <p className="text-xs font-bold tracking-widest uppercase sm:text-sm text-destructive">
-                    Lapor Damkar Cepat Lindungi Warga.
+                <p className="text-sm font-bold text-destructive sm:text-base">
+                    Lapor Damkar Cepat, Lindungi Warga.
                 </p>
             </div>
 
@@ -85,6 +85,16 @@ export default function Spotlight(props) {
                     LAPOR SEKARANG!
                 </Link>
             </Button>
+
+            {/* --- TELEPON DARURAT RESMI --- */}
+            <a
+                href="tel:113"
+                className="flex items-center gap-2 text-sm font-semibold transition-colors text-muted-foreground hover:text-destructive"
+            >
+                <IconPhoneCall className="w-4 h-4 text-destructive" stroke={2.5} />
+                Darurat tanpa internet? Telepon <span className="font-bold text-destructive">113</span>
+            </a>
+
             {/* --- UNDUH APLIKASI --- */}
             {!isWebView && (
                 <div className="flex flex-col items-center w-full mt-4">

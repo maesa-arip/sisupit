@@ -2,7 +2,7 @@ import HeaderTitle from '@/Components/HeaderTitle';
 import InputError from '@/Components/InputError';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
-import { Combobox } from '@/components/ui/combobox';
+import { Combobox } from '@/Components/ui/combobox';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';

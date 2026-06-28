@@ -25,11 +25,17 @@ class Report extends Model
         'lat',
         'lng',
         'status',
+        'rejected_reason',
+        'rejected_at',
         'photo',
         'province_code',
         'city_code',
         'district_code',
         'village_code',
+    ];
+
+    protected $casts = [
+        'rejected_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
@@ -48,6 +54,11 @@ class Report extends Model
     public function officers(): HasMany
     {
         return $this->hasMany(ReportOfficer::class, 'report_id', 'id');
+    }
+    // Galeri foto laporan (FINDINGS #17). Kolom `photo` lama tetap = foto sampul.
+    public function photos(): HasMany
+    {
+        return $this->hasMany(ReportPhoto::class, 'report_id', 'id');
     }
      // 3. Relasi ke wilayah
     public function province() {

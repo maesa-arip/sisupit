@@ -31,10 +31,14 @@ class EnsureProfileComplete
     ];
 
     /**
-     * Akun staf (admin/superadmin/pejabat) dikelola terpusat lewat Admin/AssignUser,
-     * bukan lewat pendaftaran mandiri - jadi tidak wajib lewat onboarding ini.
+     * Akun staf (superadmin + peran yurisdiksi: admin/petugas/pejabat) dikelola terpusat
+     * lewat Admin\UserController (assignRole), bukan lewat pendaftaran mandiri - jadi tidak wajib lewat
+     * onboarding ini. Penting untuk petugas: saat diberi yurisdiksi kecamatan/kabupaten/
+     * provinsi, Admin\UserController::trimRegionToLevel() sengaja meng-null-kan village_code
+     * agar tenant scope berhenti di tingkat itu - tanpa pengecualian ini mereka akan terjebak
+     * loop "lengkapi profil sampai desa" (lihat cek village_code di handle()).
      */
-    private const EXEMPT_ROLES = ['superadmin', 'admin', 'pejabat'];
+    private const EXEMPT_ROLES = ['superadmin', 'admin', 'petugas', 'pejabat'];
 
     public function handle(Request $request, Closure $next): Response
     {

@@ -1,4 +1,5 @@
 import ReportCard from '@/Components/ReportCard';
+import StatusBadge from '@/Components/StatusBadge';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
@@ -10,9 +11,12 @@ import {
     IconCheckupList,
     IconChevronRight,
     IconClock,
+    IconDeviceFloppy,
+    IconFlame,
     IconHistory,
     IconLoader2,
     IconMapPin,
+    IconMedal,
     IconPower,
     IconRadar,
     IconRefresh,
@@ -20,6 +24,18 @@ import {
     IconUserCheck,
     IconUsersGroup,
 } from '@tabler/icons-react';
+
+// Harus selaras dengan VolunteerController::SKILL_OPTIONS (whitelist server).
+const SKILL_OPTIONS = [
+    'Pemadaman',
+    'P3K / Medis',
+    'Evakuasi',
+    'SAR',
+    'Distribusi Air',
+    'Logistik',
+    'Komunikasi',
+    'Pengaturan Lalu Lintas',
+];
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -44,6 +60,24 @@ export default function Dashboard(props) {
     const [activeTab, setActiveTab] = useState(isRelawan ? 'menunggu' : 'semua');
     const isStandby = auth?.is_standby ?? true;
     const [isTogglingStandby, setIsTogglingStandby] = useState(false);
+
+    // Editor keahlian relawan (lihat VolunteerController::updateSkills)
+    const [skills, setSkills] = useState(Array.isArray(auth?.skills) ? auth.skills : []);
+    const [isSavingSkills, setIsSavingSkills] = useState(false);
+
+    const toggleSkill = (skill) => {
+        setSkills((prev) => (prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]));
+    };
+
+    const handleSaveSkills = () => {
+        setIsSavingSkills(true);
+        router.post(route('volunteer.skills'), { skills }, {
+            preserveScroll: true,
+            onSuccess: () => toast.success('Keahlian berhasil diperbarui.'),
+            onError: () => toast.error('Gagal menyimpan keahlian. Silakan coba lagi.'),
+            onFinish: () => setIsSavingSkills(false),
+        });
+    };
 
     const handleToggleStandby = () => {
         setIsTogglingStandby(true);
@@ -110,36 +144,9 @@ export default function Dashboard(props) {
         );
     };
 
-    const StatusBadge = ({ status }) => {
-        const variants = {
-            pending: {
-                className: 'bg-warning/10 text-warning border-warning/30',
-                label: 'Menunggu',
-            },
-            handling: {
-                className: 'bg-warning/10 text-warning border-warning/30',
-                label: 'Penanganan',
-            },
-            resolved: {
-                className: 'bg-muted text-muted-foreground border-border',
-                label: 'Selesai',
-            },
-            TERLAPOR: {
-                className: 'bg-destructive/10 text-destructive border-destructive/30',
-                label: 'Butuh Bantuan',
-            },
-        };
-        const active = variants[status] || variants.pending;
-        return (
-            <Badge variant="outline" className={cn('rounded-md px-2 py-0.5 font-bold shadow-none', active.className)}>
-                {active.label}
-            </Badge>
-        );
-    };
-
     const RenderMyHistory = () => (
         <div className="space-y-4">
-            <h2 className="flex items-center gap-2 px-1 text-lg font-bold tracking-tight text-foreground uppercase">
+            <h2 className="flex items-center gap-2 px-1 text-lg font-bold tracking-tight text-foreground">
                 <IconHistory className="w-5 h-5 text-muted-foreground" />
                 Riwayat Laporan Saya
             </h2>
@@ -207,7 +214,7 @@ export default function Dashboard(props) {
     const RenderRadarFeed = () => (
         <div className="space-y-4">
             <div className="flex flex-col gap-4">
-                <h2 className="flex items-center gap-2 text-lg font-bold tracking-tight text-foreground uppercase">
+                <h2 className="flex items-center gap-2 text-lg font-bold tracking-tight text-foreground">
                     <IconCheckupList className="w-5 h-5 text-muted-foreground" />
                     {isRelawan ? 'Radar Insiden' : 'Kejadian di Sekitar'}
                 </h2>
@@ -315,14 +322,14 @@ export default function Dashboard(props) {
     return (
         <div className="flex flex-col w-full pb-32 mx-auto space-y-6 max-w-7xl">
             <div>
-                <h1 className="text-2xl font-bold tracking-tight text-foreground uppercase">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">
                     Halo, {firstName}!
                 </h1>
                 <div className="flex flex-wrap items-center gap-2 mt-2">
                     <Badge
                         variant="outline"
                         className={cn(
-                            'rounded-md border border-border px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest shadow-none',
+                            'rounded-md border border-border px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest shadow-none',
                             isRelawan
                                 ? 'bg-foreground text-background'
                                 : 'bg-muted text-foreground/80',
@@ -332,10 +339,29 @@ export default function Dashboard(props) {
                         {isRelawan ? 'Relawan Siaga' : 'Warga Umum'}
                     </Badge>
                     <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                        <IconMapPin className="h-3.5 w-3.5 text-destructive" /> Pusat Komando Sisupit
+                        <IconMapPin className="h-3.5 w-3.5 text-destructive" /> Layanan Darurat Sisupit
                     </span>
                 </div>
             </div>
+
+            {/* CTA UTAMA: LAPOR DARURAT — aksi inti yang harus paling menonjol bagi warga */}
+            <Link
+                href={route('front.reports.create')}
+                className="group flex items-center justify-between gap-3 rounded-xl border border-destructive bg-destructive p-4 text-destructive-foreground shadow-none transition-colors hover:bg-destructive/90"
+            >
+                <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-destructive-foreground/30 bg-destructive-foreground/10">
+                        <IconFlame className="w-5 h-5" stroke={2} />
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-bold">Lapor Darurat</h3>
+                        <p className="mt-0.5 text-xs font-medium text-destructive-foreground/80">
+                            Kebakaran atau keadaan darurat lain? Laporkan sekarang.
+                        </p>
+                    </div>
+                </div>
+                <IconChevronRight className="w-5 h-5 shrink-0" />
+            </Link>
 
             <div className="w-full">
                 {isRelawan ? (
@@ -434,6 +460,62 @@ export default function Dashboard(props) {
                     </Card>
                 )}
             </div>
+
+            {/* EDITOR KEAHLIAN — relawan mengatur keahlian yang tampil di Daftar Relawan */}
+            {isRelawan && (
+                <Card className="overflow-hidden rounded-xl border border-border bg-card shadow-none">
+                    <CardContent className="flex flex-col gap-4 p-4">
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-foreground">
+                                <IconMedal className="w-5 h-5" stroke={1.5} />
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-bold text-foreground">Keahlian Saya</h3>
+                                <p className="mt-0.5 text-xs font-medium text-muted-foreground">
+                                    Pilih keahlian Anda agar Pusat Komando tahu kemampuan Anda saat insiden.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                            {SKILL_OPTIONS.map((skill) => {
+                                const selected = skills.includes(skill);
+                                return (
+                                    <button
+                                        key={skill}
+                                        type="button"
+                                        onClick={() => toggleSkill(skill)}
+                                        className={cn(
+                                            'flex items-center gap-1 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors',
+                                            selected
+                                                ? 'border-destructive bg-destructive/10 text-destructive'
+                                                : 'border-border bg-card text-foreground/80 hover:bg-muted',
+                                        )}
+                                    >
+                                        <IconMedal className="w-3.5 h-3.5" stroke={selected ? 2 : 1.5} />
+                                        {skill}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        <div className="flex justify-end">
+                            <Button
+                                onClick={handleSaveSkills}
+                                disabled={isSavingSkills}
+                                className="h-8 shrink-0 rounded-md border border-transparent bg-foreground px-4 text-[10px] font-bold uppercase tracking-wider text-background shadow-none transition-colors hover:bg-foreground/90"
+                            >
+                                {isSavingSkills ? (
+                                    <IconLoader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                    <IconDeviceFloppy className="mr-1.5 h-3.5 w-3.5" />
+                                )}
+                                Simpan Keahlian
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
 
             <hr className="border-border" />
 

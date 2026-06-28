@@ -8,6 +8,21 @@ use Illuminate\Http\RedirectResponse;
 class VolunteerController extends Controller
 {
     /**
+     * Daftar keahlian yang boleh dipilih relawan. Ditampilkan sebagai chip
+     * di dashboard relawan & badge di daftar relawan (lihat Volunteers/Index).
+     */
+    public const SKILL_OPTIONS = [
+        'Pemadaman',
+        'P3K / Medis',
+        'Evakuasi',
+        'SAR',
+        'Distribusi Air',
+        'Logistik',
+        'Komunikasi',
+        'Pengaturan Lalu Lintas',
+    ];
+
+    /**
      * Daftarkan user yang sedang login menjadi relawan.
      */
     public function register(Request $request): RedirectResponse
@@ -40,6 +55,28 @@ class VolunteerController extends Controller
 
         $user->update(['is_standby' => ! $user->is_standby]);
 
+        return back();
+    }
+
+    /**
+     * Perbarui daftar keahlian relawan. Hanya menerima nilai dari whitelist
+     * SKILL_OPTIONS agar badge di daftar relawan tetap konsisten.
+     */
+    public function updateSkills(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        abort_unless($user->hasRole('relawan'), 403);
+
+        $validated = $request->validate([
+            'skills' => ['present', 'array', 'max:' . count(self::SKILL_OPTIONS)],
+            'skills.*' => ['string', 'in:' . implode(',', self::SKILL_OPTIONS)],
+        ]);
+
+        // values() agar tersimpan sebagai array terindeks (bukan object) di JSON.
+        $user->update(['skills' => array_values(array_unique($validated['skills']))]);
+
+        // Konsisten dengan register()/toggleStandby(): toast ditangani frontend.
         return back();
     }
 }

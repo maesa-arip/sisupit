@@ -15,21 +15,12 @@ import {
 } from '@tabler/icons-react';
 
 export default function Show({ volunteer }) {
-    // DUMMY DATA
-    const user = volunteer || {
-        name: 'Wayan Dipta',
-        email: 'wayan.dipta@example.com',
-        phone: '+62 812-3456-7890',
-        status: 'Aktif',
-        kabupaten: 'Kab. Badung',
-        kecamatan: 'Kuta',
-        desa: 'Legian',
-        address: 'Jl. Raya Legian No. 123, Bali',
-        join_date: '12 Agustus 2023',
-        avatar: null,
-        skills: ['Evakuasi', 'Logistik', 'Medis / P3K'],
-        reports_handled: 24,
-    };
+    const user = volunteer;
+
+    // Normalisasi nomor untuk tautan: 08xx -> 628xx, buang karakter non-digit.
+    const digits = (user.phone || '').replace(/\D/g, '');
+    const waNumber = digits.startsWith('0') ? '62' + digits.slice(1) : digits;
+    const hasPhone = digits.length > 0;
 
     return (
         <div className="relative flex flex-col w-full pb-32 space-y-6">
@@ -61,7 +52,7 @@ export default function Show({ volunteer }) {
                             {/* Status Badge */}
                             <div className="absolute top-4 right-4">
                                 <span className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md border ${
-                                    user.status === 'Aktif'
+                                    user.status === 'Siaga'
                                         ? 'bg-green-50 dark:bg-success/10 text-green-700 dark:text-success border-green-200 dark:border-success/30'
                                         : 'bg-red-50 dark:bg-warning/10 text-red-700 dark:text-warning border-red-200 dark:border-warning/30'
                                 }`}>
@@ -86,15 +77,25 @@ export default function Show({ volunteer }) {
 
                             {/* Tombol Aksi Cepat */}
                             <div className="flex flex-col w-full gap-2.5">
-                                <Button className="w-full h-10 font-medium text-white dark:text-success-foreground transition-colors bg-green-600 dark:bg-success rounded-md hover:bg-green-700 dark:hover:bg-success/90">
-                                    <IconBrandWhatsapp className="w-4 h-4 mr-2" /> WhatsApp
+                                <Button
+                                    asChild
+                                    disabled={!hasPhone}
+                                    className="w-full h-10 font-medium text-white dark:text-success-foreground transition-colors bg-green-600 dark:bg-success rounded-md hover:bg-green-700 dark:hover:bg-success/90 aria-disabled:pointer-events-none aria-disabled:opacity-50"
+                                >
+                                    <a href={hasPhone ? `https://wa.me/${waNumber}` : undefined} target="_blank" rel="noopener noreferrer" aria-disabled={!hasPhone}>
+                                        <IconBrandWhatsapp className="w-4 h-4 mr-2" /> WhatsApp
+                                    </a>
                                 </Button>
                                 <div className="flex gap-2.5">
-                                    <Button variant="outline" className="flex-1 h-10 border-border rounded-md bg-muted hover:bg-muted/70">
-                                        <IconPhone className="w-4 h-4 text-muted-foreground" />
+                                    <Button asChild variant="outline" disabled={!hasPhone} className="flex-1 h-10 border-border rounded-md bg-muted hover:bg-muted/70 aria-disabled:pointer-events-none aria-disabled:opacity-50">
+                                        <a href={hasPhone ? `tel:${digits}` : undefined} aria-disabled={!hasPhone}>
+                                            <IconPhone className="w-4 h-4 text-muted-foreground" />
+                                        </a>
                                     </Button>
-                                    <Button variant="outline" className="flex-1 h-10 border-border rounded-md bg-muted hover:bg-muted/70">
-                                        <IconMail className="w-4 h-4 text-muted-foreground" />
+                                    <Button asChild variant="outline" disabled={!user.email} className="flex-1 h-10 border-border rounded-md bg-muted hover:bg-muted/70 aria-disabled:pointer-events-none aria-disabled:opacity-50">
+                                        <a href={user.email ? `mailto:${user.email}` : undefined} aria-disabled={!user.email}>
+                                            <IconMail className="w-4 h-4 text-muted-foreground" />
+                                        </a>
                                     </Button>
                                 </div>
                             </div>
@@ -145,7 +146,7 @@ export default function Show({ volunteer }) {
                                     </div>
                                     <div>
                                         <p className="text-sm font-semibold text-foreground">Nomor Telepon</p>
-                                        <p className="text-sm text-muted-foreground mt-0.5">{user.phone}</p>
+                                        <p className="text-sm text-muted-foreground mt-0.5">{user.phone || 'Tidak ada nomor telepon'}</p>
                                     </div>
                                 </li>
 

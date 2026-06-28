@@ -3,8 +3,14 @@
 use App\Models\Report;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 
 beforeEach(function () {
+    // Workflow approve/arrive/resolve kini mengirim notifikasi balik ke pelapor (FCM +
+    // database). Fake-kan agar uji otorisasi ini terisolasi dari side-effect FCM
+    // (test env tak punya kredensial Firebase) — sama seperti ReportNotificationLevelTest.
+    Notification::fake();
+
     $reporter = User::factory()->create();
     $reporter->assignRole('masyarakat');
 
@@ -16,6 +22,10 @@ beforeEach(function () {
         'lat' => '-8.6500',
         'lng' => '115.2200',
         'status' => 'TERLAPOR',
+        // Wilayah laporan = wilayah responder di test ini, agar lolos cek yurisdiksi
+        // take-action/arrive (FINDINGS #26). Blokir lintas-wilayah diuji terpisah
+        // di ReportResponderJurisdictionTest.
+        'village_code' => '5171012006',
     ]);
 });
 
@@ -39,6 +49,25 @@ it('lets petugas approve a report', function () {
     $this->actingAs($petugas)->post("/reports/{$this->report->id}/approve")->assertRedirect();
 
     expect($this->report->refresh()->status)->toBe('pending');
+});
+
+it('blocks approving a report that is no longer TERLAPOR', function () {
+    $this->report->update(['status' => 'pending']);
+
+    $petugas = User::factory()->create(['village_code' => '5171012006']);
+    $petugas->assignRole('petugas');
+
+    $this->actingAs($petugas)->post("/reports/{$this->report->id}/approve")->assertForbidden();
+});
+
+it('blocks responding to a closed (resolved) incident', function () {
+    $this->report->update(['status' => 'resolved']);
+
+    $relawan = User::factory()->create(['village_code' => '5171012006']);
+    $relawan->assignRole('relawan');
+
+    $this->actingAs($relawan)->post("/reports/{$this->report->id}/take-action")->assertForbidden();
+    $this->actingAs($relawan)->post("/reports/{$this->report->id}/arrive")->assertForbidden();
 });
 
 it('lets relawan take action on a report', function () {

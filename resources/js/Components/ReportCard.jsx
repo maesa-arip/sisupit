@@ -3,7 +3,7 @@ import { useState } from 'react';
 import DialogRelawanDetail from './DialogRelawanDetail';
 import DialogRelawanList from './DialogRelawanList';
 import HelpConfirmAlertDialog from './HelpConfirmAlertDialog';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/Components/ui/dialog';
 import { Link } from '@inertiajs/react';
 import { cn } from '@/lib/utils';
 
@@ -33,8 +33,8 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan }
     const isMyTask = currentUser && report.helpers?.some(h => h.user_id === currentUser.id);
 
     const getStatusConfig = () => {
-        if (report.status === 'resolved') return { label: 'Selesai', color: 'bg-muted text-muted-foreground border-border', icon: <CheckCircle2 size={12} className="mr-1 shrink-0" /> };
-        if (report.status === 'handling' || hasHelpers) return { label: 'Penanganan', color: 'bg-amber-50 dark:bg-warning/10 text-amber-700 dark:text-warning border-amber-200 dark:border-warning/20', icon: <ShieldAlert size={12} className="mr-1 shrink-0" /> };
+        if (report.status === 'resolved') return { label: 'Selesai', color: 'bg-success/10 text-success border-success/20', icon: <CheckCircle2 size={12} className="mr-1 shrink-0" /> };
+        if (report.status === 'handling' || hasHelpers) return { label: 'Penanganan', color: 'bg-info/10 text-info border-info/20', icon: <ShieldAlert size={12} className="mr-1 shrink-0" /> };
         return { label: 'Darurat', color: 'bg-destructive/10 text-destructive border-destructive/20', icon: <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse mr-1.5 shrink-0"></span> };
     };
     const statusConfig = getStatusConfig();
@@ -48,7 +48,7 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan }
                         <Flame size={16} className="text-destructive shrink-0 mt-0.5" strokeWidth={2.5} />
                         {report.title}
                     </h2>
-                    <span className={cn("shrink-0 flex items-center text-[9px] uppercase tracking-widest font-bold px-2 py-1 rounded-md border shadow-none whitespace-nowrap", statusConfig.color)}>
+                    <span className={cn("shrink-0 flex items-center text-[10px] uppercase tracking-widest font-bold px-2 py-1 rounded-md border shadow-none whitespace-nowrap", statusConfig.color)}>
                         {statusConfig.icon}
                         {statusConfig.label}
                     </span>
@@ -107,7 +107,7 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan }
                         <span className="text-base leading-none">›</span>
                     </button>
                 ) : (
-                    <div className="flex items-center w-full gap-1.5 mb-3 text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                    <div className="flex items-center w-full gap-1.5 mb-3 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                         <Users size={12} /> Belum Ada Responden
                     </div>
                 )}

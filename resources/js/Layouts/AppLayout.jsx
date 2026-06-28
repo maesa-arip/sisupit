@@ -3,8 +3,10 @@ import Banner from '@/Components/Banner';
 import SoundNotificationControl from '@/Components/SoundNotificationControl';
 import ThemeSwitcher from '@/Components/ThemeSwitcher';
 import { Toaster } from '@/Components/ui/sonner';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
+import { IconBell } from '@tabler/icons-react';
+import { cn } from '@/lib/utils';
 import Sidebar from './Partials/Sidebar';
 import MobileBottomNav from './Partials/MobileBottomNav';
 
@@ -18,6 +20,8 @@ export default function AppLayout({ title, children }) {
     const { url } = usePage();
     const announcemet = usePage().props.announcemet;
     const auth = usePage().props.auth?.user ?? null;
+    const notifications = usePage().props.notifications ?? [];
+    const unreadCount = usePage().props.unread_notifications_count ?? 0;
 
    useEffect(() => {
     if (!auth) return;
@@ -119,6 +123,58 @@ export default function AppLayout({ title, children }) {
                     <header className="sticky top-0 z-40 flex items-center justify-between h-16 px-4 border-b lg:px-8 border-border bg-background/95 backdrop-blur-md">
                         <ApplicationLogo />
                         <div className="flex items-center gap-2 lg:gap-4">
+                            {auth && (
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <button className="relative flex items-center justify-center transition-colors rounded-md outline-none w-9 h-9 hover:bg-accent focus-visible:ring-2 focus-visible:ring-muted-foreground/50">
+                                            <IconBell className="w-5 h-5 text-muted-foreground" />
+                                            {unreadCount > 0 && (
+                                                <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-destructive-foreground bg-destructive rounded-full">
+                                                    {unreadCount > 9 ? '9+' : unreadCount}
+                                                </span>
+                                            )}
+                                        </button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="p-0 mt-2 overflow-hidden border shadow-md w-80 rounded-xl bg-card border-border">
+                                        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                                            <h4 className="text-sm font-bold text-foreground">Notifikasi</h4>
+                                            {unreadCount > 0 && (
+                                                <button
+                                                    onClick={() => router.post(route('notifications.readAll'), {}, { preserveScroll: true })}
+                                                    className="text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+                                                >
+                                                    Tandai semua dibaca
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="divide-y max-h-80 overflow-y-auto divide-border">
+                                            {notifications.length > 0 ? (
+                                                notifications.map((n) => (
+                                                    <button
+                                                        key={n.id}
+                                                        onClick={() => router.post(route('notifications.read', n.id), {}, { preserveScroll: true })}
+                                                        className={cn('flex w-full gap-2 px-4 py-3 text-left transition-colors hover:bg-accent', !n.read_at && 'bg-muted/50')}
+                                                    >
+                                                        {!n.read_at && <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-destructive shrink-0" />}
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-xs font-bold text-foreground">{n.title}</p>
+                                                            {n.message && <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{n.message}</p>}
+                                                            <p className="text-[10px] text-muted-foreground/70 mt-1">
+                                                                {new Date(n.created_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                                            </p>
+                                                        </div>
+                                                    </button>
+                                                ))
+                                            ) : (
+                                                <div className="px-4 py-8 text-center">
+                                                    <p className="text-xs text-muted-foreground">Belum ada notifikasi.</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            )}
+
                             {auth?.name && (
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>

@@ -75,10 +75,22 @@ class ReportRequest extends FormRequest
                 'max:255',
                 'string',
             ],
-            'photo' => [
-                'required',
+            // Galeri foto (FINDINGS #17). Wajib minimal satu saat membuat laporan (POST);
+            // pada update (PUT) opsional. Kolom `photo` lama dipertahankan sebagai sampul.
+            'photos' => [
+                $this->isMethod('POST') ? 'required' : 'nullable',
+                'array',
+                'max:6',
+            ],
+            'photos.*' => [
+                'image',
                 'mimes:png,jpg,jpeg,webp',
-                'max:2048',
+                'max:4096',
+            ],
+            'photo' => [
+                'nullable',
+                'mimes:png,jpg,jpeg,webp',
+                'max:4096',
             ],
         ];
     }
@@ -98,6 +110,8 @@ class ReportRequest extends FormRequest
             'lng' => 'Longitude',
             'address' => 'Alamat',
             'photo' => 'Photo',
+            'photos' => 'Foto',
+            'photos.*' => 'Foto',
         ];
     }
 }

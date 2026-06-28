@@ -8,13 +8,17 @@ use App\Http\Controllers\Front\PompaController;
 use App\Http\Controllers\Front\PosPemadamController;
 use App\Http\Controllers\Front\RelawanController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportHelperController;
 use App\Http\Controllers\Admin\HydrantController as AdminHydrantController;
+use App\Http\Controllers\Admin\PompaController as AdminPompaController;
+use App\Http\Controllers\Admin\PosPemadamController as AdminPosPemadamController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Api\FcmController;
 use App\Http\Controllers\Api\GeocodeController;
+use App\Http\Controllers\Api\RouteController;
 use App\Http\Controllers\ReportActionController;
 use App\Http\Controllers\VolunteerController;
 use Illuminate\Support\Facades\Route;
@@ -29,6 +33,10 @@ use Illuminate\Support\Facades\DB;
 
 Route::middleware('auth')->group(function () {
     Route::post('/fcm-token', [FcmController::class, 'store'])->name('fcm.store');
+
+    // Lonceng notifikasi web (tandai-baca). Daftar di-share via HandleInertiaRequests.
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.readAll');
 });
 Route::middleware(['auth', 'verified'])->group(function () {
 
@@ -45,6 +53,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
 
         Route::resource('hydrants', AdminHydrantController::class)->except(['show']);
+        Route::resource('pumps', AdminPompaController::class)->except(['show']);
+        Route::resource('fire-stations', AdminPosPemadamController::class)->except(['show']);
 
         Route::prefix('reports')->name('reports.')->controller(AdminReportController::class)->group(function () {
             Route::get('/', 'index')->name('index');
@@ -61,9 +71,11 @@ Route::controller(HomeController::class)->group(function () {
     Route::get('/', 'spotlight')->name('home.spotlight');
     Route::get('/home', 'index')->name('home.index');
 });
-Route::get('/relawan', [RelawanController::class, 'index'])->name('front.volunteers.index');
-// Route BARU untuk Detail Relawan
-Route::get('/relawan/{id}', [RelawanController::class, 'show'])->name('front.volunteers.show');
+// Daftar relawan hanya untuk Pusat Komando (petugas/admin/superadmin), bukan publik.
+Route::middleware(['auth', 'verified', 'role:petugas|admin|superadmin'])->group(function () {
+    Route::get('/relawan', [RelawanController::class, 'index'])->name('front.volunteers.index');
+    Route::get('/relawan/{id}', [RelawanController::class, 'show'])->name('front.volunteers.show');
+});
 
 Route::get('/pumps', [PompaController::class, 'index'])->name('front.pumps.index');
 
@@ -93,6 +105,8 @@ Route::get('/api/regions/villages/{districtCode}', function ($districtCode) {
 Route::middleware(['auth'])->group(function () {
     Route::get('/api/geocode/reverse', [GeocodeController::class, 'reverse'])->name('api.geocode.reverse');
     Route::get('/api/geocode/search', [GeocodeController::class, 'search'])->name('api.geocode.search');
+    // Proxy OSRM (rute jalan asli; cache + rate limit ditangani di server - lihat RouteController)
+    Route::get('/api/route/directions', [RouteController::class, 'directions'])->name('api.route.directions');
 });
 
 Route::get('/webpush/public-key', function () {
@@ -123,7 +137,9 @@ Route::middleware(['auth', 'verified'])->controller(ReportController::class)->gr
 Route::middleware(['auth', 'verified'])->group(function () {
     // Rute Taktis (Custom Actions) Laporan
     Route::post('/reports/{report}/approve', [ReportActionController::class, 'approve'])->name('reports.approve');
+    Route::post('/reports/{report}/reject', [ReportActionController::class, 'reject'])->name('reports.reject');
     Route::post('/reports/{report}/take-action', [ReportActionController::class, 'takeAction'])->name('reports.take-action');
+    Route::post('/reports/{report}/cancel-response', [ReportActionController::class, 'cancelResponse'])->name('reports.cancel-response');
     Route::post('/reports/{report}/arrive', [ReportActionController::class, 'arrive'])->name('reports.arrive');
     Route::post('/reports/{report}/resolve', [ReportActionController::class, 'resolve'])->name('reports.resolve');
 
@@ -152,6 +168,7 @@ Route::middleware(['auth'])->controller(ProfileController::class)->group(functio
     Route::post('/complete-profile', 'storeCompleteProfile')->name('profile.complete.store');
     Route::post('/volunteer/register', [VolunteerController::class, 'register'])->name('volunteer.register');
     Route::post('/volunteer/standby', [VolunteerController::class, 'toggleStandby'])->name('volunteer.standby');
+    Route::post('/volunteer/skills', [VolunteerController::class, 'updateSkills'])->name('volunteer.skills');
 });
 
 require __DIR__ . '/auth.php';

@@ -36,7 +36,7 @@ class EmergencyAlertNotification extends Notification implements ShouldQueue
     public function toWebPush($notifiable, $notification)
     {
         return (new WebPushMessage)
-            ->title('🚨 DARURAT ' . strtoupper($this->report->category ?? 'KEBAKARAN') . '!')
+            ->title('🚨 DARURAT KEBAKARAN!')
             ->body($this->report->address)
             ->action('Lihat', 'view_app')
             ->data(['url' => url('/reports/show/' . $this->report->id)]);
@@ -44,7 +44,9 @@ class EmergencyAlertNotification extends Notification implements ShouldQueue
 
     public function toFcm($notifiable)
     {
-        $title = '🚨 DARURAT ' . strtoupper($this->report->category ?? 'KEBAKARAN') . '!';
+        // Sisupit = layanan kebakaran; tak ada kolom `category` di reports (sebelumnya
+        // `$report->category ?? 'KEBAKARAN'` selalu jatuh ke fallback). Pakai literal.
+        $title = '🚨 DARURAT KEBAKARAN!';
 
         // PESAN DATA-ONLY (tanpa blok notification()).
         // Alasan: dengan notification message, saat app di background sistem yang menangani

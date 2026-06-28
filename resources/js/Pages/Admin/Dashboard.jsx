@@ -1,4 +1,5 @@
 import AppLayout from '@/Layouts/AppLayout';
+import StatusBadge from '@/Components/StatusBadge';
 import { Head, Link } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
@@ -6,7 +7,7 @@ import { Badge } from '@/Components/ui/badge';
 import { 
     IconFlame, IconFiretruck, IconUsersGroup, IconDroplet,
     IconArrowRight, IconMapPin, IconClock, IconCheck,
-    IconAlertCircle, IconShieldCheck, IconMaximize,
+    IconAlertCircle, IconShieldCheck,
     IconChevronRight, IconTree, IconBug, IconBolt,
     IconUserShield
 } from '@tabler/icons-react';
@@ -128,22 +129,6 @@ export default function AdminDashboard({ auth, stats, recentReports, mapMarkers 
         );
     };
 
-    const StatusBadge = ({ status }) => {
-        const variants = {
-            pending: { className: "bg-destructive/10 text-destructive border-transparent", label: "Menunggu", icon: IconAlertCircle },
-            handling: { className: "bg-amber-100 dark:bg-warning/10 text-amber-700 dark:text-warning border-transparent", label: "Penanganan", icon: IconFiretruck },
-            resolved: { className: "bg-teal-100 dark:bg-success/10 text-teal-700 dark:text-success border-transparent", label: "Selesai", icon: IconCheck },
-            TERLAPOR: { className: "bg-destructive/10 text-destructive border-transparent animate-pulse", label: "Terlapor", icon: IconAlertCircle },
-        };
-        const active = variants[status] || variants.pending;
-        const Icon = active.icon;
-        return (
-            <Badge variant="outline" className={cn("flex items-center gap-1.5 shadow-none font-semibold px-2.5 py-0.5", active.className)}>
-                <Icon className="w-3.5 h-3.5" stroke={2.5} /> {active.label}
-            </Badge>
-        );
-    };
-
     return (
         <div className="w-full h-full pb-10 space-y-6 lg:space-y-8">
             <Head title={isPejabat ? "Dashboard Eksekutif" : "Pusat Komando"} />
@@ -173,9 +158,12 @@ export default function AdminDashboard({ auth, stats, recentReports, mapMarkers 
                             <span className="w-1.5 h-1.5 rounded-full bg-teal-500 dark:bg-teal animate-pulse"></span> Sistem Online
                         </div>
                     </div>
-                    <Button className="w-full bg-foreground text-background hover:bg-foreground/90 rounded-xl md:w-auto" asChild>
-                        <Link href="/reports/create"><IconAlertCircle className="w-4 h-4 mr-2" /> Input Insiden Manual</Link>
-                    </Button>
+                    {/* Pejabat bersifat read-only (pemantau) — sembunyikan aksi input insiden */}
+                    {!isPejabat && (
+                        <Button className="w-full bg-foreground text-background hover:bg-foreground/90 rounded-xl md:w-auto" asChild>
+                            <Link href="/reports/create"><IconAlertCircle className="w-4 h-4 mr-2" /> Input Insiden Manual</Link>
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -197,8 +185,8 @@ export default function AdminDashboard({ auth, stats, recentReports, mapMarkers 
                             <CardDescription className="text-[13px]">Pemantauan waktu nyata dari masyarakat & relawan.</CardDescription>
                         </div>
                         <Button variant="outline" size="sm" className="hidden sm:flex shadow-sm border-border font-medium bg-card hover:bg-accent rounded-lg" asChild>
-                            <Link href={route('front.reports.index')}> Lihat Semua Riwayat </Link>
-                            {/* <Link href={route('admin.reports.index')}>Lihat Semua <IconArrowRight className="w-4 h-4 ml-2" /></Link> */}
+                            {/* Pejabat (read-only) tidak punya akses ke antrean verifikasi admin (role:admin|superadmin) → arahkan ke arsip publik agar tidak 403 */}
+                            <Link href={route(isPejabat ? 'front.reports.index' : 'admin.reports.index')}> Lihat Semua Laporan </Link>
                         </Button>
                     </CardHeader>
 
@@ -252,8 +240,7 @@ export default function AdminDashboard({ auth, stats, recentReports, mapMarkers 
                     </CardContent>
                     <div className="block p-3 bg-card border-t sm:hidden border-border">
                         <Button variant="outline" className="w-full text-xs rounded-lg" asChild>
-                            <Link href={route('front.reports.index')}> Lihat Semua Riwayat </Link>
-                            {/* <Link href={route('admin.reports.index')}>Lihat Semua Laporan</Link> */}
+                            <Link href={route(isPejabat ? 'front.reports.index' : 'admin.reports.index')}> Lihat Semua Laporan </Link>
                         </Button>
                     </div>
                 </Card>
@@ -268,9 +255,6 @@ export default function AdminDashboard({ auth, stats, recentReports, mapMarkers 
                             <CardTitle className="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-widest text-teal-700 dark:text-teal">
                                 <IconMapPin className="w-4 h-4" stroke={2.5} /> Peta Pemantauan
                             </CardTitle>
-                            <Button variant="ghost" size="icon" className="w-6 h-6 rounded-md opacity-50 hover:opacity-100" asChild>
-                                <Link href="/"><IconMaximize className="w-4 h-4" /></Link>
-                            </Button>
                         </CardHeader>
                         <div ref={miniMapRef} className="z-0 w-full h-full pt-11 bg-accent/30"></div>
                         {mapMarkers.length === 0 && activeIncidents.length === 0 && (

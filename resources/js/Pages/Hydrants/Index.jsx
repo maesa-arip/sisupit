@@ -20,6 +20,10 @@ import { useState } from 'react';
 export default function Index({ map_markers, hydrants, filters, ...props }) {
     const [isLocating, setIsLocating] = useState(false);
 
+    // Sorot tombol berdasarkan filter yang BENAR-BENAR diterapkan server (prop `filters`),
+    // bukan state lokal `data` yang bisa tidak sinkron — agar tombol selalu sesuai hasil.
+    const activeStatus = filters?.status || 'Semua';
+
     const { data, setData, get, processing } = useForm({
         search: filters?.search || '',
         status: filters?.status || 'Semua',
@@ -127,7 +131,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
                                         type="button"
                                         onClick={() => applyFilter('status', 'Semua')}
                                         className={`px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap transition-colors border ${
-                                            data.status === 'Semua' || !data.status
+                                            activeStatus === 'Semua'
                                             ? 'bg-foreground text-background border-transparent'
                                             : 'bg-card text-foreground/80 border-border hover:bg-muted'
                                         }`}
@@ -138,7 +142,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
                                         type="button"
                                         onClick={() => applyFilter('status', 'Aktif')}
                                         className={`px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap transition-colors border ${
-                                            data.status === 'Aktif'
+                                            activeStatus === 'Aktif'
                                             ? 'bg-foreground text-background border-transparent'
                                             : 'bg-card text-foreground/80 border-border hover:bg-muted'
                                         }`}
@@ -149,7 +153,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
                                         type="button"
                                         onClick={() => applyFilter('status', 'Perbaikan')}
                                         className={`px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap transition-colors border ${
-                                            data.status === 'Perbaikan'
+                                            activeStatus === 'Perbaikan'
                                             ? 'bg-foreground text-background border-transparent'
                                             : 'bg-card text-foreground/80 border-border hover:bg-muted'
                                         }`}

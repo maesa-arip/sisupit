@@ -6,96 +6,23 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import AppLayout from '@/Layouts/AppLayout';
 import { Link, useForm } from '@inertiajs/react';
-import { IconMapPinFilled, IconMedal, IconPhone, IconRadar, IconSearch, IconUsersGroup } from '@tabler/icons-react';
-import { useState } from 'react';
-import { toast } from 'sonner';
-import { GEO_OPTIONS } from '@/lib/utils';
+import { IconMapPinFilled, IconMedal, IconPhone, IconSearch, IconUsersGroup } from '@tabler/icons-react';
 
-export default function Index({ volunteers2, filters, ...props }) {
-    const [isLocating, setIsLocating] = useState(false);
-
+export default function Index({ volunteers, filterOptions, filters, ...props }) {
     const { data, setData, get, processing } = useForm({
-        search: '',
-        kabupaten: '',
-        kecamatan: '',
-        desa: '',
-        is_my_area: false,
-        lat: '',
-        lng: '',
+        search: filters?.search || '',
+        kabupaten: filters?.kabupaten || '',
+        kecamatan: filters?.kecamatan || '',
+        desa: filters?.desa || '',
     });
 
-    const handleSearch = (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
+        // useForm().get mengirim `data` (search + kode wilayah) sebagai query string.
         get(route('front.volunteers.index'), { preserveState: true, preserveScroll: true });
     };
 
-    const handleMyAreaSearch = () => {
-        setIsLocating(true);
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const { latitude, longitude } = position.coords;
-                    setData((prev) => ({
-                        ...prev,
-                        is_my_area: true,
-                        lat: latitude,
-                        lng: longitude,
-                        kabupaten: '',
-                        kecamatan: '',
-                        desa: '',
-                    }));
-
-                    toast.success('Lokasi Anda ditemukan! Mencari relawan terdekat...');
-                    setTimeout(() => setIsLocating(false), 1000); 
-                },
-                (error) => {
-                    console.error('Error:', error);
-                    toast.error('Gagal mendapatkan lokasi. Pastikan GPS aktif.');
-                    setIsLocating(false);
-                },
-                GEO_OPTIONS.oneShot,
-            );
-        } else {
-            toast.error('Browser Anda tidak mendukung Geolokasi.');
-            setIsLocating(false);
-        }
-    };
-
-    // DUMMY DATA
-    const volunteers = [
-        {
-            id: 1,
-            name: 'Budi Santoso',
-            area: 'Kec. Denpasar Selatan, Kota Denpasar',
-            skills: ['Pemadam Api', 'P3K'],
-            avatar: null,
-            status: 'Aktif',
-        },
-        {
-            id: 2,
-            name: 'Wayan Dipta',
-            area: 'Kec. Kuta, Kab. Badung',
-            skills: ['Evakuasi', 'Logistik'],
-            avatar: 'https://i.pravatar.cc/150?img=11',
-            status: 'Sibuk',
-        },
-        {
-            id: 3,
-            name: 'Siti Aminah',
-            area: 'Kec. Denpasar Utara, Kota Denpasar',
-            skills: ['Medis / P3K'],
-            avatar: 'https://i.pravatar.cc/150?img=5',
-            status: 'Aktif',
-        },
-        {
-            id: 4,
-            name: 'Made Yasa',
-            area: 'Kec. Mengwi, Kab. Badung',
-            skills: ['Distribusi Air', 'Pemadam Api'],
-            avatar: null,
-            status: 'Aktif',
-        },
-    ];
+    const options = filterOptions || { kabupaten: [], kecamatan: [], desa: [] };
 
     return (
         <div className="relative flex flex-col w-full pb-32 space-y-6">
@@ -112,68 +39,51 @@ export default function Index({ volunteers2, filters, ...props }) {
             {/* --- PANEL PENCARIAN & FILTER --- */}
             <Card className="overflow-hidden border-border shadow-sm rounded-xl">
                 <CardContent className="p-5 sm:p-6">
-                    <form onSubmit={handleSearch} className="flex flex-col gap-5">
+                    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
-                        {/* Baris Atas: Tombol "Daerah Saya" & Search Nama */}
-                        <div className="flex flex-col gap-3 md:flex-row">
-                            <Button
-                                type="button"
-                                onClick={handleMyAreaSearch}
-                                disabled={isLocating}
-                                variant="outline"
-                                className="flex items-center w-full h-10 gap-2 px-4 transition-colors border-border bg-card text-foreground/80 shadow-sm shrink-0 rounded-md hover:bg-muted md:w-auto"
-                            >
-                                {isLocating ? (
-                                    <IconRadar className="w-4 h-4 animate-spin text-destructive" />
-                                ) : (
-                                    <IconMapPinFilled className="w-4 h-4 text-destructive" />
-                                )}
-                                {isLocating ? 'Mencari Lokasi...' : 'Daerah Saya'}
-                            </Button>
-
-                            <div className="relative flex-1">
-                                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                    <IconSearch className="w-4 h-4 text-muted-foreground" />
-                                </div>
-                                <Input
-                                    type="text"
-                                    placeholder="Cari nama relawan..."
-                                    className="w-full h-10 border-border rounded-md bg-card pl-9 focus-visible:ring-1 focus-visible:ring-destructive"
-                                    value={data.search}
-                                    onChange={(e) => setData('search', e.target.value)}
-                                />
+                        {/* Search Nama */}
+                        <div className="relative flex-1">
+                            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <IconSearch className="w-4 h-4 text-muted-foreground" />
                             </div>
+                            <Input
+                                type="text"
+                                placeholder="Cari nama relawan..."
+                                className="w-full h-10 border-border rounded-md bg-card pl-9 focus-visible:ring-1 focus-visible:ring-destructive"
+                                value={data.search}
+                                onChange={(e) => setData('search', e.target.value)}
+                            />
                         </div>
 
                         <hr className="border-border" />
 
-                        {/* Baris Bawah: Filter Wilayah (Menggunakan ComboBox) */}
+                        {/* Filter Wilayah (Menggunakan ComboBox) */}
                         <div className="grid items-end grid-cols-1 gap-4 sm:grid-cols-3 md:grid-cols-4">
 
                             <div className="space-y-1.5">
                                 <Label className="text-[11px] font-bold tracking-wider text-muted-foreground uppercase">Kabupaten / Kota</Label>
                                 <ComboBox
-                                    items={props.page_data?.kabupaten || []}
+                                    items={options.kabupaten}
                                     selectedItem={data.kabupaten}
-                                    onSelect={(currentValue) => setData('kabupaten', currentValue)}
+                                    onSelect={(value) => setData('kabupaten', value)}
                                 />
                             </div>
 
                             <div className="space-y-1.5">
                                 <Label className="text-[11px] font-bold tracking-wider text-muted-foreground uppercase">Kecamatan</Label>
                                 <ComboBox
-                                    items={props.page_data?.kecamatan || []}
+                                    items={options.kecamatan}
                                     selectedItem={data.kecamatan}
-                                    onSelect={(currentValue) => setData('kecamatan', currentValue)}
+                                    onSelect={(value) => setData('kecamatan', value)}
                                 />
                             </div>
 
                             <div className="space-y-1.5">
                                 <Label className="text-[11px] font-bold tracking-wider text-muted-foreground uppercase">Desa / Kelurahan</Label>
                                 <ComboBox
-                                    items={props.page_data?.desa || []}
+                                    items={options.desa}
                                     selectedItem={data.desa}
-                                    onSelect={(currentValue) => setData('desa', currentValue)}
+                                    onSelect={(value) => setData('desa', value)}
                                 />
                             </div>
 
@@ -192,8 +102,8 @@ export default function Index({ volunteers2, filters, ...props }) {
 
             {/* --- DAFTAR GRID RELAWAN --- */}
             <div className="grid grid-cols-1 gap-4 pt-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {volunteers.length > 0 ? (
-                    volunteers.map((volunteer) => (
+                {volunteers.data.length > 0 ? (
+                    volunteers.data.map((volunteer) => (
                         <Card
                             key={volunteer.id}
                             className="flex flex-col h-full overflow-hidden transition-all duration-200 border-border bg-card shadow-sm group rounded-xl hover:border-muted-foreground/30 hover:shadow-md"
@@ -216,7 +126,7 @@ export default function Index({ volunteers2, filters, ...props }) {
                                     {/* Status Badge */}
                                     <span
                                         className={`rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                                            volunteer.status === 'Aktif'
+                                            volunteer.status === 'Siaga'
                                                 ? 'border-green-200 dark:border-success/30 bg-green-50 dark:bg-success/10 text-green-700 dark:text-success'
                                                 : 'border-red-200 dark:border-warning/30 bg-red-50 dark:bg-warning/10 text-red-700 dark:text-warning'
                                         }`}
@@ -238,15 +148,19 @@ export default function Index({ volunteers2, filters, ...props }) {
 
                                 {/* Keahlian / Badge Skills */}
                                 <div className="mb-5 mt-4 flex flex-wrap gap-1.5">
-                                    {volunteer.skills.map((skill, index) => (
-                                        <span
-                                            key={index}
-                                            className="flex items-center gap-1 rounded-md border border-border bg-muted px-2 py-1 text-[10px] font-medium text-foreground/80"
-                                        >
-                                            <IconMedal className="w-3 h-3 text-destructive" stroke={1.5} />
-                                            {skill}
-                                        </span>
-                                    ))}
+                                    {volunteer.skills && volunteer.skills.length > 0 ? (
+                                        volunteer.skills.map((skill, index) => (
+                                            <span
+                                                key={index}
+                                                className="flex items-center gap-1 rounded-md border border-border bg-muted px-2 py-1 text-[10px] font-medium text-foreground/80"
+                                            >
+                                                <IconMedal className="w-3 h-3 text-destructive" stroke={1.5} />
+                                                {skill}
+                                            </span>
+                                        ))
+                                    ) : (
+                                        <span className="text-[11px] italic text-muted-foreground">Belum ada keahlian terdaftar.</span>
+                                    )}
                                 </div>
 
                                 <Button variant="outline" className="w-full text-foreground/80 transition-colors bg-card border-border rounded-md hover:bg-muted h-9" asChild>
@@ -270,6 +184,27 @@ export default function Index({ volunteers2, filters, ...props }) {
                     </div>
                 )}
             </div>
+
+            {/* --- PAGINASI --- */}
+            {volunteers.links && volunteers.links.length > 3 && (
+                <div className="flex justify-center pt-4 overflow-x-auto scrollbar-hide">
+                    <div className="flex gap-1">
+                        {volunteers.links.map((link, index) => (
+                            <Link
+                                key={index}
+                                href={link.url || ''}
+                                preserveScroll
+                                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+                                    link.active
+                                        ? 'bg-foreground text-background'
+                                        : 'bg-card text-foreground/80 border border-border hover:bg-muted'
+                                } ${!link.url && 'opacity-50 cursor-not-allowed pointer-events-none'}`}
+                                dangerouslySetInnerHTML={{ __html: link.label }}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -50,5 +50,28 @@ it('blocks non-admin roles from hydrant, role and permission management', functi
     $this->actingAs($user)->get('/admin/hydrants')->assertForbidden();
     $this->actingAs($user)->get('/admin/roles')->assertForbidden();
     $this->actingAs($user)->get('/admin/permissions')->assertForbidden();
-    $this->actingAs($user)->get('/admin/assign-users')->assertForbidden();
+});
+
+it('blocks a regional admin from RBAC and global announcement management', function () {
+    // RBAC sistem (role/permission/route-access) + pengumuman global = lintas-tenant,
+    // hanya superadmin. Admin wilayah tak boleh mendefinisikan ulang model akses global.
+    $admin = User::factory()->create(['city_code' => '5171']);
+    $admin->assignRole('admin');
+
+    $this->actingAs($admin)->get('/admin/roles')->assertForbidden();
+    $this->actingAs($admin)->get('/admin/permissions')->assertForbidden();
+    $this->actingAs($admin)->get('/admin/assign-permissions')->assertForbidden();
+    $this->actingAs($admin)->get('/admin/route-accesses')->assertForbidden();
+    $this->actingAs($admin)->get('/admin/announcements')->assertForbidden();
+});
+
+it('lets superadmin reach RBAC and global announcement management', function () {
+    $superadmin = User::factory()->create();
+    $superadmin->assignRole('superadmin');
+
+    $this->actingAs($superadmin)->get('/admin/roles')->assertOk();
+    $this->actingAs($superadmin)->get('/admin/permissions')->assertOk();
+    $this->actingAs($superadmin)->get('/admin/assign-permissions')->assertOk();
+    $this->actingAs($superadmin)->get('/admin/route-accesses')->assertOk();
+    $this->actingAs($superadmin)->get('/admin/announcements')->assertOk();
 });
