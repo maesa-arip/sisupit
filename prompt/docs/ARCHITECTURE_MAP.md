@@ -73,7 +73,7 @@ docker/nominatim/ Artifact self-hosted geocoding (docker-compose + .env.example 
 
 | Modul | Tanggung jawab | File kunci |
 |-------|----------------|-----------|
-| Laporan Darurat | CRUD laporan milik sendiri (status TERLAPOR→pending→handling→resolved) | `app/Http/Controllers/ReportController.php` |
+| Laporan Darurat | CRUD laporan milik sendiri (status TERLAPOR→pending→handling→resolved/ditolak). Edit (TASK_16/#30) = pelapor saja & hanya saat TERLAPOR: konten + kelola galeri foto, lokasi tak diubah | `app/Http/Controllers/ReportController.php` |
 | Workflow Respons | approve/reject/takeAction/cancelResponse/arrive/resolve/updateLocation/correctLocation. `reject` (TASK_10) = status `ditolak` (arsip). `cancelResponse` (TASK_13) = batal meluncur saat `en_route` (revert handling→pending bila responder terakhir mundur). take-action/arrive ter-scope wilayah laporan (TASK_12) | `app/Http/Controllers/ReportActionController.php` |
 | Tracking Lokasi | Riwayat append-only + broadcast WebSocket ke command center. Status laporan juga disiarkan real-time via `ReportStatusChanged` (TASK_14) di channel privat yang sama → halaman Show update tanpa refresh | `app/Models/TrackingLog.php`, `app/Events/ResponderLocationUpdated.php`, `app/Events/ReportStatusChanged.php` |
 | Fasilitas Fisik | Hydrant, Pompa, PosPemadam — CRUD admin ter-scope yurisdiksi + tampilan publik | `app/Http/Controllers/Admin/{HydrantController,PompaController,PosPemadamController}.php`, `app/Http/Controllers/Front/*` |

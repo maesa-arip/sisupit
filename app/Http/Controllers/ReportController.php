@@ -16,6 +16,7 @@ use App\Notifications\EmergencyAlertNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Laravolt\Indonesia\Models\Province;
 use Throwable;
 
@@ -189,12 +190,18 @@ class ReportController extends Controller
     public function edit($id): Response
     {
         $report = Report::withoutGlobalScopes()->findOrFail($id);
-        $this->authorizeReportAccess($report);
+        $this->authorizeReportEdit($report);
+
+        // Backfill foto legacy (pra-TASK_07) ke report_photos agar bisa dikelola di galeri.
+        if ($report->photo && $report->photos()->count() === 0) {
+            $report->photos()->create(['path' => $report->photo]);
+        }
+        $report->load('photos:id,report_id,path');
 
         return inertia('Front/Reports/Edit', [
             'page_settings' => [
                 'title' => 'Edit Laporan',
-                'subtitle' => 'Edit laporan disini. Klik simpan setelah selesai',
+                'subtitle' => 'Perbarui judul, deskripsi, patokan, dan foto. Klik simpan setelah selesai.',
                 'method' => 'PUT',
                 'action' => route('front.reports.update', $report->id),
             ],
@@ -202,22 +209,48 @@ class ReportController extends Controller
         ]);
     }
 
+    // Edit = konten (judul/deskripsi/patokan) + kelola foto galeri. Lokasi & wilayah TIDAK
+    // diubah (keputusan #30). Hanya pelapor & hanya saat status TERLAPOR.
     public function update($id, ReportRequest $request): RedirectResponse
     {
         $report = Report::withoutGlobalScopes()->findOrFail($id);
-        $this->authorizeReportAccess($report);
+        $this->authorizeReportEdit($report);
+
+        // Pastikan laporan tetap punya minimal satu foto setelah edit.
+        $removedIds = $request->input('removed_photos', []);
+        $remaining = $report->photos()->whereNotIn('id', $removedIds)->count()
+            + count($request->file('photos', []));
+        if ($remaining < 1) {
+            flashMessage('Laporan harus memiliki minimal satu foto.', 'error');
+            return to_route('front.reports.edit', $report->id);
+        }
 
         try {
-            $report->update([
-                'name' => $request->name,
-                'phone' => $request->phone,
-                'title' => $request->title,
-                'description' => $request->description,
-                'lat' => $request->lat,
-                'lng' => $request->lng,
-                'address' => $request->address,
-                'photo' => $this->update_file($request, $report, 'photo', 'reports'),
-            ]);
+            DB::transaction(function () use ($report, $request, $removedIds) {
+                $report->update([
+                    'title' => $request->title,
+                    'description' => $request->description,
+                    'address' => $request->address,
+                ]);
+
+                // Hapus foto galeri terpilih (beserta file di disk).
+                if (!empty($removedIds)) {
+                    foreach ($report->photos()->whereIn('id', $removedIds)->get() as $photo) {
+                        Storage::disk('public')->delete($photo->path);
+                        $photo->delete();
+                    }
+                }
+
+                // Tambah foto baru.
+                foreach ((array) $request->file('photos', []) as $file) {
+                    $report->photos()->create(['path' => $file->store('reports', 'public')]);
+                }
+
+                // Hitung ulang foto sampul (kolom `photo` lama) dari foto tersisa.
+                $cover = $report->photos()->orderBy('id')->first();
+                $report->update(['photo' => $cover?->path]);
+            });
+
             flashMessage(MessageType::UPDATED->message('Laporan'));
             return to_route('dashboard');
         } catch (Throwable $e) {
@@ -256,5 +289,16 @@ class ReportController extends Controller
         if (!$isReporter && !$isStaff) {
             abort(403, 'Anda tidak memiliki wewenang untuk mengubah laporan ini.');
         }
+    }
+
+    /**
+     * Otorisasi edit laporan (#30): HANYA pelapor sendiri & HANYA selama laporan belum
+     * divalidasi (status TERLAPOR). Setelah divalidasi/ditolak, laporan terkunci agar data
+     * tidak berubah saat penanganan berjalan.
+     */
+    private function authorizeReportEdit(Report $report): void
+    {
+        abort_unless($report->user_id === auth()->id(), 403, 'Anda tidak memiliki wewenang untuk mengubah laporan ini.');
+        abort_unless($report->status === 'TERLAPOR', 403, 'Laporan yang sudah divalidasi tidak dapat diubah.');
     }
 }

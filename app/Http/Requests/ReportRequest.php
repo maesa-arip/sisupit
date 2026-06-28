@@ -21,6 +21,10 @@ class ReportRequest extends FormRequest
      */
     public function rules(): array
     {
+        // Lokasi & wilayah hanya wajib saat MEMBUAT laporan (POST). Saat edit (PUT) lokasi
+        // tidak diubah (lihat keputusan #30: edit konten + foto saja), jadi dibuat opsional.
+        $isCreate = $this->isMethod('POST');
+
         return [
             'name' => [
                 'nullable',
@@ -32,19 +36,19 @@ class ReportRequest extends FormRequest
                 'max:15',
             ],
             'province_code' => [
-                'required',
+                $isCreate ? 'required' : 'nullable',
                 'exists:indonesia_provinces,code',
             ],
             'city_code' => [
-                'required',
+                $isCreate ? 'required' : 'nullable',
                 'exists:indonesia_cities,code',
             ],
             'district_code' => [
-                'required',
+                $isCreate ? 'required' : 'nullable',
                 'exists:indonesia_districts,code',
             ],
             'village_code' => [
-                'required',
+                $isCreate ? 'required' : 'nullable',
                 'exists:indonesia_villages,code',
             ],
             'title' => [
@@ -60,12 +64,12 @@ class ReportRequest extends FormRequest
                 'string',
             ],
             'lat' => [
-                'required',
+                $isCreate ? 'required' : 'nullable',
                 'min:3',
                 'max:255',
             ],
             'lng' => [
-                'required',
+                $isCreate ? 'required' : 'nullable',
                 'min:3',
                 'max:255',
             ],
@@ -86,6 +90,14 @@ class ReportRequest extends FormRequest
                 'image',
                 'mimes:png,jpg,jpeg,webp',
                 'max:4096',
+            ],
+            // Id foto galeri yang dihapus saat edit (lihat ReportController::update).
+            'removed_photos' => [
+                'nullable',
+                'array',
+            ],
+            'removed_photos.*' => [
+                'integer',
             ],
             'photo' => [
                 'nullable',

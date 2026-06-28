@@ -55,7 +55,7 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 | 27 | P2 | Tidak ada aksi "Batal Meluncur" (un-respond) bagi responder | `app/Http/Controllers/ReportActionController.php` (tak ada method), `resources/js/Pages/Front/Reports/Show.jsx:480-499` | Salah pencet "Meluncur" → terkunci `en_route` selamanya + GPS terus terkirim sampai staff `resolve`. Tak ada jalan mundur untuk responder | FIXED | TASK_13 |
 | 28 | P2 | Perubahan status (`approve`/`resolve`) tidak di-broadcast → halaman `Show` yang terbuka tak update real-time | `app/Http/Controllers/ReportActionController.php:26,123` (hanya `back()`, tanpa broadcast event status) | Tracking lokasi real-time, tapi transisi status tidak; pelapor/responder yang halamannya terbuka harus refresh; GPS responder baru berhenti setelah props segar | FIXED | TASK_14 |
 | 29 | P3 | Batch minor flow respons: `report->category` dead reference (kolom tak ada, selalu fallback "KEBAKARAN"); aksi tak cek status report dulu (mis. `take-action` di laporan `resolved`); casing import campur `@/components/ui` vs folder `Components` | `app/Notifications/EmergencyAlertNotification.php:39,47`; `app/Http/Controllers/ReportActionController.php` (semua aksi); ~8 file React (mis. `Reports/Show.jsx:6`, `ReportCard.jsx:6`) | Dead reference kosmetik; edge-case transisi status; risiko build gagal di FS case-sensitive bila rebuild di VPS (CI Ubuntu saat ini hijau) | FIXED | TASK_15 |
-| 30 | P2 | `Reports/Edit.jsx` adalah form Publisher yang salah → edit laporan non-fungsional | `resources/js/Pages/Front/Reports/Edit.jsx`, `app/Http/Controllers/ReportController.php` (`edit`/`update`) | Halaman edit laporan menampilkan form penerbit (logo/email) sisa scaffolding lama; field tak cocok `ReportRequest` → update pasti gagal. Edit laporan tak pernah berfungsi | OPEN | — |
+| 30 | P2 | `Reports/Edit.jsx` adalah form Publisher yang salah → edit laporan non-fungsional | `resources/js/Pages/Front/Reports/Edit.jsx`, `app/Http/Controllers/ReportController.php` (`edit`/`update`) | Halaman edit laporan menampilkan form penerbit (logo/email) sisa scaffolding lama; field tak cocok `ReportRequest` → update pasti gagal. Edit laporan tak pernah berfungsi | FIXED | TASK_16 |
 
 ---
 
@@ -348,8 +348,16 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **Dampak:** Pelapor tak bisa mengubah laporannya; tombol/route edit menyesatkan.
 - **Rekomendasi:** Ganti `Reports/Edit.jsx` dengan form laporan sebenarnya (tiru `Create.jsx`, termasuk galeri foto #17), atau hapus jalur edit jika tak diperlukan. Perlu keputusan user soal scope edit (boleh ubah foto/lokasi/dll).
 - **Ditemukan saat:** TASK_07 (membaca Edit.jsx untuk pastikan perubahan `photo→photos` tak merusaknya — ternyata sudah rusak independen).
+- **Keputusan user (2026-06-28):** scope = **konten + kelola foto** (judul/deskripsi/patokan + tambah/hapus foto galeri, lokasi & wilayah TIDAK diubah); akses = **pelapor saja & hanya saat status TERLAPOR**.
+- **Fix (2026-06-28, TASK_16):**
+  - `Reports/Edit.jsx` ditulis ulang jadi form laporan sebenarnya (judul/deskripsi/patokan + galeri foto: hapus foto lama via `removed_photos[]`, tambah foto baru via `photos[]`, badge "BARU", maks 6, min 1).
+  - `ReportController::edit` — `authorizeReportEdit` (owner + TERLAPOR), backfill foto legacy (`photo` tanpa baris `report_photos`) ke galeri, load `photos`. `update` — hanya update title/description/address (lokasi tak disentuh), proses hapus/tambah foto dalam transaksi, hitung ulang sampul (`photo`), tolak bila foto tersisa < 1.
+  - `ReportRequest` — region/lat/lng wajib hanya saat POST (create); pada PUT (edit) opsional. `removed_photos[]` divalidasi (array of integer).
+  - `authorizeReportEdit` privat (owner-only + TERLAPOR). Entry point: tombol **Edit** di `Reports/Show.jsx` (hanya owner & saat TERLAPOR).
+  - Test `tests/Feature/Sisupit/ReportEditTest.php` (5). `ReportOwnershipTest` "staff manage" diubah → staff kini 403 di form edit (edit = pelapor saja; staff pakai workflow aksi).
+- **Verifikasi:** `php artisan test` 113 passed (315 assertions; baseline 108 + 5 baru, 1 test ownership disesuaikan). `npm run build` lulus.
 - **Sumber:** review/implementasi 2026-06-28.
-- **Status:** OPEN
+- **Status:** FIXED (TASK_16)
 
 ### #18 — Tidak ada kanal pesan/koordinasi per insiden
 - **Severity:** P2

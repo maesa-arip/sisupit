@@ -21,9 +21,9 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : BELUM DIPILIH — TASK_10, 06, 11, 14, 12, 13, 07, 15 SELESAI 2026-06-28
-                (8 task). TASK_08 (chat) DITUNDA atas keputusan user. Sisa: #30 (edit
-                laporan rusak, P2, perlu keputusan scope) & TASK_09 armada (P3 BLOCKED).
+Task aktif   : BELUM DIPILIH — TASK_10, 06, 11, 14, 12, 13, 07, 15, 16 SELESAI
+                2026-06-28 (9 task). TASK_08 (chat) DITUNDA atas keputusan user.
+                Sisa: TASK_09 armada/Unit (P3 BLOCKED, perlu keputusan scope).
 Backlog (urut prioritas, sumber: prompt/docs/FINDINGS_LOG.md) :
    1. #24 P1  [SELESAI] Tolak Data rusak (route salah) → status `ditolak` + arsip  (TASK_10)
    2. #16 P2  [SELESAI] Notif balik ke pelapor tiap transisi status  (TASK_06)
@@ -34,7 +34,7 @@ Backlog (urut prioritas, sumber: prompt/docs/FINDINGS_LOG.md) :
    6. #17 P2  [SELESAI] Laporan multi-foto (galeri report_photos)  (TASK_07)
    6. #17 P2  Laporan multi-foto (galeri)  (TASK_07)
    7. #18 P2  Kanal chat/koordinasi per insiden  (TASK_08 — DITUNDA atas keputusan user 2026-06-28)
-   8. #30 P2  Edit laporan rusak (Reports/Edit.jsx = form Publisher salah)  (— perlu keputusan scope edit)
+   8. #30 P2  [SELESAI] Edit laporan diperbaiki (pelapor+TERLAPOR, konten+kelola foto)  (TASK_16)
    9. #29 P3  [SELESAI] Batch minor: category dead ref, guard status aksi, casing import  (TASK_15)
    9. #9  P3  Mass-reformat Pint/Prettier (terpisah)  (prompt/tasks/TASK_05_documentation_and_deferred.md)
   10. #19 P3  Manajemen armada/Unit & dispatch  (TASK_09 — BLOCKED, perlu keputusan scope)

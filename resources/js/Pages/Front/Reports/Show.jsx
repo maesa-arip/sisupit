@@ -96,6 +96,7 @@ export default function ReportShow(props) {
     const userRoles = Array.isArray(auth.user?.role) ? auth.user.role : (auth.user?.role ? [auth.user.role] : []);
     const isStaffOrAdmin = userRoles.some(r => ['admin', 'superadmin', 'petugas'].includes(r));
     const isRelawan = userRoles.includes('relawan');
+    const isOwner = auth.user?.id === report.user_id;
 
     useEffect(() => {
         setOfficerList(props.report.officers || []);
@@ -382,6 +383,12 @@ export default function ReportShow(props) {
                         </Badge>
                     </div>
                 </div>
+                {/* Pelapor boleh mengedit hanya selama laporan belum divalidasi (TERLAPOR) — #30 */}
+                {isOwner && reportStatus === 'TERLAPOR' && (
+                    <Button variant="outline" className="h-9 px-3 text-xs font-bold uppercase tracking-wider border-border bg-card shadow-none shrink-0" asChild>
+                        <Link href={route('front.reports.edit', report.id)}>Edit</Link>
+                    </Button>
+                )}
             </div>
 
             {/* --- 🛡️ PANEL VERIFIKASI --- */}

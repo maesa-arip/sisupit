@@ -31,9 +31,11 @@ it('lets the report owner edit their own report', function () {
     $this->actingAs($this->owner)->get("/reports/edit/{$this->report->id}")->assertOk();
 });
 
-it('lets staff (petugas) manage any report', function () {
+it('blocks even staff from the owner-only report edit form (#30: pelapor saja)', function () {
+    // Edit laporan kini HANYA untuk pelapor & saat TERLAPOR (keputusan #30). Staff
+    // mengelola laporan lewat workflow aksi (approve/reject/dst.), bukan form edit.
     $petugas = User::factory()->create(['village_code' => '5171012006']);
     $petugas->assignRole('petugas');
 
-    $this->actingAs($petugas)->get("/reports/edit/{$this->report->id}")->assertOk();
+    $this->actingAs($petugas)->get("/reports/edit/{$this->report->id}")->assertForbidden();
 });
