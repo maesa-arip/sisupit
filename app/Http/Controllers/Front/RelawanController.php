@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
+use App\Models\Skill;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -38,6 +39,12 @@ class RelawanController extends Controller
             $query->where('village_code', $request->desa);
         }
 
+        // Filter keahlian: kolom skills berupa JSON array (cast 'array').
+        // whereJsonContains mencari relawan yang punya keahlian terpilih.
+        if ($request->filled('keahlian')) {
+            $query->whereJsonContains('skills', $request->keahlian);
+        }
+
         $volunteers = $query->latest()->paginate(12)->withQueryString();
 
         $volunteers->getCollection()->transform(fn (User $user) => $this->transformList($user));
@@ -45,7 +52,7 @@ class RelawanController extends Controller
         return Inertia::render('Volunteers/Index', [
             'volunteers' => $volunteers,
             'filterOptions' => $this->regionFilterOptions(),
-            'filters' => $request->only(['search', 'kabupaten', 'kecamatan', 'desa']),
+            'filters' => $request->only(['search', 'kabupaten', 'kecamatan', 'desa', 'keahlian']),
         ]);
     }
 
@@ -100,8 +107,9 @@ class RelawanController extends Controller
     }
 
     /**
-     * Opsi dropdown wilayah, dibatasi hanya wilayah yang benar-benar dihuni
-     * relawan agar filter tidak menampilkan ribuan wilayah kosong.
+     * Opsi dropdown filter. Wilayah dibatasi hanya yang benar-benar dihuni
+     * relawan dalam yurisdiksi (agar tak menampilkan ribuan wilayah kosong);
+     * keahlian memakai master penuh (Skill::options) seperti editor dashboard.
      */
     private function regionFilterOptions(): array
     {
@@ -113,6 +121,10 @@ class RelawanController extends Controller
         $districtCodes = (clone $relawan)->whereNotNull('district_code')->distinct()->pluck('district_code');
         $villageCodes = (clone $relawan)->whereNotNull('village_code')->distinct()->pluck('village_code');
 
+        // Keahlian: tampilkan seluruh master keahlian (sama dgn editor di dashboard
+        // relawan), bukan hanya yang sedang terpakai, agar filter lengkap.
+        $keahlian = Skill::options();
+
         return [
             'kabupaten' => City::whereIn('code', $cityCodes)->orderBy('name')->get(['code', 'name'])
                 ->map(fn ($r) => ['value' => $r->code, 'label' => $r->name])->all(),
@@ -120,6 +132,7 @@ class RelawanController extends Controller
                 ->map(fn ($r) => ['value' => $r->code, 'label' => $r->name])->all(),
             'desa' => Village::whereIn('code', $villageCodes)->orderBy('name')->get(['code', 'name'])
                 ->map(fn ($r) => ['value' => $r->code, 'label' => $r->name])->all(),
+            'keahlian' => array_map(fn ($s) => ['value' => $s, 'label' => $s], $keahlian),
         ];
     }
 }

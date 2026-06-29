@@ -158,6 +158,7 @@ Model yang **sengaja global** (tidak pakai Tenantable): `Setting`, `RouteAccess`
 | Announcement | tidak ada relasi | Global, broadcast publik, dipakai di shared prop `announcemet` (typo, lihat anti-pola) |
 | Unit | hasMany ReportUnit; belongsTo PosPemadam (homebase, nullable); relasi wilayah; `Tenantable`+SoftDeletes, `$guarded=[]` | Katalog armada/kendaraan (TASK_09). Status: `available`/`dispatched`/`maintenance`. CRUD admin ter-scope via `Admin\UnitController`; dispatch/release via `ReportActionController` |
 | ReportUnit | belongsTo Report, Unit; `$guarded=[]`; casts dispatched_at/released_at | Pivot pengerahan unit ke insiden (TASK_09). Status pivot: `dispatched`/`released`. Auto-released saat laporan `resolve()` |
+| Skill | — (master global, bukan Tenantable) | Master keahlian relawan (tabel `skills`, `name` unik). `Skill::options()` = daftar nama terurut+cache, sumber tunggal untuk editor keahlian dashboard relawan, validasi `VolunteerController::updateSkills`, & filter keahlian `Front\RelawanController`. Diseed `SkillSeeder`. `users.skills` tetap JSON array label (bukan FK) |
 | FcmToken, SocialAccount | belongsTo User | Token push & akun sosial |
 
 ## Endpoint / route

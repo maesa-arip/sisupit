@@ -27,19 +27,10 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-// Harus selaras dengan VolunteerController::SKILL_OPTIONS (whitelist server).
-const SKILL_OPTIONS = [
-	'Pemadaman',
-	'P3K / Medis',
-	'Evakuasi',
-	'SAR',
-	'Distribusi Air',
-	'Logistik',
-	'Komunikasi',
-	'Pengaturan Lalu Lintas',
-];
-
 export default function Dashboard(props) {
+	// Master keahlian dari server (App\Models\Skill) — sumber tunggal,
+	// selaras dgn filter Daftar Relawan & validasi VolunteerController.
+	const SKILL_OPTIONS = Array.isArray(props.skillOptions) ? props.skillOptions : [];
 	const auth = props.auth.user;
 	const firstName = auth?.name ? auth.name.split(' ').find((word) => word.length >= 3) || 'Warga' : 'Warga';
 

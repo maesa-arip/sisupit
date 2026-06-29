@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Hydrant;
 use App\Models\Report;
+use App\Models\Skill;
 use App\Models\User;
 use Inertia\Inertia;
 
@@ -162,6 +163,7 @@ class DashboardController extends Controller
             'isRelawan' => $user->hasRole('relawan'),
             'nearbyEmergencies' => $nearbyEmergencies,
             'myTasks' => $myTasks,
+            'skillOptions' => Skill::options(), // master keahlian untuk editor relawan
             'page_data' => [
                 'reports' => $reportsFeed,  // Sekarang page_data.reports terisi dengan sempurna!
             ],

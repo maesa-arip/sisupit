@@ -2,26 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Skill;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class VolunteerController extends Controller
 {
-    /**
-     * Daftar keahlian yang boleh dipilih relawan. Ditampilkan sebagai chip
-     * di dashboard relawan & badge di daftar relawan (lihat Volunteers/Index).
-     */
-    public const SKILL_OPTIONS = [
-        'Pemadaman',
-        'P3K / Medis',
-        'Evakuasi',
-        'SAR',
-        'Distribusi Air',
-        'Logistik',
-        'Komunikasi',
-        'Pengaturan Lalu Lintas',
-    ];
-
     /**
      * Daftarkan user yang sedang login menjadi relawan.
      */
@@ -59,8 +46,8 @@ class VolunteerController extends Controller
     }
 
     /**
-     * Perbarui daftar keahlian relawan. Hanya menerima nilai dari whitelist
-     * SKILL_OPTIONS agar badge di daftar relawan tetap konsisten.
+     * Perbarui daftar keahlian relawan. Hanya menerima nilai dari master
+     * keahlian (Skill::options()) agar badge di daftar relawan tetap konsisten.
      */
     public function updateSkills(Request $request): RedirectResponse
     {
@@ -68,9 +55,11 @@ class VolunteerController extends Controller
 
         abort_unless($user->hasRole('relawan'), 403);
 
+        $options = Skill::options();
+
         $validated = $request->validate([
-            'skills' => ['present', 'array', 'max:'.count(self::SKILL_OPTIONS)],
-            'skills.*' => ['string', 'in:'.implode(',', self::SKILL_OPTIONS)],
+            'skills' => ['present', 'array', 'max:'.count($options)],
+            'skills.*' => ['string', Rule::in($options)],
         ]);
 
         // values() agar tersimpan sebagai array terindeks (bukan object) di JSON.

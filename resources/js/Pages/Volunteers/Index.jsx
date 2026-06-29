@@ -5,8 +5,15 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import AppLayout from '@/Layouts/AppLayout';
-import { Link, useForm } from '@inertiajs/react';
-import { IconMapPinFilled, IconMedal, IconPhone, IconSearch, IconUsersGroup } from '@tabler/icons-react';
+import { Link, router, useForm } from '@inertiajs/react';
+import {
+	IconFilterX,
+	IconMapPinFilled,
+	IconMedal,
+	IconPhone,
+	IconSearch,
+	IconUsersGroup,
+} from '@tabler/icons-react';
 
 export default function Index({ volunteers, filterOptions, filters, ...props }) {
 	const { data, setData, get, processing } = useForm({
@@ -14,15 +21,23 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 		kabupaten: filters?.kabupaten || '',
 		kecamatan: filters?.kecamatan || '',
 		desa: filters?.desa || '',
+		keahlian: filters?.keahlian || '',
 	});
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
-		// useForm().get mengirim `data` (search + kode wilayah) sebagai query string.
+		// useForm().get mengirim `data` (search + kode wilayah + keahlian) sebagai query string.
 		get(route('front.volunteers.index'), { preserveState: true, preserveScroll: true });
 	};
 
-	const options = filterOptions || { kabupaten: [], kecamatan: [], desa: [] };
+	// ComboBox tidak bisa di-deselect, jadi reset = muat ulang tanpa query.
+	const handleReset = () => {
+		router.get(route('front.volunteers.index'), {}, { preserveScroll: true });
+	};
+
+	const hasActiveFilters = Object.values(data).some((v) => v);
+
+	const options = filterOptions || { kabupaten: [], kecamatan: [], desa: [], keahlian: [] };
 
 	return (
 		<div className="relative flex w-full flex-col space-y-6 pb-32">
@@ -55,8 +70,8 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 
 						<hr className="border-border" />
 
-						{/* Filter Wilayah (Menggunakan ComboBox) */}
-						<div className="grid grid-cols-1 items-end gap-4 sm:grid-cols-3 md:grid-cols-4">
+						{/* Filter Wilayah & Keahlian (Menggunakan ComboBox) */}
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 							<div className="space-y-1.5">
 								<Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
 									Kabupaten / Kota
@@ -65,6 +80,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 									items={options.kabupaten}
 									selectedItem={data.kabupaten}
 									onSelect={(value) => setData('kabupaten', value)}
+									placeholder="Semua kabupaten/kota"
 								/>
 							</div>
 
@@ -76,6 +92,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 									items={options.kecamatan}
 									selectedItem={data.kecamatan}
 									onSelect={(value) => setData('kecamatan', value)}
+									placeholder="Semua kecamatan"
 								/>
 							</div>
 
@@ -87,14 +104,40 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 									items={options.desa}
 									selectedItem={data.desa}
 									onSelect={(value) => setData('desa', value)}
+									placeholder="Semua desa/kelurahan"
 								/>
 							</div>
 
-							{/* Tombol Submit Filter */}
+							<div className="space-y-1.5">
+								<Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+									Keahlian
+								</Label>
+								<ComboBox
+									items={options.keahlian}
+									selectedItem={data.keahlian}
+									onSelect={(value) => setData('keahlian', value)}
+									placeholder="Semua keahlian"
+								/>
+							</div>
+						</div>
+
+						{/* Baris Aksi Filter */}
+						<div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-end">
+							{hasActiveFilters && (
+								<Button
+									type="button"
+									variant="ghost"
+									onClick={handleReset}
+									disabled={processing}
+									className="h-10 rounded-md text-muted-foreground hover:text-foreground sm:w-auto"
+								>
+									<IconFilterX className="mr-1.5 h-4 w-4" /> Reset Filter
+								</Button>
+							)}
 							<Button
 								type="submit"
 								disabled={processing}
-								className="h-10 w-full rounded-md bg-destructive font-medium text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50"
+								className="h-10 rounded-md bg-destructive px-6 font-medium text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50"
 							>
 								Terapkan Filter
 							</Button>
@@ -103,8 +146,15 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 				</CardContent>
 			</Card>
 
+			{/* --- INFO JUMLAH HASIL --- */}
+			<p className="text-sm text-muted-foreground">
+				Menampilkan <span className="font-semibold text-foreground">{volunteers.data.length}</span> dari{' '}
+				<span className="font-semibold text-foreground">{volunteers.total ?? volunteers.data.length}</span>{' '}
+				relawan
+			</p>
+
 			{/* --- DAFTAR GRID RELAWAN --- */}
-			<div className="grid grid-cols-1 gap-4 pt-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 				{volunteers.data.length > 0 ? (
 					volunteers.data.map((volunteer) => (
 						<Card
