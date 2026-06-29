@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class RolePermissionSeeder extends Seeder
 {
@@ -32,7 +32,7 @@ class RolePermissionSeeder extends Seeder
         // ==========================================
         // 2. Buat Roles dan Assign Permissions
         // ==========================================
-        
+
         // F. Superadmin Pusat (Developer Sisupit)
         // Tidak perlu di-assign manual, otomatis di-bypass via AuthServiceProvider (Gate::before)
         Role::firstOrCreate(['name' => 'superadmin']);
@@ -41,10 +41,10 @@ class RolePermissionSeeder extends Seeder
         // Pembatasan wilayah BUKAN dilakukan disini, melainkan melalui Query Tenant di Controller!
         $roleAdmin = Role::firstOrCreate(['name' => 'admin']);
         $roleAdmin->givePermissionTo([
-            'manage_users', 
-            'manage_facilities', 
-            'manage_reports', 
-            'view_dashboard'
+            'manage_users',
+            'manage_facilities',
+            'manage_reports',
+            'view_dashboard',
         ]);
 
         // D. Pejabat Daerah (Bupati/Gubernur/Kadis) -> Sifatnya "Read-Only/Pemantau"
@@ -54,27 +54,18 @@ class RolePermissionSeeder extends Seeder
         // C. Petugas Damkar Lapangan / Operator
         $rolePetugas = Role::firstOrCreate(['name' => 'petugas']);
         $rolePetugas->givePermissionTo([
-            'create_reports', 
-            'manage_reports', 
-            'view_dashboard'
+            'create_reports',
+            'manage_reports',
+            'view_dashboard',
         ]);
 
         // B. Relawan Lapangan
         $roleRelawan = Role::firstOrCreate(['name' => 'relawan']);
         $roleRelawan->givePermissionTo(['create_reports']);
-        
+
         // A. Masyarakat Umum
         $roleMasyarakat = Role::firstOrCreate(['name' => 'masyarakat']);
         $roleMasyarakat->givePermissionTo(['create_reports']);
 
-        
-
-        
-
-        
-
-        
-
-        
     }
 }

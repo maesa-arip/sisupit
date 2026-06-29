@@ -17,10 +17,10 @@ createInertiaApp({
 			return;
 		}
 		const appElement = (
-			<ThemeProvider defaultTheme='system' storageKey='current-theme'>
+			<ThemeProvider defaultTheme="system" storageKey="current-theme">
 				<App {...props} />
 			</ThemeProvider>
-		)
+		);
 
 		createRoot(el).render(appElement);
 	},

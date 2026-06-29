@@ -22,7 +22,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, HasRoles, Notifiable, HasPushSubscriptions;
+    use HasFactory, HasPushSubscriptions, HasRoles, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -58,6 +58,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'remember_token',
     ];
+
     // Tambahkan Local Scope ini di dalam Model User
     public function scopeIsAdmin(Builder $query)
     {
@@ -81,8 +82,6 @@ class User extends Authenticatable implements MustVerifyEmail
 
         return $query;
     }
-
-
 
     public function socialAccounts()
     {
@@ -113,6 +112,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Report::class);
     }
+
     // Relasi ke tabel fcm_tokens
     public function fcmTokens()
     {
@@ -124,7 +124,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->fcmTokens()->pluck('token')->toArray();
     }
-    
+
     public function scopeFilter(Builder $query, array $filters): void
     {
         $query->when($filters['search'] ?? null, function ($query, $search) {

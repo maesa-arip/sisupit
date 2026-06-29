@@ -24,7 +24,7 @@ class RelawanController extends Controller
             ->with(['city', 'district', 'village']);
 
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%'.$request->search.'%');
         }
 
         // Filter wilayah memakai kolom *_code yang sebenarnya ada di tabel users.
@@ -60,18 +60,18 @@ class RelawanController extends Controller
             ->findOrFail($id);
 
         $volunteer = [
-            'id'              => $user->id,
-            'name'            => $user->name,
-            'email'           => $user->email,
-            'phone'           => $user->phone,
-            'status'          => $user->is_standby ? 'Siaga' : 'Nonaktif',
-            'kabupaten'       => $user->city?->name ?? '-',
-            'kecamatan'       => $user->district?->name ?? '-',
-            'desa'            => $user->village?->name ?? '-',
-            'address'         => $user->address ?? 'Tidak ada detail alamat.',
-            'join_date'       => Carbon::parse($user->created_at)->translatedFormat('d F Y'),
-            'avatar'          => $user->avatar ? asset('storage/' . $user->avatar) : null,
-            'skills'          => $user->skills ?? [],
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'status' => $user->is_standby ? 'Siaga' : 'Nonaktif',
+            'kabupaten' => $user->city?->name ?? '-',
+            'kecamatan' => $user->district?->name ?? '-',
+            'desa' => $user->village?->name ?? '-',
+            'address' => $user->address ?? 'Tidak ada detail alamat.',
+            'join_date' => Carbon::parse($user->created_at)->translatedFormat('d F Y'),
+            'avatar' => $user->avatar ? asset('storage/'.$user->avatar) : null,
+            'skills' => $user->skills ?? [],
             'reports_handled' => $user->reports()->count(),
         ];
 
@@ -90,11 +90,11 @@ class RelawanController extends Controller
             : ($user->city?->name ?? $user->address ?? 'Lokasi tidak diketahui');
 
         return [
-            'id'     => $user->id,
-            'name'   => $user->name,
-            'area'   => $area,
+            'id' => $user->id,
+            'name' => $user->name,
+            'area' => $area,
             'skills' => $user->skills ?? [],
-            'avatar' => $user->avatar ? asset('storage/' . $user->avatar) : null,
+            'avatar' => $user->avatar ? asset('storage/'.$user->avatar) : null,
             'status' => $user->is_standby ? 'Siaga' : 'Nonaktif',
         ];
     }

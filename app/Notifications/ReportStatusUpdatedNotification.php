@@ -20,6 +20,7 @@ class ReportStatusUpdatedNotification extends Notification implements ShouldQueu
     use Queueable;
 
     public $report;
+
     public $event;
 
     public function __construct(Report $report, string $event)
@@ -40,10 +41,10 @@ class ReportStatusUpdatedNotification extends Notification implements ShouldQueu
     private function content(): array
     {
         return match ($this->event) {
-            'approved' => ['title' => 'Laporan Anda divalidasi', 'body' => 'Pusat Komando menyiagakan tim untuk "' . $this->report->title . '".'],
-            'en_route' => ['title' => 'Bantuan dalam perjalanan', 'body' => 'Responder sedang menuju lokasi "' . $this->report->title . '".'],
-            'arrived' => ['title' => 'Responder tiba di lokasi', 'body' => 'Tim telah sampai di lokasi "' . $this->report->title . '".'],
-            'resolved' => ['title' => 'Insiden selesai ditangani', 'body' => 'Laporan "' . $this->report->title . '" telah dinyatakan selesai.'],
+            'approved' => ['title' => 'Laporan Anda divalidasi', 'body' => 'Pusat Komando menyiagakan tim untuk "'.$this->report->title.'".'],
+            'en_route' => ['title' => 'Bantuan dalam perjalanan', 'body' => 'Responder sedang menuju lokasi "'.$this->report->title.'".'],
+            'arrived' => ['title' => 'Responder tiba di lokasi', 'body' => 'Tim telah sampai di lokasi "'.$this->report->title.'".'],
+            'resolved' => ['title' => 'Insiden selesai ditangani', 'body' => 'Laporan "'.$this->report->title.'" telah dinyatakan selesai.'],
             default => ['title' => 'Status laporan diperbarui', 'body' => $this->report->title],
         };
     }

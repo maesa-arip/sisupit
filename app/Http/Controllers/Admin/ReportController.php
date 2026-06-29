@@ -62,7 +62,7 @@ class ReportController extends Controller
     {
         return Excel::download(
             new ReportsExport($request->only(['search', 'status'])),
-            'laporan-kejadian-' . now()->format('Y-m-d-His') . '.xlsx'
+            'laporan-kejadian-'.now()->format('Y-m-d-His').'.xlsx'
         );
     }
 }

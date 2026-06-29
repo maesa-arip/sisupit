@@ -17,19 +17,17 @@ class ReportHelper extends Model
         'location_lng',
         'status',
     ];
+
     /**
      * Get the report that owns the ReportHelper
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function report(): BelongsTo
     {
         return $this->belongsTo(Report::class);
     }
+
     /**
      * Get the user that owns the ReportHelper
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function user(): BelongsTo
     {

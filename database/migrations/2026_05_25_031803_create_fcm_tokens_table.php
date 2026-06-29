@@ -12,12 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('fcm_tokens', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-        $table->string('token')->unique();
-        $table->string('device_type')->default('android')->comment('android, ios, web');
-        $table->timestamps();
-    });
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('token')->unique();
+            $table->string('device_type')->default('android')->comment('android, ios, web');
+            $table->timestamps();
+        });
     }
 
     /**

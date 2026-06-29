@@ -35,7 +35,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 
 		setData(key, value);
 	};
-	
+
 	// Fungsi ini sekarang hanya membatalkan file baru yang dipilih
 	const removePhoto = () => {
 		setData('ktp', null);
@@ -58,10 +58,10 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 	};
 
 	return (
-		<Card className={`overflow-hidden border border-border bg-card shadow-sm rounded-xl ${className}`}>
-			<CardHeader className="pb-5 border-b border-border bg-transparent">
+		<Card className={`overflow-hidden rounded-xl border border-border bg-card shadow-sm ${className}`}>
+			<CardHeader className="border-b border-border bg-transparent pb-5">
 				<div className="flex items-center gap-3">
-					<div className="rounded-lg bg-muted border border-border p-2 text-muted-foreground">
+					<div className="rounded-lg border border-border bg-muted p-2 text-muted-foreground">
 						<IconUserEdit size={20} stroke={1.5} />
 					</div>
 					<div>
@@ -77,7 +77,9 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 				<form onSubmit={onHandleSubmit} className="space-y-5">
 					<div className="grid grid-cols-1 gap-5 md:grid-cols-2">
 						<div className="space-y-1.5">
-							<Label htmlFor="name" className="text-sm font-medium text-foreground">Nama Lengkap</Label>
+							<Label htmlFor="name" className="text-sm font-medium text-foreground">
+								Nama Lengkap
+							</Label>
 							<Input
 								id="name"
 								name="name"
@@ -90,7 +92,9 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 						</div>
 
 						<div className="space-y-1.5">
-							<Label htmlFor="email" className="text-sm font-medium text-foreground">Email</Label>
+							<Label htmlFor="email" className="text-sm font-medium text-foreground">
+								Email
+							</Label>
 							<Input
 								id="email"
 								name="email"
@@ -103,7 +107,9 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 						</div>
 
 						<div className="space-y-1.5">
-							<Label htmlFor="phone" className="text-sm font-medium text-foreground">Nomor Telepon</Label>
+							<Label htmlFor="phone" className="text-sm font-medium text-foreground">
+								Nomor Telepon
+							</Label>
 							<Input
 								id="phone"
 								name="phone"
@@ -117,39 +123,49 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 
 						{/* --- REVISI: BAGIAN KTP --- */}
 						<div className="space-y-2 md:col-span-2 lg:col-span-1">
-							<Label htmlFor="ktp" className="text-sm font-medium text-foreground">Dokumen KTP (Opsional)</Label>
+							<Label htmlFor="ktp" className="text-sm font-medium text-foreground">
+								Dokumen KTP (Opsional)
+							</Label>
 
 							<div className="flex flex-col gap-4 sm:flex-row">
 								{/* Menampilkan Foto jika sudah ada atau sedang dipreview */}
 								{(previewUrl || user.ktp) && (
-									<div className="relative w-full sm:w-48 h-32 rounded-lg overflow-hidden border border-border shadow-sm group shrink-0">
+									<div className="group relative h-32 w-full shrink-0 overflow-hidden rounded-lg border border-border shadow-sm sm:w-48">
 										<img
-											src={previewUrl ? previewUrl : (user.ktp.startsWith('http') ? user.ktp : `${user.ktp}`)}
+											src={
+												previewUrl
+													? previewUrl
+													: user.ktp.startsWith('http')
+														? user.ktp
+														: `${user.ktp}`
+											}
 											alt="Preview KTP"
-											className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+											className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
 										/>
 										{/* Tombol X hanya muncul jika user sedang mem-preview file baru */}
 										{previewUrl && (
 											<button
 												type="button"
 												onClick={removePhoto}
-												className="absolute flex items-center justify-center text-red-600 dark:text-destructive transition-colors border border-transparent rounded-md shadow-sm top-2 right-2 w-7 h-7 bg-background/90 hover:bg-red-50 dark:hover:bg-destructive/10 backdrop-blur-sm hover:border-red-200 dark:hover:border-destructive/20"
+												className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-md border border-transparent bg-background/90 text-red-600 shadow-sm backdrop-blur-sm transition-colors hover:border-red-200 hover:bg-red-50 dark:text-destructive dark:hover:border-destructive/20 dark:hover:bg-destructive/10"
 												title="Batal gunakan file ini"
 											>
-												<IconX stroke={2} className="w-4 h-4" />
+												<IconX stroke={2} className="h-4 w-4" />
 											</button>
 										)}
 									</div>
 								)}
 
 								{/* Kotak Upload selalu ditampilkan agar bisa "Ganti File" */}
-								<div className={`border border-dashed border-border rounded-lg p-4 flex flex-col items-center justify-center text-center bg-muted/50 transition-colors hover:bg-muted ${
-									(previewUrl || user.ktp) ? 'w-full sm:w-auto flex-1 h-32' : 'w-full'
-								}`}>
-									<IconCamera className="w-5 h-5 text-muted-foreground mb-1.5" />
+								<div
+									className={`flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/50 p-4 text-center transition-colors hover:bg-muted ${
+										previewUrl || user.ktp ? 'h-32 w-full flex-1 sm:w-auto' : 'w-full'
+									}`}
+								>
+									<IconCamera className="mb-1.5 h-5 w-5 text-muted-foreground" />
 									<p className="mb-3 text-xs text-muted-foreground">PNG, JPG up to 5MB</p>
-									<label className="cursor-pointer inline-flex items-center justify-center h-8 px-4 rounded-md bg-background border border-border text-xs font-medium text-foreground hover:bg-accent transition-colors focus-within:ring-2 focus-within:ring-destructive/50">
-										{(previewUrl || user.ktp) ? 'Ganti File' : 'Browse Files'}
+									<label className="inline-flex h-8 cursor-pointer items-center justify-center rounded-md border border-border bg-background px-4 text-xs font-medium text-foreground transition-colors focus-within:ring-2 focus-within:ring-destructive/50 hover:bg-accent">
+										{previewUrl || user.ktp ? 'Ganti File' : 'Browse Files'}
 										<input
 											name="ktp"
 											id="ktp"
@@ -167,21 +183,21 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 					</div>
 
 					{mustVerifyEmail && user.email_verified_at === null && (
-						<div className="p-4 mt-2 border border-border rounded-md bg-muted">
+						<div className="mt-2 rounded-md border border-border bg-muted p-4">
 							<p className="text-sm text-foreground">
 								Alamat email Anda belum diverifikasi.
 								<Link
 									href={route('verification.send')}
 									method="post"
 									as="button"
-									className="ml-1 font-semibold underline rounded-sm hover:text-foreground/80 focus:outline-none focus:ring-2 focus:ring-destructive"
+									className="ml-1 rounded-sm font-semibold underline hover:text-foreground/80 focus:outline-none focus:ring-2 focus:ring-destructive"
 								>
 									Klik di sini untuk mengirim ulang.
 								</Link>
 							</p>
 
 							{status === 'verification-link-sent' && (
-								<Alert className="mt-3 text-green-800 dark:text-success border-green-200 dark:border-success/20 bg-green-50 dark:bg-success/10">
+								<Alert className="mt-3 border-green-200 bg-green-50 text-green-800 dark:border-success/20 dark:bg-success/10 dark:text-success">
 									<AlertDescription>
 										Tautan verifikasi baru telah dikirim ke alamat email Anda.
 									</AlertDescription>
@@ -192,7 +208,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 
 					<div className="flex items-center gap-4 pt-2">
 						<Button
-							className="h-9 px-4 rounded-md text-sm font-medium text-destructive-foreground transition-colors bg-destructive hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50"
+							className="h-9 rounded-md bg-destructive px-4 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50"
 							disabled={processing}
 						>
 							Simpan Perubahan
@@ -207,9 +223,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 							leaveFrom="opacity-100"
 							leaveTo="opacity-0"
 						>
-							<p className="text-sm font-medium text-success">
-								Tersimpan.
-							</p>
+							<p className="text-sm font-medium text-success">Tersimpan.</p>
 						</Transition>
 					</div>
 				</form>

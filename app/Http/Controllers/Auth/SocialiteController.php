@@ -6,12 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\SocialAccount;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;
-use Spatie\Permission\Models\Role;
 
 class SocialiteController extends Controller
 {
@@ -81,12 +80,12 @@ class SocialiteController extends Controller
         }
 
         // Bungkus payload sebagai user Socialite agar bisa lewat findOrCreateUser() yang sudah ada.
-        $socialUser = (new SocialiteUser())->setRaw($payload)->map([
-            'id'       => $payload['sub'],
-            'name'     => $payload['name'] ?? $payload['email'],
-            'email'    => $payload['email'],
+        $socialUser = (new SocialiteUser)->setRaw($payload)->map([
+            'id' => $payload['sub'],
+            'name' => $payload['name'] ?? $payload['email'],
+            'email' => $payload['email'],
             'nickname' => $payload['given_name'] ?? null,
-            'avatar'   => $payload['picture'] ?? null,
+            'avatar' => $payload['picture'] ?? null,
         ]);
 
         $authUser = $this->findOrCreateUser($socialUser, 'google');
@@ -111,24 +110,24 @@ class SocialiteController extends Controller
             // Jika belum ada
         } else {
 
-            // User berdasarkan email 
+            // User berdasarkan email
             $user = User::where('email', $socialUser->getEmail())->first();
 
             // Jika Tidak ada user
-            if (!$user) {
+            if (! $user) {
                 // Create user baru
                 $user = User::create([
-                    'name'  => $socialUser->getName(),
+                    'name' => $socialUser->getName(),
                     'email' => $socialUser->getEmail(),
                     'email_verified_at' => Carbon::now(),
-                    'username' => str($socialUser->getNickname() ?? $socialUser->getName())->slug() . '-' . Str::lower(Str::random(6)),
+                    'username' => str($socialUser->getNickname() ?? $socialUser->getName())->slug().'-'.Str::lower(Str::random(6)),
                 ])->assignRole('masyarakat');
             }
 
             // Buat Social Account baru
             $user->socialAccounts()->create([
-                'provider_id'   => $socialUser->getId(),
-                'provider_name' => $provider
+                'provider_id' => $socialUser->getId(),
+                'provider_name' => $provider,
             ]);
 
             // return user

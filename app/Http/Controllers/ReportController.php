@@ -2,9 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Traits\HasFile;
-use Illuminate\Http\RedirectResponse;
-use Inertia\Response;
 use App\Enums\MessageType;
 use App\Enums\TenantLevel;
 use App\Http\Requests\ReportRequest;
@@ -14,10 +11,12 @@ use App\Models\TrackingLog;
 use App\Models\Unit;
 use App\Models\User;
 use App\Notifications\EmergencyAlertNotification;
-use Illuminate\Http\Request;
+use App\Traits\HasFile;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Response;
 use Laravolt\Indonesia\Models\Province;
 use Throwable;
 
@@ -44,7 +43,7 @@ class ReportController extends Controller
         } else {
             // JALUR 2: Tab "Semua Laporan" (Sembunyikan TERLAPOR & ditolak dari Publik/Relawan;
             // laporan ditolak hanya terlihat staff di arsip + pemilik di Riwayat Saya)
-            if (!$user->hasAnyRole(['admin', 'superadmin', 'petugas'])) {
+            if (! $user->hasAnyRole(['admin', 'superadmin', 'petugas'])) {
                 $query->whereNotIn('status', ['TERLAPOR', 'ditolak']);
             }
         }
@@ -76,7 +75,7 @@ class ReportController extends Controller
         $isStaff = $user->hasAnyRole(['admin', 'superadmin', 'petugas']);
         $isHelper = DB::table('report_helpers')->where('report_id', $report->id)->where('user_id', $user->id)->exists();
 
-        if (!$isReporter && !$isStaff && !$isHelper) {
+        if (! $isReporter && ! $isStaff && ! $isHelper) {
             abort(403, 'Anda tidak memiliki wewenang untuk memantau insiden ini.');
         }
 
@@ -89,7 +88,7 @@ class ReportController extends Controller
             'province',
             'city',
             'district',
-            'village'
+            'village',
         ]);
 
         // Daftar unit yang tersedia untuk dikerahkan — hanya untuk staf, ter-scope wilayah
@@ -129,6 +128,7 @@ class ReportController extends Controller
     public function create(): Response
     {
         $provinces = Province::select('code', 'name')->get();
+
         return inertia('Front/Reports/Create', [
             'page_settings' => [
                 'title' => 'Buat Laporan',
@@ -136,7 +136,7 @@ class ReportController extends Controller
                 'method' => 'POST',
                 'action' => route('front.reports.store'),
             ],
-            'provinces' => $provinces
+            'provinces' => $provinces,
         ]);
     }
 
@@ -189,6 +189,7 @@ class ReportController extends Controller
             return to_route('dashboard');
         } catch (Throwable $e) {
             flashMessage(MessageType::ERROR->message(error: $e->getMessage()), 'error');
+
             return to_route('front.reports.create');
         }
     }
@@ -231,6 +232,7 @@ class ReportController extends Controller
             + count($request->file('photos', []));
         if ($remaining < 1) {
             flashMessage('Laporan harus memiliki minimal satu foto.', 'error');
+
             return to_route('front.reports.edit', $report->id);
         }
 
@@ -243,7 +245,7 @@ class ReportController extends Controller
                 ]);
 
                 // Hapus foto galeri terpilih (beserta file di disk).
-                if (!empty($removedIds)) {
+                if (! empty($removedIds)) {
                     foreach ($report->photos()->whereIn('id', $removedIds)->get() as $photo) {
                         Storage::disk('public')->delete($photo->path);
                         $photo->delete();
@@ -261,9 +263,11 @@ class ReportController extends Controller
             });
 
             flashMessage(MessageType::UPDATED->message('Laporan'));
+
             return to_route('dashboard');
         } catch (Throwable $e) {
             flashMessage(MessageType::ERROR->message(error: $e->getMessage()), 'error');
+
             return to_route('front.reports.edit', $report->id);
         }
     }
@@ -277,9 +281,11 @@ class ReportController extends Controller
             $this->delete_file($report, 'photo');
             $report->delete();
             flashMessage(MessageType::DELETED->message('Laporan ditolak/dihapus'));
+
             return to_route('dashboard');
         } catch (Throwable $e) {
             flashMessage(MessageType::ERROR->message(error: $e->getMessage()), 'error');
+
             return back();
         }
     }
@@ -295,7 +301,7 @@ class ReportController extends Controller
         $isReporter = $user->id === $report->user_id;
         $isStaff = $user->hasAnyRole(['admin', 'superadmin', 'petugas']);
 
-        if (!$isReporter && !$isStaff) {
+        if (! $isReporter && ! $isStaff) {
             abort(403, 'Anda tidak memiliki wewenang untuk mengubah laporan ini.');
         }
     }

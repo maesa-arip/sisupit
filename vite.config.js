@@ -18,9 +18,7 @@ export default defineConfig({
 			// konvensi shadcn `@/components` (huruf kecil). Di Windows ini lolos
 			// (case-insensitive), di Linux gagal. Alias ini memetakan keduanya ke
 			// folder yang sama. Dicocokkan sebelum alias `@` dari laravel-vite-plugin.
-			'@/components': fileURLToPath(
-				new URL('./resources/js/Components', import.meta.url),
-			),
+			'@/components': fileURLToPath(new URL('./resources/js/Components', import.meta.url)),
 		},
 	},
 });

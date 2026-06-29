@@ -18,7 +18,7 @@ use Laravolt\Indonesia\Models\Village;
  */
 class Unit extends Model
 {
-    use Tenantable, SoftDeletes;
+    use SoftDeletes, Tenantable;
 
     protected $guarded = [];
 

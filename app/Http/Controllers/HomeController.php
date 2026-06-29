@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Report;
 use App\Models\User;
 use Carbon\Carbon;
@@ -23,6 +24,7 @@ class HomeController extends Controller
             ],
         ]);
     }
+
     public function spotlight(): Response
     {
         return inertia('Spotlight', [

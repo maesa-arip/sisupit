@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\User;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
@@ -23,14 +23,14 @@ class UserTenantSeeder extends Seeder
         // DATA MASTER WILAYAH (Berdasarkan Kode BPS Bali)
         // =========================================================================
         $provBali = '51';
-        
+
         // 1. Kota Denpasar
         $kotaDenpasar = '5171';
         $kecDensel = '517101'; // Denpasar Selatan
         $desaDenpasar = [
             '5171012006', // Pemogan
             '5171012002', // Sesetan
-            '5171011003'  // Sanur
+            '5171011003',  // Sanur
         ];
 
         // 2. Kabupaten Badung
@@ -39,7 +39,7 @@ class UserTenantSeeder extends Seeder
         $desaBadung = [
             '5103011001', // Kuta (Kelurahan)
             '5103011002', // Tuban
-            '5103011003'  // Legian
+            '5103011003',  // Legian
         ];
 
         // =========================================================================
@@ -51,7 +51,7 @@ class UserTenantSeeder extends Seeder
         $adminBali = User::firstOrCreate(['email' => 'admin@bali.go.id'], ['name' => 'Admin Damkar Bali', 'username' => 'adminbali', 'password' => $defaultPassword, 'phone' => '081151710000', 'province_code' => $provBali], ['email_verified_at' => now()]);
         $adminBali->assignRole('admin');
 
-        $adminKotaDps = User::firstOrCreate(['email' => 'admin@denpasar.go.id'], ['name' => 'Admin Damkar Denpasar', 'username' => 'admindps', 'password' => $defaultPassword, 'phone' => '081151710000', 'province_code' => $provBali, 'city_code' => $kotaDenpasar,'email_verified_at' => now()]);
+        $adminKotaDps = User::firstOrCreate(['email' => 'admin@denpasar.go.id'], ['name' => 'Admin Damkar Denpasar', 'username' => 'admindps', 'password' => $defaultPassword, 'phone' => '081151710000', 'province_code' => $provBali, 'city_code' => $kotaDenpasar, 'email_verified_at' => now()]);
         $adminKotaDps->assignRole('admin');
 
         $adminBadung = User::firstOrCreate(['email' => 'admin@badung.go.id'], ['name' => 'Admin Damkar Badung', 'username' => 'adminbadung', 'password' => $defaultPassword, 'phone' => '081151030000', 'province_code' => $provBali, 'city_code' => $kabBadung]);
@@ -72,13 +72,13 @@ class UserTenantSeeder extends Seeder
             $petugas = User::firstOrCreate(
                 ['email' => "petugas{$i}@sisupit.com"],
                 [
-                    'name'              => "Petugas Damkar {$i}",
-                    'username'          => "petugas{$i}",
-                    'password'          => $defaultPassword,
-                    'phone'             => "08330000000{$i}",
-                    'province_code'     => $provBali,
-                    'city_code'         => $isDenpasar ? $kotaDenpasar : $kabBadung,
-                    'district_code'     => $isDenpasar ? $kecDensel : $kecKuta,
+                    'name' => "Petugas Damkar {$i}",
+                    'username' => "petugas{$i}",
+                    'password' => $defaultPassword,
+                    'phone' => "08330000000{$i}",
+                    'province_code' => $provBali,
+                    'city_code' => $isDenpasar ? $kotaDenpasar : $kabBadung,
+                    'district_code' => $isDenpasar ? $kecDensel : $kecKuta,
                     'email_verified_at' => now(),
                 ]
             );
@@ -90,25 +90,25 @@ class UserTenantSeeder extends Seeder
         // =========================================================================
         for ($i = 1; $i <= 10; $i++) {
             $isDenpasar = $i <= 5; // 1-5 Denpasar, 6-10 Badung
-            
+
             // Tentukan wilayah berdasarkan flag di atas
             $cityCode = $isDenpasar ? $kotaDenpasar : $kabBadung;
             $districtCode = $isDenpasar ? $kecDensel : $kecKuta;
-            
+
             // Pilih satu desa secara acak dari array desa yang sesuai
             $villageCode = $isDenpasar ? $desaDenpasar[array_rand($desaDenpasar)] : $desaBadung[array_rand($desaBadung)];
 
             $relawan = User::firstOrCreate(
                 ['email' => "relawan{$i}@sisupit.com"],
                 [
-                    'name'              => "Relawan Bali {$i}",
-                    'username'          => "relawan{$i}",
-                    'password'          => $defaultPassword,
-                    'phone'             => "0822000000{$i}" . rand(1, 9),
-                    'province_code'     => $provBali,
-                    'city_code'         => $cityCode,
-                    'district_code'     => $districtCode,
-                    'village_code'      => $villageCode,
+                    'name' => "Relawan Bali {$i}",
+                    'username' => "relawan{$i}",
+                    'password' => $defaultPassword,
+                    'phone' => "0822000000{$i}".rand(1, 9),
+                    'province_code' => $provBali,
+                    'city_code' => $cityCode,
+                    'district_code' => $districtCode,
+                    'village_code' => $villageCode,
                     'email_verified_at' => now(),
                 ]
             );
@@ -120,29 +120,29 @@ class UserTenantSeeder extends Seeder
         // =========================================================================
         for ($i = 1; $i <= 5; $i++) {
             $isDenpasar = $i <= 3; // 1-3 Denpasar, 4-5 Badung
-            
+
             // Tentukan wilayah berdasarkan flag di atas
             $cityCode = $isDenpasar ? $kotaDenpasar : $kabBadung;
             $districtCode = $isDenpasar ? $kecDensel : $kecKuta;
-            
+
             // Pilih satu desa secara acak dari array desa yang sesuai
             $villageCode = $isDenpasar ? $desaDenpasar[array_rand($desaDenpasar)] : $desaBadung[array_rand($desaBadung)];
 
             $warga = User::firstOrCreate(
                 ['email' => "warga{$i}@sisupit.com"],
                 [
-                    'name'              => "Warga Sipil {$i}",
-                    'username'          => "warga{$i}",
-                    'password'          => $defaultPassword,
-                    'phone'             => "0811000000{$i}" . rand(1, 9),
-                    'province_code'     => $provBali,
-                    'city_code'         => $cityCode,
-                    'district_code'     => $districtCode,
-                    'village_code'      => $villageCode,
+                    'name' => "Warga Sipil {$i}",
+                    'username' => "warga{$i}",
+                    'password' => $defaultPassword,
+                    'phone' => "0811000000{$i}".rand(1, 9),
+                    'province_code' => $provBali,
+                    'city_code' => $cityCode,
+                    'district_code' => $districtCode,
+                    'village_code' => $villageCode,
                     'email_verified_at' => now(),
                 ]
             );
-            $warga->assignRole('masyarakat'); 
+            $warga->assignRole('masyarakat');
         }
 
         $this->command->info('✅ UserTenantSeeder: Berhasil Generate 5 Petugas, 10 Relawan, dan 5 Warga (Lengkap sampai tingkat Desa/Kelurahan).');

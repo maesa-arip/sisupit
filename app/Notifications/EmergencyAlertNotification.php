@@ -16,6 +16,7 @@ class EmergencyAlertNotification extends Notification implements ShouldQueue
     use Queueable;
 
     public $report;
+
     public $userRole;
 
     public function __construct(Report $report, string $userRole)
@@ -39,7 +40,7 @@ class EmergencyAlertNotification extends Notification implements ShouldQueue
             ->title('🚨 DARURAT KEBAKARAN!')
             ->body($this->report->address)
             ->action('Lihat', 'view_app')
-            ->data(['url' => url('/reports/show/' . $this->report->id)]);
+            ->data(['url' => url('/reports/show/'.$this->report->id)]);
     }
 
     public function toFcm($notifiable)
@@ -80,7 +81,7 @@ class EmergencyAlertNotification extends Notification implements ShouldQueue
     {
         return [
             'report_id' => $this->report->id,
-            'title' => 'Darurat: ' . $this->report->title,
+            'title' => 'Darurat: '.$this->report->title,
             'address' => $this->report->address,
         ];
     }

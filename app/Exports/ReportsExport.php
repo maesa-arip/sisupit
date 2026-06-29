@@ -25,7 +25,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
  * Tidak ada withoutGlobalScopes() di sini - query tetap lewat scope Tenantable milik
  * Report, jadi admin hanya mengekspor laporan di wilayah tenant-nya sendiri.
  */
-class ReportsExport implements FromQuery, WithHeadings, WithMapping, WithCustomStartCell, WithColumnWidths, WithEvents, WithTitle
+class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell, WithEvents, WithHeadings, WithMapping, WithTitle
 {
     /** Baris tempat header tabel diletakkan (kop menempati baris 1-4). */
     private const HEADER_ROW = 6;
@@ -43,9 +43,7 @@ class ReportsExport implements FromQuery, WithHeadings, WithMapping, WithCustomS
 
     private int $rowNumber = 0;
 
-    public function __construct(private readonly array $filters = [])
-    {
-    }
+    public function __construct(private readonly array $filters = []) {}
 
     public function query(): Builder
     {
@@ -73,7 +71,7 @@ class ReportsExport implements FromQuery, WithHeadings, WithMapping, WithCustomS
 
     public function startCell(): string
     {
-        return 'A' . self::HEADER_ROW;
+        return 'A'.self::HEADER_ROW;
     }
 
     public function headings(): array
@@ -194,7 +192,7 @@ class ReportsExport implements FromQuery, WithHeadings, WithMapping, WithCustomS
                 $sheet->setCellValue('A1', 'PUSAT KOMANDO SISUPIT DAMKAR');
                 $sheet->setCellValue('A2', 'Laporan Data Kejadian Kebakaran & Kedaruratan');
                 $sheet->setCellValue('A3', $this->filterSummary());
-                $sheet->setCellValue('A4', 'Dicetak pada: ' . Carbon::now()->translatedFormat('d F Y H:i') . ' WITA');
+                $sheet->setCellValue('A4', 'Dicetak pada: '.Carbon::now()->translatedFormat('d F Y H:i').' WITA');
 
                 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
                 $sheet->getStyle('A2')->getFont()->setBold(true)->setSize(12);
@@ -240,7 +238,7 @@ class ReportsExport implements FromQuery, WithHeadings, WithMapping, WithCustomS
                 }
 
                 // Bekukan kop + header agar tetap terlihat saat di-scroll.
-                $sheet->freezePane('A' . $firstDataRow);
+                $sheet->freezePane('A'.$firstDataRow);
             },
         ];
     }
@@ -257,9 +255,9 @@ class ReportsExport implements FromQuery, WithHeadings, WithMapping, WithCustomS
             ? (self::STATUS_LABELS[$status] ?? $status)
             : 'Semua Status';
 
-        $summary = 'Filter Status: ' . $statusLabel;
+        $summary = 'Filter Status: '.$statusLabel;
         if (! empty($search)) {
-            $summary .= '  |  Kata Kunci: "' . $search . '"';
+            $summary .= '  |  Kata Kunci: "'.$search.'"';
         }
 
         return $summary;

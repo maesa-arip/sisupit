@@ -27,8 +27,8 @@ export default function ChartCustom({ chartData }) {
 	);
 	return (
 		<Card>
-			<CardHeader className="flex flex-col items-stretch p-0 space-y-0 border-b sm:flex-row">
-				<div className="flex flex-col justify-center flex-1 gap-1 px-6 py-5">
+			<CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
+				<div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5">
 					<CardTitle>Grafik Pelopran</CardTitle>
 					<CardDescription>Menampilkan grafik laporan dalam 1 bulan terakhir</CardDescription>
 				</div>
@@ -91,7 +91,7 @@ export default function ChartCustom({ chartData }) {
 								/>
 							}
 						/>
-                        <Bar dataKey={activeChart} fill={`var(--color-${activeChart})`}/>
+						<Bar dataKey={activeChart} fill={`var(--color-${activeChart})`} />
 					</BarChart>
 				</ChartContainer>
 			</CardContent>

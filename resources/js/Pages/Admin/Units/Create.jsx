@@ -31,10 +31,10 @@ export default function Create({ pos_options = [], type_options = [] }) {
 	};
 
 	return (
-		<div className="flex flex-col w-full h-full space-y-6">
+		<div className="flex h-full w-full flex-col space-y-6">
 			<Head title="Registrasi Unit Baru" />
 
-			<div className="flex flex-col items-start justify-between mb-2 gap-y-4 lg:flex-row lg:items-center">
+			<div className="mb-2 flex flex-col items-start justify-between gap-y-4 lg:flex-row lg:items-center">
 				<HeaderTitle
 					title="Registrasi Unit Baru"
 					subtitle="Tambahkan unit/armada operasional ke katalog wilayah Anda."
@@ -48,14 +48,14 @@ export default function Create({ pos_options = [], type_options = [] }) {
 			</div>
 
 			<div className="w-full max-w-2xl">
-				<Card className="shadow-none border-border">
+				<Card className="border-border shadow-none">
 					<CardContent className="p-6">
 						<form className="space-y-5" onSubmit={onHandleSubmit}>
-							<div className="flex items-start gap-3 p-3 text-teal-700 dark:text-teal border border-teal-100 dark:border-teal/30 rounded-md bg-teal-50 dark:bg-teal/10">
+							<div className="flex items-start gap-3 rounded-md border border-teal-100 bg-teal-50 p-3 text-teal-700 dark:border-teal/30 dark:bg-teal/10 dark:text-teal">
 								<IconInfoCircle className="mt-0.5 h-5 w-5 shrink-0" />
 								<p className="text-xs font-medium leading-relaxed">
-									Unit otomatis terdaftar pada yurisdiksi wilayah Anda. Status <b>Dikerahkan</b> diatur
-									otomatis lewat alur penanganan insiden, bukan dari sini.
+									Unit otomatis terdaftar pada yurisdiksi wilayah Anda. Status <b>Dikerahkan</b>{' '}
+									diatur otomatis lewat alur penanganan insiden, bukan dari sini.
 								</p>
 							</div>
 
@@ -126,16 +126,16 @@ export default function Create({ pos_options = [], type_options = [] }) {
 								{errors.pos_pemadam_id && <InputError message={errors.pos_pemadam_id} />}
 							</div>
 
-							<div className="flex justify-end gap-2 pt-2 border-t border-border">
+							<div className="flex justify-end gap-2 border-t border-border pt-2">
 								<Button type="button" variant="secondary" asChild>
 									<Link href={route('admin.units.index')}>Batal</Link>
 								</Button>
 								<Button
 									type="submit"
 									disabled={processing}
-									className="text-white bg-teal-600 dark:bg-teal border-transparent shadow-none hover:bg-teal-700 dark:hover:bg-teal/90"
+									className="border-transparent bg-teal-600 text-white shadow-none hover:bg-teal-700 dark:bg-teal dark:hover:bg-teal/90"
 								>
-									<IconDeviceFloppy className="w-4 h-4 mr-2" /> Simpan
+									<IconDeviceFloppy className="mr-2 h-4 w-4" /> Simpan
 								</Button>
 							</div>
 						</form>

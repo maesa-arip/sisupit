@@ -47,7 +47,7 @@ class GeocodeController extends Controller
 
         $query = trim($validated['q']);
 
-        $data = Cache::remember('nominatim:search:' . md5(strtolower($query)), self::CACHE_TTL_SECONDS, function () use ($query) {
+        $data = Cache::remember('nominatim:search:'.md5(strtolower($query)), self::CACHE_TTL_SECONDS, function () use ($query) {
             return $this->callNominatim('/search', [
                 'format' => 'json',
                 'q' => $query,
@@ -80,7 +80,7 @@ class GeocodeController extends Controller
 
             $response = Http::withHeaders(['User-Agent' => $userAgent])
                 ->timeout(8)
-                ->get($baseUrl . $path, $query);
+                ->get($baseUrl.$path, $query);
 
             Cache::put('nominatim:last-call-at-ms', (int) (microtime(true) * 1000), 60);
 

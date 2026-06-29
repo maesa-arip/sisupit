@@ -1,4 +1,3 @@
-import HeaderTitle from '@/Components/HeaderTitle';
 import InputError from '@/Components/InputError';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
@@ -8,15 +7,15 @@ import { Textarea } from '@/Components/ui/textarea';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
 import { flashMessage, GEO_OPTIONS } from '@/lib/utils';
-import { Link, useForm, usePage } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import {
-    IconAlertTriangle,
-    IconArrowLeft,
-    IconCloudUpload,
-    IconLoader2,
-    IconMapPinFilled,
-    IconSend,
-    IconX,
+	IconAlertTriangle,
+	IconArrowLeft,
+	IconCloudUpload,
+	IconLoader2,
+	IconMapPinFilled,
+	IconSend,
+	IconX,
 } from '@tabler/icons-react';
 import axios from 'axios';
 import { useEffect, useRef, useState } from 'react';
@@ -24,446 +23,492 @@ import { toast } from 'sonner';
 
 // Helper: Algoritma Pencocokan "Sapu Jagat" (Omni-Search)
 const matchRegionName = (dbList, osmNamesArray, removeWords = []) => {
-    if (!osmNamesArray || osmNamesArray.length === 0 || !dbList || dbList.length === 0) return null;
-    
-    const cleanOsmNames = osmNamesArray.map(name => {
-        let clean = name.toLowerCase();
-        removeWords.forEach(w => { clean = clean.replace(new RegExp(`\\b${w}\\b`, 'gi'), ''); });
-        return clean.replace(/[^\w\s]/gi, '').trim();
-    }).filter(n => n.length > 0);
+	if (!osmNamesArray || osmNamesArray.length === 0 || !dbList || dbList.length === 0) return null;
 
-    let matched = dbList.find(dbItem => {
-        let itemName = dbItem.name.toLowerCase();
-        removeWords.forEach(w => { itemName = itemName.replace(new RegExp(`\\b${w}\\b`, 'gi'), ''); });
-        itemName = itemName.replace(/[^\w\s]/gi, '').trim();
-        return cleanOsmNames.includes(itemName);
-    });
+	const cleanOsmNames = osmNamesArray
+		.map((name) => {
+			let clean = name.toLowerCase();
+			removeWords.forEach((w) => {
+				clean = clean.replace(new RegExp(`\\b${w}\\b`, 'gi'), '');
+			});
+			return clean.replace(/[^\w\s]/gi, '').trim();
+		})
+		.filter((n) => n.length > 0);
 
-    if (!matched) {
-        matched = dbList.find(dbItem => {
-            let itemName = dbItem.name.toLowerCase();
-            removeWords.forEach(w => { itemName = itemName.replace(new RegExp(`\\b${w}\\b`, 'gi'), ''); });
-            itemName = itemName.replace(/[^\w\s]/gi, '').trim();
-            return cleanOsmNames.some(osmName => itemName.includes(osmName) || osmName.includes(itemName));
-        });
-    }
+	let matched = dbList.find((dbItem) => {
+		let itemName = dbItem.name.toLowerCase();
+		removeWords.forEach((w) => {
+			itemName = itemName.replace(new RegExp(`\\b${w}\\b`, 'gi'), '');
+		});
+		itemName = itemName.replace(/[^\w\s]/gi, '').trim();
+		return cleanOsmNames.includes(itemName);
+	});
 
-    return matched;
+	if (!matched) {
+		matched = dbList.find((dbItem) => {
+			let itemName = dbItem.name.toLowerCase();
+			removeWords.forEach((w) => {
+				itemName = itemName.replace(new RegExp(`\\b${w}\\b`, 'gi'), '');
+			});
+			itemName = itemName.replace(/[^\w\s]/gi, '').trim();
+			return cleanOsmNames.some((osmName) => itemName.includes(osmName) || osmName.includes(itemName));
+		});
+	}
+
+	return matched;
 };
 
 export default function Create(props) {
-    const auth = props.auth.user;
-    
-    // Pastikan Controller mengirim data 'provinces' agar sistem bisa memulai pencocokan
-    const provinces = props.provinces || []; 
+	const auth = props.auth.user;
 
-    const [userLocation, setUserLocation] = useState(null);
-    const [locationLoading, setLocationLoading] = useState(true);
-    const [friendlyAddress, setFriendlyAddress] = useState('');
-    
-    const [previews, setPreviews] = useState([]); // galeri foto (FINDINGS #17)
-    const previewsRef = useRef([]);
-    const fileInputPhoto = useRef(null);
+	// Pastikan Controller mengirim data 'provinces' agar sistem bisa memulai pencocokan
+	const provinces = props.provinces || [];
 
-    const { data, setData, post, processing, errors } = useForm({
-        name: auth?.name || '',
-        address: '',
-        title: '',
-        description: '',
-        lat: '',
-        lng: '',
-        province_code: '',
-        city_code: '',
-        district_code: '',
-        village_code: '',
-        road: '',
-        phone: auth?.phone || '',
-        photos: [],
-        _method: props.page_settings.method,
-    });
+	const [userLocation, setUserLocation] = useState(null);
+	const [locationLoading, setLocationLoading] = useState(true);
+	const [friendlyAddress, setFriendlyAddress] = useState('');
 
-    // AUTO DETECT LOKASI & YURISDIKSI SILENTLY
-    const getUserLocation = () => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                async (position) => {
-                    const { latitude, longitude } = position.coords;
-                    setUserLocation({ latitude, longitude });
+	const [previews, setPreviews] = useState([]); // galeri foto (FINDINGS #17)
+	const previewsRef = useRef([]);
+	const fileInputPhoto = useRef(null);
 
-                    try {
-                        // 1. Ambil Data Reverse Geocoding lewat proxy backend (lihat GeocodeController)
-                        const response = await axios.get(route('api.geocode.reverse'), {
-                            params: { lat: latitude, lng: longitude },
-                        });
+	const { data, setData, post, processing, errors } = useForm({
+		name: auth?.name || '',
+		address: '',
+		title: '',
+		description: '',
+		lat: '',
+		lng: '',
+		province_code: '',
+		city_code: '',
+		district_code: '',
+		village_code: '',
+		road: '',
+		phone: auth?.phone || '',
+		photos: [],
+		_method: props.page_settings.method,
+	});
 
-                        const addr = response.data.address;
+	// AUTO DETECT LOKASI & YURISDIKSI SILENTLY
+	const getUserLocation = () => {
+		if (navigator.geolocation) {
+			navigator.geolocation.getCurrentPosition(
+				async (position) => {
+					const { latitude, longitude } = position.coords;
+					setUserLocation({ latitude, longitude });
 
-                        if (addr) {
-                            // Siapkan Alamat Ramah Manusia untuk UI
-                            const roadName = addr.road || addr.street || addr.pedestrian || '';
-                            const villageName = addr.village || addr.suburb || addr.town || '';
-                            const districtName = addr.city_district || addr.district || '';
-                            const displayAddr = [roadName, villageName, districtName].filter(Boolean).join(', ');
-                            
-                            setFriendlyAddress(displayAddr || response.data.display_name?.split(',')[0] || 'Lokasi terdeteksi');
+					try {
+						// 1. Ambil Data Reverse Geocoding lewat proxy backend (lihat GeocodeController)
+						const response = await axios.get(route('api.geocode.reverse'), {
+							params: { lat: latitude, lng: longitude },
+						});
 
-                            // 2. AUTO-FILL YURISDIKSI (OMNI-SEARCH GAIB)
-                            let pCode = '', cCode = '', dCode = '', vCode = '';
-                            
-                            const rawOsmNames = [
-                                addr.state, addr.region, addr.city, addr.county, addr.regency, 
-                                addr.town, addr.city_district, addr.municipality, addr.district, 
-                                addr.suburb, addr.village, addr.neighbourhood, addr.hamlet
-                            ];
-                            const osmNames = rawOsmNames.filter(n => n && !n.toLowerCase().includes('no name'));
-                            const removeWords = ['provinsi', 'prov', 'kota', 'kabupaten', 'kab', 'kecamatan', 'kec', 'kelurahan', 'desa'];
+						const addr = response.data.address;
 
-                            // Level 1: Provinsi
-                            if (osmNames.length > 0 && provinces.length > 0) {
-                                const matchedProv = matchRegionName(provinces, osmNames, removeWords);
-                                if (matchedProv) pCode = matchedProv.code;
-                            }
+						if (addr) {
+							// Siapkan Alamat Ramah Manusia untuk UI
+							const roadName = addr.road || addr.street || addr.pedestrian || '';
+							const villageName = addr.village || addr.suburb || addr.town || '';
+							const districtName = addr.city_district || addr.district || '';
+							const displayAddr = [roadName, villageName, districtName].filter(Boolean).join(', ');
 
-                            // Level 2: Kota
-                            if (pCode) {
-                                const resCity = await axios.get(`/api/regions/cities/${pCode}`);
-                                const matchedCity = matchRegionName(resCity.data, osmNames, removeWords);
-                                if (matchedCity) cCode = matchedCity.code;
-                            }
+							setFriendlyAddress(
+								displayAddr || response.data.display_name?.split(',')[0] || 'Lokasi terdeteksi',
+							);
 
-                            // Level 3: Kecamatan
-                            if (cCode) {
-                                const resDist = await axios.get(`/api/regions/districts/${cCode}`);
-                                const matchedDist = matchRegionName(resDist.data, osmNames, removeWords);
-                                if (matchedDist) dCode = matchedDist.code;
-                            }
+							// 2. AUTO-FILL YURISDIKSI (OMNI-SEARCH GAIB)
+							let pCode = '',
+								cCode = '',
+								dCode = '',
+								vCode = '';
 
-                            // Level 4: Desa
-                            if (dCode) {
-                                const resVill = await axios.get(`/api/regions/villages/${dCode}`);
-                                const matchedVill = matchRegionName(resVill.data, osmNames, removeWords);
-                                if (matchedVill) vCode = matchedVill.code;
-                            }
+							const rawOsmNames = [
+								addr.state,
+								addr.region,
+								addr.city,
+								addr.county,
+								addr.regency,
+								addr.town,
+								addr.city_district,
+								addr.municipality,
+								addr.district,
+								addr.suburb,
+								addr.village,
+								addr.neighbourhood,
+								addr.hamlet,
+							];
+							const osmNames = rawOsmNames.filter((n) => n && !n.toLowerCase().includes('no name'));
+							const removeWords = [
+								'provinsi',
+								'prov',
+								'kota',
+								'kabupaten',
+								'kab',
+								'kecamatan',
+								'kec',
+								'kelurahan',
+								'desa',
+							];
 
-                            // 3. Simpan semua kode ke State Formulir
-                            setData((prevData) => ({
-                                ...prevData,
-                                lat: latitude,
-                                lng: longitude,
-                                province_code: pCode,
-                                city_code: cCode,
-                                district_code: dCode,
-                                village_code: vCode,
-                                road: roadName,
-                            }));
+							// Level 1: Provinsi
+							if (osmNames.length > 0 && provinces.length > 0) {
+								const matchedProv = matchRegionName(provinces, osmNames, removeWords);
+								if (matchedProv) pCode = matchedProv.code;
+							}
 
-                        } else {
-                            fallbackLocation(latitude, longitude);
-                        }
-                    } catch (error) {
-                        console.error('Gagal mengambil data wilayah:', error);
-                        fallbackLocation(latitude, longitude);
-                    } finally {
-                        setLocationLoading(false);
-                    }
-                },
-                (error) => {
-                    console.error('Error getting user location:', error);
-                    toast.error('Gagal melacak lokasi akurat. Pastikan GPS aktif.');
-                    setLocationLoading(false);
-                },
-                GEO_OPTIONS.oneShot, // Optimalisasi GPS Darurat
-            );
-        } else {
-            toast.error('Browser Anda tidak mendukung deteksi lokasi.');
-            setLocationLoading(false);
-        }
-    };
+							// Level 2: Kota
+							if (pCode) {
+								const resCity = await axios.get(`/api/regions/cities/${pCode}`);
+								const matchedCity = matchRegionName(resCity.data, osmNames, removeWords);
+								if (matchedCity) cCode = matchedCity.code;
+							}
 
-    const fallbackLocation = (latitude, longitude) => {
-        setFriendlyAddress('Titik GPS terdeteksi (Mode Darurat)');
-        setData((prevData) => ({
-            ...prevData,
-            lat: latitude,
-            lng: longitude,
-        }));
-    };
+							// Level 3: Kecamatan
+							if (cCode) {
+								const resDist = await axios.get(`/api/regions/districts/${cCode}`);
+								const matchedDist = matchRegionName(resDist.data, osmNames, removeWords);
+								if (matchedDist) dCode = matchedDist.code;
+							}
 
-    useEffect(() => {
-        getUserLocation();
+							// Level 4: Desa
+							if (dCode) {
+								const resVill = await axios.get(`/api/regions/villages/${dCode}`);
+								const matchedVill = matchRegionName(resVill.data, osmNames, removeWords);
+								if (matchedVill) vCode = matchedVill.code;
+							}
 
-        return () => {
-            previewsRef.current.forEach((p) => URL.revokeObjectURL(p.url));
-        };
-    }, []);
+							// 3. Simpan semua kode ke State Formulir
+							setData((prevData) => ({
+								...prevData,
+								lat: latitude,
+								lng: longitude,
+								province_code: pCode,
+								city_code: cCode,
+								district_code: dCode,
+								village_code: vCode,
+								road: roadName,
+							}));
+						} else {
+							fallbackLocation(latitude, longitude);
+						}
+					} catch (error) {
+						console.error('Gagal mengambil data wilayah:', error);
+						fallbackLocation(latitude, longitude);
+					} finally {
+						setLocationLoading(false);
+					}
+				},
+				(error) => {
+					console.error('Error getting user location:', error);
+					toast.error('Gagal melacak lokasi akurat. Pastikan GPS aktif.');
+					setLocationLoading(false);
+				},
+				GEO_OPTIONS.oneShot, // Optimalisasi GPS Darurat
+			);
+		} else {
+			toast.error('Browser Anda tidak mendukung deteksi lokasi.');
+			setLocationLoading(false);
+		}
+	};
 
-    const onHandleChange = (e) => setData(e.target.name, e.target.value);
+	const fallbackLocation = (latitude, longitude) => {
+		setFriendlyAddress('Titik GPS terdeteksi (Mode Darurat)');
+		setData((prevData) => ({
+			...prevData,
+			lat: latitude,
+			lng: longitude,
+		}));
+	};
 
-    const MAX_PHOTOS = 6;
+	useEffect(() => {
+		getUserLocation();
 
-    const handlePhotosChange = (e) => {
-        const files = Array.from(e.target.files || []);
-        if (!files.length) return;
+		return () => {
+			previewsRef.current.forEach((p) => URL.revokeObjectURL(p.url));
+		};
+	}, []);
 
-        const combined = [...data.photos, ...files].slice(0, MAX_PHOTOS);
-        setData('photos', combined);
+	const onHandleChange = (e) => setData(e.target.name, e.target.value);
 
-        // Buat ulang object URL untuk seluruh set (revoke yang lama agar tak bocor).
-        previewsRef.current.forEach((p) => URL.revokeObjectURL(p.url));
-        const nextPreviews = combined.map((f) => ({ url: URL.createObjectURL(f), name: f.name }));
-        previewsRef.current = nextPreviews;
-        setPreviews(nextPreviews);
+	const MAX_PHOTOS = 6;
 
-        if (fileInputPhoto.current) fileInputPhoto.current.value = '';
-    };
+	const handlePhotosChange = (e) => {
+		const files = Array.from(e.target.files || []);
+		if (!files.length) return;
 
-    const removePhoto = (index) => {
-        const nextPhotos = data.photos.filter((_, i) => i !== index);
-        setData('photos', nextPhotos);
+		const combined = [...data.photos, ...files].slice(0, MAX_PHOTOS);
+		setData('photos', combined);
 
-        if (previews[index]) URL.revokeObjectURL(previews[index].url);
-        const nextPreviews = previews.filter((_, i) => i !== index);
-        previewsRef.current = nextPreviews;
-        setPreviews(nextPreviews);
-    };
+		// Buat ulang object URL untuk seluruh set (revoke yang lama agar tak bocor).
+		previewsRef.current.forEach((p) => URL.revokeObjectURL(p.url));
+		const nextPreviews = combined.map((f) => ({ url: URL.createObjectURL(f), name: f.name }));
+		previewsRef.current = nextPreviews;
+		setPreviews(nextPreviews);
 
-    const onHandleSubmit = (e) => {
-        e.preventDefault();
+		if (fileInputPhoto.current) fileInputPhoto.current.value = '';
+	};
 
-        if ((!data.lat || !data.lng) && !data.address) {
-            toast.warning('Lokasi gagal dilacak, mohon isi Detail Patokan Lokasi secara manual.');
-            return;
-        }
+	const removePhoto = (index) => {
+		const nextPhotos = data.photos.filter((_, i) => i !== index);
+		setData('photos', nextPhotos);
 
-        post(props.page_settings.action, {
-            preserveScroll: true,
-            preserveState: true,
-            onSuccess: (success) => {
-                const flash = flashMessage(success);
-                if (flash) toast[flash.type](flash.message);
-            },
-        });
-    };
+		if (previews[index]) URL.revokeObjectURL(previews[index].url);
+		const nextPreviews = previews.filter((_, i) => i !== index);
+		previewsRef.current = nextPreviews;
+		setPreviews(nextPreviews);
+	};
 
-    return (
-        <div className="relative w-full pb-32">
-            <div className="flex flex-col w-full max-w-3xl mx-auto space-y-6">
-                
-                {/* Header Section */}
-                <div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
-                    <Button
-                        variant="outline"
-                        className="h-9 px-4 rounded-md border-border bg-card text-sm font-medium text-foreground hover:bg-accent shadow-sm transition-colors"
-                        asChild
-                    >
-                        <Link href={route('dashboard')}>
-                            <IconArrowLeft className="w-4 h-4 mr-2" />
-                            Batal
-                        </Link>
-                    </Button>
-                </div>
-                
-                {/* Form Card */}
-                <Card className="overflow-hidden rounded-xl border border-border shadow-sm bg-card">
-                    <CardHeader className="pb-5 border-b border-border bg-transparent">
-                        <CardTitle className="text-lg font-semibold text-foreground">
-                            Kirim Laporan Darurat
-                        </CardTitle>
-                        <CardDescription className="mt-1 text-sm text-muted-foreground">
-                            Mohon lengkapi formulir di bawah agar relawan dapat segera membantu Anda.
-                        </CardDescription>
-                    </CardHeader>
+	const onHandleSubmit = (e) => {
+		e.preventDefault();
 
-                    <CardContent className="p-5 sm:p-6">
-                        <form className="space-y-6" onSubmit={onHandleSubmit}>
-                            
-                            {/* --- BAGIAN LOKASI --- */}
-                            <div className="space-y-3">
-                                {/* Header Lokasi & Status Digabung */}
-                                <div className="flex items-center gap-3 pb-1 border-b border-border">
-                                    {locationLoading ? (
-                                        <div className="flex items-center justify-center w-8 h-8 rounded-md bg-blue-50 dark:bg-info/10 text-blue-600 dark:text-info mb-2">
-                                            <IconLoader2 className="w-4 h-4 animate-spin" />
-                                        </div>
-                                    ) : userLocation ? (
-                                        <div className="flex items-center justify-center w-8 h-8 rounded-md bg-green-50 dark:bg-success/10 text-green-600 dark:text-success mb-2">
-                                            <IconMapPinFilled className="w-4 h-4" />
-                                        </div>
-                                    ) : (
-                                        <div className="flex items-center justify-center w-8 h-8 rounded-md bg-destructive/10 text-destructive mb-2">
-                                            <IconAlertTriangle className="w-4 h-4" />
-                                        </div>
-                                    )}
+		if ((!data.lat || !data.lng) && !data.address) {
+			toast.warning('Lokasi gagal dilacak, mohon isi Detail Patokan Lokasi secara manual.');
+			return;
+		}
 
-                                    <div className="flex-1 min-w-0 pb-2">
-                                        <p className="text-sm font-semibold tracking-wide text-foreground uppercase">
-                                            {locationLoading
-                                                ? 'Memindai Koordinat...'
-                                                : userLocation
-                                                    ? 'Lokasi Terdeteksi'
-                                                    : 'GPS Tidak Aktif'}
-                                        </p>
-                                        {friendlyAddress && !locationLoading && (
-                                            <p className="text-[13px] text-muted-foreground truncate mt-0.5">
-                                                {friendlyAddress}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
+		post(props.page_settings.action, {
+			preserveScroll: true,
+			preserveState: true,
+			onSuccess: (success) => {
+				const flash = flashMessage(success);
+				if (flash) toast[flash.type](flash.message);
+			},
+		});
+	};
 
-                                {/* Peta */}
-                                <div className="relative z-0 h-[200px] w-full overflow-hidden rounded-md border border-border bg-muted shadow-inner sm:h-[250px]">
-                                    <UserLeafletMap lat={data.lat} lng={data.lng} />
-                                </div>
+	return (
+		<div className="relative w-full pb-32">
+			<div className="mx-auto flex w-full max-w-3xl flex-col space-y-6">
+				{/* Header Section */}
+				<div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
+					<Button
+						variant="outline"
+						className="h-9 rounded-md border-border bg-card px-4 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent"
+						asChild
+					>
+						<Link href={route('dashboard')}>
+							<IconArrowLeft className="mr-2 h-4 w-4" />
+							Batal
+						</Link>
+					</Button>
+				</div>
 
-                                {/* Patokan Manual */}
-                                <div className="pt-2">
-                                    <Label htmlFor="address" className="text-sm font-medium text-foreground/80">
-                                        Detail Patokan Lokasi
-                                    </Label>
-                                    <Input
-                                        name="address"
-                                        id="address"
-                                        value={data.address}
-                                        onChange={onHandleChange}
-                                        className="h-10 mt-1.5 rounded-md border-border bg-card focus-visible:ring-1 focus-visible:ring-destructive"
-                                        placeholder="Contoh: Samping warung cat biru, gang buntu..."
-                                    />
-                                    {errors.address && <InputError message={errors.address} className="mt-1" />}
-                                </div>
+				{/* Form Card */}
+				<Card className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+					<CardHeader className="border-b border-border bg-transparent pb-5">
+						<CardTitle className="text-lg font-semibold text-foreground">Kirim Laporan Darurat</CardTitle>
+						<CardDescription className="mt-1 text-sm text-muted-foreground">
+							Mohon lengkapi formulir di bawah agar relawan dapat segera membantu Anda.
+						</CardDescription>
+					</CardHeader>
 
-                                {/* Data Administratif (DISEMBUNYIKAN SEPENUHNYA DARI USER) */}
-                                <input type="hidden" name="lat" value={data.lat} />
-                                <input type="hidden" name="lng" value={data.lng} />
-                                <input type="hidden" name="province_code" value={data.province_code} />
-                                <input type="hidden" name="city_code" value={data.city_code} />
-                                <input type="hidden" name="district_code" value={data.district_code} />
-                                <input type="hidden" name="village_code" value={data.village_code} />
-                                <input type="hidden" name="road" value={data.road} />
-                            </div>
+					<CardContent className="p-5 sm:p-6">
+						<form className="space-y-6" onSubmit={onHandleSubmit}>
+							{/* --- BAGIAN LOKASI --- */}
+							<div className="space-y-3">
+								{/* Header Lokasi & Status Digabung */}
+								<div className="flex items-center gap-3 border-b border-border pb-1">
+									{locationLoading ? (
+										<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-md bg-blue-50 text-blue-600 dark:bg-info/10 dark:text-info">
+											<IconLoader2 className="h-4 w-4 animate-spin" />
+										</div>
+									) : userLocation ? (
+										<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-md bg-green-50 text-green-600 dark:bg-success/10 dark:text-success">
+											<IconMapPinFilled className="h-4 w-4" />
+										</div>
+									) : (
+										<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-md bg-destructive/10 text-destructive">
+											<IconAlertTriangle className="h-4 w-4" />
+										</div>
+									)}
 
-                            {/* --- BAGIAN FORM INFORMASI --- */}
-                            <div className="pt-2 space-y-4">
-                                <h3 className="pb-2 text-xs font-semibold tracking-wider text-foreground uppercase border-b border-border">
-                                    Informasi Laporan
-                                </h3>
+									<div className="min-w-0 flex-1 pb-2">
+										<p className="text-sm font-semibold uppercase tracking-wide text-foreground">
+											{locationLoading
+												? 'Memindai Koordinat...'
+												: userLocation
+													? 'Lokasi Terdeteksi'
+													: 'GPS Tidak Aktif'}
+										</p>
+										{friendlyAddress && !locationLoading && (
+											<p className="mt-0.5 truncate text-[13px] text-muted-foreground">
+												{friendlyAddress}
+											</p>
+										)}
+									</div>
+								</div>
 
-                                <div>
-                                    <Label htmlFor="title" className="text-sm font-medium text-foreground/80">Apa yang terjadi?</Label>
-                                    <Input
-                                        name="title"
-                                        id="title"
-                                        value={data.title}
-                                        type="text"
-                                        placeholder="Contoh: Kebakaran Rumah, Pohon Tumbang..."
-                                        onChange={onHandleChange}
-                                        className="h-10 mt-1.5 rounded-md border-border bg-card focus-visible:ring-1 focus-visible:ring-destructive"
-                                    />
-                                    {errors.title && <InputError message={errors.title} className="mt-1" />}
-                                </div>
+								{/* Peta */}
+								<div className="relative z-0 h-[200px] w-full overflow-hidden rounded-md border border-border bg-muted shadow-inner sm:h-[250px]">
+									<UserLeafletMap lat={data.lat} lng={data.lng} />
+								</div>
 
-                                <div>
-                                    <Label htmlFor="description" className="text-sm font-medium text-foreground/80">
-                                        Detail Kejadian <span className="font-normal text-muted-foreground">(Opsional)</span>
-                                    </Label>
-                                    <Textarea
-                                        name="description"
-                                        id="description"
-                                        value={data.description}
-                                        placeholder="Jelaskan detail situasi saat ini jika memungkinkan..."
-                                        onChange={onHandleChange}
-                                        className="min-h-[100px] mt-1.5 resize-y rounded-md border-border bg-card p-3 text-sm focus-visible:ring-1 focus-visible:ring-destructive"
-                                    />
-                                    {errors.description && <InputError message={errors.description} className="mt-1" />}
-                                </div>
+								{/* Patokan Manual */}
+								<div className="pt-2">
+									<Label htmlFor="address" className="text-sm font-medium text-foreground/80">
+										Detail Patokan Lokasi
+									</Label>
+									<Input
+										name="address"
+										id="address"
+										value={data.address}
+										onChange={onHandleChange}
+										className="mt-1.5 h-10 rounded-md border-border bg-card focus-visible:ring-1 focus-visible:ring-destructive"
+										placeholder="Contoh: Samping warung cat biru, gang buntu..."
+									/>
+									{errors.address && <InputError message={errors.address} className="mt-1" />}
+								</div>
 
-                                {/* --- BAGIAN UPLOAD FOTO --- */}
-                                <div className="pt-2">
-                                    <div className="mb-3">
-                                        <Label className="text-sm font-medium text-foreground/80">Foto Bukti Kejadian</Label>
-                                        <p className="text-[13px] text-muted-foreground mt-0.5">
-                                            Sertakan satu atau beberapa foto (maks. {MAX_PHOTOS}) agar relawan dapat menilai skala prioritas.
-                                        </p>
-                                    </div>
+								{/* Data Administratif (DISEMBUNYIKAN SEPENUHNYA DARI USER) */}
+								<input type="hidden" name="lat" value={data.lat} />
+								<input type="hidden" name="lng" value={data.lng} />
+								<input type="hidden" name="province_code" value={data.province_code} />
+								<input type="hidden" name="city_code" value={data.city_code} />
+								<input type="hidden" name="district_code" value={data.district_code} />
+								<input type="hidden" name="village_code" value={data.village_code} />
+								<input type="hidden" name="road" value={data.road} />
+							</div>
 
-                                    {/* Satu input file tersembunyi, dipakai upload box & tombol "Tambah" */}
-                                    <input
-                                        name="photos"
-                                        id="photos"
-                                        type="file"
-                                        accept="image/*"
-                                        multiple
-                                        ref={fileInputPhoto}
-                                        onChange={handlePhotosChange}
-                                        className="sr-only"
-                                    />
+							{/* --- BAGIAN FORM INFORMASI --- */}
+							<div className="space-y-4 pt-2">
+								<h3 className="border-b border-border pb-2 text-xs font-semibold uppercase tracking-wider text-foreground">
+									Informasi Laporan
+								</h3>
 
-                                    {previews.length > 0 ? (
-                                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                                            {previews.map((p, i) => (
-                                                <div key={i} className="relative w-full h-32 overflow-hidden border rounded-md shadow-sm border-border group">
-                                                    <img src={p.url} alt={`Preview ${i + 1}`} className="object-cover w-full h-full" />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removePhoto(i)}
-                                                        className="absolute flex items-center justify-center w-7 h-7 text-red-600 dark:text-destructive transition-colors border border-transparent rounded-md shadow-sm top-2 right-2 bg-card/90 hover:bg-red-50 dark:hover:bg-destructive/10 backdrop-blur-sm hover:border-red-200 dark:hover:border-destructive/30"
-                                                        title="Hapus foto"
-                                                    >
-                                                        <IconX stroke={2.5} className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                            {data.photos.length < MAX_PHOTOS && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => fileInputPhoto.current?.click()}
-                                                    className="flex flex-col items-center justify-center w-full h-32 text-center transition-colors border border-dashed rounded-md border-border bg-muted/50 hover:bg-muted text-muted-foreground"
-                                                >
-                                                    <IconCloudUpload className="w-6 h-6 mb-1" stroke={1.5} />
-                                                    <span className="text-xs font-semibold">Tambah foto</span>
-                                                </button>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <div
-                                            onClick={() => fileInputPhoto.current?.click()}
-                                            className="flex flex-col items-center justify-center p-8 text-center transition-colors border border-dashed rounded-md cursor-pointer border-border bg-muted/50 hover:bg-muted"
-                                        >
-                                            <div className="flex items-center justify-center w-12 h-12 mb-4 border rounded-md shadow-sm bg-card border-border">
-                                                <IconCloudUpload className="w-6 h-6 text-muted-foreground" stroke={1.5} />
-                                            </div>
-                                            <p className="text-sm font-semibold text-foreground">Pilih foto kejadian</p>
-                                            <p className="mt-1 mb-5 text-[13px] text-muted-foreground">Format PNG/JPG/WEBP (Maks. 4MB / foto)</p>
-                                            <span className="inline-flex items-center justify-center h-9 px-5 rounded-md bg-destructive text-sm font-medium text-destructive-foreground hover:bg-destructive/90 transition-colors">
-                                                Jelajahi File
-                                            </span>
-                                        </div>
-                                    )}
-                                    {errors.photos && <InputError message={errors.photos} className="mt-1" />}
-                                </div>
-                            </div>
+								<div>
+									<Label htmlFor="title" className="text-sm font-medium text-foreground/80">
+										Apa yang terjadi?
+									</Label>
+									<Input
+										name="title"
+										id="title"
+										value={data.title}
+										type="text"
+										placeholder="Contoh: Kebakaran Rumah, Pohon Tumbang..."
+										onChange={onHandleChange}
+										className="mt-1.5 h-10 rounded-md border-border bg-card focus-visible:ring-1 focus-visible:ring-destructive"
+									/>
+									{errors.title && <InputError message={errors.title} className="mt-1" />}
+								</div>
 
-                            {/* --- ACTIONS --- */}
-                            <div className="pt-5 mt-5 border-t border-border">
-                                <Button
-                                    type="submit"
-                                    className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-destructive px-8 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:opacity-70 disabled:cursor-not-allowed"
-                                    disabled={processing || locationLoading}
-                                >
-                                    {processing ? (
-                                        <IconLoader2 className="w-5 h-5 animate-spin" />
-                                    ) : (
-                                        <IconSend className="w-5 h-5" />
-                                    )}
-                                    Kirim Laporan
-                                </Button>
-                            </div>
-                        </form>
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
-    );
+								<div>
+									<Label htmlFor="description" className="text-sm font-medium text-foreground/80">
+										Detail Kejadian{' '}
+										<span className="font-normal text-muted-foreground">(Opsional)</span>
+									</Label>
+									<Textarea
+										name="description"
+										id="description"
+										value={data.description}
+										placeholder="Jelaskan detail situasi saat ini jika memungkinkan..."
+										onChange={onHandleChange}
+										className="mt-1.5 min-h-[100px] resize-y rounded-md border-border bg-card p-3 text-sm focus-visible:ring-1 focus-visible:ring-destructive"
+									/>
+									{errors.description && <InputError message={errors.description} className="mt-1" />}
+								</div>
+
+								{/* --- BAGIAN UPLOAD FOTO --- */}
+								<div className="pt-2">
+									<div className="mb-3">
+										<Label className="text-sm font-medium text-foreground/80">
+											Foto Bukti Kejadian
+										</Label>
+										<p className="mt-0.5 text-[13px] text-muted-foreground">
+											Sertakan satu atau beberapa foto (maks. {MAX_PHOTOS}) agar relawan dapat
+											menilai skala prioritas.
+										</p>
+									</div>
+
+									{/* Satu input file tersembunyi, dipakai upload box & tombol "Tambah" */}
+									<input
+										name="photos"
+										id="photos"
+										type="file"
+										accept="image/*"
+										multiple
+										ref={fileInputPhoto}
+										onChange={handlePhotosChange}
+										className="sr-only"
+									/>
+
+									{previews.length > 0 ? (
+										<div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+											{previews.map((p, i) => (
+												<div
+													key={i}
+													className="group relative h-32 w-full overflow-hidden rounded-md border border-border shadow-sm"
+												>
+													<img
+														src={p.url}
+														alt={`Preview ${i + 1}`}
+														className="h-full w-full object-cover"
+													/>
+													<button
+														type="button"
+														onClick={() => removePhoto(i)}
+														className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-md border border-transparent bg-card/90 text-red-600 shadow-sm backdrop-blur-sm transition-colors hover:border-red-200 hover:bg-red-50 dark:text-destructive dark:hover:border-destructive/30 dark:hover:bg-destructive/10"
+														title="Hapus foto"
+													>
+														<IconX stroke={2.5} className="h-4 w-4" />
+													</button>
+												</div>
+											))}
+											{data.photos.length < MAX_PHOTOS && (
+												<button
+													type="button"
+													onClick={() => fileInputPhoto.current?.click()}
+													className="flex h-32 w-full flex-col items-center justify-center rounded-md border border-dashed border-border bg-muted/50 text-center text-muted-foreground transition-colors hover:bg-muted"
+												>
+													<IconCloudUpload className="mb-1 h-6 w-6" stroke={1.5} />
+													<span className="text-xs font-semibold">Tambah foto</span>
+												</button>
+											)}
+										</div>
+									) : (
+										<div
+											onClick={() => fileInputPhoto.current?.click()}
+											className="flex cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-border bg-muted/50 p-8 text-center transition-colors hover:bg-muted"
+										>
+											<div className="mb-4 flex h-12 w-12 items-center justify-center rounded-md border border-border bg-card shadow-sm">
+												<IconCloudUpload
+													className="h-6 w-6 text-muted-foreground"
+													stroke={1.5}
+												/>
+											</div>
+											<p className="text-sm font-semibold text-foreground">Pilih foto kejadian</p>
+											<p className="mb-5 mt-1 text-[13px] text-muted-foreground">
+												Format PNG/JPG/WEBP (Maks. 4MB / foto)
+											</p>
+											<span className="inline-flex h-9 items-center justify-center rounded-md bg-destructive px-5 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90">
+												Jelajahi File
+											</span>
+										</div>
+									)}
+									{errors.photos && <InputError message={errors.photos} className="mt-1" />}
+								</div>
+							</div>
+
+							{/* --- ACTIONS --- */}
+							<div className="mt-5 border-t border-border pt-5">
+								<Button
+									type="submit"
+									className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-destructive px-8 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:cursor-not-allowed disabled:opacity-70"
+									disabled={processing || locationLoading}
+								>
+									{processing ? (
+										<IconLoader2 className="h-5 w-5 animate-spin" />
+									) : (
+										<IconSend className="h-5 w-5" />
+									)}
+									Kirim Laporan
+								</Button>
+							</div>
+						</form>
+					</CardContent>
+				</Card>
+			</div>
+		</div>
+	);
 }
 
 Create.layout = (page) => <AppLayout children={page} title="Buat Laporan Baru" />;

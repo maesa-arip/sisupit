@@ -4,12 +4,10 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
-import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
 import { flashMessage } from '@/lib/utils';
 import { Link, useForm } from '@inertiajs/react';
-import { IconArrowLeft, IconBuilding, IconCategory } from '@tabler/icons-react';
-import { useRef } from 'react';
+import { IconArrowLeft, IconBuilding } from '@tabler/icons-react';
 import { toast } from 'sonner';
 
 export default function Create(props) {
@@ -34,15 +32,15 @@ export default function Create(props) {
 		reset();
 	};
 	return (
-		<div className="flex flex-col w-full pb-32">
-			<div className="flex flex-col items-start justify-between mb-8 gap-y-4 lg:flex-row lg:items-center">
+		<div className="flex w-full flex-col pb-32">
+			<div className="mb-8 flex flex-col items-start justify-between gap-y-4 lg:flex-row lg:items-center">
 				<HeaderTitle
 					title={props.page_settings.title}
 					subtitle={props.page_settings.subtitle}
 					icon={IconBuilding}
 				/>
 				<Button variant="orange" size="sm" asChild>
-					<Link href={"#"}>
+					<Link href={'#'}>
 						<IconArrowLeft className="size-4" />
 						Kembali
 					</Link>
@@ -75,7 +73,13 @@ export default function Create(props) {
 							{errors.logo && <InputError message={errors.logo} />}
 						</div>
 						<div className="flex justify-end gap-x-2">
-							<Button type="button" variant="secondary" size="sm" disabled={processing} onClick={onHandleReset}>
+							<Button
+								type="button"
+								variant="secondary"
+								size="sm"
+								disabled={processing}
+								onClick={onHandleReset}
+							>
 								Reset
 							</Button>
 							<Button type="submit" variant="orange" size="sm" disabled={processing}>

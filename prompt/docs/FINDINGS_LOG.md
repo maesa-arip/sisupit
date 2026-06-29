@@ -37,7 +37,7 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 | 6 | P2 | Dua jalur akses ke `report_officers`/`report_helpers` (Eloquent vs `DB::table()` mentah) | `app/Models/ReportOfficer.php`, `ReportHelper.php` vs `app/Http/Controllers/ReportActionController.php` (seluruh method) | Logika bisnis/cast di model tidak berlaku saat akses lewat `DB::table()` — risiko drift & duplikasi | FIXED (didokumentasikan, tidak direfactor) | TASK_05 |
 | 7 | P3 | `formatToRupiah()`/`FINEPAYMENTSTATUS` & dependency `date-fns` terpasang tapi tidak dipakai di mana pun | `resources/js/lib/utils.js:8,18-26`; `package.json` | Dead code/dependency — jangan diasumsikan ada alur uang aktif | FIXED (helper dihapus) / WONTFIX (`date-fns` sengaja dipertahankan, keputusan user) | TASK_04 |
 | 8 | P3 | `app/Models/Unit.php` stub kosong, tidak dipakai | `app/Models/Unit.php` | Dead code kandidat hapus | FIXED | TASK_04 |
-| 9 | P3 | Tidak ada lint/format-check di CI meski Pint/Prettier/Duster terpasang; `npm run format` adalah auto-fix bukan check | `.github/workflows/tests.yml`; `package.json:7` | Gaya kode bisa drift tanpa terdeteksi CI | IN PROGRESS — gate informational aktif, mass-reformat dijadwalkan sebagai task terpisah | TASK_05 |
+| 9 | P3 | Tidak ada lint/format-check di CI meski Pint/Prettier/Duster terpasang; `npm run format` adalah auto-fix bukan check | `.github/workflows/tests.yml`; `package.json:7` | Gaya kode bisa drift tanpa terdeteksi CI | FIXED (mass-reformat 2026-06-29: 81 PHP + 122 JS/JSX) | TASK_05 |
 | 10 | P3 | Penamaan method tidak konsisten (`store_relawan`, `store_detail_user` snake_case vs `store`/`update` camelCase di controller yang sama) | `app/Http/Controllers/Admin/UserController.php:213,230` | Kosmetik, tapi menyulitkan deteksi pola "method ini perlu authorize seperti yang lain" | FIXED | TASK_04 |
 | 11 | P2 | Sidebar pasang seksi "Administrasi" dengan gating `isStaff` (termasuk `petugas`), padahal semua route `/admin/*` digating `role:admin\|superadmin` | `resources/js/Layouts/Partials/Sidebar.jsx` (gating `isStaff`) | Petugas melihat link Verifikasi Laporan/Manajemen Fasilitas/Pengumuman yang berujung **403** saat diklik (menu menyesatkan) | FIXED | (nav cleanup) |
 | 12 | P3 | Seksi "Operasional" sidebar (Lapor Darurat, Arsip & Riwayat) di-gating `auth?.user`, padahal `AppLayout` mengoper objek user langsung sebagai prop `auth` → `auth.user` selalu undefined | `resources/js/Layouts/Partials/Sidebar.jsx` (`auth?.user`), `resources/js/Layouts/AppLayout.jsx:21,113` | Dua link operasional tidak pernah tampil di sidebar desktop untuk user login | FIXED | (nav cleanup) |
@@ -187,7 +187,20 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
   dijadwalkan sebagai **task terpisah** (PR khusus formatting, terisolasi dari
   perubahan fungsional), bukan dikerjakan sekarang. Lihat
   `prompt/tasks/TASK_05_documentation_and_deferred.md`.
-- **Status:** IN PROGRESS — gate informational sudah aktif, mass-reformat dijadwalkan (belum dikerjakan)
+- **Fix (2026-06-29):** mass-reformat dijalankan sebagai PR formatting terpisah
+  (dikonfirmasi user). `vendor/bin/pint` merapikan **81 file PHP**; `npm run format`
+  (`prettier --write .`) merapikan **122 file JS/JSX**. Prettier juga sempat menyentuh
+  file non-kode (markdown docs, `composer.lock`, `.json`, `.yml`, CSS vendor mail) —
+  semua di-revert agar commit ini murni gaya kode (PHP+JS/JSX) dan tidak mengubah
+  `composer.lock`/dokumen. Artefak `public/build` ikut di-commit sesuai konvensi repo
+  (deploy = `git pull`, tanpa build di server). Tak ada perubahan perilaku.
+- **Verifikasi:** `vendor/bin/pint --test` 207 file PASS; `php artisan test`
+  121 passed (337 assertions, identik baseline — nol regresi); `npm run build` sukses.
+- **Catatan:** dua file leftover `database/seeders/{ReportSeeder copy,UserTenantSeeder copy}.php`
+  ikut dirapikan Pint tapi sengaja TIDAK dihapus (di luar scope; kandidat hapus terpisah).
+  `npm run format` masih `prettier --write .` (bukan `--check`); menjadikan Pint/Prettier
+  blocking di CI bisa menyusul sekarang karena drift lama sudah lunas.
+- **Status:** FIXED (2026-06-29) — mass-reformat tuntas (PR formatting terpisah)
 
 ### #10 — Penamaan method tidak konsisten
 - **Severity:** P3

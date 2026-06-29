@@ -10,8 +10,8 @@ return new class extends Migration
     {
         // Daftar tabel yang akan disuntikkan hierarki wilayah
         $tables = ['users', 'reports', 'pos_pemadams', 'pompas', 'hydrants'];
-            // Pastikan tabelnya ada agar tidak error
-            foreach ($tables as $tableName) {
+        // Pastikan tabelnya ada agar tidak error
+        foreach ($tables as $tableName) {
             if (Schema::hasTable($tableName)) {
                 Schema::table($tableName, function (Blueprint $table) {
                     // Tambahkan ketiga kolom wilayah (nullable agar data lama tidak error)
@@ -41,7 +41,7 @@ return new class extends Migration
                     $table->dropForeign(['city_code']);
                     $table->dropForeign(['district_code']);
                     $table->dropForeign(['village_code']);
-                    
+
                     $table->dropColumn(['province_code', 'city_code', 'district_code', 'village_code']);
                 });
             }

@@ -3,18 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Enums\TenantLevel;
-use App\Models\Report;
-use App\Models\ReportUnit;
-use App\Models\Setting;
-use App\Models\TrackingLog;
-use App\Models\Unit;
-use App\Models\User; // <-- Wajib ditambahkan
-use Illuminate\Http\Request;
-use App\Events\ResponderLocationUpdated;
 use App\Events\IncidentLocationCorrected;
 use App\Events\ReportStatusChanged;
+use App\Events\ResponderLocationUpdated;
+use App\Models\Report;
+use App\Models\ReportUnit;
+use App\Models\Setting; // <-- Wajib ditambahkan
+use App\Models\TrackingLog;
+use App\Models\Unit;
+use App\Models\User;
 use App\Notifications\EmergencyAlertNotification;
 use App\Notifications\ReportStatusUpdatedNotification;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 
@@ -29,7 +29,7 @@ class ReportActionController extends Controller
     // 1. Saat Pusat Komando memvalidasi laporan
     public function approve($id)
     {
-        if (!auth()->user()->hasAnyRole(['petugas', 'admin', 'superadmin'])) {
+        if (! auth()->user()->hasAnyRole(['petugas', 'admin', 'superadmin'])) {
             abort(403, 'Akses Ditolak.');
         }
 
@@ -78,7 +78,7 @@ class ReportActionController extends Controller
     // (ReportController::destroy) sengaja dipisah dari sini.
     public function reject(Request $request, $id)
     {
-        if (!auth()->user()->hasAnyRole(['petugas', 'admin', 'superadmin'])) {
+        if (! auth()->user()->hasAnyRole(['petugas', 'admin', 'superadmin'])) {
             abort(403, 'Akses Ditolak.');
         }
 
@@ -108,7 +108,7 @@ class ReportActionController extends Controller
     public function takeAction($id)
     {
         $user = auth()->user();
-        if (!$user->hasAnyRole(['petugas', 'relawan'])) {
+        if (! $user->hasAnyRole(['petugas', 'relawan'])) {
             abort(403, 'Akses Ditolak.');
         }
 
@@ -133,7 +133,7 @@ class ReportActionController extends Controller
             // Mencegah Double Insert
             $exists = DB::table($table)->where('report_id', $report->id)->where('user_id', $user->id)->lockForUpdate()->exists();
 
-            if (!$exists) {
+            if (! $exists) {
                 DB::table($table)->insert([
                     'report_id' => $report->id,
                     'user_id' => $user->id,
@@ -167,7 +167,7 @@ class ReportActionController extends Controller
     public function cancelResponse($id)
     {
         $user = auth()->user();
-        if (!$user->hasAnyRole(['petugas', 'relawan'])) {
+        if (! $user->hasAnyRole(['petugas', 'relawan'])) {
             abort(403, 'Akses Ditolak.');
         }
 
@@ -175,7 +175,7 @@ class ReportActionController extends Controller
         $table = $user->hasRole('petugas') ? 'report_officers' : 'report_helpers';
 
         $record = DB::table($table)->where('report_id', $report->id)->where('user_id', $user->id)->first();
-        if (!$record || $record->status !== 'en_route') {
+        if (! $record || $record->status !== 'en_route') {
             abort(403, 'Hanya penugasan yang masih "Meluncur" yang bisa dibatalkan.');
         }
 
@@ -189,7 +189,7 @@ class ReportActionController extends Controller
             $stillActive = DB::table('report_officers')->where('report_id', $report->id)->whereIn('status', ['en_route', 'arrived'])->exists()
                 || DB::table('report_helpers')->where('report_id', $report->id)->whereIn('status', ['en_route', 'arrived'])->exists();
 
-            if (!$stillActive && $report->status === 'handling') {
+            if (! $stillActive && $report->status === 'handling') {
                 $report->update(['status' => 'pending']);
                 $reverted = true;
             }
@@ -205,7 +205,7 @@ class ReportActionController extends Controller
     // 2c. Pusat Komando mengerahkan UNIT/armada ke insiden (TASK_09).
     public function dispatchUnit(Request $request, $id)
     {
-        if (!auth()->user()->hasAnyRole(['petugas', 'admin', 'superadmin'])) {
+        if (! auth()->user()->hasAnyRole(['petugas', 'admin', 'superadmin'])) {
             abort(403, 'Akses Ditolak.');
         }
 
@@ -238,7 +238,7 @@ class ReportActionController extends Controller
     // 2d. Menarik kembali unit dari insiden (status unit -> available).
     public function releaseUnit(Request $request, $id)
     {
-        if (!auth()->user()->hasAnyRole(['petugas', 'admin', 'superadmin'])) {
+        if (! auth()->user()->hasAnyRole(['petugas', 'admin', 'superadmin'])) {
             abort(403, 'Akses Ditolak.');
         }
 
@@ -265,7 +265,7 @@ class ReportActionController extends Controller
     public function arrive($id)
     {
         $user = auth()->user();
-        if (!$user->hasAnyRole(['petugas', 'relawan'])) {
+        if (! $user->hasAnyRole(['petugas', 'relawan'])) {
             abort(403, 'Akses Ditolak.');
         }
 
@@ -280,8 +280,8 @@ class ReportActionController extends Controller
 
         // Apakah ini kedatangan PERTAMA di insiden ini (di kedua tabel responder)? Dicek
         // sebelum update agar notifikasi "responder tiba" ke pelapor hanya sekali.
-        $isFirstArrival = !DB::table('report_officers')->where('report_id', $report->id)->where('status', 'arrived')->exists()
-            && !DB::table('report_helpers')->where('report_id', $report->id)->where('status', 'arrived')->exists();
+        $isFirstArrival = ! DB::table('report_officers')->where('report_id', $report->id)->where('status', 'arrived')->exists()
+            && ! DB::table('report_helpers')->where('report_id', $report->id)->where('status', 'arrived')->exists();
 
         DB::table($table)
             ->where('report_id', $report->id)
@@ -289,7 +289,7 @@ class ReportActionController extends Controller
             ->update([
                 'status' => 'arrived',
                 'arrived_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ]);
 
         if ($isFirstArrival) {
@@ -305,7 +305,7 @@ class ReportActionController extends Controller
         $report = Report::withoutGlobalScopes()->findOrFail($id);
 
         // Pastikan hanya petugas/admin yang bisa selesaikan
-        if (!auth()->user()->hasAnyRole(['petugas', 'admin', 'superadmin'])) {
+        if (! auth()->user()->hasAnyRole(['petugas', 'admin', 'superadmin'])) {
             abort(403, 'Akses Ditolak.');
         }
 
@@ -336,13 +336,13 @@ class ReportActionController extends Controller
     public function updateLocation(Request $request, $id)
     {
         $user = auth()->user();
-        if (!$user->hasAnyRole(['petugas', 'relawan'])) {
+        if (! $user->hasAnyRole(['petugas', 'relawan'])) {
             abort(403, 'Akses Ditolak.');
         }
 
         $request->validate([
             'lat' => 'required|numeric',
-            'lng' => 'required|numeric'
+            'lng' => 'required|numeric',
         ]);
 
         $report = Report::withoutGlobalScopes()->findOrFail($id);
@@ -359,16 +359,16 @@ class ReportActionController extends Controller
                 ->update([
                     'location_lat' => $request->lat,
                     'location_lng' => $request->lng,
-                    'updated_at'   => now()
+                    'updated_at' => now(),
                 ]);
 
             // 2. SIMPAN JEJAK SEJARAH (Append-Only)
             TrackingLog::create([
-                'report_id'   => $report->id,
-                'user_id'     => $user->id,
-                'user_type'   => $roleType,
-                'lat'         => $request->lat,
-                'lng'         => $request->lng,
+                'report_id' => $report->id,
+                'user_id' => $user->id,
+                'user_type' => $roleType,
+                'lat' => $request->lat,
+                'lng' => $request->lng,
                 'recorded_at' => now(),
             ]);
         });
@@ -390,7 +390,7 @@ class ReportActionController extends Controller
     public function correctLocation(Request $request, $id)
     {
         $user = auth()->user();
-        if (!$user->hasAnyRole(['petugas', 'relawan'])) {
+        if (! $user->hasAnyRole(['petugas', 'relawan'])) {
             abort(403, 'Akses Ditolak.');
         }
 
@@ -409,7 +409,7 @@ class ReportActionController extends Controller
             ->where('status', 'arrived')
             ->exists();
 
-        if (!$hasArrived) {
+        if (! $hasArrived) {
             abort(403, 'Hanya responder yang sudah tiba di lokasi yang bisa mengoreksi titik insiden.');
         }
 
@@ -450,7 +450,7 @@ class ReportActionController extends Controller
         }
 
         $levelCode = $user->village_code ?? $user->district_code ?? $user->city_code ?? $user->province_code;
-        if (!$levelCode) {
+        if (! $levelCode) {
             return;
         }
 
@@ -458,7 +458,7 @@ class ReportActionController extends Controller
             : ($user->district_code ? 'district_code'
             : ($user->city_code ? 'city_code' : 'province_code'));
 
-        if ($report->$column !== $levelCode) {
+        if ($levelCode !== $report->$column) {
             abort(403, 'Insiden ini di luar wilayah penugasan Anda.');
         }
     }

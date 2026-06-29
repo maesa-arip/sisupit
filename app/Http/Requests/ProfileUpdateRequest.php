@@ -19,10 +19,10 @@ class ProfileUpdateRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:255'],
             'ktp' => [
-                    'nullable',
-                    'mimes:png,jpg',
-                    'max:2048',
-                ],
+                'nullable',
+                'mimes:png,jpg',
+                'max:2048',
+            ],
             'email' => [
                 'required',
                 'string',

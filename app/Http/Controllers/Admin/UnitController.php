@@ -23,7 +23,7 @@ class UnitController extends Controller
         $query = Unit::query()->with('posPemadam:id,name');
 
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%'.$request->search.'%');
         }
 
         if ($request->filled('status') && $request->status !== 'Semua') {
@@ -31,7 +31,7 @@ class UnitController extends Controller
         }
 
         return Inertia::render('Admin/Units/Index', [
-            'units'   => $query->latest()->paginate(10)->withQueryString(),
+            'units' => $query->latest()->paginate(10)->withQueryString(),
             'filters' => $request->only(['search', 'status']),
         ]);
     }
@@ -81,16 +81,16 @@ class UnitController extends Controller
     private function validateData(Request $request): array
     {
         $validated = $request->validate([
-            'name'           => 'required|string|max:255',
-            'type'           => 'required|string|max:255',
+            'name' => 'required|string|max:255',
+            'type' => 'required|string|max:255',
             // status dispatched dikelola lewat alur insiden, bukan CRUD.
-            'status'         => ['required', Rule::in(['available', 'maintenance'])],
+            'status' => ['required', Rule::in(['available', 'maintenance'])],
             'pos_pemadam_id' => 'nullable|integer',
         ]);
 
         // Homebase pos wajib berada dalam yurisdiksi admin (Tenantable). Bila id di luar
         // wilayah/ tak ada, null-kan agar tak menautkan aset lintas wilayah.
-        if (!empty($validated['pos_pemadam_id']) && !PosPemadam::whereKey($validated['pos_pemadam_id'])->exists()) {
+        if (! empty($validated['pos_pemadam_id']) && ! PosPemadam::whereKey($validated['pos_pemadam_id'])->exists()) {
             $validated['pos_pemadam_id'] = null;
         }
 
@@ -103,9 +103,9 @@ class UnitController extends Controller
     {
         $user = auth()->user();
         $validated['province_code'] = $user->province_code;
-        $validated['city_code']     = $user->city_code;
+        $validated['city_code'] = $user->city_code;
         $validated['district_code'] = $user->district_code;
-        $validated['village_code']  = $user->village_code;
+        $validated['village_code'] = $user->village_code;
 
         return $validated;
     }

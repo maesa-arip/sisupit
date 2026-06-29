@@ -1,6 +1,14 @@
 <?php
 
+use App\Http\Controllers\Admin\HydrantController as AdminHydrantController;
+use App\Http\Controllers\Admin\PompaController as AdminPompaController;
+use App\Http\Controllers\Admin\PosPemadamController as AdminPosPemadamController;
+use App\Http\Controllers\Admin\ReportController as AdminReportController;
+use App\Http\Controllers\Admin\UnitController as AdminUnitController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Api\FcmController;
+use App\Http\Controllers\Api\GeocodeController;
+use App\Http\Controllers\Api\RouteController;
 use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Front\HydrantController;
@@ -10,28 +18,19 @@ use App\Http\Controllers\Front\RelawanController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportActionController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportHelperController;
-use App\Http\Controllers\Admin\HydrantController as AdminHydrantController;
-use App\Http\Controllers\Admin\PompaController as AdminPompaController;
-use App\Http\Controllers\Admin\PosPemadamController as AdminPosPemadamController;
-use App\Http\Controllers\Admin\UnitController as AdminUnitController;
-use App\Http\Controllers\Admin\ReportController as AdminReportController;
-use App\Http\Controllers\Api\FcmController;
-use App\Http\Controllers\Api\GeocodeController;
-use App\Http\Controllers\Api\RouteController;
-use App\Http\Controllers\ReportActionController;
 use App\Http\Controllers\VolunteerController;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 
 // Route::redirect('/', 'login');
 
 /**
  * socialite auth
  */
-
 Route::middleware('auth')->group(function () {
     Route::post('/fcm-token', [FcmController::class, 'store'])->name('fcm.store');
 
@@ -80,8 +79,6 @@ Route::middleware(['auth', 'verified', 'role:petugas|admin|superadmin'])->group(
 });
 
 Route::get('/pumps', [PompaController::class, 'index'])->name('front.pumps.index');
-
-
 
 // Route untuk Pos Pemadam
 Route::get('/fire-stations', [PosPemadamController::class, 'index'])->name('front.fire_stations.index');
@@ -165,7 +162,6 @@ Route::middleware(['auth', 'verified'])->controller(ReportHelperController::clas
     Route::post('helpers/create', 'store')->name('front.helpers.store');
 });
 
-
 Route::middleware(['auth'])->controller(ProfileController::class)->group(function () {
     Route::get('profile', 'edit')->name('profile.edit');
     Route::patch('profile', 'update')->name('profile.update');
@@ -177,5 +173,5 @@ Route::middleware(['auth'])->controller(ProfileController::class)->group(functio
     Route::post('/volunteer/skills', [VolunteerController::class, 'updateSkills'])->name('volunteer.skills');
 });
 
-require __DIR__ . '/auth.php';
-require __DIR__ . '/admin.php';
+require __DIR__.'/auth.php';
+require __DIR__.'/admin.php';

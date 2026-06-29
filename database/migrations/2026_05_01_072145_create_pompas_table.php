@@ -15,18 +15,18 @@ return new class extends Migration
             $table->id();
             $table->string('name'); // Contoh: Hydrant Pasar Badung
             $table->text('address')->nullable();
-            
+
             // Pengkategorian
             $table->string('type')->default('Statis (Hydrant)'); // Statis, Portable, Diesel, dll
             $table->string('status')->default('Aktif'); // Aktif, Dalam Perbaikan, Rusak
-            
+
             // Kapasitas atau Spesifikasi Teknis (Opsional tapi direkomendasikan untuk alat)
             $table->integer('capacity_lpm')->nullable()->comment('Kapasitas Liter Per Menit');
-            
+
             // Titik Koordinat (Best practice: Decimal presisi tinggi untuk GPS)
             $table->decimal('lat', 10, 8)->nullable();
             $table->decimal('lng', 11, 8)->nullable();
-            
+
             // Keterangan Tambahan
             $table->text('description')->nullable();
 

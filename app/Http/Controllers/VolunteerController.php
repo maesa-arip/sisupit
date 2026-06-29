@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class VolunteerController extends Controller
 {
@@ -30,9 +30,9 @@ class VolunteerController extends Controller
         $user = $request->user();
 
         // Pastikan user belum memiliki role relawan agar tidak dobel
-        if (!$user->hasRole('relawan')) {
+        if (! $user->hasRole('relawan')) {
             $user->assignRole('relawan');
-            
+
             // Opsional: Jika Anda ingin mencabut role masyarakat saat dia jadi relawan
             if ($user->hasRole('masyarakat')) {
                 $user->removeRole('masyarakat');
@@ -69,8 +69,8 @@ class VolunteerController extends Controller
         abort_unless($user->hasRole('relawan'), 403);
 
         $validated = $request->validate([
-            'skills' => ['present', 'array', 'max:' . count(self::SKILL_OPTIONS)],
-            'skills.*' => ['string', 'in:' . implode(',', self::SKILL_OPTIONS)],
+            'skills' => ['present', 'array', 'max:'.count(self::SKILL_OPTIONS)],
+            'skills.*' => ['string', 'in:'.implode(',', self::SKILL_OPTIONS)],
         ]);
 
         // values() agar tersimpan sebagai array terindeks (bukan object) di JSON.

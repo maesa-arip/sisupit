@@ -6,222 +6,290 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Link, router, useForm } from '@inertiajs/react';
-import { IconLoader2, IconEye, IconEyeOff } from '@tabler/icons-react';
+import { IconEye, IconEyeOff, IconLoader2 } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 
 export default function Register() {
-    const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+	const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+	const [showPassword, setShowPassword] = useState(false);
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    const { data, setData, post, processing, errors, reset } = useForm({
-        name: '',
-        email: '',
-        password: '',
-        password_confirmation: '',
-    });
+	const { data, setData, post, processing, errors, reset } = useForm({
+		name: '',
+		email: '',
+		password: '',
+		password_confirmation: '',
+	});
 
-    const onHandleChange = (e) => setData(e.target.name, e.target.value);
+	const onHandleChange = (e) => setData(e.target.name, e.target.value);
 
-    const submit = (e) => {
-        e.preventDefault();
-        post(route('register'), {
-            onFinish: () => reset('password', 'password_confirmation'),
-        });
-    };
+	const submit = (e) => {
+		e.preventDefault();
+		post(route('register'), {
+			onFinish: () => reset('password', 'password_confirmation'),
+		});
+	};
 
-    // Di aplikasi WebView, account picker native HP mengembalikan Google ID token ke sini.
-    // findOrCreateUser() di backend otomatis membuat akun baru bila belum ada — jadi "daftar
-    // dengan Google" = pilih akun → akun dibuat & langsung login (sama seperti halaman Login).
-    useEffect(() => {
-        window.onGoogleCredential = (idToken) => {
-            if (!idToken) {
-                setIsGoogleLoading(false);
-                return;
-            }
-            router.post(route('google.native'), { credential: idToken }, {
-                onError: () => setIsGoogleLoading(false),
-                onFinish: () => setIsGoogleLoading(false),
-            });
-        };
-        window.onGoogleSignInCancelled = () => setIsGoogleLoading(false);
-        window.onGoogleSignInError = () => setIsGoogleLoading(false);
-        return () => {
-            delete window.onGoogleCredential;
-            delete window.onGoogleSignInCancelled;
-            delete window.onGoogleSignInError;
-        };
-    }, []);
+	// Di aplikasi WebView, account picker native HP mengembalikan Google ID token ke sini.
+	// findOrCreateUser() di backend otomatis membuat akun baru bila belum ada — jadi "daftar
+	// dengan Google" = pilih akun → akun dibuat & langsung login (sama seperti halaman Login).
+	useEffect(() => {
+		window.onGoogleCredential = (idToken) => {
+			if (!idToken) {
+				setIsGoogleLoading(false);
+				return;
+			}
+			router.post(
+				route('google.native'),
+				{ credential: idToken },
+				{
+					onError: () => setIsGoogleLoading(false),
+					onFinish: () => setIsGoogleLoading(false),
+				},
+			);
+		};
+		window.onGoogleSignInCancelled = () => setIsGoogleLoading(false);
+		window.onGoogleSignInError = () => setIsGoogleLoading(false);
+		return () => {
+			delete window.onGoogleCredential;
+			delete window.onGoogleSignInCancelled;
+			delete window.onGoogleSignInError;
+		};
+	}, []);
 
-    const handleGoogleRegister = () => {
-        setIsGoogleLoading(true);
-        // Di dalam aplikasi WebView: gunakan account picker bawaan HP via jembatan native.
-        if (window.AndroidBridge && typeof window.AndroidBridge.signInWithGoogle === 'function') {
-            window.AndroidBridge.signInWithGoogle();
-            return; // hasil kembali lewat window.onGoogleCredential
-        }
-        // Browser biasa: alur OAuth redirect standar.
-        window.location.href = '/auth/google';
-    };
+	const handleGoogleRegister = () => {
+		setIsGoogleLoading(true);
+		// Di dalam aplikasi WebView: gunakan account picker bawaan HP via jembatan native.
+		if (window.AndroidBridge && typeof window.AndroidBridge.signInWithGoogle === 'function') {
+			window.AndroidBridge.signInWithGoogle();
+			return; // hasil kembali lewat window.onGoogleCredential
+		}
+		// Browser biasa: alur OAuth redirect standar.
+		window.location.href = '/auth/google';
+	};
 
-    return (
-        <div className="w-full bg-background lg:grid lg:min-h-screen lg:grid-cols-2">
-            {/* PANE KIRI: AREA FORM */}
-            <div className="relative z-0 flex flex-col px-6 py-6 bg-background lg:px-12">
+	return (
+		<div className="w-full bg-background lg:grid lg:min-h-screen lg:grid-cols-2">
+			{/* PANE KIRI: AREA FORM */}
+			<div className="relative z-0 flex flex-col bg-background px-6 py-6 lg:px-12">
+				{/* Header: Logo & Theme Switcher */}
+				<div className="mb-8 flex w-full items-center justify-between pt-2 lg:mb-0">
+					<ApplicationLogo />
+					<ThemeSwitcher />
+				</div>
 
-                {/* Header: Logo & Theme Switcher */}
-                <div className="flex items-center justify-between w-full pt-2 mb-8 lg:mb-0">
-                    <ApplicationLogo />
-                    <ThemeSwitcher />
-                </div>
+				{/* Container Form */}
+				<div className="z-10 flex flex-1 flex-col justify-center">
+					<div className="mx-auto w-full max-w-sm space-y-8">
+						{/* Judul */}
+						<div className="text-center">
+							<h1 className="text-2xl font-bold tracking-tight text-foreground">Buat Akun Baru</h1>
+							<p className="mt-2 text-sm text-muted-foreground">
+								Daftarkan diri Anda untuk mulai menjadi pahlawan di sekitar.
+							</p>
+						</div>
 
-                {/* Container Form */}
-                <div className="z-10 flex flex-col justify-center flex-1">
-                    <div className="w-full max-w-sm mx-auto space-y-8">
+						<form onSubmit={submit} className="space-y-4">
+							{/* Input Nama */}
+							<div className="space-y-1.5">
+								<Label htmlFor="name" className="text-sm font-medium text-foreground">
+									Nama Lengkap
+								</Label>
+								<Input
+									id="name"
+									name="name"
+									type="text"
+									value={data.name}
+									autoComplete="name"
+									placeholder="Masukkan nama lengkap..."
+									onChange={onHandleChange}
+									className="h-11 w-full rounded-md border-border bg-background transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+								/>
+								{errors.name && <InputError message={errors.name} />}
+							</div>
 
-                        {/* Judul */}
-                        <div className="text-center">
-                            <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                                Buat Akun Baru
-                            </h1>
-                            <p className="mt-2 text-sm text-muted-foreground">
-                                Daftarkan diri Anda untuk mulai menjadi pahlawan di sekitar.
-                            </p>
-                        </div>
+							{/* Input Email */}
+							<div className="space-y-1.5">
+								<Label htmlFor="email" className="text-sm font-medium text-foreground">
+									Email
+								</Label>
+								<Input
+									id="email"
+									name="email"
+									type="email"
+									value={data.email}
+									autoComplete="username"
+									placeholder="nama@email.com"
+									onChange={onHandleChange}
+									className="h-11 w-full rounded-md border-border bg-background transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+								/>
+								{errors.email && <InputError message={errors.email} />}
+							</div>
 
-                        <form onSubmit={submit} className="space-y-4">
-                            {/* Input Nama */}
-                            <div className="space-y-1.5">
-                                <Label htmlFor="name" className="text-sm font-medium text-foreground">Nama Lengkap</Label>
-                                <Input
-                                    id="name" name="name" type="text" value={data.name} autoComplete="name"
-                                    placeholder="Masukkan nama lengkap..." onChange={onHandleChange}
-                                    className="w-full h-11 border-border bg-background rounded-md focus-visible:ring-1 focus-visible:ring-destructive focus-visible:border-destructive transition-colors"
-                                />
-                                {errors.name && <InputError message={errors.name} />}
-                            </div>
+							{/* Input Password */}
+							<div className="space-y-1.5">
+								<Label htmlFor="password" className="text-sm font-medium text-foreground">
+									Kata Sandi
+								</Label>
+								<div className="relative flex items-center">
+									<Input
+										id="password"
+										name="password"
+										type={showPassword ? 'text' : 'password'}
+										value={data.password}
+										autoComplete="new-password"
+										placeholder="••••••••"
+										onChange={onHandleChange}
+										className="h-11 w-full rounded-md border-border bg-background pr-12 transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+									/>
+									<button
+										type="button"
+										onClick={() => setShowPassword(!showPassword)}
+										className="absolute right-1 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus:outline-none"
+										aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+									>
+										{showPassword ? (
+											<IconEyeOff className="h-5 w-5" stroke={1.5} />
+										) : (
+											<IconEye className="h-5 w-5" stroke={1.5} />
+										)}
+									</button>
+								</div>
+								{errors.password && <InputError message={errors.password} />}
+							</div>
 
-                            {/* Input Email */}
-                            <div className="space-y-1.5">
-                                <Label htmlFor="email" className="text-sm font-medium text-foreground">Email</Label>
-                                <Input
-                                    id="email" name="email" type="email" value={data.email} autoComplete="username"
-                                    placeholder="nama@email.com" onChange={onHandleChange}
-                                    className="w-full h-11 border-border bg-background rounded-md focus-visible:ring-1 focus-visible:ring-destructive focus-visible:border-destructive transition-colors"
-                                />
-                                {errors.email && <InputError message={errors.email} />}
-                            </div>
+							{/* Input Konfirmasi Password */}
+							<div className="space-y-1.5">
+								<Label htmlFor="password_confirmation" className="text-sm font-medium text-foreground">
+									Konfirmasi Kata Sandi
+								</Label>
+								<div className="relative flex items-center">
+									<Input
+										id="password_confirmation"
+										name="password_confirmation"
+										type={showConfirmPassword ? 'text' : 'password'}
+										value={data.password_confirmation}
+										autoComplete="new-password"
+										placeholder="••••••••"
+										onChange={onHandleChange}
+										className="h-11 w-full rounded-md border-border bg-background pr-12 transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+									/>
+									<button
+										type="button"
+										onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+										className="absolute right-1 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus:outline-none"
+										aria-label={
+											showConfirmPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'
+										}
+									>
+										{showConfirmPassword ? (
+											<IconEyeOff className="h-5 w-5" stroke={1.5} />
+										) : (
+											<IconEye className="h-5 w-5" stroke={1.5} />
+										)}
+									</button>
+								</div>
+								{errors.password_confirmation && <InputError message={errors.password_confirmation} />}
+							</div>
 
-                            {/* Input Password */}
-                            <div className="space-y-1.5">
-                                <Label htmlFor="password" className="text-sm font-medium text-foreground">Kata Sandi</Label>
-                                <div className="relative flex items-center">
-                                    <Input
-                                        id="password" name="password" type={showPassword ? 'text' : 'password'} value={data.password} autoComplete="new-password"
-                                        placeholder="••••••••" onChange={onHandleChange}
-                                        className="w-full h-11 pr-12 border-border bg-background rounded-md focus-visible:ring-1 focus-visible:ring-destructive focus-visible:border-destructive transition-colors"
-                                    />
-                                    <button
-                                        type="button" onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute z-10 flex items-center justify-center w-10 h-10 text-muted-foreground transition-colors -translate-y-1/2 rounded-md right-1 top-1/2 hover:text-foreground focus:outline-none"
-                                        aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
-                                    >
-                                        {showPassword ? <IconEyeOff className="w-5 h-5" stroke={1.5} /> : <IconEye className="w-5 h-5" stroke={1.5} />}
-                                    </button>
-                                </div>
-                                {errors.password && <InputError message={errors.password} />}
-                            </div>
+							<Button
+								type="submit"
+								disabled={processing || isGoogleLoading}
+								className="mt-4 h-11 w-full rounded-md bg-destructive text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:cursor-not-allowed disabled:opacity-70"
+							>
+								{processing ? <IconLoader2 className="h-5 w-5 animate-spin" /> : 'Daftar Sekarang'}
+							</Button>
+						</form>
 
-                            {/* Input Konfirmasi Password */}
-                            <div className="space-y-1.5">
-                                <Label htmlFor="password_confirmation" className="text-sm font-medium text-foreground">Konfirmasi Kata Sandi</Label>
-                                <div className="relative flex items-center">
-                                    <Input
-                                        id="password_confirmation" name="password_confirmation" type={showConfirmPassword ? 'text' : 'password'} value={data.password_confirmation} autoComplete="new-password"
-                                        placeholder="••••••••" onChange={onHandleChange}
-                                        className="w-full h-11 pr-12 border-border bg-background rounded-md focus-visible:ring-1 focus-visible:ring-destructive focus-visible:border-destructive transition-colors"
-                                    />
-                                    <button
-                                        type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        className="absolute z-10 flex items-center justify-center w-10 h-10 text-muted-foreground transition-colors -translate-y-1/2 rounded-md right-1 top-1/2 hover:text-foreground focus:outline-none"
-                                        aria-label={showConfirmPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
-                                    >
-                                        {showConfirmPassword ? <IconEyeOff className="w-5 h-5" stroke={1.5} /> : <IconEye className="w-5 h-5" stroke={1.5} />}
-                                    </button>
-                                </div>
-                                {errors.password_confirmation && <InputError message={errors.password_confirmation} />}
-                            </div>
+						{/* Garis Pemisah (Divider) */}
+						<div className="relative">
+							<div className="absolute inset-0 flex items-center">
+								<span className="w-full border-t border-border" />
+							</div>
+							<div className="relative flex justify-center text-xs uppercase">
+								<span className="bg-background px-3 text-muted-foreground">Atau daftar dengan</span>
+							</div>
+						</div>
 
-                            <Button
-                                type="submit" disabled={processing || isGoogleLoading}
-                                className="w-full h-11 mt-4 text-sm font-medium text-destructive-foreground transition-colors rounded-md bg-destructive hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:opacity-70 disabled:cursor-not-allowed"
-                            >
-                                {processing ? <IconLoader2 className="w-5 h-5 animate-spin" /> : 'Daftar Sekarang'}
-                            </Button>
-                        </form>
+						{/* Tombol Register Google */}
+						<Button
+							type="button"
+							variant="outline"
+							disabled={processing || isGoogleLoading}
+							onClick={handleGoogleRegister}
+							className="flex h-11 w-full items-center justify-center gap-2.5 rounded-md border border-border bg-background text-sm font-medium text-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-70"
+						>
+							{isGoogleLoading ? (
+								<IconLoader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+							) : (
+								<svg
+									width="18"
+									height="18"
+									viewBox="0 0 24 24"
+									fill="none"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<path
+										d="M23.7449 12.27C23.7449 11.48 23.6749 10.73 23.5549 10H12.2549V14.51H18.7249C18.4349 15.99 17.5849 17.24 16.3249 18.09V21.09H20.1849C22.4449 19.01 23.7449 15.92 23.7449 12.27Z"
+										fill="#4285F4"
+									/>
+									<path
+										d="M12.2549 24C15.4949 24 18.2049 22.92 20.1849 21.09L16.3249 18.09C15.2449 18.81 13.8749 19.25 12.2549 19.25C9.13491 19.25 6.47491 17.14 5.52491 14.29H1.54492V17.38C3.51492 21.3 7.56491 24 12.2549 24Z"
+										fill="#34A853"
+									/>
+									<path
+										d="M5.52491 14.29C5.27491 13.57 5.14491 12.8 5.14491 12C5.14491 11.2 5.28491 10.43 5.52491 9.71V6.62H1.54492C0.724923 8.24 0.254913 10.06 0.254913 12C0.254913 13.94 0.724923 15.76 1.54492 17.38L5.52491 14.29Z"
+										fill="#FBBC05"
+									/>
+									<path
+										d="M12.2549 4.75C14.0249 4.75 15.6049 5.36 16.8549 6.55L20.2749 3.13C18.2049 1.19 15.4949 0 12.2549 0C7.56491 0 3.51492 2.7 1.54492 6.62L5.52491 9.71C6.47491 6.86 9.13491 4.75 12.2549 4.75Z"
+										fill="#EA4335"
+									/>
+								</svg>
+							)}
+							{isGoogleLoading ? 'Mengalihkan...' : 'Lanjutkan dengan Google'}
+						</Button>
 
-                        {/* Garis Pemisah (Divider) */}
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <span className="w-full border-t border-border" />
-                            </div>
-                            <div className="relative flex justify-center text-xs uppercase">
-                                <span className="px-3 text-muted-foreground bg-background">Atau daftar dengan</span>
-                            </div>
-                        </div>
+						{/* Link Login */}
+						<div className="text-center text-sm text-muted-foreground">
+							Sudah punya akun?{' '}
+							<Link
+								href={route('login')}
+								className="font-medium text-destructive transition-colors hover:text-destructive/80 hover:underline"
+							>
+								Masuk di sini
+							</Link>
+						</div>
+					</div>
+				</div>
+			</div>
 
-                        {/* Tombol Register Google */}
-                        <Button
-                            type="button" variant="outline" disabled={processing || isGoogleLoading} onClick={handleGoogleRegister}
-                            className="flex items-center justify-center w-full h-11 gap-2.5 text-sm font-medium text-foreground transition-colors bg-background border border-border rounded-md hover:bg-accent disabled:opacity-70 disabled:cursor-not-allowed"
-                        >
-                            {isGoogleLoading ? <IconLoader2 className="w-5 h-5 text-muted-foreground animate-spin" /> : (
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M23.7449 12.27C23.7449 11.48 23.6749 10.73 23.5549 10H12.2549V14.51H18.7249C18.4349 15.99 17.5849 17.24 16.3249 18.09V21.09H20.1849C22.4449 19.01 23.7449 15.92 23.7449 12.27Z" fill="#4285F4"/>
-                                    <path d="M12.2549 24C15.4949 24 18.2049 22.92 20.1849 21.09L16.3249 18.09C15.2449 18.81 13.8749 19.25 12.2549 19.25C9.13491 19.25 6.47491 17.14 5.52491 14.29H1.54492V17.38C3.51492 21.3 7.56491 24 12.2549 24Z" fill="#34A853"/>
-                                    <path d="M5.52491 14.29C5.27491 13.57 5.14491 12.8 5.14491 12C5.14491 11.2 5.28491 10.43 5.52491 9.71V6.62H1.54492C0.724923 8.24 0.254913 10.06 0.254913 12C0.254913 13.94 0.724923 15.76 1.54492 17.38L5.52491 14.29Z" fill="#FBBC05"/>
-                                    <path d="M12.2549 4.75C14.0249 4.75 15.6049 5.36 16.8549 6.55L20.2749 3.13C18.2049 1.19 15.4949 0 12.2549 0C7.56491 0 3.51492 2.7 1.54492 6.62L5.52491 9.71C6.47491 6.86 9.13491 4.75 12.2549 4.75Z" fill="#EA4335"/>
-                                </svg>
-                            )}
-                            {isGoogleLoading ? 'Mengalihkan...' : 'Lanjutkan dengan Google'}
-                        </Button>
+			{/* PANE KANAN: AREA GAMBAR (KONSISTEN DENGAN LOGIN) */}
+			<div className="relative z-0 hidden border-l border-border bg-foreground lg:block">
+				{/* Overlay gelap merata ringan (fixed dark scrim atas foto, tidak ikut tema) */}
+				<div className="absolute inset-0 z-10 bg-black/20 mix-blend-multiply"></div>
 
-                        {/* Link Login */}
-                        <div className="text-sm text-center text-muted-foreground">
-                            Sudah punya akun?{' '}
-                            <Link href={route('login')} className="font-medium text-destructive transition-colors hover:text-destructive/80 hover:underline">
-                                Masuk di sini
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </div>
+				{/* Overlay gradient dari bawah ke atas agar teks kontras dan terbaca jelas */}
+				<div className="absolute inset-x-0 bottom-0 z-20 h-[60%] bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
 
-            {/* PANE KANAN: AREA GAMBAR (KONSISTEN DENGAN LOGIN) */}
-            <div className="relative z-0 hidden border-l bg-foreground lg:block border-border">
-                {/* Overlay gelap merata ringan (fixed dark scrim atas foto, tidak ikut tema) */}
-                <div className="absolute inset-0 z-10 bg-black/20 mix-blend-multiply"></div>
+				<img src="/images/Damkar.png" alt="Ilustrasi Damkar" className="h-full w-full object-cover" />
 
-                {/* Overlay gradient dari bawah ke atas agar teks kontras dan terbaca jelas */}
-                <div className="absolute inset-x-0 bottom-0 z-20 h-[60%] bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
-
-                <img src="/images/Damkar.png" alt="Ilustrasi Damkar" className="object-cover w-full h-full" />
-
-                {/* Teks Overlay (Damkar Kota Denpasar) — putih fixed di atas foto, bukan token tema */}
-                <div className="absolute z-30 left-12 bottom-16">
-                    <h2 className="text-4xl font-black tracking-tight text-white uppercase drop-shadow-lg">
-                        Damkar Kota<br />Denpasar
-                    </h2>
-                    {/* Garis aksen merah taktis */}
-                    <div className="w-16 h-1.5 mt-5 bg-destructive rounded-full"></div>
-                    <p className="mt-4 text-sm font-bold tracking-[0.2em] text-white/70 uppercase">
-                        Pantang Pulang Sebelum Padam
-                    </p>
-                </div>
-            </div>
-
-        </div>
-    );
+				{/* Teks Overlay (Damkar Kota Denpasar) — putih fixed di atas foto, bukan token tema */}
+				<div className="absolute bottom-16 left-12 z-30">
+					<h2 className="text-4xl font-black uppercase tracking-tight text-white drop-shadow-lg">
+						Damkar Kota
+						<br />
+						Denpasar
+					</h2>
+					{/* Garis aksen merah taktis */}
+					<div className="mt-5 h-1.5 w-16 rounded-full bg-destructive"></div>
+					<p className="mt-4 text-sm font-bold uppercase tracking-[0.2em] text-white/70">
+						Pantang Pulang Sebelum Padam
+					</p>
+				</div>
+			</div>
+		</div>
+	);
 }
 
 Register.layout = (page) => <GuestLayout children={page} title="Daftar Akun Baru" />;

@@ -31,17 +31,19 @@ class SimulateResponders extends Command
     public function handle(): int
     {
         $report = $this->resolveReport();
-        if (!$report) {
+        if (! $report) {
             return self::FAILURE;
         }
 
         if (is_null($report->lat) || is_null($report->lng)) {
             $this->error("Laporan #{$report->id} tidak punya koordinat (lat/lng).");
+
             return self::FAILURE;
         }
 
         if ($report->status === 'resolved') {
             $this->error("Laporan #{$report->id} sudah selesai (resolved), tidak ada yang perlu disimulasikan.");
+
             return self::FAILURE;
         }
 
@@ -56,6 +58,7 @@ class SimulateResponders extends Command
 
         if ($officers->isEmpty() && $volunteers->isEmpty()) {
             $this->error('Tidak ada user dengan role petugas/relawan untuk disimulasikan (jalankan UserTenantSeeder dulu).');
+
             return self::FAILURE;
         }
 
@@ -74,6 +77,7 @@ class SimulateResponders extends Command
         $responders = array_filter($responders);
         if (empty($responders)) {
             $this->error('Gagal membangun rute untuk responden.');
+
             return self::FAILURE;
         }
 
@@ -88,9 +92,10 @@ class SimulateResponders extends Command
 
         if ($id = $this->argument('report')) {
             $report = $query->find($id);
-            if (!$report) {
+            if (! $report) {
                 $this->error("Laporan #{$id} tidak ditemukan.");
             }
+
             return $report;
         }
 
@@ -98,9 +103,10 @@ class SimulateResponders extends Command
             ->whereNotNull('lat')->whereNotNull('lng')
             ->latest('id')->first();
 
-        if (!$report) {
+        if (! $report) {
             $this->error('Tidak ada laporan aktif (non-resolved) dengan koordinat. Beri argumen ID laporan.');
         }
+
         return $report;
     }
 
@@ -132,7 +138,7 @@ class SimulateResponders extends Command
 
         $coords = $this->resample($coords, max(2, (int) $this->option('steps')));
 
-        $this->line("  {$type}: {$user->name} — titik awal " . number_format($startLat, 5) . ',' . number_format($startLng, 5) . " (" . count($coords) . " titik rute)");
+        $this->line("  {$type}: {$user->name} — titik awal ".number_format($startLat, 5).','.number_format($startLng, 5).' ('.count($coords).' titik rute)');
 
         return [
             'user' => $user,
@@ -194,7 +200,8 @@ class SimulateResponders extends Command
             });
         }
 
-        $this->info('✅ Snapshot ditulis: responden berada di tengah rute jalan menuju TKP. Buka /reports/' . $report->id . ' untuk melihat.');
+        $this->info('✅ Snapshot ditulis: responden berada di tengah rute jalan menuju TKP. Buka /reports/'.$report->id.' untuk melihat.');
+
         return self::SUCCESS;
     }
 
@@ -229,7 +236,7 @@ class SimulateResponders extends Command
                 $pos = $r['coords'][$idx];
                 $this->advance($report, $r, $pos[0], $pos[1]);
             }
-            $this->line("  langkah " . ($step + 1) . "/{$maxLen}");
+            $this->line('  langkah '.($step + 1)."/{$maxLen}");
             if ($step < $maxLen - 1 && $interval > 0) {
                 sleep($interval);
             }
@@ -244,6 +251,7 @@ class SimulateResponders extends Command
         }
 
         $this->info('✅ Simulasi live selesai: semua responden tiba di TKP.');
+
         return self::SUCCESS;
     }
 
@@ -301,7 +309,7 @@ class SimulateResponders extends Command
             }
             $this->warn('  OSRM tidak mengembalikan rute, pakai garis lurus sebagai fallback.');
         } catch (\Throwable $e) {
-            $this->warn('  OSRM gagal dihubungi (' . $e->getMessage() . '), pakai garis lurus sebagai fallback.');
+            $this->warn('  OSRM gagal dihubungi ('.$e->getMessage().'), pakai garis lurus sebagai fallback.');
         }
 
         // Fallback: interpolasi linear.
@@ -311,6 +319,7 @@ class SimulateResponders extends Command
             $t = $i / $n;
             $coords[] = [$fromLat + ($toLat - $fromLat) * $t, $fromLng + ($toLng - $fromLng) * $t];
         }
+
         return $coords;
     }
 
@@ -327,6 +336,7 @@ class SimulateResponders extends Command
             $idx = (int) round($i / ($n - 1) * ($count - 1));
             $out[] = $coords[$idx];
         }
+
         return $out;
     }
 

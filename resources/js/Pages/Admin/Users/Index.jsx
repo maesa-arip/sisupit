@@ -195,8 +195,8 @@ export default function Index(props) {
 	const currentRoleLocked = (roleUser?.roles ?? []).some((role) => !isAssignable(role));
 
 	return (
-		<div className="flex flex-col w-full pb-32">
-			<div className="flex flex-col items-start justify-between mb-8 gap-y-4 lg:flex-row lg:items-center">
+		<div className="flex w-full flex-col pb-32">
+			<div className="mb-8 flex flex-col items-start justify-between gap-y-4 lg:flex-row lg:items-center">
 				<HeaderTitle
 					title={props.page_settings.title}
 					subtitle={props.page_settings.subtitle}
@@ -210,7 +210,7 @@ export default function Index(props) {
 			</div>
 			<Card>
 				<CardHeader>
-					<div className="flex flex-col w-full gap-4 lg:flex-row lg:items-center">
+					<div className="flex w-full flex-col gap-4 lg:flex-row lg:items-center">
 						<Input
 							className="w-full sm:w-1/4"
 							placeholder="Search"
@@ -243,11 +243,11 @@ export default function Index(props) {
 									<TableHead>
 										<Button
 											variant="ghost"
-											className="inline-flex group"
+											className="group inline-flex"
 											onClick={() => onSortable('id')}
 										>
 											#{' '}
-											<span className="flex-none ml-2 rounded text-muted-foreground">
+											<span className="ml-2 flex-none rounded text-muted-foreground">
 												<IconArrowsDownUp className="size-4 text-muted-foreground" />
 											</span>
 										</Button>
@@ -255,11 +255,11 @@ export default function Index(props) {
 									<TableHead>
 										<Button
 											variant="ghost"
-											className="inline-flex group"
+											className="group inline-flex"
 											onClick={() => onSortable('name')}
 										>
 											Pengguna
-											<span className="flex-none ml-2 rounded text-muted-foreground">
+											<span className="ml-2 flex-none rounded text-muted-foreground">
 												<IconArrowsDownUp className="size-4 text-muted-foreground" />
 											</span>
 										</Button>
@@ -267,11 +267,11 @@ export default function Index(props) {
 									<TableHead>
 										<Button
 											variant="ghost"
-											className="inline-flex group"
+											className="group inline-flex"
 											onClick={() => onSortable('email')}
 										>
 											Email
-											<span className="flex-none ml-2 rounded text-muted-foreground">
+											<span className="ml-2 flex-none rounded text-muted-foreground">
 												<IconArrowsDownUp className="size-4 text-muted-foreground" />
 											</span>
 										</Button>
@@ -279,11 +279,11 @@ export default function Index(props) {
 									<TableHead className="hidden lg:table-cell">
 										<Button
 											variant="ghost"
-											className="inline-flex group"
+											className="group inline-flex"
 											onClick={() => onSortable('phone')}
 										>
 											Nomor Handphone
-											<span className="flex-none ml-2 rounded text-muted-foreground">
+											<span className="ml-2 flex-none rounded text-muted-foreground">
 												<IconArrowsDownUp className="size-4 text-muted-foreground" />
 											</span>
 										</Button>
@@ -293,11 +293,11 @@ export default function Index(props) {
 									<TableHead className="hidden lg:table-cell">
 										<Button
 											variant="ghost"
-											className="inline-flex group"
+											className="group inline-flex"
 											onClick={() => onSortable('gender')}
 										>
 											Jenis Kelamin
-											<span className="flex-none ml-2 rounded text-muted-foreground">
+											<span className="ml-2 flex-none rounded text-muted-foreground">
 												<IconArrowsDownUp className="size-4 text-muted-foreground" />
 											</span>
 										</Button>
@@ -305,11 +305,11 @@ export default function Index(props) {
 									<TableHead className="hidden lg:table-cell">
 										<Button
 											variant="ghost"
-											className="inline-flex group"
+											className="group inline-flex"
 											onClick={() => onSortable('created_at')}
 										>
 											Dibuat pada
-											<span className="flex-none ml-2 rounded text-muted-foreground">
+											<span className="ml-2 flex-none rounded text-muted-foreground">
 												<IconArrowsDownUp className="size-4 text-muted-foreground" />
 											</span>
 										</Button>
@@ -353,23 +353,23 @@ export default function Index(props) {
 					</div>
 
 					{/* Mobile: daftar kartu (tanpa tabel) */}
-					<div className="p-4 space-y-3 md:hidden">
+					<div className="space-y-3 p-4 md:hidden">
 						{users.map((user, index) => (
-							<div key={index} className="overflow-hidden border shadow-sm rounded-xl bg-card">
-								<div className="flex items-center gap-3 p-4 border-b bg-muted/40">
-									<Avatar className="border size-11">
+							<div key={index} className="overflow-hidden rounded-xl border bg-card shadow-sm">
+								<div className="flex items-center gap-3 border-b bg-muted/40 p-4">
+									<Avatar className="size-11 border">
 										<AvatarImage src={user.avatar} />
 										<AvatarFallback>{user.name.substring(0, 1)}</AvatarFallback>
 									</Avatar>
-									<div className="flex flex-col min-w-0">
-										<span className="font-semibold leading-tight truncate">{user.name}</span>
-										<span className="text-xs truncate text-muted-foreground">@{user.username}</span>
+									<div className="flex min-w-0 flex-col">
+										<span className="truncate font-semibold leading-tight">{user.name}</span>
+										<span className="truncate text-xs text-muted-foreground">@{user.username}</span>
 									</div>
-									<span className="ml-auto text-xs shrink-0 text-muted-foreground">
+									<span className="ml-auto shrink-0 text-xs text-muted-foreground">
 										#{rowNumber(index)}
 									</span>
 								</div>
-								<div className="p-4 space-y-3">
+								<div className="space-y-3 p-4">
 									<div className="flex flex-wrap items-center">
 										<RoleBadges roles={user.roles} />
 									</div>
@@ -381,7 +381,7 @@ export default function Index(props) {
 										<MobileInfo icon={IconCalendarTime} value={user.created_at} />
 									</div>
 								</div>
-								<div className="flex items-center gap-2 px-4 py-3 border-t bg-muted/30">
+								<div className="flex items-center gap-2 border-t bg-muted/30 px-4 py-3">
 									<Button
 										variant="green"
 										size="sm"
@@ -401,7 +401,7 @@ export default function Index(props) {
 						))}
 					</div>
 				</CardContent>
-				<CardFooter className="flex flex-col items-center justify-between w-full py-2 border-t lg:flex-row">
+				<CardFooter className="flex w-full flex-col items-center justify-between border-t py-2 lg:flex-row">
 					<p className="mb-2 text-sm text-muted-foreground">
 						Menamplikan{' '}
 						<span className="font-medium text-orange-500 dark:text-warning">{meta.from ?? 0}</span> dari{' '}
@@ -410,7 +410,7 @@ export default function Index(props) {
 					<div className="overflow-x-auto">
 						{meta.has_pages && (
 							<Pagination>
-								<PaginationContent className="flex justify-center fles-wrap lg:justify-end">
+								<PaginationContent className="fles-wrap flex justify-center lg:justify-end">
 									{meta.links.map((link, index) => (
 										<PaginationItem key={index} className="mx-1 mb-1 lg:mb-0">
 											<PaginationLink href={link.url} isActive={link.active}>
@@ -442,13 +442,17 @@ export default function Index(props) {
 									<Label
 										key={role.value}
 										htmlFor={`role-${role.value}`}
-										className={`flex items-center gap-3 p-3 border rounded-md ${
+										className={`flex items-center gap-3 rounded-md border p-3 ${
 											disabled
 												? 'cursor-not-allowed opacity-60'
 												: 'cursor-pointer hover:bg-accent'
 										}`}
 									>
-										<RadioGroupItem value={role.value} id={`role-${role.value}`} disabled={disabled} />
+										<RadioGroupItem
+											value={role.value}
+											id={`role-${role.value}`}
+											disabled={disabled}
+										/>
 										<span>{role.label}</span>
 										{disabled && (
 											<span className="ml-auto text-xs text-muted-foreground">Terkunci</span>
@@ -466,7 +470,7 @@ export default function Index(props) {
 						{errors.role && <InputError message={errors.role} />}
 
 						{isJurisdictional(data.role) && (
-							<div className="pt-2 space-y-2 border-t">
+							<div className="space-y-2 border-t pt-2">
 								<Label htmlFor="level">Tingkat Yurisdiksi</Label>
 								{levelOptionsFor(roleUser).length > 0 ? (
 									<>
@@ -490,8 +494,8 @@ export default function Index(props) {
 								) : (
 									<p className="flex items-start gap-2 text-xs text-muted-foreground">
 										<IconInfoCircle className="mt-0.5 size-4 shrink-0" />
-										Pengguna belum punya data wilayah yang memadai untuk peran ini. Lengkapi
-										wilayah pengguna lewat Edit terlebih dahulu.
+										Pengguna belum punya data wilayah yang memadai untuk peran ini. Lengkapi wilayah
+										pengguna lewat Edit terlebih dahulu.
 									</p>
 								)}
 								{errors.level && <InputError message={errors.level} />}

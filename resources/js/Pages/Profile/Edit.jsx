@@ -1,204 +1,237 @@
-import AppLayout from '@/Layouts/AppLayout';
-import { Link, router, usePage } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
-import { 
-    IconAward, 
-    IconHistory, 
-    IconLogout, 
-    IconSettings, 
-    IconShieldCheck, 
-    IconChevronRight,
-    IconUserEdit,
-    IconLock,
-    IconBrandAndroid,
-    IconDownload
-} from '@tabler/icons-react';
-import { toast } from 'sonner';
-import { flashMessage } from '@/lib/utils';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
 import { Button } from '@/Components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from '@/Components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs';
+import AppLayout from '@/Layouts/AppLayout';
+import { flashMessage } from '@/lib/utils';
+import { Link, router, usePage } from '@inertiajs/react';
+import {
+	IconAward,
+	IconBrandAndroid,
+	IconChevronRight,
+	IconDownload,
+	IconHistory,
+	IconLock,
+	IconLogout,
+	IconSettings,
+	IconShieldCheck,
+	IconUserEdit,
+} from '@tabler/icons-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 
 export default function Edit(props) {
-    const user = usePage().props.auth.user;
-    const [openRelawan, setOpenRelawan] = useState(false);
+	const user = usePage().props.auth.user;
+	const [openRelawan, setOpenRelawan] = useState(false);
 
-    const [isWebView, setIsWebView] = useState(true); 
-    
-        useEffect(() => {
-            const checkWebView = () => {
-                const ua = navigator.userAgent || navigator.vendor || window.opera;
-                const isAndroidWebView = /wv|Android.*Version\/[\d\.]+/i.test(ua);
-                const isIOSWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(ua);
-                const isInAppBrowser = /FBAV|FBAN|Instagram|Line|Twitter|MicroMessenger/i.test(ua);
-                const isMyOwnApp = /SisupitApp/i.test(ua); 
-    
-                return isAndroidWebView || isIOSWebView || isInAppBrowser || isMyOwnApp;
-            };
-            setIsWebView(checkWebView());
-        }, []);
+	const [isWebView, setIsWebView] = useState(true);
 
-    const userRoles = Array.isArray(user?.role) ? user.role : (user?.role ? [user.role] : []);
-     const isVolunteer = userRoles.includes('relawan');
-     const isAdmin = userRoles.includes('petugas') || userRoles.includes('admin');
-    //  console.log('User Roles:', userRoles, 'Is Volunteer:', isVolunteer);
+	useEffect(() => {
+		const checkWebView = () => {
+			const ua = navigator.userAgent || navigator.vendor || window.opera;
+			const isAndroidWebView = /wv|Android.*Version\/[\d\.]+/i.test(ua);
+			const isIOSWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(ua);
+			const isInAppBrowser = /FBAV|FBAN|Instagram|Line|Twitter|MicroMessenger/i.test(ua);
+			const isMyOwnApp = /SisupitApp/i.test(ua);
 
-    const handleDaftarRelawan = () => {
-        router.put(route('admin.relawan.update', { user: user.id }), {}, {
-            onSuccess: () => {
-                setOpenRelawan(false);
-                const flash = flashMessage('success');
-                if (flash) toast[flash.type](flash.message);
-                toast.success('Berhasil mendaftar sebagai relawan!');
-            },
-        });
-    };
+			return isAndroidWebView || isIOSWebView || isInAppBrowser || isMyOwnApp;
+		};
+		setIsWebView(checkWebView());
+	}, []);
 
-    return (
-        <div className="relative w-full pb-32">
-            <div className="relative z-10 flex flex-col w-full max-w-3xl mx-auto space-y-6">
-                
-                {/* --- 1. HEADER PROFIL & LOGOUT --- */}
-                <div className="flex flex-col items-center justify-between gap-4 p-5 mt-4 bg-card border border-border shadow-sm sm:flex-row sm:items-start sm:p-6 rounded-xl">
-                    <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-                        <div className="relative flex items-center justify-center w-20 h-20 text-3xl font-semibold text-foreground bg-muted border border-border rounded-full shrink-0">
-                            {user.name?.[0]?.toUpperCase() ?? 'U'}
-                            {isVolunteer || isAdmin && (
-                                <div className="absolute bottom-0 right-0 p-1 text-white dark:text-info-foreground bg-blue-600 dark:bg-info border-2 border-background rounded-full">
-                                    <IconShieldCheck size={14} stroke={2} />
-                                </div>
-                            )}
-                        </div>
-                        <div className="flex flex-col items-center mt-2 text-center sm:items-start sm:text-left sm:mt-0">
-                            <h2 className="text-xl font-semibold leading-tight text-foreground">{user.name}</h2>
-                            <p className="text-sm font-medium text-muted-foreground">{user.email}</p>
-                            <span className={`px-2.5 py-1 mt-2 text-[10px] font-semibold tracking-wider uppercase rounded-md border ${isVolunteer ? 'bg-blue-50 dark:bg-info/10 text-blue-600 dark:text-info border-blue-100 dark:border-info/20' : isAdmin ? 'bg-green-50 dark:bg-success/10 text-green-600 dark:text-success border-green-100 dark:border-success/20' : 'bg-muted text-muted-foreground border-border'}`}>
-                                {isVolunteer ? 'Relawan Aktif' : isAdmin ? 'Administrator' : 'Anggota Masyarakat'}
-                            </span>
-                        </div>
-                    </div>
+	const userRoles = Array.isArray(user?.role) ? user.role : user?.role ? [user.role] : [];
+	const isVolunteer = userRoles.includes('relawan');
+	const isAdmin = userRoles.includes('petugas') || userRoles.includes('admin');
+	//  console.log('User Roles:', userRoles, 'Is Volunteer:', isVolunteer);
 
-                    <Link
-                        href={route('logout')}
-                        method="post"
-                        as="button"
-                        className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-destructive transition-colors border border-red-100 dark:border-destructive/20 bg-red-50 dark:bg-destructive/10 rounded-md hover:bg-red-100 dark:hover:bg-destructive/20"
-                    >
-                        <IconLogout size={16} stroke={2} />
-                        Keluar
-                    </Link>
-                </div>
+	const handleDaftarRelawan = () => {
+		router.put(
+			route('admin.relawan.update', { user: user.id }),
+			{},
+			{
+				onSuccess: () => {
+					setOpenRelawan(false);
+					const flash = flashMessage('success');
+					if (flash) toast[flash.type](flash.message);
+					toast.success('Berhasil mendaftar sebagai relawan!');
+				},
+			},
+		);
+	};
 
-                {/* --- 2. QUICK ACTIONS (Riwayat & Banner) --- */}
-                <div className="space-y-4">
-                    <Link
-                        href={route('front.reports.index')}
-                        className="flex items-center gap-4 p-4 bg-card rounded-xl border border-border shadow-sm hover:border-muted-foreground/50 transition-colors group outline-none focus-visible:ring-2 focus-visible:ring-muted-foreground/50"
-                    >
-                        <div className="p-2.5 text-muted-foreground bg-muted border border-border rounded-lg group-hover:bg-accent transition-colors shrink-0">
-                            <IconHistory size={20} />
-                        </div>
-                        <div className="flex-1">
-                            <h3 className="text-sm font-semibold text-foreground">Riwayat Laporan Saya</h3>
-                            <p className="text-xs text-muted-foreground mt-0.5">Pantau status kejadian yang pernah Anda laporkan</p>
-                        </div>
-                        <IconChevronRight className="w-5 h-5 text-muted-foreground transition-colors group-hover:text-foreground" />
-                    </Link>
+	return (
+		<div className="relative w-full pb-32">
+			<div className="relative z-10 mx-auto flex w-full max-w-3xl flex-col space-y-6">
+				{/* --- 1. HEADER PROFIL & LOGOUT --- */}
+				<div className="mt-4 flex flex-col items-center justify-between gap-4 rounded-xl border border-border bg-card p-5 shadow-sm sm:flex-row sm:items-start sm:p-6">
+					<div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+						<div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-3xl font-semibold text-foreground">
+							{user.name?.[0]?.toUpperCase() ?? 'U'}
+							{isVolunteer ||
+								(isAdmin && (
+									<div className="absolute bottom-0 right-0 rounded-full border-2 border-background bg-blue-600 p-1 text-white dark:bg-info dark:text-info-foreground">
+										<IconShieldCheck size={14} stroke={2} />
+									</div>
+								))}
+						</div>
+						<div className="mt-2 flex flex-col items-center text-center sm:mt-0 sm:items-start sm:text-left">
+							<h2 className="text-xl font-semibold leading-tight text-foreground">{user.name}</h2>
+							<p className="text-sm font-medium text-muted-foreground">{user.email}</p>
+							<span
+								className={`mt-2 rounded-md border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider ${isVolunteer ? 'border-blue-100 bg-blue-50 text-blue-600 dark:border-info/20 dark:bg-info/10 dark:text-info' : isAdmin ? 'border-green-100 bg-green-50 text-green-600 dark:border-success/20 dark:bg-success/10 dark:text-success' : 'border-border bg-muted text-muted-foreground'}`}
+							>
+								{isVolunteer ? 'Relawan Aktif' : isAdmin ? 'Administrator' : 'Anggota Masyarakat'}
+							</span>
+						</div>
+					</div>
 
-                    {!isVolunteer && !isAdmin && (
-                        <div className="flex flex-col items-start justify-between gap-4 p-5 text-secondary-foreground bg-secondary border border-border rounded-xl sm:p-6 sm:flex-row sm:items-center relative overflow-hidden">
-                            <div className="relative z-10">
-                                <h3 className="flex items-center gap-2 text-base font-semibold">
-                                    <IconAward size={20} /> Panggilan Kemanusiaan
-                                </h3>
-                                <p className="max-w-md mt-1.5 text-sm leading-relaxed text-secondary-foreground/70">
-                                    Jadilah pahlawan di sekitar Anda. Daftar sebagai relawan untuk merespons keadaan darurat lebih cepat.
-                                </p>
-                            </div>
-                            <Button
-                                onClick={() => setOpenRelawan(true)}
-                                className="relative z-10 w-full text-sm font-medium text-secondary bg-secondary-foreground border border-border sm:w-auto hover:bg-secondary-foreground/90 rounded-md h-9 shrink-0"
-                            >
-                                Daftar Relawan
-                            </Button>
-                            <IconShieldCheck size={100} className="absolute pointer-events-none -right-4 -bottom-6 text-secondary-foreground/5 rotate-12" />
-                        </div>
-                    )}
-                </div>
+					<Link
+						href={route('logout')}
+						method="post"
+						as="button"
+						className="flex items-center gap-1.5 rounded-md border border-red-100 bg-red-50 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-red-100 dark:border-destructive/20 dark:bg-destructive/10 dark:hover:bg-destructive/20"
+					>
+						<IconLogout size={16} stroke={2} />
+						Keluar
+					</Link>
+				</div>
 
-                {/* --- 3. PENGATURAN AKUN (MENGGUNAKAN TABS) --- */}
-                <div className="pt-4">
-                    <h3 className="flex items-center gap-2 px-1 mb-4 text-sm font-semibold tracking-wider text-foreground uppercase">
-                        <IconSettings size={18} className="text-muted-foreground" /> Pengaturan & Keamanan
-                    </h3>
+				{/* --- 2. QUICK ACTIONS (Riwayat & Banner) --- */}
+				<div className="space-y-4">
+					<Link
+						href={route('front.reports.index')}
+						className="group flex items-center gap-4 rounded-xl border border-border bg-card p-4 shadow-sm outline-none transition-colors hover:border-muted-foreground/50 focus-visible:ring-2 focus-visible:ring-muted-foreground/50"
+					>
+						<div className="shrink-0 rounded-lg border border-border bg-muted p-2.5 text-muted-foreground transition-colors group-hover:bg-accent">
+							<IconHistory size={20} />
+						</div>
+						<div className="flex-1">
+							<h3 className="text-sm font-semibold text-foreground">Riwayat Laporan Saya</h3>
+							<p className="mt-0.5 text-xs text-muted-foreground">
+								Pantau status kejadian yang pernah Anda laporkan
+							</p>
+						</div>
+						<IconChevronRight className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-foreground" />
+					</Link>
 
-                    <Tabs defaultValue="profil" className="w-full">
-                        <TabsList className="grid w-full h-fit grid-cols-2 p-1 mb-6 bg-muted rounded-lg border border-border">
-                            <TabsTrigger
-                                value="profil"
-                                className="flex items-center gap-2 py-2 text-sm font-medium transition-all rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm text-muted-foreground"
-                            >
-                                <IconUserEdit size={16} /> Data Profil
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="keamanan"
-                                className="flex items-center gap-2 py-2 text-sm font-medium transition-all rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm text-muted-foreground"
-                            >
-                                <IconLock size={16} /> Kata Sandi
-                            </TabsTrigger>
-                        </TabsList>
+					{!isVolunteer && !isAdmin && (
+						<div className="relative flex flex-col items-start justify-between gap-4 overflow-hidden rounded-xl border border-border bg-secondary p-5 text-secondary-foreground sm:flex-row sm:items-center sm:p-6">
+							<div className="relative z-10">
+								<h3 className="flex items-center gap-2 text-base font-semibold">
+									<IconAward size={20} /> Panggilan Kemanusiaan
+								</h3>
+								<p className="mt-1.5 max-w-md text-sm leading-relaxed text-secondary-foreground/70">
+									Jadilah pahlawan di sekitar Anda. Daftar sebagai relawan untuk merespons keadaan
+									darurat lebih cepat.
+								</p>
+							</div>
+							<Button
+								onClick={() => setOpenRelawan(true)}
+								className="relative z-10 h-9 w-full shrink-0 rounded-md border border-border bg-secondary-foreground text-sm font-medium text-secondary hover:bg-secondary-foreground/90 sm:w-auto"
+							>
+								Daftar Relawan
+							</Button>
+							<IconShieldCheck
+								size={100}
+								className="pointer-events-none absolute -bottom-6 -right-4 rotate-12 text-secondary-foreground/5"
+							/>
+						</div>
+					)}
+				</div>
 
-                        <TabsContent value="profil" className="mt-0 outline-none focus-visible:ring-0">
-                            <UpdateProfileInformationForm mustVerifyEmail={props.mustVerifyEmail} status={props.status} className="border-none shadow-none bg-transparent" />
-                        </TabsContent>
+				{/* --- 3. PENGATURAN AKUN (MENGGUNAKAN TABS) --- */}
+				<div className="pt-4">
+					<h3 className="mb-4 flex items-center gap-2 px-1 text-sm font-semibold uppercase tracking-wider text-foreground">
+						<IconSettings size={18} className="text-muted-foreground" /> Pengaturan & Keamanan
+					</h3>
 
-                        <TabsContent value="keamanan" className="mt-0 outline-none focus-visible:ring-0">
-                            <UpdatePasswordForm className="border-none shadow-none bg-transparent" />
-                        </TabsContent>
-                    </Tabs>
-                </div>
+					<Tabs defaultValue="profil" className="w-full">
+						<TabsList className="mb-6 grid h-fit w-full grid-cols-2 rounded-lg border border-border bg-muted p-1">
+							<TabsTrigger
+								value="profil"
+								className="flex items-center gap-2 rounded-md py-2 text-sm font-medium text-muted-foreground transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+							>
+								<IconUserEdit size={16} /> Data Profil
+							</TabsTrigger>
+							<TabsTrigger
+								value="keamanan"
+								className="flex items-center gap-2 rounded-md py-2 text-sm font-medium text-muted-foreground transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+							>
+								<IconLock size={16} /> Kata Sandi
+							</TabsTrigger>
+						</TabsList>
 
-            </div>
-            {/* --- UNDUH APLIKASI --- */}
-            {!isWebView && (
-                <div className="flex flex-col items-center w-full mt-4">
-                    <a
-                        href="/apk/sisupit.apk"
-                        download="Sisupit.apk"
-                        className="flex items-center justify-center w-full sm:w-auto h-12 px-6 gap-3 font-medium text-foreground transition-colors bg-card border border-border rounded-xl hover:bg-accent outline-none focus-visible:ring-2 focus-visible:ring-muted-foreground/50 shadow-sm"
-                    >
-                        <div className="flex items-center justify-center p-1 rounded-md bg-green-50 dark:bg-success/10">
-                            <IconBrandAndroid className="w-5 h-5 text-green-600 dark:text-success" stroke={2} />
-                        </div>
-                        <span className="text-sm">Unduh Aplikasi Android</span>
-                        <IconDownload className="w-4 h-4 ml-1 text-muted-foreground" stroke={2} />
-                    </a>
-                </div>
-            )}
+						<TabsContent value="profil" className="mt-0 outline-none focus-visible:ring-0">
+							<UpdateProfileInformationForm
+								mustVerifyEmail={props.mustVerifyEmail}
+								status={props.status}
+								className="border-none bg-transparent shadow-none"
+							/>
+						</TabsContent>
 
-            {/* MODAL DAFTAR RELAWAN */}
-            <Dialog open={openRelawan} onOpenChange={setOpenRelawan}>
-                <DialogContent className="max-w-md w-[95vw] rounded-xl p-0 bg-card border border-border shadow-sm">
-                    <DialogHeader className="p-5 border-b border-border">
-                        <DialogTitle className="text-base font-semibold text-foreground">Konfirmasi Pendaftaran</DialogTitle>
-                        <DialogDescription className="mt-2 text-sm text-muted-foreground">
-                            Dengan mendaftar sebagai relawan, lokasi Anda akan dapat dilacak saat menuju lokasi kejadian untuk membantu pelapor. Pastikan profil (KTP & No. HP) Anda sudah diisi dengan data asli.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter className="gap-2 p-5 sm:justify-end">
-                        <Button variant="outline" className="border-border rounded-md h-9 text-foreground bg-card hover:bg-accent" onClick={() => setOpenRelawan(false)}>Batal</Button>
-                        <Button className="font-medium text-white dark:text-info-foreground bg-blue-600 dark:bg-info rounded-md hover:bg-blue-700 dark:hover:bg-info/90 h-9" onClick={handleDaftarRelawan}>
-                            Ya, Daftarkan Saya
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+						<TabsContent value="keamanan" className="mt-0 outline-none focus-visible:ring-0">
+							<UpdatePasswordForm className="border-none bg-transparent shadow-none" />
+						</TabsContent>
+					</Tabs>
+				</div>
+			</div>
+			{/* --- UNDUH APLIKASI --- */}
+			{!isWebView && (
+				<div className="mt-4 flex w-full flex-col items-center">
+					<a
+						href="/apk/sisupit.apk"
+						download="Sisupit.apk"
+						className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-border bg-card px-6 font-medium text-foreground shadow-sm outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-muted-foreground/50 sm:w-auto"
+					>
+						<div className="flex items-center justify-center rounded-md bg-green-50 p-1 dark:bg-success/10">
+							<IconBrandAndroid className="h-5 w-5 text-green-600 dark:text-success" stroke={2} />
+						</div>
+						<span className="text-sm">Unduh Aplikasi Android</span>
+						<IconDownload className="ml-1 h-4 w-4 text-muted-foreground" stroke={2} />
+					</a>
+				</div>
+			)}
 
-        </div>
-    );
+			{/* MODAL DAFTAR RELAWAN */}
+			<Dialog open={openRelawan} onOpenChange={setOpenRelawan}>
+				<DialogContent className="w-[95vw] max-w-md rounded-xl border border-border bg-card p-0 shadow-sm">
+					<DialogHeader className="border-b border-border p-5">
+						<DialogTitle className="text-base font-semibold text-foreground">
+							Konfirmasi Pendaftaran
+						</DialogTitle>
+						<DialogDescription className="mt-2 text-sm text-muted-foreground">
+							Dengan mendaftar sebagai relawan, lokasi Anda akan dapat dilacak saat menuju lokasi kejadian
+							untuk membantu pelapor. Pastikan profil (KTP & No. HP) Anda sudah diisi dengan data asli.
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter className="gap-2 p-5 sm:justify-end">
+						<Button
+							variant="outline"
+							className="h-9 rounded-md border-border bg-card text-foreground hover:bg-accent"
+							onClick={() => setOpenRelawan(false)}
+						>
+							Batal
+						</Button>
+						<Button
+							className="h-9 rounded-md bg-blue-600 font-medium text-white hover:bg-blue-700 dark:bg-info dark:text-info-foreground dark:hover:bg-info/90"
+							onClick={handleDaftarRelawan}
+						>
+							Ya, Daftarkan Saya
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+		</div>
+	);
 }
 
 Edit.layout = (page) => <AppLayout children={page} title={'Profil Pengguna'} />;

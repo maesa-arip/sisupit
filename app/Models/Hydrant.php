@@ -12,18 +12,27 @@ use Laravolt\Indonesia\Models\Village;
 class Hydrant extends Model
 {
     use Tenantable;
-    protected $guarded = []; 
+
+    protected $guarded = [];
+
     // 3. Relasi ke wilayah
-    public function province() {
+    public function province()
+    {
         return $this->belongsTo(Province::class, 'province_code', 'code');
     }
-    public function city() {
+
+    public function city()
+    {
         return $this->belongsTo(City::class, 'city_code', 'code');
     }
-    public function district() {
+
+    public function district()
+    {
         return $this->belongsTo(District::class, 'district_code', 'code');
     }
-    public function village() {
+
+    public function village()
+    {
         return $this->belongsTo(Village::class, 'village_code', 'code');
     }
 }

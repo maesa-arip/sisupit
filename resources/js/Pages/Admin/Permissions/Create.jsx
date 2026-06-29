@@ -5,12 +5,10 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
 import { flashMessage } from '@/lib/utils';
 import { Link, useForm } from '@inertiajs/react';
-import { IconArrowLeft, IconCategory, IconCircleKey } from '@tabler/icons-react';
-import { useRef } from 'react';
+import { IconArrowLeft, IconCircleKey } from '@tabler/icons-react';
 import { toast } from 'sonner';
 
 export default function Create(props) {
@@ -36,8 +34,8 @@ export default function Create(props) {
 		reset();
 	};
 	return (
-		<div className="flex flex-col w-full pb-32">
-			<div className="flex flex-col items-start justify-between mb-8 gap-y-4 lg:flex-row lg:items-center">
+		<div className="flex w-full flex-col pb-32">
+			<div className="mb-8 flex flex-col items-start justify-between gap-y-4 lg:flex-row lg:items-center">
 				<HeaderTitle
 					title={props.page_settings.title}
 					subtitle={props.page_settings.subtitle}
@@ -68,16 +66,16 @@ export default function Create(props) {
 						<div className="grid w-full items-center gap-1.5">
 							<Label htmlFor="guard_name">Guard</Label>
 							<Select
-								defaultValue='data.guard_name'
-								onValueChange={(value)=>setData('guard_name',value)}
+								defaultValue="data.guard_name"
+								onValueChange={(value) => setData('guard_name', value)}
 							>
 								<SelectTrigger>
 									<SelectValue>
-										{['web','api'].find((guard)=>guard === data.guard_name) ?? 'Pilih Guard'}
+										{['web', 'api'].find((guard) => guard === data.guard_name) ?? 'Pilih Guard'}
 									</SelectValue>
 								</SelectTrigger>
 								<SelectContent>
-									{['web','api'].map((guard,index) => (
+									{['web', 'api'].map((guard, index) => (
 										<SelectItem key={index} value={guard}>
 											{guard.charAt(0).toUpperCase() + guard.slice(1)}
 										</SelectItem>
@@ -86,7 +84,7 @@ export default function Create(props) {
 							</Select>
 							{errors.guard_name && <InputError message={errors.guard_name} />}
 						</div>
-						
+
 						<div className="flex justify-end gap-x-2">
 							<Button type="button" variant="secondary" size="sm" onClick={onHandleReset}>
 								Reset

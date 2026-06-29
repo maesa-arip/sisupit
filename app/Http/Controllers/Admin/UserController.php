@@ -387,6 +387,7 @@ class UserController extends Controller
         try {
             $user->assignRole('relawan');
             flashMessage(MessageType::UPDATED->message('Relawan'));
+
             return redirect()->route('dashboard');
             // return to_route('dashboard');
         } catch (Throwable $e) {
@@ -395,12 +396,10 @@ class UserController extends Controller
             return to_route('dashboard');
         }
 
-        
-
     }
 
     public function storeDetailUser(UserRequest $request, User $user)
-   {
+    {
         // Self-service: hanya user yang bersangkutan yang boleh melengkapi profilnya sendiri.
         abort_unless($user->id === auth()->id(), 403);
 

@@ -114,7 +114,7 @@ export const MultiSelect = React.forwardRef(
 						className={cn('flex h-auto min-h-10 w-full items-center justify-between', className)}
 					>
 						{selectedValues.length > 0 ? (
-							<div className="flex items-center justify-between w-full">
+							<div className="flex w-full items-center justify-between">
 								<div className="flex flex-wrap items-center">
 									{selectedValues.slice(0, maxCount).map((value) => {
 										const option = options.find((o) => o.value === value);
@@ -128,10 +128,10 @@ export const MultiSelect = React.forwardRef(
 												)}
 												style={{ animationDuration: `${animation}s` }}
 											>
-												{IconComponent && <IconComponent className="w-4 h-4 mr-2" />}
+												{IconComponent && <IconComponent className="mr-2 h-4 w-4" />}
 												{option?.label}
 												<XCircle
-													className="w-4 h-4 ml-2 cursor-pointer"
+													className="ml-2 h-4 w-4 cursor-pointer"
 													onClick={(event) => {
 														event.stopPropagation();
 														toggleOption(value);
@@ -151,7 +151,7 @@ export const MultiSelect = React.forwardRef(
 										>
 											{`+ ${selectedValues.length - maxCount} more`}
 											<XCircle
-												className="w-4 h-4 ml-2 cursor-pointer"
+												className="ml-2 h-4 w-4 cursor-pointer"
 												onClick={(event) => {
 													event.stopPropagation();
 													clearExtraOptions();
@@ -162,20 +162,20 @@ export const MultiSelect = React.forwardRef(
 								</div>
 								<div className="flex items-center justify-between">
 									<XIcon
-										className="h-4 mx-2 cursor-pointer text-muted-foreground"
+										className="mx-2 h-4 cursor-pointer text-muted-foreground"
 										onClick={(event) => {
 											event.stopPropagation();
 											handleClear();
 										}}
 									/>
 									<Separator orientation="vertical" className="flex h-full min-h-6" />
-									<ChevronDown className="h-4 mx-2 cursor-pointer text-muted-foreground" />
+									<ChevronDown className="mx-2 h-4 cursor-pointer text-muted-foreground" />
 								</div>
 							</div>
 						) : (
-							<div className="flex items-center justify-between w-full mx-auto">
+							<div className="mx-auto flex w-full items-center justify-between">
 								<span className="mx-3 text-sm text-muted-foreground">{placeholder}</span>
-								<ChevronDown className="h-4 mx-2 cursor-pointer text-muted-foreground" />
+								<ChevronDown className="mx-2 h-4 cursor-pointer text-muted-foreground" />
 							</div>
 						)}
 					</Button>
@@ -195,7 +195,7 @@ export const MultiSelect = React.forwardRef(
 												: 'opacity-50 [&_svg]:invisible',
 										)}
 									>
-										<CheckIcon className="w-4 h-4" />
+										<CheckIcon className="h-4 w-4" />
 									</div>
 									<span>(Select All)</span>
 								</CommandItem>
@@ -215,10 +215,10 @@ export const MultiSelect = React.forwardRef(
 														: 'opacity-50 [&_svg]:invisible',
 												)}
 											>
-												<CheckIcon className="w-4 h-4" />
+												<CheckIcon className="h-4 w-4" />
 											</div>
 											{option.icon && (
-												<option.icon className="w-4 h-4 mr-2 text-muted-foreground" />
+												<option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
 											)}
 											<span>{option.label}</span>
 										</CommandItem>
@@ -232,7 +232,7 @@ export const MultiSelect = React.forwardRef(
 										<>
 											<CommandItem
 												onSelect={handleClear}
-												className="justify-center flex-1 cursor-pointer"
+												className="flex-1 cursor-pointer justify-center"
 											>
 												Clear
 											</CommandItem>
@@ -241,7 +241,7 @@ export const MultiSelect = React.forwardRef(
 									)}
 									<CommandItem
 										onSelect={() => setIsPopoverOpen(false)}
-										className="justify-center flex-1 max-w-full cursor-pointer"
+										className="max-w-full flex-1 cursor-pointer justify-center"
 									>
 										Close
 									</CommandItem>

@@ -24,7 +24,8 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 Task aktif   : BELUM DIPILIH — TASK_10, 06, 11, 14, 12, 13, 07, 15, 16 SELESAI
                 2026-06-28 (9 task) + TASK_09 armada/Unit SELESAI 2026-06-29.
                 TASK_08 (chat) DITUNDA atas keputusan user.
-                Sisa fungsional: nihil. Tinggal #9 mass-reformat Pint/Prettier (P3, terpisah).
+                #9 mass-reformat Pint/Prettier SELESAI 2026-06-29 (PR formatting terpisah).
+                Sisa: nihil (hanya TASK_08 chat yang ditunda).
 Backlog (urut prioritas, sumber: prompt/docs/FINDINGS_LOG.md) :
    1. #24 P1  [SELESAI] Tolak Data rusak (route salah) → status `ditolak` + arsip  (TASK_10)
    2. #16 P2  [SELESAI] Notif balik ke pelapor tiap transisi status  (TASK_06)
@@ -37,7 +38,7 @@ Backlog (urut prioritas, sumber: prompt/docs/FINDINGS_LOG.md) :
    7. #18 P2  Kanal chat/koordinasi per insiden  (TASK_08 — DITUNDA atas keputusan user 2026-06-28)
    8. #30 P2  [SELESAI] Edit laporan diperbaiki (pelapor+TERLAPOR, konten+kelola foto)  (TASK_16)
    9. #29 P3  [SELESAI] Batch minor: category dead ref, guard status aksi, casing import  (TASK_15)
-   9. #9  P3  Mass-reformat Pint/Prettier (terpisah)  (prompt/tasks/TASK_05_documentation_and_deferred.md)
+   9. #9  P3  [SELESAI] Mass-reformat Pint/Prettier (81 PHP + 122 JS/JSX, PR terpisah)  2026-06-29
   10. #19 P3  [SELESAI] Manajemen armada/Unit & dispatch  (TASK_09, 2026-06-29)
    Temuan lama #1-#8,#10-#15,#20-#23 closed (FIXED).
 Selesai      : TASK_01 (onboarding), TASK_02 (P0 IDOR relawan/profil),

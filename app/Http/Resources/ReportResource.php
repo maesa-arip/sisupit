@@ -16,6 +16,7 @@ class ReportResource extends JsonResource
     public function toArray(Request $request): array
     {
         $userHelper = $this->helpers->first();
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -32,7 +33,7 @@ class ReportResource extends JsonResource
             'created_at' => $this->created_at->format('d M Y H:i:s'),
 
             // Tambahan untuk status relawan
-            'already_helping' => !is_null($userHelper),
+            'already_helping' => ! is_null($userHelper),
             'helper_status' => $userHelper?->status, // waiting, ongoing, done
             'helpers_count' => $this->helpers_count ?? $this->helpers->count(), // fallback aman
             'helpers' => $this->whenLoaded('helpers', function () {

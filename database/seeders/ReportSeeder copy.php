@@ -4,11 +4,11 @@ namespace Database\Seeders;
 
 use App\Models\Report;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
-use Carbon\Carbon;
 
 class ReportSeeder extends Seeder
 {
@@ -65,7 +65,7 @@ class ReportSeeder extends Seeder
 
         // 4. EKSEKUSI SEEDING
         foreach ($incidents as $index => $loc) {
-            
+
             // Simulasikan waktu kejadian (agar history tidak sama semua jamnya)
             $createdAt = Carbon::now()->subHours(rand(1, 48))->subMinutes(rand(1, 60));
 

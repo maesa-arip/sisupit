@@ -2,7 +2,6 @@
 
 namespace App\Events;
 
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -14,8 +13,11 @@ class IncidentLocationCorrected implements ShouldBroadcastNow
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $reportId;
+
     public $lat;
+
     public $lng;
+
     public $address;
 
     public function __construct($reportId, $lat, $lng, $address)
@@ -28,6 +30,6 @@ class IncidentLocationCorrected implements ShouldBroadcastNow
 
     public function broadcastOn()
     {
-        return new PrivateChannel('report-tracking.' . $this->reportId);
+        return new PrivateChannel('report-tracking.'.$this->reportId);
     }
 }

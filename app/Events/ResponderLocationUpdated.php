@@ -1,6 +1,7 @@
 <?php
 
 // app/Events/ResponderLocationUpdated.php
+
 namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
@@ -15,10 +16,15 @@ class ResponderLocationUpdated implements ShouldBroadcastNow
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $reportId;
+
     public $responderId;
+
     public $responderType; // 'relawan' atau 'petugas'
+
     public $responderName;
+
     public $lat;
+
     public $lng;
 
     public function __construct($reportId, $responderId, $responderType, $responderName, $lat, $lng)
@@ -34,6 +40,6 @@ class ResponderLocationUpdated implements ShouldBroadcastNow
     // Hanya pancarkan di PRIVATE channel milik laporan ini
     public function broadcastOn()
     {
-        return new PrivateChannel('report-tracking.' . $this->reportId);
+        return new PrivateChannel('report-tracking.'.$this->reportId);
     }
 }

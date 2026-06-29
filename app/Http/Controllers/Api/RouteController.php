@@ -24,15 +24,15 @@ class RouteController extends Controller
         $validated = $request->validate([
             'from_lat' => 'required|numeric|between:-90,90',
             'from_lng' => 'required|numeric|between:-180,180',
-            'to_lat'   => 'required|numeric|between:-90,90',
-            'to_lng'   => 'required|numeric|between:-180,180',
+            'to_lat' => 'required|numeric|between:-90,90',
+            'to_lng' => 'required|numeric|between:-180,180',
         ]);
 
         // Dibulatkan supaya titik GPS yang berdekatan memakai entri cache yang sama.
         $fromLat = round((float) $validated['from_lat'], 5);
         $fromLng = round((float) $validated['from_lng'], 5);
-        $toLat   = round((float) $validated['to_lat'], 5);
-        $toLng   = round((float) $validated['to_lng'], 5);
+        $toLat = round((float) $validated['to_lat'], 5);
+        $toLng = round((float) $validated['to_lng'], 5);
 
         $cacheKey = "osrm:route:{$fromLat},{$fromLng}:{$toLat},{$toLng}";
 
@@ -64,7 +64,7 @@ class RouteController extends Controller
 
             $response = Http::withHeaders(['User-Agent' => $userAgent])
                 ->timeout(8)
-                ->get($baseUrl . $path, [
+                ->get($baseUrl.$path, [
                     'overview' => 'full',
                     'geometries' => 'geojson',
                 ]);
@@ -77,7 +77,7 @@ class RouteController extends Controller
 
             $body = $response->json();
             $first = $body['routes'][0] ?? null;
-            if (!$first) {
+            if (! $first) {
                 return ['route' => null];
             }
 

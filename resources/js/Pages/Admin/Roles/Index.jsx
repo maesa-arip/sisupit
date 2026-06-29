@@ -10,7 +10,6 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from '@/Components/ui/alert-dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/Components/ui/avatar';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
@@ -21,7 +20,7 @@ import UseFilter from '@/hooks/UseFilter';
 import AppLayout from '@/Layouts/AppLayout';
 import { flashMessage } from '@/lib/utils';
 import { Link, router } from '@inertiajs/react';
-import { IconArrowsDownUp, IconCategory, IconCircleKey, IconPencil, IconPlus, IconRefresh, IconTrash } from '@tabler/icons-react';
+import { IconArrowsDownUp, IconCircleKey, IconPencil, IconPlus, IconRefresh, IconTrash } from '@tabler/icons-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -44,8 +43,8 @@ export default function Index(props) {
 	});
 
 	return (
-		<div className="flex flex-col w-full pb-32">
-			<div className="flex flex-col items-start justify-between mb-8 gap-y-4 lg:flex-row lg:items-center">
+		<div className="flex w-full flex-col pb-32">
+			<div className="mb-8 flex flex-col items-start justify-between gap-y-4 lg:flex-row lg:items-center">
 				<HeaderTitle
 					title={props.page_settings.title}
 					subtitle={props.page_settings.subtitle}
@@ -59,7 +58,7 @@ export default function Index(props) {
 			</div>
 			<Card>
 				<CardHeader>
-					<div className="flex flex-col w-full gap-4 lg:flex-row lg:items-center">
+					<div className="flex w-full flex-col gap-4 lg:flex-row lg:items-center">
 						<Input
 							className="w-full sm:w-1/4"
 							placeholder="Search"
@@ -90,11 +89,11 @@ export default function Index(props) {
 								<TableHead>
 									<Button
 										variant="ghost"
-										className="inline-flex group"
+										className="group inline-flex"
 										onClick={() => onSortable('id')}
 									>
 										#{' '}
-										<span className="flex-none ml-2 rounded text-muted-foreground">
+										<span className="ml-2 flex-none rounded text-muted-foreground">
 											<IconArrowsDownUp className="size-4 text-muted-foreground" />
 										</span>
 									</Button>
@@ -102,11 +101,11 @@ export default function Index(props) {
 								<TableHead>
 									<Button
 										variant="ghost"
-										className="inline-flex group"
+										className="group inline-flex"
 										onClick={() => onSortable('name')}
 									>
 										Nama
-										<span className="flex-none ml-2 rounded text-muted-foreground">
+										<span className="ml-2 flex-none rounded text-muted-foreground">
 											<IconArrowsDownUp className="size-4 text-muted-foreground" />
 										</span>
 									</Button>
@@ -114,11 +113,11 @@ export default function Index(props) {
 								<TableHead>
 									<Button
 										variant="ghost"
-										className="inline-flex group"
+										className="group inline-flex"
 										onClick={() => onSortable('guard_name')}
 									>
 										Guard
-										<span className="flex-none ml-2 rounded text-muted-foreground">
+										<span className="ml-2 flex-none rounded text-muted-foreground">
 											<IconArrowsDownUp className="size-4 text-muted-foreground" />
 										</span>
 									</Button>
@@ -126,11 +125,11 @@ export default function Index(props) {
 								<TableHead>
 									<Button
 										variant="ghost"
-										className="inline-flex group"
+										className="group inline-flex"
 										onClick={() => onSortable('created_at')}
 									>
 										Dibuat pada
-										<span className="flex-none ml-2 rounded text-muted-foreground">
+										<span className="ml-2 flex-none rounded text-muted-foreground">
 											<IconArrowsDownUp className="size-4 text-muted-foreground" />
 										</span>
 									</Button>
@@ -173,17 +172,14 @@ export default function Index(props) {
 														<AlertDialogCancel>Cancel</AlertDialogCancel>
 														<AlertDialogAction
 															onClick={() =>
-																router.delete(
-																	route('admin.roles.destroy', [role]),
-																	{
-																		preserveScroll: true,
-																		preserveState: true,
-																		onSuccess: (success) => {
-																			const flash = flashMessage(success);
-																			if (flash) toast[flash.type](flash.message);
-																		},
+																router.delete(route('admin.roles.destroy', [role]), {
+																	preserveScroll: true,
+																	preserveState: true,
+																	onSuccess: (success) => {
+																		const flash = flashMessage(success);
+																		if (flash) toast[flash.type](flash.message);
 																	},
-																)
+																})
 															}
 														>
 															Continue
@@ -198,15 +194,16 @@ export default function Index(props) {
 						</TableBody>
 					</Table>
 				</CardContent>
-				<CardFooter className="flex flex-col items-center justify-between w-full py-2 border-t lg:flex-row">
+				<CardFooter className="flex w-full flex-col items-center justify-between border-t py-2 lg:flex-row">
 					<p className="mb-2 text-sm text-muted-foreground">
-						Menamplikan <span className="font-medium text-orange-500 dark:text-warning">{meta.from ?? 0}</span> dari{' '}
+						Menamplikan{' '}
+						<span className="font-medium text-orange-500 dark:text-warning">{meta.from ?? 0}</span> dari{' '}
 						{meta.total} Peran
 					</p>
 					<div className="overflow-x-auto">
 						{meta.has_pages && (
 							<Pagination>
-								<PaginationContent className="flex justify-center fles-wrap lg:justify-end">
+								<PaginationContent className="fles-wrap flex justify-center lg:justify-end">
 									{meta.links.map((link, index) => (
 										<PaginationItem key={index} className="mx-1 mb-1 lg:mb-0">
 											<PaginationLink href={link.url} isActive={link.active}>

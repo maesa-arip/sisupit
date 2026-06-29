@@ -7,81 +7,83 @@ import { Link, useForm } from '@inertiajs/react';
 import { IconLoader2, IconMail } from '@tabler/icons-react';
 
 export default function VerifyEmail({ status }) {
-    const { post, processing } = useForm({});
+	const { post, processing } = useForm({});
 
-    const onHandleSubmit = (e) => {
-        e.preventDefault();
-        post(route('verification.send'));
-    };
+	const onHandleSubmit = (e) => {
+		e.preventDefault();
+		post(route('verification.send'));
+	};
 
-    return (
-        <div className="w-full bg-background lg:grid lg:min-h-screen lg:grid-cols-2">
-            {/* PANE KIRI */}
-            <div className="relative flex flex-col px-6 py-6 lg:px-12 bg-background z-0">
+	return (
+		<div className="w-full bg-background lg:grid lg:min-h-screen lg:grid-cols-2">
+			{/* PANE KIRI */}
+			<div className="relative z-0 flex flex-col bg-background px-6 py-6 lg:px-12">
+				<div className="mb-12 flex w-full items-center justify-between pt-2 lg:mb-0">
+					<ApplicationLogo />
+					<ThemeSwitcher />
+				</div>
 
-                <div className="flex items-center justify-between w-full pt-2 mb-12 lg:mb-0">
-                    <ApplicationLogo />
-                    <ThemeSwitcher />
-                </div>
+				<div className="z-10 flex flex-1 flex-col justify-center">
+					<div className="mx-auto w-full max-w-sm space-y-8">
+						<div className="mb-4 flex justify-center">
+							<div className="rounded-full bg-destructive/10 p-4 text-destructive">
+								<IconMail className="h-10 w-10" stroke={1.5} />
+							</div>
+						</div>
 
-                <div className="z-10 flex flex-col justify-center flex-1">
-                    <div className="w-full max-w-sm mx-auto space-y-8">
+						<div className="text-center">
+							<h1 className="text-2xl font-bold tracking-tight text-foreground">Verifikasi Email</h1>
+							<p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+								Terima kasih telah mendaftar! Sebelum memulai, mohon verifikasi alamat email Anda dengan
+								mengklik tautan yang baru saja kami kirimkan. Jika Anda tidak menerimanya, kami akan
+								mengirimkan ulang.
+							</p>
+						</div>
 
-                        <div className="flex justify-center mb-4">
-                            <div className="p-4 rounded-full bg-destructive/10 text-destructive">
-                                <IconMail className="w-10 h-10" stroke={1.5} />
-                            </div>
-                        </div>
+						{status === 'verification-link-sent' && (
+							<Alert
+								variant="success"
+								className="rounded-md border-green-200 bg-green-50 text-green-800 dark:border-success/20 dark:bg-success/10 dark:text-success"
+							>
+								<AlertDescription>
+									Tautan verifikasi baru telah dikirimkan ke alamat email yang Anda berikan saat
+									pendaftaran.
+								</AlertDescription>
+							</Alert>
+						)}
 
-                        <div className="text-center">
-                            <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                                Verifikasi Email
-                            </h1>
-                            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                                Terima kasih telah mendaftar! Sebelum memulai, mohon verifikasi alamat email Anda dengan mengklik tautan yang baru saja kami kirimkan. Jika Anda tidak menerimanya, kami akan mengirimkan ulang.
-                            </p>
-                        </div>
+						<form onSubmit={onHandleSubmit} className="space-y-5">
+							<Button
+								type="submit"
+								disabled={processing}
+								className="h-11 w-full rounded-md bg-destructive text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:cursor-not-allowed disabled:opacity-70"
+							>
+								{processing ? <IconLoader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
+								Kirim Ulang Email Verifikasi
+							</Button>
+						</form>
 
-                        {status === 'verification-link-sent' && (
-                            <Alert variant="success" className="text-green-800 dark:text-success border-green-200 dark:border-success/20 bg-green-50 dark:bg-success/10 rounded-md">
-                                <AlertDescription>
-                                    Tautan verifikasi baru telah dikirimkan ke alamat email yang Anda berikan saat pendaftaran.
-                                </AlertDescription>
-                            </Alert>
-                        )}
+						<div className="text-center text-sm">
+							<Link
+								href={route('logout')}
+								method="post"
+								as="button"
+								className="font-medium text-muted-foreground transition-colors hover:text-destructive"
+							>
+								Keluar Akun
+							</Link>
+						</div>
+					</div>
+				</div>
+			</div>
 
-                        <form onSubmit={onHandleSubmit} className="space-y-5">
-                            <Button
-                                type="submit"
-                                disabled={processing}
-                                className="w-full h-11 text-sm font-medium text-destructive-foreground transition-colors rounded-md bg-destructive hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:opacity-70 disabled:cursor-not-allowed"
-                            >
-                                {processing ? <IconLoader2 className="w-5 h-5 mr-2 animate-spin" /> : null}
-                                Kirim Ulang Email Verifikasi
-                            </Button>
-                        </form>
-
-                        <div className="text-sm text-center">
-                            <Link
-                                href={route('logout')}
-                                method="post"
-                                as="button"
-                                className="font-medium transition-colors text-muted-foreground hover:text-destructive"
-                            >
-                                Keluar Akun
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* PANE KANAN */}
-            <div className="relative hidden lg:block bg-muted border-l border-border z-0">
-                <div className="absolute inset-0 z-10 bg-black/10 dark:bg-black/60 mix-blend-multiply"></div>
-                <img src="/images/login.webp" alt="Verify Email" className="object-cover w-full h-full" />
-            </div>
-        </div>
-    );
+			{/* PANE KANAN */}
+			<div className="relative z-0 hidden border-l border-border bg-muted lg:block">
+				<div className="absolute inset-0 z-10 bg-black/10 mix-blend-multiply dark:bg-black/60"></div>
+				<img src="/images/login.webp" alt="Verify Email" className="h-full w-full object-cover" />
+			</div>
+		</div>
+	);
 }
 
 VerifyEmail.layout = (page) => <GuestLayout children={page} title="Verifikasi Email" />;

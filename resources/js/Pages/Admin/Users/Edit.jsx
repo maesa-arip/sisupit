@@ -6,11 +6,10 @@ import { Combobox } from '@/Components/ui/combobox';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
 import { flashMessage } from '@/lib/utils';
 import { Link, useForm } from '@inertiajs/react';
-import { IconArrowLeft, IconCategory, IconLock, IconUsersGroup } from '@tabler/icons-react';
+import { IconArrowLeft, IconLock, IconUsersGroup } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -21,9 +20,9 @@ const LockedField = ({ label, value }) => (
 			<Input
 				readOnly
 				value={value || 'Memuat...'}
-				className="pr-10 font-medium border-dashed shadow-none bg-accent/50 text-muted-foreground focus-visible:ring-0"
+				className="border-dashed bg-accent/50 pr-10 font-medium text-muted-foreground shadow-none focus-visible:ring-0"
 			/>
-			<IconLock className="absolute w-4 h-4 -translate-y-1/2 opacity-50 right-3 top-1/2 text-muted-foreground" />
+			<IconLock className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground opacity-50" />
 		</div>
 	</div>
 );
@@ -32,14 +31,14 @@ export default function Edit(props) {
 	const fileInputAvatar = useRef(null);
 	const { data, setData, reset, post, processing, errors } = useForm({
 		name: props.user.name ?? '',
-		email: props.user.email ??'',
+		email: props.user.email ?? '',
 		password: '',
 		password_confirmation: '',
 		avatar: null,
 		gender: props.user.gender ?? null,
-		date_of_birth:props.user.date_of_birth ?? '',
-		address:props.user.address ?? '',
-		phone:props.user.phone ?? '',
+		date_of_birth: props.user.date_of_birth ?? '',
+		address: props.user.address ?? '',
+		phone: props.user.phone ?? '',
 		province_code: props.target_province_code || props.admin_level?.province_code || props.user.province_code || '',
 		city_code: props.user.city_code || props.admin_level?.city_code || '',
 		district_code: props.user.district_code || props.admin_level?.district_code || '',
@@ -77,8 +76,7 @@ export default function Edit(props) {
 	}, [data.district_code]);
 
 	const getHelperText = () => {
-		if (props.admin_level?.village_code)
-			return 'Wewenang Desa: Pengguna ini terikat pada wilayah desa Anda.';
+		if (props.admin_level?.village_code) return 'Wewenang Desa: Pengguna ini terikat pada wilayah desa Anda.';
 		if (props.admin_level?.district_code)
 			return 'Wewenang Kecamatan: Anda dapat menempatkan pengguna ini di tingkat Kelurahan/Desa pada kecamatan Anda.';
 		if (props.admin_level?.city_code)
@@ -104,8 +102,8 @@ export default function Edit(props) {
 		fileInputAvatar.current.value = null;
 	};
 	return (
-		<div className="flex flex-col w-full pb-32">
-			<div className="flex flex-col items-start justify-between mb-8 gap-y-4 lg:flex-row lg:items-center">
+		<div className="flex w-full flex-col pb-32">
+			<div className="mb-8 flex flex-col items-start justify-between gap-y-4 lg:flex-row lg:items-center">
 				<HeaderTitle
 					title={props.page_settings.title}
 					subtitle={props.page_settings.subtitle}
@@ -181,7 +179,7 @@ export default function Edit(props) {
 							/>
 							{errors.phone && <InputError message={errors.phone} />}
 						</div>
-						<div className="flex flex-col gap-4 p-4 border rounded-lg border-border bg-accent/30">
+						<div className="flex flex-col gap-4 rounded-lg border border-border bg-accent/30 p-4">
 							<h4 className="text-xs font-bold uppercase text-muted-foreground">Wilayah Penugasan</h4>
 							<p className="text-xs leading-relaxed text-muted-foreground">{getHelperText()}</p>
 
@@ -286,15 +284,11 @@ export default function Edit(props) {
 						</div>
 						<div className="grid w-full items-center gap-1.5">
 							<Label htmlFor="gender">Jenis Kelamin</Label>
-							<Select
-								defaultValue={data.gender}
-								onValueChange={(value) => setData('gender', value)}
-							>
+							<Select defaultValue={data.gender} onValueChange={(value) => setData('gender', value)}>
 								<SelectTrigger>
 									<SelectValue>
-										{props.genders.find(
-											(gender) => gender.value == data.gender,
-										)?.label ?? 'Pilih Jenis Kelamin'}
+										{props.genders.find((gender) => gender.value == data.gender)?.label ??
+											'Pilih Jenis Kelamin'}
 									</SelectValue>
 								</SelectTrigger>
 								<SelectContent>

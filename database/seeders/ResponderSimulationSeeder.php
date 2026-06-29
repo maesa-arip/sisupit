@@ -20,8 +20,9 @@ class ResponderSimulationSeeder extends Seeder
             ->whereNotNull('lat')->whereNotNull('lng')
             ->latest('id')->first();
 
-        if (!$report) {
+        if (! $report) {
             $this->command->error('Tidak ada laporan aktif dengan koordinat. Jalankan ReportSeeder dulu.');
+
             return;
         }
 

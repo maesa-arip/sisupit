@@ -33,7 +33,9 @@ export default function Edit(props) {
 			<Label htmlFor={name}>{label}</Label>
 			<Select value={data[name]} onValueChange={(value) => setData(name, value)}>
 				<SelectTrigger>
-					<SelectValue>{props.levels.find((level) => level.value === data[name])?.label ?? 'Pilih Tingkat'}</SelectValue>
+					<SelectValue>
+						{props.levels.find((level) => level.value === data[name])?.label ?? 'Pilih Tingkat'}
+					</SelectValue>
 				</SelectTrigger>
 				<SelectContent>
 					{props.levels.map((level) => (
@@ -48,19 +50,32 @@ export default function Edit(props) {
 	);
 
 	return (
-		<div className="flex flex-col w-full pb-32">
-			<div className="flex flex-col items-start justify-between mb-8 gap-y-4 lg:flex-row lg:items-center">
-				<HeaderTitle title={props.page_settings.title} subtitle={props.page_settings.subtitle} icon={IconSettings} />
+		<div className="flex w-full flex-col pb-32">
+			<div className="mb-8 flex flex-col items-start justify-between gap-y-4 lg:flex-row lg:items-center">
+				<HeaderTitle
+					title={props.page_settings.title}
+					subtitle={props.page_settings.subtitle}
+					icon={IconSettings}
+				/>
 			</div>
 			<Card>
 				<CardContent className="p-6">
 					<form className="space-y-6" onSubmit={onHandleSubmit}>
 						<p className="text-sm text-muted-foreground">
-							Notifikasi laporan selalu dimulai dari desa lokasi laporan, lalu disiarkan naik ke tingkat di atasnya
-							sampai batas yang dipilih di sini. Petugas dan relawan bisa diatur dengan batas yang berbeda.
+							Notifikasi laporan selalu dimulai dari desa lokasi laporan, lalu disiarkan naik ke tingkat
+							di atasnya sampai batas yang dipilih di sini. Petugas dan relawan bisa diatur dengan batas
+							yang berbeda.
 						</p>
-						{renderLevelSelect('notify_level_petugas', 'Tingkat Siaran Petugas', errors.notify_level_petugas)}
-						{renderLevelSelect('notify_level_relawan', 'Tingkat Siaran Relawan', errors.notify_level_relawan)}
+						{renderLevelSelect(
+							'notify_level_petugas',
+							'Tingkat Siaran Petugas',
+							errors.notify_level_petugas,
+						)}
+						{renderLevelSelect(
+							'notify_level_relawan',
+							'Tingkat Siaran Relawan',
+							errors.notify_level_relawan,
+						)}
 						<div className="flex justify-end gap-x-2">
 							<Button type="submit" variant="orange" size="sm" disabled={processing}>
 								Simpan

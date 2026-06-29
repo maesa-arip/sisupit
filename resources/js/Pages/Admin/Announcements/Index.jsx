@@ -10,28 +10,22 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from '@/Components/ui/alert-dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/Components/ui/avatar';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader } from '@/Components/ui/card';
-import { Input } from '@/Components/ui/input';
+import { Card, CardContent, CardFooter } from '@/Components/ui/card';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink } from '@/Components/ui/pagination';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
-import UseFilter from '@/hooks/UseFilter';
 import AppLayout from '@/Layouts/AppLayout';
 import { flashMessage } from '@/lib/utils';
 import { Link, router } from '@inertiajs/react';
-import { IconAlertCircle, IconArrowsDownUp, IconCategory, IconPencil, IconPlus, IconRefresh, IconTrash } from '@tabler/icons-react';
-import { useState } from 'react';
+import { IconAlertCircle, IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
 import { toast } from 'sonner';
 
 export default function Index(props) {
 	const { data: announcements, meta } = props.announcements;
 
-
 	return (
-		<div className="flex flex-col w-full pb-32">
-			<div className="flex flex-col items-start justify-between mb-8 gap-y-4 lg:flex-row lg:items-center">
+		<div className="flex w-full flex-col pb-32">
+			<div className="mb-8 flex flex-col items-start justify-between gap-y-4 lg:flex-row lg:items-center">
 				<HeaderTitle
 					title={props.page_settings.title}
 					subtitle={props.page_settings.subtitle}
@@ -93,7 +87,9 @@ export default function Index(props) {
 														<AlertDialogAction
 															onClick={() =>
 																router.delete(
-																	route('admin.announcements.destroy', [announcement]),
+																	route('admin.announcements.destroy', [
+																		announcement,
+																	]),
 																	{
 																		preserveScroll: true,
 																		preserveState: true,
@@ -117,15 +113,16 @@ export default function Index(props) {
 						</TableBody>
 					</Table>
 				</CardContent>
-				<CardFooter className="flex flex-col items-center justify-between w-full py-2 border-t lg:flex-row">
+				<CardFooter className="flex w-full flex-col items-center justify-between border-t py-2 lg:flex-row">
 					<p className="mb-2 text-sm text-muted-foreground">
-						Menamplikan <span className="font-medium text-orange-500 dark:text-warning">{meta.from ?? 0}</span> dari{' '}
+						Menamplikan{' '}
+						<span className="font-medium text-orange-500 dark:text-warning">{meta.from ?? 0}</span> dari{' '}
 						{meta.total} Pengumuman
 					</p>
 					<div className="overflow-x-auto">
 						{meta.has_pages && (
 							<Pagination>
-								<PaginationContent className="flex justify-center fles-wrap lg:justify-end">
+								<PaginationContent className="fles-wrap flex justify-center lg:justify-end">
 									{meta.links.map((link, index) => (
 										<PaginationItem key={index} className="mx-1 mb-1 lg:mb-0">
 											<PaginationLink href={link.url} isActive={link.active}>

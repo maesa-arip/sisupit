@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Hydrant;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class HydrantController extends Controller
@@ -22,8 +22,8 @@ class HydrantController extends Controller
         // 1. Filter Pencarian Teks
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('address', 'like', '%' . $request->search . '%');
+                $q->where('name', 'like', '%'.$request->search.'%')
+                    ->orWhere('address', 'like', '%'.$request->search.'%');
             });
         }
 
@@ -37,11 +37,11 @@ class HydrantController extends Controller
             $userLat = $request->lat;
             $userLng = $request->lng;
 
-            $query->selectRaw("hydrants.*, 
+            $query->selectRaw('hydrants.*, 
                 ( 6371 * acos( cos( radians(?) ) * cos( radians( lat ) ) * cos( radians( lng ) - radians(?) ) + 
                 sin( radians(?) ) * sin( radians( lat ) ) ) 
-                ) AS distance", [$userLat, $userLng, $userLat])
-            ->orderBy('distance', 'asc');
+                ) AS distance', [$userLat, $userLng, $userLat])
+                ->orderBy('distance', 'asc');
         } else {
             $query->latest();
         }
@@ -49,16 +49,16 @@ class HydrantController extends Controller
         // FUNGSI TRANSFORMASI
         $transformFunc = function ($hydrant) {
             return [
-                'id'          => $hydrant->id,
-                'name'        => $hydrant->name,
-                'address'     => $hydrant->address ?? 'Alamat tidak tersedia',
+                'id' => $hydrant->id,
+                'name' => $hydrant->name,
+                'address' => $hydrant->address ?? 'Alamat tidak tersedia',
                 'description' => $hydrant->description,
-                'status'      => $hydrant->status ?? 'Aktif',
-                'type'        => $hydrant->type ?? 'Stick',
-                'distance'    => isset($hydrant->distance) ? number_format($hydrant->distance, 1) . ' km' : '-',
-                'lat'         => $hydrant->lat,
-                'lng'         => $hydrant->lng,
-                'category'    => 'hydrant' 
+                'status' => $hydrant->status ?? 'Aktif',
+                'type' => $hydrant->type ?? 'Stick',
+                'distance' => isset($hydrant->distance) ? number_format($hydrant->distance, 1).' km' : '-',
+                'lat' => $hydrant->lat,
+                'lng' => $hydrant->lng,
+                'category' => 'hydrant',
             ];
         };
 
@@ -72,8 +72,8 @@ class HydrantController extends Controller
 
         return Inertia::render('Hydrants/Index', [
             'map_markers' => $mapMarkers,
-            'hydrants'    => $hydrants,
-            'filters'     => $request->only(['search', 'status', 'is_nearest', 'lat', 'lng'])
+            'hydrants' => $hydrants,
+            'filters' => $request->only(['search', 'status', 'is_nearest', 'lat', 'lng']),
         ]);
     }
 }

@@ -72,8 +72,8 @@ export default function MobileBottomNav({ auth }) {
 				></div>
 			)}
 
-			<div className="fixed bottom-0 left-0 z-50 w-full h-16 border-t border-border bg-card lg:hidden">
-				<div className="grid h-full max-w-md grid-cols-5 px-1 mx-auto">
+			<div className="fixed bottom-0 left-0 z-50 h-16 w-full border-t border-border bg-card lg:hidden">
+				<div className="mx-auto grid h-full max-w-md grid-cols-5 px-1">
 					{/* 1. Beranda */}
 					<NavItem
 						href={route('dashboard')}
@@ -84,7 +84,7 @@ export default function MobileBottomNav({ auth }) {
 
 					{/* 2. Fasilitas Publik */}
 					<div
-						className="relative flex flex-col items-center justify-center w-full h-full"
+						className="relative flex h-full w-full flex-col items-center justify-center"
 						ref={fasilitasRef}
 					>
 						{showFasilitas && (
@@ -149,7 +149,7 @@ export default function MobileBottomNav({ auth }) {
 								)}
 							>
 								<IconFiretruck
-									className="w-5 h-5"
+									className="h-5 w-5"
 									stroke={isFasilitasActive || showFasilitas ? 2 : 1.5}
 								/>
 							</div>
@@ -169,7 +169,7 @@ export default function MobileBottomNav({ auth }) {
 							src="/icon.png"
 							alt="SOS"
 							className={cn(
-								'relative z-10 object-contain rounded-xl w-11 h-11 shadow-sm transition-all',
+								'relative z-10 h-11 w-11 rounded-xl object-contain shadow-sm transition-all',
 								url.startsWith('/reports/create') ? 'ring-2 ring-destructive/50' : '',
 							)}
 						/>
@@ -185,7 +185,7 @@ export default function MobileBottomNav({ auth }) {
 					{/* 5. Profil / Hub Kendali Admin Terpadu */}
 					{isAdmin ? (
 						<div
-							className="relative flex flex-col items-center justify-center w-full h-full"
+							className="relative flex h-full w-full flex-col items-center justify-center"
 							ref={adminMenuRef}
 						>
 							{showAdminMenu && (
@@ -352,7 +352,7 @@ export default function MobileBottomNav({ auth }) {
 										isAdminActive || showAdminMenu ? 'bg-destructive/10' : 'bg-transparent',
 									)}
 								>
-									<IconMenu2 className="w-5 h-5" stroke={isAdminActive || showAdminMenu ? 2 : 1.5} />
+									<IconMenu2 className="h-5 w-5" stroke={isAdminActive || showAdminMenu ? 2 : 1.5} />
 								</div>
 								<span className="text-[10px] font-semibold tracking-wide">Menu</span>
 							</button>
@@ -386,7 +386,7 @@ function NavItem({ href, icon: Icon, label, active }) {
 					active ? 'bg-destructive/10' : 'bg-transparent',
 				)}
 			>
-				<Icon className="w-5 h-5" stroke={active ? 2 : 1.5} />
+				<Icon className="h-5 w-5" stroke={active ? 2 : 1.5} />
 			</div>
 			<span className="text-[10px] font-semibold tracking-wide">{label}</span>
 		</Link>

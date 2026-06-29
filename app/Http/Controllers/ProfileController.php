@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProfileUpdateRequest;
 use App\Traits\HasFile;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
@@ -15,8 +14,8 @@ use Laravolt\Indonesia\Models\Province;
 
 class ProfileController extends Controller
 {
+    use HasFile;
 
-use HasFile;
     /**
      * Display the user's profile form.
      */

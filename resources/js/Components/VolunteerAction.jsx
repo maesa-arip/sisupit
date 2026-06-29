@@ -1,58 +1,58 @@
-import { useState } from 'react';
 import { Button } from '@/Components/ui/button';
 import { router } from '@inertiajs/react';
-import { 
-    IconHeartHandshake, 
-    IconCheck, 
-    IconLoader2 
-} from '@tabler/icons-react';
+import { IconCheck, IconHeartHandshake, IconLoader2 } from '@tabler/icons-react';
+import { useState } from 'react';
 
 export default function VolunteerAction({ incidentId, alreadyHelping = false }) {
-    // State untuk menangani proses loading dan perubahan status
-    const [isHelping, setIsHelping] = useState(alreadyHelping);
-    const [isLoading, setIsLoading] = useState(false);
+	// State untuk menangani proses loading dan perubahan status
+	const [isHelping, setIsHelping] = useState(alreadyHelping);
+	const [isLoading, setIsLoading] = useState(false);
 
-    const handleVolunteerAction = () => {
-        setIsLoading(true);
+	const handleVolunteerAction = () => {
+		setIsLoading(true);
 
-        // Mengirim data ke backend Laravel bahwa user ini bersedia membantu
-        router.post(route('front.helpers.store', incidentId), {}, {
-            preserveScroll: true,
-            preserveState: true,
-            onSuccess: () => {
-                setIsHelping(true);
-                setIsLoading(false);
-            },
-            onError: () => {
-                alert('Gagal memproses permintaan. Silakan coba lagi.');
-                setIsLoading(false);
-            }
-        });
-    };
+		// Mengirim data ke backend Laravel bahwa user ini bersedia membantu
+		router.post(
+			route('front.helpers.store', incidentId),
+			{},
+			{
+				preserveScroll: true,
+				preserveState: true,
+				onSuccess: () => {
+					setIsHelping(true);
+					setIsLoading(false);
+				},
+				onError: () => {
+					alert('Gagal memproses permintaan. Silakan coba lagi.');
+					setIsLoading(false);
+				},
+			},
+		);
+	};
 
-    return (
-        <div className="w-full mt-4">
-            {!isHelping ? (
-                // Tombol "Saya Akan Bantu" (Warna utama / Amber)
-                <Button
-                    onClick={handleVolunteerAction}
-                    disabled={isLoading}
-                    className="flex items-center justify-center w-full h-11 gap-2 text-white dark:text-warning-foreground transition-all shadow-md bg-amber-600 dark:bg-warning hover:bg-amber-700 dark:hover:bg-warning/90 rounded-xl hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
-                >
-                    {isLoading ? (
-                        <IconLoader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                        <IconHeartHandshake className="w-5 h-5" />
-                    )}
-                    <span className="font-bold tracking-wide">Saya Akan Bantu</span>
-                </Button>
-            ) : (
-                // Tampilan setelah diklik (Berubah menjadi Hijau/Sukses)
-                <div className="flex items-center justify-center w-full gap-2 text-green-800 dark:text-success border-2 border-green-200 dark:border-success/20 h-11 bg-green-50 dark:bg-success/10 rounded-xl">
-                    <IconCheck className="w-5 h-5" />
-                    <span className="font-bold">Anda Sedang Menuju Lokasi</span>
-                </div>
-            )}
-        </div>
-    );
+	return (
+		<div className="mt-4 w-full">
+			{!isHelping ? (
+				// Tombol "Saya Akan Bantu" (Warna utama / Amber)
+				<Button
+					onClick={handleVolunteerAction}
+					disabled={isLoading}
+					className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-amber-600 text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-amber-700 hover:shadow-lg active:translate-y-0 dark:bg-warning dark:text-warning-foreground dark:hover:bg-warning/90"
+				>
+					{isLoading ? (
+						<IconLoader2 className="h-5 w-5 animate-spin" />
+					) : (
+						<IconHeartHandshake className="h-5 w-5" />
+					)}
+					<span className="font-bold tracking-wide">Saya Akan Bantu</span>
+				</Button>
+			) : (
+				// Tampilan setelah diklik (Berubah menjadi Hijau/Sukses)
+				<div className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border-2 border-green-200 bg-green-50 text-green-800 dark:border-success/20 dark:bg-success/10 dark:text-success">
+					<IconCheck className="h-5 w-5" />
+					<span className="font-bold">Anda Sedang Menuju Lokasi</span>
+				</div>
+			)}
+		</div>
+	);
 }

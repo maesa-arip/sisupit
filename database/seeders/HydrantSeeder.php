@@ -71,27 +71,27 @@ class HydrantSeeder extends Seeder
         ];
 
         foreach ($hydrants as $hydrant) {
-            
+
             // 1. Ekstrak kode wilayah yang akurat dan SAH berdasarkan alamat
             $wilayah = $this->getWilayahCodes($hydrant['address'], $hydrant['name']);
 
             DB::table('hydrants')->insert([
-                'name'          => $hydrant['name'],
-                'status'        => $hydrant['status'],
-                'address'       => $hydrant['address'],
-                'type'          => $hydrant['type'],
-                'description'   => $hydrant['description'],
-                'lat'           => -8.650000 + (mt_rand(-200, 200) / 10000), 
-                'lng'           => 115.220000 + (mt_rand(-200, 200) / 10000),
-                
+                'name' => $hydrant['name'],
+                'status' => $hydrant['status'],
+                'address' => $hydrant['address'],
+                'type' => $hydrant['type'],
+                'description' => $hydrant['description'],
+                'lat' => -8.650000 + (mt_rand(-200, 200) / 10000),
+                'lng' => 115.220000 + (mt_rand(-200, 200) / 10000),
+
                 // 2. Suntikkan kode asli Laravolt Indonesia
                 'province_code' => '51', // Bali
-                'city_code'     => $wilayah['city_code'],
+                'city_code' => $wilayah['city_code'],
                 'district_code' => $wilayah['district_code'],
-                'village_code'  => $wilayah['village_code'],
-                
-                'created_at'    => now(),
-                'updated_at'    => now(),
+                'village_code' => $wilayah['village_code'],
+
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
     }
@@ -102,39 +102,73 @@ class HydrantSeeder extends Seeder
      */
     private function getWilayahCodes($address, $name)
     {
-        $text = strtolower($address . ' ' . $name);
+        $text = strtolower($address.' '.$name);
 
         // ==========================================
         // KOTA DENPASAR (5171)
         // ==========================================
 
         // DENPASAR SELATAN (517101)
-        if (str_contains($text, 'pemogan') || str_contains($text, 'kepaon')) return ['city_code' => '5171', 'district_code' => '517101', 'village_code' => '5171012003']; // Desa Pemogan
-        if (str_contains($text, 'sesetan') || str_contains($text, 'saelus') || str_contains($text, 'singkep')) return ['city_code' => '5171', 'district_code' => '517101', 'village_code' => '5171011004']; // Kelurahan Sesetan
-        if (str_contains($text, 'pedungan') || str_contains($text, 'pesanggaran') || str_contains($text, 'moyo')) return ['city_code' => '5171', 'district_code' => '517101', 'village_code' => '5171011005']; // Kelurahan Pedungan
-        if (str_contains($text, 'panjer') || str_contains($text, 'waturenggong') || str_contains($text, 'pakerisan') || str_contains($text, 'nyangglan') || str_contains($text, 'penet')) return ['city_code' => '5171', 'district_code' => '517101', 'village_code' => '5171011006']; // Kelurahan Panjer
-        if (str_contains($text, 'renon') || str_contains($text, 'cok agung tresna') || str_contains($text, 'niti mandala')) return ['city_code' => '5171', 'district_code' => '517101', 'village_code' => '5171011007']; // Kelurahan Renon
-        if (str_contains($text, 'serangan')) return ['city_code' => '5171', 'district_code' => '517101', 'village_code' => '5171011010']; // Kelurahan Serangan
-        if (str_contains($text, 'sanur') || str_contains($text, 'by pass kfc')) return ['city_code' => '5171', 'district_code' => '517101', 'village_code' => '5171011008']; // Kelurahan Sanur
+        if (str_contains($text, 'pemogan') || str_contains($text, 'kepaon')) {
+            return ['city_code' => '5171', 'district_code' => '517101', 'village_code' => '5171012003'];
+        } // Desa Pemogan
+        if (str_contains($text, 'sesetan') || str_contains($text, 'saelus') || str_contains($text, 'singkep')) {
+            return ['city_code' => '5171', 'district_code' => '517101', 'village_code' => '5171011004'];
+        } // Kelurahan Sesetan
+        if (str_contains($text, 'pedungan') || str_contains($text, 'pesanggaran') || str_contains($text, 'moyo')) {
+            return ['city_code' => '5171', 'district_code' => '517101', 'village_code' => '5171011005'];
+        } // Kelurahan Pedungan
+        if (str_contains($text, 'panjer') || str_contains($text, 'waturenggong') || str_contains($text, 'pakerisan') || str_contains($text, 'nyangglan') || str_contains($text, 'penet')) {
+            return ['city_code' => '5171', 'district_code' => '517101', 'village_code' => '5171011006'];
+        } // Kelurahan Panjer
+        if (str_contains($text, 'renon') || str_contains($text, 'cok agung tresna') || str_contains($text, 'niti mandala')) {
+            return ['city_code' => '5171', 'district_code' => '517101', 'village_code' => '5171011007'];
+        } // Kelurahan Renon
+        if (str_contains($text, 'serangan')) {
+            return ['city_code' => '5171', 'district_code' => '517101', 'village_code' => '5171011010'];
+        } // Kelurahan Serangan
+        if (str_contains($text, 'sanur') || str_contains($text, 'by pass kfc')) {
+            return ['city_code' => '5171', 'district_code' => '517101', 'village_code' => '5171011008'];
+        } // Kelurahan Sanur
 
         // DENPASAR TIMUR (517102)
-        if (str_contains($text, 'kesiman') || str_contains($text, 'sulatri') || str_contains($text, 'kenyeri') || str_contains($text, 'wr supratman') || str_contains($text, 'polda')) return ['city_code' => '5171', 'district_code' => '517102', 'village_code' => '5171021003']; // Kelurahan Kesiman
-        if (str_contains($text, 'sumerta') || str_contains($text, 'nusa indah') || str_contains($text, 'hayam wuruk') || str_contains($text, 'kecubung') || str_contains($text, 'badak agung')) return ['city_code' => '5171', 'district_code' => '517102', 'village_code' => '5171021006']; // Kelurahan Sumerta
-        if (str_contains($text, 'dangin puri') || str_contains($text, 'surapati') || str_contains($text, 'kaliasem') || str_contains($text, 'patimura') || str_contains($text, 'banteng') || str_contains($text, 'satria') || str_contains($text, 'abimanyu') || str_contains($text, 'melati') || str_contains($text, 'kepundung') || str_contains($text, 'kamboja')) return ['city_code' => '5171', 'district_code' => '517102', 'village_code' => '5171021008']; // Kelurahan Dangin Puri
-        if (str_contains($text, 'penatih') || str_contains($text, 'trenggana') || str_contains($text, 'waringin')) return ['city_code' => '5171', 'district_code' => '517102', 'village_code' => '5171021010']; // Kelurahan Penatih
+        if (str_contains($text, 'kesiman') || str_contains($text, 'sulatri') || str_contains($text, 'kenyeri') || str_contains($text, 'wr supratman') || str_contains($text, 'polda')) {
+            return ['city_code' => '5171', 'district_code' => '517102', 'village_code' => '5171021003'];
+        } // Kelurahan Kesiman
+        if (str_contains($text, 'sumerta') || str_contains($text, 'nusa indah') || str_contains($text, 'hayam wuruk') || str_contains($text, 'kecubung') || str_contains($text, 'badak agung')) {
+            return ['city_code' => '5171', 'district_code' => '517102', 'village_code' => '5171021006'];
+        } // Kelurahan Sumerta
+        if (str_contains($text, 'dangin puri') || str_contains($text, 'surapati') || str_contains($text, 'kaliasem') || str_contains($text, 'patimura') || str_contains($text, 'banteng') || str_contains($text, 'satria') || str_contains($text, 'abimanyu') || str_contains($text, 'melati') || str_contains($text, 'kepundung') || str_contains($text, 'kamboja')) {
+            return ['city_code' => '5171', 'district_code' => '517102', 'village_code' => '5171021008'];
+        } // Kelurahan Dangin Puri
+        if (str_contains($text, 'penatih') || str_contains($text, 'trenggana') || str_contains($text, 'waringin')) {
+            return ['city_code' => '5171', 'district_code' => '517102', 'village_code' => '5171021010'];
+        } // Kelurahan Penatih
 
         // DENPASAR BARAT (517103)
-        if (str_contains($text, 'pemecutan') || str_contains($text, 'gajah mada') || str_contains($text, 'sulawesi') || str_contains($text, 'hasanudin') || str_contains($text, 'imam bonjol') || str_contains($text, 'kartini') || str_contains($text, 'wangaya')) return ['city_code' => '5171', 'district_code' => '517103', 'village_code' => '5171031003']; // Kelurahan Pemecutan
-        if (str_contains($text, 'dauh puri') || str_contains($text, 'pura') || str_contains($text, 'suci') || str_contains($text, 'diponogoro') || str_contains($text, 'sanglah') || str_contains($text, 'pulau nias') || str_contains($text, 'teuku umar') || str_contains($text, 'arjuna') || str_contains($text, 'sumatra') || str_contains($text, 'kalimantan') || str_contains($text, 'udayana')) return ['city_code' => '5171', 'district_code' => '517103', 'village_code' => '5171031006']; // Kelurahan Dauh Puri
-        if (str_contains($text, 'padangsambian') || str_contains($text, 'gn agung') || str_contains($text, 'mahendradata') || str_contains($text, 'kebo iwa') || str_contains($text, 'gn sanghyang')) return ['city_code' => '5171', 'district_code' => '517103', 'village_code' => '5171031009']; // Kelurahan Padangsambian
+        if (str_contains($text, 'pemecutan') || str_contains($text, 'gajah mada') || str_contains($text, 'sulawesi') || str_contains($text, 'hasanudin') || str_contains($text, 'imam bonjol') || str_contains($text, 'kartini') || str_contains($text, 'wangaya')) {
+            return ['city_code' => '5171', 'district_code' => '517103', 'village_code' => '5171031003'];
+        } // Kelurahan Pemecutan
+        if (str_contains($text, 'dauh puri') || str_contains($text, 'pura') || str_contains($text, 'suci') || str_contains($text, 'diponogoro') || str_contains($text, 'sanglah') || str_contains($text, 'pulau nias') || str_contains($text, 'teuku umar') || str_contains($text, 'arjuna') || str_contains($text, 'sumatra') || str_contains($text, 'kalimantan') || str_contains($text, 'udayana')) {
+            return ['city_code' => '5171', 'district_code' => '517103', 'village_code' => '5171031006'];
+        } // Kelurahan Dauh Puri
+        if (str_contains($text, 'padangsambian') || str_contains($text, 'gn agung') || str_contains($text, 'mahendradata') || str_contains($text, 'kebo iwa') || str_contains($text, 'gn sanghyang')) {
+            return ['city_code' => '5171', 'district_code' => '517103', 'village_code' => '5171031009'];
+        } // Kelurahan Padangsambian
 
         // DENPASAR UTARA (517104)
-        if (str_contains($text, 'peguyangan') || str_contains($text, 'antasura') || str_contains($text, 'peninjoan') || str_contains($text, 'padma')) return ['city_code' => '5171', 'district_code' => '517104', 'village_code' => '5171041003']; // Kelurahan Peguyangan
-        if (str_contains($text, 'ubung') || str_contains($text, 'poh gading') || str_contains($text, 'maruti') || str_contains($text, 'a yani')) return ['city_code' => '5171', 'district_code' => '517104', 'village_code' => '5171041006']; // Kelurahan Ubung
-        if (str_contains($text, 'tonja') || str_contains($text, 'gatsu') || str_contains($text, 'gatot subroto') || str_contains($text, 'nangka') || str_contains($text, 'jayakarta') || str_contains($text, 'durian')) return ['city_code' => '5171', 'district_code' => '517104', 'village_code' => '5171041009']; // Kelurahan Tonja
+        if (str_contains($text, 'peguyangan') || str_contains($text, 'antasura') || str_contains($text, 'peninjoan') || str_contains($text, 'padma')) {
+            return ['city_code' => '5171', 'district_code' => '517104', 'village_code' => '5171041003'];
+        } // Kelurahan Peguyangan
+        if (str_contains($text, 'ubung') || str_contains($text, 'poh gading') || str_contains($text, 'maruti') || str_contains($text, 'a yani')) {
+            return ['city_code' => '5171', 'district_code' => '517104', 'village_code' => '5171041006'];
+        } // Kelurahan Ubung
+        if (str_contains($text, 'tonja') || str_contains($text, 'gatsu') || str_contains($text, 'gatot subroto') || str_contains($text, 'nangka') || str_contains($text, 'jayakarta') || str_contains($text, 'durian')) {
+            return ['city_code' => '5171', 'district_code' => '517104', 'village_code' => '5171041009'];
+        } // Kelurahan Tonja
 
         // DEFAULT FALLBACK JIKA ALAMAT TIDAK DIKENALI
         // Dipusatkan di Kelurahan Dauh Puri (Pusat Kota Denpasar)
-        return [ 'city_code' => '5171', 'district_code' => '517103', 'village_code' => '5171031006'];
+        return ['city_code' => '5171', 'district_code' => '517103', 'village_code' => '5171031006'];
     }
 }

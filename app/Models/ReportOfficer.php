@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 // (perlu lockForUpdate() untuk cegah double-insert saat respons konkuren).
 class ReportOfficer extends Model
 {
-   public function user()
+    public function user()
     {
         return $this->belongsTo(User::class);
     }

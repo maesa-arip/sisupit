@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef } from 'react';
 export default function UseFilter({ route, values, only, wait = 300 }) {
 	const { debounce, pickBy, isEqual } = pkg;
 	const previousValues = useRef(values);
-	
+
 	const reload = useCallback(
 		debounce((query) => {
 			router.get(route, pickBy(query), {
@@ -16,7 +16,7 @@ export default function UseFilter({ route, values, only, wait = 300 }) {
 		}, wait),
 		[route, only, wait],
 	);
-	
+
 	useEffect(() => {
 		// Only reload if values have actually changed
 		if (!isEqual(previousValues.current, values)) {
@@ -24,6 +24,6 @@ export default function UseFilter({ route, values, only, wait = 300 }) {
 			reload(values);
 		}
 	}, [values, reload]);
-	
+
 	return { values };
 }

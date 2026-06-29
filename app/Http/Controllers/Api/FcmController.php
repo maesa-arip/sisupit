@@ -13,7 +13,7 @@ class FcmController extends Controller
     {
         $request->validate([
             'token' => 'required|string',
-            'device_type' => 'nullable|string'
+            'device_type' => 'nullable|string',
         ]);
 
         // Token FCM bersifat per-DEVICE, bukan per-akun. Saat satu HP dipakai login
