@@ -28,7 +28,43 @@ class ProfileController extends Controller
             ],
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
+            'jurisdiction' => $this->resolveJurisdiction($request->user()),
         ]);
+    }
+
+    /**
+     * Susun cakupan yurisdiksi akun untuk ditampilkan di profil: daftar level wilayah yang
+     * terisi (nama) + level paling spesifik sebagai cakupan kewenangan. Selaras dengan logika
+     * di User::withinReportJurisdiction() — akun tanpa kode wilayah berarti cakupan nasional.
+     */
+    private function resolveJurisdiction(\App\Models\User $user): array
+    {
+        $levels = [
+            ['label' => 'Provinsi', 'name' => optional($user->province)->name],
+            ['label' => 'Kabupaten/Kota', 'name' => optional($user->city)->name],
+            ['label' => 'Kecamatan', 'name' => optional($user->district)->name],
+            ['label' => 'Desa/Kelurahan', 'name' => optional($user->village)->name],
+        ];
+
+        $scopeLevel = $user->village_code ? 'Desa/Kelurahan'
+            : ($user->district_code ? 'Kecamatan'
+            : ($user->city_code ? 'Kabupaten/Kota'
+            : ($user->province_code ? 'Provinsi' : 'Nasional')));
+
+        // Nama wilayah pada level terspesifik (= cakupan kewenangan). Mis. cakupan desa →
+        // nama desa, cakupan kecamatan → nama kecamatan, dst.
+        $scopeName = optional($user->village)->name
+            ?? optional($user->district)->name
+            ?? optional($user->city)->name
+            ?? optional($user->province)->name;
+
+        return [
+            'levels' => array_values(array_filter($levels, fn ($level) => ! empty($level['name']))),
+            'scope' => [
+                'level' => $scopeLevel,
+                'name' => $scopeName,
+            ],
+        ];
     }
 
     /**

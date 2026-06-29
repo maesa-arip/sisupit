@@ -19,6 +19,7 @@ import {
 	IconHistory,
 	IconLock,
 	IconLogout,
+	IconMapPin,
 	IconSettings,
 	IconShieldCheck,
 	IconUserEdit,
@@ -104,6 +105,46 @@ export default function Edit(props) {
 						Keluar
 					</Link>
 				</div>
+
+				{/* --- YURISDIKSI AKUN --- */}
+				{props.jurisdiction && (
+					<div className="rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6">
+						<div className="flex items-center justify-between gap-3">
+							<h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-foreground">
+								<IconMapPin size={18} className="text-muted-foreground" /> Yurisdiksi Akun
+							</h3>
+							<span className="shrink-0 rounded-md border border-border bg-muted px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+								{props.jurisdiction.scope.level}
+							</span>
+						</div>
+
+						{props.jurisdiction.scope.name && (
+							<p className="mt-3 text-base font-semibold capitalize text-foreground">
+								{props.jurisdiction.scope.name.toLowerCase()}
+							</p>
+						)}
+
+						{props.jurisdiction.levels.length > 0 ? (
+							<dl className="mt-4 space-y-2.5">
+								{props.jurisdiction.levels.map((level) => (
+									<div
+										key={level.label}
+										className="flex items-start justify-between gap-4 border-b border-border/60 pb-2.5 text-sm last:border-b-0 last:pb-0"
+									>
+										<dt className="shrink-0 text-muted-foreground">{level.label}</dt>
+										<dd className="text-right font-medium capitalize text-foreground">
+											{level.name.toLowerCase()}
+										</dd>
+									</div>
+								))}
+							</dl>
+						) : (
+							<p className="mt-3 text-sm text-muted-foreground">
+								Cakupan nasional — tidak terbatas pada wilayah tertentu.
+							</p>
+						)}
+					</div>
+				)}
 
 				{/* --- 2. QUICK ACTIONS (Riwayat & Banner) --- */}
 				<div className="space-y-4">
