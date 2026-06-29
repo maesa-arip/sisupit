@@ -29,6 +29,7 @@ class ProfileController extends Controller
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
             'jurisdiction' => $this->resolveJurisdiction($request->user()),
+            'skillOptions' => \App\Models\Skill::options(), // master keahlian untuk editor relawan di profil
         ]);
     }
 

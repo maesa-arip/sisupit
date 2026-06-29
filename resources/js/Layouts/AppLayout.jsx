@@ -102,11 +102,11 @@ export default function AppLayout({ title, children }) {
 			<Toaster position="top-center" richColors />
 			<SoundNotificationControl />
 
-			<div className="flex min-h-screen w-full bg-background">
+			<div className="flex w-full min-h-screen bg-background">
 				{/* SIDEBAR */}
-				<div className="z-20 hidden w-64 shrink-0 border-r border-border bg-card lg:block">
-					<div className="sticky top-0 flex h-screen flex-col">
-						<div className="flex h-16 shrink-0 items-center border-b border-border px-6">
+				<div className="z-20 hidden w-64 border-r shrink-0 border-border bg-card lg:block">
+					<div className="sticky top-0 flex flex-col h-screen">
+						<div className="flex items-center h-16 px-6 border-b shrink-0 border-border">
 							{/* <ApplicationLogo /> */}
 						</div>
 						<div className="flex-1 overflow-y-auto">
@@ -116,16 +116,16 @@ export default function AppLayout({ title, children }) {
 				</div>
 
 				{/* AREA KONTEN UTAMA */}
-				<div className="flex min-h-screen min-w-0 flex-1 flex-col pb-20 lg:pb-0">
+				<div className="flex flex-col flex-1 min-w-0 min-h-screen pb-20 lg:pb-0">
 					{/* HEADER */}
-					<header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur-md lg:px-8">
+					<header className="sticky top-0 z-40 flex items-center justify-between h-16 px-4 border-b border-border bg-background/95 backdrop-blur-md lg:px-8">
 						<ApplicationLogo />
 						<div className="flex items-center gap-2 lg:gap-4">
 							{auth && (
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild>
-										<button className="relative flex h-9 w-9 items-center justify-center rounded-md outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-muted-foreground/50">
-											<IconBell className="h-5 w-5 text-muted-foreground" />
+										<button className="relative flex items-center justify-center transition-colors rounded-md outline-none h-9 w-9 hover:bg-accent focus-visible:ring-2 focus-visible:ring-muted-foreground/50">
+											<IconBell className="w-5 h-5 text-muted-foreground" />
 											{unreadCount > 0 && (
 												<span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
 													{unreadCount > 9 ? '9+' : unreadCount}
@@ -135,9 +135,9 @@ export default function AppLayout({ title, children }) {
 									</DropdownMenuTrigger>
 									<DropdownMenuContent
 										align="end"
-										className="mt-2 w-80 overflow-hidden rounded-xl border border-border bg-card p-0 shadow-md"
+										className="p-0 mt-2 overflow-hidden border shadow-md w-80 rounded-xl border-border bg-card"
 									>
-										<div className="flex items-center justify-between border-b border-border px-4 py-3">
+										<div className="flex items-center justify-between px-4 py-3 border-b border-border">
 											<h4 className="text-sm font-bold text-foreground">Notifikasi</h4>
 											{unreadCount > 0 && (
 												<button
@@ -154,7 +154,7 @@ export default function AppLayout({ title, children }) {
 												</button>
 											)}
 										</div>
-										<div className="max-h-80 divide-y divide-border overflow-y-auto">
+										<div className="overflow-y-auto divide-y max-h-80 divide-border">
 											{notifications.length > 0 ? (
 												notifications.map((n) => (
 													<button
@@ -174,7 +174,7 @@ export default function AppLayout({ title, children }) {
 														{!n.read_at && (
 															<span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-destructive" />
 														)}
-														<div className="min-w-0 flex-1">
+														<div className="flex-1 min-w-0">
 															<p className="text-xs font-bold text-foreground">
 																{n.title}
 															</p>
@@ -206,16 +206,16 @@ export default function AppLayout({ title, children }) {
 								</DropdownMenu>
 							)}
 
-							{auth?.name && (
+							{/* {auth?.name && (
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild>
 										<button className="group flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-muted-foreground/50">
-											<div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-muted text-sm font-semibold text-muted-foreground shadow-sm transition-transform group-hover:scale-105">
+											<div className="flex items-center justify-center w-8 h-8 overflow-hidden text-sm font-semibold transition-transform border rounded-md shadow-sm shrink-0 border-border bg-muted text-muted-foreground group-hover:scale-105">
 												{auth.avatar ? (
 													<img
 														src={auth.avatar}
 														alt="Avatar"
-														className="h-full w-full object-cover"
+														className="object-cover w-full h-full"
 													/>
 												) : (
 													auth.name.substring(0, 1).toUpperCase()
@@ -229,22 +229,22 @@ export default function AppLayout({ title, children }) {
 
 									<DropdownMenuContent
 										align="end"
-										className="mt-2 w-64 rounded-xl border-border bg-card p-5 shadow-md"
+										className="w-64 p-5 mt-2 shadow-md rounded-xl border-border bg-card"
 									>
 										<div className="flex flex-col items-center space-y-3 text-center">
-											<div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-2xl font-semibold text-muted-foreground shadow-sm">
+											<div className="flex items-center justify-center w-16 h-16 overflow-hidden text-2xl font-semibold border rounded-full shadow-sm border-border bg-muted text-muted-foreground">
 												{auth.avatar ? (
 													<img
 														src={auth.avatar}
 														alt="User Avatar"
-														className="h-full w-full object-cover"
+														className="object-cover w-full h-full"
 													/>
 												) : (
 													auth.name.substring(0, 1).toUpperCase()
 												)}
 											</div>
 											<div>
-												<h4 className="break-words text-base font-semibold text-foreground">
+												<h4 className="text-base font-semibold break-words text-foreground">
 													{auth.name}
 												</h4>
 												<p className="mt-0.5 break-words text-xs text-muted-foreground">
@@ -266,10 +266,10 @@ export default function AppLayout({ title, children }) {
 										</div>
 									</DropdownMenuContent>
 								</DropdownMenu>
-							)}
+							)} */}
 
 							{/* Divider */}
-							<div className="mx-1 h-5 w-px bg-border"></div>
+							<div className="w-px h-5 mx-1 bg-border"></div>
 
 							<ThemeSwitcher />
 						</div>
@@ -283,13 +283,13 @@ export default function AppLayout({ title, children }) {
 					)}
 
 					{/* MAIN CONTENT */}
-					<main className="mx-auto w-full max-w-7xl flex-1">
+					<main className="flex-1 w-full mx-auto max-w-7xl">
 						<div className="p-4 lg:p-8">{children}</div>
 					</main>
 
 					{/* FOOTER */}
-					<footer className="mt-auto w-full shrink-0 border-t border-border px-4 py-6 lg:px-8">
-						<p className="text-center text-xs font-medium text-muted-foreground lg:text-left">
+					<footer className="w-full px-4 py-6 mt-auto border-t shrink-0 border-border lg:px-8">
+						<p className="text-xs font-medium text-center text-muted-foreground lg:text-left">
 							&copy; {new Date().getFullYear()} Sisupit. Developed by PT. Tawarin Dimana Saja.
 						</p>
 					</footer>

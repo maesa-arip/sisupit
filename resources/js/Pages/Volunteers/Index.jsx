@@ -22,7 +22,13 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 		kecamatan: filters?.kecamatan || '',
 		desa: filters?.desa || '',
 		keahlian: filters?.keahlian || '',
+		status: filters?.status || '',
 	});
+
+	const STATUS_OPTIONS = [
+		{ value: 'siaga', label: 'Siaga' },
+		{ value: 'nonaktif', label: 'Nonaktif' },
+	];
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
@@ -70,8 +76,8 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 
 						<hr className="border-border" />
 
-						{/* Filter Wilayah & Keahlian (Menggunakan ComboBox) */}
-						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+						{/* Filter Wilayah, Keahlian & Status (Menggunakan ComboBox) */}
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
 							<div className="space-y-1.5">
 								<Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
 									Kabupaten / Kota
@@ -117,6 +123,18 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 									selectedItem={data.keahlian}
 									onSelect={(value) => setData('keahlian', value)}
 									placeholder="Semua keahlian"
+								/>
+							</div>
+
+							<div className="space-y-1.5">
+								<Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+									Status Siaga
+								</Label>
+								<ComboBox
+									items={STATUS_OPTIONS}
+									selectedItem={data.status}
+									onSelect={(value) => setData('status', value)}
+									placeholder="Semua status"
 								/>
 							</div>
 						</div>

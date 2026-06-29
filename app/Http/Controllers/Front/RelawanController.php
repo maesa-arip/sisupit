@@ -45,6 +45,12 @@ class RelawanController extends Controller
             $query->whereJsonContains('skills', $request->keahlian);
         }
 
+        // Filter status siaga: 'siaga' = is_standby true, 'nonaktif' = false.
+        // Dipakai kartu "Relawan Standby" di dashboard (?status=siaga).
+        if ($request->filled('status')) {
+            $query->where('is_standby', $request->status === 'siaga');
+        }
+
         $volunteers = $query->latest()->paginate(12)->withQueryString();
 
         $volunteers->getCollection()->transform(fn (User $user) => $this->transformList($user));
@@ -52,7 +58,7 @@ class RelawanController extends Controller
         return Inertia::render('Volunteers/Index', [
             'volunteers' => $volunteers,
             'filterOptions' => $this->regionFilterOptions(),
-            'filters' => $request->only(['search', 'kabupaten', 'kecamatan', 'desa', 'keahlian']),
+            'filters' => $request->only(['search', 'kabupaten', 'kecamatan', 'desa', 'keahlian', 'status']),
         ]);
     }
 

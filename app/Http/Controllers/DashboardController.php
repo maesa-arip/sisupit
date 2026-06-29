@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Hydrant;
 use App\Models\Report;
-use App\Models\Skill;
 use App\Models\User;
 use Inertia\Inertia;
 
@@ -24,7 +23,9 @@ class DashboardController extends Controller
                 ->where(fn ($q) => $q->where('is_standby', true)->orWhereDoesntHave('roles', fn ($r) => $r->where('name', 'relawan')));
             $queryHydrant = Hydrant::query();
             $queryReportsActive = Report::whereIn('status', ['pending', 'handling', 'TERLAPOR']);
-            $queryReportsResolved = Report::where('status', 'resolved')->whereMonth('created_at', now()->month);
+            // Total laporan selesai (sepanjang waktu) — selaras dgn kartu "Total Penanganan"
+            // di dashboard yang mengarah ke daftar laporan ?status=resolved.
+            $queryReportsResolved = Report::where('status', 'resolved');
             $queryRecentList = Report::query();
 
             // ISOLASI YURISDIKSI
@@ -41,11 +42,21 @@ class DashboardController extends Controller
                 }
             }
 
-            $mapMarkers = (clone $queryHydrant)->whereNotNull('lat')->whereNotNull('lng')
-                ->get(['id', 'name', 'lat', 'lng', 'type', 'status']);
+            // Peta pemantauan: hanya report (bukan hydrant). Report aktif tampil semua;
+            // report "Selesai" (resolved) dibatasi ke hari ini agar peta tetap relevan.
+            $mapActive = (clone $queryReportsActive)->whereNotNull('lat')->whereNotNull('lng')->get();
+            $mapResolvedToday = (clone $queryReportsResolved)->whereNotNull('lat')->whereNotNull('lng')
+                ->whereDate('updated_at', today())->get();
 
-            $activeIncidents = (clone $queryReportsActive)->whereNotNull('lat')->whereNotNull('lng')
-                ->get(['id', 'title', 'lat', 'lng', 'status']);
+            $mapReports = $mapActive->concat($mapResolvedToday)->map(fn ($report) => [
+                'id' => $report->id,
+                'title' => $report->title,
+                'location' => $report->address,
+                'time' => $report->created_at->diffForHumans(),
+                'status' => $report->status,
+                'lat' => $report->lat,
+                'lng' => $report->lng,
+            ]);
 
             $stats = [
                 'active_reports' => (clone $queryReportsActive)->count(),
@@ -69,8 +80,7 @@ class DashboardController extends Controller
             return Inertia::render('Admin/Dashboard', [
                 'stats' => $stats,
                 'recentReports' => $recentReports->toArray(),
-                'mapMarkers' => $mapMarkers->toArray(),
-                'activeIncidents' => $activeIncidents->toArray(),
+                'mapReports' => $mapReports->toArray(),
                 'isPejabat' => $isPejabat,
             ]);
         }
@@ -163,7 +173,6 @@ class DashboardController extends Controller
             'isRelawan' => $user->hasRole('relawan'),
             'nearbyEmergencies' => $nearbyEmergencies,
             'myTasks' => $myTasks,
-            'skillOptions' => Skill::options(), // master keahlian untuk editor relawan
             'page_data' => [
                 'reports' => $reportsFeed,  // Sekarang page_data.reports terisi dengan sempurna!
             ],

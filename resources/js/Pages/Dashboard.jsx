@@ -11,12 +11,10 @@ import {
 	IconCheckupList,
 	IconChevronRight,
 	IconClock,
-	IconDeviceFloppy,
 	IconFlame,
 	IconHistory,
 	IconLoader2,
 	IconMapPin,
-	IconMedal,
 	IconPower,
 	IconRadar,
 	IconRefresh,
@@ -28,9 +26,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function Dashboard(props) {
-	// Master keahlian dari server (App\Models\Skill) — sumber tunggal,
-	// selaras dgn filter Daftar Relawan & validasi VolunteerController.
-	const SKILL_OPTIONS = Array.isArray(props.skillOptions) ? props.skillOptions : [];
 	const auth = props.auth.user;
 	const firstName = auth?.name ? auth.name.split(' ').find((word) => word.length >= 3) || 'Warga' : 'Warga';
 
@@ -54,28 +49,6 @@ export default function Dashboard(props) {
 	const [activeTab, setActiveTab] = useState(isRelawan ? 'menunggu' : 'semua');
 	const isStandby = auth?.is_standby ?? true;
 	const [isTogglingStandby, setIsTogglingStandby] = useState(false);
-
-	// Editor keahlian relawan (lihat VolunteerController::updateSkills)
-	const [skills, setSkills] = useState(Array.isArray(auth?.skills) ? auth.skills : []);
-	const [isSavingSkills, setIsSavingSkills] = useState(false);
-
-	const toggleSkill = (skill) => {
-		setSkills((prev) => (prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]));
-	};
-
-	const handleSaveSkills = () => {
-		setIsSavingSkills(true);
-		router.post(
-			route('volunteer.skills'),
-			{ skills },
-			{
-				preserveScroll: true,
-				onSuccess: () => toast.success('Keahlian berhasil diperbarui.'),
-				onError: () => toast.error('Gagal menyimpan keahlian. Silakan coba lagi.'),
-				onFinish: () => setIsSavingSkills(false),
-			},
-		);
-	};
 
 	const handleToggleStandby = () => {
 		setIsTogglingStandby(true);
@@ -466,62 +439,6 @@ export default function Dashboard(props) {
 					</Card>
 				)}
 			</div>
-
-			{/* EDITOR KEAHLIAN — relawan mengatur keahlian yang tampil di Daftar Relawan */}
-			{isRelawan && (
-				<Card className="overflow-hidden rounded-xl border border-border bg-card shadow-none">
-					<CardContent className="flex flex-col gap-4 p-4">
-						<div className="flex items-center gap-3">
-							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-foreground">
-								<IconMedal className="h-5 w-5" stroke={1.5} />
-							</div>
-							<div>
-								<h3 className="text-sm font-bold text-foreground">Keahlian Saya</h3>
-								<p className="mt-0.5 text-xs font-medium text-muted-foreground">
-									Pilih keahlian Anda agar Pusat Komando tahu kemampuan Anda saat insiden.
-								</p>
-							</div>
-						</div>
-
-						<div className="flex flex-wrap gap-2">
-							{SKILL_OPTIONS.map((skill) => {
-								const selected = skills.includes(skill);
-								return (
-									<button
-										key={skill}
-										type="button"
-										onClick={() => toggleSkill(skill)}
-										className={cn(
-											'flex items-center gap-1 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors',
-											selected
-												? 'border-destructive bg-destructive/10 text-destructive'
-												: 'border-border bg-card text-foreground/80 hover:bg-muted',
-										)}
-									>
-										<IconMedal className="h-3.5 w-3.5" stroke={selected ? 2 : 1.5} />
-										{skill}
-									</button>
-								);
-							})}
-						</div>
-
-						<div className="flex justify-end">
-							<Button
-								onClick={handleSaveSkills}
-								disabled={isSavingSkills}
-								className="h-8 shrink-0 rounded-md border border-transparent bg-foreground px-4 text-[10px] font-bold uppercase tracking-wider text-background shadow-none transition-colors hover:bg-foreground/90"
-							>
-								{isSavingSkills ? (
-									<IconLoader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-								) : (
-									<IconDeviceFloppy className="mr-1.5 h-3.5 w-3.5" />
-								)}
-								Simpan Keahlian
-							</Button>
-						</div>
-					</CardContent>
-				</Card>
-			)}
 
 			<hr className="border-border" />
 

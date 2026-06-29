@@ -35,6 +35,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
 
     /** Label status agar konsisten dengan badge di halaman Verifikasi Laporan. */
     private const STATUS_LABELS = [
+        'aktif' => 'Darurat Aktif (Belum Selesai)',
         'TERLAPOR' => 'Terlapor (Belum Divalidasi)',
         'pending' => 'Menunggu Respons',
         'handling' => 'Sedang Ditangani',
@@ -60,7 +61,9 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
                 'village:code,name',
             ])
             ->filter($this->filters)
-            ->when($status && $status !== 'Semua', fn ($query) => $query->where('status', $status))
+            ->when($status && $status !== 'Semua', fn ($query) => $status === 'aktif'
+                ? $query->whereIn('status', ['pending', 'handling', 'TERLAPOR'])
+                : $query->where('status', $status))
             ->latest('created_at');
     }
 

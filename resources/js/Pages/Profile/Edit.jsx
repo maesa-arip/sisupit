@@ -9,17 +9,20 @@ import {
 } from '@/Components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import AppLayout from '@/Layouts/AppLayout';
-import { flashMessage } from '@/lib/utils';
+import { cn, flashMessage } from '@/lib/utils';
 import { Link, router, usePage } from '@inertiajs/react';
 import {
 	IconAward,
 	IconBrandAndroid,
 	IconChevronRight,
+	IconDeviceFloppy,
 	IconDownload,
 	IconHistory,
+	IconLoader2,
 	IconLock,
 	IconLogout,
 	IconMapPin,
+	IconMedal,
 	IconSettings,
 	IconShieldCheck,
 	IconUserEdit,
@@ -53,6 +56,30 @@ export default function Edit(props) {
 	const isVolunteer = userRoles.includes('relawan');
 	const isAdmin = userRoles.includes('petugas') || userRoles.includes('admin');
 	//  console.log('User Roles:', userRoles, 'Is Volunteer:', isVolunteer);
+
+	// Editor keahlian relawan (lihat VolunteerController::updateSkills).
+	// Master keahlian (App\Models\Skill) dari prop skillOptions; nilai tersimpan di auth.user.skills.
+	const SKILL_OPTIONS = Array.isArray(props.skillOptions) ? props.skillOptions : [];
+	const [skills, setSkills] = useState(Array.isArray(user?.skills) ? user.skills : []);
+	const [isSavingSkills, setIsSavingSkills] = useState(false);
+
+	const toggleSkill = (skill) => {
+		setSkills((prev) => (prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]));
+	};
+
+	const handleSaveSkills = () => {
+		setIsSavingSkills(true);
+		router.post(
+			route('volunteer.skills'),
+			{ skills },
+			{
+				preserveScroll: true,
+				onSuccess: () => toast.success('Keahlian berhasil diperbarui.'),
+				onError: () => toast.error('Gagal menyimpan keahlian. Silakan coba lagi.'),
+				onFinish: () => setIsSavingSkills(false),
+			},
+		);
+	};
 
 	const handleDaftarRelawan = () => {
 		router.put(
@@ -143,6 +170,60 @@ export default function Edit(props) {
 								Cakupan nasional — tidak terbatas pada wilayah tertentu.
 							</p>
 						)}
+					</div>
+				)}
+
+				{/* --- KEAHLIAN RELAWAN --- */}
+				{isVolunteer && (
+					<div className="rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6">
+						<div className="flex items-center gap-3">
+							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-foreground">
+								<IconMedal className="h-5 w-5" stroke={1.5} />
+							</div>
+							<div>
+								<h3 className="text-sm font-semibold text-foreground">Keahlian Saya</h3>
+								<p className="mt-0.5 text-xs text-muted-foreground">
+									Beritahu kami pelatihan apa yang pernah Anda ikuti.
+								</p>
+							</div>
+						</div>
+
+						<div className="mt-4 flex flex-wrap gap-2">
+							{SKILL_OPTIONS.map((skill) => {
+								const selected = skills.includes(skill);
+								return (
+									<button
+										key={skill}
+										type="button"
+										onClick={() => toggleSkill(skill)}
+										className={cn(
+											'flex items-center gap-1 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors',
+											selected
+												? 'border-destructive bg-destructive/10 text-destructive'
+												: 'border-border bg-card text-foreground/80 hover:bg-muted',
+										)}
+									>
+										<IconMedal className="h-3.5 w-3.5" stroke={selected ? 2 : 1.5} />
+										{skill}
+									</button>
+								);
+							})}
+						</div>
+
+						<div className="mt-4 flex justify-end">
+							<Button
+								onClick={handleSaveSkills}
+								disabled={isSavingSkills}
+								className="h-9 shrink-0 rounded-md border border-transparent bg-foreground px-4 text-sm font-medium text-background transition-colors hover:bg-foreground/90"
+							>
+								{isSavingSkills ? (
+									<IconLoader2 className="mr-1.5 h-4 w-4 animate-spin" />
+								) : (
+									<IconDeviceFloppy className="mr-1.5 h-4 w-4" />
+								)}
+								Simpan Keahlian
+							</Button>
+						</div>
 					</div>
 				)}
 

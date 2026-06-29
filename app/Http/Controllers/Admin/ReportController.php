@@ -23,7 +23,13 @@ class ReportController extends Controller
             ->with('user:id,name')
             ->filter($request->only(['search']))
             ->when($request->filled('status') && $request->status !== 'Semua', function ($query) use ($request) {
-                $query->where('status', $request->status);
+                // 'aktif' = laporan yang masih berjalan (belum selesai/ditolak), selaras dgn
+                // kartu "Darurat Aktif" di dashboard (DashboardController active_reports).
+                if ($request->status === 'aktif') {
+                    $query->whereIn('status', ['pending', 'handling', 'TERLAPOR']);
+                } else {
+                    $query->where('status', $request->status);
+                }
             })
             ->latest('created_at')
             ->paginate($request->load ?? 10)

@@ -226,13 +226,20 @@ export default function Index({ pumps, filters, ...props }) {
 											) : (
 												<span className="h-[20px]"></span>
 											)}
-											<Button
-												variant="ghost"
-												size="icon"
-												className="h-8 w-8 rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground/80"
+											<a
+												href={`https://www.google.com/maps/dir/?api=1&destination=${pump.lat},${pump.lng}`}
+												target="_blank"
+												rel="noopener noreferrer"
 											>
-												<IconRoute className="h-4 w-4" />
-											</Button>
+												<Button
+													type="button"
+													variant="ghost"
+													size="icon"
+													className="h-8 w-8 rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground/80"
+												>
+													<IconRoute className="h-4 w-4" />
+												</Button>
+											</a>
 										</div>
 									</CardContent>
 								</Card>

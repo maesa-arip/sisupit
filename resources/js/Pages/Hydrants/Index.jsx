@@ -227,7 +227,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 											)}
 
 											<a
-												href={`https://www.google.com/maps/dir/?api=1&destination=$${hydrant.lat},${hydrant.lng}`}
+												href={`https://www.google.com/maps/dir/?api=1&destination=${hydrant.lat},${hydrant.lng}`}
 												target="_blank"
 												rel="noopener noreferrer"
 											>

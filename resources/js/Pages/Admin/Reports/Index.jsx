@@ -21,9 +21,12 @@ import {
 } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 
-const STATUS_OPTIONS = ['Semua', 'TERLAPOR', 'pending', 'handling', 'resolved'];
+const STATUS_OPTIONS = ['Semua', 'aktif', 'TERLAPOR', 'pending', 'handling', 'resolved'];
 
 const STATUS_BADGE = {
+	// 'aktif' adalah filter gabungan (TERLAPOR+pending+handling) — bukan status laporan nyata,
+	// hanya dipakai sebagai label pill filter (selaras kartu "Darurat Aktif" di dashboard).
+	aktif: { className: 'bg-destructive/10 text-destructive border-destructive/20', label: 'AKTIF' },
 	TERLAPOR: { className: 'bg-destructive/10 text-destructive border-destructive/20', label: 'TERLAPOR' },
 	pending: { className: 'bg-destructive/10 text-destructive border-destructive/20', label: 'MENUNGGU' },
 	handling: { className: 'bg-warning/10 text-warning border-warning/20', label: 'PENANGANAN' },

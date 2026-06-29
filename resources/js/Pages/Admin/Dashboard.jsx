@@ -16,23 +16,19 @@ import {
 	IconFiretruck,
 	IconFlame,
 	IconMapPin,
+	IconMaximize,
+	IconMinimize,
 	IconShieldCheck,
 	IconTree,
 	IconUsersGroup,
-	IconUserShield,
 } from '@tabler/icons-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-export default function AdminDashboard({
-	auth,
-	stats,
-	recentReports,
-	mapMarkers = [],
-	activeIncidents = [],
-	isPejabat = false,
-}) {
+export default function AdminDashboard({ auth, stats, recentReports, mapReports = [], isPejabat = false }) {
 	const miniMapRef = useRef(null);
 	const mapInstanceRef = useRef(null);
+	const boundsRef = useRef(null);
+	const [isMaximized, setIsMaximized] = useState(false);
 
 	const defaultLat = -8.65;
 	const defaultLng = 115.216667;
@@ -55,49 +51,91 @@ export default function AdminDashboard({
 		}).setView([defaultLat, defaultLng], 13);
 
 		window.L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
+		// Tombol zoom di kanan-bawah agar tidak tertutup header peta yang melayang di atas.
+		window.L.control.zoom({ position: 'bottomright' }).addTo(map);
 		mapInstanceRef.current = map;
 
-		mapMarkers.forEach((facility) => {
-			const lat = parseFloat(facility.lat);
-			const lng = parseFloat(facility.lng);
+		// Selaras dgn kartu "Laporan Insiden Terbaru": ikon & warna per jenis insiden dari judul.
+		const reportVisual = (title) => {
+			const t = (title || '').toLowerCase();
+			if (t.includes('pohon'))
+				return {
+					box: 'text-emerald-600 dark:text-success bg-emerald-100 dark:bg-success/10',
+					svg: '<path d="M12 2 4 11h3l-4 5h5v5h8v-5h5l-4-5h3z"/>',
+				};
+			if (t.includes('hewan') || t.includes('ular') || t.includes('tawon'))
+				return {
+					box: 'text-amber-600 dark:text-warning bg-amber-100 dark:bg-warning/10',
+					svg: '<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-3 7a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm6 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/>',
+				};
+			if (t.includes('listrik') || t.includes('korsleting'))
+				return {
+					box: 'text-blue-600 dark:text-info bg-blue-100 dark:bg-info/10',
+					svg: '<path d="M13 2 3 14h7l-1 8 10-12h-7z"/>',
+				};
+			return {
+				box: 'text-destructive bg-destructive/10',
+				svg: '<path d="M12 2c1 4-2 5-2 8a2 2 0 0 0 4 0c2 2 3 3 3 6a5 5 0 0 1-10 0c0-4 5-6 5-14z"/>',
+			};
+		};
+
+		// Badge status selaras dgn Components/StatusBadge (token semantik, bukan hex mentah).
+		const STATUS_BADGE = {
+			TERLAPOR: { label: 'Darurat', cls: 'bg-destructive/10 text-destructive border-destructive/30' },
+			pending: { label: 'Menunggu', cls: 'bg-warning/10 text-warning border-warning/30' },
+			handling: { label: 'Penanganan', cls: 'bg-info/10 text-info border-info/30' },
+			resolved: { label: 'Selesai', cls: 'bg-success/10 text-success border-success/30' },
+		};
+
+		mapReports.forEach((report) => {
+			const lat = parseFloat(report.lat);
+			const lng = parseFloat(report.lng);
 			if (isNaN(lat) || isNaN(lng)) return;
 
-			const facilityIcon = window.L.divIcon({
-				html: `<div class="text-teal-600 dark:text-teal"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
-				className: 'bg-transparent border-none drop-shadow-sm',
-				iconSize: [26, 26],
-				iconAnchor: [13, 26],
-			});
-
-			const marker = window.L.marker([lat, lng], { icon: facilityIcon })
-				.addTo(map)
-				.bindPopup(`<div class="text-xs font-bold font-sans">${facility.name}</div>`);
-			allMarkers.push(marker);
-		});
-
-		activeIncidents.forEach((incident) => {
-			const lat = parseFloat(incident.lat);
-			const lng = parseFloat(incident.lng);
-			if (isNaN(lat) || isNaN(lng)) return;
-
-			const incidentIcon = window.L.divIcon({
-				html: `<div class="text-destructive animate-pulse"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7.58 2 4 5.58 4 10c0 4.42 8 12 8 12s8-7.58 8-12c0-4.42-3.58-8-8-8zm0 11c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/></svg></div>`,
+			const isResolved = report.status === 'resolved';
+			// Selesai = biru; aktif = merah (berdenyut). Bentuk pin teardrop tetap konsisten.
+			const pinColor = isResolved ? 'text-blue-600 dark:text-info' : 'text-destructive animate-pulse';
+			const reportIcon = window.L.divIcon({
+				html: `<div class="${pinColor}"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7.58 2 4 5.58 4 10c0 4.42 8 12 8 12s8-7.58 8-12c0-4.42-3.58-8-8-8zm0 11c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/></svg></div>`,
 				className: 'bg-transparent border-none filter drop-shadow-md',
 				iconSize: [32, 32],
 				iconAnchor: [16, 32],
 			});
 
-			const marker = window.L.marker([lat, lng], { icon: incidentIcon })
-				.addTo(map)
-				.bindPopup(
-					`<div class="text-xs font-bold text-destructive font-sans">⚠️ DARURAT: ${incident.title}</div>`,
-				);
+			const visual = reportVisual(report.title);
+			const badge = STATUS_BADGE[report.status] || STATUS_BADGE.pending;
+			// Popup meniru baris kartu insiden: ikon jenis + judul + lokasi + waktu + badge status.
+			const popupHtml = `
+				<div class="font-sans w-[220px] space-y-2">
+					<div class="flex items-start gap-2.5">
+						<div class="shrink-0 rounded-lg p-1.5 ${visual.box}">
+							<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">${visual.svg}</svg>
+						</div>
+						<h4 class="m-0 text-[13px] font-bold leading-snug text-foreground">${report.title}</h4>
+					</div>
+					<div class="space-y-1 text-[11px] font-medium text-muted-foreground">
+						<div class="flex items-center gap-1.5">
+							<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-6-5.686-6-10a6 6 0 1 1 12 0c0 4.314-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg>
+							<span>${report.location || 'Lokasi tidak tersedia'}</span>
+						</div>
+						<div class="flex items-center gap-1.5">
+							<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+							<span>${report.time || ''}</span>
+						</div>
+					</div>
+					<span class="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-bold ${badge.cls}">${badge.label}</span>
+				</div>`;
+
+			const marker = window.L.marker([lat, lng], { icon: reportIcon }).addTo(map).bindPopup(popupHtml);
 			allMarkers.push(marker);
 		});
 
 		if (allMarkers.length > 0) {
 			const group = new window.L.featureGroup(allMarkers);
-			map.fitBounds(group.getBounds().pad(0.3));
+			boundsRef.current = group.getBounds();
+			map.fitBounds(boundsRef.current.pad(0.3));
+		} else {
+			boundsRef.current = null;
 		}
 
 		return () => {
@@ -106,7 +144,39 @@ export default function AdminDashboard({
 				mapInstanceRef.current = null;
 			}
 		};
-	}, [mapMarkers, activeIncidents]);
+	}, [mapReports]);
+
+	// Saat peta di-maximize/minimize: ukuran kontainer berubah → invalidateSize, dan
+	// aktifkan scroll/drag-zoom hanya saat fullscreen (di kartu kecil dimatikan agar
+	// scroll halaman & geser layar tidak terbajak peta).
+	useEffect(() => {
+		const map = mapInstanceRef.current;
+		if (!map) return;
+
+		if (isMaximized) {
+			map.scrollWheelZoom.enable();
+			map.dragging.enable();
+		} else {
+			map.scrollWheelZoom.disable();
+			if (window.L?.Browser.mobile) map.dragging.disable();
+		}
+
+		// Refit ke sebaran marker tiap toggle agar minimize tidak "menyangkut" di zoom/center
+		// yang diset saat maximize (dan maximize mengisi area lebih besar dengan pas).
+		const id = setTimeout(() => {
+			map.invalidateSize();
+			if (boundsRef.current) map.fitBounds(boundsRef.current.pad(0.3));
+		}, 210);
+		return () => clearTimeout(id);
+	}, [isMaximized]);
+
+	// Esc untuk keluar dari mode maximize.
+	useEffect(() => {
+		if (!isMaximized) return;
+		const onKey = (e) => e.key === 'Escape' && setIsMaximized(false);
+		window.addEventListener('keydown', onKey);
+		return () => window.removeEventListener('keydown', onKey);
+	}, [isMaximized]);
 
 	const getAdminLevelName = () => {
 		if (auth?.user?.village_code) return `Desa/Kelurahan`;
@@ -119,15 +189,16 @@ export default function AdminDashboard({
 	const currentStats = stats || { active_reports: 0, standby_helpers: 0, active_hydrants: 0, resolved_this_month: 0 };
 	const reports = recentReports || [];
 
-	const StatCard = ({ title, value, icon: Icon, colorClass, bgIconClass, subtitle, isCritical = false }) => {
+	const StatCard = ({ title, value, icon: Icon, colorClass, bgIconClass, subtitle, isCritical = false, href }) => {
 		const hasEmergency = isCritical && value > 0;
-		return (
+		const card = (
 			<Card
 				className={cn(
 					'rounded-xl border shadow-sm transition-all',
 					hasEmergency
 						? 'border-destructive bg-destructive text-destructive-foreground shadow-destructive/20 duration-500 animate-in zoom-in-95'
 						: 'border-border bg-card hover:border-border/80',
+					href && 'cursor-pointer hover:shadow-md',
 				)}
 			>
 				<CardContent className="p-5 sm:p-6">
@@ -174,6 +245,14 @@ export default function AdminDashboard({
 					)}
 				</CardContent>
 			</Card>
+		);
+
+		if (!href) return card;
+
+		return (
+			<Link href={href} className="block rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring">
+				{card}
+			</Link>
 		);
 	};
 
@@ -245,6 +324,7 @@ export default function AdminDashboard({
 					bgIconClass="bg-destructive/10"
 					subtitle="Membutuhkan Respons"
 					isCritical={true}
+					href={route(isPejabat ? 'front.reports.index' : 'admin.reports.index', { status: 'aktif' })}
 				/>
 				<StatCard
 					title="Relawan Standby"
@@ -253,6 +333,7 @@ export default function AdminDashboard({
 					colorClass="text-blue-600 dark:text-info"
 					bgIconClass="bg-blue-50 dark:bg-info/10"
 					subtitle="Terverifikasi di Area"
+					href={isPejabat ? undefined : route('front.volunteers.index', { status: 'siaga' })}
 				/>
 				<StatCard
 					title="Hydrant Siaga"
@@ -261,6 +342,7 @@ export default function AdminDashboard({
 					colorClass="text-teal-600 dark:text-teal"
 					bgIconClass="bg-teal-50 dark:bg-teal/10"
 					subtitle="Sumber Air Aktif"
+					href={route(isPejabat ? 'front.hydrants.index' : 'admin.hydrants.index')}
 				/>
 				<StatCard
 					title="Total Penanganan"
@@ -268,7 +350,12 @@ export default function AdminDashboard({
 					icon={IconCheck}
 					colorClass="text-emerald-600 dark:text-success"
 					bgIconClass="bg-emerald-50 dark:bg-success/10"
-					subtitle="Bulan Ini"
+					subtitle="Total Selesai"
+					href={
+						isPejabat
+							? route('front.reports.index')
+							: route('admin.reports.index', { status: 'resolved' })
+					}
 				/>
 			</div>
 
@@ -382,94 +469,53 @@ export default function AdminDashboard({
 				<div className="flex flex-col gap-6">
 					<Card
 						className={cn(
-							'group relative flex flex-col overflow-hidden rounded-xl border-border shadow-sm',
-							isPejabat ? 'h-full min-h-[350px]' : 'h-[320px] sm:h-[350px]',
+							'group relative flex flex-col overflow-hidden border-border shadow-sm',
+							isMaximized
+								? 'fixed inset-0 z-[200] m-0 h-screen w-screen rounded-none'
+								: cn('rounded-xl', isPejabat ? 'h-full min-h-[350px]' : 'h-[320px] sm:h-[350px]'),
 						)}
 					>
 						<CardHeader className="absolute left-0 right-0 top-0 z-10 flex flex-row items-center justify-between border-b bg-card/90 px-4 pb-2 pt-3 backdrop-blur-sm">
 							<CardTitle className="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-widest text-teal-700 dark:text-teal">
 								<IconMapPin className="h-4 w-4" stroke={2.5} /> Peta Pemantauan
 							</CardTitle>
+							<button
+								type="button"
+								onClick={() => setIsMaximized((v) => !v)}
+								aria-label={isMaximized ? 'Perkecil peta' : 'Perbesar peta'}
+								className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+							>
+								{isMaximized ? (
+									<IconMinimize className="h-4 w-4" stroke={2} />
+								) : (
+									<IconMaximize className="h-4 w-4" stroke={2} />
+								)}
+							</button>
 						</CardHeader>
-						<div ref={miniMapRef} className="z-0 h-full w-full bg-accent/30 pt-11"></div>
-						{mapMarkers.length === 0 && activeIncidents.length === 0 && (
-							<div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/40 pt-11 backdrop-blur-[2px]">
+						<div ref={miniMapRef} className="z-0 h-full w-full bg-accent/30"></div>
+						{mapReports.length === 0 && (
+							<div className="pointer-events-none absolute inset-0 z-[5] flex flex-col items-center justify-center bg-background/40 pt-11 backdrop-blur-[2px]">
 								<IconMapPin className="mb-2 h-8 w-8 text-muted-foreground/50" />
-								<p className="text-xs font-medium text-muted-foreground">Area kosong</p>
+								<p className="text-xs font-medium text-muted-foreground">Tidak ada laporan</p>
 							</div>
 						)}
 					</Card>
 
 					{/* BENTO GRID HANYA MUNCUL UNTUK ADMIN (Disembunyikan untuk Pejabat Eksekutif) */}
-					{!isPejabat && (
-						<div className="grid grid-cols-2 gap-3">
+					{!isPejabat && isTopLevelAdmin && (
+						<div className="grid grid-cols-1 gap-3">
 							<Button
 								variant="outline"
-								className="group flex h-auto flex-col items-start gap-2 rounded-xl border-border bg-card px-4 py-3 shadow-sm transition-all hover:border-blue-500 dark:hover:border-info"
+								className="group flex h-auto flex-row items-center gap-2 rounded-xl border-border bg-card px-4 py-3 shadow-sm transition-all hover:border-destructive"
 								asChild
 							>
-								<Link href={route('admin.users.index', { tab: 'relawan' })}>
-									<div className="rounded-lg bg-blue-50 p-2 transition-colors group-hover:bg-blue-100 dark:bg-info/10 dark:group-hover:bg-info/20">
-										<IconUsersGroup className="h-5 w-5 text-blue-600 dark:text-info" />
+								<Link href={route('admin.hydrants.index', { type: 'pos' })}>
+									<div className="rounded-lg bg-destructive/10 p-2 transition-colors group-hover:bg-destructive/20">
+										<IconFiretruck className="h-5 w-5 text-destructive" />
 									</div>
-									<div className="mt-1 text-left">
-										<div className="text-sm font-bold text-foreground">Relawan Aktif</div>
-										<div className="text-[10px] text-muted-foreground">Verifikasi & Plotting</div>
-									</div>
-								</Link>
-							</Button>
-
-							<Button
-								variant="outline"
-								className="group flex h-auto flex-col items-start gap-2 rounded-xl border-border bg-card px-4 py-3 shadow-sm transition-all hover:border-teal-500 dark:hover:border-teal"
-								asChild
-							>
-								<Link href={route('admin.hydrants.index')}>
-									<div className="rounded-lg bg-teal-50 p-2 transition-colors group-hover:bg-teal-100 dark:bg-teal/10 dark:group-hover:bg-teal/20">
-										<IconDroplet className="h-5 w-5 text-teal-600 dark:text-teal" />
-									</div>
-									<div className="mt-1 text-left">
-										<div className="text-sm font-bold text-foreground">Sumber Air</div>
-										<div className="text-[10px] text-muted-foreground">Hydrant & Pompa</div>
-									</div>
-								</Link>
-							</Button>
-
-							{isTopLevelAdmin && (
-								<Button
-									variant="outline"
-									className="group flex h-auto flex-col items-start gap-2 rounded-xl border-border bg-card px-4 py-3 shadow-sm transition-all hover:border-destructive"
-									asChild
-								>
-									<Link href={route('admin.hydrants.index', { type: 'pos' })}>
-										<div className="rounded-lg bg-destructive/10 p-2 transition-colors group-hover:bg-destructive/20">
-											<IconFiretruck className="h-5 w-5 text-destructive" />
-										</div>
-										<div className="mt-1 text-left">
-											<div className="text-sm font-bold text-foreground">Pos Armada</div>
-											<div className="text-[10px] text-muted-foreground">
-												Distribusi Kendaraan
-											</div>
-										</div>
-									</Link>
-								</Button>
-							)}
-
-							<Button
-								variant="outline"
-								className={cn(
-									'group flex h-auto flex-col items-start gap-2 rounded-xl border-border bg-card px-4 py-3 shadow-sm transition-all hover:border-amber-500 dark:hover:border-warning',
-									!isTopLevelAdmin && 'col-span-2 flex-row items-center',
-								)}
-								asChild
-							>
-								<Link href={route('admin.users.index', { tab: 'struktural' })}>
-									<div className="rounded-lg bg-amber-50 p-2 transition-colors group-hover:bg-amber-100 dark:bg-warning/10 dark:group-hover:bg-warning/20">
-										<IconUserShield className="h-5 w-5 text-amber-600 dark:text-warning" />
-									</div>
-									<div className={cn('text-left', !isTopLevelAdmin ? 'ml-1' : 'mt-1')}>
-										<div className="text-sm font-bold text-foreground">Struktural</div>
-										<div className="text-[10px] text-muted-foreground">Kelola Admin & Petugas</div>
+									<div className="ml-1 text-left">
+										<div className="text-sm font-bold text-foreground">Pos Armada</div>
+										<div className="text-[10px] text-muted-foreground">Distribusi Kendaraan</div>
 									</div>
 								</Link>
 							</Button>

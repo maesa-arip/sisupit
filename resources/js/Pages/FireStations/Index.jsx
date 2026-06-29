@@ -12,6 +12,7 @@ import {
 	IconMapPinFilled,
 	IconPhoneCall,
 	IconRadar,
+	IconRoute,
 	IconSearch,
 } from '@tabler/icons-react';
 import { useState } from 'react';
@@ -148,16 +149,34 @@ export default function Index({ stations, filters, ...props }) {
 												<span className="h-[20px]"></span>
 											)}
 
-											{/* Tombol Telepon Langsung */}
-											<a href={`tel:${station.phone}`}>
-												<Button
-													variant="ghost"
-													size="icon"
-													className="h-8 w-8 rounded-md text-muted-foreground transition-colors hover:bg-emerald-600 hover:text-white dark:hover:bg-success/20 dark:hover:text-success"
+											<div className="flex items-center gap-1.5">
+												{/* Tombol Telepon Langsung */}
+												<a href={`tel:${station.phone}`}>
+													<Button
+														variant="ghost"
+														size="icon"
+														className="h-8 w-8 rounded-md text-muted-foreground transition-colors hover:bg-emerald-600 hover:text-white dark:hover:bg-success/20 dark:hover:text-success"
+													>
+														<IconPhoneCall className="h-4 w-4" />
+													</Button>
+												</a>
+
+												{/* Tombol Rute ke Maps */}
+												<a
+													href={`https://www.google.com/maps/dir/?api=1&destination=${station.lat},${station.lng}`}
+													target="_blank"
+													rel="noopener noreferrer"
 												>
-													<IconPhoneCall className="h-4 w-4" />
-												</Button>
-											</a>
+													<Button
+														type="button"
+														variant="ghost"
+														size="icon"
+														className="h-8 w-8 rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground/80"
+													>
+														<IconRoute className="h-4 w-4" />
+													</Button>
+												</a>
+											</div>
 										</div>
 									</CardContent>
 								</Card>
