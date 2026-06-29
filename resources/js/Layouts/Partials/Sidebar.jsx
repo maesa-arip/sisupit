@@ -153,12 +153,15 @@ export default function Sidebar({ url, auth }) {
 						icon={IconFiretruck}
 					/>
 
-					<NavLink
+					{/* SEMENTARA DISEMBUNYIKAN (keputusan user 2026-06-29): menu "Kelola Armada"
+                        disembunyikan dari sidebar selaras dengan panel Pengerahan Armada di Show.jsx.
+                        Backend & route admin.units.* tetap utuh — buka kembali blok ini untuk menampilkan. */}
+					{/* <NavLink
 						url={route('admin.units.index')}
 						active={url.startsWith('/admin/units')}
 						title="Manajemen Armada"
 						icon={IconTruck}
-					/>
+					/> */}
 
 					{/* Pengumuman global + RBAC + Sistem = lintas-tenant, superadmin saja
                         (sesuai gating route admin.php). Admin wilayah tak melihat menu ini. */}

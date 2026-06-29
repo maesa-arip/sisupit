@@ -136,20 +136,22 @@ export default function MobileBottomNav({ auth }) {
 								setShowAdminMenu(false);
 							}}
 							className={cn(
-								'z-50 flex h-full w-full flex-col items-center justify-center gap-1 outline-none transition-colors',
+								'group z-50 flex h-full w-full flex-col items-center justify-center gap-1 outline-none transition-colors',
 								isFasilitasActive || showFasilitas
 									? 'text-destructive'
-									: 'text-muted-foreground hover:text-foreground',
+									: 'text-muted-foreground hover:text-destructive',
 							)}
 						>
 							<div
 								className={cn(
-									'flex items-center justify-center rounded-md p-1 transition-colors',
-									isFasilitasActive || showFasilitas ? 'bg-destructive/10' : 'bg-transparent',
+									'flex items-center justify-center rounded-full px-4 py-1.5 transition-colors',
+									isFasilitasActive || showFasilitas
+										? 'bg-destructive/10'
+										: 'bg-transparent group-hover:bg-destructive/10',
 								)}
 							>
 								<IconFiretruck
-									className="h-5 w-5"
+									className="h-7 w-7"
 									stroke={isFasilitasActive || showFasilitas ? 2 : 1.5}
 								/>
 							</div>
@@ -180,6 +182,7 @@ export default function MobileBottomNav({ auth }) {
 						href={route('front.reports.index', { filter: 'mine' })}
 						icon={IconHistory}
 						label="Riwayat"
+						active={isActive('/reports') && !isActive('/reports/create')}
 					/>
 
 					{/* 5. Profil / Hub Kendali Admin Terpadu */}
@@ -233,7 +236,10 @@ export default function MobileBottomNav({ auth }) {
 										bgClass="bg-destructive/10 text-destructive"
 										onClick={() => setShowAdminMenu(false)}
 									/>
-									<FloatingLink
+									{/* SEMENTARA DISEMBUNYIKAN (keputusan user 2026-06-29): menu "Kelola Armada"
+										disembunyikan dari bottom-nav selaras dengan panel Pengerahan Armada di Show.jsx.
+										Backend & route admin.units.* tetap utuh — buka kembali blok ini untuk menampilkan. */}
+									{/* <FloatingLink
 										href={route('admin.units.index')}
 										active={url.startsWith('/admin/units')}
 										icon={IconTruck}
@@ -241,7 +247,7 @@ export default function MobileBottomNav({ auth }) {
 										colorClass="text-muted-foreground"
 										bgClass="bg-destructive/10 text-destructive"
 										onClick={() => setShowAdminMenu(false)}
-									/>
+									/> */}
 
 									{/* Pengumuman global + RBAC + Sistem = lintas-tenant, superadmin saja
 										(sesuai gating route admin.php). Admin wilayah tak melihat menu ini. */}
@@ -340,19 +346,21 @@ export default function MobileBottomNav({ auth }) {
 									setShowFasilitas(false);
 								}}
 								className={cn(
-									'z-50 flex h-full w-full flex-col items-center justify-center gap-1 outline-none transition-colors',
+									'group z-50 flex h-full w-full flex-col items-center justify-center gap-1 outline-none transition-colors',
 									isAdminActive || showAdminMenu
 										? 'text-destructive'
-										: 'text-muted-foreground hover:text-foreground',
+										: 'text-muted-foreground hover:text-destructive',
 								)}
 							>
 								<div
 									className={cn(
-										'flex items-center justify-center rounded-md p-1 transition-colors',
-										isAdminActive || showAdminMenu ? 'bg-destructive/10' : 'bg-transparent',
+										'flex items-center justify-center rounded-full px-4 py-1.5 transition-colors',
+										isAdminActive || showAdminMenu
+											? 'bg-destructive/10'
+											: 'bg-transparent group-hover:bg-destructive/10',
 									)}
 								>
-									<IconMenu2 className="h-5 w-5" stroke={isAdminActive || showAdminMenu ? 2 : 1.5} />
+									<IconMenu2 className="h-7 w-7" stroke={isAdminActive || showAdminMenu ? 2 : 1.5} />
 								</div>
 								<span className="text-[10px] font-semibold tracking-wide">Menu</span>
 							</button>
@@ -376,17 +384,17 @@ function NavItem({ href, icon: Icon, label, active }) {
 		<Link
 			href={href}
 			className={cn(
-				'z-50 flex h-full w-full flex-col items-center justify-center gap-1 outline-none transition-colors',
-				active ? 'text-destructive' : 'text-muted-foreground hover:text-foreground',
+				'group z-50 flex h-full w-full flex-col items-center justify-center gap-1 outline-none transition-colors',
+				active ? 'text-destructive' : 'text-muted-foreground hover:text-destructive',
 			)}
 		>
 			<div
 				className={cn(
-					'flex items-center justify-center rounded-md p-1 transition-colors',
-					active ? 'bg-destructive/10' : 'bg-transparent',
+					'flex items-center justify-center rounded-full px-4 py-1.5 transition-colors',
+					active ? 'bg-destructive/10' : 'bg-transparent group-hover:bg-destructive/10',
 				)}
 			>
-				<Icon className="h-5 w-5" stroke={active ? 2 : 1.5} />
+				<Icon className="h-7 w-7" stroke={active ? 2 : 1.5} />
 			</div>
 			<span className="text-[10px] font-semibold tracking-wide">{label}</span>
 		</Link>
