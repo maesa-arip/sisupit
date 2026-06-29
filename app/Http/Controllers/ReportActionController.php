@@ -212,6 +212,7 @@ class ReportActionController extends Controller
         $request->validate(['unit_id' => 'required|integer']);
 
         $report = Report::withoutGlobalScopes()->findOrFail($id);
+        $this->ensureWithinJurisdiction($report, auth()->user());
         if (in_array($report->status, ['resolved', 'ditolak'], true)) {
             abort(403, 'Insiden ini sudah ditutup.');
         }
@@ -245,6 +246,7 @@ class ReportActionController extends Controller
         $request->validate(['unit_id' => 'required|integer']);
 
         $report = Report::withoutGlobalScopes()->findOrFail($id);
+        $this->ensureWithinJurisdiction($report, auth()->user());
 
         DB::transaction(function () use ($report, $request) {
             $pivot = ReportUnit::where('report_id', $report->id)
@@ -254,7 +256,10 @@ class ReportActionController extends Controller
 
             if ($pivot) {
                 $pivot->update(['status' => 'released', 'released_at' => now()]);
-                Unit::withoutGlobalScopes()->whereKey($request->unit_id)->update(['status' => 'available']);
+                // Unit ter-scope Tenantable (BUKAN withoutGlobalScopes): staf wilayah hanya
+                // membebaskan unit di wilayahnya; admin nasional/superadmin bypass. Re-scope
+                // ini + cek yurisdiksi laporan di atas memenuhi ATURAN EMAS #7 (FINDINGS #32).
+                Unit::whereKey($request->unit_id)->update(['status' => 'available']);
             }
         });
 
@@ -436,31 +441,20 @@ class ReportActionController extends Controller
     }
 
     /**
-     * Pastikan responder (relawan/petugas) hanya bisa merespons insiden DI WILAYAH
-     * penugasannya. Report di-fetch withoutGlobalScopes (bisa dicari lewat ID lintas
-     * tenant), jadi batas wilayah harus dicek manual di sini (ATURAN EMAS #7) — selaras
-     * dengan siapa yang disiarkan saat approve & dengan scope feed dashboard (FINDINGS #26).
-     * Superadmin & user tanpa kode wilayah (admin nasional) tidak dibatasi, mengikuti pola
-     * Tenantable/scopeIsAdmin.
+     * Pastikan responder/staf hanya bisa beraksi atas insiden DI WILAYAH penugasannya.
+     * Report di-fetch withoutGlobalScopes (bisa dicari lewat ID lintas tenant), jadi batas
+     * wilayah harus dicek manual di sini (ATURAN EMAS #7) — selaras dengan siapa yang
+     * disiarkan saat approve & scope feed dashboard (FINDINGS #26). Logika yurisdiksi kini
+     * berpusat di User::withinReportJurisdiction() (dipakai juga di ReportController::show
+     * & channels.php, FINDINGS #31). Superadmin & admin nasional tidak dibatasi.
      */
     private function ensureWithinJurisdiction(Report $report, $user): void
     {
-        if ($user->hasRole('superadmin')) {
-            return;
-        }
-
-        $levelCode = $user->village_code ?? $user->district_code ?? $user->city_code ?? $user->province_code;
-        if (! $levelCode) {
-            return;
-        }
-
-        $column = $user->village_code ? 'village_code'
-            : ($user->district_code ? 'district_code'
-            : ($user->city_code ? 'city_code' : 'province_code'));
-
-        if ($levelCode !== $report->$column) {
-            abort(403, 'Insiden ini di luar wilayah penugasan Anda.');
-        }
+        abort_unless(
+            $user->withinReportJurisdiction($report),
+            403,
+            'Insiden ini di luar wilayah penugasan Anda.'
+        );
     }
 
     /**

@@ -70,9 +70,11 @@ class ReportController extends Controller
         $report = Report::withoutGlobalScopes()->findOrFail($id);
         $user = auth()->user();
 
-        // Hak Akses (Hanya pelapor, petugas, dan relawan yang ikut membantu yang bisa lihat)
+        // Hak Akses (Hanya pelapor, petugas, dan relawan yang ikut membantu yang bisa lihat).
+        // Staf dibatasi ke wilayah laporannya (FINDINGS #31) agar tidak memantau insiden +
+        // PII/GPS lintas wilayah; pelapor & helper tetap boleh lewat relasi meski lintas tenant.
         $isReporter = $user->id === $report->user_id;
-        $isStaff = $user->hasAnyRole(['admin', 'superadmin', 'petugas']);
+        $isStaff = $user->hasAnyRole(['admin', 'superadmin', 'petugas']) && $user->withinReportJurisdiction($report);
         $isHelper = DB::table('report_helpers')->where('report_id', $report->id)->where('user_id', $user->id)->exists();
 
         if (! $isReporter && ! $isStaff && ! $isHelper) {

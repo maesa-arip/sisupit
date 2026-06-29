@@ -87,3 +87,29 @@ it('auto-releases dispatched units when the incident is resolved', function () {
     expect($this->unit->refresh()->status)->toBe('available');
     expect($this->report->refresh()->status)->toBe('resolved');
 });
+
+// FINDINGS #32 — dispatch/release ter-scope yurisdiksi laporan.
+it('blocks staff from another region from dispatching a unit', function () {
+    $petugasLuar = User::factory()->create(['village_code' => '3171012001']); // Desa B
+    $petugasLuar->assignRole('petugas');
+
+    $this->actingAs($petugasLuar)
+        ->post("/reports/{$this->report->id}/dispatch-unit", ['unit_id' => $this->unit->id])
+        ->assertForbidden();
+
+    expect($this->unit->refresh()->status)->toBe('available');
+});
+
+it('blocks staff from another region from releasing a dispatched unit', function () {
+    // Dispatch sah oleh petugas sewilayah dulu.
+    $this->actingAs($this->petugas)->post("/reports/{$this->report->id}/dispatch-unit", ['unit_id' => $this->unit->id]);
+
+    $petugasLuar = User::factory()->create(['village_code' => '3171012001']); // Desa B
+    $petugasLuar->assignRole('petugas');
+
+    $this->actingAs($petugasLuar)
+        ->post("/reports/{$this->report->id}/release-unit", ['unit_id' => $this->unit->id])
+        ->assertForbidden();
+
+    expect($this->unit->refresh()->status)->toBe('dispatched');
+});

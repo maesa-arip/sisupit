@@ -83,6 +83,31 @@ class User extends Authenticatable implements MustVerifyEmail
         return $query;
     }
 
+    /**
+     * Apakah user ini berwenang atas insiden DI WILAYAH laporan. Sumber kebenaran tunggal
+     * untuk pembatasan yurisdiksi laporan (dipakai di ReportActionController,
+     * ReportController::show, dan routes/channels.php). Superadmin & user tanpa kode wilayah
+     * (admin nasional) selalu true, mengikuti pola bypass Tenantable/scopeIsAdmin. Untuk
+     * staf wilayah, level paling spesifik user dicocokkan dengan kolom laporan yang sederajat.
+     */
+    public function withinReportJurisdiction(Report $report): bool
+    {
+        if ($this->hasRole('superadmin')) {
+            return true;
+        }
+
+        $column = $this->village_code ? 'village_code'
+            : ($this->district_code ? 'district_code'
+            : ($this->city_code ? 'city_code'
+            : ($this->province_code ? 'province_code' : null)));
+
+        if ($column === null) {
+            return true;
+        }
+
+        return $this->{$column} === $report->{$column};
+    }
+
     public function socialAccounts()
     {
         return $this->hasMany(SocialAccount::class);
