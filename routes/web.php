@@ -15,6 +15,7 @@ use App\Http\Controllers\ReportHelperController;
 use App\Http\Controllers\Admin\HydrantController as AdminHydrantController;
 use App\Http\Controllers\Admin\PompaController as AdminPompaController;
 use App\Http\Controllers\Admin\PosPemadamController as AdminPosPemadamController;
+use App\Http\Controllers\Admin\UnitController as AdminUnitController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Api\FcmController;
 use App\Http\Controllers\Api\GeocodeController;
@@ -55,6 +56,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('hydrants', AdminHydrantController::class)->except(['show']);
         Route::resource('pumps', AdminPompaController::class)->except(['show']);
         Route::resource('fire-stations', AdminPosPemadamController::class)->except(['show']);
+        Route::resource('units', AdminUnitController::class)->except(['show']);
 
         Route::prefix('reports')->name('reports.')->controller(AdminReportController::class)->group(function () {
             Route::get('/', 'index')->name('index');
@@ -140,6 +142,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/reports/{report}/reject', [ReportActionController::class, 'reject'])->name('reports.reject');
     Route::post('/reports/{report}/take-action', [ReportActionController::class, 'takeAction'])->name('reports.take-action');
     Route::post('/reports/{report}/cancel-response', [ReportActionController::class, 'cancelResponse'])->name('reports.cancel-response');
+
+    // Pengerahan unit/armada ke insiden (TASK_09)
+    Route::post('/reports/{report}/dispatch-unit', [ReportActionController::class, 'dispatchUnit'])->name('reports.dispatch-unit');
+    Route::post('/reports/{report}/release-unit', [ReportActionController::class, 'releaseUnit'])->name('reports.release-unit');
     Route::post('/reports/{report}/arrive', [ReportActionController::class, 'arrive'])->name('reports.arrive');
     Route::post('/reports/{report}/resolve', [ReportActionController::class, 'resolve'])->name('reports.resolve');
 

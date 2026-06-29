@@ -22,8 +22,9 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 
 ```
 Task aktif   : BELUM DIPILIH — TASK_10, 06, 11, 14, 12, 13, 07, 15, 16 SELESAI
-                2026-06-28 (9 task). TASK_08 (chat) DITUNDA atas keputusan user.
-                Sisa: TASK_09 armada/Unit (P3 BLOCKED, perlu keputusan scope).
+                2026-06-28 (9 task) + TASK_09 armada/Unit SELESAI 2026-06-29.
+                TASK_08 (chat) DITUNDA atas keputusan user.
+                Sisa fungsional: nihil. Tinggal #9 mass-reformat Pint/Prettier (P3, terpisah).
 Backlog (urut prioritas, sumber: prompt/docs/FINDINGS_LOG.md) :
    1. #24 P1  [SELESAI] Tolak Data rusak (route salah) → status `ditolak` + arsip  (TASK_10)
    2. #16 P2  [SELESAI] Notif balik ke pelapor tiap transisi status  (TASK_06)
@@ -37,7 +38,7 @@ Backlog (urut prioritas, sumber: prompt/docs/FINDINGS_LOG.md) :
    8. #30 P2  [SELESAI] Edit laporan diperbaiki (pelapor+TERLAPOR, konten+kelola foto)  (TASK_16)
    9. #29 P3  [SELESAI] Batch minor: category dead ref, guard status aksi, casing import  (TASK_15)
    9. #9  P3  Mass-reformat Pint/Prettier (terpisah)  (prompt/tasks/TASK_05_documentation_and_deferred.md)
-  10. #19 P3  Manajemen armada/Unit & dispatch  (TASK_09 — BLOCKED, perlu keputusan scope)
+  10. #19 P3  [SELESAI] Manajemen armada/Unit & dispatch  (TASK_09, 2026-06-29)
    Temuan lama #1-#8,#10-#15,#20-#23 closed (FIXED).
 Selesai      : TASK_01 (onboarding), TASK_02 (P0 IDOR relawan/profil),
                TASK_03 (P1 PII feed dashboard), TASK_04 (batch P2/P3: route debug,

@@ -8,9 +8,9 @@ import { Dialog, DialogContent } from '@/Components/ui/dialog';
 import { 
     IconMapPin, IconPhone, IconUser,
     IconFiretruck, IconUsersGroup, IconChevronLeft,
-    IconRadar, IconX, IconAlertCircle, IconFileText, 
+    IconRadar, IconX, IconAlertCircle, IconFileText,
     IconZoomIn, IconShieldCheck, IconFlag, IconCheck,
-    IconLoader2, IconTrash, IconMap
+    IconLoader2, IconTrash, IconMap, IconTruck, IconArrowBackUp
 } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import { cn, GEO_OPTIONS } from '@/lib/utils';
@@ -83,6 +83,13 @@ export default function ReportShow(props) {
     const [confirmReject, setConfirmReject] = useState(false);
     const [rejectReason, setRejectReason] = useState('');
     const [confirmResolve, setConfirmResolve] = useState(false);
+
+    // Pengerahan unit/armada (TASK_09): daftar unit tersedia ter-scope wilayah dari server,
+    // unit yang sedang dikerahkan dibaca dari relasi report_units.
+    const availableUnits = props.availableUnits || [];
+    const dispatchedUnits = (report.report_units || []).filter((ru) => ru.status === 'dispatched');
+    const [unitToDispatch, setUnitToDispatch] = useState('');
+    const [isUnitProcessing, setIsUnitProcessing] = useState(false);
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [isActionLoading, setIsActionLoading] = useState(false);
@@ -182,6 +189,27 @@ export default function ReportShow(props) {
         setIsActionLoading(true);
         router.post(route('reports.resolve', report.id), {}, {
             preserveScroll: true, onSuccess: () => { setConfirmResolve(false); toast.success('Insiden dinyatakan selesai.'); }, onFinish: () => setIsActionLoading(false)
+        });
+    };
+
+    const handleDispatchUnit = () => {
+        if (!unitToDispatch) return;
+        setIsUnitProcessing(true);
+        router.post(route('reports.dispatch-unit', report.id), { unit_id: unitToDispatch }, {
+            preserveScroll: true,
+            onSuccess: () => { setUnitToDispatch(''); toast.success('Unit dikerahkan ke insiden.'); },
+            onError: () => toast.error('Gagal mengerahkan unit.'),
+            onFinish: () => setIsUnitProcessing(false),
+        });
+    };
+
+    const handleReleaseUnit = (unitId) => {
+        setIsUnitProcessing(true);
+        router.post(route('reports.release-unit', report.id), { unit_id: unitId }, {
+            preserveScroll: true,
+            onSuccess: () => toast.success('Unit ditarik dari insiden.'),
+            onError: () => toast.error('Gagal menarik unit.'),
+            onFinish: () => setIsUnitProcessing(false),
         });
     };
 
@@ -584,6 +612,60 @@ export default function ReportShow(props) {
                                         )}
                                     </>
                                 )}
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {/* --- 🚒 PANEL PENGERAHAN ARMADA (staf saja, insiden aktif) --- */}
+                    {isStaffOrAdmin && reportStatus !== 'TERLAPOR' && reportStatus !== 'ditolak' && reportStatus !== 'resolved' && (
+                        <Card className="border border-border bg-card shadow-none rounded-xl">
+                            <CardContent className="p-4 space-y-3 sm:p-5">
+                                <h2 className="text-xs font-black tracking-widest text-foreground uppercase flex items-center gap-1.5">
+                                    <IconTruck className="w-4 h-4 text-teal-600 dark:text-teal" /> Pengerahan Armada
+                                </h2>
+
+                                {dispatchedUnits.length > 0 ? (
+                                    <div className="space-y-2">
+                                        {dispatchedUnits.map((ru) => (
+                                            <div key={ru.id} className="flex items-center justify-between gap-2 p-2.5 rounded-lg border border-border bg-muted/50">
+                                                <div className="min-w-0">
+                                                    <div className="text-xs font-bold text-foreground truncate">{ru.unit?.name || 'Unit'}</div>
+                                                    <div className="text-[10px] text-muted-foreground truncate">{ru.unit?.type}</div>
+                                                </div>
+                                                <Button
+                                                    onClick={() => handleReleaseUnit(ru.unit_id)}
+                                                    disabled={isUnitProcessing}
+                                                    variant="outline"
+                                                    className="h-8 px-2.5 shrink-0 text-[10px] font-bold uppercase tracking-wider border-border text-muted-foreground hover:bg-muted hover:text-foreground rounded-md shadow-none"
+                                                >
+                                                    <IconArrowBackUp className="w-3.5 h-3.5 mr-1" /> Tarik
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-xs text-muted-foreground">Belum ada unit yang dikerahkan ke insiden ini.</p>
+                                )}
+
+                                <div className="flex flex-col gap-2 pt-2 border-t border-border sm:flex-row">
+                                    <select
+                                        value={unitToDispatch}
+                                        onChange={(e) => setUnitToDispatch(e.target.value)}
+                                        className="flex-1 h-10 px-3 text-xs font-medium border rounded-lg bg-card border-border text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
+                                    >
+                                        <option value="">{availableUnits.length > 0 ? 'Pilih unit tersedia...' : 'Tidak ada unit tersedia'}</option>
+                                        {availableUnits.map((u) => (
+                                            <option key={u.id} value={u.id}>{u.name} — {u.type}</option>
+                                        ))}
+                                    </select>
+                                    <Button
+                                        onClick={handleDispatchUnit}
+                                        disabled={isUnitProcessing || !unitToDispatch}
+                                        className="h-10 text-xs font-bold uppercase tracking-wider text-white bg-teal-600 dark:bg-teal hover:bg-teal-700 dark:hover:bg-teal/90 rounded-lg shadow-none shrink-0"
+                                    >
+                                        {isUnitProcessing ? <IconLoader2 className="w-4 h-4 animate-spin" /> : <><IconTruck className="w-4 h-4 mr-1.5" /> Kerahkan</>}
+                                    </Button>
+                                </div>
                             </CardContent>
                         </Card>
                     )}

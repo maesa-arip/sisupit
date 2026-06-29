@@ -19,6 +19,7 @@ import {
 	IconSettings,
 	IconShieldLock,
 	IconSpeakerphone,
+	IconTruck,
 	IconUser,
 	IconUsersGroup,
 } from '@tabler/icons-react';
@@ -228,6 +229,15 @@ export default function MobileBottomNav({ auth }) {
 										active={url.startsWith('/admin/reports')}
 										icon={IconClipboardPlus}
 										label="Verifikasi Laporan"
+										colorClass="text-muted-foreground"
+										bgClass="bg-destructive/10 text-destructive"
+										onClick={() => setShowAdminMenu(false)}
+									/>
+									<FloatingLink
+										href={route('admin.units.index')}
+										active={url.startsWith('/admin/units')}
+										icon={IconTruck}
+										label="Kelola Armada"
 										colorClass="text-muted-foreground"
 										bgClass="bg-destructive/10 text-destructive"
 										onClick={() => setShowAdminMenu(false)}

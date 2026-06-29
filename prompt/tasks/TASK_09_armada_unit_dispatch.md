@@ -7,7 +7,7 @@
 | Severity | P3 (fitur besar — butuh perencanaan & kemungkinan dipecah) |
 | Tipe | fitur |
 | Sumber | permintaan user (analisis fitur kurang 2026-06-28, #3) |
-| Status | TODO (BLOCKED — butuh keputusan scope user sebelum koding) |
+| Status | SELESAI (2026-06-29) — scope dikonfirmasi user, Fase 1+2 diimplementasikan |
 
 ---
 
@@ -85,10 +85,41 @@ agar bisa di-roll back independen.
 ---
 
 ## Acceptance criteria
-- [ ] Keputusan scope (a)-(d) dikonfirmasi user SEBELUM koding
-- [ ] Fase 1: katalog unit CRUD berfungsi + terisolasi sesuai keputusan wilayah
-- [ ] Fase 2: dispatch/release unit konsisten dengan siklus status laporan
-- [ ] Tidak ada regresi (test ≥ baseline)
-- [ ] Diff sesuai konvensi (tiru Hydrant CRUD, report_officers pivot, SKILL.md untuk UI)
-- [ ] `prompt/docs/ARCHITECTURE_MAP.md` dikoreksi (Unit bukan stub — fitur baru) + entitas
+- [x] Keputusan scope (a)-(d) dikonfirmasi user SEBELUM koding
+- [x] Fase 1: katalog unit CRUD berfungsi + terisolasi sesuai keputusan wilayah
+- [x] Fase 2: dispatch/release unit konsisten dengan siklus status laporan
+- [x] Tidak ada regresi (test ≥ baseline)
+- [x] Diff sesuai konvensi (tiru Hydrant/Pompa CRUD, report_officers pivot, SKILL.md untuk UI)
+- [x] `prompt/docs/ARCHITECTURE_MAP.md` dikoreksi (Unit bukan stub — fitur baru) + entitas
       Unit/dispatch ditambahkan
+
+---
+
+## Hasil implementasi (2026-06-29)
+
+**Keputusan scope user (via AskUserQuestion):**
+- (a) Unit **ter-scope wilayah** (`Tenantable`) + (b) homebase **PosPemadam** opsional (nullable FK).
+- (c) Dispatch unit **melengkapi** alur responder-orang (status laporan dipegang responder; unit
+  hanya aset yang dikerahkan, tidak mengubah status laporan).
+- (d) **Status saja**, tanpa tracking GPS unit (lokasi lapangan tetap dipegang tracking petugas).
+
+**File dibuat/diubah:**
+- `database/migrations/2026_06_28_120000_create_units_table.php`,
+  `..._120100_create_report_units_table.php`
+- `app/Models/Unit.php` (Tenantable+SoftDeletes, `$guarded=[]`, relasi posPemadam/reportUnits/wilayah),
+  `app/Models/ReportUnit.php`; `Report::reportUnits()` ditambah.
+- `app/Http/Controllers/Admin/UnitController.php` (CRUD ter-scope, status hanya available/maintenance,
+  homebase pos divalidasi dalam yurisdiksi).
+- `app/Http/Controllers/ReportActionController.php`: `dispatchUnit()`, `releaseUnit()`, auto-release
+  semua unit dispatched saat `resolve()`.
+- `app/Http/Controllers/ReportController.php`: `show()` memuat `reportUnits.unit` + prop `availableUnits`
+  (ter-scope, staf saja).
+- `routes/web.php`: `Route::resource('units')` di grup admin; `reports.dispatch-unit`/`release-unit`.
+- Frontend: `resources/js/Pages/Admin/Units/{Index,Create,Edit}.jsx`, panel "Pengerahan Armada" di
+  `Front/Reports/Show.jsx`, menu "Manajemen Armada" di `Sidebar.jsx` + `MobileBottomNav.jsx`.
+- Tes: `tests/Feature/Sisupit/UnitDispatchTest.php` (5), `UnitManagementTest.php` (3).
+
+**Verifikasi:** `vendor/bin/pest` → **121 passed** (337 assertions). `npm run build` lulus.
+
+**Catatan:** Edit unit yang sedang `dispatched` menampilkan peringatan (status select hanya
+available/maintenance); penarikan unit normalnya lewat panel insiden, bukan form edit.

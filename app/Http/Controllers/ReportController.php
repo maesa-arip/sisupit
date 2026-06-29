@@ -11,6 +11,7 @@ use App\Http\Requests\ReportRequest;
 use App\Models\Report;
 use App\Models\Setting;
 use App\Models\TrackingLog;
+use App\Models\Unit;
 use App\Models\User;
 use App\Notifications\EmergencyAlertNotification;
 use Illuminate\Http\Request;
@@ -84,11 +85,18 @@ class ReportController extends Controller
             'officers.user:id,name,phone',
             'helpers.user:id,name,phone',
             'photos:id,report_id,path',
+            'reportUnits.unit:id,name,type,status',
             'province',
             'city',
             'district',
             'village'
         ]);
+
+        // Daftar unit yang tersedia untuk dikerahkan — hanya untuk staf, ter-scope wilayah
+        // (Tenantable) milik staf yang melihat (sama dengan validasi dispatchUnit).
+        $availableUnits = $isStaff
+            ? Unit::where('status', 'available')->get(['id', 'name', 'type'])
+            : [];
 
         // Jejak yang sudah ditempuh tiap responder yang masih aktif (belum selesai),
         // diurutkan kronologis agar bisa digambar sebagai garis rute berurutan di peta
@@ -111,6 +119,7 @@ class ReportController extends Controller
         return inertia('Front/Reports/Show', [
             'report' => $report,
             'trails' => $trails,
+            'availableUnits' => $availableUnits,
         ]);
     }
 

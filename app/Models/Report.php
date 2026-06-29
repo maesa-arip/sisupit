@@ -60,6 +60,11 @@ class Report extends Model
     {
         return $this->hasMany(ReportPhoto::class, 'report_id', 'id');
     }
+    // Unit/armada yang dikerahkan ke insiden ini (TASK_09).
+    public function reportUnits(): HasMany
+    {
+        return $this->hasMany(ReportUnit::class, 'report_id', 'id');
+    }
      // 3. Relasi ke wilayah
     public function province() {
         return $this->belongsTo(Province::class, 'province_code', 'code');

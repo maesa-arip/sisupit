@@ -17,6 +17,9 @@
 > **Update 2026-06-28:** ditambahkan 4 temuan berbasis permintaan fitur user (#16–#19,
 > gap fitur bukan bug). #16 (notif balik ke pelapor) jadi **task aktif** (TASK_06).
 > #17/#18/#19 OPEN sebagai backlog; #19 (armada/Unit) BLOCKED menunggu keputusan scope.
+>
+> **Update 2026-06-29:** #19 (armada/Unit) FIXED (TASK_09) setelah scope dikonfirmasi user.
+> Sisa backlog: #18 (chat, TASK_08) DITUNDA atas keputusan user; #9 mass-reformat (P3, terpisah).
 
 Severity: **P0** keamanan/uang/kehilangan data · **P1** bug fungsional ·
 **P2** inkonsistensi/teknis-debt · **P3** kosmetik/minor.
@@ -44,7 +47,7 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 | 16 | P2 | Tidak ada notifikasi balik ke pelapor saat status laporannya berubah | `app/Http/Controllers/ReportActionController.php` (approve l.26, takeAction l.62, arrive l.100, resolve l.123) | Pelapor tak pernah tahu laporannya divalidasi/direspons/selesai — `Notification::send` hanya menarget responder (l.51/54), tak ada loop-balik ke `report->user` | FIXED | TASK_06 |
 | 17 | P2 | Laporan hanya bisa membawa satu foto | `database/migrations/2025_07_19_091844_create_reports_table.php:25`, `app/Models/Report.php:28` | `reports.photo` satu kolom string → tidak bisa banyak foto/sudut/progres; insiden nyata butuh galeri | FIXED | TASK_07 |
 | 18 | P2 | Tidak ada kanal pesan/koordinasi per insiden (responder ↔ command center) | `app/Http/Controllers/ReportActionController.php`, `Reports/Show.jsx` | Koordinasi lapangan hanya lewat status + tracking; tak ada chat real-time ter-scope per laporan meski Reverb sudah ada | OPEN | TASK_08 |
-| 19 | P3 | Tidak ada manajemen armada/Unit (kendaraan & dispatch) | `app/Models/Unit.php` (tidak ada — peta arsitektur basi), `app/` (nol tabel `units`) | Sistem mengoordinasi orang tapi bukan kendaraan; tak ada katalog unit, status, atau dispatch ke insiden — fondasi DAMKAR hilang | OPEN (BLOCKED scope) | TASK_09 |
+| 19 | P3 | Tidak ada manajemen armada/Unit (kendaraan & dispatch) | `app/Models/Unit.php` (tidak ada — peta arsitektur basi), `app/` (nol tabel `units`) | Sistem mengoordinasi orang tapi bukan kendaraan; tak ada katalog unit, status, atau dispatch ke insiden — fondasi DAMKAR hilang | FIXED | TASK_09 |
 | 20 | P1 | Petugas dengan yurisdiksi kecamatan+ terjebak loop "lengkapi profil sampai desa" | `app/Http/Middleware/EnsureProfileComplete.php:37,61` × `app/Http/Controllers/Admin/UserController.php:281` | `trimRegionToLevel()` meng-null-kan `village_code` saat level kecamatan/kabupaten/provinsi (benar untuk tenant scope), tapi middleware menganggap `village_code` null = profil belum lengkap & `petugas` tak ada di `EXEMPT_ROLES` → petugas dilempar ke complete-profile tiap login; mengisinya malah merusak yurisdiksi (terkurung 1 desa) | FIXED | — |
 | 21 | P1 | Admin wilayah bisa mengelola RBAC global (role/permission/route-access) & pengumuman nasional | `routes/admin.php:12` (grup `role:admin\|superadmin` membungkus semua) | Admin wilayah (mis. `admin@denpasar.go.id`) punya CRUD penuh ke `/admin/roles`, `/admin/permissions`, `/admin/assign-permissions`, `/admin/route-accesses` (model akses GLOBAL — bisa mendefinisikan ulang kewenangan seluruh sistem) + `/admin/announcements` (broadcast nasional). Controller RBAC tak punya cek role internal, murni andalkan middleware grup | FIXED | — |
 | 22 | P1 | Daftar relawan tidak ter-scope yurisdiksi (petugas wilayah mana pun lihat & buka detail relawan se-Indonesia) | `app/Http/Controllers/Front/RelawanController.php` — `index()` l.20, `regionFilterOptions()` l.102, `show()` l.52 | Rute sudah di-gate `petugas\|admin\|superadmin` (bukan publik), tapi query tidak pakai `isAdmin()` → petugas Denpasar melihat seluruh relawan nasional di daftar, dropdown filter penuh wilayah luar, dan bisa membuka detail (nama/HP/alamat/KTP-area) relawan lintas wilayah via ID. Bocor PII relawan lintas-tenant | FIXED | — |
@@ -375,7 +378,7 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **Dampak:** Fondasi DAMKAR hilang — tidak bisa melacak truk/tangki/rescue yang dikerahkan.
 - **Rekomendasi:** Fase 1 katalog Unit (CRUD admin, tiru `HydrantController`); Fase 2 pivot `report_units` + dispatch/release sejajar siklus status laporan. Keputusan scope (tenant/relasi pos/tracking) wajib dikonfirmasi dulu. Detail di `prompt/tasks/TASK_09_armada_unit_dispatch.md`.
 - **Sumber:** permintaan user (analisis fitur kurang 2026-06-28, prioritas #3).
-- **Status:** OPEN — BLOCKED menunggu keputusan scope user (TASK_09)
+- **Status:** FIXED (TASK_09, 2026-06-29) — scope dikonfirmasi user: ter-scope wilayah (Tenantable) + homebase pos opsional, Fase 1+2 (katalog + dispatch), status saja (tanpa GPS unit). Terimplementasi: tabel `units` & `report_units`, model `Unit` (Tenantable+SoftDeletes) & `ReportUnit`, `Admin\UnitController` (CRUD ter-scope), `ReportActionController::dispatchUnit/releaseUnit` (+ auto-release saat resolve), props `availableUnits` di Show, panel pengerahan armada (staf), menu "Manajemen Armada" (sidebar+mobile). Tes: `UnitDispatchTest` (5) + `UnitManagementTest` (3).
 
 ### #20 — Petugas yurisdiksi kecamatan+ terjebak loop "lengkapi profil sampai desa"
 - **Severity:** P1 (akun petugas tak bisa dipakai — terkunci di onboarding)

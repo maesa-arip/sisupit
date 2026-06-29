@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Enums\TenantLevel;
 use App\Models\Report;
+use App\Models\ReportUnit;
 use App\Models\Setting;
 use App\Models\TrackingLog;
+use App\Models\Unit;
 use App\Models\User; // <-- Wajib ditambahkan
 use Illuminate\Http\Request;
 use App\Events\ResponderLocationUpdated;
@@ -200,6 +202,65 @@ class ReportActionController extends Controller
         return back()->with('success', 'Keberangkatan dibatalkan.');
     }
 
+    // 2c. Pusat Komando mengerahkan UNIT/armada ke insiden (TASK_09).
+    public function dispatchUnit(Request $request, $id)
+    {
+        if (!auth()->user()->hasAnyRole(['petugas', 'admin', 'superadmin'])) {
+            abort(403, 'Akses Ditolak.');
+        }
+
+        $request->validate(['unit_id' => 'required|integer']);
+
+        $report = Report::withoutGlobalScopes()->findOrFail($id);
+        if (in_array($report->status, ['resolved', 'ditolak'], true)) {
+            abort(403, 'Insiden ini sudah ditutup.');
+        }
+
+        // Unit di-scope Tenantable → hanya unit di wilayah admin yang bisa dikerahkan.
+        $unit = Unit::findOrFail($request->unit_id);
+        if ($unit->status !== 'available') {
+            abort(403, 'Unit ini sedang tidak tersedia.');
+        }
+
+        DB::transaction(function () use ($report, $unit) {
+            ReportUnit::create([
+                'report_id' => $report->id,
+                'unit_id' => $unit->id,
+                'status' => 'dispatched',
+                'dispatched_at' => now(),
+            ]);
+            $unit->update(['status' => 'dispatched']);
+        });
+
+        return back()->with('success', 'Unit dikerahkan ke insiden.');
+    }
+
+    // 2d. Menarik kembali unit dari insiden (status unit -> available).
+    public function releaseUnit(Request $request, $id)
+    {
+        if (!auth()->user()->hasAnyRole(['petugas', 'admin', 'superadmin'])) {
+            abort(403, 'Akses Ditolak.');
+        }
+
+        $request->validate(['unit_id' => 'required|integer']);
+
+        $report = Report::withoutGlobalScopes()->findOrFail($id);
+
+        DB::transaction(function () use ($report, $request) {
+            $pivot = ReportUnit::where('report_id', $report->id)
+                ->where('unit_id', $request->unit_id)
+                ->where('status', 'dispatched')
+                ->first();
+
+            if ($pivot) {
+                $pivot->update(['status' => 'released', 'released_at' => now()]);
+                Unit::withoutGlobalScopes()->whereKey($request->unit_id)->update(['status' => 'available']);
+            }
+        });
+
+        return back()->with('success', 'Unit ditarik dari insiden.');
+    }
+
     // 3. Saat Relawan/Petugas Tiba di Lokasi
     public function arrive($id)
     {
@@ -254,6 +315,14 @@ class ReportActionController extends Controller
             // Tandai semua relawan & petugas yang berpartisipasi menjadi selesai
             DB::table('report_officers')->where('report_id', $report->id)->update(['status' => 'finished', 'finished_at' => now()]);
             DB::table('report_helpers')->where('report_id', $report->id)->update(['status' => 'finished', 'finished_at' => now()]);
+
+            // Release semua unit yang masih dikerahkan → kembali available (TASK_09).
+            $dispatchedUnitIds = DB::table('report_units')->where('report_id', $report->id)->where('status', 'dispatched')->pluck('unit_id');
+            if ($dispatchedUnitIds->isNotEmpty()) {
+                DB::table('report_units')->where('report_id', $report->id)->where('status', 'dispatched')
+                    ->update(['status' => 'released', 'released_at' => now(), 'updated_at' => now()]);
+                DB::table('units')->whereIn('id', $dispatchedUnitIds)->update(['status' => 'available', 'updated_at' => now()]);
+            }
         });
 
         // Loop-balik ke pelapor: insiden ditutup.

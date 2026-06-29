@@ -19,7 +19,8 @@ import {
     IconShieldLock,
     IconKey,
     IconLockAccess,
-    IconRoute
+    IconRoute,
+    IconTruck
 } from '@tabler/icons-react';
 
 export default function Sidebar({ url, auth }) {
@@ -155,7 +156,14 @@ export default function Sidebar({ url, auth }) {
                         title="Manajemen Pos Pemadam"
                         icon={IconFiretruck}
                     />
-                    
+
+                    <NavLink
+                        url={route('admin.units.index')}
+                        active={url.startsWith('/admin/units')}
+                        title="Manajemen Armada"
+                        icon={IconTruck}
+                    />
+
                     {/* Pengumuman global + RBAC + Sistem = lintas-tenant, superadmin saja
                         (sesuai gating route admin.php). Admin wilayah tak melihat menu ini. */}
                     {isSuperadmin && (

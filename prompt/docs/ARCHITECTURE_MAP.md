@@ -43,7 +43,8 @@ app/
     VolunteerController.php     Self-register relawan + toggle standby
     ReportHelperController.php  (terpisah dari ReportActionController — lihat catatan risiko)
   Models/        Announcement, Pompa, PosPemadam, ReportHelper, RouteAccess,
-                 SocialAccount, Unit (stub kosong, tidak dipakai), Hydrant, TrackingLog,
+                 SocialAccount, Unit (armada/kendaraan — Tenantable+SoftDeletes, TASK_09),
+                 ReportUnit (pivot dispatch unit↔laporan, TASK_09), Hydrant, TrackingLog,
                  ReportOfficer, Report, FcmToken, Setting, User
   Policies/      UserPolicy.php — satu-satunya Policy di codebase
   Traits/
@@ -155,7 +156,8 @@ Model yang **sengaja global** (tidak pakai Tenantable): `Setting`, `RouteAccess`
 | Setting | tidak ada relasi (key-value cache, `Setting::getValue/setValue`) | Global, bukan per-tenant — dipakai untuk `KEY_NOTIFY_LEVEL_PETUGAS`/`_RELAWAN` |
 | RouteAccess | belongsTo Role, Permission | Global, kontrol akses per nama rute |
 | Announcement | tidak ada relasi | Global, broadcast publik, dipakai di shared prop `announcemet` (typo, lihat anti-pola) |
-| Unit | — | **Stub kosong, tidak dipakai di mana pun** — kandidat dead code |
+| Unit | hasMany ReportUnit; belongsTo PosPemadam (homebase, nullable); relasi wilayah; `Tenantable`+SoftDeletes, `$guarded=[]` | Katalog armada/kendaraan (TASK_09). Status: `available`/`dispatched`/`maintenance`. CRUD admin ter-scope via `Admin\UnitController`; dispatch/release via `ReportActionController` |
+| ReportUnit | belongsTo Report, Unit; `$guarded=[]`; casts dispatched_at/released_at | Pivot pengerahan unit ke insiden (TASK_09). Status pivot: `dispatched`/`released`. Auto-released saat laporan `resolve()` |
 | FcmToken, SocialAccount | belongsTo User | Token push & akun sosial |
 
 ## Endpoint / route
@@ -171,14 +173,16 @@ auth (login saja)       : POST /fcm-token, POST /notifications/{id}/read & /noti
                            (lonceng web, TASK_11), POST /webpush/subscribe (tanpa middleware 'auth'
                            padahal memanggil $request->user() — lihat FINDINGS_LOG #4)
 auth+verified           : /dashboard, /reports/* (CRUD milik sendiri + approve/reject/take-action/
-                           cancel-response/arrive/resolve/update-location/correct-location), /profile/*,
+                           cancel-response/dispatch-unit/release-unit/arrive/resolve/update-location/
+                           correct-location), /profile/*,
                            /complete-profile, /volunteer/register, /volunteer/standby,
                            /helpers/create, /users/relawan/{user}, /users/detail/{user}
                            (2 terakhir TANPA role check — FINDINGS_LOG #1, P0)
 auth (login saja)       : /api/geocode/{reverse,search}, /api/route/directions (proxy OSRM)
 role:admin|superadmin   : /admin/users/*, /admin/facilities (dead, no view),
                            /admin/hydrants/* (resource), /admin/pumps/* (resource),
-                           /admin/fire-stations/* (resource), /admin/reports/*
+                           /admin/fire-stations/* (resource), /admin/units/* (resource, TASK_09),
+                           /admin/reports/*
 role:superadmin (admin.php): /admin/announcements/*, /admin/roles/*, /admin/permissions/*,
                            /admin/assign-permissions/*, /admin/route-accesses/* (FINDINGS #21)
 role:superadmin         : /admin/settings (GET/PUT)
