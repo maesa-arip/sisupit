@@ -44,6 +44,9 @@ export default function Dashboard(props) {
 	const firstName = auth?.name ? auth.name.split(' ').find((word) => word.length >= 3) || 'Warga' : 'Warga';
 
 	const myReports = props.myReports || [];
+	// Tugas relawan ini (lintas wilayah, bypass scope desa) — dipakai khusus tab "Tugas Saya"
+	// agar tugasnya sendiri tak hilang saat insidennya di luar desanya.
+	const myTasks = props.myTasks || [];
 	const initialReports = props.page_data?.reports?.data || [];
 	const initialNextPageUrl = props.page_data?.reports?.links?.next || null;
 
@@ -126,16 +129,22 @@ export default function Dashboard(props) {
 		);
 	};
 
-	const filteredReports = useMemo(() => {
+	// Feed ter-scope desa untuk tab "Butuh Respons" & "Semua Laporan".
+	const feedReports = useMemo(() => {
 		return reports.filter((report) => {
-			const hasHelpers = report.helpers?.length > 0;
-			const isMyTask = report.helpers?.some((helper) => helper.user?.id === auth.id);
-
-			if (activeTab === 'menunggu') return !hasHelpers;
-			if (activeTab === 'tugas_saya') return isMyTask;
-			return true;
+			if (activeTab === 'menunggu') {
+				// "Butuh Respons" = insiden yang MASIH aktif (belum selesai) dan belum kamu
+				// ikuti — bukan sekadar "tanpa helper". Jadi banyak relawan bisa merespons satu
+				// insiden, dan baru hilang dari antrianmu saat kamu bergabung atau insiden selesai.
+				const isMyTask = report.helpers?.some((h) => h.user_id === auth.id);
+				return report.status !== 'resolved' && !isMyTask;
+			}
+			return true; // 'semua'
 		});
 	}, [reports, activeTab, auth.id]);
+
+	// "Tugas Saya" memakai sumber terpisah (myTasks, lintas wilayah); tab lain pakai feed.
+	const displayedReports = activeTab === 'tugas_saya' ? myTasks : feedReports;
 
 	const handleLoadMore = () => {
 		if (!nextPageUrl) return;
@@ -275,7 +284,7 @@ export default function Dashboard(props) {
 				)}
 			</div>
 
-			{filteredReports.length === 0 ? (
+			{displayedReports.length === 0 ? (
 				<div className="mt-4 flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 p-12 text-center shadow-none">
 					<div className="mb-4 rounded-full border border-border bg-muted p-4">
 						<IconShieldCheck className="h-8 w-8 text-muted-foreground" stroke={1.5} />
@@ -298,7 +307,7 @@ export default function Dashboard(props) {
 			) : (
 				<>
 					<div className="mt-2 grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
-						{filteredReports.map((report) => (
+						{displayedReports.map((report) => (
 							<ReportCard
 								key={report.id}
 								report={report}
@@ -308,7 +317,7 @@ export default function Dashboard(props) {
 							/>
 						))}
 					</div>
-					{nextPageUrl && (
+					{nextPageUrl && activeTab !== 'tugas_saya' && (
 						<div className="flex w-full justify-center pb-8 pt-4">
 							<Button
 								variant="outline"

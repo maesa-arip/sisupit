@@ -195,6 +195,10 @@ export default function ReportShow(props) {
 				};
 			case 'finished':
 				return { label: 'Selesai Tugas', color: 'bg-muted text-muted-foreground border-border' };
+			case 'waiting':
+				// Status legacy dari alur respons kartu lama (front.helpers.store); alur baru
+				// memakai 'en_route'. Tetap diberi label Indonesia agar tidak tampil mentah.
+				return { label: 'Bersiap', color: 'bg-muted text-muted-foreground border-border' };
 			default:
 				return { label: status, color: 'bg-muted text-muted-foreground border-border' };
 		}
@@ -364,15 +368,22 @@ export default function ReportShow(props) {
 	};
 
 	useEffect(() => {
-		if (!isCurrentlyResponding) return;
+		if (!isCurrentlyResponding || !navigator.geolocation) return;
 		const watchId = navigator.geolocation.watchPosition(
-			(pos) =>
-				axios
-					.post(`/reports/${report.id}/update-location`, {
-						lat: pos.coords.latitude,
-						lng: pos.coords.longitude,
-					})
-					.catch(() => {}),
+			(pos) => {
+				const lat = pos.coords.latitude;
+				const lng = pos.coords.longitude;
+				// Tampilkan posisi sendiri di peta SEGERA dari GPS lokal — jangan menunggu
+				// echo broadcast (yang butuh Reverb aktif). Tanpa ini, responder tak melihat
+				// markernya sendiri saat websocket mati. Update record-ku di list mana pun.
+				setOfficerList((prev) =>
+					prev.map((o) => (o.user_id === auth.user.id ? { ...o, location_lat: lat, location_lng: lng } : o)),
+				);
+				setHelperList((prev) =>
+					prev.map((h) => (h.user_id === auth.user.id ? { ...h, location_lat: lat, location_lng: lng } : h)),
+				);
+				axios.post(`/reports/${report.id}/update-location`, { lat, lng }).catch(() => {});
+			},
 			(err) => console.error(err),
 			GEO_OPTIONS.tracking,
 		);
@@ -774,6 +785,16 @@ export default function ReportShow(props) {
 										<IconMapPin className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
 										<span className="leading-relaxed">{incidentLocation.address}</span>
 									</div>
+									{incidentLocation.lat && incidentLocation.lng && (
+										<a
+											href={`https://www.google.com/maps/dir/?api=1&destination=${incidentLocation.lat},${incidentLocation.lng}`}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground shadow-none transition-colors hover:bg-accent"
+										>
+											<IconMap className="h-3.5 w-3.5 text-destructive" /> Navigasi ke Lokasi
+										</a>
+									)}
 								</div>
 							</div>
 
@@ -902,9 +923,14 @@ export default function ReportShow(props) {
 													<IconX className="h-4 w-4" /> Batal Meluncur
 												</Button>
 											</>
-										) : (
+										) : myRecord.status === 'arrived' ? (
 											<div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-center text-xs font-bold text-blue-700 dark:border-info/20 dark:bg-info/10 dark:text-info">
 												Anda Sedang di Lokasi.
+											</div>
+										) : (
+											// Status tak terduga (mis. legacy 'waiting') — jangan klaim sudah di lokasi.
+											<div className="rounded-lg border border-border bg-muted p-3 text-center text-xs font-bold text-muted-foreground">
+												Status Anda: {getResponderStatus(myRecord.status).label}
 											</div>
 										)}
 

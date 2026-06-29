@@ -134,6 +134,19 @@ class DashboardController extends Controller
             ]);
         }
 
+        // 2b. Tugas yang sedang/pernah ditangani relawan ini — DI-BYPASS Tenantable agar
+        // tugasnya sendiri tetap terlihat walau insidennya di luar desanya (feed di bawah
+        // ter-scope desa, jadi tugas lintas wilayah akan hilang dari tab "Tugas Saya").
+        $myTasks = [];
+        if ($user->hasRole('relawan')) {
+            $myTasks = Report::withoutGlobalScopes()
+                ->with(['helpers.user'])
+                ->whereHas('helpers', fn ($q) => $q->where('user_id', $user->id))
+                ->where('status', '!=', 'ditolak')
+                ->latest('created_at')
+                ->get();
+        }
+
         // 3. Data Feed Laporan untuk TABS (Butuh Respons / Tugas Saya / Semua Laporan)
         // Tanpa withoutGlobalScopes() agar tunduk ke scope Tenantable: feed otomatis
         // terbatas ke wilayah (desa/kecamatan/kabupaten/provinsi) milik warga yang melihat,
@@ -148,6 +161,7 @@ class DashboardController extends Controller
             'myReports' => $myReports,
             'isRelawan' => $user->hasRole('relawan'),
             'nearbyEmergencies' => $nearbyEmergencies,
+            'myTasks' => $myTasks,
             'page_data' => [
                 'reports' => $reportsFeed,  // Sekarang page_data.reports terisi dengan sempurna!
             ],

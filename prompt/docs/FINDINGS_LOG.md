@@ -569,3 +569,20 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **Verifikasi:** lihat #31 (suite sama, 127 passed / 345 assertions).
 - **Sumber:** audit menyeluruh 2026-06-29.
 - **Status:** FIXED (2026-06-29)
+
+### #33 — Alur respons relawan tidak konsisten & detail tak bisa diakses sebelum commit
+- **Severity:** P2 (UX rusak + alur respons relawan cacat)
+- **Lokasi:** `app/Http/Controllers/ReportController.php` (`show` otorisasi), `app/Http/Controllers/ReportHelperController.php` (`store`), `resources/js/Components/ReportCard.jsx`, `resources/js/Pages/Front/Reports/Show.jsx`
+- **Gejala:** Relawan punya DUA alur respons yang berbeda semantik:
+  1. Dari kartu radar ("Saya Akan Bantu" → `HelpConfirmAlertDialog` → `front.helpers.store`): set `status='waiting'`, TIDAK ubah laporan ke `handling`, TIDAK set waktu, TIDAK broadcast, redirect ke dashboard.
+  2. Dari detail ("Meluncur ke Lokasi" → `take-action`): set `en_route`, ubah ke `handling`, broadcast roster.
+  Akibat: (a) status `waiting` tak dikenali `Show.jsx` → manifes badge mentah "waiting", Panel Tindakan jatuh ke fallback "Anda Sedang di Lokasi." (SALAH) tanpa tombol Tiba/Batal → relawan mandek. (b) `ReportController::show()` menolak relawan non-helper (403) → relawan harus commit "Saya Akan Bantu" secara buta sebelum bisa melihat detail insiden. (c) Respons dari kartu tak ter-broadcast → viewer lain tak lihat relawan baru real-time.
+- **Keputusan produk (user, 2026-06-29):** satukan alur respons di halaman detail; izinkan relawan membuka detail read-only (ter-scope yurisdiksi) sebelum memutuskan meluncur (menerima trade-off ekspos lokasi/PII ke relawan siaga sewilayah).
+- **Fix (2026-06-29):**
+  1. `show()` — tambah `$isRelawanInArea = hasRole('relawan') && status!='ditolak' && withinReportJurisdiction($report)` ke gerbang akses (read-only sebelum commit).
+  2. `ReportCard.jsx` — tombol relawan diganti dari `HelpConfirmAlertDialog` jadi `Link` "Lihat & Respons" → `reports.show`; respons kini lewat "Meluncur ke Lokasi" (`take-action`) di detail (en_route + handling + broadcast `ResponderRosterChanged`). Import `HelpConfirmAlertDialog` dihapus dari kartu.
+  3. `Show.jsx` — `getResponderStatus('waiting')` diberi label "Bersiap"; cabang panel "Anda Sedang di Lokasi." dipersempit ke `status==='arrived'` saja (status tak terduga menampilkan label netral, bukan klaim palsu).
+- **Sisa cleanup (BELUM, di luar scope ini):** endpoint `front.helpers.store` (`ReportHelperController::store`, route web.php:162) + komponen `HelpConfirmAlertDialog.jsx` & `VolunteerAction.jsx` (dead, tak dipakai) kini tak terpakai oleh alur hidup; status `'waiting'` jadi legacy. Pertimbangkan hapus/deprecate di task terpisah agar tak ada lagi sumber data `waiting` baru.
+- **Verifikasi:** `npm run build` lulus; `php artisan test` 127 passed (345 assertions). Manual: relawan buka kartu → Lihat & Respons → detail → Meluncur → Tiba/Batal berfungsi & ter-broadcast.
+- **Sumber:** review tampilan relawan 2026-06-29.
+- **Status:** FIXED (sisa cleanup endpoint mati OPEN)

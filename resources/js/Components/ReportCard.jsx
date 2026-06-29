@@ -5,7 +5,6 @@ import { CheckCircle2, Clock, Flame, MapPin, Navigation, ShieldAlert, User, User
 import { useState } from 'react';
 import DialogRelawanDetail from './DialogRelawanDetail';
 import DialogRelawanList from './DialogRelawanList';
-import HelpConfirmAlertDialog from './HelpConfirmAlertDialog';
 
 export default function ReportCard({ report, currentUser, onSuccess, isRelawan }) {
 	const [showList, setShowList] = useState(false);
@@ -24,7 +23,7 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan }
 
 	const lat = report.lat || report.location_lat;
 	const lng = report.lng || report.location_lng;
-	const googleMapsUrl = `http://googleusercontent.com/maps.google.com/maps?q=${lat},${lng}`;
+	const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 
 	const hasHelpers = report.helpers?.length > 0;
 	const hasPhoto = !!report.photo;
@@ -180,11 +179,12 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan }
 								Kasus Selesai
 							</button>
 						) : isRelawan ? (
-							<HelpConfirmAlertDialog
-								reportId={report.id}
+							<Link
+								href={route('reports.show', report.id)}
 								className="flex h-8 w-full items-center justify-center rounded-md border border-destructive bg-destructive text-[10px] font-bold uppercase tracking-wider text-destructive-foreground shadow-none outline-none transition-colors hover:bg-destructive/90 focus:ring-2 focus:ring-destructive/50"
-								onSuccess={onSuccess}
-							/>
+							>
+								Lihat &amp; Respons
+							</Link>
 						) : (
 							<button
 								disabled

@@ -76,8 +76,14 @@ class ReportController extends Controller
         $isReporter = $user->id === $report->user_id;
         $isStaff = $user->hasAnyRole(['admin', 'superadmin', 'petugas']) && $user->withinReportJurisdiction($report);
         $isHelper = DB::table('report_helpers')->where('report_id', $report->id)->where('user_id', $user->id)->exists();
+        // Relawan boleh memantau insiden di wilayahnya secara read-only untuk menilai
+        // sebelum memutuskan meluncur (alur respons disatukan di halaman detail). Ter-scope
+        // yurisdiksi sama dgn radar dashboard; insiden yang sudah ditolak tidak ditampilkan.
+        $isRelawanInArea = $user->hasRole('relawan')
+            && $report->status !== 'ditolak'
+            && $user->withinReportJurisdiction($report);
 
-        if (! $isReporter && ! $isStaff && ! $isHelper) {
+        if (! $isReporter && ! $isStaff && ! $isHelper && ! $isRelawanInArea) {
             abort(403, 'Anda tidak memiliki wewenang untuk memantau insiden ini.');
         }
 
