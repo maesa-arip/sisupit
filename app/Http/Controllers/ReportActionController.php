@@ -6,6 +6,7 @@ use App\Enums\TenantLevel;
 use App\Events\IncidentLocationCorrected;
 use App\Events\ReportStatusChanged;
 use App\Events\ResponderLocationUpdated;
+use App\Events\ResponderRosterChanged;
 use App\Models\Report;
 use App\Models\ReportUnit;
 use App\Models\Setting; // <-- Wajib ditambahkan
@@ -128,8 +129,11 @@ class ReportActionController extends Controller
         // Apakah transisi pending -> handling benar terjadi pada panggilan ini (responder
         // pertama). Dipakai agar notifikasi ke pelapor TIDAK spam tiap responder bergabung.
         $becameHandling = false;
+        // Apakah baris responder baru benar-benar masuk (bukan klik ganda) — penanda agar
+        // viewer lain memuat ulang manifes + marker peta secara real-time.
+        $rosterChanged = false;
 
-        DB::transaction(function () use ($report, $user, $table, $timeColumn, &$becameHandling) {
+        DB::transaction(function () use ($report, $user, $table, $timeColumn, &$becameHandling, &$rosterChanged) {
             // Mencegah Double Insert
             $exists = DB::table($table)->where('report_id', $report->id)->where('user_id', $user->id)->lockForUpdate()->exists();
 
@@ -142,6 +146,7 @@ class ReportActionController extends Controller
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
+                $rosterChanged = true;
 
                 // Jika status masih pending, ubah jadi handling (sedang ditangani)
                 if ($report->status === 'pending') {
@@ -155,6 +160,11 @@ class ReportActionController extends Controller
         if ($becameHandling) {
             $this->notifyReporter($report, 'en_route');
             broadcast(new ReportStatusChanged($report->id, 'handling'));
+        }
+
+        // Beri tahu viewer lain bahwa ada responder baru di insiden ini.
+        if ($rosterChanged) {
+            broadcast(new ResponderRosterChanged($report->id));
         }
 
         return back()->with('success', 'Berhasil merespons! Harap segera menuju lokasi.');
@@ -198,6 +208,9 @@ class ReportActionController extends Controller
         if ($reverted) {
             broadcast(new ReportStatusChanged($report->id, 'pending'));
         }
+
+        // Responder hilang dari manifes → viewer lain perlu menghapus marker/barisnya.
+        broadcast(new ResponderRosterChanged($report->id));
 
         return back()->with('success', 'Keberangkatan dibatalkan.');
     }
@@ -301,6 +314,9 @@ class ReportActionController extends Controller
             $this->notifyReporter($report, 'arrived');
         }
 
+        // Status responder berubah (Meluncur → Tiba) → perbarui manifes di viewer lain.
+        broadcast(new ResponderRosterChanged($report->id));
+
         return back()->with('success', 'Status Anda berhasil diupdate menjadi Tiba.');
     }
 
@@ -333,6 +349,8 @@ class ReportActionController extends Controller
         // Loop-balik ke pelapor: insiden ditutup.
         $this->notifyReporter($report, 'resolved');
         broadcast(new ReportStatusChanged($report->id, 'resolved'));
+        // Semua responder kini 'finished' → segarkan manifes di viewer lain.
+        broadcast(new ResponderRosterChanged($report->id));
 
         return back()->with('success', 'Insiden Selesai Ditangani.');
     }

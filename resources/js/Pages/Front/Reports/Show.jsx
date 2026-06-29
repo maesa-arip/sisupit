@@ -35,6 +35,11 @@ import { toast } from 'sonner';
 // supaya pergerakan kecil tidak terus-menerus memanggil OSRM.
 const ROUTE_REFETCH_METERS = 30;
 
+// Sakelar fitur: panel "Pengerahan Armada" disembunyikan sementara (keputusan user
+// 2026-06-29) karena masih terpisah dari pelacakan petugas. Set true untuk menampilkannya
+// kembali — seluruh backend & alur dispatch/release tetap utuh.
+const SHOW_ARMADA_PANEL = false;
+
 // Jarak haversine kasar (meter) antara dua titik koordinat.
 function distanceMeters(lat1, lng1, lat2, lng2) {
 	const R = 6371000;
@@ -104,7 +109,13 @@ export default function ReportShow(props) {
 	// Pengerahan unit/armada (TASK_09): daftar unit tersedia ter-scope wilayah dari server,
 	// unit yang sedang dikerahkan dibaca dari relasi report_units.
 	const availableUnits = props.availableUnits || [];
+	const unitsTotal = props.unitsTotal || 0;
+	const canManageUnits = props.canManageUnits || false;
 	const dispatchedUnits = (report.report_units || []).filter((ru) => ru.status === 'dispatched');
+	// Bedakan kenapa tidak ada unit yang bisa dipilih: wilayah belum punya unit sama
+	// sekali, vs ada unit tapi semuanya sedang bertugas.
+	const noUnitsRegistered = unitsTotal === 0;
+	const allUnitsBusy = unitsTotal > 0 && availableUnits.length === 0;
 	const [unitToDispatch, setUnitToDispatch] = useState('');
 	const [isUnitProcessing, setIsUnitProcessing] = useState(false);
 
@@ -534,6 +545,20 @@ export default function ReportShow(props) {
 			drawResponderRoute(h.user_id, 'relawan', h.status, h.location_lat, h.location_lng);
 		});
 
+		// Hapus marker (+ cache rute) responder yang sudah tidak ada di manifes — mis. setelah
+		// "Batal Meluncur" barisnya dihapus, agar markernya tidak tertinggal di peta.
+		const activeResponderIds = new Set([
+			...officerList.map((o) => o.user_id),
+			...helperList.map((h) => h.user_id),
+		]);
+		Object.keys(markersRef.current).forEach((idStr) => {
+			if (!activeResponderIds.has(Number(idStr))) {
+				markersRef.current[idStr].remove();
+				delete markersRef.current[idStr];
+				delete routeCacheRef.current[idStr];
+			}
+		});
+
 		// Pas-kan batas peta sekali saja di awal (saat sudah ada marker) supaya tidak melompat
 		// tiap update posisi — pengguna bebas menggeser/zoom setelahnya.
 		if (!hasFitRef.current && boundsGroup.length > 0) {
@@ -564,6 +589,12 @@ export default function ReportShow(props) {
 			});
 			channel.listen('IncidentLocationCorrected', (e) => {
 				setIncidentLocation({ lat: e.lat, lng: e.lng, address: e.address });
+			});
+			// Daftar responder berubah dari sisi lain (responder baru meluncur / batal /
+			// tiba) — muat ulang prop `report` agar manifes & marker peta ikut tampil tanpa
+			// refresh. Ambil ulang lewat controller supaya tetap ter-scope & konsisten bentuknya.
+			channel.listen('ResponderRosterChanged', () => {
+				router.reload({ only: ['report'] });
 			});
 			// Status laporan berubah dari sisi lain (approve/reject/handling/resolve) —
 			// perbarui badge, panel aksi, dan banner tanpa perlu refresh.
@@ -932,7 +963,12 @@ export default function ReportShow(props) {
 					)}
 
 					{/* --- 🚒 PANEL PENGERAHAN ARMADA (staf saja, insiden aktif) --- */}
-					{isStaffOrAdmin &&
+					{/* SEMENTARA DISEMBUNYIKAN (keputusan user 2026-06-29): fitur armada masih
+					    terpisah dari pelacakan petugas & belum dibutuhkan. Backend (dispatchUnit/
+					    releaseUnit, Admin Units CRUD) tetap utuh — hapus `SHOW_ARMADA_PANEL` (atau
+					    set true) untuk mengaktifkan kembali. */}
+					{SHOW_ARMADA_PANEL &&
+						isStaffOrAdmin &&
 						reportStatus !== 'TERLAPOR' &&
 						reportStatus !== 'ditolak' &&
 						reportStatus !== 'resolved' && (
@@ -974,37 +1010,59 @@ export default function ReportShow(props) {
 										</p>
 									)}
 
-									<div className="flex flex-col gap-2 border-t border-border pt-2 sm:flex-row">
-										<select
-											value={unitToDispatch}
-											onChange={(e) => setUnitToDispatch(e.target.value)}
-											className="h-10 flex-1 rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
-										>
-											<option value="">
-												{availableUnits.length > 0
-													? 'Pilih unit tersedia...'
-													: 'Tidak ada unit tersedia'}
-											</option>
-											{availableUnits.map((u) => (
-												<option key={u.id} value={u.id}>
-													{u.name} — {u.type}
-												</option>
-											))}
-										</select>
-										<Button
-											onClick={handleDispatchUnit}
-											disabled={isUnitProcessing || !unitToDispatch}
-											className="h-10 shrink-0 rounded-lg bg-teal-600 text-xs font-bold uppercase tracking-wider text-white shadow-none hover:bg-teal-700 dark:bg-teal dark:hover:bg-teal/90"
-										>
-											{isUnitProcessing ? (
-												<IconLoader2 className="h-4 w-4 animate-spin" />
-											) : (
-												<>
-													<IconTruck className="mr-1.5 h-4 w-4" /> Kerahkan
-												</>
-											)}
-										</Button>
-									</div>
+									{availableUnits.length > 0 ? (
+										<div className="flex flex-col gap-2 border-t border-border pt-2 sm:flex-row">
+											<select
+												value={unitToDispatch}
+												onChange={(e) => setUnitToDispatch(e.target.value)}
+												className="h-10 flex-1 rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
+											>
+												<option value="">Pilih unit tersedia...</option>
+												{availableUnits.map((u) => (
+													<option key={u.id} value={u.id}>
+														{u.name} — {u.type}
+													</option>
+												))}
+											</select>
+											<Button
+												onClick={handleDispatchUnit}
+												disabled={isUnitProcessing || !unitToDispatch}
+												className="h-10 shrink-0 rounded-lg bg-teal-600 text-xs font-bold uppercase tracking-wider text-white shadow-none hover:bg-teal-700 dark:bg-teal dark:hover:bg-teal/90"
+											>
+												{isUnitProcessing ? (
+													<IconLoader2 className="h-4 w-4 animate-spin" />
+												) : (
+													<>
+														<IconTruck className="mr-1.5 h-4 w-4" /> Kerahkan
+													</>
+												)}
+											</Button>
+										</div>
+									) : (
+										<div className="flex items-start gap-2 rounded-lg border border-dashed border-border bg-muted/40 p-3">
+											<IconAlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+											<div className="space-y-1">
+												<p className="text-xs font-medium text-foreground">
+													{allUnitsBusy
+														? 'Semua unit sedang bertugas'
+														: 'Belum ada unit terdaftar di wilayah ini'}
+												</p>
+												<p className="text-[11px] leading-relaxed text-muted-foreground">
+													{allUnitsBusy
+														? 'Tarik salah satu unit dari insiden lain atau tunggu unit selesai bertugas sebelum mengerahkan.'
+														: 'Tambahkan armada terlebih dahulu agar bisa dikerahkan ke insiden.'}
+												</p>
+												{noUnitsRegistered && canManageUnits && (
+													<Link
+														href={route('admin.units.index')}
+														className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-teal-600 hover:underline dark:text-teal"
+													>
+														<IconTruck className="h-3.5 w-3.5" /> Kelola Armada
+													</Link>
+												)}
+											</div>
+										</div>
+									)}
 								</CardContent>
 							</Card>
 						)}

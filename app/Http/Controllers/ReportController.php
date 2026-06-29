@@ -95,9 +95,16 @@ class ReportController extends Controller
 
         // Daftar unit yang tersedia untuk dikerahkan — hanya untuk staf, ter-scope wilayah
         // (Tenantable) milik staf yang melihat (sama dengan validasi dispatchUnit).
-        $availableUnits = $isStaff
-            ? Unit::where('status', 'available')->get(['id', 'name', 'type'])
-            : [];
+        // unitsTotal = seluruh unit di wilayah staf (apa pun statusnya), dipakai frontend
+        // untuk membedakan "belum ada unit terdaftar" vs "semua unit sedang bertugas".
+        $availableUnits = [];
+        $unitsTotal = 0;
+        $canManageUnits = false;
+        if ($isStaff) {
+            $availableUnits = Unit::where('status', 'available')->get(['id', 'name', 'type']);
+            $unitsTotal = Unit::count();
+            $canManageUnits = $user->hasAnyRole(['admin', 'superadmin']);
+        }
 
         // Jejak yang sudah ditempuh tiap responder yang masih aktif (belum selesai),
         // diurutkan kronologis agar bisa digambar sebagai garis rute berurutan di peta
@@ -121,6 +128,8 @@ class ReportController extends Controller
             'report' => $report,
             'trails' => $trails,
             'availableUnits' => $availableUnits,
+            'unitsTotal' => $unitsTotal,
+            'canManageUnits' => $canManageUnits,
         ]);
     }
 
