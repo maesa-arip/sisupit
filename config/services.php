@@ -47,16 +47,20 @@ return [
     ],
 
     'nominatim' => [
-        // Ganti ke instance self-hosted (mis. http://<vps-ip>:8080) saat sudah siap - lihat docker/nominatim/.
-        'base_url' => env('NOMINATIM_BASE_URL', 'https://nominatim.openstreetmap.org'),
-        // Wajib diisi sesuai kebijakan penggunaan Nominatim saat memakai instance publik.
+        // Default SENGAJA menunjuk instance LOKAL (bukan Nominatim publik): bila env lupa
+        // di-set, panggilan gagal cepat (connection refused) alih-alih diam-diam membebani
+        // server publik (langgar ToS + bocorkan lokasi user). Set NOMINATIM_BASE_URL ke
+        // instance self-hosted - lihat docker/nominatim/.
+        'base_url' => env('NOMINATIM_BASE_URL', 'http://127.0.0.1:8080'),
+        // Tetap kirim User-Agent identifikasi (wajib bila suatu saat menunjuk instance publik).
         'user_agent' => env('NOMINATIM_USER_AGENT', 'SISUPIT-Damkar/1.0 (admin@sisupit.test)'),
     ],
 
     'osrm' => [
-        // Engine routing (rute mengikuti jalan). Default: server demo OSRM publik.
-        // Ganti ke instance self-hosted (mis. http://<vps-ip>:5000) untuk produksi - lihat docker/nominatim/ untuk pola serupa.
-        'base_url' => env('OSRM_BASE_URL', 'https://router.project-osrm.org'),
+        // Engine routing (rute mengikuti jalan). Default LOKAL, alasan sama dgn nominatim di
+        // atas: hindari fallback diam-diam ke server demo OSRM publik. Set OSRM_BASE_URL ke
+        // instance self-hosted - lihat docker/osrm/.
+        'base_url' => env('OSRM_BASE_URL', 'http://127.0.0.1:5000'),
         'user_agent' => env('OSRM_USER_AGENT', 'SISUPIT-Damkar/1.0 (admin@sisupit.test)'),
     ],
 

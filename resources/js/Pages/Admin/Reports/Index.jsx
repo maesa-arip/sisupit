@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import UseFilter from '@/hooks/UseFilter';
 import AppLayout from '@/Layouts/AppLayout';
-import { cn } from '@/lib/utils';
+import { cn, MAP_TILE_URL } from '@/lib/utils';
 import { Link } from '@inertiajs/react';
 import {
 	IconArrowDown,
@@ -115,7 +115,7 @@ export default function Index(props) {
 			const defaultLat = tenant_location?.lat || -8.65;
 			const defaultLng = tenant_location?.lng || 115.22;
 			mapInstanceRef.current = window.L.map(mapRef.current).setView([defaultLat, defaultLng], 12);
-			window.L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+			window.L.tileLayer(MAP_TILE_URL, {
 				attribution: '&copy; OpenStreetMap',
 			}).addTo(mapInstanceRef.current);
 			markersLayerRef.current = window.L.layerGroup().addTo(mapInstanceRef.current);

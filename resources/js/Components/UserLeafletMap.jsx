@@ -1,11 +1,28 @@
-import { GEO_OPTIONS } from '@/lib/utils';
+import { GEO_OPTIONS, MAP_TILE_URL } from '@/lib/utils';
 import { useEffect, useRef } from 'react';
 
-const UserLeafletMap = ({ markers = [], lat = null, lng = null }) => {
+const UserLeafletMap = ({
+	markers = [],
+	lat = null,
+	lng = null,
+	draggable = false,
+	onLocationChange = null,
+	// Saat true (default), peta memicu getCurrentPosition sendiri bila lat/lng kosong
+	// (dipakai Pumps/FireStations untuk memusatkan ke user). Form lapor mengelola GPS-nya
+	// sendiri lewat parent, jadi mematikan ini agar tidak ada permintaan GPS ganda.
+	autoLocate = true,
+}) => {
 	const mapRef = useRef(null);
 	const mapInstanceRef = useRef(null);
 	const markersLayerRef = useRef(null);
 	const userMarkerLayerRef = useRef(null);
+	const onLocationChangeRef = useRef(onLocationChange);
+
+	// Simpan callback terbaru di ref agar identitas fungsi yang berubah tiap render
+	// tidak memicu re-inisialisasi marker peta.
+	useEffect(() => {
+		onLocationChangeRef.current = onLocationChange;
+	}, [onLocationChange]);
 
 	// ==========================================
 	// EFFECT 1: INISIALISASI PETA AWAL
@@ -16,7 +33,7 @@ const UserLeafletMap = ({ markers = [], lat = null, lng = null }) => {
 		// Inisialisasi awal
 		mapInstanceRef.current = window.L.map(mapRef.current).setView([-8.65, 115.22], 13);
 
-		window.L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+		window.L.tileLayer(MAP_TILE_URL, {
 			attribution: '&copy; OpenStreetMap',
 		}).addTo(mapInstanceRef.current);
 
@@ -66,8 +83,18 @@ const UserLeafletMap = ({ markers = [], lat = null, lng = null }) => {
 			});
 
 			// FIX: Tambahkan { autoPan: false } agar popup tidak menggeser peta di layar mobile
-			const marker = window.L.marker([userLat, userLng], { icon: userIcon }).addTo(userMarkerLayerRef.current);
+			const marker = window.L.marker([userLat, userLng], { icon: userIcon, draggable }).addTo(
+				userMarkerLayerRef.current,
+			);
 			// .bindPopup('<b style="color: #b42826;">Lokasi Anda</b>', { autoPan: false });
+
+			// Saat pin dilepas setelah digeser, laporkan koordinat baru ke parent
+			if (draggable) {
+				marker.on('dragend', () => {
+					const pos = marker.getLatLng();
+					onLocationChangeRef.current?.(pos.lat, pos.lng);
+				});
+			}
 
 			// Buka popup secara terprogram
 			marker.openPopup();
@@ -84,7 +111,7 @@ const UserLeafletMap = ({ markers = [], lat = null, lng = null }) => {
 
 		if (lat && lng) {
 			plotUserLocation(parseFloat(lat), parseFloat(lng));
-		} else if (navigator.geolocation) {
+		} else if (autoLocate && navigator.geolocation) {
 			navigator.geolocation.getCurrentPosition(
 				(position) => {
 					plotUserLocation(position.coords.latitude, position.coords.longitude);
@@ -93,7 +120,7 @@ const UserLeafletMap = ({ markers = [], lat = null, lng = null }) => {
 				GEO_OPTIONS.oneShot,
 			);
 		}
-	}, [lat, lng]);
+	}, [lat, lng, draggable, autoLocate]);
 
 	// ==========================================
 	// EFFECT 3: RENDER MARKER ASET (Pompa / Pos)

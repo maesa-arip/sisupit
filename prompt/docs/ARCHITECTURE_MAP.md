@@ -67,7 +67,8 @@ resources/js/
 database/
   migrations/     27 file (lihat daftar di bawah)
   seeders/        RolePermissionSeeder (sumber role & permission), PompaSeeder, HydrantSeeder, dll.
-docker/nominatim/ Artifact self-hosted geocoding (docker-compose + .env.example + README), belum di-deploy
+docker/nominatim/ Self-hosted geocoding (Nominatim Bali) — RUNNING lokal :8080, belum di VPS
+docker/osrm/      Self-hosted routing (OSRM Bali, MLD) — RUNNING lokal :5001 (host), belum di VPS
 ```
 
 ## Modul & tanggung jawab
@@ -83,8 +84,9 @@ docker/nominatim/ Artifact self-hosted geocoding (docker-compose + .env.example 
 | Auth & Identitas | Breeze + Socialite (Google), auto-assign role `masyarakat`, validasi profil | `app/Http/Controllers/Auth/SocialiteController.php`, `app/Http/Controllers/ProfileController.php` |
 | Relawan | Self-register, toggle siaga, radar insiden di area relawan. Daftar relawan (`Front/RelawanController`) BUKAN publik: di-gate `role:petugas\|admin\|superadmin` + ter-scope yurisdiksi via `User::scopeIsAdmin()` (FINDINGS #22) | `app/Http/Controllers/VolunteerController.php`, `app/Http/Controllers/Front/RelawanController.php` |
 | Pengumuman | Broadcast info publik | `app/Http/Controllers/Admin/AnnouncementController.php` |
-| Geocoding Proxy | Reverse & search Nominatim, cache 24h, lock rate-limit 1 req/detik | `app/Http/Controllers/Api/GeocodeController.php` |
-| Routing Proxy | Rute jalan asli OSRM (driving, geojson), cache 1h, lock throttle — dipakai peta tracking (`Reports/Show.jsx`) menggambar rute mengikuti jalan, bukan garis lurus | `app/Http/Controllers/Api/RouteController.php` |
+| Geocoding Proxy | Reverse & search Nominatim, cache 24h, lock rate-limit 1 req/detik. Base URL dari `config('services.nominatim.base_url')` (default LOKAL `127.0.0.1:8080`, bukan publik — hardening FINDINGS #35). Semua reverse-geocode frontend lewat proxy ini | `app/Http/Controllers/Api/GeocodeController.php` |
+| Routing Proxy | Rute jalan asli OSRM (driving, geojson), cache 1h, lock throttle — dipakai peta tracking (`Reports/Show.jsx`) menggambar rute mengikuti jalan, bukan garis lurus. Base URL dari `config('services.osrm.base_url')` (default LOKAL, self-hosted `docker/osrm/`) | `app/Http/Controllers/Api/RouteController.php` |
+| Basemap tiles | URL tile Leaflet terpusat di `MAP_TILE_URL` (`resources/js/lib/utils.js`) — dipakai 14 peta. Kini CARTO Voyager (turunan OSM, di-host CARTO); swappable ke tile server sendiri dari satu tempat | `resources/js/lib/utils.js` |
 | Simulasi Responden | Artisan `sisupit:simulate-responders` (live & `--snapshot`) gerakkan petugas/relawan menyusuri rute jalan asli ke TKP; seeder `ResponderSimulationSeeder` (snapshot, manual) | `app/Console/Commands/SimulateResponders.php` |
 | Push Notification | FCM (native Android) untuk insiden; WebPush dimatikan & PWA web dihapus. Lifecycle token per-DEVICE: login memindahkan token ke user aktif (`FcmController::store`), logout melepas token device ini (`AuthenticatedSessionController::destroy` menerima `fcm_token` di body) agar HP berhenti dapat sirine setelah keluar. **Notif balik ke PELAPOR** tiap transisi status via `ReportStatusUpdatedNotification` (FCM+database, TASK_06). **Lonceng web** (TASK_11): `notifications` di-share via `HandleInertiaRequests`, ditandai-baca lewat `NotificationController` (`notifications.read`/`readAll`), ditampilkan di header `AppLayout` | `app/Notifications/EmergencyAlertNotification.php`, `app/Notifications/ReportStatusUpdatedNotification.php`, `app/Http/Controllers/NotificationController.php` |
 | Dashboard per Role | Command center (admin) / misi aktif (petugas) / riwayat+radar (publik/relawan) | `app/Http/Controllers/DashboardController.php` |

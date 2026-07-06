@@ -1,0 +1,13 @@
+services:
+  osrm:
+    image: osrm/osrm-backend:latest
+    container_name: sisupit-osrm
+    restart: unless-stopped
+    ports:
+      - "${OSRM_HOST_PORT:-5000}:5000"
+    # Berkas .osrm HARUS sudah dipraproses lebih dulu oleh prepare-bali.ps1
+    # (pipeline MLD: osrm-extract -> osrm-partition -> osrm-customize).
+    # --algorithm mld WAJIB cocok dengan langkah partition+customize di prepare.
+    command: osrm-routed --algorithm mld --max-table-size 8000 /data/${OSRM_FILENAME}
+    volumes:
+      - ./data:/data

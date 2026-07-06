@@ -2,6 +2,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import { Badge } from '@/Components/ui/badge';
 import { Card, CardContent } from '@/Components/ui/card';
 import AppLayout from '@/Layouts/AppLayout';
+import { MAP_TILE_URL } from '@/lib/utils';
 import { Head, Link } from '@inertiajs/react';
 import {
 	IconAlertCircle,
@@ -42,7 +43,7 @@ export default function PetugasDashboard({ auth, activeMissions = [] }) {
 			tap: !window.L.Browser.mobile,
 		}).setView([-8.65, 115.216667], 12);
 
-		window.L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
+		window.L.tileLayer(MAP_TILE_URL).addTo(map);
 		mapInstanceRef.current = map;
 
 		const markers = [];

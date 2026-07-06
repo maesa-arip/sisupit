@@ -2,7 +2,38 @@
 
 Setup ini menggantikan `https://nominatim.openstreetmap.org` di aplikasi SISUPIT dengan instance Nominatim milik sendiri, supaya tidak terikat kebijakan rate-limit/ToS instance publik. Aplikasi sudah disiapkan agar tinggal ganti satu env var (`NOMINATIM_BASE_URL`) tanpa perlu deploy ulang kode - lihat `app/Http/Controllers/Api/GeocodeController.php`.
 
-Belum perlu dijalankan sekarang - folder ini disiapkan agar siap di-upload & dijalankan begitu VPS tersedia.
+## Quickstart: Bali-only di lokal (Windows + Docker Desktop)
+
+Tahap awal aplikasi hanya beroperasi di **Bali**, jadi kita import Bali saja dulu (jauh lebih ringan & cepat daripada seluruh Indonesia). Import seluruh Indonesia adalah *next step* - lihat bagian di bawah.
+
+Prasyarat: **Docker Desktop** terpasang dan sedang berjalan. File PBF Indonesia (`indonesia-260524.osm.pbf`) sudah ada di `C:\laragon\www\nominatim-sisupit\`.
+
+1. **Ekstrak Bali** dari PBF Indonesia (hasil `data/bali.osm.pbf`, ~30-60 MB):
+   ```powershell
+   powershell -File docker\nominatim\extract-bali.ps1
+   ```
+   Skrip ini memakai `osmium extract` dengan bounding box Bali `114.40,-8.90,115.75,-8.03` (termasuk Nusa Penida, tanpa Lombok).
+2. **Import & jalankan** (config sudah diarahkan ke `bali.osm.pbf` lewat `docker/nominatim/.env`):
+   ```powershell
+   cd docker\nominatim
+   docker compose up -d
+   docker compose logs -f      # pantau sampai import selesai (~10-20 menit)
+   ```
+3. **Verifikasi**:
+   ```powershell
+   curl "http://localhost:8080/status.php"
+   curl "http://localhost:8080/search?q=Denpasar&format=json"
+   ```
+4. **Arahkan aplikasi** ke Nominatim lokal - ubah di `.env` Laravel lalu clear config:
+   ```
+   NOMINATIM_BASE_URL=http://127.0.0.1:8080
+   ```
+   ```powershell
+   php artisan config:clear
+   ```
+   Tidak perlu deploy ulang kode - `GeocodeController` membaca base URL dari env ini.
+
+> **Next step (seluruh Indonesia):** ganti `PBF_FILENAME` di `docker/nominatim/.env` ke file Indonesia, `docker compose down` lalu `up -d --force-recreate`. Kebutuhan resource & langkah VPS ada di bawah.
 
 ## Kebutuhan Resource (estimasi)
 

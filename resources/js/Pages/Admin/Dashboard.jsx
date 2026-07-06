@@ -3,7 +3,7 @@ import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import AppLayout from '@/Layouts/AppLayout';
-import { cn } from '@/lib/utils';
+import { cn, MAP_TILE_URL } from '@/lib/utils';
 import { Head, Link } from '@inertiajs/react';
 import {
 	IconAlertCircle,
@@ -50,7 +50,7 @@ export default function AdminDashboard({ auth, stats, recentReports, mapReports 
 			tap: !window.L.Browser.mobile,
 		}).setView([defaultLat, defaultLng], 13);
 
-		window.L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
+		window.L.tileLayer(MAP_TILE_URL).addTo(map);
 		// Tombol zoom di kanan-bawah agar tidak tertutup header peta yang melayang di atas.
 		window.L.control.zoom({ position: 'bottomright' }).addTo(map);
 		mapInstanceRef.current = map;
@@ -352,9 +352,7 @@ export default function AdminDashboard({ auth, stats, recentReports, mapReports 
 					bgIconClass="bg-emerald-50 dark:bg-success/10"
 					subtitle="Total Selesai"
 					href={
-						isPejabat
-							? route('front.reports.index')
-							: route('admin.reports.index', { status: 'resolved' })
+						isPejabat ? route('front.reports.index') : route('admin.reports.index', { status: 'resolved' })
 					}
 				/>
 			</div>

@@ -8,6 +8,7 @@ import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
+import { MAP_TILE_URL } from '@/lib/utils';
 import { Head, Link, useForm } from '@inertiajs/react';
 import {
 	IconArrowLeft,
@@ -131,9 +132,7 @@ export default function Edit({
 	useEffect(() => {
 		if (!window.L || mapInstanceRef.current) return;
 		mapInstanceRef.current = window.L.map(mapRef.current, { zoomControl: false }).setView([data.lat, data.lng], 16);
-		window.L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(
-			mapInstanceRef.current,
-		);
+		window.L.tileLayer(MAP_TILE_URL).addTo(mapInstanceRef.current);
 		window.L.control.zoom({ position: 'bottomright' }).addTo(mapInstanceRef.current);
 
 		const customIcon = window.L.divIcon({

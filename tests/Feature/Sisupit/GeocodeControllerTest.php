@@ -9,7 +9,9 @@ it('requires authentication to use the geocode proxy', function () {
 
 it('proxies reverse geocoding to nominatim with a user agent header and caches the result', function () {
     Http::fake([
-        '*nominatim.openstreetmap.org*' => Http::response([
+        // Catch-all: base_url Nominatim kini konfigurable (default self-hosted lokal),
+        // jadi jangan kunci ke host publik - fake apa pun host yang sedang dikonfigurasi.
+        '*' => Http::response([
             'display_name' => 'Jl. Pemogan, Denpasar, Bali',
             'address' => ['road' => 'Jl. Pemogan'],
         ], 200),
@@ -35,7 +37,7 @@ it('proxies reverse geocoding to nominatim with a user agent header and caches t
 
 it('proxies forward search to nominatim', function () {
     Http::fake([
-        '*nominatim.openstreetmap.org*' => Http::response([
+        '*' => Http::response([
             ['name' => 'Jl. Pemogan', 'lat' => '-8.65', 'lon' => '115.22'],
         ], 200),
     ]);
@@ -50,7 +52,7 @@ it('proxies forward search to nominatim', function () {
 
 it('returns a 502 when nominatim is unreachable instead of crashing', function () {
     Http::fake([
-        '*nominatim.openstreetmap.org*' => Http::response([], 500),
+        '*' => Http::response([], 500),
     ]);
 
     $user = User::factory()->create();

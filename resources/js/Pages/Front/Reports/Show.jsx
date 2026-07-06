@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Dialog, DialogContent } from '@/Components/ui/dialog';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
-import { cn, GEO_OPTIONS } from '@/lib/utils';
+import { cn, GEO_OPTIONS, MAP_TILE_URL } from '@/lib/utils';
 import { Head, Link, router } from '@inertiajs/react';
 import {
 	IconAlertCircle,
@@ -397,7 +397,7 @@ export default function ReportShow(props) {
 				[parseFloat(incidentLocation.lat), parseFloat(incidentLocation.lng)],
 				15,
 			);
-			window.L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
+			window.L.tileLayer(MAP_TILE_URL).addTo(map);
 			window.L.control.zoom({ position: 'topright' }).addTo(map);
 			mapInstance.current = map;
 		}
@@ -558,10 +558,7 @@ export default function ReportShow(props) {
 
 		// Hapus marker (+ cache rute) responder yang sudah tidak ada di manifes — mis. setelah
 		// "Batal Meluncur" barisnya dihapus, agar markernya tidak tertinggal di peta.
-		const activeResponderIds = new Set([
-			...officerList.map((o) => o.user_id),
-			...helperList.map((h) => h.user_id),
-		]);
+		const activeResponderIds = new Set([...officerList.map((o) => o.user_id), ...helperList.map((h) => h.user_id)]);
 		Object.keys(markersRef.current).forEach((idStr) => {
 			if (!activeResponderIds.has(Number(idStr))) {
 				markersRef.current[idStr].remove();
@@ -683,7 +680,10 @@ export default function ReportShow(props) {
 								<h3 className="text-sm font-bold text-foreground">Verifikasi Laporan Masuk</h3>
 								<p className="mt-1 max-w-xl text-xs leading-relaxed text-muted-foreground">
 									Laporan ini belum divalidasi. Periksa bukti atau hubungi pelapor di{' '}
-									<b>{report.phone}</b> sebelum menugaskan armada.
+									<b>
+										<a href={`tel:${report.phone}`}>{report.phone}</a>
+									</b>{' '}
+									sebelum menugaskan armada.
 								</p>
 							</div>
 						</div>

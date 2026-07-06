@@ -3,6 +3,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
+import { MAP_TILE_URL } from '@/lib/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
 	IconAlertTriangle,
@@ -39,7 +40,7 @@ export default function Index({ stations, filters, tenant_location }) {
 			const defaultLat = tenant_location?.lat || -8.65;
 			const defaultLng = tenant_location?.lng || 115.22;
 			mapInstanceRef.current = window.L.map(mapRef.current).setView([defaultLat, defaultLng], 12);
-			window.L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+			window.L.tileLayer(MAP_TILE_URL, {
 				attribution: '&copy; OpenStreetMap',
 			}).addTo(mapInstanceRef.current);
 			markersLayerRef.current = window.L.layerGroup().addTo(mapInstanceRef.current);

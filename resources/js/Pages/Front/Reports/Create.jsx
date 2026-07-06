@@ -6,7 +6,7 @@ import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
-import { flashMessage, GEO_OPTIONS } from '@/lib/utils';
+import { DEFAULT_MAP_CENTER, flashMessage, GEO_ACCURACY_THRESHOLD, getFreshPosition } from '@/lib/utils';
 import { Link, useForm } from '@inertiajs/react';
 import {
 	IconAlertTriangle,
@@ -89,128 +89,6 @@ export default function Create(props) {
 		_method: props.page_settings.method,
 	});
 
-	// AUTO DETECT LOKASI & YURISDIKSI SILENTLY
-	const getUserLocation = () => {
-		if (navigator.geolocation) {
-			navigator.geolocation.getCurrentPosition(
-				async (position) => {
-					const { latitude, longitude } = position.coords;
-					setUserLocation({ latitude, longitude });
-
-					try {
-						// 1. Ambil Data Reverse Geocoding lewat proxy backend (lihat GeocodeController)
-						const response = await axios.get(route('api.geocode.reverse'), {
-							params: { lat: latitude, lng: longitude },
-						});
-
-						const addr = response.data.address;
-
-						if (addr) {
-							// Siapkan Alamat Ramah Manusia untuk UI
-							const roadName = addr.road || addr.street || addr.pedestrian || '';
-							const villageName = addr.village || addr.suburb || addr.town || '';
-							const districtName = addr.city_district || addr.district || '';
-							const displayAddr = [roadName, villageName, districtName].filter(Boolean).join(', ');
-
-							setFriendlyAddress(
-								displayAddr || response.data.display_name?.split(',')[0] || 'Lokasi terdeteksi',
-							);
-
-							// 2. AUTO-FILL YURISDIKSI (OMNI-SEARCH GAIB)
-							let pCode = '',
-								cCode = '',
-								dCode = '',
-								vCode = '';
-
-							const rawOsmNames = [
-								addr.state,
-								addr.region,
-								addr.city,
-								addr.county,
-								addr.regency,
-								addr.town,
-								addr.city_district,
-								addr.municipality,
-								addr.district,
-								addr.suburb,
-								addr.village,
-								addr.neighbourhood,
-								addr.hamlet,
-							];
-							const osmNames = rawOsmNames.filter((n) => n && !n.toLowerCase().includes('no name'));
-							const removeWords = [
-								'provinsi',
-								'prov',
-								'kota',
-								'kabupaten',
-								'kab',
-								'kecamatan',
-								'kec',
-								'kelurahan',
-								'desa',
-							];
-
-							// Level 1: Provinsi
-							if (osmNames.length > 0 && provinces.length > 0) {
-								const matchedProv = matchRegionName(provinces, osmNames, removeWords);
-								if (matchedProv) pCode = matchedProv.code;
-							}
-
-							// Level 2: Kota
-							if (pCode) {
-								const resCity = await axios.get(`/api/regions/cities/${pCode}`);
-								const matchedCity = matchRegionName(resCity.data, osmNames, removeWords);
-								if (matchedCity) cCode = matchedCity.code;
-							}
-
-							// Level 3: Kecamatan
-							if (cCode) {
-								const resDist = await axios.get(`/api/regions/districts/${cCode}`);
-								const matchedDist = matchRegionName(resDist.data, osmNames, removeWords);
-								if (matchedDist) dCode = matchedDist.code;
-							}
-
-							// Level 4: Desa
-							if (dCode) {
-								const resVill = await axios.get(`/api/regions/villages/${dCode}`);
-								const matchedVill = matchRegionName(resVill.data, osmNames, removeWords);
-								if (matchedVill) vCode = matchedVill.code;
-							}
-
-							// 3. Simpan semua kode ke State Formulir
-							setData((prevData) => ({
-								...prevData,
-								lat: latitude,
-								lng: longitude,
-								province_code: pCode,
-								city_code: cCode,
-								district_code: dCode,
-								village_code: vCode,
-								road: roadName,
-							}));
-						} else {
-							fallbackLocation(latitude, longitude);
-						}
-					} catch (error) {
-						console.error('Gagal mengambil data wilayah:', error);
-						fallbackLocation(latitude, longitude);
-					} finally {
-						setLocationLoading(false);
-					}
-				},
-				(error) => {
-					console.error('Error getting user location:', error);
-					toast.error('Gagal melacak lokasi akurat. Pastikan GPS aktif.');
-					setLocationLoading(false);
-				},
-				GEO_OPTIONS.oneShot, // Optimalisasi GPS Darurat
-			);
-		} else {
-			toast.error('Browser Anda tidak mendukung deteksi lokasi.');
-			setLocationLoading(false);
-		}
-	};
-
 	const fallbackLocation = (latitude, longitude) => {
 		setFriendlyAddress('Titik GPS terdeteksi (Mode Darurat)');
 		setData((prevData) => ({
@@ -218,6 +96,179 @@ export default function Create(props) {
 			lat: latitude,
 			lng: longitude,
 		}));
+	};
+
+	// Titik dipakai tapi yurisdiksi TIDAK di-auto-isi (fix tak akurat / gagal deteksi).
+	// User wajib menggeser pin merah ke titik kejadian agar wilayah terisi dari titik benar.
+	const applyUntrustedPoint = (latitude, longitude, message) => {
+		setFriendlyAddress(message);
+		setData((prevData) => ({
+			...prevData,
+			lat: latitude,
+			lng: longitude,
+			// Kosongkan yurisdiksi: jangan percaya wilayah dari fix yang tidak akurat.
+			province_code: '',
+			city_code: '',
+			district_code: '',
+			village_code: '',
+			road: '',
+		}));
+	};
+
+	// Reverse-geocode sebuah titik lalu auto-isi alamat & yurisdiksi (provinsi..desa).
+	// Dipakai baik oleh deteksi GPS awal maupun saat pin peta digeser manual.
+	const resolveLocation = async (latitude, longitude) => {
+		setUserLocation({ latitude, longitude });
+
+		try {
+			// 1. Ambil Data Reverse Geocoding lewat proxy backend (lihat GeocodeController)
+			const response = await axios.get(route('api.geocode.reverse'), {
+				params: { lat: latitude, lng: longitude },
+			});
+
+			const addr = response.data.address;
+
+			if (addr) {
+				// Siapkan Alamat Ramah Manusia untuk UI
+				const roadName = addr.road || addr.street || addr.pedestrian || '';
+				const villageName = addr.village || addr.suburb || addr.town || '';
+				const districtName = addr.city_district || addr.district || '';
+				const displayAddr = [roadName, villageName, districtName].filter(Boolean).join(', ');
+
+				setFriendlyAddress(displayAddr || response.data.display_name?.split(',')[0] || 'Lokasi terdeteksi');
+
+				// 2. AUTO-FILL YURISDIKSI (OMNI-SEARCH GAIB)
+				let pCode = '',
+					cCode = '',
+					dCode = '',
+					vCode = '';
+
+				const rawOsmNames = [
+					addr.state,
+					addr.region,
+					addr.city,
+					addr.county,
+					addr.regency,
+					addr.town,
+					addr.city_district,
+					addr.municipality,
+					addr.district,
+					addr.suburb,
+					addr.village,
+					addr.neighbourhood,
+					addr.hamlet,
+				];
+				const osmNames = rawOsmNames.filter((n) => n && !n.toLowerCase().includes('no name'));
+				const removeWords = [
+					'provinsi',
+					'prov',
+					'kota',
+					'kabupaten',
+					'kab',
+					'kecamatan',
+					'kec',
+					'kelurahan',
+					'desa',
+				];
+
+				// Level 1: Provinsi
+				if (osmNames.length > 0 && provinces.length > 0) {
+					const matchedProv = matchRegionName(provinces, osmNames, removeWords);
+					if (matchedProv) pCode = matchedProv.code;
+				}
+
+				// Level 2: Kota
+				if (pCode) {
+					const resCity = await axios.get(`/api/regions/cities/${pCode}`);
+					const matchedCity = matchRegionName(resCity.data, osmNames, removeWords);
+					if (matchedCity) cCode = matchedCity.code;
+				}
+
+				// Level 3: Kecamatan
+				if (cCode) {
+					const resDist = await axios.get(`/api/regions/districts/${cCode}`);
+					const matchedDist = matchRegionName(resDist.data, osmNames, removeWords);
+					if (matchedDist) dCode = matchedDist.code;
+				}
+
+				// Level 4: Desa
+				if (dCode) {
+					const resVill = await axios.get(`/api/regions/villages/${dCode}`);
+					const matchedVill = matchRegionName(resVill.data, osmNames, removeWords);
+					if (matchedVill) vCode = matchedVill.code;
+				}
+
+				// 3. Simpan semua kode ke State Formulir
+				setData((prevData) => ({
+					...prevData,
+					lat: latitude,
+					lng: longitude,
+					province_code: pCode,
+					city_code: cCode,
+					district_code: dCode,
+					village_code: vCode,
+					road: roadName,
+				}));
+			} else {
+				fallbackLocation(latitude, longitude);
+			}
+		} catch (error) {
+			console.error('Gagal mengambil data wilayah:', error);
+			fallbackLocation(latitude, longitude);
+		} finally {
+			setLocationLoading(false);
+		}
+	};
+
+	// AUTO DETECT LOKASI & YURISDIKSI SILENTLY.
+	// Alur: fix akurat & segar dulu (getFreshPosition, fallback ke lokasi jaringan sekali).
+	// Fix dengan akurasi buruk (> GEO_ACCURACY_THRESHOLD) TIDAK dipercaya untuk auto-isi
+	// wilayah — mencegah gejala "lokasi lari ke kota lain" akibat lokasi berbasis IP/WiFi.
+	const getUserLocation = () => {
+		if (!navigator.geolocation) {
+			toast.error('Browser Anda tidak mendukung deteksi lokasi.');
+			setLocationLoading(false);
+			return;
+		}
+
+		setLocationLoading(true);
+		getFreshPosition()
+			.then(({ coords }) => {
+				setUserLocation({ latitude: coords.latitude, longitude: coords.longitude });
+
+				if (coords.accuracy != null && coords.accuracy > GEO_ACCURACY_THRESHOLD) {
+					// Kemungkinan fix jaringan/IP (bisa meleset puluhan km): pakai titiknya
+					// sebagai awalan pin, tapi minta user mengoreksi lewat geser pin.
+					applyUntrustedPoint(
+						coords.latitude,
+						coords.longitude,
+						'Lokasi kurang akurat — geser pin merah tepat ke titik kejadian.',
+					);
+					setLocationLoading(false);
+					toast.warning('Lokasi kurang akurat. Geser pin merah di peta tepat ke titik kejadian.');
+					return;
+				}
+
+				resolveLocation(coords.latitude, coords.longitude);
+			})
+			.catch((error) => {
+				console.error('Error getting user location:', error);
+				// Gagal total: taruh pin di pusat peta agar user tetap bisa menandai manual.
+				setUserLocation(null);
+				applyUntrustedPoint(
+					DEFAULT_MAP_CENTER.lat,
+					DEFAULT_MAP_CENTER.lng,
+					'Lokasi tak terdeteksi — geser pin merah ke titik kejadian.',
+				);
+				setLocationLoading(false);
+				toast.error('Gagal melacak lokasi. Pastikan izin/GPS aktif, lalu geser pin merah & isi patokan.');
+			});
+	};
+
+	// Dipanggil saat pin peta digeser manual -> koreksi titik + isi ulang yurisdiksi.
+	const handleMarkerDrag = (latitude, longitude) => {
+		setLocationLoading(true);
+		resolveLocation(latitude, longitude);
 	};
 
 	useEffect(() => {
@@ -261,8 +312,18 @@ export default function Create(props) {
 	const onHandleSubmit = (e) => {
 		e.preventDefault();
 
-		if ((!data.lat || !data.lng) && !data.address) {
-			toast.warning('Lokasi gagal dilacak, mohon isi Detail Patokan Lokasi secara manual.');
+		if (!data.lat || !data.lng) {
+			toast.warning('Lokasi belum terisi. Geser pin merah di peta ke titik kejadian.');
+			return;
+		}
+
+		// Saat membuat laporan wilayah wajib terisi (server memvalidasi provinsi..desa).
+		// Jika kosong berarti titik belum dikenali (fix tak akurat / gagal) — minta koreksi
+		// pin lebih dulu daripada gagal validasi dengan pesan field tersembunyi.
+		if (data._method === 'POST' && !data.province_code) {
+			toast.warning(
+				'Wilayah belum terkenali. Geser pin merah tepat ke titik kejadian agar wilayah terisi otomatis.',
+			);
 			return;
 		}
 
@@ -338,10 +399,19 @@ export default function Create(props) {
 									</div>
 								</div>
 
-								{/* Peta */}
+								{/* Peta - pin bisa digeser untuk mengoreksi titik lokasi */}
 								<div className="relative z-0 h-[200px] w-full overflow-hidden rounded-md border border-border bg-muted shadow-inner sm:h-[250px]">
-									<UserLeafletMap lat={data.lat} lng={data.lng} />
+									<UserLeafletMap
+										lat={data.lat}
+										lng={data.lng}
+										draggable
+										autoLocate={false}
+										onLocationChange={handleMarkerDrag}
+									/>
 								</div>
+								<p className="mt-1.5 text-xs text-muted-foreground">
+									Titik kurang tepat? Geser pin merah di peta untuk mengoreksi lokasi.
+								</p>
 
 								{/* Patokan Manual */}
 								<div className="pt-2">
