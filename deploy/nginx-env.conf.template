@@ -1,0 +1,100 @@
+# =============================================================================
+# Template Nginx untuk environment NON-produksi (staging / dev) sisupit.
+# -----------------------------------------------------------------------------
+# Token yang harus diganti sebelum dipakai:
+#   __DOMAIN__ → subdomain penuh   (mis. staging.sisupit.com / dev.sisupit.com)
+#   __DIR__    → path project       (mis. /var/www/sisupit-staging)
+#   __PORT__   → port Reverb env    (staging=8081, dev=8082)
+#   __ENV__    → nama env           (mis. staging / dev) — untuk nama log
+#
+# Contoh (di VPS):
+#   sed -e 's/__DOMAIN__/staging.sisupit.com/g' \
+#       -e 's#__DIR__#/var/www/sisupit-staging#g' \
+#       -e 's/__PORT__/8081/g' \
+#       -e 's/__ENV__/staging/g' \
+#       deploy/nginx-env.conf.template \
+#     | sudo tee /etc/nginx/sites-available/staging.sisupit.com
+#   sudo ln -s /etc/nginx/sites-available/staging.sisupit.com /etc/nginx/sites-enabled/
+#   sudo nginx -t && sudo systemctl reload nginx
+#   # SSL: sudo certbot --nginx -d staging.sisupit.com
+#
+# Tiap env WAJIB port Reverb berbeda + service systemd sendiri
+# (lihat deploy/reverb-env.service.template).
+# =============================================================================
+
+# --- Redirect HTTP ke HTTPS --------------------------------------------------
+server {
+    listen 80;
+    listen [::]:80;
+    server_name __DOMAIN__;
+    return 301 https://$host$request_uri;
+}
+
+# --- Server HTTPS ------------------------------------------------------------
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name __DOMAIN__;
+
+    root __DIR__/public;
+    index index.php;
+
+    charset utf-8;
+
+    # SSL diisi oleh Certbot saat `certbot --nginx -d __DOMAIN__`.
+    ssl_certificate     /etc/letsencrypt/live/__DOMAIN__/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/__DOMAIN__/privkey.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
+
+    client_max_body_size 25M;
+
+    # --- WebSocket Reverb (port khusus env ini) -----------------------------
+    location /app {
+        proxy_pass http://127.0.0.1:__PORT__;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade    $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_read_timeout  3600s;
+        proxy_send_timeout  3600s;
+    }
+
+    location /apps {
+        proxy_pass http://127.0.0.1:__PORT__;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade    $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+    }
+
+    # --- Laravel front controller -------------------------------------------
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    error_page 404 /index.php;
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+        fastcgi_hide_header X-Powered-By;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+
+    access_log /var/log/nginx/__ENV__.sisupit.com-access.log;
+    error_log  /var/log/nginx/__ENV__.sisupit.com-error.log;
+}

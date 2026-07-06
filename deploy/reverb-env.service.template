@@ -1,0 +1,34 @@
+# =============================================================================
+# Template systemd service Reverb untuk environment NON-produksi (staging/dev).
+# -----------------------------------------------------------------------------
+# Token yang harus diganti:
+#   __ENV__  → nama env   (staging / dev)  → nama service reverb-__ENV__
+#   __DIR__  → path project (mis. /var/www/sisupit-staging)
+#   __PORT__ → port Reverb  (staging=8081, dev=8082) — samakan dg nginx & .env
+#
+# Contoh (di VPS):
+#   sed -e 's/__ENV__/staging/g' \
+#       -e 's#__DIR__#/var/www/sisupit-staging#g' \
+#       -e 's/__PORT__/8081/g' \
+#       deploy/reverb-env.service.template \
+#     | sudo tee /etc/systemd/system/reverb-staging.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now reverb-staging
+#   sudo systemctl status reverb-staging
+#
+# Produksi tetap pakai reverb.service (port 8080) — jangan ditimpa.
+# =============================================================================
+[Unit]
+Description=Laravel Reverb WebSocket Server (__ENV__.sisupit.com)
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=__DIR__
+ExecStart=/usr/bin/php __DIR__/artisan reverb:start --host=0.0.0.0 --port=__PORT__
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
