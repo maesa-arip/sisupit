@@ -62,6 +62,8 @@ class PompaController extends Controller
                 // Kirim koordinat ke React agar bisa di-render jadi pin/marker di Peta
                 'lat' => $pump->lat,
                 'lng' => $pump->lng,
+                // Flag category agar peta memilih glyph yang tepat (tetes untuk pompa)
+                'category' => 'pompa',
             ];
         });
 

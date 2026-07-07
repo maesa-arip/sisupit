@@ -576,7 +576,7 @@ export default function Create({ tenant_location, provinces, cities, districts, 
 												<SelectValue placeholder="Pilih Status" />
 											</SelectTrigger>
 											<SelectContent>
-												<SelectItem value="Aktif">Siap Pakai</SelectItem>
+												<SelectItem value="Aktif">Aktif</SelectItem>
 												<SelectItem value="Perbaikan">Perbaikan</SelectItem>
 											</SelectContent>
 										</Select>

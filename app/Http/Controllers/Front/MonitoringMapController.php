@@ -104,7 +104,7 @@ class MonitoringMapController extends Controller
         $districtCoords = $this->regionCoords('indonesia_districts', $relawan->pluck('district_code')->filter());
         $cityCoords = $this->regionCoords('indonesia_cities', $relawan->pluck('city_code')->filter());
 
-        return $relawan->map(function (User $user) use ($villageCoords, $districtCoords, $cityCoords) {
+        $resolved = $relawan->map(function (User $user) use ($villageCoords, $districtCoords, $cityCoords) {
             $coord = $villageCoords[$user->village_code] ?? $districtCoords[$user->district_code] ?? $cityCoords[$user->city_code] ?? null;
             if (! $coord) {
                 return null;
@@ -124,6 +124,38 @@ class MonitoringMapController extends Controller
                 'lng' => $coord['lng'],
             ];
         })->filter()->values();
+
+        return $this->spreadOverlapping($resolved);
+    }
+
+    /**
+     * Karena posisi relawan diperkirakan dari centroid wilayah, banyak relawan
+     * satu desa/kecamatan mendarat di titik yang sama persis → markernya bertumpuk
+     * (mis. 12 relawan hanya tampak 6 pin). Sebarkan relawan yang setitik ke cincin
+     * kecil (~180 m) mengelilingi centroid supaya tiap orang punya pin sendiri.
+     * Deterministik (urut kemunculan) agar posisi stabil di tiap muat halaman.
+     */
+    private function spreadOverlapping($volunteers)
+    {
+        $radius = 180; // meter
+
+        return $volunteers
+            ->groupBy(fn ($v) => round($v['lat'], 5).','.round($v['lng'], 5))
+            ->flatMap(function ($group) use ($radius) {
+                $count = $group->count();
+                if ($count === 1) {
+                    return $group;
+                }
+
+                return $group->values()->map(function ($v, $i) use ($count, $radius) {
+                    $angle = 2 * M_PI * $i / $count;
+                    $v['lat'] = round($v['lat'] + ($radius * cos($angle)) / 111320, 6);
+                    $v['lng'] = round($v['lng'] + ($radius * sin($angle)) / (111320 * cos(deg2rad($v['lat']))), 6);
+
+                    return $v;
+                });
+            })
+            ->values();
     }
 
     /**

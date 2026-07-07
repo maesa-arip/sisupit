@@ -167,12 +167,12 @@ export default function ReportShow(props) {
 			case 'handling':
 				return {
 					label: 'Dalam Penanganan',
-					color: 'bg-blue-50 dark:bg-info/10 text-blue-700 dark:text-info border-blue-200 dark:border-info/20',
+					color: 'bg-emerald-50 dark:bg-success/10 text-emerald-700 dark:text-success border-emerald-200 dark:border-success/20',
 				};
 			case 'resolved':
 				return {
 					label: 'Selesai',
-					color: 'bg-emerald-50 dark:bg-success/10 text-emerald-700 dark:text-success border-emerald-200 dark:border-success/20',
+					color: 'bg-blue-50 dark:bg-info/10 text-blue-700 dark:text-info border-blue-200 dark:border-info/20',
 				};
 			case 'ditolak':
 				return { label: 'Ditolak', color: 'bg-muted text-muted-foreground border-border' };
@@ -879,7 +879,7 @@ export default function ReportShow(props) {
 								</h2>
 
 								{reportStatus === 'resolved' ? (
-									<div className="flex items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-center text-xs font-bold text-emerald-700 dark:border-success/20 dark:bg-success/10 dark:text-success">
+									<div className="flex items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-center text-xs font-bold text-blue-700 dark:border-info/20 dark:bg-info/10 dark:text-info">
 										<IconCheck className="h-4 w-4" /> INSIDEN SELESAI DITANGANI
 									</div>
 								) : (

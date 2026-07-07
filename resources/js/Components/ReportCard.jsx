@@ -35,13 +35,13 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan }
 		if (report.status === 'resolved')
 			return {
 				label: 'Selesai',
-				color: 'bg-success/10 text-success border-success/20',
+				color: 'bg-info/10 text-info border-info/20',
 				icon: <CheckCircle2 size={12} className="mr-1 shrink-0" />,
 			};
 		if (report.status === 'handling' || hasHelpers)
 			return {
 				label: 'Penanganan',
-				color: 'bg-info/10 text-info border-info/20',
+				color: 'bg-success/10 text-success border-success/20',
 				icon: <ShieldAlert size={12} className="mr-1 shrink-0" />,
 			};
 		return {

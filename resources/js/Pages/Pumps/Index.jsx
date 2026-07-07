@@ -13,7 +13,6 @@ import {
 	IconRadar,
 	IconRoute,
 	IconSearch,
-	IconTool,
 } from '@tabler/icons-react';
 import { useState } from 'react';
 
@@ -151,7 +150,7 @@ export default function Index({ pumps, filters, ...props }) {
 												: 'border-border bg-card text-foreground/80 hover:bg-muted'
 										}`}
 									>
-										Siap Pakai
+										Aktif
 									</button>
 									<button
 										type="button"
@@ -183,13 +182,13 @@ export default function Index({ pumps, filters, ...props }) {
 											className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md border ${
 												pump.status === 'Aktif'
 													? 'border-blue-100 bg-blue-50 text-blue-600 dark:border-info/20 dark:bg-info/10 dark:text-info'
-													: 'border-orange-100 bg-orange-50 text-orange-600 dark:border-warning/20 dark:bg-warning/10 dark:text-warning'
+													: 'border-red-200 bg-red-50 text-red-600 dark:border-destructive/30 dark:bg-destructive/10 dark:text-destructive'
 											}`}
 										>
 											{pump.status === 'Aktif' ? (
 												<IconDroplet className="h-5 w-5" stroke={1.5} />
 											) : (
-												<IconTool className="h-5 w-5" stroke={1.5} />
+												<IconDroplet className="h-5 w-5" stroke={1.5} />
 											)}
 										</div>
 
@@ -205,8 +204,8 @@ export default function Index({ pumps, filters, ...props }) {
 												<span
 													className={`whitespace-nowrap rounded border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider ${
 														pump.status === 'Aktif'
-															? 'border-green-200 bg-green-50 text-green-700 dark:border-success/30 dark:bg-success/10 dark:text-success'
-															: 'border-orange-200 bg-orange-50 text-orange-700 dark:border-warning/30 dark:bg-warning/10 dark:text-warning'
+															? 'border-blue-200 bg-blue-50 text-blue-700 dark:border-info/30 dark:bg-info/10 dark:text-info'
+															: 'border-red-200 bg-red-50 text-red-700 dark:border-destructive/30 dark:bg-destructive/10 dark:text-destructive'
 													}`}
 												>
 													{pump.status}
@@ -260,7 +259,7 @@ export default function Index({ pumps, filters, ...props }) {
 				<div className="flex w-full flex-col gap-3 lg:sticky lg:top-[90px] lg:flex-1">
 					{/* Header Peta */}
 					<div className="flex items-center gap-2 px-1">
-						<IconMapPinFilled className="h-4 w-4 text-destructive" />
+						<IconMapPinFilled className="h-4 w-4 text-blue-600 dark:text-info" />
 						<h2 className="text-sm font-semibold text-foreground">Sebaran Titik SKKL</h2>
 					</div>
 

@@ -10,11 +10,9 @@ import {
 	IconArrowDown,
 	IconDroplet,
 	IconEdit,
-	IconEngine,
 	IconMapPinFilled,
 	IconPlus,
 	IconSearch,
-	IconTool,
 	IconTrash,
 } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
@@ -55,7 +53,7 @@ export default function Index({ pumps, filters, tenant_location }) {
 					lng = parseFloat(pump.lng);
 				if (!isNaN(lat) && !isNaN(lng)) {
 					const iconColor =
-						pump.status === 'Aktif' ? 'text-teal-600 dark:text-teal' : 'text-amber-500 dark:text-warning';
+						pump.status === 'Aktif' ? 'text-blue-600 dark:text-info' : 'text-red-500 dark:text-destructive';
 					const customIcon = window.L.divIcon({
 						html: `<div class="${iconColor} drop-shadow-md hover:scale-110 transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
 						className: 'bg-transparent border-none',
@@ -134,11 +132,11 @@ export default function Index({ pumps, filters, tenant_location }) {
 				<HeaderTitle
 					title="Manajemen Armada Pompa"
 					subtitle="Kelola pompa air & alat pemadam bergerak di wilayah Anda."
-					icon={IconEngine}
+					icon={IconDroplet}
 				/>
 				<Button
 					size="sm"
-					className="border-none bg-teal-600 text-white shadow-none hover:bg-teal-700 dark:bg-teal dark:hover:bg-teal/90"
+					className="border-none bg-blue-600 text-white shadow-none hover:bg-blue-700 dark:bg-info dark:hover:bg-info/90"
 					asChild
 				>
 					<Link href={route('admin.pumps.create')}>
@@ -155,7 +153,7 @@ export default function Index({ pumps, filters, tenant_location }) {
 							<Input
 								type="text"
 								placeholder="Cari nama atau lokasi pompa..."
-								className="h-10 pl-9 focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
+								className="h-10 pl-9 focus-visible:ring-blue-500 dark:focus-visible:ring-info"
 								value={data.search}
 								onChange={(e) => setData('search', e.target.value)}
 							/>
@@ -168,11 +166,11 @@ export default function Index({ pumps, filters, tenant_location }) {
 									onClick={() => applyStatusFilter(status)}
 									className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-all ${
 										data.status === status
-											? 'border-teal-200 bg-teal-50 text-teal-700 dark:border-teal/30 dark:bg-teal/10 dark:text-teal'
+											? 'border-blue-200 bg-blue-50 text-blue-700 dark:border-info/30 dark:bg-info/10 dark:text-info'
 											: 'border-input bg-transparent text-muted-foreground hover:bg-accent'
 									}`}
 								>
-									{status === 'Aktif' ? 'Siap Pakai' : status === 'Perbaikan' ? 'Perbaikan' : 'Semua'}
+									{status === 'Aktif' ? 'Aktif' : status === 'Perbaikan' ? 'Perbaikan' : 'Semua'}
 								</button>
 							))}
 						</div>
@@ -185,22 +183,22 @@ export default function Index({ pumps, filters, tenant_location }) {
 									<Card
 										key={pump.id}
 										onClick={() => focusToPump(pump.id, pump.lat, pump.lng)}
-										className={`cursor-pointer transition-colors ${activePumpId === pump.id ? 'border-teal-500 bg-teal-50/50 dark:border-teal dark:bg-teal/5' : 'hover:border-teal-300 dark:hover:border-teal/50'}`}
+										className={`cursor-pointer transition-colors ${activePumpId === pump.id ? 'border-blue-500 bg-blue-50/50 dark:border-info dark:bg-info/5' : 'hover:border-blue-300 dark:hover:border-info/50'}`}
 									>
 										<CardContent className="flex flex-col gap-3 p-3 sm:p-4">
 											<div className="flex flex-row items-center gap-3">
 												<div
-													className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${pump.status === 'Aktif' ? 'bg-teal-100 text-teal-600 dark:bg-teal/10 dark:text-teal' : 'bg-amber-100 text-amber-600 dark:bg-warning/10 dark:text-warning'}`}
+													className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${pump.status === 'Aktif' ? 'bg-blue-100 text-blue-600 dark:bg-info/10 dark:text-info' : 'bg-red-100 text-red-600 dark:bg-destructive/10 dark:text-destructive'}`}
 												>
 													{pump.status === 'Aktif' ? (
 														<IconDroplet className="h-5 w-5" />
 													) : (
-														<IconTool className="h-5 w-5" />
+														<IconDroplet className="h-5 w-5" />
 													)}
 												</div>
 												<div className="w-full min-w-0 flex-1">
 													<h3
-														className={`truncate text-sm font-semibold ${activePumpId === pump.id ? 'text-teal-700 dark:text-teal' : 'text-foreground'}`}
+														className={`truncate text-sm font-semibold ${activePumpId === pump.id ? 'text-blue-700 dark:text-info' : 'text-foreground'}`}
 													>
 														{pump.name}
 													</h3>
@@ -233,7 +231,7 @@ export default function Index({ pumps, filters, tenant_location }) {
 													</Button>
 												</div>
 											</div>
-											<div className="mt-1 flex items-center justify-center gap-1 rounded-md bg-teal-50 py-1.5 text-[10px] font-bold text-teal-600 dark:bg-teal/10 dark:text-teal lg:hidden">
+											<div className="mt-1 flex items-center justify-center gap-1 rounded-md bg-blue-50 py-1.5 text-[10px] font-bold text-blue-600 dark:bg-info/10 dark:text-info lg:hidden">
 												<IconArrowDown className="h-3 w-3" /> Lihat Peta Lokasi
 											</div>
 										</CardContent>
@@ -255,7 +253,7 @@ export default function Index({ pumps, filters, tenant_location }) {
 														preserveScroll
 														className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
 															link.active
-																? 'border-teal-600 bg-teal-600 text-white shadow-sm dark:border-teal dark:bg-teal'
+																? 'border-blue-600 bg-blue-600 text-white shadow-sm dark:border-info dark:bg-info'
 																: 'border-input bg-background text-muted-foreground hover:bg-accent hover:text-foreground'
 														}`}
 														dangerouslySetInnerHTML={{ __html: link.label }}
@@ -285,7 +283,7 @@ export default function Index({ pumps, filters, tenant_location }) {
 					className="flex h-[450px] w-full scroll-mt-24 flex-col lg:h-[calc(100vh-140px)] lg:flex-1"
 				>
 					<div className="mb-3 flex items-center gap-2 px-1">
-						<IconMapPinFilled className="h-4 w-4 text-teal-600 dark:text-teal" />
+						<IconMapPinFilled className="h-4 w-4 text-blue-600 dark:text-info" />
 						<h2 className="text-sm font-semibold text-foreground">Peta Sebaran Interaktif</h2>
 					</div>
 					<div

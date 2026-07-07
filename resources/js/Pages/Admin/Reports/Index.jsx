@@ -28,9 +28,9 @@ const STATUS_BADGE = {
 	// hanya dipakai sebagai label pill filter (selaras kartu "Darurat Aktif" di dashboard).
 	aktif: { className: 'bg-destructive/10 text-destructive border-destructive/20', label: 'AKTIF' },
 	TERLAPOR: { className: 'bg-destructive/10 text-destructive border-destructive/20', label: 'TERLAPOR' },
-	pending: { className: 'bg-destructive/10 text-destructive border-destructive/20', label: 'MENUNGGU' },
-	handling: { className: 'bg-warning/10 text-warning border-warning/20', label: 'PENANGANAN' },
-	resolved: { className: 'bg-success/10 text-success border-success/20', label: 'SELESAI' },
+	pending: { className: 'bg-warning/10 text-warning border-warning/20', label: 'MENUNGGU' },
+	handling: { className: 'bg-success/10 text-success border-success/20', label: 'PENANGANAN' },
+	resolved: { className: 'bg-info/10 text-info border-info/20', label: 'SELESAI' },
 };
 
 // Warna pin peta per status penanganan (selaras token STATUS_BADGE)
@@ -43,25 +43,25 @@ const STATUS_MARKER = {
 		hover: 'hover:border-red-300 dark:hover:border-destructive/50',
 	},
 	pending: {
-		color: 'text-red-600 dark:text-destructive',
-		ring: 'bg-red-100 dark:bg-destructive/10 text-red-600 dark:text-destructive',
-		active: 'border-red-500 dark:border-destructive bg-red-50/50 dark:bg-destructive/5',
-		activeText: 'text-red-700 dark:text-destructive',
-		hover: 'hover:border-red-300 dark:hover:border-destructive/50',
-	},
-	handling: {
 		color: 'text-amber-500 dark:text-warning',
 		ring: 'bg-amber-100 dark:bg-warning/10 text-amber-600 dark:text-warning',
 		active: 'border-amber-500 dark:border-warning bg-amber-50/50 dark:bg-warning/5',
 		activeText: 'text-amber-700 dark:text-warning',
 		hover: 'hover:border-amber-300 dark:hover:border-warning/50',
 	},
-	resolved: {
+	handling: {
 		color: 'text-emerald-600 dark:text-success',
 		ring: 'bg-emerald-100 dark:bg-success/10 text-emerald-600 dark:text-success',
 		active: 'border-emerald-500 dark:border-success bg-emerald-50/50 dark:bg-success/5',
 		activeText: 'text-emerald-700 dark:text-success',
 		hover: 'hover:border-emerald-300 dark:hover:border-success/50',
+	},
+	resolved: {
+		color: 'text-blue-600 dark:text-info',
+		ring: 'bg-blue-100 dark:bg-info/10 text-blue-600 dark:text-info',
+		active: 'border-blue-500 dark:border-info bg-blue-50/50 dark:bg-info/5',
+		activeText: 'text-blue-700 dark:text-info',
+		hover: 'hover:border-blue-300 dark:hover:border-info/50',
 	},
 };
 
@@ -357,10 +357,14 @@ export default function Index(props) {
 							</span>
 							<span className="flex items-center gap-1">
 								<span className="inline-block h-2 w-2 rounded-full bg-amber-500 dark:bg-warning" />{' '}
-								Penanganan
+								Menunggu
 							</span>
 							<span className="flex items-center gap-1">
 								<span className="inline-block h-2 w-2 rounded-full bg-emerald-600 dark:bg-success" />{' '}
+								Penanganan
+							</span>
+							<span className="flex items-center gap-1">
+								<span className="inline-block h-2 w-2 rounded-full bg-blue-600 dark:bg-info" />{' '}
 								Selesai
 							</span>
 						</div>

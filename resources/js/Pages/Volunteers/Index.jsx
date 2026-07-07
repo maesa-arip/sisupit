@@ -57,8 +57,8 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 			</div>
 
 			{/* --- PANEL PENCARIAN & FILTER --- */}
-			<Card className="overflow-hidden rounded-xl border-border shadow-sm">
-				<CardContent className="p-5 sm:p-6">
+			<Card className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+				<CardContent className="p-5">
 					<form onSubmit={handleSubmit} className="flex flex-col gap-5">
 						{/* Search Nama */}
 						<div className="relative flex-1">
@@ -68,7 +68,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 							<Input
 								type="text"
 								placeholder="Cari nama relawan..."
-								className="h-10 w-full rounded-md border-border bg-card pl-9 focus-visible:ring-1 focus-visible:ring-destructive"
+								className="h-10 w-full rounded-md border-border bg-muted pl-9 text-sm focus-visible:ring-1 focus-visible:ring-destructive"
 								value={data.search}
 								onChange={(e) => setData('search', e.target.value)}
 							/>
@@ -196,10 +196,10 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 
 									{/* Status Badge */}
 									<span
-										className={`rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+										className={`whitespace-nowrap rounded border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider ${
 											volunteer.status === 'Siaga'
 												? 'border-green-200 bg-green-50 text-green-700 dark:border-success/30 dark:bg-success/10 dark:text-success'
-												: 'border-red-200 bg-red-50 text-red-700 dark:border-warning/30 dark:bg-warning/10 dark:text-warning'
+												: 'border-border bg-muted text-muted-foreground'
 										}`}
 									>
 										{volunteer.status}
@@ -253,10 +253,10 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 					))
 				) : (
 					/* State Jika Data Kosong */
-					<div className="col-span-full flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted p-12 text-center">
-						<IconUsersGroup className="mb-3 h-12 w-12 text-muted-foreground" stroke={1.5} />
-						<h3 className="text-base font-semibold text-foreground">Belum ada relawan ditemukan</h3>
-						<p className="mt-1 text-sm text-muted-foreground">
+					<div className="col-span-full flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 p-10 text-center">
+						<IconUsersGroup className="mb-2 h-10 w-10 text-muted-foreground" stroke={1.5} />
+						<h4 className="text-sm font-semibold text-foreground">Belum ada relawan ditemukan</h4>
+						<p className="mt-1 text-xs text-muted-foreground">
 							Coba ubah filter pencarian Anda atau perluas jangkauan wilayah.
 						</p>
 					</div>

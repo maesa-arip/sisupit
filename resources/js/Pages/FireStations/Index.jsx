@@ -117,7 +117,13 @@ export default function Index({ stations, filters, ...props }) {
 								>
 									<CardContent className="flex flex-row flex-nowrap items-center gap-3 p-3 sm:p-4">
 										{/* KIRI: Ikon Mobil Pemadam */}
-										<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-destructive/20 bg-destructive/10 text-destructive">
+										<div
+											className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md border ${
+												station.status === 'Aktif'
+													? 'border-blue-200 bg-blue-50 text-blue-600 dark:border-info/30 dark:bg-info/10 dark:text-info'
+													: 'border-red-200 bg-red-50 text-red-600 dark:border-destructive/30 dark:bg-destructive/10 dark:text-destructive'
+											}`}
+										>
 											<IconFiretruck className="h-5 w-5" stroke={1.5} />
 										</div>
 
@@ -130,7 +136,13 @@ export default function Index({ stations, filters, ...props }) {
 												{station.address}
 											</p>
 											<div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-												<span className="whitespace-nowrap rounded border border-green-200 bg-green-50 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-green-700 dark:border-success/30 dark:bg-success/10 dark:text-success">
+												<span
+													className={`whitespace-nowrap rounded border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider ${
+														station.status === 'Aktif'
+															? 'border-blue-200 bg-blue-50 text-blue-700 dark:border-info/30 dark:bg-info/10 dark:text-info'
+															: 'border-red-200 bg-red-50 text-red-700 dark:border-destructive/30 dark:bg-destructive/10 dark:text-destructive'
+													}`}
+												>
 													{station.status}
 												</span>
 												<span className="border-l border-border pl-1.5 text-[10px] font-medium text-muted-foreground sm:pl-2">

@@ -7,13 +7,12 @@ import AppLayout from '@/Layouts/AppLayout';
 import { GEO_OPTIONS } from '@/lib/utils';
 import { Link, router, useForm } from '@inertiajs/react';
 import {
-	IconDroplet,
+	IconFireHydrant,
 	IconLoader2,
 	IconMapPinFilled,
 	IconRadar,
 	IconRoute,
 	IconSearch,
-	IconTool,
 } from '@tabler/icons-react';
 import { useState } from 'react';
 
@@ -94,7 +93,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 				<HeaderTitle
 					title="Jaringan Hydrant"
 					subtitle="Temukan titik hydrant pemadam terdekat dari lokasi Anda."
-					icon={IconDroplet}
+					icon={IconFireHydrant}
 				/>
 			</div>
 
@@ -153,7 +152,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 												: 'border-border bg-card text-foreground/80 hover:bg-muted'
 										}`}
 									>
-										Berfungsi
+										Aktif
 									</button>
 									<button
 										type="button"
@@ -183,14 +182,14 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 										<div
 											className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md border ${
 												hydrant.status === 'Aktif'
-													? 'border-teal-200 bg-teal-50 text-teal-600 dark:border-teal/30 dark:bg-teal/10 dark:text-teal'
-													: 'border-amber-200 bg-amber-50 text-amber-600 dark:border-warning/30 dark:bg-warning/10 dark:text-warning'
+													? 'border-blue-200 bg-blue-50 text-blue-600 dark:border-info/30 dark:bg-info/10 dark:text-info'
+													: 'border-red-200 bg-red-50 text-red-600 dark:border-destructive/30 dark:bg-destructive/10 dark:text-destructive'
 											}`}
 										>
 											{hydrant.status === 'Aktif' ? (
-												<IconDroplet className="h-5 w-5" stroke={1.5} />
+												<IconFireHydrant className="h-5 w-5" stroke={1.5} />
 											) : (
-												<IconTool className="h-5 w-5" stroke={1.5} />
+												<IconFireHydrant className="h-5 w-5" stroke={1.5} />
 											)}
 										</div>
 
@@ -205,11 +204,11 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 												<span
 													className={`whitespace-nowrap rounded border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider ${
 														hydrant.status === 'Aktif'
-															? 'border-teal-200 bg-teal-50 text-teal-700 dark:border-teal/30 dark:bg-teal/10 dark:text-teal'
-															: 'border-amber-200 bg-amber-50 text-amber-700 dark:border-warning/30 dark:bg-warning/10 dark:text-warning'
+															? 'border-blue-200 bg-blue-50 text-blue-700 dark:border-info/30 dark:bg-info/10 dark:text-info'
+															: 'border-red-200 bg-red-50 text-red-700 dark:border-destructive/30 dark:bg-destructive/10 dark:text-destructive'
 													}`}
 												>
-													{hydrant.status === 'Aktif' ? 'Berfungsi' : 'Perbaikan'}
+													{hydrant.status}
 												</span>
 												<span className="max-w-[80px] truncate border-l border-border pl-1.5 text-[10px] font-medium text-muted-foreground sm:max-w-none sm:pl-2">
 													Hydrant {hydrant.type}
@@ -246,7 +245,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 							))
 						) : (
 							<div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 p-10 text-center">
-								<IconDroplet className="mb-2 h-10 w-10 text-muted-foreground" stroke={1.5} />
+								<IconFireHydrant className="mb-2 h-10 w-10 text-muted-foreground" stroke={1.5} />
 								<h4 className="text-sm font-semibold text-foreground">Tidak ada data hydrant</h4>
 								<p className="mt-1 text-xs text-muted-foreground">
 									Coba ubah kata kunci pencarian Anda.
@@ -280,7 +279,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 				{/* --- KOLOM KANAN: Peta Interaktif (Sticky) --- */}
 				<div className="flex w-full flex-col gap-3 lg:sticky lg:top-[90px] lg:flex-1">
 					<div className="flex items-center gap-2 px-1">
-						<IconMapPinFilled className="h-4 w-4 text-destructive" />
+						<IconMapPinFilled className="h-4 w-4 text-teal-600 dark:text-teal" />
 						<h2 className="text-sm font-semibold text-foreground">Sebaran Titik Hydrant</h2>
 					</div>
 

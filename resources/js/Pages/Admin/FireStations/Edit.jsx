@@ -577,7 +577,7 @@ export default function Edit({
 												<SelectValue placeholder="Pilih Status" />
 											</SelectTrigger>
 											<SelectContent>
-												<SelectItem value="Aktif">Beroperasi</SelectItem>
+												<SelectItem value="Aktif">Aktif</SelectItem>
 												<SelectItem value="Perbaikan">Perbaikan</SelectItem>
 											</SelectContent>
 										</Select>

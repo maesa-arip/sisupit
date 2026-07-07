@@ -8,12 +8,11 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
 	IconAlertTriangle,
 	IconArrowDown,
-	IconDroplet,
 	IconEdit,
+	IconFireHydrant,
 	IconMapPinFilled,
 	IconPlus,
 	IconSearch,
-	IconTool,
 	IconTrash,
 } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
@@ -56,8 +55,8 @@ export default function Index({ hydrants, filters, tenant_location }) {
 				if (!isNaN(lat) && !isNaN(lng)) {
 					const iconColor =
 						hydrant.status === 'Aktif'
-							? 'text-teal-600 dark:text-teal'
-							: 'text-amber-500 dark:text-warning';
+							? 'text-blue-600 dark:text-info'
+							: 'text-red-500 dark:text-destructive';
 					const customIcon = window.L.divIcon({
 						html: `<div class="${iconColor} drop-shadow-md hover:scale-110 transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
 						className: 'bg-transparent border-none',
@@ -140,7 +139,7 @@ export default function Index({ hydrants, filters, tenant_location }) {
 				<HeaderTitle
 					title="Manajemen Jaringan Hydrant"
 					subtitle="Kelola fasilitas hydrant pemadam di wilayah Anda."
-					icon={IconDroplet}
+					icon={IconFireHydrant}
 				/>
 				<Button
 					size="sm"
@@ -179,7 +178,7 @@ export default function Index({ hydrants, filters, tenant_location }) {
 									}`}
 								>
 									{status === 'Aktif'
-										? 'Kondisi Baik'
+										? 'Aktif'
 										: status === 'Perbaikan'
 											? 'Perbaikan'
 											: 'Semua'}
@@ -201,12 +200,12 @@ export default function Index({ hydrants, filters, tenant_location }) {
 										<CardContent className="flex flex-col gap-3 p-3 sm:p-4">
 											<div className="flex flex-row items-center gap-3">
 												<div
-													className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${hydrant.status === 'Aktif' ? 'bg-teal-100 text-teal-600 dark:bg-teal/10 dark:text-teal' : 'bg-amber-100 text-amber-600 dark:bg-warning/10 dark:text-warning'}`}
+													className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${hydrant.status === 'Aktif' ? 'bg-blue-100 text-blue-600 dark:bg-info/10 dark:text-info' : 'bg-red-100 text-red-600 dark:bg-destructive/10 dark:text-destructive'}`}
 												>
 													{hydrant.status === 'Aktif' ? (
-														<IconDroplet className="h-5 w-5" />
+														<IconFireHydrant className="h-5 w-5" />
 													) : (
-														<IconTool className="h-5 w-5" />
+														<IconFireHydrant className="h-5 w-5" />
 													)}
 												</div>
 												<div className="w-full min-w-0 flex-1">
