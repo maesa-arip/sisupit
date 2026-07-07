@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\Report;
 use App\Models\User;
 use Carbon\Carbon;
-use Faker\Factory as Faker;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -19,8 +18,6 @@ class ResolvedReportSeeder extends Seeder
 {
     public function run(): void
     {
-        $faker = Faker::create('id_ID');
-
         $wargaList = User::role(['warga', 'masyarakat'])->get();
         $relawanAll = User::role('relawan')->get();
         $petugasAll = User::role('petugas')->get();
@@ -45,13 +42,21 @@ class ResolvedReportSeeder extends Seeder
             'Truk Terbakar', 'Evakuasi Kucing di Atap', 'Banjir Genangan Lokal', 'Kebakaran Alang-alang',
         ];
 
+        $closingSnippets = [
+            'Api berhasil dipadamkan, tidak ada korban jiwa.',
+            'Evakuasi tuntas, lokasi sudah diamankan petugas.',
+            'Penanganan selesai, warga kembali beraktivitas normal.',
+            'Sumber bahaya dinetralkan, area dinyatakan aman.',
+            'Tim menutup insiden setelah pendinginan menyeluruh.',
+        ];
+
         $landAnchors = $this->denpasarAnchors();
 
         $total = 10;
         for ($i = 1; $i <= $total; $i++) {
             $warga = $denpasarWarga->random();
-            $title = $faker->randomElement($incidentTypes);
-            $anchor = $faker->randomElement($landAnchors);
+            $title = $incidentTypes[array_rand($incidentTypes)];
+            $anchor = $landAnchors[array_rand($landAnchors)];
 
             $lat = $anchor['lat'] + (rand(-30, 30) / 10000);
             $lng = $anchor['lng'] + (rand(-30, 30) / 10000);
@@ -65,7 +70,7 @@ class ResolvedReportSeeder extends Seeder
                 'name' => $warga->name,
                 'phone' => $warga->phone,
                 'title' => $title.' di '.$anchor['name'],
-                'description' => 'Insiden telah ditangani dan dinyatakan selesai. '.$faker->realText(50),
+                'description' => 'Insiden telah ditangani dan dinyatakan selesai. '.$closingSnippets[array_rand($closingSnippets)],
                 'lat' => $lat,
                 'lng' => $lng,
                 'province_code' => '51',

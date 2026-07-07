@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\Report;
 use App\Models\User;
 use Carbon\Carbon;
-use Faker\Factory as Faker;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -22,8 +21,6 @@ class ReportSeeder extends Seeder
 {
     public function run(): void
     {
-        $faker = Faker::create('id_ID');
-
         // =====================================================================
         // 0. BERSIHKAN LAPORAN LAMA (soft delete) + data turunannya
         // =====================================================================
@@ -54,6 +51,15 @@ class ReportSeeder extends Seeder
             'Truk Terbakar', 'Evakuasi Kucing di Atap', 'Banjir Genangan Lokal', 'Kebakaran Alang-alang',
         ];
 
+        $descriptionSnippets = [
+            'Api membesar cepat, warga sekitar sudah dievakuasi.',
+            'Asap tebal terlihat dari kejauhan, akses jalan sempit.',
+            'Korban terjebak di dalam, mohon unit segera dikerahkan.',
+            'Kobaran merambat ke bangunan sebelah, angin kencang.',
+            'Situasi mulai terkendali namun masih butuh bantuan.',
+            'Warga panik, sumber air terdekat cukup jauh dari lokasi.',
+        ];
+
         // =====================================================================
         // TITIK JANGKAR KELURAHAN KOTA DENPASAR (kode + centroid dari data laravolt)
         // =====================================================================
@@ -62,20 +68,21 @@ class ReportSeeder extends Seeder
         $total = 22;
         for ($i = 1; $i <= $total; $i++) {
             $warga = $denpasarWarga->random();
-            $title = $faker->randomElement($incidentTypes);
-            $anchor = $faker->randomElement($landAnchors);
+            $title = $incidentTypes[array_rand($incidentTypes)];
+            $anchor = $landAnchors[array_rand($landAnchors)];
 
             // Jitter ~330 m dari centroid kelurahan.
             $lat = $anchor['lat'] + (rand(-30, 30) / 10000);
             $lng = $anchor['lng'] + (rand(-30, 30) / 10000);
 
             // Mayoritas 'handling' agar peta penuh jalur; sisanya resolved & sedikit baru.
-            $status = $faker->randomElement([
+            $statusPool = [
                 'TERLAPOR',
                 'pending', 'pending',
                 'handling', 'handling', 'handling', 'handling', 'handling', 'handling',
                 'resolved', 'resolved', 'resolved',
-            ]);
+            ];
+            $status = $statusPool[array_rand($statusPool)];
 
             $createdAt = match ($status) {
                 'handling' => Carbon::now()->subMinutes(rand(5, 90)),
@@ -88,7 +95,7 @@ class ReportSeeder extends Seeder
                 'name' => $warga->name,
                 'phone' => $warga->phone,
                 'title' => $title.' di '.$anchor['name'],
-                'description' => 'Mohon segera dibantu. Kondisi darurat. '.$faker->realText(50),
+                'description' => 'Mohon segera dibantu. Kondisi darurat. '.$descriptionSnippets[array_rand($descriptionSnippets)],
                 'lat' => $lat,
                 'lng' => $lng,
                 'province_code' => '51',
