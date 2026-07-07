@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\RouteController;
 use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Front\HydrantController;
+use App\Http\Controllers\Front\MonitoringMapController;
 use App\Http\Controllers\Front\PompaController;
 use App\Http\Controllers\Front\PosPemadamController;
 use App\Http\Controllers\Front\RelawanController;
@@ -76,6 +77,12 @@ Route::controller(HomeController::class)->group(function () {
 Route::middleware(['auth', 'verified', 'role:petugas|admin|superadmin'])->group(function () {
     Route::get('/relawan', [RelawanController::class, 'index'])->name('front.volunteers.index');
     Route::get('/relawan/{id}', [RelawanController::class, 'show'])->name('front.volunteers.show');
+});
+
+// Peta Pemantauan terpadu (semua layer) — Pusat Komando + pejabat pemantau,
+// ter-scope yurisdiksi. Memuat data relawan & kejadian (PII), jadi bukan publik.
+Route::middleware(['auth', 'verified', 'role:petugas|admin|superadmin|pejabat'])->group(function () {
+    Route::get('/peta-pemantauan', [MonitoringMapController::class, 'index'])->name('front.monitoring.map');
 });
 
 Route::get('/pumps', [PompaController::class, 'index'])->name('front.pumps.index');

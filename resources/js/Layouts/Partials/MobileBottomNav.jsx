@@ -14,6 +14,7 @@ import {
 	IconLockAccess,
 	IconLogin2,
 	IconLogout,
+	IconMapSearch,
 	IconMenu2,
 	IconRoute,
 	IconSettings,
@@ -37,6 +38,8 @@ export default function MobileBottomNav({ auth }) {
 	const isSuperadmin = userRoles.includes('superadmin');
 	// Daftar relawan = Pusat Komando saja (petugas/admin/superadmin), selaras gating route.
 	const isStaff = userRoles.includes('petugas') || isAdmin;
+	// Peta Pemantauan = Pusat Komando + pejabat pemantau (selaras gating route front.monitoring.map).
+	const isCommandCenter = isStaff || userRoles.includes('pejabat');
 
 	const [showFasilitas, setShowFasilitas] = useState(false);
 	const fasilitasRef = useRef(null);
@@ -46,7 +49,11 @@ export default function MobileBottomNav({ auth }) {
 
 	const isActive = (path) => url.startsWith(path);
 	const isFasilitasActive =
-		isActive('/fire-stations') || isActive('/pumps') || isActive('/hydrants') || (isStaff && isActive('/relawan'));
+		isActive('/fire-stations') ||
+		isActive('/pumps') ||
+		isActive('/hydrants') ||
+		(isStaff && isActive('/relawan')) ||
+		(isCommandCenter && isActive('/peta-pemantauan'));
 	const isAdminActive = isActive('/admin');
 
 	useEffect(() => {
@@ -124,6 +131,17 @@ export default function MobileBottomNav({ auth }) {
 										label="Daftar Relawan"
 										colorClass="text-info"
 										bgClass="bg-info/10 text-info"
+										onClick={() => setShowFasilitas(false)}
+									/>
+								)}
+								{isCommandCenter && (
+									<FloatingLink
+										href={route('front.monitoring.map')}
+										active={isActive('/peta-pemantauan')}
+										icon={IconMapSearch}
+										label="Peta Pemantauan"
+										colorClass="text-teal"
+										bgClass="bg-teal/10 text-teal"
 										onClick={() => setShowFasilitas(false)}
 									/>
 								)}

@@ -30,7 +30,8 @@ app/
     Admin/        CRUD admin: User (incl. assignRole), Role, Permission, AssignPermission,
                   RouteAccess, Announcement, Hydrant, Report (index/export), Setting
     Front/        Controller publik: HydrantController, PompaController,
-                  PosPemadamController, RelawanController
+                  PosPemadamController, RelawanController,
+                  MonitoringMapController (Peta Pemantauan terpadu — semua layer)
     Auth/         Breeze + SocialiteController
     Api/          FcmController (register token FCM), GeocodeController (proxy Nominatim),
                   RouteController (proxy OSRM — rute jalan asli untuk tracking peta)
@@ -86,10 +87,11 @@ docker/osrm/      Self-hosted routing (OSRM Bali, MLD) — RUNNING lokal :5001 (
 | Pengumuman | Broadcast info publik | `app/Http/Controllers/Admin/AnnouncementController.php` |
 | Geocoding Proxy | Reverse & search Nominatim, cache 24h, lock rate-limit 1 req/detik. Base URL dari `config('services.nominatim.base_url')` (default LOKAL `127.0.0.1:8080`, bukan publik — hardening FINDINGS #35). Semua reverse-geocode frontend lewat proxy ini | `app/Http/Controllers/Api/GeocodeController.php` |
 | Routing Proxy | Rute jalan asli OSRM (driving, geojson), cache 1h, lock throttle — dipakai peta tracking (`Reports/Show.jsx`) menggambar rute mengikuti jalan, bukan garis lurus. Base URL dari `config('services.osrm.base_url')` (default LOKAL, self-hosted `docker/osrm/`) | `app/Http/Controllers/Api/RouteController.php` |
-| Basemap tiles | URL tile Leaflet terpusat di `MAP_TILE_URL` (`resources/js/lib/utils.js`) — dipakai 14 peta. Kini CARTO Voyager (turunan OSM, di-host CARTO); swappable ke tile server sendiri dari satu tempat | `resources/js/lib/utils.js` |
+| Basemap tiles | URL tile Leaflet terpusat di `MAP_TILE_URL` (`resources/js/lib/utils.js`) — dipakai 14 peta. Nilai di-inject RUNTIME dari `config('services.map.tile_url')` → `window.MAP_TILE_URL` (`app.blade.php`), swappable ke tile server sendiri lewat 1 env var `MAP_TILE_URL` TANPA rebuild (pola sama Nominatim/OSRM). Default = CARTO Voyager (turunan OSM). Tile ditarik BROWSER (bukan server) → tile server harus publik bila di-self-host | `resources/js/lib/utils.js`, `config/services.php`, `app/Http/Middleware`→`app.blade.php` |
 | Simulasi Responden | Artisan `sisupit:simulate-responders` (live & `--snapshot`) gerakkan petugas/relawan menyusuri rute jalan asli ke TKP; seeder `ResponderSimulationSeeder` (snapshot, manual) | `app/Console/Commands/SimulateResponders.php` |
 | Push Notification | FCM (native Android) untuk insiden; WebPush dimatikan & PWA web dihapus. Lifecycle token per-DEVICE: login memindahkan token ke user aktif (`FcmController::store`), logout melepas token device ini (`AuthenticatedSessionController::destroy` menerima `fcm_token` di body) agar HP berhenti dapat sirine setelah keluar. **Notif balik ke PELAPOR** tiap transisi status via `ReportStatusUpdatedNotification` (FCM+database, TASK_06). **Lonceng web** (TASK_11): `notifications` di-share via `HandleInertiaRequests`, ditandai-baca lewat `NotificationController` (`notifications.read`/`readAll`), ditampilkan di header `AppLayout` | `app/Notifications/EmergencyAlertNotification.php`, `app/Notifications/ReportStatusUpdatedNotification.php`, `app/Http/Controllers/NotificationController.php` |
-| Dashboard per Role | Command center (admin) / misi aktif (petugas) / riwayat+radar (publik/relawan) | `app/Http/Controllers/DashboardController.php` |
+| Dashboard per Role | Command center (admin) / misi aktif (petugas) / riwayat+radar (publik/relawan). Mini-peta lama di dashboard admin DIHAPUS → dipindah ke Peta Pemantauan (CTA di dashboard) | `app/Http/Controllers/DashboardController.php` |
+| Peta Pemantauan | Peta terpadu satu halaman: 5 layer (kejadian, hydrant, pos pemadam, pompa, relawan), tiap layer punya filter sendiri (kejadian per status; fasilitas per status; relawan siaga/nonaktif), filtering client-side. Data ter-scope yurisdiksi di server (Report/Hydrant/Pompa/PosPemadam via Tenantable; relawan via `User::scopeIsAdmin`). Relawan tak punya GPS → diposisikan di centroid wilayah dari `indonesia_*.meta` (desa→kecamatan→kabupaten). Akses: `role:petugas\|admin\|superadmin\|pejabat` | `app/Http/Controllers/Front/MonitoringMapController.php`, `resources/js/Pages/Monitoring/Map.jsx` |
 | Setting Global | Tingkat siaran notifikasi (superadmin-only) | `app/Models/Setting.php`, `app/Http/Controllers/Admin/SettingController.php` |
 
 ## Alur request (contoh kritikal)
@@ -182,6 +184,7 @@ auth+verified           : /dashboard, /reports/* (CRUD milik sendiri + approve/r
                            /helpers/create, /users/relawan/{user}, /users/detail/{user}
                            (2 terakhir TANPA role check — FINDINGS_LOG #1, P0)
 auth (login saja)       : /api/geocode/{reverse,search}, /api/route/directions (proxy OSRM)
+role:petugas|admin|superadmin|pejabat : /peta-pemantauan (front.monitoring.map — Peta Pemantauan terpadu)
 role:admin|superadmin   : /admin/users/*, /admin/facilities (dead, no view),
                            /admin/hydrants/* (resource), /admin/pumps/* (resource),
                            /admin/fire-stations/* (resource), /admin/units/* (resource, TASK_09),

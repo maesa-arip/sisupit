@@ -42,22 +42,6 @@ class DashboardController extends Controller
                 }
             }
 
-            // Peta pemantauan: hanya report (bukan hydrant). Report aktif tampil semua;
-            // report "Selesai" (resolved) dibatasi ke hari ini agar peta tetap relevan.
-            $mapActive = (clone $queryReportsActive)->whereNotNull('lat')->whereNotNull('lng')->get();
-            $mapResolvedToday = (clone $queryReportsResolved)->whereNotNull('lat')->whereNotNull('lng')
-                ->whereDate('updated_at', today())->get();
-
-            $mapReports = $mapActive->concat($mapResolvedToday)->map(fn ($report) => [
-                'id' => $report->id,
-                'title' => $report->title,
-                'location' => $report->address,
-                'time' => $report->created_at->diffForHumans(),
-                'status' => $report->status,
-                'lat' => $report->lat,
-                'lng' => $report->lng,
-            ]);
-
             $stats = [
                 'active_reports' => (clone $queryReportsActive)->count(),
                 'standby_helpers' => (clone $queryHelpers)->count(),
@@ -80,7 +64,6 @@ class DashboardController extends Controller
             return Inertia::render('Admin/Dashboard', [
                 'stats' => $stats,
                 'recentReports' => $recentReports->toArray(),
-                'mapReports' => $mapReports->toArray(),
                 'isPejabat' => $isPejabat,
             ]);
         }

@@ -14,6 +14,7 @@ import {
 	IconLogin2,
 	IconLogout,
 	IconMapPin,
+	IconMapSearch,
 	IconRoute,
 	IconSettings,
 	IconShieldLock,
@@ -39,6 +40,8 @@ export default function Sidebar({ url, auth }) {
 	const isSuperadmin = userRoles.includes('superadmin');
 	// Daftar relawan = Pusat Komando saja (petugas/admin/superadmin), selaras gating route.
 	const isStaff = userRoles.includes('petugas') || isAdminOrSuperadmin;
+	// Peta Pemantauan = Pusat Komando + pejabat pemantau (selaras gating route front.monitoring.map).
+	const isCommandCenter = isStaff || userRoles.includes('pejabat');
 
 	// Komponen Header Seksi Menu (Tipografi Taktis/Militeristik)
 	const NavHeading = ({ children }) => (
@@ -58,6 +61,14 @@ export default function Sidebar({ url, auth }) {
 				icon={IconDashboard}
 			/>
 			<NavLink url={'/'} active={url === '/'} title="Pusat Bantuan" icon={IconMapPin} />
+			{isCommandCenter && (
+				<NavLink
+					url={route('front.monitoring.map')}
+					active={url.startsWith('/peta-pemantauan')}
+					title="Peta Pemantauan"
+					icon={IconMapSearch}
+				/>
+			)}
 
 			{/* --- SEKSI OPERASIONAL --- */}
 			{auth?.name && (

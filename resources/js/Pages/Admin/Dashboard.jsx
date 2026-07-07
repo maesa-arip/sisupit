@@ -3,7 +3,7 @@ import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import AppLayout from '@/Layouts/AppLayout';
-import { cn, MAP_TILE_URL } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { Head, Link } from '@inertiajs/react';
 import {
 	IconAlertCircle,
@@ -16,167 +16,14 @@ import {
 	IconFiretruck,
 	IconFlame,
 	IconMapPin,
-	IconMaximize,
-	IconMinimize,
+	IconMapSearch,
 	IconShieldCheck,
 	IconTree,
 	IconUsersGroup,
 } from '@tabler/icons-react';
-import { useEffect, useRef, useState } from 'react';
 
-export default function AdminDashboard({ auth, stats, recentReports, mapReports = [], isPejabat = false }) {
-	const miniMapRef = useRef(null);
-	const mapInstanceRef = useRef(null);
-	const boundsRef = useRef(null);
-	const [isMaximized, setIsMaximized] = useState(false);
-
-	const defaultLat = -8.65;
-	const defaultLng = 115.216667;
+export default function AdminDashboard({ auth, stats, recentReports, isPejabat = false }) {
 	const isTopLevelAdmin = !auth?.user?.city_code;
-
-	useEffect(() => {
-		if (!miniMapRef.current || !window.L) return;
-
-		if (mapInstanceRef.current) {
-			mapInstanceRef.current.remove();
-			mapInstanceRef.current = null;
-		}
-
-		const allMarkers = [];
-		const map = window.L.map(miniMapRef.current, {
-			zoomControl: false,
-			scrollWheelZoom: false,
-			dragging: !window.L.Browser.mobile,
-			tap: !window.L.Browser.mobile,
-		}).setView([defaultLat, defaultLng], 13);
-
-		window.L.tileLayer(MAP_TILE_URL).addTo(map);
-		// Tombol zoom di kanan-bawah agar tidak tertutup header peta yang melayang di atas.
-		window.L.control.zoom({ position: 'bottomright' }).addTo(map);
-		mapInstanceRef.current = map;
-
-		// Selaras dgn kartu "Laporan Insiden Terbaru": ikon & warna per jenis insiden dari judul.
-		const reportVisual = (title) => {
-			const t = (title || '').toLowerCase();
-			if (t.includes('pohon'))
-				return {
-					box: 'text-emerald-600 dark:text-success bg-emerald-100 dark:bg-success/10',
-					svg: '<path d="M12 2 4 11h3l-4 5h5v5h8v-5h5l-4-5h3z"/>',
-				};
-			if (t.includes('hewan') || t.includes('ular') || t.includes('tawon'))
-				return {
-					box: 'text-amber-600 dark:text-warning bg-amber-100 dark:bg-warning/10',
-					svg: '<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-3 7a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm6 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/>',
-				};
-			if (t.includes('listrik') || t.includes('korsleting'))
-				return {
-					box: 'text-blue-600 dark:text-info bg-blue-100 dark:bg-info/10',
-					svg: '<path d="M13 2 3 14h7l-1 8 10-12h-7z"/>',
-				};
-			return {
-				box: 'text-destructive bg-destructive/10',
-				svg: '<path d="M12 2c1 4-2 5-2 8a2 2 0 0 0 4 0c2 2 3 3 3 6a5 5 0 0 1-10 0c0-4 5-6 5-14z"/>',
-			};
-		};
-
-		// Badge status selaras dgn Components/StatusBadge (token semantik, bukan hex mentah).
-		const STATUS_BADGE = {
-			TERLAPOR: { label: 'Darurat', cls: 'bg-destructive/10 text-destructive border-destructive/30' },
-			pending: { label: 'Menunggu', cls: 'bg-warning/10 text-warning border-warning/30' },
-			handling: { label: 'Penanganan', cls: 'bg-info/10 text-info border-info/30' },
-			resolved: { label: 'Selesai', cls: 'bg-success/10 text-success border-success/30' },
-		};
-
-		mapReports.forEach((report) => {
-			const lat = parseFloat(report.lat);
-			const lng = parseFloat(report.lng);
-			if (isNaN(lat) || isNaN(lng)) return;
-
-			const isResolved = report.status === 'resolved';
-			// Selesai = biru; aktif = merah (berdenyut). Bentuk pin teardrop tetap konsisten.
-			const pinColor = isResolved ? 'text-blue-600 dark:text-info' : 'text-destructive animate-pulse';
-			const reportIcon = window.L.divIcon({
-				html: `<div class="${pinColor}"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7.58 2 4 5.58 4 10c0 4.42 8 12 8 12s8-7.58 8-12c0-4.42-3.58-8-8-8zm0 11c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/></svg></div>`,
-				className: 'bg-transparent border-none filter drop-shadow-md',
-				iconSize: [32, 32],
-				iconAnchor: [16, 32],
-			});
-
-			const visual = reportVisual(report.title);
-			const badge = STATUS_BADGE[report.status] || STATUS_BADGE.pending;
-			// Popup meniru baris kartu insiden: ikon jenis + judul + lokasi + waktu + badge status.
-			const popupHtml = `
-				<div class="font-sans w-[220px] space-y-2">
-					<div class="flex items-start gap-2.5">
-						<div class="shrink-0 rounded-lg p-1.5 ${visual.box}">
-							<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">${visual.svg}</svg>
-						</div>
-						<h4 class="m-0 text-[13px] font-bold leading-snug text-foreground">${report.title}</h4>
-					</div>
-					<div class="space-y-1 text-[11px] font-medium text-muted-foreground">
-						<div class="flex items-center gap-1.5">
-							<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-6-5.686-6-10a6 6 0 1 1 12 0c0 4.314-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg>
-							<span>${report.location || 'Lokasi tidak tersedia'}</span>
-						</div>
-						<div class="flex items-center gap-1.5">
-							<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-							<span>${report.time || ''}</span>
-						</div>
-					</div>
-					<span class="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-bold ${badge.cls}">${badge.label}</span>
-				</div>`;
-
-			const marker = window.L.marker([lat, lng], { icon: reportIcon }).addTo(map).bindPopup(popupHtml);
-			allMarkers.push(marker);
-		});
-
-		if (allMarkers.length > 0) {
-			const group = new window.L.featureGroup(allMarkers);
-			boundsRef.current = group.getBounds();
-			map.fitBounds(boundsRef.current.pad(0.3));
-		} else {
-			boundsRef.current = null;
-		}
-
-		return () => {
-			if (mapInstanceRef.current) {
-				mapInstanceRef.current.remove();
-				mapInstanceRef.current = null;
-			}
-		};
-	}, [mapReports]);
-
-	// Saat peta di-maximize/minimize: ukuran kontainer berubah → invalidateSize, dan
-	// aktifkan scroll/drag-zoom hanya saat fullscreen (di kartu kecil dimatikan agar
-	// scroll halaman & geser layar tidak terbajak peta).
-	useEffect(() => {
-		const map = mapInstanceRef.current;
-		if (!map) return;
-
-		if (isMaximized) {
-			map.scrollWheelZoom.enable();
-			map.dragging.enable();
-		} else {
-			map.scrollWheelZoom.disable();
-			if (window.L?.Browser.mobile) map.dragging.disable();
-		}
-
-		// Refit ke sebaran marker tiap toggle agar minimize tidak "menyangkut" di zoom/center
-		// yang diset saat maximize (dan maximize mengisi area lebih besar dengan pas).
-		const id = setTimeout(() => {
-			map.invalidateSize();
-			if (boundsRef.current) map.fitBounds(boundsRef.current.pad(0.3));
-		}, 210);
-		return () => clearTimeout(id);
-	}, [isMaximized]);
-
-	// Esc untuk keluar dari mode maximize.
-	useEffect(() => {
-		if (!isMaximized) return;
-		const onKey = (e) => e.key === 'Escape' && setIsMaximized(false);
-		window.addEventListener('keydown', onKey);
-		return () => window.removeEventListener('keydown', onKey);
-	}, [isMaximized]);
 
 	const getAdminLevelName = () => {
 		if (auth?.user?.village_code) return `Desa/Kelurahan`;
@@ -463,41 +310,45 @@ export default function AdminDashboard({ auth, stats, recentReports, mapReports 
 					</div>
 				</Card>
 
-				{/* KANAN: MAP FIRST & DYNAMIC BENTO GRID ACTIONS */}
+				{/* KANAN: PINTASAN PETA PEMANTAUAN & AKSI */}
 				<div className="flex flex-col gap-6">
-					<Card
-						className={cn(
-							'group relative flex flex-col overflow-hidden border-border shadow-sm',
-							isMaximized
-								? 'fixed inset-0 z-[200] m-0 h-screen w-screen rounded-none'
-								: cn('rounded-xl', isPejabat ? 'h-full min-h-[350px]' : 'h-[320px] sm:h-[350px]'),
-						)}
+					{/* CTA menuju halaman Peta Pemantauan terpadu (menggantikan mini-peta lama) */}
+					<Link
+						href={route('front.monitoring.map')}
+						className="group block rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
 					>
-						<CardHeader className="absolute left-0 right-0 top-0 z-10 flex flex-row items-center justify-between border-b bg-card/90 px-4 pb-2 pt-3 backdrop-blur-sm">
-							<CardTitle className="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-widest text-teal-700 dark:text-teal">
-								<IconMapPin className="h-4 w-4" stroke={2.5} /> Peta Pemantauan
-							</CardTitle>
-							<button
-								type="button"
-								onClick={() => setIsMaximized((v) => !v)}
-								aria-label={isMaximized ? 'Perkecil peta' : 'Perbesar peta'}
-								className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-							>
-								{isMaximized ? (
-									<IconMinimize className="h-4 w-4" stroke={2} />
-								) : (
-									<IconMaximize className="h-4 w-4" stroke={2} />
-								)}
-							</button>
-						</CardHeader>
-						<div ref={miniMapRef} className="z-0 h-full w-full bg-accent/30"></div>
-						{mapReports.length === 0 && (
-							<div className="pointer-events-none absolute inset-0 z-[5] flex flex-col items-center justify-center bg-background/40 pt-11 backdrop-blur-[2px]">
-								<IconMapPin className="mb-2 h-8 w-8 text-muted-foreground/50" />
-								<p className="text-xs font-medium text-muted-foreground">Tidak ada laporan</p>
-							</div>
-						)}
-					</Card>
+						<Card className="relative overflow-hidden rounded-xl border-border shadow-sm transition-all hover:border-teal-500 hover:shadow-md dark:hover:border-teal">
+							<CardContent className="flex flex-col gap-4 p-5 sm:p-6">
+								<div className="flex items-center justify-between">
+									<div className="rounded-2xl bg-teal-50 p-3.5 dark:bg-teal/10">
+										<IconMapSearch className="h-6 w-6 text-teal-600 dark:text-teal" stroke={2} />
+									</div>
+									<IconChevronRight className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-teal-600 dark:group-hover:text-teal" />
+								</div>
+								<div>
+									<h3 className="text-lg font-bold text-foreground">Peta Pemantauan</h3>
+									<p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+										Peta terpadu dengan filter lengkap — kejadian, hydrant, pos pemadam, pompa, & relawan
+										di seluruh yurisdiksi Anda.
+									</p>
+								</div>
+								<div className="flex flex-wrap gap-1.5">
+									<Badge variant="secondary" className="rounded-md border-none bg-destructive/10 text-destructive">
+										Kejadian
+									</Badge>
+									<Badge variant="secondary" className="rounded-md border-none bg-teal-50 text-teal-700 dark:bg-teal/10 dark:text-teal">
+										Hydrant
+									</Badge>
+									<Badge variant="secondary" className="rounded-md border-none bg-blue-50 text-blue-700 dark:bg-info/10 dark:text-info">
+										Pos & Pompa
+									</Badge>
+									<Badge variant="secondary" className="rounded-md border-none bg-purple-100 text-purple-700 dark:bg-info/10 dark:text-info">
+										Relawan
+									</Badge>
+								</div>
+							</CardContent>
+						</Card>
+					</Link>
 
 					{/* BENTO GRID HANYA MUNCUL UNTUK ADMIN (Disembunyikan untuk Pejabat Eksekutif) */}
 					{!isPejabat && isTopLevelAdmin && (

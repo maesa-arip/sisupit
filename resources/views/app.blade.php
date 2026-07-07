@@ -25,6 +25,10 @@
         @vite(['resources/js/app.jsx', "resources/js/Pages/{$page['component']}.jsx"])
         @inertiaHead
         <script src="/js/theme.js"></script>
+        {{-- URL basemap peta di-inject dari server (config services.map.tile_url) agar bisa
+             dialihkan ke tile server sendiri lewat 1 env var MAP_TILE_URL tanpa rebuild JS.
+             Skrip biasa (bukan module) → jalan sebelum bundel @vite yang deferred. --}}
+        <script>window.MAP_TILE_URL = @json(config('services.map.tile_url'));</script>
         <!-- Leaflet CSS -->
         <link
         rel="stylesheet"

@@ -64,4 +64,14 @@ return [
         'user_agent' => env('OSRM_USER_AGENT', 'SISUPIT-Damkar/1.0 (admin@sisupit.test)'),
     ],
 
+    'map' => [
+        // URL tile basemap Leaflet. BEDA dari nominatim/osrm di atas: tile ditarik langsung
+        // oleh BROWSER, bukan server, jadi nilainya di-inject ke window.MAP_TILE_URL lewat
+        // app.blade.php lalu dibaca resources/js/lib/utils.js. Dibuat env agar bisa dialihkan
+        // ke tile server sendiri cukup dengan 1 env var (MAP_TILE_URL) TANPA rebuild frontend.
+        // Default = basemap CARTO Voyager (turunan OpenStreetMap). Untuk self-host penuh lihat
+        // docker/ (pola Nominatim/OSRM) — mis. TileServer-GL/OpenMapTiles.
+        'tile_url' => env('MAP_TILE_URL', 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'),
+    ],
+
 ];

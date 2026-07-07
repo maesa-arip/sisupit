@@ -9,11 +9,15 @@ export function flashMessage(params) {
 	return params.props.flash_message;
 }
 
-// URL basemap Leaflet terpusat. SEMUA peta membaca dari sini agar bisa dialihkan ke tile
-// server sendiri cukup dari satu tempat (lalu `npm run build`). Kini memakai basemap CARTO
-// Voyager (turunan OpenStreetMap, di-host CARTO). Untuk self-host lihat docker/ (pola serupa
-// Nominatim/OSRM) — mis. TileServer-GL/OpenMapTiles — lalu ganti nilai ini ke URL lokal.
-export const MAP_TILE_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+// URL basemap Leaflet terpusat. SEMUA peta membaca dari sini. Nilainya di-inject RUNTIME dari
+// server (config services.map.tile_url → window.MAP_TILE_URL di app.blade.php), jadi bisa
+// dialihkan ke tile server sendiri cukup dengan 1 env var (MAP_TILE_URL) TANPA rebuild —
+// pola sama seperti NOMINATIM_BASE_URL/OSRM_BASE_URL. Fallback ke basemap CARTO Voyager
+// (turunan OpenStreetMap, di-host CARTO) bila env belum di-set. Untuk self-host penuh lihat
+// docker/ (pola Nominatim/OSRM) — mis. TileServer-GL/OpenMapTiles.
+const CARTO_VOYAGER = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+export const MAP_TILE_URL =
+	(typeof window !== 'undefined' && window.MAP_TILE_URL) || CARTO_VOYAGER;
 
 // Opsi navigator.geolocation bersama. Default browser (timeout: Infinity, maximumAge: 0)
 // membuat request bisa menggantung selamanya, dan maximumAge:0 melarang pakai fix terbaru
