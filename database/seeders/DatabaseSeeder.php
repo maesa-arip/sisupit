@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             PosPemadamSeeder::class,
             UserTenantSeeder::class,
             ReportSeeder::class,
+            ResolvedReportSeeder::class,
             // ReportHelperSeeder::class,
             // ReportOfficerSeeder::class,
             // TrackingLogSeeder::class

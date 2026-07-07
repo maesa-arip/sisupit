@@ -9,27 +9,18 @@ use Faker\Factory as Faker;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Schema;
 
-// Regenerasi laporan darurat area KOTA DENPASAR.
-//  - Semua laporan lama di-SOFT DELETE lebih dulu (baris tetap ada, deleted_at terisi,
-//    bisa di-restore). Baris turunan (petugas/relawan/jejak/dispatch/foto) dibersihkan
-//    agar tidak jadi data yatim di peta. Tabel users TIDAK disentuh.
-//  - Tiap laporan yang sudah 'handling'/'resolved' WAJIB punya petugas + relawan, plus
-//    JALUR pergerakan menuju TKP yang MENGIKUTI JALAN ASLI (OSRM lokal), bukan garis lurus.
-//    Bila OSRM tak tersedia, otomatis fallback ke interpolasi garis lurus.
-class ReportSeeder extends Seeder
+// Seeder laporan yang SUDAH SELESAI (status 'resolved') di Kota Denpasar.
+// Berbeda dari ReportSeeder: seeder ini ADITIF (tidak menghapus laporan lain) dan semua
+// laporannya tuntas — tiap responder (petugas+relawan) sudah 'finished' dengan JALUR penuh
+// mengikuti jalan asli (OSRM lokal) sampai TKP. Pakai untuk demo riwayat/insiden selesai.
+//   php artisan db:seed --class=ResolvedReportSeeder
+class ResolvedReportSeeder extends Seeder
 {
     public function run(): void
     {
         $faker = Faker::create('id_ID');
 
-        // =====================================================================
-        // 0. BERSIHKAN LAPORAN LAMA (soft delete) + data turunannya
-        // =====================================================================
-        $this->purgeExistingReports();
-
-        // Ambil User berdasarkan Role (dibuat di UserTenantSeeder). Users TIDAK diubah.
         $wargaList = User::role(['warga', 'masyarakat'])->get();
         $relawanAll = User::role('relawan')->get();
         $petugasAll = User::role('petugas')->get();
@@ -54,41 +45,27 @@ class ReportSeeder extends Seeder
             'Truk Terbakar', 'Evakuasi Kucing di Atap', 'Banjir Genangan Lokal', 'Kebakaran Alang-alang',
         ];
 
-        // =====================================================================
-        // TITIK JANGKAR KELURAHAN KOTA DENPASAR (kode + centroid dari data laravolt)
-        // =====================================================================
         $landAnchors = $this->denpasarAnchors();
 
-        $total = 22;
+        $total = 10;
         for ($i = 1; $i <= $total; $i++) {
             $warga = $denpasarWarga->random();
             $title = $faker->randomElement($incidentTypes);
             $anchor = $faker->randomElement($landAnchors);
 
-            // Jitter ~330 m dari centroid kelurahan.
             $lat = $anchor['lat'] + (rand(-30, 30) / 10000);
             $lng = $anchor['lng'] + (rand(-30, 30) / 10000);
 
-            // Mayoritas 'handling' agar peta penuh jalur; sisanya resolved & sedikit baru.
-            $status = $faker->randomElement([
-                'TERLAPOR',
-                'pending', 'pending',
-                'handling', 'handling', 'handling', 'handling', 'handling', 'handling',
-                'resolved', 'resolved', 'resolved',
-            ]);
-
-            $createdAt = match ($status) {
-                'handling' => Carbon::now()->subMinutes(rand(5, 90)),
-                'resolved' => Carbon::now()->subDays(rand(1, 10))->subHours(rand(1, 20)),
-                default => Carbon::now()->subMinutes(rand(10, 300)),
-            };
+            // Insiden selesai beberapa hari lalu; ditutup beberapa jam setelah dilaporkan.
+            $createdAt = Carbon::now()->subDays(rand(1, 21))->subHours(rand(1, 20));
+            $resolvedAt = $createdAt->copy()->addHours(rand(2, 6));
 
             $report = Report::create([
                 'user_id' => $warga->id,
                 'name' => $warga->name,
                 'phone' => $warga->phone,
                 'title' => $title.' di '.$anchor['name'],
-                'description' => 'Mohon segera dibantu. Kondisi darurat. '.$faker->realText(50),
+                'description' => 'Insiden telah ditangani dan dinyatakan selesai. '.$faker->realText(50),
                 'lat' => $lat,
                 'lng' => $lng,
                 'province_code' => '51',
@@ -96,101 +73,61 @@ class ReportSeeder extends Seeder
                 'district_code' => $anchor['district_code'],
                 'village_code' => $anchor['village_code'],
                 'address' => $anchor['name'].', '.$anchor['district_name'].', Kota Denpasar, Bali',
-                'status' => $status,
+                'status' => 'resolved',
                 'created_at' => $createdAt,
-                'updated_at' => $status === 'resolved' ? $createdAt->copy()->addHours(3) : $createdAt,
+                'updated_at' => $resolvedAt,
             ]);
-
-            // Hanya laporan yang sudah ditangani yang punya responder + jalur.
-            if (! in_array($status, ['handling', 'resolved'])) {
-                continue;
-            }
 
             $assignedPetugas = $denpasarPetugas->shuffle()->take(rand(1, 2));
             $assignedRelawan = $denpasarRelawan->shuffle()->take(rand(2, 4));
 
             foreach ($assignedPetugas as $petugas) {
-                $this->assignResponder($report, $petugas, 'petugas', $status, $createdAt, false);
+                $this->assignFinishedResponder($report, $petugas, 'petugas', $createdAt);
             }
-
-            $relawanIndex = 0;
             foreach ($assignedRelawan as $relawan) {
-                // Saat 'handling', paksa 2 relawan pertama masih MELUNCUR (jalur menuju TKP terlihat).
-                $forceEnRoute = ($status === 'handling' && $relawanIndex < 2);
-                $this->assignResponder($report, $relawan, 'relawan', $status, $createdAt, $forceEnRoute);
-                $relawanIndex++;
+                $this->assignFinishedResponder($report, $relawan, 'relawan', $createdAt);
             }
         }
 
-        $this->command->info("✅ ReportSeeder: {$total} laporan Kota Denpasar dibuat, laporan tertangani punya petugas + relawan + jalur rute jalan asli.");
+        $this->command->info("✅ ResolvedReportSeeder: {$total} laporan SELESAI (resolved) Kota Denpasar dibuat, tiap responder tuntas dengan jalur rute jalan asli sampai TKP.");
     }
 
     /**
-     * Soft delete semua laporan lama + bersihkan baris turunannya.
-     * Tanpa auth user, global scope Tenantable tidak memfilter, jadi ->delete() menyapu
-     * seluruh laporan (dan tetap soft delete karena model memakai SoftDeletes).
-     */
-    private function purgeExistingReports(): void
-    {
-        foreach (['report_officers', 'report_helpers', 'tracking_logs', 'report_units', 'report_photos'] as $table) {
-            if (Schema::hasTable($table)) {
-                DB::table($table)->delete();
-            }
-        }
-
-        $removed = Report::query()->delete();
-        $this->command->info("🧹 {$removed} laporan lama di-soft-delete, data turunan dibersihkan.");
-    }
-
-    /**
-     * Buat manifes penugasan + jalur pergerakan (tracking_logs) satu responder menuju TKP.
+     * Manifes penugasan + jalur PENUH satu responder yang sudah 'finished' sampai TKP.
      * Jalur mengikuti jalan asli via OSRM lokal; fallback garis lurus bila OSRM mati.
      */
-    private function assignResponder(Report $report, User $user, string $type, string $reportStatus, Carbon $reportCreatedAt, bool $forceEnRoute): void
+    private function assignFinishedResponder(Report $report, User $user, string $type, Carbon $reportCreatedAt): void
     {
         $table = $type === 'petugas' ? 'report_officers' : 'report_helpers';
         $timeColumn = $type === 'petugas' ? 'dispatched_at' : 'started_at';
 
-        $isFinished = ($reportStatus === 'resolved');
-        if ($isFinished) {
-            $userStatus = 'finished';
-        } elseif ($forceEnRoute) {
-            $userStatus = 'en_route';
-        } else {
-            $userStatus = rand(0, 1) ? 'arrived' : 'en_route';
-        }
-
-        // Titik awal acak 2–5 km dari TKP, lalu rute jalan asli ke TKP (di-resample 25 titik).
         $bearing = rand(0, 359);
         $radiusKm = rand(20, 50) / 10;
         [$startLat, $startLng] = $this->destinationPoint((float) $report->lat, (float) $report->lng, $bearing, $radiusKm);
         $coords = $this->resample($this->fetchRoute($startLat, $startLng, (float) $report->lat, (float) $report->lng), 25);
 
         $lastIndex = count($coords) - 1;
-        // Responder yang masih meluncur berhenti di tengah jalan; yang sudah tiba di TKP.
-        $k = $userStatus === 'en_route' ? (int) round((rand(35, 70) / 100) * $lastIndex) : $lastIndex;
-        [$curLat, $curLng] = $coords[$k];
+        [$curLat, $curLng] = $coords[$lastIndex];
 
         $dispatchedAt = $reportCreatedAt->copy()->addMinutes(rand(1, 5));
-        $arrivedAt = in_array($userStatus, ['arrived', 'finished']) ? $dispatchedAt->copy()->addMinutes(rand(10, 30)) : null;
-        $finishedAt = $isFinished ? $arrivedAt->copy()->addMinutes(rand(30, 120)) : null;
+        $arrivedAt = $dispatchedAt->copy()->addMinutes(rand(10, 30));
+        $finishedAt = $arrivedAt->copy()->addMinutes(rand(30, 120));
 
         DB::table($table)->insert([
             'report_id' => $report->id,
             'user_id' => $user->id,
-            'status' => $userStatus,
+            'status' => 'finished',
             'location_lat' => $curLat,
             'location_lng' => $curLng,
             $timeColumn => $dispatchedAt,
             'arrived_at' => $arrivedAt,
             'finished_at' => $finishedAt,
             'created_at' => $dispatchedAt,
-            'updated_at' => $finishedAt ?? $arrivedAt ?? $dispatchedAt,
+            'updated_at' => $finishedAt,
         ]);
 
-        // Jejak (jalur) dari titik awal sampai posisi terkini.
         $rows = [];
-        for ($step = 0; $step <= $k; $step++) {
+        for ($step = 0; $step <= $lastIndex; $step++) {
             $logTime = $dispatchedAt->copy()->addMinutes($step * 2);
             $rows[] = [
                 'report_id' => $report->id,

@@ -70,10 +70,18 @@ class HydrantSeeder extends Seeder
             ['name' => 'Hydrant Jongkok Gatsu Tengah', 'address' => 'Jl. Gatsu Tengah Perempatan Nangka', 'status' => 'Perbaikan', 'type' => 'Jongkok', 'description' => 'Penyadapan: 6" PVC | Perlu diperbaiki/ diganti'],
         ];
 
+        // Koordinat asli per hydrant (di-geocode dari alamat via Nominatim lokal, lalu
+        // di-hardcode di sini). Sebelumnya lat/lng di-random di sekitar satu titik tetap
+        // (-8.65, 115.22) tanpa peduli alamat, sehingga marker tidak pernah cocok lokasi.
+        $coords = $this->hydrantCoordinates();
+
         foreach ($hydrants as $hydrant) {
 
             // 1. Ekstrak kode wilayah yang akurat dan SAH berdasarkan alamat
             $wilayah = $this->getWilayahCodes($hydrant['address'], $hydrant['name']);
+
+            // 2. Ambil titik asli sesuai nama; fallback ke pusat Denpasar bila tak terpetakan.
+            [$lat, $lng] = $coords[$hydrant['name']] ?? [-8.650000, 115.220000];
 
             DB::table('hydrants')->insert([
                 'name' => $hydrant['name'],
@@ -81,10 +89,10 @@ class HydrantSeeder extends Seeder
                 'address' => $hydrant['address'],
                 'type' => $hydrant['type'],
                 'description' => $hydrant['description'],
-                'lat' => -8.650000 + (mt_rand(-200, 200) / 10000),
-                'lng' => 115.220000 + (mt_rand(-200, 200) / 10000),
+                'lat' => $lat,
+                'lng' => $lng,
 
-                // 2. Suntikkan kode asli Laravolt Indonesia
+                // 3. Suntikkan kode asli Laravolt Indonesia
                 'province_code' => '51', // Bali
                 'city_code' => $wilayah['city_code'],
                 'district_code' => $wilayah['district_code'],
@@ -170,5 +178,69 @@ class HydrantSeeder extends Seeder
         // DEFAULT FALLBACK JIKA ALAMAT TIDAK DIKENALI
         // Dipusatkan di Kelurahan Dauh Puri (Pusat Kota Denpasar)
         return ['city_code' => '5171', 'district_code' => '517103', 'village_code' => '5171031006'];
+    }
+
+    /**
+     * Titik asli tiap hydrant, dipetakan dari nama.
+     * Di-geocode sekali dari alamat lewat Nominatim lokal (viewbox Kota Denpasar,
+     * bounded) lalu di-hardcode agar seeder tidak bergantung layanan geocoding saat
+     * dijalankan. Sebagian kecil yang gagal geocode memakai centroid kecamatan yang
+     * benar; duplikat di jalan yang sama diberi nudge kecil agar marker tak menumpuk.
+     */
+    private function hydrantCoordinates(): array
+    {
+        return [
+            'Hydrant Stick Maruti' => [-8.644720, 115.212098],
+            'Hydrant Stick Pura' => [-8.667178, 115.224833],
+            'Hydrant Stick Suci' => [-8.711644, 115.222850],
+            'Hydrant Jongkok Gatsu' => [-8.629475, 115.218557],
+            'Hydrant Stick Kaliasem' => [-8.655125, 115.218692],
+            'Hydrant Stick Sulatri' => [-8.637084, 115.241682],
+            'Hydrant Stick Kenyeri' => [-8.642272, 115.230563],
+            'Hydrant Stick Nusa Indah' => [-8.648798, 115.233582],
+            'Hydrant Stick Hayam Wuruk 1' => [-8.673218, 115.244679],
+            'Hydrant Stick Gn Agung' => [-8.665131, 115.193189],
+            'Hydrant Stick Waringin' => [-8.645677, 115.243636],
+            'Hydrant Stick By Pass KFC' => [-8.705398, 115.225218],
+            'Hydrant Stick Pemogan 1' => [-8.692009, 115.194051],
+            'Hydrant Stick Pemogan 2' => [-8.693186, 115.197901],
+            'Hydrant Stick Sanglah' => [-8.675688, 115.215257],
+            'Hydrant Stick Patimura' => [-8.649174, 115.220029],
+            'Hydrant Stick Waturenggong' => [-8.676936, 115.225108],
+            'Hydrant Stick Nyangglan' => [-8.704938, 115.226418],
+            'Hydrant Stick Pesanggaran' => [-8.717918, 115.211204],
+            'Hydrant Stick Poh Gading' => [-8.624536, 115.212679],
+            'Hydrant Stick Gajah Mada' => [-8.655867, 115.216878],
+            'Hydrant Stick Sesetan' => [-8.677935, 115.215322],
+            'Hydrant Stick Hasanudin' => [-8.658914, 115.215808],
+            'Hydrant Stick Kebo Iwa' => [-8.630754, 115.185260],
+            'Hydrant Stick Peninjoan' => [-8.622666, 115.229954],
+            'Hydrant Stick Badak Agung' => [-8.663454, 115.230738],
+            'Hydrant Stick Penet' => [-8.673628, 115.244782],
+            'Hydrant Stick Arjuna' => [-8.641337, 115.190409],
+            'Hydrant Stick Hayam Wuruk 2' => [-8.672718, 115.245279],
+            'Hydrant Stick Saelus' => [-8.684869, 115.206654],
+            'Hydrant Stick Antasura' => [-8.612063, 115.221612],
+            'Hydrant Stick Cok Agung Tresna' => [-8.666995, 115.227810],
+            'Hydrant Stick Satria' => [-8.651742, 115.217056],
+            'Hydrant Stick Polda Bali' => [-8.647730, 115.235653],
+            'Hydrant Stick Imam Bonjol' => [-8.699961, 115.187165],
+            'Hydrant Stick Pemogan 3' => [-8.692686, 115.198501],
+            'Hydrant Stick Wangaya' => [-8.648476, 115.212834],
+            'Hydrant Stick Sumatra' => [-8.665701, 115.193029],
+            'Hydrant Stick Maruti 2' => [-8.644220, 115.212698],
+            'Hydrant Stick Pemogan 4' => [-8.692186, 115.199101],
+            'Hydrant Jongkok Jayakarta' => [-8.635061, 115.213914],
+            'Hydrant Jongkok Durian' => [-8.625549, 115.199965],
+            'Hydrant Stick Teuku Umar' => [-8.680254, 115.203031],
+            'Hydrant Stick Surapati' => [-8.656223, 115.219012],
+            'Hydrant Stick Udayana' => [-8.670520, 115.219376],
+            'Hydrant Stick Melati' => [-8.654594, 115.222610],
+            'Hydrant Stick Serangan' => [-8.725402, 115.231058],
+            'Hydrant Jongkok Kepundung' => [-8.652658, 115.220595],
+            'Hydrant Jongkok Kalimantan' => [-8.658130, 115.214052],
+            'Hydrant Stick Kamboja' => [-8.652559, 115.224505],
+            'Hydrant Jongkok Gatsu Tengah' => [-8.635874, 115.220607],
+        ];
     }
 }

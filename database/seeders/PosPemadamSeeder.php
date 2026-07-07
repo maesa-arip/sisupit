@@ -20,8 +20,9 @@ class PosPemadamSeeder extends Seeder
                 'vehicle_count' => 5,
                 'type' => 'Pos Induk',
                 'status' => 'Aktif',
-                'lat' => -8.675124,
-                'lng' => 115.191782,
+                // Titik gedung BPBD/Damkar Kota Denpasar di Jl. Imam Bonjol (hasil geocode)
+                'lat' => -8.674813,
+                'lng' => 115.202284,
                 'province_code' => '51',
                 'city_code' => '5171',
                 'district_code' => '517102', // Denpasar Barat
