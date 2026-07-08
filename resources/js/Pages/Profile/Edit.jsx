@@ -104,12 +104,11 @@ export default function Edit(props) {
 					<div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
 						<div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-3xl font-semibold text-foreground">
 							{user.name?.[0]?.toUpperCase() ?? 'U'}
-							{isVolunteer ||
-								(isAdmin && (
-									<div className="absolute bottom-0 right-0 rounded-full border-2 border-background bg-blue-600 p-1 text-white dark:bg-info dark:text-info-foreground">
-										<IconShieldCheck size={14} stroke={2} />
-									</div>
-								))}
+							{(isVolunteer || isAdmin) && (
+								<div className="absolute bottom-0 right-0 rounded-full border-2 border-background bg-blue-600 p-1 text-white dark:bg-info dark:text-info-foreground">
+									<IconShieldCheck size={14} stroke={2} />
+								</div>
+							)}
 						</div>
 						<div className="mt-2 flex flex-col items-center text-center sm:mt-0 sm:items-start sm:text-left">
 							<h2 className="text-xl font-semibold leading-tight text-foreground">{user.name}</h2>
@@ -296,12 +295,11 @@ export default function Edit(props) {
 							<UpdateProfileInformationForm
 								mustVerifyEmail={props.mustVerifyEmail}
 								status={props.status}
-								className="border-none bg-transparent shadow-none"
 							/>
 						</TabsContent>
 
 						<TabsContent value="keamanan" className="mt-0 outline-none focus-visible:ring-0">
-							<UpdatePasswordForm className="border-none bg-transparent shadow-none" />
+							<UpdatePasswordForm />
 						</TabsContent>
 					</Tabs>
 				</div>

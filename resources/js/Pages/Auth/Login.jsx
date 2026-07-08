@@ -160,7 +160,7 @@ export default function Login({ status, canResetPassword }) {
 										type={showPassword ? 'text' : 'password'}
 										autoComplete="current-password"
 										value={data.password}
-										placeholder="••••••••"
+										placeholder="Masukkan kata sandi"
 										onChange={(e) => setData(e.target.name, e.target.value)}
 										className="h-11 w-full rounded-md border-border bg-background pr-12 transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 									/>

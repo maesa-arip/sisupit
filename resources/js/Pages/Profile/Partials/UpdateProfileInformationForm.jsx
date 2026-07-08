@@ -115,7 +115,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 								name="phone"
 								value={data.phone}
 								onChange={onHandleChange}
-								autoComplete="phone"
+								autoComplete="tel"
 								className="h-10 rounded-md border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive"
 							/>
 							{errors.phone && <InputError message={errors.phone} />}

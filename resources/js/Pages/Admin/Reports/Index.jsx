@@ -23,8 +23,17 @@ import { useEffect, useRef, useState } from 'react';
 
 const STATUS_OPTIONS = ['Semua', 'TERLAPOR', 'pending', 'handling', 'resolved'];
 
-// Metadata status kejadian — SELARAS dengan halaman Peta Pemantauan (Monitoring/Map.jsx):
-// label, warna badge, warna pin peta, dan titik legenda memakai token semantik yang sama.
+// Metadata status kejadian (badge + pin peta + titik legenda). Warna selaras Peta Pemantauan,
+// KECUALI "Penanganan" yang memakai teal (permintaan produk). Gaya kartu/pill/paginasi
+// mengikuti halaman Hydrant (Admin/Hydrants/Index.jsx): tetap pakai border, aksen seleksi teal.
+const TEAL_ACCENT = {
+	cardActive: 'border-teal-500 bg-teal-50/50 dark:border-teal dark:bg-teal/5',
+	cardHover: 'hover:border-teal-300 dark:hover:border-teal/50',
+	title: 'text-teal-700 dark:text-teal',
+	pillActive: 'border-teal-200 bg-teal-50 text-teal-700 dark:border-teal/30 dark:bg-teal/10 dark:text-teal',
+	pageActive: 'border-teal-600 bg-teal-600 text-white shadow-sm dark:border-teal dark:bg-teal',
+};
+
 const STATUS_META = {
 	TERLAPOR: {
 		label: 'Laporan Masuk',
@@ -32,9 +41,6 @@ const STATUS_META = {
 		pin: 'text-destructive',
 		dot: 'bg-destructive',
 		ring: 'bg-destructive/10 text-destructive',
-		active: 'border-destructive bg-destructive/5',
-		activeText: 'text-destructive',
-		hover: 'hover:border-destructive/50',
 	},
 	pending: {
 		label: 'Laporan Terverifikasi',
@@ -42,29 +48,20 @@ const STATUS_META = {
 		pin: 'text-warning',
 		dot: 'bg-warning',
 		ring: 'bg-warning/10 text-warning',
-		active: 'border-warning bg-warning/5',
-		activeText: 'text-warning',
-		hover: 'hover:border-warning/50',
 	},
 	handling: {
 		label: 'Penanganan',
-		badge: 'bg-success/10 text-success border-success/30',
-		pin: 'text-success',
-		dot: 'bg-success',
-		ring: 'bg-success/10 text-success',
-		active: 'border-success bg-success/5',
-		activeText: 'text-success',
-		hover: 'hover:border-success/50',
+		badge: 'bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal/10 dark:text-teal dark:border-teal/30',
+		pin: 'text-teal-600 dark:text-teal',
+		dot: 'bg-teal-600 dark:bg-teal',
+		ring: 'bg-teal-50 text-teal-700 dark:bg-teal/10 dark:text-teal',
 	},
 	resolved: {
 		label: 'Selesai',
-		badge: 'bg-info/10 text-info border-info/30',
+		badge: 'bg-info/10 text-blue-600 border-info/30 dark:text-info',
 		pin: 'text-blue-600 dark:text-info',
 		dot: 'bg-blue-600 dark:bg-info',
 		ring: 'bg-info/10 text-blue-600 dark:text-info',
-		active: 'border-blue-500 dark:border-info bg-blue-50/50 dark:bg-info/5',
-		activeText: 'text-blue-700 dark:text-info',
-		hover: 'hover:border-blue-300 dark:hover:border-info/50',
 	},
 };
 
@@ -197,7 +194,7 @@ export default function Index(props) {
 							<Input
 								type="text"
 								placeholder="Cari judul, alamat, atau pelapor..."
-								className="h-10 pl-9"
+								className="h-10 pl-9 focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
 								value={params?.search ?? ''}
 								onChange={(e) => setParams((prev) => ({ ...prev, search: e.target.value }))}
 							/>
@@ -212,9 +209,9 @@ export default function Index(props) {
 										type="button"
 										onClick={() => setParams((prev) => ({ ...prev, status }))}
 										className={cn(
-											'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors',
+											'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all',
 											isActive
-												? 'border-foreground/15 bg-muted text-foreground shadow-sm'
+												? TEAL_ACCENT.pillActive
 												: 'border-input bg-transparent text-muted-foreground hover:bg-accent hover:text-foreground',
 										)}
 									>
@@ -248,7 +245,7 @@ export default function Index(props) {
 											onClick={() => focusToReport(report.id, report.lat, report.lng)}
 											className={cn(
 												'cursor-pointer transition-colors',
-												isActive ? style.active : style.hover,
+												isActive ? TEAL_ACCENT.cardActive : TEAL_ACCENT.cardHover,
 											)}
 										>
 											<CardContent className="flex flex-col gap-3 p-3 sm:p-4">
@@ -266,7 +263,7 @@ export default function Index(props) {
 															<h3
 																className={cn(
 																	'truncate text-sm font-semibold',
-																	isActive ? style.activeText : 'text-foreground',
+																	isActive ? TEAL_ACCENT.title : 'text-foreground',
 																)}
 															>
 																{report.title}
@@ -319,7 +316,7 @@ export default function Index(props) {
 												</div>
 
 												{hasCoords && (
-													<div className="flex items-center justify-center gap-1 rounded-md bg-muted py-1.5 text-[10px] font-bold text-muted-foreground lg:hidden">
+													<div className="flex items-center justify-center gap-1 rounded-md bg-teal-50 py-1.5 text-[10px] font-bold text-teal-600 dark:bg-teal/10 dark:text-teal lg:hidden">
 														<IconArrowDown className="h-3 w-3" /> Lihat Peta Lokasi
 													</div>
 												)}
@@ -344,7 +341,7 @@ export default function Index(props) {
 														className={cn(
 															'rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors',
 															link.active
-																? 'border-primary bg-primary text-primary-foreground shadow-sm'
+																? TEAL_ACCENT.pageActive
 																: 'border-input bg-background text-muted-foreground hover:bg-accent hover:text-foreground',
 														)}
 														dangerouslySetInnerHTML={{ __html: link.label }}
@@ -381,7 +378,9 @@ export default function Index(props) {
 						<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-semibold text-muted-foreground">
 							{['TERLAPOR', 'pending', 'handling', 'resolved'].map((status) => (
 								<span key={status} className="flex items-center gap-1">
-									<span className={cn('inline-block h-2 w-2 rounded-full', STATUS_META[status].dot)} />{' '}
+									<span
+										className={cn('inline-block h-2 w-2 rounded-full', STATUS_META[status].dot)}
+									/>{' '}
 									{STATUS_META[status].label}
 								</span>
 							))}

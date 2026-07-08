@@ -138,7 +138,7 @@ export default function Register() {
 										type={showPassword ? 'text' : 'password'}
 										value={data.password}
 										autoComplete="new-password"
-										placeholder="••••••••"
+										placeholder="Buat kata sandi"
 										onChange={onHandleChange}
 										className="h-11 w-full rounded-md border-border bg-background pr-12 transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 									/>
@@ -170,7 +170,7 @@ export default function Register() {
 										type={showConfirmPassword ? 'text' : 'password'}
 										value={data.password_confirmation}
 										autoComplete="new-password"
-										placeholder="••••••••"
+										placeholder="Ulangi kata sandi"
 										onChange={onHandleChange}
 										className="h-11 w-full rounded-md border-border bg-background pr-12 transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 									/>

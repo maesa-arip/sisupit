@@ -268,17 +268,16 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 												</div>
 											</div>
 											<div className="relative z-10 mt-3.5 flex shrink-0 items-center justify-between gap-4 border-t border-border pt-3.5 sm:mt-0 sm:justify-end sm:border-0 sm:pt-0">
-												{/* Badge status tanpa garis tepi — selaras gaya chip lembut pada
-											    kartu "Peta Pemantauan" di sebelah kanan. Khusus di dashboard ini,
-											    status "Penanganan" memakai teal seperti teks "Hydrant" pada kartu itu. */}
-								<StatusBadge
-									status={report.status}
-									className={cn(
-										'border-none',
-										report.status === 'handling' &&
-											'bg-teal-50 text-teal-700 dark:bg-teal/10 dark:text-teal',
-									)}
-								/>
+												{/* Badge status berbingkai (selaras admin/reports). Status "Penanganan"
+											    memakai teal seperti teks "Hydrant" pada kartu Peta Pemantauan. */}
+												<StatusBadge
+													status={report.status}
+													className={
+														report.status === 'handling'
+															? 'border-teal-200 bg-teal-50 text-teal-700 dark:border-teal/30 dark:bg-teal/10 dark:text-teal'
+															: undefined
+													}
+												/>
 												<div className="flex h-8 w-8 items-center justify-center rounded-full bg-transparent text-muted-foreground transition-all group-hover:bg-destructive/10 group-hover:text-destructive">
 													<IconChevronRight className="h-5 w-5" stroke={2} />
 												</div>
@@ -328,21 +327,33 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 								<div>
 									<h3 className="text-lg font-bold text-foreground">Peta Pemantauan</h3>
 									<p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
-										Peta terpadu dengan filter lengkap — kejadian, hydrant, pos pemadam, pompa, & relawan
-										di seluruh yurisdiksi Anda.
+										Peta terpadu dengan filter lengkap — kejadian, hydrant, pos pemadam, pompa, &
+										relawan di seluruh yurisdiksi Anda.
 									</p>
 								</div>
 								<div className="flex flex-wrap gap-1.5">
-									<Badge variant="secondary" className="rounded-md border-none bg-destructive/10 text-destructive">
+									<Badge
+										variant="secondary"
+										className="rounded-md border-none bg-destructive/10 text-destructive"
+									>
 										Kejadian
 									</Badge>
-									<Badge variant="secondary" className="rounded-md border-none bg-teal-50 text-teal-700 dark:bg-teal/10 dark:text-teal">
+									<Badge
+										variant="secondary"
+										className="rounded-md border-none bg-teal-50 text-teal-700 dark:bg-teal/10 dark:text-teal"
+									>
 										Hydrant
 									</Badge>
-									<Badge variant="secondary" className="rounded-md border-none bg-blue-50 text-blue-700 dark:bg-info/10 dark:text-info">
+									<Badge
+										variant="secondary"
+										className="rounded-md border-none bg-blue-50 text-blue-700 dark:bg-info/10 dark:text-info"
+									>
 										Pos & Pompa
 									</Badge>
-									<Badge variant="secondary" className="rounded-md border-none bg-purple-100 text-purple-700 dark:bg-info/10 dark:text-info">
+									<Badge
+										variant="secondary"
+										className="rounded-md border-none bg-purple-100 text-purple-700 dark:bg-info/10 dark:text-info"
+									>
 										Relawan
 									</Badge>
 								</div>
