@@ -21,58 +21,73 @@ import {
 } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 
-const STATUS_OPTIONS = ['Semua', 'aktif', 'TERLAPOR', 'pending', 'handling', 'resolved'];
+const STATUS_OPTIONS = ['Semua', 'TERLAPOR', 'pending', 'handling', 'resolved'];
 
-const STATUS_BADGE = {
-	// 'aktif' adalah filter gabungan (TERLAPOR+pending+handling) — bukan status laporan nyata,
-	// hanya dipakai sebagai label pill filter (selaras kartu "Darurat Aktif" di dashboard).
-	aktif: { className: 'bg-destructive/10 text-destructive border-destructive/20', label: 'AKTIF' },
-	TERLAPOR: { className: 'bg-destructive/10 text-destructive border-destructive/20', label: 'TERLAPOR' },
-	pending: { className: 'bg-warning/10 text-warning border-warning/20', label: 'MENUNGGU' },
-	handling: { className: 'bg-success/10 text-success border-success/20', label: 'PENANGANAN' },
-	resolved: { className: 'bg-info/10 text-info border-info/20', label: 'SELESAI' },
-};
-
-// Warna pin peta per status penanganan (selaras token STATUS_BADGE)
-const STATUS_MARKER = {
+// Metadata status kejadian — SELARAS dengan halaman Peta Pemantauan (Monitoring/Map.jsx):
+// label, warna badge, warna pin peta, dan titik legenda memakai token semantik yang sama.
+const STATUS_META = {
 	TERLAPOR: {
-		color: 'text-red-600 dark:text-destructive',
-		ring: 'bg-red-100 dark:bg-destructive/10 text-red-600 dark:text-destructive',
-		active: 'border-red-500 dark:border-destructive bg-red-50/50 dark:bg-destructive/5',
-		activeText: 'text-red-700 dark:text-destructive',
-		hover: 'hover:border-red-300 dark:hover:border-destructive/50',
+		label: 'Laporan Masuk',
+		badge: 'bg-destructive/10 text-destructive border-destructive/30',
+		pin: 'text-destructive',
+		dot: 'bg-destructive',
+		ring: 'bg-destructive/10 text-destructive',
+		active: 'border-destructive bg-destructive/5',
+		activeText: 'text-destructive',
+		hover: 'hover:border-destructive/50',
 	},
 	pending: {
-		color: 'text-amber-500 dark:text-warning',
-		ring: 'bg-amber-100 dark:bg-warning/10 text-amber-600 dark:text-warning',
-		active: 'border-amber-500 dark:border-warning bg-amber-50/50 dark:bg-warning/5',
-		activeText: 'text-amber-700 dark:text-warning',
-		hover: 'hover:border-amber-300 dark:hover:border-warning/50',
+		label: 'Laporan Terverifikasi',
+		badge: 'bg-warning/10 text-warning border-warning/30',
+		pin: 'text-warning',
+		dot: 'bg-warning',
+		ring: 'bg-warning/10 text-warning',
+		active: 'border-warning bg-warning/5',
+		activeText: 'text-warning',
+		hover: 'hover:border-warning/50',
 	},
 	handling: {
-		color: 'text-emerald-600 dark:text-success',
-		ring: 'bg-emerald-100 dark:bg-success/10 text-emerald-600 dark:text-success',
-		active: 'border-emerald-500 dark:border-success bg-emerald-50/50 dark:bg-success/5',
-		activeText: 'text-emerald-700 dark:text-success',
-		hover: 'hover:border-emerald-300 dark:hover:border-success/50',
+		label: 'Penanganan',
+		badge: 'bg-success/10 text-success border-success/30',
+		pin: 'text-success',
+		dot: 'bg-success',
+		ring: 'bg-success/10 text-success',
+		active: 'border-success bg-success/5',
+		activeText: 'text-success',
+		hover: 'hover:border-success/50',
 	},
 	resolved: {
-		color: 'text-blue-600 dark:text-info',
-		ring: 'bg-blue-100 dark:bg-info/10 text-blue-600 dark:text-info',
+		label: 'Selesai',
+		badge: 'bg-info/10 text-info border-info/30',
+		pin: 'text-blue-600 dark:text-info',
+		dot: 'bg-blue-600 dark:bg-info',
+		ring: 'bg-info/10 text-blue-600 dark:text-info',
 		active: 'border-blue-500 dark:border-info bg-blue-50/50 dark:bg-info/5',
 		activeText: 'text-blue-700 dark:text-info',
 		hover: 'hover:border-blue-300 dark:hover:border-info/50',
 	},
 };
 
-const markerStyle = (status) => STATUS_MARKER[status] || STATUS_MARKER.pending;
+// 'aktif' = filter gabungan (TERLAPOR+pending+handling), bukan status nyata — tidak lagi
+// ditampilkan sebagai pill, tapi label tetap ada agar deep-link dari kartu "Darurat Aktif"
+// di dashboard (admin.reports.index?status=aktif) tidak error.
+const FILTER_LABEL = {
+	Semua: 'Semua',
+	aktif: 'Aktif',
+	TERLAPOR: STATUS_META.TERLAPOR.label,
+	pending: STATUS_META.pending.label,
+	handling: STATUS_META.handling.label,
+	resolved: STATUS_META.resolved.label,
+};
+
+const markerStyle = (status) => STATUS_META[status] || STATUS_META.pending;
 
 function StatusBadge({ status }) {
-	const active = STATUS_BADGE[status] || STATUS_BADGE.pending;
+	const active = STATUS_META[status] || STATUS_META.pending;
 	return (
 		<Badge
 			variant="outline"
-			className={cn('whitespace-nowrap rounded-md px-2 py-0.5 font-bold shadow-none', active.className)}
+			className={cn('whitespace-nowrap rounded-md px-2 py-0.5 font-bold shadow-none', active.badge)}
 		>
 			{active.label}
 		</Badge>
@@ -129,7 +144,7 @@ export default function Index(props) {
 				const lat = parseFloat(report.lat),
 					lng = parseFloat(report.lng);
 				if (!isNaN(lat) && !isNaN(lng)) {
-					const iconColor = markerStyle(report.status).color;
+					const iconColor = markerStyle(report.status).pin;
 					const customIcon = window.L.divIcon({
 						html: `<div class="${iconColor} drop-shadow-md hover:scale-110 transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
 						className: 'bg-transparent border-none',
@@ -187,22 +202,35 @@ export default function Index(props) {
 								onChange={(e) => setParams((prev) => ({ ...prev, search: e.target.value }))}
 							/>
 						</div>
-						<div className="flex flex-wrap gap-2">
-							{STATUS_OPTIONS.map((status) => (
-								<button
-									key={status}
-									type="button"
-									onClick={() => setParams((prev) => ({ ...prev, status }))}
-									className={cn(
-										'rounded-full border px-3 py-1.5 text-xs font-semibold transition-all',
-										params?.status === status
-											? 'border-primary/30 bg-primary/10 text-primary'
-											: 'border-input bg-transparent text-muted-foreground hover:bg-accent',
-									)}
-								>
-									{status === 'Semua' ? 'Semua' : (STATUS_BADGE[status]?.label ?? status)}
-								</button>
-							))}
+						<div className="flex flex-wrap gap-1.5">
+							{STATUS_OPTIONS.map((status) => {
+								const isActive = params?.status === status;
+								const dot = STATUS_META[status]?.dot;
+								return (
+									<button
+										key={status}
+										type="button"
+										onClick={() => setParams((prev) => ({ ...prev, status }))}
+										className={cn(
+											'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors',
+											isActive
+												? 'border-foreground/15 bg-muted text-foreground shadow-sm'
+												: 'border-input bg-transparent text-muted-foreground hover:bg-accent hover:text-foreground',
+										)}
+									>
+										{dot && (
+											<span
+												className={cn(
+													'h-2 w-2 rounded-full transition-opacity',
+													dot,
+													isActive ? 'opacity-100' : 'opacity-60',
+												)}
+											/>
+										)}
+										{FILTER_LABEL[status] ?? status}
+									</button>
+								);
+							})}
 						</div>
 					</div>
 
@@ -351,22 +379,12 @@ export default function Index(props) {
 							<h2 className="text-sm font-semibold text-foreground">Peta Sebaran Laporan</h2>
 						</div>
 						<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-semibold text-muted-foreground">
-							<span className="flex items-center gap-1">
-								<span className="inline-block h-2 w-2 rounded-full bg-red-600 dark:bg-destructive" />{' '}
-								Belum ditangani
-							</span>
-							<span className="flex items-center gap-1">
-								<span className="inline-block h-2 w-2 rounded-full bg-amber-500 dark:bg-warning" />{' '}
-								Menunggu
-							</span>
-							<span className="flex items-center gap-1">
-								<span className="inline-block h-2 w-2 rounded-full bg-emerald-600 dark:bg-success" />{' '}
-								Penanganan
-							</span>
-							<span className="flex items-center gap-1">
-								<span className="inline-block h-2 w-2 rounded-full bg-blue-600 dark:bg-info" />{' '}
-								Selesai
-							</span>
+							{['TERLAPOR', 'pending', 'handling', 'resolved'].map((status) => (
+								<span key={status} className="flex items-center gap-1">
+									<span className={cn('inline-block h-2 w-2 rounded-full', STATUS_META[status].dot)} />{' '}
+									{STATUS_META[status].label}
+								</span>
+							))}
 						</div>
 					</div>
 					<div

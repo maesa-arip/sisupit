@@ -162,7 +162,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 			</div>
 
 			{/* KARTU STATISTIK */}
-			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 				<StatCard
 					title="Darurat Aktif"
 					value={currentStats.active_reports}
@@ -191,17 +191,6 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 					subtitle="Sumber Air Aktif"
 					href={route(isPejabat ? 'front.hydrants.index' : 'admin.hydrants.index')}
 				/>
-				<StatCard
-					title="Total Penanganan"
-					value={currentStats.resolved_this_month}
-					icon={IconCheck}
-					colorClass="text-emerald-600 dark:text-success"
-					bgIconClass="bg-emerald-50 dark:bg-success/10"
-					subtitle="Total Selesai"
-					href={
-						isPejabat ? route('front.reports.index') : route('admin.reports.index', { status: 'resolved' })
-					}
-				/>
 			</div>
 
 			<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -228,7 +217,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 						</Button>
 					</CardHeader>
 
-					<CardContent className="flex-1 bg-muted/50 p-0">
+					<CardContent className="flex-1 bg-card p-0">
 						<div className="flex flex-col divide-y divide-border">
 							{reports.map((report) => {
 								const t = report.title.toLowerCase();
@@ -237,7 +226,8 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 
 								if (t.includes('pohon')) {
 									ReportIcon = IconTree;
-									colorStyle = 'text-emerald-600 dark:text-success bg-emerald-100 dark:bg-success/10';
+									// Teal — selaras warna teks "Hydrant" di kartu Peta Pemantauan.
+									colorStyle = 'text-teal-700 dark:text-teal bg-teal-50 dark:bg-teal/10';
 								} else if (t.includes('hewan') || t.includes('ular') || t.includes('tawon')) {
 									ReportIcon = IconBug;
 									colorStyle = 'text-amber-600 dark:text-warning bg-amber-100 dark:bg-warning/10';
@@ -250,7 +240,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 									<Link key={report.id} href={route('reports.show', report.id)}>
 										<div
 											key={report.id}
-											className="group relative flex flex-col justify-between p-4 transition-all duration-200 hover:bg-card sm:flex-row sm:items-center sm:p-5"
+											className="group relative flex flex-col justify-between p-4 transition-all duration-200 hover:bg-teal-50/50 dark:hover:bg-teal/5 sm:flex-row sm:items-center sm:p-5"
 										>
 											<Link
 												href={route('reports.show', report.id)}
@@ -278,7 +268,17 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 												</div>
 											</div>
 											<div className="relative z-10 mt-3.5 flex shrink-0 items-center justify-between gap-4 border-t border-border pt-3.5 sm:mt-0 sm:justify-end sm:border-0 sm:pt-0">
-												<StatusBadge status={report.status} />
+												{/* Badge status tanpa garis tepi — selaras gaya chip lembut pada
+											    kartu "Peta Pemantauan" di sebelah kanan. Khusus di dashboard ini,
+											    status "Penanganan" memakai teal seperti teks "Hydrant" pada kartu itu. */}
+								<StatusBadge
+									status={report.status}
+									className={cn(
+										'border-none',
+										report.status === 'handling' &&
+											'bg-teal-50 text-teal-700 dark:bg-teal/10 dark:text-teal',
+									)}
+								/>
 												<div className="flex h-8 w-8 items-center justify-center rounded-full bg-transparent text-muted-foreground transition-all group-hover:bg-destructive/10 group-hover:text-destructive">
 													<IconChevronRight className="h-5 w-5" stroke={2} />
 												</div>
