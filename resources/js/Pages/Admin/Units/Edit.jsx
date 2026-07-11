@@ -56,7 +56,7 @@ export default function Edit({ unit, pos_options = [], type_options = [] }) {
 					<CardContent className="p-6">
 						<form className="space-y-5" onSubmit={onHandleSubmit}>
 							{isDispatched && (
-								<div className="flex items-start gap-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-amber-700 dark:border-warning/30 dark:bg-warning/10 dark:text-warning">
+								<div className="flex items-start gap-3 rounded-md border border-warning/30 bg-warning/10 p-3 text-warning">
 									<IconAlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
 									<p className="text-xs font-medium leading-relaxed">
 										Unit ini sedang <b>dikerahkan</b> ke sebuah insiden. Sebaiknya tarik unit dari

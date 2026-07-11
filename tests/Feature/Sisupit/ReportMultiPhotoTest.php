@@ -33,16 +33,17 @@ it('stores multiple photos and uses the first as the cover', function () {
     $citizen = User::factory()->create(['village_code' => '5171012006']);
     $citizen->assignRole('masyarakat');
 
-    $this->actingAs($citizen)->post('/reports/create', [
+    $response = $this->actingAs($citizen)->post('/reports/create', [
         ...$this->payload,
         'photos' => [
             UploadedFile::fake()->image('a.jpg'),
             UploadedFile::fake()->image('b.jpg'),
             UploadedFile::fake()->image('c.jpg'),
         ],
-    ])->assertRedirect(route('dashboard'));
+    ]);
 
     $report = Report::withoutGlobalScopes()->first();
+    $response->assertRedirect(route('front.reports.thanks', $report->id));
     expect($report)->not->toBeNull();
     expect($report->photos()->count())->toBe(3);
     // Foto sampul (kolom lama) = foto pertama

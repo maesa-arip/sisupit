@@ -54,8 +54,8 @@ export default function Index({ stations, filters, tenant_location }) {
 				if (!isNaN(lat) && !isNaN(lng)) {
 					const iconColor =
 						station.status === 'Aktif'
-							? 'text-blue-600 dark:text-info'
-							: 'text-red-500 dark:text-destructive';
+							? 'text-info'
+							: 'text-destructive';
 					const customIcon = window.L.divIcon({
 						html: `<div class="${iconColor} drop-shadow-md hover:scale-110 transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
 						className: 'bg-transparent border-none',
@@ -112,7 +112,7 @@ export default function Index({ stations, filters, tenant_location }) {
 			{stationToDelete && (
 				<div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
 					<div className="w-full max-w-md rounded-2xl border bg-background p-6 shadow-xl">
-						<div className="flex items-center gap-3 text-red-500 dark:text-destructive">
+						<div className="flex items-center gap-3 text-destructive">
 							<IconAlertTriangle className="h-6 w-6" />{' '}
 							<h3 className="text-lg font-bold">Hapus Data Aset?</h3>
 						</div>
@@ -125,7 +125,7 @@ export default function Index({ stations, filters, tenant_location }) {
 								Batal
 							</Button>
 							<Button
-								className="bg-red-600 text-white shadow-none hover:bg-red-700 dark:bg-destructive dark:hover:bg-destructive/90"
+								className="bg-destructive text-destructive-foreground shadow-none hover:bg-destructive/90"
 								onClick={confirmDelete}
 							>
 								Hapus Permanen
@@ -143,7 +143,7 @@ export default function Index({ stations, filters, tenant_location }) {
 				/>
 				<Button
 					size="sm"
-					className="border-none bg-red-600 text-white shadow-none hover:bg-red-700 dark:bg-destructive dark:hover:bg-destructive/90"
+					className="border-none bg-destructive text-destructive-foreground shadow-none hover:bg-destructive/90"
 					asChild
 				>
 					<Link href={route('admin.fire-stations.create')}>
@@ -160,7 +160,7 @@ export default function Index({ stations, filters, tenant_location }) {
 							<Input
 								type="text"
 								placeholder="Cari nama atau alamat pos..."
-								className="h-10 pl-9 focus-visible:ring-red-500 dark:focus-visible:ring-destructive"
+								className="h-10 pl-9 focus-visible:ring-destructive"
 								value={data.search}
 								onChange={(e) => setData('search', e.target.value)}
 							/>
@@ -173,7 +173,7 @@ export default function Index({ stations, filters, tenant_location }) {
 									onClick={() => applyStatusFilter(status)}
 									className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-all ${
 										data.status === status
-											? 'border-red-200 bg-red-50 text-red-700 dark:border-destructive/30 dark:bg-destructive/10 dark:text-destructive'
+											? 'border-destructive/30 bg-destructive/10 text-destructive'
 											: 'border-input bg-transparent text-muted-foreground hover:bg-accent'
 									}`}
 								>
@@ -190,12 +190,12 @@ export default function Index({ stations, filters, tenant_location }) {
 									<Card
 										key={station.id}
 										onClick={() => focusToStation(station.id, station.lat, station.lng)}
-										className={`cursor-pointer transition-colors ${activeStationId === station.id ? 'border-red-500 bg-red-50/50 dark:border-destructive dark:bg-destructive/5' : 'hover:border-red-300 dark:hover:border-destructive/50'}`}
+										className={`cursor-pointer transition-colors ${activeStationId === station.id ? 'border-destructive bg-destructive/5' : 'hover:border-destructive/50'}`}
 									>
 										<CardContent className="flex flex-col gap-3 p-3 sm:p-4">
 											<div className="flex flex-row items-center gap-3">
 												<div
-													className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${station.status === 'Aktif' ? 'bg-blue-100 text-blue-600 dark:bg-info/10 dark:text-info' : 'bg-red-100 text-red-600 dark:bg-destructive/10 dark:text-destructive'}`}
+													className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${station.status === 'Aktif' ? 'bg-info/10 text-info' : 'bg-destructive/10 text-destructive'}`}
 												>
 													{station.status === 'Aktif' ? (
 														<IconFiretruck className="h-5 w-5" />
@@ -205,7 +205,7 @@ export default function Index({ stations, filters, tenant_location }) {
 												</div>
 												<div className="w-full min-w-0 flex-1">
 													<h3
-														className={`truncate text-sm font-semibold ${activeStationId === station.id ? 'text-red-700 dark:text-destructive' : 'text-foreground'}`}
+														className={`truncate text-sm font-semibold ${activeStationId === station.id ? 'text-destructive' : 'text-foreground'}`}
 													>
 														{station.name}
 													</h3>
@@ -222,7 +222,7 @@ export default function Index({ stations, filters, tenant_location }) {
 														variant="ghost"
 														size="icon"
 														asChild
-														className="h-8 w-8 text-muted-foreground hover:text-blue-500 dark:hover:text-info"
+														className="h-8 w-8 text-muted-foreground hover:text-info"
 													>
 														<Link href={route('admin.fire-stations.edit', station.id)}>
 															<IconEdit className="h-4 w-4" />
@@ -232,13 +232,13 @@ export default function Index({ stations, filters, tenant_location }) {
 														variant="ghost"
 														size="icon"
 														onClick={() => setStationToDelete(station.id)}
-														className="h-8 w-8 text-muted-foreground hover:text-red-500 dark:hover:text-destructive"
+														className="h-8 w-8 text-muted-foreground hover:text-destructive"
 													>
 														<IconTrash className="h-4 w-4" />
 													</Button>
 												</div>
 											</div>
-											<div className="mt-1 flex items-center justify-center gap-1 rounded-md bg-red-50 py-1.5 text-[10px] font-bold text-red-600 dark:bg-destructive/10 dark:text-destructive lg:hidden">
+											<div className="mt-1 flex items-center justify-center gap-1 rounded-md bg-destructive/10 py-1.5 text-[10px] font-bold text-destructive lg:hidden">
 												<IconArrowDown className="h-3 w-3" /> Lihat Peta Lokasi
 											</div>
 										</CardContent>
@@ -260,7 +260,7 @@ export default function Index({ stations, filters, tenant_location }) {
 														preserveScroll
 														className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
 															link.active
-																? 'border-red-600 bg-red-600 text-white shadow-sm dark:border-destructive dark:bg-destructive'
+																? 'border-destructive bg-destructive text-destructive-foreground shadow-sm'
 																: 'border-input bg-background text-muted-foreground hover:bg-accent hover:text-foreground'
 														}`}
 														dangerouslySetInnerHTML={{ __html: link.label }}
@@ -290,7 +290,7 @@ export default function Index({ stations, filters, tenant_location }) {
 					className="flex h-[450px] w-full scroll-mt-24 flex-col lg:h-[calc(100vh-140px)] lg:flex-1"
 				>
 					<div className="mb-3 flex items-center gap-2 px-1">
-						<IconMapPinFilled className="h-4 w-4 text-red-600 dark:text-destructive" />
+						<IconMapPinFilled className="h-4 w-4 text-destructive" />
 						<h2 className="text-sm font-semibold text-foreground">Peta Sebaran Interaktif</h2>
 					</div>
 					<div

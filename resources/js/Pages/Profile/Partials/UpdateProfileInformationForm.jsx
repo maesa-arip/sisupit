@@ -147,7 +147,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 											<button
 												type="button"
 												onClick={removePhoto}
-												className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-md border border-transparent bg-background/90 text-red-600 shadow-sm backdrop-blur-sm transition-colors hover:border-red-200 hover:bg-red-50 dark:text-destructive dark:hover:border-destructive/20 dark:hover:bg-destructive/10"
+												className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-md border border-transparent bg-background/90 text-destructive shadow-sm backdrop-blur-sm transition-colors hover:border-destructive/20 hover:bg-destructive/10"
 												title="Batal gunakan file ini"
 											>
 												<IconX stroke={2} className="h-4 w-4" />
@@ -197,7 +197,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 							</p>
 
 							{status === 'verification-link-sent' && (
-								<Alert className="mt-3 border-green-200 bg-green-50 text-green-800 dark:border-success/20 dark:bg-success/10 dark:text-success">
+								<Alert className="mt-3 border-success/20 bg-success/10 text-success">
 									<AlertDescription>
 										Tautan verifikasi baru telah dikirim ke alamat email Anda.
 									</AlertDescription>

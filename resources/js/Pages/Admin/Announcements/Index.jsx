@@ -116,7 +116,7 @@ export default function Index(props) {
 				<CardFooter className="flex w-full flex-col items-center justify-between border-t py-2 lg:flex-row">
 					<p className="mb-2 text-sm text-muted-foreground">
 						Menamplikan{' '}
-						<span className="font-medium text-orange-500 dark:text-warning">{meta.from ?? 0}</span> dari{' '}
+						<span className="font-medium text-warning">{meta.from ?? 0}</span> dari{' '}
 						{meta.total} Pengumuman
 					</p>
 					<div className="overflow-x-auto">

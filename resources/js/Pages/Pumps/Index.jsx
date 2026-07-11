@@ -1,11 +1,13 @@
 import HeaderTitle from '@/Components/HeaderTitle';
+import PublicPageHeader from '@/Components/PublicPageHeader';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
+import PublicLayout from '@/Layouts/PublicLayout';
 import { GEO_OPTIONS } from '@/lib/utils';
-import { router, useForm } from '@inertiajs/react';
+import { router, useForm, usePage } from '@inertiajs/react';
 import {
 	IconDroplet,
 	IconLoader2,
@@ -17,6 +19,11 @@ import {
 import { useState } from 'react';
 
 export default function Index({ pumps, filters, ...props }) {
+	// Tampilan berbeda per status: tamu = chrome landing (hero + navbar publik), sudah
+	// login = tampilan lama ber-sidebar (AppLayout + HeaderTitle). Lihat Index.layout.
+	const { auth } = usePage().props;
+	const isGuest = !auth?.user;
+
 	const [isLocating, setIsLocating] = useState(false);
 
 	// Sorot tombol berdasarkan filter yang BENAR-BENAR diterapkan server (prop `filters`),
@@ -86,14 +93,29 @@ export default function Index({ pumps, filters, ...props }) {
 	};
 
 	return (
-		<div className="relative flex w-full flex-col space-y-6 pb-32">
-			<div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
-				<HeaderTitle
-					title="Lokasi SKKL"
-					subtitle="Sistem Ketahanan Kebakaran Lingkungan (SKKL) terdekat."
+		<div
+			className={
+				isGuest
+					? 'mx-auto flex w-full max-w-6xl flex-col space-y-6 px-4 py-8 pb-24 sm:px-6'
+					: 'relative flex w-full flex-col space-y-6 pb-32'
+			}
+		>
+			{isGuest ? (
+				<PublicPageHeader
 					icon={IconDroplet}
+					eyebrow="Jelajahi"
+					title="Lokasi SKKL"
+					subtitle="Temukan Sistem Ketahanan Kebakaran Lingkungan (SKKL) terdekat dari lokasi Anda."
 				/>
-			</div>
+			) : (
+				<div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
+					<HeaderTitle
+						title="Lokasi SKKL"
+						subtitle="Sistem Ketahanan Kebakaran Lingkungan (SKKL) terdekat."
+						icon={IconDroplet}
+					/>
+				</div>
+			)}
 
 			<div className="flex w-full flex-col items-start gap-5 lg:flex-row lg:gap-6">
 				{/* KOLOM KIRI */}
@@ -106,7 +128,7 @@ export default function Index({ pumps, filters, ...props }) {
 									type="button"
 									onClick={handleNearestSearch}
 									disabled={isLocating || processing}
-									className="flex h-10 w-full items-center gap-2 rounded-md border border-blue-200 bg-blue-50 text-sm font-medium text-blue-700 shadow-sm transition-colors hover:bg-blue-100 dark:border-info/30 dark:bg-info/10 dark:text-info dark:hover:bg-info/20"
+									className="flex h-10 w-full items-center gap-2 rounded-md border border-info/30 bg-info/10 text-sm font-medium text-info shadow-sm transition-colors hover:bg-info/20"
 								>
 									{isLocating ? (
 										<IconLoader2 className="h-4 w-4 animate-spin" />
@@ -181,8 +203,8 @@ export default function Index({ pumps, filters, ...props }) {
 										<div
 											className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md border ${
 												pump.status === 'Aktif'
-													? 'border-blue-100 bg-blue-50 text-blue-600 dark:border-info/20 dark:bg-info/10 dark:text-info'
-													: 'border-red-200 bg-red-50 text-red-600 dark:border-destructive/30 dark:bg-destructive/10 dark:text-destructive'
+													? 'border-info/20 bg-info/10 text-info'
+													: 'border-destructive/30 bg-destructive/10 text-destructive'
 											}`}
 										>
 											{pump.status === 'Aktif' ? (
@@ -204,8 +226,8 @@ export default function Index({ pumps, filters, ...props }) {
 												<span
 													className={`whitespace-nowrap rounded border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider ${
 														pump.status === 'Aktif'
-															? 'border-blue-200 bg-blue-50 text-blue-700 dark:border-info/30 dark:bg-info/10 dark:text-info'
-															: 'border-red-200 bg-red-50 text-red-700 dark:border-destructive/30 dark:bg-destructive/10 dark:text-destructive'
+															? 'border-info/30 bg-info/10 text-info'
+															: 'border-destructive/30 bg-destructive/10 text-destructive'
 													}`}
 												>
 													{pump.status}
@@ -259,7 +281,7 @@ export default function Index({ pumps, filters, ...props }) {
 				<div className="flex w-full flex-col gap-3 lg:sticky lg:top-[90px] lg:flex-1">
 					{/* Header Peta */}
 					<div className="flex items-center gap-2 px-1">
-						<IconMapPinFilled className="h-4 w-4 text-blue-600 dark:text-info" />
+						<IconMapPinFilled className="h-4 w-4 text-info" />
 						<h2 className="text-sm font-semibold text-foreground">Sebaran Titik SKKL</h2>
 					</div>
 
@@ -273,4 +295,12 @@ export default function Index({ pumps, filters, ...props }) {
 	);
 }
 
-Index.layout = (page) => <AppLayout children={page} title="Lokasi SKKL" />;
+// Layout adaptif: tamu → chrome landing (PublicLayout), sudah login → AppLayout (sidebar).
+Index.layout = (page) => {
+	const title = 'Lokasi SKKL';
+	return page.props?.auth?.user ? (
+		<AppLayout children={page} title={title} />
+	) : (
+		<PublicLayout children={page} title={title} />
+	);
+};

@@ -53,7 +53,7 @@ export default function Index({ pumps, filters, tenant_location }) {
 					lng = parseFloat(pump.lng);
 				if (!isNaN(lat) && !isNaN(lng)) {
 					const iconColor =
-						pump.status === 'Aktif' ? 'text-blue-600 dark:text-info' : 'text-red-500 dark:text-destructive';
+						pump.status === 'Aktif' ? 'text-info' : 'text-destructive';
 					const customIcon = window.L.divIcon({
 						html: `<div class="${iconColor} drop-shadow-md hover:scale-110 transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
 						className: 'bg-transparent border-none',
@@ -106,7 +106,7 @@ export default function Index({ pumps, filters, tenant_location }) {
 			{pumpToDelete && (
 				<div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
 					<div className="w-full max-w-md rounded-2xl border bg-background p-6 shadow-xl">
-						<div className="flex items-center gap-3 text-red-500 dark:text-destructive">
+						<div className="flex items-center gap-3 text-destructive">
 							<IconAlertTriangle className="h-6 w-6" />{' '}
 							<h3 className="text-lg font-bold">Hapus Data Aset?</h3>
 						</div>
@@ -118,7 +118,7 @@ export default function Index({ pumps, filters, tenant_location }) {
 								Batal
 							</Button>
 							<Button
-								className="bg-red-600 text-white shadow-none hover:bg-red-700 dark:bg-destructive dark:hover:bg-destructive/90"
+								className="bg-destructive text-destructive-foreground shadow-none hover:bg-destructive/90"
 								onClick={confirmDelete}
 							>
 								Hapus Permanen
@@ -136,7 +136,7 @@ export default function Index({ pumps, filters, tenant_location }) {
 				/>
 				<Button
 					size="sm"
-					className="border-none bg-blue-600 text-white shadow-none hover:bg-blue-700 dark:bg-info dark:hover:bg-info/90"
+					className="border-none bg-info text-info-foreground shadow-none hover:bg-info/90"
 					asChild
 				>
 					<Link href={route('admin.pumps.create')}>
@@ -153,7 +153,7 @@ export default function Index({ pumps, filters, tenant_location }) {
 							<Input
 								type="text"
 								placeholder="Cari nama atau lokasi pompa..."
-								className="h-10 pl-9 focus-visible:ring-blue-500 dark:focus-visible:ring-info"
+								className="h-10 pl-9 focus-visible:ring-info"
 								value={data.search}
 								onChange={(e) => setData('search', e.target.value)}
 							/>
@@ -166,7 +166,7 @@ export default function Index({ pumps, filters, tenant_location }) {
 									onClick={() => applyStatusFilter(status)}
 									className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-all ${
 										data.status === status
-											? 'border-blue-200 bg-blue-50 text-blue-700 dark:border-info/30 dark:bg-info/10 dark:text-info'
+											? 'border-info/30 bg-info/10 text-info'
 											: 'border-input bg-transparent text-muted-foreground hover:bg-accent'
 									}`}
 								>
@@ -183,12 +183,12 @@ export default function Index({ pumps, filters, tenant_location }) {
 									<Card
 										key={pump.id}
 										onClick={() => focusToPump(pump.id, pump.lat, pump.lng)}
-										className={`cursor-pointer transition-colors ${activePumpId === pump.id ? 'border-blue-500 bg-blue-50/50 dark:border-info dark:bg-info/5' : 'hover:border-blue-300 dark:hover:border-info/50'}`}
+										className={`cursor-pointer transition-colors ${activePumpId === pump.id ? 'border-info bg-info/5' : 'hover:border-info/50'}`}
 									>
 										<CardContent className="flex flex-col gap-3 p-3 sm:p-4">
 											<div className="flex flex-row items-center gap-3">
 												<div
-													className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${pump.status === 'Aktif' ? 'bg-blue-100 text-blue-600 dark:bg-info/10 dark:text-info' : 'bg-red-100 text-red-600 dark:bg-destructive/10 dark:text-destructive'}`}
+													className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${pump.status === 'Aktif' ? 'bg-info/10 text-info' : 'bg-destructive/10 text-destructive'}`}
 												>
 													{pump.status === 'Aktif' ? (
 														<IconDroplet className="h-5 w-5" />
@@ -198,7 +198,7 @@ export default function Index({ pumps, filters, tenant_location }) {
 												</div>
 												<div className="w-full min-w-0 flex-1">
 													<h3
-														className={`truncate text-sm font-semibold ${activePumpId === pump.id ? 'text-blue-700 dark:text-info' : 'text-foreground'}`}
+														className={`truncate text-sm font-semibold ${activePumpId === pump.id ? 'text-info' : 'text-foreground'}`}
 													>
 														{pump.name}
 													</h3>
@@ -215,7 +215,7 @@ export default function Index({ pumps, filters, tenant_location }) {
 														variant="ghost"
 														size="icon"
 														asChild
-														className="h-8 w-8 text-muted-foreground hover:text-blue-500 dark:hover:text-info"
+														className="h-8 w-8 text-muted-foreground hover:text-info"
 													>
 														<Link href={route('admin.pumps.edit', pump.id)}>
 															<IconEdit className="h-4 w-4" />
@@ -225,13 +225,13 @@ export default function Index({ pumps, filters, tenant_location }) {
 														variant="ghost"
 														size="icon"
 														onClick={() => setPumpToDelete(pump.id)}
-														className="h-8 w-8 text-muted-foreground hover:text-red-500 dark:hover:text-destructive"
+														className="h-8 w-8 text-muted-foreground hover:text-destructive"
 													>
 														<IconTrash className="h-4 w-4" />
 													</Button>
 												</div>
 											</div>
-											<div className="mt-1 flex items-center justify-center gap-1 rounded-md bg-blue-50 py-1.5 text-[10px] font-bold text-blue-600 dark:bg-info/10 dark:text-info lg:hidden">
+											<div className="mt-1 flex items-center justify-center gap-1 rounded-md bg-info/10 py-1.5 text-[10px] font-bold text-info lg:hidden">
 												<IconArrowDown className="h-3 w-3" /> Lihat Peta Lokasi
 											</div>
 										</CardContent>
@@ -253,7 +253,7 @@ export default function Index({ pumps, filters, tenant_location }) {
 														preserveScroll
 														className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
 															link.active
-																? 'border-blue-600 bg-blue-600 text-white shadow-sm dark:border-info dark:bg-info'
+																? 'border-info bg-info text-info-foreground shadow-sm'
 																: 'border-input bg-background text-muted-foreground hover:bg-accent hover:text-foreground'
 														}`}
 														dangerouslySetInnerHTML={{ __html: link.label }}
@@ -283,7 +283,7 @@ export default function Index({ pumps, filters, tenant_location }) {
 					className="flex h-[450px] w-full scroll-mt-24 flex-col lg:h-[calc(100vh-140px)] lg:flex-1"
 				>
 					<div className="mb-3 flex items-center gap-2 px-1">
-						<IconMapPinFilled className="h-4 w-4 text-blue-600 dark:text-info" />
+						<IconMapPinFilled className="h-4 w-4 text-info" />
 						<h2 className="text-sm font-semibold text-foreground">Peta Sebaran Interaktif</h2>
 					</div>
 					<div

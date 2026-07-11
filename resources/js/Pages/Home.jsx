@@ -43,12 +43,12 @@ export default function Home(props) {
 				/>
 
 				{/* Indikator Sistem Online */}
-				<div className="flex w-fit items-center gap-2 rounded-md border border-green-200 bg-green-50 px-2.5 py-1.5 shadow-sm dark:border-success/30 dark:bg-success/10">
+				<div className="flex w-fit items-center gap-2 rounded-md border border-success/30 bg-success/10 px-2.5 py-1.5 shadow-sm">
 					<span className="relative flex h-2 w-2">
-						<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75 dark:bg-success/60"></span>
-						<span className="relative inline-flex h-2 w-2 rounded-full bg-green-500 dark:bg-success"></span>
+						<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/60 opacity-75"></span>
+						<span className="relative inline-flex h-2 w-2 rounded-full bg-success"></span>
 					</span>
-					<span className="text-[10px] font-bold uppercase tracking-wider text-green-700 dark:text-success">
+					<span className="text-[10px] font-bold uppercase tracking-wider text-success">
 						Siaga 24/7
 					</span>
 				</div>
@@ -61,7 +61,7 @@ export default function Home(props) {
 					href={route('front.pumps.index')}
 					className="group flex flex-col items-center justify-center rounded-xl border border-border bg-card p-5 shadow-sm outline-none transition-colors hover:border-muted-foreground/30 focus-visible:ring-2 focus-visible:ring-ring sm:p-6"
 				>
-					<div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 text-blue-600 transition-colors duration-200 group-hover:bg-blue-100 dark:border-info/20 dark:bg-info/10 dark:text-info dark:group-hover:bg-info/20 sm:h-14 sm:w-14">
+					<div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg border border-info/20 bg-info/10 text-info transition-colors duration-200 group-hover:bg-info/20 sm:h-14 sm:w-14">
 						<IconDroplet size={24} stroke={1.5} className="sm:h-7 sm:w-7" />
 					</div>
 					<span className="text-center text-xs font-semibold leading-tight text-foreground sm:text-sm">
@@ -128,7 +128,7 @@ export default function Home(props) {
 										<CardContent className="p-4">
 											<div className="flex h-full flex-col gap-1.5">
 												<span
-													className={`text-[10px] font-semibold uppercase tracking-wider ${isWarning ? 'text-amber-600 dark:text-warning' : 'text-blue-600 dark:text-info'}`}
+													className={`text-[10px] font-semibold uppercase tracking-wider ${isWarning ? 'text-warning' : 'text-info'}`}
 												>
 													{isWarning ? 'Peringatan Dini' : 'Berita Warga'}
 												</span>
@@ -163,8 +163,8 @@ export default function Home(props) {
 						download="Sisupit.apk"
 						className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-border bg-card px-6 font-medium text-foreground/80 shadow-sm outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring sm:w-auto"
 					>
-						<div className="flex items-center justify-center rounded-md bg-green-50 p-1 dark:bg-success/10">
-							<IconBrandAndroid className="h-5 w-5 text-green-600 dark:text-success" stroke={2} />
+						<div className="flex items-center justify-center rounded-md bg-success/10 p-1">
+							<IconBrandAndroid className="h-5 w-5 text-success" stroke={2} />
 						</div>
 						<span className="text-sm">Unduh Aplikasi Android</span>
 						<IconDownload className="ml-1 h-4 w-4 text-muted-foreground" stroke={2} />

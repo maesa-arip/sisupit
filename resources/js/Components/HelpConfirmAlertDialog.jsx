@@ -69,11 +69,11 @@ export default function HelpConfirmAlertDialog({ reportId, isAlreadyHelping = fa
 	// Status jika sudah membantu (Menuju Lokasi)
 	if (hasHelped) {
 		return (
-			<div className="flex h-10 w-full cursor-default items-center justify-center gap-2.5 rounded-md border border-green-200 bg-green-50 px-4 text-green-700 transition-colors dark:border-success/20 dark:bg-success/10 dark:text-success">
+			<div className="flex h-10 w-full cursor-default items-center justify-center gap-2.5 rounded-md border border-success/20 bg-success/10 px-4 text-success transition-colors">
 				{/* Animasi Titik Berdenyut (Pulse Dot) */}
 				<div className="relative flex h-2.5 w-2.5 items-center justify-center">
-					<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75 dark:bg-success"></span>
-					<span className="relative inline-flex h-2 w-2 rounded-full bg-green-600 dark:bg-success"></span>
+					<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75"></span>
+					<span className="relative inline-flex h-2 w-2 rounded-full bg-success"></span>
 				</div>
 
 				<span className="text-sm font-semibold tracking-wide">Status: Menuju Lokasi</span>

@@ -37,7 +37,7 @@ export default function VolunteerAction({ incidentId, alreadyHelping = false }) 
 				<Button
 					onClick={handleVolunteerAction}
 					disabled={isLoading}
-					className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-amber-600 text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-amber-700 hover:shadow-lg active:translate-y-0 dark:bg-warning dark:text-warning-foreground dark:hover:bg-warning/90"
+					className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-warning text-warning-foreground shadow-md transition-all hover:-translate-y-0.5 hover:bg-warning/90 hover:shadow-lg active:translate-y-0"
 				>
 					{isLoading ? (
 						<IconLoader2 className="h-5 w-5 animate-spin" />
@@ -48,7 +48,7 @@ export default function VolunteerAction({ incidentId, alreadyHelping = false }) 
 				</Button>
 			) : (
 				// Tampilan setelah diklik (Berubah menjadi Hijau/Sukses)
-				<div className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border-2 border-green-200 bg-green-50 text-green-800 dark:border-success/20 dark:bg-success/10 dark:text-success">
+				<div className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border-2 border-success/20 bg-success/10 text-success">
 					<IconCheck className="h-5 w-5" />
 					<span className="font-bold">Anda Sedang Menuju Lokasi</span>
 				</div>

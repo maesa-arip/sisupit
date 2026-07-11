@@ -49,7 +49,7 @@ export default function DeleteUserForm({ className = '' }) {
 		<Card className={`overflow-hidden rounded-xl border border-border bg-card shadow-sm ${className}`}>
 			<CardHeader className="border-b border-border bg-transparent pb-5">
 				<div className="flex items-center gap-3">
-					<div className="rounded-lg border border-red-100 bg-red-50 p-2 text-red-600 dark:border-destructive/20 dark:bg-destructive/10 dark:text-destructive">
+					<div className="rounded-lg border border-destructive/20 bg-destructive/10 p-2 text-destructive">
 						<IconAlertTriangle size={20} stroke={1.5} />
 					</div>
 					<div>

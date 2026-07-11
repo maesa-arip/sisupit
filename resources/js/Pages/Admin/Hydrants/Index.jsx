@@ -55,8 +55,8 @@ export default function Index({ hydrants, filters, tenant_location }) {
 				if (!isNaN(lat) && !isNaN(lng)) {
 					const iconColor =
 						hydrant.status === 'Aktif'
-							? 'text-blue-600 dark:text-info'
-							: 'text-red-500 dark:text-destructive';
+							? 'text-info'
+							: 'text-destructive';
 					const customIcon = window.L.divIcon({
 						html: `<div class="${iconColor} drop-shadow-md hover:scale-110 transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
 						className: 'bg-transparent border-none',
@@ -113,7 +113,7 @@ export default function Index({ hydrants, filters, tenant_location }) {
 			{hydrantToDelete && (
 				<div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
 					<div className="w-full max-w-md rounded-2xl border bg-background p-6 shadow-xl">
-						<div className="flex items-center gap-3 text-red-500 dark:text-destructive">
+						<div className="flex items-center gap-3 text-destructive">
 							<IconAlertTriangle className="h-6 w-6" />{' '}
 							<h3 className="text-lg font-bold">Hapus Data Aset?</h3>
 						</div>
@@ -125,7 +125,7 @@ export default function Index({ hydrants, filters, tenant_location }) {
 								Batal
 							</Button>
 							<Button
-								className="bg-red-600 text-white shadow-none hover:bg-red-700 dark:bg-destructive dark:hover:bg-destructive/90"
+								className="bg-destructive text-destructive-foreground shadow-none hover:bg-destructive/90"
 								onClick={confirmDelete}
 							>
 								Hapus Permanen
@@ -200,7 +200,7 @@ export default function Index({ hydrants, filters, tenant_location }) {
 										<CardContent className="flex flex-col gap-3 p-3 sm:p-4">
 											<div className="flex flex-row items-center gap-3">
 												<div
-													className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${hydrant.status === 'Aktif' ? 'bg-blue-100 text-blue-600 dark:bg-info/10 dark:text-info' : 'bg-red-100 text-red-600 dark:bg-destructive/10 dark:text-destructive'}`}
+													className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${hydrant.status === 'Aktif' ? 'bg-info/10 text-info' : 'bg-destructive/10 text-destructive'}`}
 												>
 													{hydrant.status === 'Aktif' ? (
 														<IconFireHydrant className="h-5 w-5" />
@@ -226,7 +226,7 @@ export default function Index({ hydrants, filters, tenant_location }) {
 														variant="ghost"
 														size="icon"
 														asChild
-														className="h-8 w-8 text-muted-foreground hover:text-blue-500 dark:hover:text-info"
+														className="h-8 w-8 text-muted-foreground hover:text-info"
 													>
 														<Link href={route('admin.hydrants.edit', hydrant.id)}>
 															<IconEdit className="h-4 w-4" />
@@ -236,7 +236,7 @@ export default function Index({ hydrants, filters, tenant_location }) {
 														variant="ghost"
 														size="icon"
 														onClick={() => setHydrantToDelete(hydrant.id)}
-														className="h-8 w-8 text-muted-foreground hover:text-red-500 dark:hover:text-destructive"
+														className="h-8 w-8 text-muted-foreground hover:text-destructive"
 													>
 														<IconTrash className="h-4 w-4" />
 													</Button>

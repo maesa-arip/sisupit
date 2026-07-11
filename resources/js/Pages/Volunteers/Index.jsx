@@ -198,7 +198,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 									<span
 										className={`whitespace-nowrap rounded border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider ${
 											volunteer.status === 'Siaga'
-												? 'border-green-200 bg-green-50 text-green-700 dark:border-success/30 dark:bg-success/10 dark:text-success'
+												? 'border-success/30 bg-success/10 text-success'
 												: 'border-border bg-muted text-muted-foreground'
 										}`}
 									>

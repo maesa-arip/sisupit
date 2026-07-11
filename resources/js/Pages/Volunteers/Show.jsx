@@ -51,8 +51,8 @@ export default function Show({ volunteer }) {
 								<span
 									className={`rounded-md border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
 										user.status === 'Siaga'
-											? 'border-green-200 bg-green-50 text-green-700 dark:border-success/30 dark:bg-success/10 dark:text-success'
-											: 'border-red-200 bg-red-50 text-red-700 dark:border-warning/30 dark:bg-warning/10 dark:text-warning'
+											? 'border-success/30 bg-success/10 text-success'
+											: 'border-warning/30 bg-warning/10 text-warning'
 									}`}
 								>
 									{user.status}
@@ -78,7 +78,7 @@ export default function Show({ volunteer }) {
 								<Button
 									asChild
 									disabled={!hasPhone}
-									className="h-10 w-full rounded-md bg-green-600 font-medium text-white transition-colors hover:bg-green-700 aria-disabled:pointer-events-none aria-disabled:opacity-50 dark:bg-success dark:text-success-foreground dark:hover:bg-success/90"
+									className="h-10 w-full rounded-md bg-success font-medium text-success-foreground transition-colors hover:bg-success/90 aria-disabled:pointer-events-none aria-disabled:opacity-50"
 								>
 									<a
 										href={hasPhone ? `https://wa.me/${waNumber}` : undefined}

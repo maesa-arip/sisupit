@@ -67,6 +67,10 @@ export default {
 					DEFAULT: 'hsl(var(--teal))',
 					foreground: 'hsl(var(--teal-foreground))',
 				},
+				volunteer: {
+					DEFAULT: 'hsl(var(--volunteer))',
+					foreground: 'hsl(var(--volunteer-foreground))',
+				},
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',

@@ -21,11 +21,11 @@ import { useState } from 'react';
 const STATUS_META = {
 	available: {
 		label: 'Siap',
-		color: 'bg-emerald-50 dark:bg-success/10 text-emerald-700 dark:text-success border-emerald-200 dark:border-success/20',
+		color: 'bg-success/10 text-success border-success/20',
 	},
 	dispatched: {
 		label: 'Dikerahkan',
-		color: 'bg-amber-50 dark:bg-warning/10 text-amber-700 dark:text-warning border-amber-200 dark:border-warning/20',
+		color: 'bg-warning/10 text-warning border-warning/20',
 	},
 	maintenance: { label: 'Perbaikan', color: 'bg-muted text-muted-foreground border-border' },
 };
@@ -63,7 +63,7 @@ export default function Index({ units, filters }) {
 			{unitToDelete && (
 				<div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
 					<div className="w-full max-w-md rounded-2xl border bg-background p-6 shadow-xl">
-						<div className="flex items-center gap-3 text-red-500 dark:text-destructive">
+						<div className="flex items-center gap-3 text-destructive">
 							<IconAlertTriangle className="h-6 w-6" /> <h3 className="text-lg font-bold">Hapus Unit?</h3>
 						</div>
 						<p className="mt-2 text-sm text-muted-foreground">
@@ -74,7 +74,7 @@ export default function Index({ units, filters }) {
 								Batal
 							</Button>
 							<Button
-								className="bg-red-600 text-white shadow-none hover:bg-red-700 dark:bg-destructive dark:hover:bg-destructive/90"
+								className="bg-destructive text-destructive-foreground shadow-none hover:bg-destructive/90"
 								onClick={confirmDelete}
 							>
 								Hapus Permanen
@@ -174,7 +174,7 @@ export default function Index({ units, filters }) {
 												variant="ghost"
 												size="icon"
 												asChild
-												className="h-8 w-8 text-muted-foreground hover:text-blue-500 dark:hover:text-info"
+												className="h-8 w-8 text-muted-foreground hover:text-info"
 											>
 												<Link href={route('admin.units.edit', unit.id)}>
 													<IconEdit className="h-4 w-4" />
@@ -184,7 +184,7 @@ export default function Index({ units, filters }) {
 												variant="ghost"
 												size="icon"
 												onClick={() => setUnitToDelete(unit.id)}
-												className="h-8 w-8 text-muted-foreground hover:text-red-500 dark:hover:text-destructive"
+												className="h-8 w-8 text-muted-foreground hover:text-destructive"
 											>
 												<IconTrash className="h-4 w-4" />
 											</Button>

@@ -6,7 +6,7 @@ export default function ApplicationLogo({ url = '/', size = 'size-10', isTitle =
 		<Link
 			href={url}
 			className={cn(
-				'group flex items-center gap-3 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-red-700',
+				'group flex items-center gap-3 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-destructive',
 				className,
 			)}
 		>

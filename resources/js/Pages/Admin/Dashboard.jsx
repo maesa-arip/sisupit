@@ -119,7 +119,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 							className={cn(
 								'rounded-md border-none px-2 py-0.5 font-semibold',
 								isPejabat
-									? 'bg-purple-100 text-purple-700 dark:bg-info/10 dark:text-info'
+									? 'bg-info/10 text-info'
 									: 'bg-destructive/10 text-destructive',
 							)}
 						>
@@ -127,7 +127,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 							{isPejabat ? 'Pejabat/Eksekutif' : 'Administrator'}
 						</Badge>
 						<span className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
-							<IconMapPin className="h-4 w-4 text-teal-600 dark:text-teal" />
+							<IconMapPin className="h-4 w-4 text-teal" />
 							Yurisdiksi: <strong className="text-foreground">{getAdminLevelName()}</strong>
 						</span>
 					</div>
@@ -177,8 +177,8 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 					title="Relawan Standby"
 					value={currentStats.standby_helpers}
 					icon={IconUsersGroup}
-					colorClass="text-blue-600 dark:text-info"
-					bgIconClass="bg-blue-50 dark:bg-info/10"
+					colorClass="text-info"
+					bgIconClass="bg-info/10"
 					subtitle="Terverifikasi di Area"
 					href={isPejabat ? undefined : route('front.volunteers.index', { status: 'siaga' })}
 				/>
@@ -230,10 +230,10 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 									colorStyle = 'text-teal-700 dark:text-teal bg-teal-50 dark:bg-teal/10';
 								} else if (t.includes('hewan') || t.includes('ular') || t.includes('tawon')) {
 									ReportIcon = IconBug;
-									colorStyle = 'text-amber-600 dark:text-warning bg-amber-100 dark:bg-warning/10';
+									colorStyle = 'text-warning bg-warning/10';
 								} else if (t.includes('listrik') || t.includes('korsleting')) {
 									ReportIcon = IconBolt;
-									colorStyle = 'text-blue-600 dark:text-info bg-blue-100 dark:bg-info/10';
+									colorStyle = 'text-info bg-info/10';
 								}
 
 								return (
@@ -346,13 +346,13 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 									</Badge>
 									<Badge
 										variant="secondary"
-										className="rounded-md border-none bg-blue-50 text-blue-700 dark:bg-info/10 dark:text-info"
+										className="rounded-md border-none bg-info/10 text-info"
 									>
 										Pos & Pompa
 									</Badge>
 									<Badge
 										variant="secondary"
-										className="rounded-md border-none bg-purple-100 text-purple-700 dark:bg-info/10 dark:text-info"
+										className="rounded-md border-none bg-info/10 text-info"
 									>
 										Relawan
 									</Badge>

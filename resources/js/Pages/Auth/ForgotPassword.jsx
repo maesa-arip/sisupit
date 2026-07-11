@@ -44,7 +44,7 @@ export default function ForgotPassword({ status }) {
 						{status && (
 							<Alert
 								variant="success"
-								className="rounded-md border-green-200 bg-green-50 text-green-800 dark:border-success/20 dark:bg-success/10 dark:text-success"
+								className="rounded-md border-success/20 bg-success/10 text-success"
 							>
 								<AlertDescription>{status}</AlertDescription>
 							</Alert>

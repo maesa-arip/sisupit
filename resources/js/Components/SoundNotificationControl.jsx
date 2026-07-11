@@ -27,7 +27,7 @@ export default function SoundNotificationControl() {
 
 	return (
 		<div className="fixed bottom-4 right-4 z-50 rounded bg-card p-2 shadow">
-			<button onClick={stopSound} className="font-bold text-red-600 hover:underline dark:text-destructive">
+			<button onClick={stopSound} className="font-bold text-destructive hover:underline">
 				🔇 Matikan Notifikasi Suara
 			</button>
 		</div>

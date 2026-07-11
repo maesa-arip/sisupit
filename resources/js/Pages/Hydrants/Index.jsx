@@ -1,11 +1,13 @@
 import HeaderTitle from '@/Components/HeaderTitle';
+import PublicPageHeader from '@/Components/PublicPageHeader';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
+import PublicLayout from '@/Layouts/PublicLayout';
 import { GEO_OPTIONS } from '@/lib/utils';
-import { Link, router, useForm } from '@inertiajs/react';
+import { Link, router, useForm, usePage } from '@inertiajs/react';
 import {
 	IconFireHydrant,
 	IconLoader2,
@@ -17,6 +19,11 @@ import {
 import { useState } from 'react';
 
 export default function Index({ map_markers, hydrants, filters, ...props }) {
+	// Tamu = chrome landing (hero + navbar publik); sudah login = tampilan lama ber-sidebar
+	// (AppLayout + HeaderTitle). Lihat Index.layout.
+	const { auth } = usePage().props;
+	const isGuest = !auth?.user;
+
 	const [isLocating, setIsLocating] = useState(false);
 
 	// Sorot tombol berdasarkan filter yang BENAR-BENAR diterapkan server (prop `filters`),
@@ -88,14 +95,29 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 	};
 
 	return (
-		<div className="relative flex w-full flex-col space-y-6 pb-32">
-			<div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
-				<HeaderTitle
-					title="Jaringan Hydrant"
-					subtitle="Temukan titik hydrant pemadam terdekat dari lokasi Anda."
+		<div
+			className={
+				isGuest
+					? 'mx-auto flex w-full max-w-6xl flex-col space-y-6 px-4 py-8 pb-24 sm:px-6'
+					: 'relative flex w-full flex-col space-y-6 pb-32'
+			}
+		>
+			{isGuest ? (
+				<PublicPageHeader
 					icon={IconFireHydrant}
+					eyebrow="Jelajahi"
+					title="Jaringan Hidran"
+					subtitle="Temukan titik hidran pemadam terdekat dari lokasi Anda."
 				/>
-			</div>
+			) : (
+				<div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
+					<HeaderTitle
+						title="Jaringan Hidran"
+						subtitle="Temukan titik hidran pemadam terdekat dari lokasi Anda."
+						icon={IconFireHydrant}
+					/>
+				</div>
+			)}
 
 			<div className="flex w-full flex-col items-start gap-5 lg:flex-row lg:gap-6">
 				{/* --- KOLOM KIRI (Filter & List) --- */}
@@ -182,8 +204,8 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 										<div
 											className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md border ${
 												hydrant.status === 'Aktif'
-													? 'border-blue-200 bg-blue-50 text-blue-600 dark:border-info/30 dark:bg-info/10 dark:text-info'
-													: 'border-red-200 bg-red-50 text-red-600 dark:border-destructive/30 dark:bg-destructive/10 dark:text-destructive'
+													? 'border-info/30 bg-info/10 text-info'
+													: 'border-destructive/30 bg-destructive/10 text-destructive'
 											}`}
 										>
 											{hydrant.status === 'Aktif' ? (
@@ -204,8 +226,8 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 												<span
 													className={`whitespace-nowrap rounded border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider ${
 														hydrant.status === 'Aktif'
-															? 'border-blue-200 bg-blue-50 text-blue-700 dark:border-info/30 dark:bg-info/10 dark:text-info'
-															: 'border-red-200 bg-red-50 text-red-700 dark:border-destructive/30 dark:bg-destructive/10 dark:text-destructive'
+															? 'border-info/30 bg-info/10 text-info'
+															: 'border-destructive/30 bg-destructive/10 text-destructive'
 													}`}
 												>
 													{hydrant.status}
@@ -293,4 +315,12 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 	);
 }
 
-Index.layout = (page) => <AppLayout children={page} title="Lokasi Hydrant Pemadam" />;
+// Layout adaptif: tamu → chrome landing (PublicLayout), sudah login → AppLayout (sidebar).
+Index.layout = (page) => {
+	const title = 'Jaringan Hidran';
+	return page.props?.auth?.user ? (
+		<AppLayout children={page} title={title} />
+	) : (
+		<PublicLayout children={page} title={title} />
+	);
+};

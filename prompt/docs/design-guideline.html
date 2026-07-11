@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panduan Desain Sisupit</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    /* Netral (app.css — light) */
+    --background: 0 0% 98%;
+    --foreground: 224 71.4% 4.1%;
+    --card: 0 0% 100%;
+    --muted: 220 14.3% 95.9%;
+    --muted-foreground: 220 8.9% 46.1%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+
+    /* Semantik (keputusan final) — light */
+    --destructive: 3 79% 49%;   --destructive-foreground: 210 20% 98%;   /* #E0241B */
+    --success: 160 84% 39%;      --success-foreground: 210 20% 98%;        /* emerald */
+    --info: 199 89% 48%;         --info-foreground: 210 20% 98%;           /* biru = air */
+    --warning: 38 92% 50%;       --warning-foreground: 220.9 39.3% 11%;    /* amber */
+    --teal: 175 84% 32%;         --teal-foreground: 210 20% 98%;           /* hidran */
+    --volunteer: 271 76% 53%;    --volunteer-foreground: 0 0% 100%;        /* relawan */
+
+    --radius: 0.5rem;
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --background: 0 0% 6%;
+      --foreground: 210 20% 98%;
+      --card: 0 0% 8%;
+      --muted: 0 0% 12%;
+      --muted-foreground: 217.9 10.6% 64.9%;
+      --border: 0 0% 15%;
+      --input: 0 0% 15%;
+
+      --destructive: 4 74% 56%;   --destructive-foreground: 210 20% 98%;
+      --success: 160 72% 45%;      --success-foreground: 210 20% 98%;
+      --info: 199 89% 40%;         --info-foreground: 210 20% 98%;
+      --warning: 38 92% 40%;       --warning-foreground: 210 20% 98%;
+      --teal: 173 66% 50%;         --teal-foreground: 210 20% 98%;
+      --volunteer: 271 76% 66%;    --volunteer-foreground: 224 71% 4%;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --background: 0 0% 6%;
+    --foreground: 210 20% 98%;
+    --card: 0 0% 8%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 217.9 10.6% 64.9%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --destructive: 4 74% 56%;   --destructive-foreground: 210 20% 98%;
+    --success: 160 72% 45%;      --success-foreground: 210 20% 98%;
+    --info: 199 89% 40%;         --info-foreground: 210 20% 98%;
+    --warning: 38 92% 40%;       --warning-foreground: 210 20% 98%;
+    --teal: 173 66% 50%;         --teal-foreground: 210 20% 98%;
+    --volunteer: 271 76% 66%;    --volunteer-foreground: 224 71% 4%;
+    color-scheme: dark;
+  }
+  :root[data-theme="light"] { color-scheme: light; }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+
+  body {
+    margin: 0;
+    font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: ui-monospace, "Cascadia Mono", "Segoe UI Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+
+  /* ---- Top bar + TOC ---- */
+  .bar {
+    position: sticky; top: 0; z-index: 30;
+    background: hsl(var(--background) / 0.85); backdrop-filter: blur(10px);
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  .bar-in { max-width: 1000px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .brandmark { display: flex; align-items: center; gap: 12px; }
+  .logo { width: 34px; height: 34px; border-radius: 9px; background: hsl(var(--destructive)); display: grid; place-items: center; flex-shrink: 0; }
+  .logo svg { width: 19px; height: 19px; fill: #fff; }
+  .brandmark b { font-size: 15px; letter-spacing: -0.01em; display: block; }
+  .brandmark span { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
+  .toggle { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; border: 1px solid hsl(var(--border)); background: hsl(var(--card)); color: hsl(var(--foreground)); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .toggle:hover { border-color: hsl(var(--foreground) / 0.35); }
+  .toggle:focus-visible { outline: 2px solid hsl(var(--info)); outline-offset: 2px; }
+  .toc { max-width: 1000px; margin: 0 auto; padding: 0 24px 12px; display: flex; flex-wrap: wrap; gap: 6px 14px; }
+  .toc a { font-size: 12.5px; font-weight: 600; color: hsl(var(--muted-foreground)); text-decoration: none; }
+  .toc a:hover { color: hsl(var(--destructive)); }
+
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 24px 120px; }
+
+  /* ---- Hero ---- */
+  header.hero { padding: 56px 0 12px; }
+  header.hero h1 { font-size: clamp(30px, 5vw, 46px); line-height: 1.05; letter-spacing: -0.03em; margin: 0 0 14px; font-weight: 800; text-wrap: balance; }
+  header.hero h1 em { font-style: normal; color: hsl(var(--destructive)); }
+  header.hero p { max-width: 62ch; font-size: 17px; color: hsl(var(--muted-foreground)); margin: 0; }
+
+  /* ---- Sections ---- */
+  section { margin-top: 68px; scroll-margin-top: 96px; }
+  .eyebrow { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+  .eyebrow .n { font-family: ui-monospace, monospace; font-size: 12px; font-weight: 700; color: hsl(var(--destructive)); }
+  .eyebrow span.t { font-size: 12px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: hsl(var(--muted-foreground)); white-space: nowrap; }
+  .eyebrow::after { content: ""; height: 1px; flex: 1; background: hsl(var(--border)); }
+  h2.sec { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 6px; }
+  .lead { color: hsl(var(--muted-foreground)); max-width: 70ch; margin: 0 0 24px; font-size: 15px; }
+  h3.sub { font-size: 15px; font-weight: 700; margin: 30px 0 14px; }
+
+  /* ---- Callout ---- */
+  .callout { border: 1px solid hsl(var(--c, var(--info)) / 0.3); background: hsl(var(--c, var(--info)) / 0.08); border-radius: 12px; padding: 16px 18px; display: flex; gap: 14px; }
+  .callout .ic { flex-shrink: 0; width: 22px; height: 22px; color: hsl(var(--c, var(--info))); }
+  .callout p { margin: 0; font-size: 14px; }
+  .callout b { color: hsl(var(--c, var(--info))); }
+
+  /* ---- Grids ---- */
+  .grid { display: grid; gap: 16px; }
+  .g2 { grid-template-columns: repeat(2, 1fr); }
+  .g3 { grid-template-columns: repeat(3, 1fr); }
+  .g4 { grid-template-columns: repeat(4, 1fr); }
+
+  /* ---- Swatches ---- */
+  .swatch { border: 1px solid hsl(var(--border)); border-radius: var(--radius); overflow: hidden; background: hsl(var(--card)); }
+  .swatch .band { height: 72px; background: hsl(var(--c)); }
+  .swatch .body { padding: 13px 15px 15px; }
+  .swatch h4 { margin: 0 0 3px; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+  .swatch h4 i { width: 10px; height: 10px; border-radius: 3px; background: hsl(var(--c)); }
+  .swatch .role { margin: 0 0 11px; font-size: 12.5px; color: hsl(var(--muted-foreground)); }
+  .swatch dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; font-size: 11.5px; }
+  .swatch dt { color: hsl(var(--muted-foreground)); }
+  .swatch dd { margin: 0; text-align: right; }
+
+  .neutral-tile { border: 1px solid hsl(var(--border)); border-radius: 10px; overflow: hidden; }
+  .neutral-tile .b { height: 52px; }
+  .neutral-tile .l { padding: 8px 10px; font-size: 11px; }
+  .neutral-tile .l b { display: block; font-size: 12px; }
+  .neutral-tile .l span { color: hsl(var(--muted-foreground)); }
+
+  /* ---- Buttons ---- */
+  .btn { font: inherit; height: 40px; padding: 0 18px; border-radius: var(--radius); font-size: 13px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid transparent; transition: background .15s, border-color .15s, opacity .15s; }
+  .btn:focus-visible { outline: 2px solid hsl(var(--c, var(--foreground))); outline-offset: 2px; }
+  .btn-solid   { background: hsl(var(--c)); color: hsl(var(--c-fg)); }
+  .btn-solid:hover   { background: hsl(var(--c) / 0.9); }
+  .btn-outline { background: transparent; border-color: hsl(var(--c)); color: hsl(var(--c)); }
+  .btn-outline:hover { background: hsl(var(--c) / 0.1); }
+  .btn-soft    { background: hsl(var(--c) / 0.1); color: hsl(var(--c)); }
+  .btn-soft:hover { background: hsl(var(--c) / 0.18); }
+  .btn-ghost   { background: transparent; color: hsl(var(--c)); }
+  .btn-ghost:hover { background: hsl(var(--c) / 0.1); }
+  .btn[disabled] { opacity: .5; pointer-events: none; }
+  .btn-sm { height: 32px; padding: 0 12px; font-size: 12px; }
+  .btn-lg { height: 48px; padding: 0 24px; font-size: 14px; }
+
+  .samples { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .btnrow { display: grid; grid-template-columns: 130px 1fr; gap: 16px; align-items: center; padding: 15px 0; border-bottom: 1px solid hsl(var(--border)); }
+  .btnrow:last-child { border-bottom: 0; }
+  .btnrow .lab b { font-size: 13.5px; display: flex; align-items: center; gap: 9px; }
+  .btnrow .lab b i { width: 12px; height: 12px; border-radius: 4px; background: hsl(var(--c)); }
+
+  /* ---- Badge ---- */
+  .badge { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: hsl(var(--c) / 0.1); color: hsl(var(--c)); border: 1px solid hsl(var(--c) / 0.2); }
+  .badge i { width: 6px; height: 6px; border-radius: 999px; background: hsl(var(--c)); }
+
+  /* ---- Status flow ---- */
+  .flow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .flow .arrow { color: hsl(var(--muted-foreground)); font-size: 13px; }
+
+  /* ---- Card / panel demo ---- */
+  .card { border: 1px solid hsl(var(--border)); border-radius: 16px; background: hsl(var(--card)); padding: 20px; }
+  .card h4 { margin: 0 0 4px; font-size: 15px; }
+  .card p.s { margin: 0; font-size: 13px; color: hsl(var(--muted-foreground)); }
+
+  /* ---- Radius demos ---- */
+  .radii { display: flex; flex-wrap: wrap; gap: 20px; }
+  .radii figure { margin: 0; text-align: center; }
+  .radii .box { width: 88px; height: 64px; background: hsl(var(--destructive) / 0.12); border: 1.5px solid hsl(var(--destructive) / 0.5); }
+  .radii figcaption { margin-top: 8px; font-size: 12px; }
+  .radii figcaption b { display: block; }
+  .radii figcaption span { color: hsl(var(--muted-foreground)); }
+
+  /* ---- Type scale ---- */
+  .type { display: grid; gap: 4px; }
+  .type .row { display: grid; grid-template-columns: 120px 1fr; gap: 18px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid hsl(var(--border)); }
+  .type .row:last-child { border-bottom: 0; }
+  .type .meta { font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .type .meta b { display: block; color: hsl(var(--foreground)); font-size: 12.5px; }
+
+  /* ---- Spacing ---- */
+  .space-row { display: flex; align-items: center; gap: 14px; padding: 6px 0; }
+  .space-row .bar { height: 16px; background: hsl(var(--info) / 0.5); border-radius: 3px; }
+  .space-row .lab { font-size: 12.5px; color: hsl(var(--muted-foreground)); }
+  .space-row .lab b { color: hsl(var(--foreground)); }
+
+  /* ---- Elevation ---- */
+  .shadow-none { box-shadow: none; }
+  .shadow-sm { box-shadow: 0 1px 2px hsl(0 0% 0% / 0.06); }
+  .shadow-md { box-shadow: 0 4px 12px hsl(0 0% 0% / 0.10); }
+  .shadow-lg { box-shadow: 0 12px 30px hsl(0 0% 0% / 0.16); }
+  .elev { display: grid; place-items: center; height: 76px; border: 1px solid hsl(var(--border)); border-radius: 12px; background: hsl(var(--card)); font-size: 12.5px; font-weight: 600; }
+
+  /* ---- Input demo ---- */
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 13px; font-weight: 600; }
+  .field .inp { height: 40px; padding: 0 12px; border-radius: calc(var(--radius) - 2px); border: 1px solid hsl(var(--input)); background: hsl(var(--card)); color: hsl(var(--foreground)); font: inherit; font-size: 14px; }
+  .field .inp:focus { outline: 2px solid hsl(var(--info)); outline-offset: 1px; border-color: transparent; }
+  .field .inp.err { border-color: hsl(var(--destructive)); }
+  .field .err-msg { font-size: 12.5px; color: hsl(var(--destructive)); font-weight: 500; }
+  .field .hint { font-size: 12px; color: hsl(var(--muted-foreground)); }
+
+  /* ---- Do / Don't ---- */
+  .dd { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .dd .box { border: 1px solid hsl(var(--border)); border-radius: 12px; padding: 16px 18px; }
+  .dd .box.do { border-color: hsl(var(--success) / 0.4); background: hsl(var(--success) / 0.06); }
+  .dd .box.no { border-color: hsl(var(--destructive) / 0.4); background: hsl(var(--destructive) / 0.06); }
+  .dd .tag { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+  .dd .do .tag { color: hsl(var(--success)); }
+  .dd .no .tag { color: hsl(var(--destructive)); }
+  .dd ul { margin: 10px 0 0; padding-left: 18px; }
+  .dd li { font-size: 13px; margin: 6px 0; }
+  .dd code { font-family: ui-monospace, monospace; font-size: 12px; background: hsl(var(--muted)); padding: 1px 5px; border-radius: 4px; }
+
+  footer { margin-top: 84px; padding-top: 22px; border-top: 1px solid hsl(var(--border)); font-size: 12.5px; color: hsl(var(--muted-foreground)); }
+  footer code { font-family: ui-monospace, monospace; }
+
+  @media (max-width: 820px) {
+    .g4 { grid-template-columns: repeat(2, 1fr); }
+    .g3 { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 560px) {
+    .g4, .g3, .g2, .dd { grid-template-columns: 1fr; }
+    .btnrow, .type .row { grid-template-columns: 1fr; gap: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="bar-in">
+    <div class="brandmark">
+      <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg></span>
+      <div><b>SISUPIT</b><span>Panduan Desain</span></div>
+    </div>
+    <button class="toggle" id="tt" type="button" aria-label="Ganti tema"><span id="ttlabel">Mode gelap</span></button>
+  </div>
+  <nav class="toc">
+    <a href="#prinsip">Prinsip</a>
+    <a href="#warna">Warna</a>
+    <a href="#status">Status Laporan</a>
+    <a href="#tipografi">Tipografi</a>
+    <a href="#rounded">Rounded</a>
+    <a href="#spasi">Spasi</a>
+    <a href="#elevasi">Elevasi</a>
+    <a href="#tombol">Tombol</a>
+    <a href="#badge">Badge</a>
+    <a href="#kartu">Kartu &amp; Form</a>
+    <a href="#penekanan">Penekanan</a>
+    <a href="#dodont">Do &amp; Don't</a>
+  </nav>
+</div>
+
+<div class="wrap">
+  <header class="hero">
+    <h1>Panduan desain untuk keadaan <em>darurat</em>.</h1>
+    <p>Satu sistem yang menyatukan warna, tipografi, sudut, dan jarak Sisupit — di mode terang maupun gelap. Semua nilai memetakan token nyata di <span class="mono">resources/css/app.css</span> &amp; <span class="mono">tailwind.config.js</span>. Aturan tunggal: gunakan token, jangan warna mentah.</p>
+  </header>
+
+  <!-- PRINSIP -->
+  <section id="prinsip">
+    <div class="eyebrow"><span class="n">01</span><span class="t">Prinsip Inti</span></div>
+    <h2 class="sec">Token dulu, selalu.</h2>
+    <p class="lead">Audit menemukan pola lama: warna ditulis mentah untuk mode terang (<span class="mono">bg-red-600</span>) lalu token untuk gelap (<span class="mono">dark:bg-destructive</span>). Akibatnya satu merah bisa tampil tiga nuansa berbeda. Sistem ini menghapus itu.</p>
+    <div class="grid g2">
+      <div class="callout" style="--c: var(--success)">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+        <p><b>Pakai token semantik.</b> <span class="mono">bg-destructive</span>, <span class="mono">text-success</span>, <span class="mono">border-info</span>. Otomatis benar di light &amp; dark, dan seragam dengan logo.</p>
+      </div>
+      <div class="callout" style="--c: var(--destructive)">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        <p><b>Jangan warna mentah.</b> <span class="mono">bg-red-600</span>, <span class="mono">text-blue-500</span>, hex baru. Memecah brand &amp; merusak dark mode.</p>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:20px">Pengecualian sah: nilai warna pada <b>marker peta Leaflet</b> dan <b>chart</b> — keduanya butuh warna nyata, ambil dari token via JS bila memungkinkan.</p>
+  </section>
+
+  <!-- WARNA -->
+  <section id="warna">
+    <div class="eyebrow"><span class="n">02</span><span class="t">Sistem Warna</span></div>
+    <h2 class="sec">Merah brand + lima warna semantik.</h2>
+    <p class="lead">Merah menanggung identitas (api/damkar) dan bahaya sekaligus. Dipilih <b>#E0241B</b> — cerah, mendesak, identik logo &amp; ikon Android. Teks putih di atasnya = kontras 4.74:1 (lulus WCAG AA).</p>
+
+    <div class="grid g3">
+      <div class="swatch" style="--c: var(--destructive)">
+        <div class="band"></div>
+        <div class="body"><h4><i></i>Destructive / Brand</h4><p class="role">SOS, laporan aktif/darurat, bahaya, hapus, error.</p>
+          <dl><dt>Light</dt><dd class="mono">3 79% 49%</dd><dt>Dark</dt><dd class="mono">4 74% 56%</dd><dt>Hex</dt><dd class="mono">#E0241B</dd></dl></div>
+      </div>
+      <div class="swatch" style="--c: var(--success)">
+        <div class="band"></div>
+        <div class="body"><h4><i></i>Success (Emerald)</h4><p class="role">Penanganan berjalan, relawan aktif, konfirmasi.</p>
+          <dl><dt>Light</dt><dd class="mono">160 84% 39%</dd><dt>Dark</dt><dd class="mono">160 72% 45%</dd><dt>Hex</dt><dd class="mono">#10B981</dd></dl></div>
+      </div>
+      <div class="swatch" style="--c: var(--info)">
+        <div class="band"></div>
+        <div class="body"><h4><i></i>Info (Biru / Air)</h4><p class="role">Laporan selesai (air memadamkan api), aksi responder, CTA sekunder.</p>
+          <dl><dt>Light</dt><dd class="mono">199 89% 48%</dd><dt>Dark</dt><dd class="mono">199 89% 40%</dd><dt>Hex</dt><dd class="mono">#0EA5E9</dd></dl></div>
+      </div>
+      <div class="swatch" style="--c: var(--warning)">
+        <div class="band"></div>
+        <div class="body"><h4><i></i>Warning (Amber)</h4><p class="role">Menunggu validasi, standby, peringatan.</p>
+          <dl><dt>Light</dt><dd class="mono">38 92% 50%</dd><dt>Dark</dt><dd class="mono">38 92% 40%</dd><dt>Hex</dt><dd class="mono">#F59E0B</dd></dl></div>
+      </div>
+      <div class="swatch" style="--c: var(--teal)">
+        <div class="band"></div>
+        <div class="body"><h4><i></i>Teal</h4><p class="role">Hidran &amp; fasilitas air — peran khusus, beda dari emerald.</p>
+          <dl><dt>Light</dt><dd class="mono">175 84% 32%</dd><dt>Dark</dt><dd class="mono">173 66% 50%</dd><dt>Hex</dt><dd class="mono">#0D9488</dd></dl></div>
+      </div>
+      <div class="swatch" style="--c: var(--volunteer)">
+        <div class="band"></div>
+        <div class="body"><h4><i></i>Volunteer <span class="mono" style="font-size:10px;color:hsl(var(--muted-foreground))">(baru)</span></h4><p class="role">Kategori relawan di peta &amp; daftar.</p>
+          <dl><dt>Light</dt><dd class="mono">271 76% 53%</dd><dt>Dark</dt><dd class="mono">271 76% 66%</dd><dt>Hex</dt><dd class="mono">#9333EA</dd></dl></div>
+      </div>
+    </div>
+
+    <h3 class="sub">Netral</h3>
+    <p class="lead">Bukan abu-abu default — netral dingin yang sengaja dipilih, sama dengan aplikasi.</p>
+    <div class="grid g4">
+      <div class="neutral-tile"><div class="b" style="background:hsl(var(--background))"></div><div class="l"><b>background</b><span class="mono">0 0% 98% / 6%</span></div></div>
+      <div class="neutral-tile"><div class="b" style="background:hsl(var(--card));border-bottom:1px solid hsl(var(--border))"></div><div class="l"><b>card</b><span class="mono">0 0% 100% / 8%</span></div></div>
+      <div class="neutral-tile"><div class="b" style="background:hsl(var(--muted))"></div><div class="l"><b>muted</b><span class="mono">220 14% 96% / …12%</span></div></div>
+      <div class="neutral-tile"><div class="b" style="background:hsl(var(--foreground))"></div><div class="l"><b>foreground</b><span class="mono">224 71% 4% / …98%</span></div></div>
+    </div>
+  </section>
+
+  <!-- STATUS -->
+  <section id="status">
+    <div class="eyebrow"><span class="n">03</span><span class="t">Status Laporan</span></div>
+    <h2 class="sec">Merah menyala → biru memadamkan.</h2>
+    <p class="lead">Lifecycle: <b>Masuk → Terverifikasi → Penanganan → Selesai</b> (plus Ditolak). Warna menyandikan progres, dengan satu keputusan domain penting di ujungnya.</p>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="flow" style="font-size:13px;font-weight:700">
+        <span class="badge" style="--c: var(--destructive)"><i></i>Masuk</span><span class="arrow">→</span>
+        <span class="badge" style="--c: var(--warning)"><i></i>Terverifikasi</span><span class="arrow">→</span>
+        <span class="badge" style="--c: var(--success)"><i></i>Penanganan</span><span class="arrow">→</span>
+        <span class="badge" style="--c: var(--info)"><i></i>Selesai</span><span class="arrow">·</span>
+        <span class="badge" style="--c: var(--muted-foreground)"><i></i>Ditolak</span>
+      </div>
+    </div>
+
+    <div class="callout" style="--c: var(--info)">
+      <svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2s6 7 6 11a6 6 0 1 1-12 0c0-4 6-11 6-11z"/></svg>
+      <p><b>Selesai = biru, bukan hijau.</b> Ini aplikasi pemadam kebakaran — biru identik dengan <b>air yang memadamkan api</b>. Merah (darurat) di awal, biru (padam/aman) di akhir. Emerald dipakai untuk fase <b>Penanganan</b> yang aktif berjalan, dan Ditolak memudar jadi netral.</p>
+    </div>
+  </section>
+
+  <!-- TIPOGRAFI -->
+  <section id="tipografi">
+    <div class="eyebrow"><span class="n">04</span><span class="t">Tipografi</span></div>
+    <h2 class="sec">Inter, satu skala disiplin.</h2>
+    <p class="lead">Satu keluarga — <b>Inter</b> (<span class="mono">tailwind.config.js</span> · fontFamily.sans). Judul rapat (<span class="mono">tracking-tight</span>), label huruf-besar diberi jarak, teks bodi ~65 karakter/baris.</p>
+    <div class="type">
+      <div class="row"><div class="meta"><b>Display</b>800 · -0.03em</div><div style="font-size:40px;font-weight:800;letter-spacing:-0.03em;line-height:1.05">Lapor Darurat</div></div>
+      <div class="row"><div class="meta"><b>Judul Section</b>800 · -0.02em</div><div style="font-size:24px;font-weight:800;letter-spacing:-0.02em">Peta Pemantauan</div></div>
+      <div class="row"><div class="meta"><b>Sub-judul</b>700</div><div style="font-size:16px;font-weight:700">Panel Tindakan</div></div>
+      <div class="row"><div class="meta"><b>Body</b>400 · 1.6</div><div style="font-size:15px;max-width:62ch">Warga melapor, Pusat Komando memvalidasi, lalu petugas dan relawan merespons dengan pelacakan lokasi langsung sampai insiden ditutup.</div></div>
+      <div class="row"><div class="meta"><b>Kecil / hint</b>500</div><div style="font-size:13px;color:hsl(var(--muted-foreground))">Terakhir diperbarui 2 menit lalu</div></div>
+      <div class="row"><div class="meta"><b>Label</b>800 · 0.16em · UPPER</div><div style="font-size:11px;font-weight:800;letter-spacing:0.16em;text-transform:uppercase;color:hsl(var(--muted-foreground))">Sistem Untuk Pelaporan Dini</div></div>
+    </div>
+  </section>
+
+  <!-- ROUNDED -->
+  <section id="rounded">
+    <div class="eyebrow"><span class="n">05</span><span class="t">Sudut / Rounded</span></div>
+    <h2 class="sec">Skala jari-jari dari satu sumber.</h2>
+    <p class="lead">Basis <span class="mono">--radius: 0.5rem</span> (8px). Tailwind menurunkan <span class="mono">sm/md/lg</span> darinya; <span class="mono">xl</span> ke atas nilai tetap. Konsisten: makin besar & penting elemennya, makin besar sudutnya.</p>
+    <div class="radii">
+      <figure><div class="box" style="border-radius:4px"></div><figcaption><b>rounded-sm</b><span class="mono">4px</span><span>chip kecil, checkbox</span></figcaption></figure>
+      <figure><div class="box" style="border-radius:6px"></div><figcaption><b>rounded-md</b><span class="mono">6px</span><span>input, select, tombol kecil</span></figcaption></figure>
+      <figure><div class="box" style="border-radius:8px"></div><figcaption><b>rounded-lg</b><span class="mono">8px · --radius</span><span>tombol default, dropdown, tile ikon</span></figcaption></figure>
+      <figure><div class="box" style="border-radius:12px"></div><figcaption><b>rounded-xl</b><span class="mono">12px</span><span>tombol menonjol (SOS/Lapor), kontrol peta</span></figcaption></figure>
+      <figure><div class="box" style="border-radius:16px"></div><figcaption><b>rounded-2xl</b><span class="mono">16px</span><span>kartu, panel, modal</span></figcaption></figure>
+      <figure><div class="box" style="border-radius:999px"></div><figcaption><b>rounded-full</b><span class="mono">9999px</span><span>badge/pill, avatar, FAB</span></figcaption></figure>
+    </div>
+  </section>
+
+  <!-- SPASI -->
+  <section id="spasi">
+    <div class="eyebrow"><span class="n">06</span><span class="t">Spasi &amp; Layout</span></div>
+    <h2 class="sec">Kelipatan 4px, jarak lewat gap.</h2>
+    <p class="lead">Skala spasi Tailwind (basis 4px). Atur jarak antar-elemen dengan <span class="mono">flex/grid + gap</span>, bukan margin per-elemen yang mudah dobel/kolaps.</p>
+    <div>
+      <div class="space-row"><div class="bar" style="width:8px"></div><div class="lab"><b>2</b> · 8px — jarak ikon↔teks, gap chip</div></div>
+      <div class="space-row"><div class="bar" style="width:12px"></div><div class="lab"><b>3</b> · 12px — padding tombol, gap kecil</div></div>
+      <div class="space-row"><div class="bar" style="width:16px"></div><div class="lab"><b>4</b> · 16px — gap kartu di grid, padding rapat</div></div>
+      <div class="space-row"><div class="bar" style="width:24px"></div><div class="lab"><b>6</b> · 24px — padding kartu/panel</div></div>
+      <div class="space-row"><div class="bar" style="width:48px"></div><div class="lab"><b>12</b> · 48px — jarak antar-blok</div></div>
+      <div class="space-row"><div class="bar" style="width:68px"></div><div class="lab"><b>16–18</b> · 64–72px — jarak antar-section</div></div>
+    </div>
+    <p class="lead" style="margin-top:20px">Lebar konten maksimum halaman: <span class="mono">max-w-1000/1080px</span>, dipusatkan (<span class="mono">mx-auto</span>) dengan padding tepi 24px.</p>
+  </section>
+
+  <!-- ELEVASI -->
+  <section id="elevasi">
+    <div class="eyebrow"><span class="n">07</span><span class="t">Elevasi / Bayangan</span></div>
+    <h2 class="sec">Datar sebagai default, bayangan untuk yang mengambang.</h2>
+    <p class="lead">Aplikasi condong flat — banyak tombol pakai <span class="mono">shadow-none</span>. Naikkan elevasi hanya saat elemen benar-benar mengambang di atas konten.</p>
+    <div class="grid g4">
+      <div class="elev shadow-none">shadow-none<br><span class="mono" style="font-weight:400;color:hsl(var(--muted-foreground))">tombol datar</span></div>
+      <div class="elev shadow-sm">shadow-sm<br><span class="mono" style="font-weight:400;color:hsl(var(--muted-foreground))">kartu, input</span></div>
+      <div class="elev shadow-md">shadow-md<br><span class="mono" style="font-weight:400;color:hsl(var(--muted-foreground))">dropdown</span></div>
+      <div class="elev shadow-lg">shadow-lg<br><span class="mono" style="font-weight:400;color:hsl(var(--muted-foreground))">popover, modal, FAB</span></div>
+    </div>
+  </section>
+
+  <!-- TOMBOL -->
+  <section id="tombol">
+    <div class="eyebrow"><span class="n">08</span><span class="t">Tombol</span></div>
+    <h2 class="sec">Empat bentuk × tiga ukuran.</h2>
+    <p class="lead">Setiap warna semantik punya empat bentuk. Bentuklah yang menentukan penekanan, bukan hue baru.</p>
+
+    <div class="btnrow" style="--c: var(--destructive); --c-fg: var(--destructive-foreground)">
+      <div class="lab"><b><i></i>Destructive</b></div>
+      <div class="samples">
+        <button class="btn btn-solid">Solid</button>
+        <button class="btn btn-outline">Outline</button>
+        <button class="btn btn-soft">Soft</button>
+        <button class="btn btn-ghost">Ghost</button>
+        <button class="btn btn-solid" disabled>Disabled</button>
+      </div>
+    </div>
+    <div class="btnrow" style="--c: var(--success); --c-fg: var(--success-foreground)">
+      <div class="lab"><b><i></i>Success</b></div>
+      <div class="samples">
+        <button class="btn btn-solid">Solid</button><button class="btn btn-outline">Outline</button>
+        <button class="btn btn-soft">Soft</button><button class="btn btn-ghost">Ghost</button>
+      </div>
+    </div>
+    <div class="btnrow" style="--c: var(--info); --c-fg: var(--info-foreground)">
+      <div class="lab"><b><i></i>Info</b></div>
+      <div class="samples">
+        <button class="btn btn-solid">Solid</button><button class="btn btn-outline">Outline</button>
+        <button class="btn btn-soft">Soft</button><button class="btn btn-ghost">Ghost</button>
+      </div>
+    </div>
+    <div class="btnrow" style="--c: var(--warning); --c-fg: var(--warning-foreground)">
+      <div class="lab"><b><i></i>Warning</b></div>
+      <div class="samples">
+        <button class="btn btn-solid">Solid</button><button class="btn btn-outline">Outline</button>
+        <button class="btn btn-soft">Soft</button><button class="btn btn-ghost">Ghost</button>
+      </div>
+    </div>
+    <div class="btnrow" style="--c: var(--teal); --c-fg: var(--teal-foreground)">
+      <div class="lab"><b><i></i>Teal</b></div>
+      <div class="samples">
+        <button class="btn btn-solid">Solid</button><button class="btn btn-outline">Outline</button>
+        <button class="btn btn-soft">Soft</button><button class="btn btn-ghost">Ghost</button>
+      </div>
+    </div>
+
+    <h3 class="sub">Ukuran</h3>
+    <div class="samples" style="--c: var(--destructive); --c-fg: var(--destructive-foreground)">
+      <button class="btn btn-solid btn-sm">Small · h-32</button>
+      <button class="btn btn-solid">Default · h-40</button>
+      <button class="btn btn-solid btn-lg">Large · h-48</button>
+    </div>
+  </section>
+
+  <!-- BADGE -->
+  <section id="badge">
+    <div class="eyebrow"><span class="n">09</span><span class="t">Badge &amp; Chip</span></div>
+    <h2 class="sec">Label pasif, volume terendah.</h2>
+    <p class="lead">Selalu bentuk <b>soft</b> (<span class="mono">bg /10 · text · border /20</span>), <span class="mono">rounded-full</span>. Untuk status &amp; kategori yang tidak menuntut aksi.</p>
+    <div class="samples">
+      <span class="badge" style="--c: var(--destructive)"><i></i>Darurat</span>
+      <span class="badge" style="--c: var(--warning)"><i></i>Menunggu</span>
+      <span class="badge" style="--c: var(--success)"><i></i>Ditangani</span>
+      <span class="badge" style="--c: var(--info)"><i></i>Selesai</span>
+      <span class="badge" style="--c: var(--teal)"><i></i>Hidran</span>
+      <span class="badge" style="--c: var(--volunteer)"><i></i>Relawan</span>
+      <span class="badge" style="--c: var(--muted-foreground)"><i></i>Nonaktif</span>
+    </div>
+  </section>
+
+  <!-- KARTU & FORM -->
+  <section id="kartu">
+    <div class="eyebrow"><span class="n">10</span><span class="t">Kartu &amp; Form</span></div>
+    <h2 class="sec">Permukaan &amp; masukan.</h2>
+    <div class="grid g2">
+      <div class="card shadow-sm">
+        <h4>Kartu / Panel</h4>
+        <p class="s">Latar <span class="mono">card</span>, garis <span class="mono">border</span>, sudut <span class="mono">rounded-2xl</span> (16px), padding 20–24px, <span class="mono">shadow-sm</span>.</p>
+        <div class="samples" style="margin-top:16px;--c: var(--info); --c-fg: var(--info-foreground)">
+          <button class="btn btn-solid btn-sm">Aksi utama</button>
+          <button class="btn btn-ghost btn-sm" style="--c: var(--muted-foreground)">Batal</button>
+        </div>
+      </div>
+      <div class="card shadow-sm">
+        <div class="field">
+          <label for="d1">Nama lokasi</label>
+          <input class="inp" id="d1" placeholder="mis. Jl. Gajah Mada No. 12" />
+          <span class="hint">Input: <span class="mono">rounded-md</span>, border <span class="mono">input</span>, fokus ring <span class="mono">info</span>.</span>
+        </div>
+        <div class="field" style="margin-top:16px">
+          <label for="d2">Nomor telepon</label>
+          <input class="inp err" id="d2" value="08" />
+          <span class="err-msg">Nomor telepon minimal 10 digit.</span>
+        </div>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:16px">Error form ikuti pola repo: <span class="mono">&lt;InputError message={errors.field} /&gt;</span> membaca <span class="mono">useForm().errors</span>. Sukses submit selalu picu toast <span class="mono">sonner</span> lewat <span class="mono">flashMessage()</span>.</p>
+  </section>
+
+  <!-- PENEKANAN -->
+  <section id="penekanan">
+    <div class="eyebrow"><span class="n">11</span><span class="t">Aturan Penekanan</span></div>
+    <h2 class="sec">Satu warna, tiga volume.</h2>
+    <p class="lead">Ini yang menjaga tampilan “menyatu” sekaligus memberi hierarki di situasi darurat. Bedakan urgensi lewat <b>treatment</b>, bukan menambah warna.</p>
+    <div class="grid g3">
+      <div class="card" style="--c: var(--destructive); --c-fg: var(--destructive-foreground)">
+        <div class="dd"><div class="tag" style="color:hsl(var(--destructive))">Volume tertinggi</div></div>
+        <h4 style="margin-top:10px">Solid</h4>
+        <p class="s">Aksi darurat / berisiko: SOS, tandai selesai, hapus permanen.</p>
+        <div style="margin-top:14px"><button class="btn btn-solid">Lapor Darurat</button></div>
+      </div>
+      <div class="card" style="--c: var(--destructive)">
+        <div class="dd"><div class="tag" style="color:hsl(var(--muted-foreground))">Volume sedang</div></div>
+        <h4 style="margin-top:10px">Outline</h4>
+        <p class="s">Aksi sekunder / rutin: hapus item admin, batal, filter.</p>
+        <div style="margin-top:14px"><button class="btn btn-outline">Hapus</button></div>
+      </div>
+      <div class="card" style="--c: var(--destructive)">
+        <div class="dd"><div class="tag" style="color:hsl(var(--muted-foreground))">Volume terendah</div></div>
+        <h4 style="margin-top:10px">Soft</h4>
+        <p class="s">Status pasif / label: badge status, chip kategori.</p>
+        <div style="margin-top:14px"><span class="badge" style="--c: var(--destructive)"><i></i>Darurat</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DO/DON'T -->
+  <section id="dodont">
+    <div class="eyebrow"><span class="n">12</span><span class="t">Do &amp; Don't</span></div>
+    <h2 class="sec">Ringkasan aturan.</h2>
+    <div class="dd">
+      <div class="box do">
+        <div class="tag">Lakukan</div>
+        <ul>
+          <li>Pakai token: <code>bg-destructive</code>, <code>text-success</code>, <code>border-info</code>.</li>
+          <li>Bedakan penekanan lewat solid / outline / soft.</li>
+          <li>Selesai = <code>info</code> (biru/air), Penanganan = <code>success</code>.</li>
+          <li>Hidran = <code>teal</code>, relawan = <code>volunteer</code>.</li>
+          <li>Rounded naik sesuai bobot elemen; jarak lewat <code>gap</code>.</li>
+          <li>Uji setiap layar di mode terang <b>dan</b> gelap.</li>
+        </ul>
+      </div>
+      <div class="box no">
+        <div class="tag">Hindari</div>
+        <ul>
+          <li>Warna mentah baru: <code>bg-red-600</code>, <code>text-blue-500</code>, hex.</li>
+          <li>Pola <code>light-mentah / dark:token</code> — sumber tiga-nuansa-merah.</li>
+          <li>Dua merah mirip untuk brand vs bahaya.</li>
+          <li>Hijau <code>142</code> murahan untuk “aktif”.</li>
+          <li>Bayangan berat di elemen datar.</li>
+          <li>Mencampur dua icon library dalam satu komponen.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Sumber token: <code>resources/css/app.css</code> · <code>tailwind.config.js</code> · konvensi <code>.claude/skills/sisupit-ui/SKILL.md</code>.
+    Keputusan warna final: brand <code>#E0241B</code>, success emerald, selesai biru (air). Halaman referensi — belum mengubah kode aplikasi.
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var root = document.documentElement, btn = document.getElementById('tt'), label = document.getElementById('ttlabel');
+    function current() { var t = root.getAttribute('data-theme'); return t ? t : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); }
+    function sync() { label.textContent = current() === 'dark' ? 'Mode terang' : 'Mode gelap'; }
+    btn.addEventListener('click', function () { root.setAttribute('data-theme', current() === 'dark' ? 'light' : 'dark'); sync(); });
+    sync();
+  })();
+</script>
+</body>
+</html>

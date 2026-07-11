@@ -331,8 +331,11 @@ export default function Create(props) {
 			preserveScroll: true,
 			preserveState: true,
 			onSuccess: (success) => {
+				// flash_message selalu dibagikan sebagai objek {type, message} (lihat
+				// HandleInertiaRequests) — bisa bernilai null saat tak ada flash, jadi
+				// guard pada flash?.type, bukan sekadar objeknya (yang selalu truthy).
 				const flash = flashMessage(success);
-				if (flash) toast[flash.type](flash.message);
+				if (flash?.type) toast[flash.type](flash.message);
 			},
 		});
 	};
@@ -370,11 +373,11 @@ export default function Create(props) {
 								{/* Header Lokasi & Status Digabung */}
 								<div className="flex items-center gap-3 border-b border-border pb-1">
 									{locationLoading ? (
-										<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-md bg-blue-50 text-blue-600 dark:bg-info/10 dark:text-info">
+										<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-md bg-info/10 text-info">
 											<IconLoader2 className="h-4 w-4 animate-spin" />
 										</div>
 									) : userLocation ? (
-										<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-md bg-green-50 text-green-600 dark:bg-success/10 dark:text-success">
+										<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-md bg-success/10 text-success">
 											<IconMapPinFilled className="h-4 w-4" />
 										</div>
 									) : (
@@ -516,7 +519,7 @@ export default function Create(props) {
 													<button
 														type="button"
 														onClick={() => removePhoto(i)}
-														className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-md border border-transparent bg-card/90 text-red-600 shadow-sm backdrop-blur-sm transition-colors hover:border-red-200 hover:bg-red-50 dark:text-destructive dark:hover:border-destructive/30 dark:hover:bg-destructive/10"
+														className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-md border border-transparent bg-card/90 text-destructive shadow-sm backdrop-blur-sm transition-colors hover:border-destructive/30 hover:bg-destructive/10"
 														title="Hapus foto"
 													>
 														<IconX stroke={2.5} className="h-4 w-4" />

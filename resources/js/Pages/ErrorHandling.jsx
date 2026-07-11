@@ -11,7 +11,7 @@ export default function ErrorHandling({ status }) {
 			<div className="grid min-h-full place-items-center bg-background px-6 py-24 sm:py-32 lg:px-8">
 				<Card className="text-center">
 					<CardContent className="p-8">
-						<p className="text-base font-semibold text-orange-500 dark:text-warning">
+						<p className="text-base font-semibold text-warning">
 							{errorMessages.status}
 						</p>
 						<h1 className="mt-4 text-5xl font-bold tracking-tighter text-foreground">

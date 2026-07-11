@@ -157,22 +157,22 @@ export default function ReportShow(props) {
 			case 'TERLAPOR':
 				return {
 					label: 'Laporan Masuk',
-					color: 'bg-red-50 dark:bg-destructive/10 text-red-700 dark:text-destructive border-red-200 dark:border-destructive/20',
+					color: 'bg-destructive/10 text-destructive border-destructive/20',
 				};
 			case 'pending':
 				return {
 					label: 'Menunggu Bantuan',
-					color: 'bg-amber-50 dark:bg-warning/10 text-amber-700 dark:text-warning border-amber-200 dark:border-warning/20',
+					color: 'bg-warning/10 text-warning border-warning/20',
 				};
 			case 'handling':
 				return {
 					label: 'Dalam Penanganan',
-					color: 'bg-emerald-50 dark:bg-success/10 text-emerald-700 dark:text-success border-emerald-200 dark:border-success/20',
+					color: 'bg-success/10 text-success border-success/20',
 				};
 			case 'resolved':
 				return {
 					label: 'Selesai',
-					color: 'bg-blue-50 dark:bg-info/10 text-blue-700 dark:text-info border-blue-200 dark:border-info/20',
+					color: 'bg-info/10 text-info border-info/20',
 				};
 			case 'ditolak':
 				return { label: 'Ditolak', color: 'bg-muted text-muted-foreground border-border' };
@@ -186,12 +186,12 @@ export default function ReportShow(props) {
 			case 'en_route':
 				return {
 					label: 'Meluncur',
-					color: 'bg-amber-50 dark:bg-warning/10 text-amber-700 dark:text-warning border-amber-200 dark:border-warning/20',
+					color: 'bg-warning/10 text-warning border-warning/20',
 				};
 			case 'arrived':
 				return {
 					label: 'Tiba di Lokasi',
-					color: 'bg-blue-50 dark:bg-info/10 text-blue-700 dark:text-info border-blue-200 dark:border-info/20',
+					color: 'bg-info/10 text-info border-info/20',
 				};
 			case 'finished':
 				return { label: 'Selesai Tugas', color: 'bg-muted text-muted-foreground border-border' };
@@ -442,7 +442,7 @@ export default function ReportShow(props) {
 			const iconColor =
 				type === 'petugas'
 					? 'bg-destructive text-destructive-foreground'
-					: 'bg-blue-600 dark:bg-info text-white dark:text-info-foreground';
+					: 'bg-info text-info-foreground';
 			const htmlMarkup = `<div class="${iconColor} text-xs w-7 h-7 font-bold flex items-center justify-center rounded-full border-2 border-card shadow-none">${iconEmoji}</div>`;
 
 			const marker = window.L.marker([lat, lng], {
@@ -737,7 +737,7 @@ export default function ReportShow(props) {
 									<div className="font-medium text-muted-foreground">Telepon</div>
 									<a
 										href={`tel:${report.phone}`}
-										className="flex items-center gap-1.5 font-bold text-foreground transition-colors hover:text-blue-600 dark:hover:text-info"
+										className="flex items-center gap-1.5 font-bold text-foreground transition-colors hover:text-info"
 									>
 										<IconPhone className="h-3.5 w-3.5 text-muted-foreground" /> {report.phone}
 									</a>
@@ -874,12 +874,12 @@ export default function ReportShow(props) {
 						<Card className="rounded-xl border border-border bg-card shadow-none">
 							<CardContent className="space-y-4 p-4 sm:p-5">
 								<h2 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-foreground">
-									<IconShieldCheck className="h-4 w-4 text-blue-600 dark:text-info" /> Panel Tindakan
+									<IconShieldCheck className="h-4 w-4 text-info" /> Panel Tindakan
 									Anda
 								</h2>
 
 								{reportStatus === 'resolved' ? (
-									<div className="flex items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-center text-xs font-bold text-blue-700 dark:border-info/20 dark:bg-info/10 dark:text-info">
+									<div className="flex items-center justify-center gap-2 rounded-lg border border-info/20 bg-info/10 p-3 text-center text-xs font-bold text-info">
 										<IconCheck className="h-4 w-4" /> INSIDEN SELESAI DITANGANI
 									</div>
 								) : (
@@ -904,7 +904,7 @@ export default function ReportShow(props) {
 												<Button
 													onClick={handleArrive}
 													disabled={isActionLoading}
-													className="flex h-12 w-full animate-pulse items-center justify-center gap-2 rounded-lg bg-blue-600 text-xs font-bold uppercase tracking-wider text-white shadow-none transition-colors hover:bg-blue-700 dark:bg-info dark:text-info-foreground dark:hover:bg-info/90"
+													className="flex h-12 w-full animate-pulse items-center justify-center gap-2 rounded-lg bg-info text-xs font-bold uppercase tracking-wider text-info-foreground shadow-none transition-colors hover:bg-info/90"
 												>
 													{isActionLoading ? (
 														<IconLoader2 className="h-4 w-4 animate-spin" />
@@ -924,7 +924,7 @@ export default function ReportShow(props) {
 												</Button>
 											</>
 										) : myRecord.status === 'arrived' ? (
-											<div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-center text-xs font-bold text-blue-700 dark:border-info/20 dark:bg-info/10 dark:text-info">
+											<div className="rounded-lg border border-info/20 bg-info/10 p-3 text-center text-xs font-bold text-info">
 												Anda Sedang di Lokasi.
 											</div>
 										) : (
@@ -945,7 +945,7 @@ export default function ReportShow(props) {
 										)}
 
 										{myRecord?.status === 'arrived' && isCorrectingMode && (
-											<div className="mt-2 space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-warning/20 dark:bg-warning/10 dark:text-warning">
+											<div className="mt-2 space-y-2 rounded-lg border border-warning/20 bg-warning/10 p-3 text-xs text-warning">
 												<p className="font-bold leading-relaxed">
 													Geser pin merah di peta ke lokasi insiden yang sebenarnya, lalu
 													konfirmasi.
@@ -977,7 +977,7 @@ export default function ReportShow(props) {
 											<Button
 												onClick={() => setConfirmResolve(true)}
 												variant="outline"
-												className="mt-2 h-12 w-full rounded-lg border-emerald-200 text-xs font-bold uppercase tracking-wider text-emerald-700 shadow-none transition-colors hover:bg-emerald-50 dark:border-success/30 dark:text-success dark:hover:bg-success/10"
+												className="mt-2 h-12 w-full rounded-lg border-success/30 text-xs font-bold uppercase tracking-wider text-success shadow-none transition-colors hover:bg-success/10"
 											>
 												Tandai Insiden Selesai
 											</Button>
@@ -1165,7 +1165,7 @@ export default function ReportShow(props) {
 			<Dialog open={confirmApprove} onOpenChange={setConfirmApprove}>
 				<DialogContent className="max-w-sm rounded-xl border border-border bg-card p-6 shadow-none">
 					<div className="flex flex-col items-center space-y-4 text-center">
-						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-info/10 dark:text-info">
+						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-info/10 text-info">
 							<IconRadar className="h-6 w-6" />
 						</div>
 						<h2 className="text-lg font-bold text-foreground">Broadcast Darurat?</h2>
@@ -1182,7 +1182,7 @@ export default function ReportShow(props) {
 							</Button>
 							<Button
 								onClick={executeApprove}
-								className="h-10 flex-1 bg-blue-600 font-bold text-white shadow-none hover:bg-blue-700 dark:bg-info dark:text-info-foreground dark:hover:bg-info/90"
+								className="h-10 flex-1 bg-info font-bold text-info-foreground shadow-none hover:bg-info/90"
 								disabled={isProcessing}
 							>
 								{isProcessing ? <IconLoader2 className="h-4 w-4 animate-spin" /> : 'Ya, Siarkan'}
@@ -1195,7 +1195,7 @@ export default function ReportShow(props) {
 			<Dialog open={confirmReject} onOpenChange={setConfirmReject}>
 				<DialogContent className="max-w-sm rounded-xl border border-border bg-card p-6 shadow-none">
 					<div className="flex flex-col items-center space-y-4 text-center">
-						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-red-600 dark:bg-destructive/10 dark:text-destructive">
+						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
 							<IconTrash className="h-6 w-6" />
 						</div>
 						<h2 className="text-lg font-bold text-foreground">Tolak Laporan?</h2>
@@ -1225,7 +1225,7 @@ export default function ReportShow(props) {
 							</Button>
 							<Button
 								onClick={executeReject}
-								className="h-10 flex-1 bg-red-600 font-bold text-white shadow-none hover:bg-red-700 dark:bg-destructive dark:text-destructive-foreground dark:hover:bg-destructive/90"
+								className="h-10 flex-1 bg-destructive font-bold text-destructive-foreground shadow-none hover:bg-destructive/90"
 								disabled={isProcessing}
 							>
 								{isProcessing ? <IconLoader2 className="h-4 w-4 animate-spin" /> : 'Ya, Tolak'}
@@ -1238,7 +1238,7 @@ export default function ReportShow(props) {
 			<Dialog open={confirmResolve} onOpenChange={setConfirmResolve}>
 				<DialogContent className="max-w-sm rounded-xl border border-border bg-card p-6 shadow-none">
 					<div className="flex flex-col items-center space-y-4 text-center">
-						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-success/10 dark:text-success">
+						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/10 text-success">
 							<IconCheck className="h-6 w-6" />
 						</div>
 						<h2 className="text-lg font-bold text-foreground">Tutup Insiden?</h2>
@@ -1255,7 +1255,7 @@ export default function ReportShow(props) {
 							</Button>
 							<Button
 								onClick={executeResolve}
-								className="h-10 flex-1 bg-emerald-600 font-bold text-white shadow-none hover:bg-emerald-700 dark:bg-success dark:text-success-foreground dark:hover:bg-success/90"
+								className="h-10 flex-1 bg-success font-bold text-success-foreground shadow-none hover:bg-success/90"
 								disabled={isActionLoading}
 							>
 								{isActionLoading ? <IconLoader2 className="h-4 w-4 animate-spin" /> : 'Ya, Selesaikan'}

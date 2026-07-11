@@ -105,7 +105,7 @@ export default function Edit(props) {
 						<div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-3xl font-semibold text-foreground">
 							{user.name?.[0]?.toUpperCase() ?? 'U'}
 							{(isVolunteer || isAdmin) && (
-								<div className="absolute bottom-0 right-0 rounded-full border-2 border-background bg-blue-600 p-1 text-white dark:bg-info dark:text-info-foreground">
+								<div className="absolute bottom-0 right-0 rounded-full border-2 border-background bg-info p-1 text-info-foreground">
 									<IconShieldCheck size={14} stroke={2} />
 								</div>
 							)}
@@ -114,7 +114,7 @@ export default function Edit(props) {
 							<h2 className="text-xl font-semibold leading-tight text-foreground">{user.name}</h2>
 							<p className="text-sm font-medium text-muted-foreground">{user.email}</p>
 							<span
-								className={`mt-2 rounded-md border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider ${isVolunteer ? 'border-blue-100 bg-blue-50 text-blue-600 dark:border-info/20 dark:bg-info/10 dark:text-info' : isAdmin ? 'border-green-100 bg-green-50 text-green-600 dark:border-success/20 dark:bg-success/10 dark:text-success' : 'border-border bg-muted text-muted-foreground'}`}
+								className={`mt-2 rounded-md border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider ${isVolunteer ? 'border-info/20 bg-info/10 text-info' : isAdmin ? 'border-success/20 bg-success/10 text-success' : 'border-border bg-muted text-muted-foreground'}`}
 							>
 								{isVolunteer ? 'Relawan Aktif' : isAdmin ? 'Administrator' : 'Anggota Masyarakat'}
 							</span>
@@ -125,7 +125,7 @@ export default function Edit(props) {
 						href={route('logout')}
 						method="post"
 						as="button"
-						className="flex items-center gap-1.5 rounded-md border border-red-100 bg-red-50 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-red-100 dark:border-destructive/20 dark:bg-destructive/10 dark:hover:bg-destructive/20"
+						className="flex items-center gap-1.5 rounded-md border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20"
 					>
 						<IconLogout size={16} stroke={2} />
 						Keluar
@@ -312,8 +312,8 @@ export default function Edit(props) {
 						download="Sisupit.apk"
 						className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-border bg-card px-6 font-medium text-foreground shadow-sm outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-muted-foreground/50 sm:w-auto"
 					>
-						<div className="flex items-center justify-center rounded-md bg-green-50 p-1 dark:bg-success/10">
-							<IconBrandAndroid className="h-5 w-5 text-green-600 dark:text-success" stroke={2} />
+						<div className="flex items-center justify-center rounded-md bg-success/10 p-1">
+							<IconBrandAndroid className="h-5 w-5 text-success" stroke={2} />
 						</div>
 						<span className="text-sm">Unduh Aplikasi Android</span>
 						<IconDownload className="ml-1 h-4 w-4 text-muted-foreground" stroke={2} />
@@ -342,7 +342,7 @@ export default function Edit(props) {
 							Batal
 						</Button>
 						<Button
-							className="h-9 rounded-md bg-blue-600 font-medium text-white hover:bg-blue-700 dark:bg-info dark:text-info-foreground dark:hover:bg-info/90"
+							className="h-9 rounded-md bg-info font-medium text-info-foreground hover:bg-info/90"
 							onClick={handleDaftarRelawan}
 						>
 							Ya, Daftarkan Saya

@@ -135,8 +135,8 @@ const UserLeafletMap = ({
 			const isAktif = status === 'Aktif';
 
 			// Warna per status (samakan Peta Pemantauan): Aktif biru, Perbaikan merah.
-			const bgColor = isAktif ? 'bg-blue-600 dark:bg-info' : 'bg-destructive';
-			const borderColor = isAktif ? 'border-blue-200 dark:border-info/20' : 'border-destructive/20';
+			const bgColor = isAktif ? 'bg-info' : 'bg-destructive';
+			const borderColor = isAktif ? 'border-info/20' : 'border-destructive/20';
 			const arrowColor = isAktif ? 'border-t-blue-600 dark:border-t-info' : 'border-t-destructive';
 			const fgColor = isAktif ? 'text-white dark:text-info-foreground' : 'text-white dark:text-destructive-foreground';
 			// Glyph per jenis (samakan Peta Pemantauan): pos pemadam = truk,
@@ -170,7 +170,7 @@ const UserLeafletMap = ({
 					const customIcon = createCustomIcon(marker.status, marker.category);
 					const isPosPemadam = marker.category === 'pos_pemadam';
 					const titleColorClass =
-						marker.status === 'Aktif' ? 'text-blue-700 dark:text-info' : 'text-red-700 dark:text-destructive';
+						marker.status === 'Aktif' ? 'text-info' : 'text-destructive';
 					const labelText = isPosPemadam
 						? `${marker.status} &bull; ${marker.vehicle_count} Armada`
 						: `${marker.status} &bull; ${marker.type || 'Pompa'}`;

@@ -24,7 +24,7 @@ const REPORT_STATUS = [
 	{ key: 'TERLAPOR', label: 'Laporan Masuk', pin: 'text-destructive animate-pulse', dot: 'bg-destructive', badge: 'bg-destructive/10 text-destructive border-destructive/30' },
 	{ key: 'pending', label: 'Laporan Terverifikasi', pin: 'text-warning', dot: 'bg-warning', badge: 'bg-warning/10 text-warning border-warning/30' },
 	{ key: 'handling', label: 'Penanganan', pin: 'text-success', dot: 'bg-success', badge: 'bg-success/10 text-success border-success/30' },
-	{ key: 'resolved', label: 'Selesai', pin: 'text-blue-600 dark:text-info', dot: 'bg-blue-600 dark:bg-info', badge: 'bg-info/10 text-info border-info/30' },
+	{ key: 'resolved', label: 'Selesai', pin: 'text-info', dot: 'bg-info', badge: 'bg-info/10 text-info border-info/30' },
 ];
 const REPORT_META = Object.fromEntries(REPORT_STATUS.map((s) => [s.key, s]));
 
@@ -41,14 +41,14 @@ const GLYPH = {
 };
 
 // Warna lingkaran marker fasilitas berdasarkan status: Aktif = biru, Perbaikan = merah.
-const facilityColor = (status) => (status === 'Perbaikan' ? 'bg-destructive' : 'bg-blue-600 dark:bg-info');
+const facilityColor = (status) => (status === 'Perbaikan' ? 'bg-destructive' : 'bg-info');
 
 const LAYERS = [
 	{ key: 'reports', label: 'Kejadian', icon: IconFlame, color: 'text-destructive', chip: 'status' },
 	{ key: 'hydrants', label: 'Hydrant', icon: IconFireHydrant, color: 'text-teal-600 dark:text-teal', chip: 'facility' },
 	{ key: 'stations', label: 'Pos Pemadam', icon: IconFiretruck, color: 'text-destructive', chip: 'facility' },
-	{ key: 'pumps', label: 'SKKL / Pompa', icon: IconDroplet, color: 'text-blue-600 dark:text-info', chip: 'facility' },
-	{ key: 'volunteers', label: 'Relawan', icon: IconHeartHandshake, color: 'text-purple-600 dark:text-purple-400', chip: 'volunteer' },
+	{ key: 'pumps', label: 'SKKL / Pompa', icon: IconDroplet, color: 'text-info', chip: 'facility' },
+	{ key: 'volunteers', label: 'Relawan', icon: IconHeartHandshake, color: 'text-volunteer', chip: 'volunteer' },
 ];
 
 export default function MonitoringMap({ layers }) {
@@ -206,7 +206,7 @@ export default function MonitoringMap({ layers }) {
 					<div class="text-[10px] italic text-muted-foreground/80">Posisi perkiraan (pusat wilayah)</div>
 					<span class="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-bold ${d.status === 'Siaga' ? 'bg-success/10 text-success border-success/30' : 'bg-muted text-muted-foreground border-border'}">${d.status}</span>`);
 				const m = window.L.marker([d.lat, d.lng], {
-					icon: glyphIcon('bg-purple-600 dark:bg-purple-500', GLYPH.volunteer, { dashed: true, stroke: false }),
+					icon: glyphIcon('bg-volunteer', GLYPH.volunteer, { dashed: true, stroke: false }),
 				}).bindPopup(html);
 				groups.volunteers.addLayer(m);
 				allMarkers.push(m);

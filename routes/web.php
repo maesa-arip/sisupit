@@ -70,7 +70,10 @@ Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProv
 // Login native dari aplikasi WebView: menerima Google ID token dari account picker HP.
 Route::post('/auth/google/native', [SocialiteController::class, 'handleNativeGoogle'])->name('google.native');
 Route::controller(HomeController::class)->group(function () {
-    Route::get('/', 'spotlight')->name('home.spotlight');
+    // Landing publik untuk browser; WebView (UA ∋ SisupitApp) di-redirect di controller
+    // ke home.spotlight / dashboard — lihat HomeController::landing().
+    Route::get('/', 'landing')->name('home.landing');
+    Route::get('/spotlight', 'spotlight')->name('home.spotlight');
     Route::get('/home', 'index')->name('home.index');
 });
 // Daftar relawan hanya untuk Pusat Komando (petugas/admin/superadmin), bukan publik.
@@ -91,6 +94,10 @@ Route::get('/pumps', [PompaController::class, 'index'])->name('front.pumps.index
 Route::get('/fire-stations', [PosPemadamController::class, 'index'])->name('front.fire_stations.index');
 
 Route::get('/hydrants', [HydrantController::class, 'index'])->name('front.hydrants.index');
+
+// Panduan Desain internal (referensi sistem warna, komponen, & aturan UI). Tanpa auth
+// agar mudah dibuka sebagai rujukan tim; halaman statis, tak memuat data sensitif.
+Route::inertia('/guideline', 'Guideline')->name('guideline');
 
 // Ambil daftar Kota/Kabupaten berdasarkan Provinsi
 Route::get('/api/regions/cities/{provinceCode}', function ($provinceCode) {
@@ -135,6 +142,7 @@ Route::middleware(['auth', 'verified'])->controller(ReportController::class)->gr
     Route::get('reports/show/{report}', 'show')->name('reports.show');
     Route::get('reports/create', 'create')->name('front.reports.create');
     Route::post('reports/create', 'store')->middleware('throttle:report-create')->name('front.reports.store');
+    Route::get('reports/thanks/{report}', 'thanks')->name('front.reports.thanks');
     Route::get('reports/edit/{report}', 'edit')->name('front.reports.edit');
     Route::put('reports/edit/{report}', 'update')->name('front.reports.update');
     Route::delete('reports/destroy/{report}', 'destroy')->name('front.reports.destroy');

@@ -39,7 +39,8 @@ app/
     ReportActionController.php  Workflow status: approve/reject/takeAction/cancelResponse/
                                  arrive/resolve/updateLocation/correctLocation
     DashboardController.php     3 varian dashboard berbeda per role (lihat alur di bawah)
-    HomeController.php          Landing page publik + chart statistik
+    HomeController.php          Landing publik (/) + Spotlight (/spotlight) + chart statistik;
+                                landing() redirect WebView (UA∋SisupitApp) ke spotlight/dashboard
     ProfileController.php       Profil user (Breeze + complete-profile + KTP)
     VolunteerController.php     Self-register relawan + toggle standby
     ReportHelperController.php  (terpisah dari ReportActionController — lihat catatan risiko)
@@ -170,7 +171,9 @@ Model yang **sengaja global** (tidak pakai Tenantable): `Setting`, `RouteAccess`
 Total **107 route terdaftar** (`php artisan route:list`, dijalankan saat onboarding). Ringkasan grup:
 
 ```
-Publik (tanpa auth)     : GET / (spotlight), /home, /relawan, /relawan/{id}, /pumps,
+Publik (tanpa auth)     : GET / (landing publik; WebView UA∋SisupitApp di-redirect ke
+                           /spotlight atau /dashboard via HomeController::landing),
+                           /spotlight, /home, /relawan, /relawan/{id}, /pumps,
                            /fire-stations, /hydrants, /login, /register, /forgot-password,
                            /api/regions/{cities,districts,villages}, /webpush/public-key,
                            /openssl-test  (?? debug leftover — lihat FINDINGS_LOG #3)

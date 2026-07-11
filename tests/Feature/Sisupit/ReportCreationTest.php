@@ -38,13 +38,54 @@ it('lets a citizen create a report which alerts the command center only', functi
         'photos' => [UploadedFile::fake()->image('kejadian.jpg')],
     ]);
 
-    $response->assertRedirect(route('dashboard'));
-
     $report = Report::withoutGlobalScopes()->first();
+    $response->assertRedirect(route('front.reports.thanks', $report->id));
+
     expect($report)->not->toBeNull();
     expect($report->status)->toBe('TERLAPOR');
     expect($report->user_id)->toBe($citizen->id);
 
     Notification::assertSentTo($petugas, \App\Notifications\EmergencyAlertNotification::class);
     Notification::assertNotSentTo($relawan, \App\Notifications\EmergencyAlertNotification::class);
+});
+
+it('shows the persistent thanks screen only to the reporter and command center', function () {
+    Notification::fake();
+
+    $citizen = User::factory()->create(['village_code' => '5171012006']);
+    $citizen->assignRole('masyarakat');
+
+    $this->actingAs($citizen)->post('/reports/create', [
+        'title' => 'Kebakaran lahan',
+        'description' => 'Asap tebal terlihat',
+        'province_code' => '51',
+        'city_code' => '5171',
+        'district_code' => '517101',
+        'village_code' => '5171012006',
+        'lat' => '-8.6500',
+        'lng' => '115.2200',
+        'address' => 'Jl. Pemogan No. 2',
+        'photos' => [UploadedFile::fake()->image('kejadian.jpg')],
+    ]);
+
+    $report = Report::withoutGlobalScopes()->latest('id')->first();
+
+    // Halaman persisten: pemilik boleh membuka ulang (tak lagi sekali-pakai).
+    $this->actingAs($citizen)
+        ->get(route('front.reports.thanks', $report->id))
+        ->assertOk();
+
+    // Pusat Komando (petugas/admin) boleh meninjau.
+    $petugas = User::factory()->create();
+    $petugas->assignRole('petugas');
+    $this->actingAs($petugas)
+        ->get(route('front.reports.thanks', $report->id))
+        ->assertOk();
+
+    // Warga lain (bukan pemilik, bukan Pusat Komando) → 403.
+    $orang = User::factory()->create(['village_code' => '5171012006']);
+    $orang->assignRole('masyarakat');
+    $this->actingAs($orang)
+        ->get(route('front.reports.thanks', $report->id))
+        ->assertForbidden();
 });

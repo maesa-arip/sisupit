@@ -188,8 +188,6 @@ class ReportController extends Controller
                 $report->photos()->create(['path' => $path]);
             }
 
-            flashMessage(MessageType::CREATED->message('Laporan'));
-
             // SOP ANTI HOAX: Notifikasi AWAL HANYA ke PUSAT KOMANDO (Petugas/Admin),
             // disiarkan sesuai tingkat wilayah yang dikonfigurasi admin (cascade naik dari desa laporan).
             $petugasCeiling = TenantLevel::from(
@@ -203,12 +201,48 @@ class ReportController extends Controller
                 Notification::send($commandCenterUsers, new EmergencyAlertNotification($report, 'petugas'));
             }
 
-            return to_route('dashboard');
+            return to_route('front.reports.thanks', $report->id);
         } catch (Throwable $e) {
             flashMessage(MessageType::ERROR->message(error: $e->getMessage()), 'error');
 
             return to_route('front.reports.create');
         }
+    }
+
+    /**
+     * Layar "Laporan Diterima" — ucapan terima kasih + pesan pejabat.
+     * Halaman persisten (ber-ID) agar bisa dibuka ulang untuk ditinjau, bukan
+     * lagi sekali-pakai lewat flash. Hanya pelapor sendiri dan Pusat Komando
+     * (petugas/admin/superadmin) yang boleh membukanya.
+     */
+    public function thanks($id): Response
+    {
+        // Bypass Tenantable agar bisa dicari via ID (withoutGlobalScopes — aturan
+        // emas #7: wajib recheck otorisasi manual di bawah).
+        $report = Report::withoutGlobalScopes()
+            ->select('id', 'user_id', 'title', 'created_at')
+            ->findOrFail($id);
+
+        $user = auth()->user();
+        $isReporter = $user->id === $report->user_id;
+        $isCommandCenter = $user->hasAnyRole(['admin', 'superadmin', 'petugas']);
+        if (! $isReporter && ! $isCommandCenter) {
+            abort(403, 'Anda tidak memiliki wewenang untuk melihat laporan ini.');
+        }
+
+        return inertia('Front/Reports/Thanks', [
+            'report' => [
+                'id' => $report->id,
+                'title' => $report->title,
+                'created_at' => $report->created_at,
+            ],
+            'pejabat' => [
+                'nama' => config('pejabat.nama'),
+                'jabatan' => config('pejabat.jabatan'),
+                'foto' => config('pejabat.foto'),
+            ],
+            'teleponDarurat' => config('pejabat.telepon_darurat'),
+        ]);
     }
 
     // =========================================================================

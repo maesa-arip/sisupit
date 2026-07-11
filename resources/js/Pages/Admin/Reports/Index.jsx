@@ -58,10 +58,10 @@ const STATUS_META = {
 	},
 	resolved: {
 		label: 'Selesai',
-		badge: 'bg-info/10 text-blue-600 border-info/30 dark:text-info',
-		pin: 'text-blue-600 dark:text-info',
-		dot: 'bg-blue-600 dark:bg-info',
-		ring: 'bg-info/10 text-blue-600 dark:text-info',
+		badge: 'bg-info/10 text-info border-info/30',
+		pin: 'text-info',
+		dot: 'bg-info',
+		ring: 'bg-info/10 text-info',
 	},
 };
 

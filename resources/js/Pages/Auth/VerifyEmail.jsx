@@ -43,7 +43,7 @@ export default function VerifyEmail({ status }) {
 						{status === 'verification-link-sent' && (
 							<Alert
 								variant="success"
-								className="rounded-md border-green-200 bg-green-50 text-green-800 dark:border-success/20 dark:bg-success/10 dark:text-success"
+								className="rounded-md border-success/20 bg-success/10 text-success"
 							>
 								<AlertDescription>
 									Tautan verifikasi baru telah dikirimkan ke alamat email yang Anda berikan saat
