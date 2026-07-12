@@ -162,7 +162,7 @@ export default function MobileBottomNav({ auth }) {
 						>
 							<div
 								className={cn(
-									'flex items-center justify-center rounded-full px-4 py-1.5 transition-colors',
+									'flex items-center justify-center rounded-full px-4 py-1.5 transition-colors group-focus-visible:ring-2 group-focus-visible:ring-destructive',
 									isFasilitasActive || showFasilitas
 										? 'bg-destructive/10'
 										: 'bg-transparent group-hover:bg-destructive/10',
@@ -181,7 +181,7 @@ export default function MobileBottomNav({ auth }) {
 					<Link
 						href={route('front.reports.create')}
 						className={cn(
-							'z-50 flex h-full w-full items-center justify-center outline-none transition-all',
+							'group z-50 flex h-full w-full items-center justify-center outline-none transition-all',
 							url.startsWith('/reports/create') ? 'scale-105' : 'hover:scale-105 active:scale-95',
 						)}
 					>
@@ -189,7 +189,7 @@ export default function MobileBottomNav({ auth }) {
 							src="/icon.png"
 							alt="SOS"
 							className={cn(
-								'relative z-10 h-11 w-11 rounded-xl object-contain shadow-sm transition-all',
+								'relative z-10 h-11 w-11 rounded-xl object-contain shadow-sm transition-all group-focus-visible:ring-2 group-focus-visible:ring-destructive group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-card',
 								url.startsWith('/reports/create') ? 'ring-2 ring-destructive/50' : '',
 							)}
 						/>
@@ -351,7 +351,7 @@ export default function MobileBottomNav({ auth }) {
 										method="post"
 										as="button"
 										data={{ fcm_token: globalThis.__sisupitFcmToken }}
-										className="mt-1 flex w-full items-center gap-2.5 rounded-lg p-2.5 text-left text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+										className="mt-1 flex w-full items-center gap-2.5 rounded-lg p-2.5 text-left text-sm font-medium text-destructive outline-none transition-colors hover:bg-destructive/10 focus-visible:ring-2 focus-visible:ring-destructive"
 									>
 										<IconLogout size={18} /> Keluar
 									</Link>
@@ -372,7 +372,7 @@ export default function MobileBottomNav({ auth }) {
 							>
 								<div
 									className={cn(
-										'flex items-center justify-center rounded-full px-4 py-1.5 transition-colors',
+										'flex items-center justify-center rounded-full px-4 py-1.5 transition-colors group-focus-visible:ring-2 group-focus-visible:ring-destructive',
 										isAdminActive || showAdminMenu
 											? 'bg-destructive/10'
 											: 'bg-transparent group-hover:bg-destructive/10',
@@ -408,7 +408,7 @@ function NavItem({ href, icon: Icon, label, active }) {
 		>
 			<div
 				className={cn(
-					'flex items-center justify-center rounded-full px-4 py-1.5 transition-colors',
+					'flex items-center justify-center rounded-full px-4 py-1.5 transition-colors group-focus-visible:ring-2 group-focus-visible:ring-destructive',
 					active ? 'bg-destructive/10' : 'bg-transparent group-hover:bg-destructive/10',
 				)}
 			>
@@ -425,7 +425,7 @@ function FloatingLink({ href, active, icon: Icon, label, colorClass, bgClass, on
 			href={href}
 			onClick={onClick}
 			className={cn(
-				'mt-1 flex items-center gap-2.5 rounded-lg p-2.5 text-sm font-medium transition-colors first:mt-0',
+				'mt-1 flex items-center gap-2.5 rounded-lg p-2.5 text-sm font-medium outline-none transition-colors first:mt-0 focus-visible:ring-2 focus-visible:ring-destructive',
 				active ? bgClass : 'text-foreground hover:bg-accent',
 			)}
 		>
