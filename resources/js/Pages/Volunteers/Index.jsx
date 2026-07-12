@@ -6,14 +6,7 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import AppLayout from '@/Layouts/AppLayout';
 import { Link, router, useForm } from '@inertiajs/react';
-import {
-	IconFilterX,
-	IconMapPinFilled,
-	IconMedal,
-	IconPhone,
-	IconSearch,
-	IconUsersGroup,
-} from '@tabler/icons-react';
+import { IconFilterX, IconMapPinFilled, IconMedal, IconPhone, IconSearch, IconUsersGroup } from '@tabler/icons-react';
 
 export default function Index({ volunteers, filterOptions, filters, ...props }) {
 	const { data, setData, get, processing } = useForm({
@@ -196,7 +189,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 
 									{/* Status Badge */}
 									<span
-										className={`whitespace-nowrap rounded border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider ${
+										className={`whitespace-nowrap rounded border px-2 py-0.5 text-xs font-semibold ${
 											volunteer.status === 'Siaga'
 												? 'border-success/30 bg-success/10 text-success'
 												: 'border-border bg-muted text-muted-foreground'

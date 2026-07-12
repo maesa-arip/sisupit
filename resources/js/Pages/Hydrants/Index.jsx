@@ -8,14 +8,7 @@ import AppLayout from '@/Layouts/AppLayout';
 import PublicLayout from '@/Layouts/PublicLayout';
 import { GEO_OPTIONS } from '@/lib/utils';
 import { Link, router, useForm, usePage } from '@inertiajs/react';
-import {
-	IconFireHydrant,
-	IconLoader2,
-	IconMapPinFilled,
-	IconRadar,
-	IconRoute,
-	IconSearch,
-} from '@tabler/icons-react';
+import { IconFireHydrant, IconLoader2, IconMapPinFilled, IconRadar, IconRoute, IconSearch } from '@tabler/icons-react';
 import { useState } from 'react';
 
 export default function Index({ map_markers, hydrants, filters, ...props }) {
@@ -224,7 +217,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 											</p>
 											<div className="mt-1.5 flex flex-wrap items-center gap-1.5">
 												<span
-													className={`whitespace-nowrap rounded border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider ${
+													className={`whitespace-nowrap rounded border px-2 py-0.5 text-xs font-semibold ${
 														hydrant.status === 'Aktif'
 															? 'border-info/30 bg-info/10 text-info'
 															: 'border-destructive/30 bg-destructive/10 text-destructive'

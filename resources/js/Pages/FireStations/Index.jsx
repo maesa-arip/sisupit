@@ -159,7 +159,7 @@ export default function Index({ stations, filters, ...props }) {
 											</p>
 											<div className="mt-1.5 flex flex-wrap items-center gap-1.5">
 												<span
-													className={`whitespace-nowrap rounded border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider ${
+													className={`whitespace-nowrap rounded border px-2 py-0.5 text-xs font-semibold ${
 														station.status === 'Aktif'
 															? 'border-info/30 bg-info/10 text-info'
 															: 'border-destructive/30 bg-destructive/10 text-destructive'

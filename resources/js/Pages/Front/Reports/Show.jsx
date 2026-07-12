@@ -1114,7 +1114,7 @@ export default function ReportShow(props) {
 											</div>
 											<Badge
 												className={cn(
-													'rounded-md border px-2 py-0.5 text-[9px] font-bold uppercase shadow-none',
+													'rounded-md border px-2 py-0.5 text-xs font-semibold shadow-none',
 													stat.color,
 												)}
 											>
@@ -1143,7 +1143,7 @@ export default function ReportShow(props) {
 											</div>
 											<Badge
 												className={cn(
-													'rounded-md border px-2 py-0.5 text-[9px] font-bold uppercase shadow-none',
+													'rounded-md border px-2 py-0.5 text-xs font-semibold shadow-none',
 													stat.color,
 												)}
 											>
