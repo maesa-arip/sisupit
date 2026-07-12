@@ -56,7 +56,7 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 				icon: <ShieldAlert size={12} className="mr-1 shrink-0" />,
 			};
 		return {
-			label: 'Darurat',
+			label: 'Laporan Masuk',
 			color: 'bg-destructive/10 text-destructive border-destructive/20',
 			icon: <span className="mr-1.5 h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-destructive"></span>,
 		};

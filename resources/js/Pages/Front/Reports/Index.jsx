@@ -1,4 +1,4 @@
-import { Badge } from '@/Components/ui/badge';
+import StatusBadge from '@/Components/StatusBadge';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
@@ -50,25 +50,6 @@ export default function ReportIndex(props) {
 	const clearSearch = () => {
 		setSearchQuery('');
 		handleFilterChange(activeTab, '');
-	};
-
-	const StatusBadge = ({ status }) => {
-		const variants = {
-			TERLAPOR: { className: 'bg-destructive/10 text-destructive border-destructive/20', label: 'TERLAPOR' },
-			pending: { className: 'bg-warning/10 text-warning border-warning/20', label: 'MENUNGGU' },
-			handling: { className: 'bg-success/10 text-success border-success/20', label: 'PENANGANAN' },
-			resolved: { className: 'bg-info/10 text-info border-info/20', label: 'SELESAI' },
-			ditolak: { className: 'bg-muted text-muted-foreground border-border', label: 'DITOLAK' },
-		};
-		const active = variants[status] || variants.pending;
-		return (
-			<Badge
-				variant="outline"
-				className={cn('whitespace-nowrap rounded-md px-2 py-0.5 font-bold shadow-none', active.className)}
-			>
-				{active.label}
-			</Badge>
-		);
 	};
 
 	return (
@@ -167,7 +148,7 @@ export default function ReportIndex(props) {
 							</div>
 
 							<div className="mt-4 flex w-full items-center justify-between gap-4 border-t border-border pt-3 sm:mt-0 sm:w-auto sm:justify-end sm:border-t-0 sm:pt-0">
-								<StatusBadge status={report.status} />
+								<StatusBadge status={report.status} className="whitespace-nowrap" />
 
 								<div className="flex h-8 w-8 items-center justify-center rounded-full border border-transparent bg-transparent transition-colors group-hover:border-border group-hover:bg-card">
 									<IconChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-destructive" />

@@ -161,12 +161,12 @@ export default function ReportShow(props) {
 				};
 			case 'pending':
 				return {
-					label: 'Menunggu Bantuan',
+					label: 'Laporan Terverifikasi',
 					color: 'bg-warning/10 text-warning border-warning/20',
 				};
 			case 'handling':
 				return {
-					label: 'Dalam Penanganan',
+					label: 'Penanganan',
 					color: 'bg-success/10 text-success border-success/20',
 				};
 			case 'resolved':

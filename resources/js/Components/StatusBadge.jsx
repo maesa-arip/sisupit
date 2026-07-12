@@ -7,8 +7,8 @@ import { cn } from '@/lib/utils';
 // "Butuh Bantuan"/"Darurat"/"Terlapor"). Pakai komponen ini agar konsisten.
 // Warna memakai token semantik (destructive/warning/info/success), bukan hex mentah.
 const STATUS_CONFIG = {
-	TERLAPOR: { label: 'Darurat', className: 'bg-destructive/10 text-destructive border-destructive/30' },
-	pending: { label: 'Menunggu', className: 'bg-warning/10 text-warning border-warning/30' },
+	TERLAPOR: { label: 'Laporan Masuk', className: 'bg-destructive/10 text-destructive border-destructive/30' },
+	pending: { label: 'Laporan Terverifikasi', className: 'bg-warning/10 text-warning border-warning/30' },
 	handling: { label: 'Penanganan', className: 'bg-success/10 text-success border-success/30' },
 	resolved: { label: 'Selesai', className: 'bg-info/10 text-info border-info/30' },
 	ditolak: { label: 'Ditolak', className: 'bg-muted text-muted-foreground border-border' },
