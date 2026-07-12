@@ -76,20 +76,13 @@ export default function Spotlight(props) {
 			</Button>
 
 			{/* --- TELEPON DARURAT RESMI --- */}
-			{/* Nomor darurat sebagai tombol tel besar — jalur "tanpa internet" yang paling krusial */}
+			{/* Nomor darurat = aksi SEKUNDER kompak; primer tetap "Lapor Sekarang" (#37 F). */}
 			<a
 				href="tel:0361223333"
-				className="inline-flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-5 py-3 transition-colors hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40"
+				className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-semibold text-muted-foreground shadow-none transition-colors hover:border-destructive/40 hover:text-destructive"
 			>
-				<span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-destructive text-destructive-foreground">
-					<IconPhoneCall className="h-5 w-5" stroke={2} />
-				</span>
-				<span className="text-left leading-tight">
-					<span className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-						Darurat tanpa internet? Telepon
-					</span>
-					<span className="block text-lg font-black text-destructive">(0361) 223333</span>
-				</span>
+				<IconPhoneCall className="h-4 w-4 text-destructive" stroke={2} />
+				Darurat tanpa internet? <span className="font-bold text-destructive">(0361) 223333</span>
 			</a>
 
 			{/* --- UNDUH APLIKASI --- */}
