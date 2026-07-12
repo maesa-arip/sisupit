@@ -37,3 +37,11 @@ it('redirects an authenticated webview straight to the dashboard', function () u
 it('still serves the spotlight page at its new /spotlight path', function () {
     $this->get('/spotlight')->assertOk();
 });
+
+// Landing yang sudah dipoles (darurat-first) tetap hidup di /landing meski `/` ke Spotlight.
+it('serves the polished landing page at /landing', function () use ($browserUa) {
+    $this->withHeaders(['User-Agent' => $browserUa])
+        ->get('/landing')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('Landing'));
+});

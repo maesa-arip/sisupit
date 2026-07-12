@@ -26,23 +26,24 @@ class HomeController extends Controller
                 : redirect()->route('home.spotlight');
         }
 
-        // SEMENTARA (2026-07-11): landing page disembunyikan atas permintaan — `/`
-        // menampilkan Spotlight. Untuk memulihkan landing, hapus baris return ini
-        // dan aktifkan kembali blok inertia('Landing') di bawahnya.
+        // `/` sengaja tetap menampilkan Spotlight (keputusan 2026-07-11). Halaman Landing
+        // yang sudah dipoles TIDAK hilang — diakses langsung di `/landing` via landingPage().
         return $this->spotlight();
+    }
 
-        // return inertia('Landing', [
-        //     'page_settings' => [
-        //         'title' => 'SiSUPIT DAMKAR',
-        //         'subtitle' => 'SISTEM INFORMASI KESIAPSIAGAAN UNTUK PEMADAM KEBAKARAN TERINTEGRASI',
-        //     ],
-        //     'page_data' => [
-        //         'reportChart' => $this->chart(),
-        //         'total_reports' => Report::count(),
-        //         'total_handled_reports' => Report::where('status', 'TERKENDALI')->count(),
-        //         'total_users' => $this->countRespondersByRole(),
-        //     ],
-        // ]);
+    /**
+     * Halaman Landing publik (hero darurat-first + statistik). Dipisah dari `/` yang
+     * tetap ke Spotlight; dijangkau lewat route bernama `home.landing.page` (`/landing`).
+     */
+    public function landingPage(): Response
+    {
+        return inertia('Landing', [
+            'page_data' => [
+                'total_reports' => Report::count(),
+                'total_handled_reports' => Report::where('status', 'TERKENDALI')->count(),
+                'total_users' => $this->countRespondersByRole(),
+            ],
+        ]);
     }
 
     public function index(): Response

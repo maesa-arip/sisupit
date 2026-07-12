@@ -74,6 +74,9 @@ Route::controller(HomeController::class)->group(function () {
     // ke home.spotlight / dashboard — lihat HomeController::landing().
     Route::get('/', 'landing')->name('home.landing');
     Route::get('/spotlight', 'spotlight')->name('home.spotlight');
+    // `/` sengaja tetap ke Spotlight (keputusan 2026-07-11); halaman Landing yang sudah
+    // dipoles diakses langsung di sini agar tetap hidup tanpa mengubah `/`.
+    Route::get('/landing', 'landingPage')->name('home.landing.page');
     Route::get('/home', 'index')->name('home.index');
 });
 // Daftar relawan hanya untuk Pusat Komando (petugas/admin/superadmin), bukan publik.
