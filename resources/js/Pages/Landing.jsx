@@ -1,7 +1,6 @@
 import { Button } from '@/Components/ui/button';
 import PublicLayout from '@/Layouts/PublicLayout';
 import { Link, usePage } from '@inertiajs/react';
-import { useEffect } from 'react';
 import {
 	IconArrowRight,
 	IconBell,
@@ -18,6 +17,7 @@ import {
 	IconShieldCheck,
 	IconUsersGroup,
 } from '@tabler/icons-react';
+import { useEffect } from 'react';
 
 /* Konten landing publik. Navbar + footer disediakan PublicLayout (dipakai bersama halaman
  * publik lain). WebView di-redirect di HomeController::landing sebelum halaman ini termuat;
@@ -122,10 +122,10 @@ export default function Landing({ page_data }) {
 							keadaan darurat, langsung terhubung ke Pusat Komando dan tim di lapangan.
 						</p>
 
-						<div className="mt-8 flex flex-col items-center gap-3 sm:flex-row lg:justify-start">
+						<div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center lg:justify-start">
 							<Button
 								asChild
-								className="h-12 w-full rounded-xl bg-destructive px-8 py-3 text-base font-bold uppercase tracking-wider text-destructive-foreground shadow-lg shadow-destructive/20 transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 sm:w-auto"
+								className="h-14 w-full rounded-xl bg-destructive px-8 text-base font-bold uppercase tracking-wider text-destructive-foreground shadow-lg shadow-destructive/25 transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 sm:w-auto"
 							>
 								<Link href={route('front.reports.create')}>
 									<IconFlame className="mr-2 h-5 w-5" stroke={2.5} />
@@ -134,23 +134,30 @@ export default function Landing({ page_data }) {
 							</Button>
 							<Button
 								asChild
-								variant="outline"
-								className="h-12 w-full rounded-xl border-border px-8 py-3 text-base font-bold uppercase tracking-wider text-foreground shadow-none transition-colors hover:bg-accent sm:w-auto"
+								variant="ghost"
+								className="h-14 w-full rounded-xl px-6 text-sm font-bold uppercase tracking-wider text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:w-auto"
 							>
 								<Link href={primaryHref}>
-									<IconLogin2 className="mr-2 h-5 w-5" stroke={2.5} />
+									<IconLogin2 className="mr-2 h-5 w-5" stroke={2} />
 									{isAuthenticated ? 'Dashboard' : 'Masuk'}
 								</Link>
 							</Button>
 						</div>
 
+						{/* Nomor darurat sebagai tombol tel besar — jalur "tanpa internet" yang paling krusial */}
 						<a
-							href="tel:(0361)223333"
-							className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-destructive"
+							href="tel:0361223333"
+							className="mt-5 inline-flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-5 py-3 transition-colors hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40"
 						>
-							<IconPhoneCall className="h-4 w-4 text-destructive" stroke={2} />
-							Darurat tanpa internet? Telepon{' '}
-							<span className="font-bold text-destructive">(0361) 223333</span>
+							<span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-destructive text-destructive-foreground">
+								<IconPhoneCall className="h-5 w-5" stroke={2} />
+							</span>
+							<span className="text-left leading-tight">
+								<span className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+									Darurat tanpa internet? Telepon
+								</span>
+								<span className="block text-lg font-black text-destructive">(0361) 223333</span>
+							</span>
 						</a>
 					</div>
 
