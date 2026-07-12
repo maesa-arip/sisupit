@@ -4,7 +4,7 @@ import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import AppLayout from '@/Layouts/AppLayout';
-import { cn } from '@/lib/utils';
+import { cn, GEO_OPTIONS } from '@/lib/utils';
 import { Link, router } from '@inertiajs/react';
 import {
 	IconAlertCircle,
@@ -49,6 +49,17 @@ export default function Dashboard(props) {
 	const [activeTab, setActiveTab] = useState(isRelawan ? 'menunggu' : 'semua');
 	const isStandby = auth?.is_standby ?? true;
 	const [isTogglingStandby, setIsTogglingStandby] = useState(false);
+
+	// Fix GPS relawan (sekali) untuk menaksir jarak ke tiap insiden di feed (senyap bila ditolak).
+	const [myPos, setMyPos] = useState(null);
+	useEffect(() => {
+		if (!isRelawan || !navigator.geolocation) return;
+		navigator.geolocation.getCurrentPosition(
+			(p) => setMyPos({ lat: p.coords.latitude, lng: p.coords.longitude }),
+			() => {},
+			GEO_OPTIONS.oneShot,
+		);
+	}, [isRelawan]);
 
 	const handleToggleStandby = () => {
 		setIsTogglingStandby(true);
@@ -277,6 +288,7 @@ export default function Dashboard(props) {
 								report={report}
 								currentUser={auth}
 								isRelawan={isRelawan}
+								myPos={myPos}
 								onSuccess={() => router.reload({ only: ['page_data'] })}
 							/>
 						))}

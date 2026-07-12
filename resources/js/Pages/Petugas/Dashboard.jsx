@@ -2,7 +2,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import { Badge } from '@/Components/ui/badge';
 import { Card, CardContent } from '@/Components/ui/card';
 import AppLayout from '@/Layouts/AppLayout';
-import { MAP_TILE_URL } from '@/lib/utils';
+import { cn, GEO_OPTIONS, MAP_TILE_URL } from '@/lib/utils';
 import { Head, Link } from '@inertiajs/react';
 import {
 	IconAlertCircle,
@@ -12,9 +12,21 @@ import {
 	IconFiretruck,
 	IconMapPin,
 	IconRadar,
+	IconRoute,
 	IconShieldCheck,
 } from '@tabler/icons-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+// Jarak garis-lurus (km) haversine dari posisi petugas ke titik insiden — cukup untuk
+// menaksir kedekatan misi di dashboard tanpa memanggil OSRM per baris.
+function distanceKm(lat1, lng1, lat2, lng2) {
+	const R = 6371;
+	const toRad = (d) => (d * Math.PI) / 180;
+	const dLat = toRad(lat2 - lat1);
+	const dLng = toRad(lng2 - lng1);
+	const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+	return 2 * R * Math.asin(Math.sqrt(a));
+}
 
 export default function PetugasDashboard({ auth, activeMissions = [] }) {
 	const user = auth.user;
@@ -27,6 +39,24 @@ export default function PetugasDashboard({ auth, activeMissions = [] }) {
 	const miniMapRef = useRef(null);
 	const mapInstanceRef = useRef(null);
 	const missionsWithCoords = activeMissions.filter((m) => m.lat && m.lng);
+
+	// Ambil satu fix GPS petugas untuk menaksir jarak ke tiap TKP (senyap bila ditolak).
+	const [myPos, setMyPos] = useState(null);
+	useEffect(() => {
+		if (!navigator.geolocation) return;
+		navigator.geolocation.getCurrentPosition(
+			(p) => setMyPos({ lat: p.coords.latitude, lng: p.coords.longitude }),
+			() => {},
+			GEO_OPTIONS.oneShot,
+		);
+	}, []);
+
+	// Perkaya tiap misi dengan penanda urgensi + jarak km (bila lokasi petugas diketahui).
+	const missions = activeMissions.map((m) => ({
+		...m,
+		isUrgent: m.status === 'TERLAPOR',
+		distKm: myPos && m.lat && m.lng ? distanceKm(myPos.lat, myPos.lng, parseFloat(m.lat), parseFloat(m.lng)) : null,
+	}));
 
 	useEffect(() => {
 		if (!miniMapRef.current || !window.L) return;
@@ -167,7 +197,7 @@ export default function PetugasDashboard({ auth, activeMissions = [] }) {
 					<CardContent className="p-0">
 						<div className="flex flex-col">
 							{activeMissions.length > 0 ? (
-								activeMissions.map((mission) => (
+								missions.map((mission) => (
 									<Link
 										key={mission.id}
 										href={route('reports.show', mission.id)}
@@ -184,10 +214,29 @@ export default function PetugasDashboard({ auth, activeMissions = [] }) {
 													<span className="truncate">{mission.location}</span>
 												</span>
 												<span className="hidden text-muted-foreground/60 sm:inline">•</span>
-												<span className="flex shrink-0 items-center gap-1.5">
+												<span
+													className={cn(
+														'flex shrink-0 items-center gap-1.5',
+														mission.isUrgent && 'font-semibold text-destructive',
+													)}
+												>
 													<IconClock className="h-4 w-4 shrink-0" />
 													Dilaporkan {mission.time}
 												</span>
+												{mission.distKm != null && (
+													<>
+														<span className="hidden text-muted-foreground/60 sm:inline">
+															•
+														</span>
+														<span className="flex shrink-0 items-center gap-1.5 font-semibold text-foreground">
+															<IconRoute className="h-4 w-4 shrink-0" /> ±{' '}
+															{mission.distKm < 10
+																? mission.distKm.toFixed(1)
+																: Math.round(mission.distKm)}{' '}
+															km
+														</span>
+													</>
+												)}
 											</div>
 										</div>
 
@@ -195,8 +244,15 @@ export default function PetugasDashboard({ auth, activeMissions = [] }) {
 										<div className="mt-4 flex w-full items-center justify-between gap-4 border-t border-border pt-3 sm:mt-0 sm:w-auto sm:justify-end sm:border-t-0 sm:pt-0">
 											<StatusBadge status={mission.status} />
 
-											<div className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-transparent bg-muted px-3 text-xs font-bold uppercase tracking-wider text-foreground/80 transition-all group-hover:border-destructive group-hover:bg-destructive group-hover:text-destructive-foreground group-hover:shadow-md">
-												Pantau
+											<div
+												className={cn(
+													'flex h-10 items-center justify-center gap-1.5 rounded-lg px-4 text-xs font-bold uppercase tracking-wider transition-all',
+													mission.isUrgent
+														? 'bg-destructive text-destructive-foreground group-hover:bg-destructive/90'
+														: 'border border-border bg-muted text-foreground/80 group-hover:border-destructive group-hover:bg-destructive group-hover:text-destructive-foreground',
+												)}
+											>
+												{mission.isUrgent ? 'Tanggapi' : 'Pantau'}
 												<IconChevronRight className="h-4 w-4" />
 											</div>
 										</div>

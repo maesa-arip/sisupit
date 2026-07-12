@@ -1,12 +1,22 @@
 import { Dialog, DialogContent } from '@/Components/ui/dialog';
-import { cn } from '@/lib/utils';
+import { cn, timeAgo } from '@/lib/utils';
 import { Link } from '@inertiajs/react';
 import { CheckCircle2, Clock, Flame, MapPin, Navigation, ShieldAlert, User, Users, X, ZoomIn } from 'lucide-react';
 import { useState } from 'react';
 import DialogRelawanDetail from './DialogRelawanDetail';
 import DialogRelawanList from './DialogRelawanList';
 
-export default function ReportCard({ report, currentUser, onSuccess, isRelawan }) {
+// Jarak garis-lurus (km) haversine — taksiran kedekatan insiden untuk relawan.
+function distanceKm(lat1, lng1, lat2, lng2) {
+	const R = 6371;
+	const toRad = (d) => (d * Math.PI) / 180;
+	const dLat = toRad(lat2 - lat1);
+	const dLng = toRad(lng2 - lng1);
+	const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+	return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+export default function ReportCard({ report, currentUser, onSuccess, isRelawan, myPos }) {
 	const [showList, setShowList] = useState(false);
 	const [selectedHelper, setSelectedHelper] = useState(null);
 	const [showImage, setShowImage] = useState(false);
@@ -24,6 +34,7 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan }
 	const lat = report.lat || report.location_lat;
 	const lng = report.lng || report.location_lng;
 	const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+	const distKm = myPos && lat && lng ? distanceKm(myPos.lat, myPos.lng, parseFloat(lat), parseFloat(lng)) : null;
 
 	const hasHelpers = report.helpers?.length > 0;
 	const hasPhoto = !!report.photo;
@@ -74,12 +85,18 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan }
 				<div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
 					<span className="flex items-center gap-1">
 						<Clock size={12} strokeWidth={2.5} className="shrink-0" />
-						{typeof report.created_at === 'string' ? report.created_at.split('T')[0] : 'Baru'}
+						{timeAgo(report.created_at)}
 					</span>
 					<span className="flex min-w-0 items-center gap-1">
 						<User size={12} strokeWidth={2.5} className="shrink-0" />
 						<span className="truncate">{report.name || report.user?.name || 'Warga'}</span>
 					</span>
+					{distKm != null && (
+						<span className="flex items-center gap-1 text-foreground">
+							<Navigation size={12} strokeWidth={2.5} className="shrink-0" />±
+							{distKm < 10 ? distKm.toFixed(1) : Math.round(distKm)} km
+						</span>
+					)}
 				</div>
 
 				{hasPhoto && (
@@ -149,7 +166,7 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan }
 					>
 						<button
 							type="button"
-							className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card text-muted-foreground shadow-none transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-muted-foreground/50"
+							className="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-card text-muted-foreground shadow-none transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-muted-foreground/50"
 						>
 							<Navigation size={14} strokeWidth={2.5} />
 						</button>
@@ -159,14 +176,14 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan }
 						{isOwner ? (
 							<Link
 								href={route('reports.show', report.id)}
-								className="flex h-8 w-full items-center justify-center rounded-md border border-border bg-card text-[10px] font-bold uppercase tracking-wider text-foreground shadow-none transition-colors hover:bg-accent"
+								className="flex h-10 w-full items-center justify-center rounded-md border border-border bg-card text-[10px] font-bold uppercase tracking-wider text-foreground shadow-none transition-colors hover:bg-accent"
 							>
 								Pantau Laporan
 							</Link>
 						) : isMyTask ? (
 							<Link
 								href={route('reports.show', report.id)}
-								className="flex h-8 w-full items-center justify-center rounded-md border border-transparent bg-foreground text-[10px] font-bold uppercase tracking-wider text-primary-foreground shadow-none transition-colors hover:bg-foreground/90"
+								className="flex h-10 w-full items-center justify-center rounded-md border border-transparent bg-foreground text-[10px] font-bold uppercase tracking-wider text-primary-foreground shadow-none transition-colors hover:bg-foreground/90"
 							>
 								Peta Operasional
 							</Link>
@@ -174,14 +191,14 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan }
 							<button
 								disabled
 								type="button"
-								className="flex h-8 w-full cursor-not-allowed items-center justify-center rounded-md border border-border bg-muted text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70 shadow-none transition-colors"
+								className="flex h-10 w-full cursor-not-allowed items-center justify-center rounded-md border border-border bg-muted text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70 shadow-none transition-colors"
 							>
 								Kasus Selesai
 							</button>
 						) : isRelawan ? (
 							<Link
 								href={route('reports.show', report.id)}
-								className="flex h-8 w-full items-center justify-center rounded-md border border-destructive bg-destructive text-[10px] font-bold uppercase tracking-wider text-destructive-foreground shadow-none outline-none transition-colors hover:bg-destructive/90 focus:ring-2 focus:ring-destructive/50"
+								className="flex h-10 w-full items-center justify-center rounded-md border border-destructive bg-destructive text-[10px] font-bold uppercase tracking-wider text-destructive-foreground shadow-none outline-none transition-colors hover:bg-destructive/90 focus:ring-2 focus:ring-destructive/50"
 							>
 								Lihat &amp; Respons
 							</Link>
@@ -189,7 +206,7 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan }
 							<button
 								disabled
 								type="button"
-								className="flex h-8 w-full cursor-not-allowed items-center justify-center rounded-md border border-border bg-muted text-[10px] font-bold uppercase tracking-wider text-muted-foreground shadow-none transition-colors"
+								className="flex h-10 w-full cursor-not-allowed items-center justify-center rounded-md border border-border bg-muted text-[10px] font-bold uppercase tracking-wider text-muted-foreground shadow-none transition-colors"
 							>
 								{hasHelpers ? 'Dalam Penanganan' : 'Menunggu Relawan'}
 							</button>
