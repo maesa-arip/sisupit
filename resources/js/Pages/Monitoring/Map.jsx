@@ -21,10 +21,34 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 // Metadata status kejadian — selaras dengan Components/StatusBadge (token semantik).
 const REPORT_STATUS = [
-	{ key: 'TERLAPOR', label: 'Laporan Masuk', pin: 'text-destructive animate-pulse', dot: 'bg-destructive', badge: 'bg-destructive/10 text-destructive border-destructive/30' },
-	{ key: 'pending', label: 'Laporan Terverifikasi', pin: 'text-warning', dot: 'bg-warning', badge: 'bg-warning/10 text-warning border-warning/30' },
-	{ key: 'handling', label: 'Penanganan', pin: 'text-success', dot: 'bg-success', badge: 'bg-success/10 text-success border-success/30' },
-	{ key: 'resolved', label: 'Selesai', pin: 'text-info', dot: 'bg-info', badge: 'bg-info/10 text-info border-info/30' },
+	{
+		key: 'TERLAPOR',
+		label: 'Laporan Masuk',
+		pin: 'text-destructive animate-pulse',
+		dot: 'bg-destructive',
+		badge: 'bg-destructive/10 text-destructive border-destructive/30',
+	},
+	{
+		key: 'pending',
+		label: 'Laporan Terverifikasi',
+		pin: 'text-warning',
+		dot: 'bg-warning',
+		badge: 'bg-warning/10 text-warning border-warning/30',
+	},
+	{
+		key: 'handling',
+		label: 'Penanganan',
+		pin: 'text-success',
+		dot: 'bg-success',
+		badge: 'bg-success/10 text-success border-success/30',
+	},
+	{
+		key: 'resolved',
+		label: 'Selesai',
+		pin: 'text-info',
+		dot: 'bg-info',
+		badge: 'bg-info/10 text-info border-info/30',
+	},
 ];
 const REPORT_META = Object.fromEntries(REPORT_STATUS.map((s) => [s.key, s]));
 
@@ -45,7 +69,13 @@ const facilityColor = (status) => (status === 'Perbaikan' ? 'bg-destructive' : '
 
 const LAYERS = [
 	{ key: 'reports', label: 'Kejadian', icon: IconFlame, color: 'text-destructive', chip: 'status' },
-	{ key: 'hydrants', label: 'Hydrant', icon: IconFireHydrant, color: 'text-teal-600 dark:text-teal', chip: 'facility' },
+	{
+		key: 'hydrants',
+		label: 'Hydrant',
+		icon: IconFireHydrant,
+		color: 'text-teal-600 dark:text-teal',
+		chip: 'facility',
+	},
 	{ key: 'stations', label: 'Pos Pemadam', icon: IconFiretruck, color: 'text-destructive', chip: 'facility' },
 	{ key: 'pumps', label: 'SKKL / Pompa', icon: IconDroplet, color: 'text-info', chip: 'facility' },
 	{ key: 'volunteers', label: 'Relawan', icon: IconHeartHandshake, color: 'text-volunteer', chip: 'volunteer' },
@@ -66,7 +96,13 @@ export default function MonitoringMap({ layers }) {
 	const volunteers = layers?.volunteers ?? [];
 
 	// Visibilitas layer & sub-filter (Set berisi status yang DISEMBUNYIKAN).
-	const [visible, setVisible] = useState({ reports: true, hydrants: true, stations: true, pumps: true, volunteers: true });
+	const [visible, setVisible] = useState({
+		reports: true,
+		hydrants: true,
+		stations: true,
+		pumps: true,
+		volunteers: true,
+	});
 	const [reportHidden, setReportHidden] = useState(() => new Set(['ditolak']));
 	const [hydrantHidden, setHydrantHidden] = useState(() => new Set());
 	const [stationHidden, setStationHidden] = useState(() => new Set());
@@ -173,14 +209,21 @@ export default function MonitoringMap({ layers }) {
 			if (!visible[key]) return;
 			data.forEach((d) => {
 				if (hidden.has(d.status)) return;
-				const m = window.L.marker([d.lat, d.lng], { icon: glyphIcon(facilityColor(d.status), glyph) }).bindPopup(popupFn(d));
+				const m = window.L.marker([d.lat, d.lng], {
+					icon: glyphIcon(facilityColor(d.status), glyph),
+				}).bindPopup(popupFn(d));
 				groups[key].addLayer(m);
 				allMarkers.push(m);
 			});
 		};
 
 		facilityLayer('hydrants', hydrants, hydrantHidden, GLYPH.hydrant, (d) =>
-			facilityPopup(d.name, d.address, d.status, `<div class="text-[11px] font-medium text-muted-foreground">Jenis: ${d.type || '-'}</div>`),
+			facilityPopup(
+				d.name,
+				d.address,
+				d.status,
+				`<div class="text-[11px] font-medium text-muted-foreground">Jenis: ${d.type || '-'}</div>`,
+			),
 		);
 		facilityLayer('stations', stations, stationHidden, GLYPH.station, (d) =>
 			facilityPopup(
@@ -191,7 +234,12 @@ export default function MonitoringMap({ layers }) {
 			),
 		);
 		facilityLayer('pumps', pumps, pumpHidden, GLYPH.pump, (d) =>
-			facilityPopup(d.name, d.address, d.status, `<div class="text-[11px] font-medium text-muted-foreground">Jenis: ${d.type || '-'}</div>`),
+			facilityPopup(
+				d.name,
+				d.address,
+				d.status,
+				`<div class="text-[11px] font-medium text-muted-foreground">Jenis: ${d.type || '-'}</div>`,
+			),
 		);
 
 		// --- Relawan (ikon sosok orang tetap, lingkaran ungu, garis putus = posisi perkiraan) ---
@@ -258,16 +306,26 @@ export default function MonitoringMap({ layers }) {
 		volunteers: volunteers.length,
 	};
 
-	const StatusChip = ({ active, label, dot, onClick }) => (
+	// Penanda status di legend. Kejadian pakai pin (meniru marker peta); fasilitas/relawan titik berwarna.
+	const MiniPin = ({ className }) => (
+		<svg viewBox="0 0 24 24" fill="currentColor" className={cn('h-3.5 w-3.5 shrink-0', className)}>
+			<path d="M12 2C7.58 2 4 5.58 4 10c0 4.42 8 12 8 12s8-7.58 8-12c0-4.42-3.58-8-8-8zm0 11c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z" />
+		</svg>
+	);
+	const Dot = ({ className }) => <span className={cn('h-2 w-2 shrink-0 rounded-full', className)} />;
+
+	const StatusChip = ({ active, label, glyph, onClick }) => (
 		<button
 			type="button"
 			onClick={onClick}
 			className={cn(
-				'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors',
-				active ? 'bg-muted text-foreground' : 'text-muted-foreground/50 line-through hover:text-muted-foreground',
+				'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors',
+				active
+					? 'bg-muted text-foreground'
+					: 'text-muted-foreground/50 line-through hover:text-muted-foreground',
 			)}
 		>
-			{dot && <span className={cn('h-1.5 w-1.5 rounded-full', active ? dot : 'bg-muted-foreground/40')} />}
+			{glyph}
 			{label}
 		</button>
 	);
@@ -282,8 +340,13 @@ export default function MonitoringMap({ layers }) {
 					onClick={() => setVisible((v) => ({ ...v, [layer.key]: !v[layer.key] }))}
 					className="flex w-full items-center gap-2.5 text-left"
 				>
-					<Icon className={cn('h-4 w-4 shrink-0', on ? layer.color : 'text-muted-foreground/40')} stroke={2} />
-					<span className={cn('text-[13px] font-semibold', on ? 'text-foreground' : 'text-muted-foreground/50')}>
+					<Icon
+						className={cn('h-4 w-4 shrink-0', on ? layer.color : 'text-muted-foreground/40')}
+						stroke={2}
+					/>
+					<span
+						className={cn('text-[13px] font-semibold', on ? 'text-foreground' : 'text-muted-foreground/50')}
+					>
 						{layer.label}
 					</span>
 					<span className="ml-auto text-[11px] font-medium tabular-nums text-muted-foreground/70">
@@ -303,7 +366,15 @@ export default function MonitoringMap({ layers }) {
 								key={s.key}
 								label={s.label}
 								active={!reportHidden.has(s.key)}
-								dot={s.dot}
+								glyph={
+									<MiniPin
+										className={
+											!reportHidden.has(s.key)
+												? s.dot.replace('bg-', 'text-')
+												: 'text-muted-foreground/40'
+										}
+									/>
+								}
 								onClick={() => toggleHidden(setReportHidden)(s.key)}
 							/>
 						))}
@@ -312,10 +383,35 @@ export default function MonitoringMap({ layers }) {
 
 				{on && layer.chip === 'facility' && (
 					<div className="mt-1.5 flex flex-wrap gap-1 pl-6">
-						{(layer.key === 'hydrants' ? hydrantStatuses : layer.key === 'stations' ? stationStatuses : pumpStatuses).map((s) => {
-							const hidden = layer.key === 'hydrants' ? hydrantHidden : layer.key === 'stations' ? stationHidden : pumpHidden;
-							const setter = layer.key === 'hydrants' ? setHydrantHidden : layer.key === 'stations' ? setStationHidden : setPumpHidden;
-							return <StatusChip key={s} label={s} active={!hidden.has(s)} onClick={() => toggleHidden(setter)(s)} />;
+						{(layer.key === 'hydrants'
+							? hydrantStatuses
+							: layer.key === 'stations'
+								? stationStatuses
+								: pumpStatuses
+						).map((s) => {
+							const hidden =
+								layer.key === 'hydrants'
+									? hydrantHidden
+									: layer.key === 'stations'
+										? stationHidden
+										: pumpHidden;
+							const setter =
+								layer.key === 'hydrants'
+									? setHydrantHidden
+									: layer.key === 'stations'
+										? setStationHidden
+										: setPumpHidden;
+							return (
+								<StatusChip
+									key={s}
+									label={s}
+									active={!hidden.has(s)}
+									glyph={
+										<Dot className={!hidden.has(s) ? facilityColor(s) : 'bg-muted-foreground/40'} />
+									}
+									onClick={() => toggleHidden(setter)(s)}
+								/>
+							);
 						})}
 					</div>
 				)}
@@ -327,7 +423,17 @@ export default function MonitoringMap({ layers }) {
 								key={s}
 								label={s}
 								active={!volunteerHidden.has(s)}
-								dot={s === 'Siaga' ? 'bg-success' : 'bg-muted-foreground'}
+								glyph={
+									<Dot
+										className={
+											!volunteerHidden.has(s)
+												? s === 'Siaga'
+													? 'bg-success'
+													: 'bg-muted-foreground'
+												: 'bg-muted-foreground/40'
+										}
+									/>
+								}
 								onClick={() => toggleHidden(setVolunteerHidden)(s)}
 							/>
 						))}
@@ -365,7 +471,11 @@ export default function MonitoringMap({ layers }) {
 						aria-label={isMaximized ? 'Perkecil peta' : 'Perbesar peta'}
 						className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-card/90 text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-muted hover:text-foreground"
 					>
-						{isMaximized ? <IconMinimize className="h-4 w-4" stroke={2} /> : <IconMaximize className="h-4 w-4" stroke={2} />}
+						{isMaximized ? (
+							<IconMinimize className="h-4 w-4" stroke={2} />
+						) : (
+							<IconMaximize className="h-4 w-4" stroke={2} />
+						)}
 					</button>
 					<Button
 						type="button"
@@ -381,7 +491,7 @@ export default function MonitoringMap({ layers }) {
 			{/* Panel filter — tinggi mengikuti konten (tidak memenuhi layar ke bawah) */}
 			<div
 				className={cn(
-					'absolute left-0 top-0 z-[20] w-full max-w-[15rem] transition-transform duration-300 lg:translate-x-0',
+					'absolute left-0 top-0 z-[20] w-full max-w-[16rem] transition-transform duration-300 lg:translate-x-0',
 					panelOpen ? 'translate-x-0' : '-translate-x-full',
 				)}
 			>
@@ -394,10 +504,15 @@ export default function MonitoringMap({ layers }) {
 							aria-expanded={!panelCollapsed}
 						>
 							<IconChevronDown
-								className={cn('h-4 w-4 text-muted-foreground transition-transform', panelCollapsed ? '' : 'rotate-180')}
+								className={cn(
+									'h-4 w-4 text-muted-foreground transition-transform',
+									panelCollapsed ? '' : 'rotate-180',
+								)}
 								stroke={2}
 							/>
-							<h2 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Layer</h2>
+							<h2 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+								Layer
+							</h2>
 						</button>
 						<button
 							type="button"
