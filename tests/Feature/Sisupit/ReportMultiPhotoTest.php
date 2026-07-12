@@ -54,15 +54,39 @@ it('stores multiple photos and uses the first as the cover', function () {
     }
 });
 
-it('rejects creating a report without any photo', function () {
+it('allows creating a fire report without any photo (photo optional for kebakaran)', function () {
+    // Darurat-first (Kluster A): untuk kebakaran (rumah/toko/kendaraan/lahan) foto opsional
+    // agar warga tak perlu mendekati api. Laporan tetap terbuat tanpa foto.
     Notification::fake();
     Storage::fake('public');
 
     $citizen = User::factory()->create(['village_code' => '5171012006']);
     $citizen->assignRole('masyarakat');
 
-    $this->actingAs($citizen)->post('/reports/create', $this->payload)
-        ->assertSessionHasErrors('photos');
+    $response = $this->actingAs($citizen)->post('/reports/create', [
+        ...$this->payload,
+        'incident_type' => 'rumah',
+    ]);
+
+    $report = Report::withoutGlobalScopes()->first();
+    $response->assertRedirect(route('front.reports.thanks', $report->id));
+    expect($report)->not->toBeNull();
+    expect($report->photos()->count())->toBe(0);
+    expect($report->photo)->toBeNull();
+});
+
+it('requires a photo for a non-fire emergency (incident_type = lainnya)', function () {
+    // Untuk darurat non-kebakaran ('lainnya') petugas butuh konteks lebih → foto wajib.
+    Notification::fake();
+    Storage::fake('public');
+
+    $citizen = User::factory()->create(['village_code' => '5171012006']);
+    $citizen->assignRole('masyarakat');
+
+    $this->actingAs($citizen)->post('/reports/create', [
+        ...$this->payload,
+        'incident_type' => 'lainnya',
+    ])->assertSessionHasErrors('photos');
 
     expect(Report::withoutGlobalScopes()->count())->toBe(0);
 });

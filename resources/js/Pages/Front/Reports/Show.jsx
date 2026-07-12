@@ -440,9 +440,7 @@ export default function ReportShow(props) {
 
 			const iconEmoji = type === 'petugas' ? '🚒' : '🏃‍♂️';
 			const iconColor =
-				type === 'petugas'
-					? 'bg-destructive text-destructive-foreground'
-					: 'bg-info text-info-foreground';
+				type === 'petugas' ? 'bg-destructive text-destructive-foreground' : 'bg-info text-info-foreground';
 			const htmlMarkup = `<div class="${iconColor} text-xs w-7 h-7 font-bold flex items-center justify-center rounded-full border-2 border-card shadow-none">${iconEmoji}</div>`;
 
 			const marker = window.L.marker([lat, lng], {
@@ -688,19 +686,20 @@ export default function ReportShow(props) {
 							</div>
 						</div>
 
-						<div className="flex w-full shrink-0 flex-col items-stretch gap-2.5 border-t border-border pt-4 sm:flex-row sm:items-center md:w-auto md:border-t-0 md:pt-0">
-							<Button
-								onClick={() => setConfirmReject(true)}
-								variant="outline"
-								className="h-11 w-full rounded-lg border-border bg-card text-xs font-bold uppercase tracking-wider text-foreground/80 transition-colors hover:bg-muted hover:text-foreground sm:h-10 sm:w-auto"
-							>
-								<IconX className="mr-1.5 h-4 w-4" /> Tolak Data
-							</Button>
+						<div className="flex w-full shrink-0 flex-col items-stretch gap-2 border-t border-border pt-4 sm:items-center md:w-auto md:border-t-0 md:pt-0">
+							{/* Satu aksi dominan (Broadcast); Tolak diturunkan jadi tombol teks destructive kecil (#37 Kluster E). */}
 							<Button
 								onClick={() => setConfirmApprove(true)}
-								className="h-11 w-full rounded-lg border border-destructive bg-destructive text-xs font-bold uppercase tracking-wider text-destructive-foreground transition-colors hover:bg-destructive/90 sm:h-10 sm:w-auto"
+								className="h-12 w-full rounded-lg border border-destructive bg-destructive text-xs font-bold uppercase tracking-wider text-destructive-foreground transition-colors hover:bg-destructive/90 md:h-11 md:w-auto md:px-6"
 							>
 								<IconRadar className="mr-1.5 h-4 w-4" /> Broadcast Misi
+							</Button>
+							<Button
+								onClick={() => setConfirmReject(true)}
+								variant="ghost"
+								className="h-8 gap-1.5 rounded-md px-2 text-xs font-bold text-destructive/70 transition-colors hover:bg-destructive/10 hover:text-destructive"
+							>
+								<IconX className="h-3.5 w-3.5" /> Tolak laporan
 							</Button>
 						</div>
 					</CardContent>
@@ -874,8 +873,7 @@ export default function ReportShow(props) {
 						<Card className="rounded-xl border border-border bg-card shadow-none">
 							<CardContent className="space-y-4 p-4 sm:p-5">
 								<h2 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-foreground">
-									<IconShieldCheck className="h-4 w-4 text-info" /> Panel Tindakan
-									Anda
+									<IconShieldCheck className="h-4 w-4 text-info" /> Panel Tindakan Anda
 								</h2>
 
 								{reportStatus === 'resolved' ? (
@@ -947,7 +945,8 @@ export default function ReportShow(props) {
 										{myRecord?.status === 'arrived' && isCorrectingMode && (
 											<div className="mt-2 space-y-2 rounded-lg border border-warning/20 bg-warning/10 p-3 text-xs text-warning">
 												<p className="font-bold leading-relaxed">
-													Geser pin merah di peta ke lokasi insiden yang sebenarnya, lalu
+													Titik laporan mungkin belum tepat. Geser pin merah ke lokasi
+													kejadian sebenarnya agar rekan lain menuju titik yang benar, lalu
 													konfirmasi.
 												</p>
 												<div className="flex gap-2 pt-1">

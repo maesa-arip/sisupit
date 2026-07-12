@@ -25,7 +25,21 @@ class ReportRequest extends FormRequest
         // tidak diubah (lihat keputusan #30: edit konten + foto saja), jadi dibuat opsional.
         $isCreate = $this->isMethod('POST');
 
+        // Aturan darurat-first (Kluster A): untuk KEBAKARAN (rumah/toko/kendaraan/lahan)
+        // foto, deskripsi, dan patokan bersifat OPSIONAL agar warga bisa melapor cepat.
+        // Untuk darurat NON-kebakaran (incident_type = 'lainnya') ketiganya WAJIB karena
+        // petugas butuh konteks lebih. Di luar POST (edit/PUT) ketiganya tetap opsional.
+        $isOtherEmergency = $isCreate && $this->input('incident_type') === 'lainnya';
+        $detailRule = $isOtherEmergency ? 'required' : 'nullable';
+
         return [
+            // Sinyal jenis kejadian dari tombol pilihan cepat (tidak disimpan sebagai kolom;
+            // jenis tersimpan di `title`). Hanya menentukan wajib/opsional field detail.
+            'incident_type' => [
+                'nullable',
+                'string',
+                'in:rumah,toko,kendaraan,lahan,lainnya',
+            ],
             'name' => [
                 'nullable',
                 'max:255',
@@ -58,7 +72,7 @@ class ReportRequest extends FormRequest
                 'string',
             ],
             'description' => [
-                'required',
+                $detailRule,
                 'min:3',
                 'max:255',
                 'string',
@@ -74,15 +88,16 @@ class ReportRequest extends FormRequest
                 'max:255',
             ],
             'address' => [
-                'required',
+                $detailRule,
                 'min:3',
                 'max:255',
                 'string',
             ],
-            // Galeri foto (FINDINGS #17). Wajib minimal satu saat membuat laporan (POST);
-            // pada update (PUT) opsional. Kolom `photo` lama dipertahankan sebagai sampul.
+            // Galeri foto (FINDINGS #17). Darurat-first (Kluster A): opsional untuk kebakaran
+            // (jangan paksa warga mendekati api), WAJIB hanya untuk darurat non-kebakaran
+            // ('lainnya') saat membuat. Pada update (PUT) opsional. Kolom `photo` lama = sampul.
             'photos' => [
-                $this->isMethod('POST') ? 'required' : 'nullable',
+                $isOtherEmergency ? 'required' : 'nullable',
                 'array',
                 'max:6',
             ],

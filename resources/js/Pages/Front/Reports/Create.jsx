@@ -6,12 +6,18 @@ import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
-import { DEFAULT_MAP_CENTER, flashMessage, GEO_ACCURACY_THRESHOLD, getFreshPosition } from '@/lib/utils';
+import { cn, DEFAULT_MAP_CENTER, flashMessage, GEO_ACCURACY_THRESHOLD, getFreshPosition } from '@/lib/utils';
 import { Link, useForm } from '@inertiajs/react';
 import {
 	IconAlertTriangle,
 	IconArrowLeft,
+	IconBuildingStore,
+	IconCar,
+	IconChevronDown,
 	IconCloudUpload,
+	IconDotsCircleHorizontal,
+	IconFlame,
+	IconHome,
 	IconLoader2,
 	IconMapPinFilled,
 	IconSend,
@@ -58,6 +64,17 @@ const matchRegionName = (dbList, osmNamesArray, removeWords = []) => {
 	return matched;
 };
 
+// Pilihan cepat jenis kejadian (darurat-first). Empat pertama = KEBAKARAN → detail
+// (foto/deskripsi/patokan) opsional agar warga bisa melapor cepat. 'lainnya' = darurat
+// non-kebakaran → judul diketik bebas & detail wajib (server memvalidasi via incident_type).
+const INCIDENT_TYPES = [
+	{ value: 'rumah', label: 'Rumah', title: 'Kebakaran Rumah', icon: IconHome },
+	{ value: 'toko', label: 'Toko', title: 'Kebakaran Toko/Bangunan', icon: IconBuildingStore },
+	{ value: 'kendaraan', label: 'Kendaraan', title: 'Kebakaran Kendaraan', icon: IconCar },
+	{ value: 'lahan', label: 'Lahan', title: 'Kebakaran Lahan', icon: IconFlame },
+	{ value: 'lainnya', label: 'Bukan Kebakaran', title: '', icon: IconDotsCircleHorizontal },
+];
+
 export default function Create(props) {
 	const auth = props.auth.user;
 
@@ -72,8 +89,12 @@ export default function Create(props) {
 	const previewsRef = useRef([]);
 	const fileInputPhoto = useRef(null);
 
+	// Foto disembunyikan default (collapsible) untuk kebakaran; dibuka manual/otomatis.
+	const [showPhotoSection, setShowPhotoSection] = useState(false);
+
 	const { data, setData, post, processing, errors } = useForm({
 		name: auth?.name || '',
+		incident_type: '',
 		address: '',
 		title: '',
 		description: '',
@@ -281,6 +302,20 @@ export default function Create(props) {
 
 	const onHandleChange = (e) => setData(e.target.name, e.target.value);
 
+	// Darurat non-kebakaran → judul diketik bebas + detail wajib.
+	const isOther = data.incident_type === 'lainnya';
+	// Foto wajib untuk 'lainnya' (paksa buka); kebakaran collapsible; buka bila sudah ada foto.
+	const photoExpanded = isOther || showPhotoSection || data.photos.length > 0;
+
+	const selectIncidentType = (type) => {
+		setData((prev) => ({
+			...prev,
+			incident_type: type.value,
+			// Judul terisi otomatis dari tombol; 'Lainnya' dikosongkan agar diketik warga.
+			title: type.value === 'lainnya' ? '' : type.title,
+		}));
+	};
+
 	const MAX_PHOTOS = 6;
 
 	const handlePhotosChange = (e) => {
@@ -312,6 +347,16 @@ export default function Create(props) {
 	const onHandleSubmit = (e) => {
 		e.preventDefault();
 
+		if (!data.incident_type) {
+			toast.warning('Pilih dulu jenis kejadian di atas.');
+			return;
+		}
+
+		if (isOther && !data.title.trim()) {
+			toast.warning('Tulis dulu jenis kejadian yang terjadi.');
+			return;
+		}
+
 		if (!data.lat || !data.lng) {
 			toast.warning('Lokasi belum terisi. Geser pin merah di peta ke titik kejadian.');
 			return;
@@ -340,8 +385,15 @@ export default function Create(props) {
 		});
 	};
 
+	// Status lokasi 4-tingkat untuk badge GPS. 'weak' = titik ada tapi wilayah belum
+	// terkenali (fix tak akurat / gagal geocode) → minta warga geser pin. 'ready' hanya
+	// saat yurisdiksi (province_code) terisi dari titik yang benar.
+	const locState = locationLoading ? 'scanning' : !userLocation ? 'failed' : data.province_code ? 'ready' : 'weak';
+
+	const submitLabel = 'Kirim Laporan Darurat';
+
 	return (
-		<div className="relative w-full pb-32">
+		<div className="relative w-full pb-40 lg:pb-8">
 			<div className="mx-auto flex w-full max-w-3xl flex-col space-y-6">
 				{/* Header Section */}
 				<div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
@@ -367,18 +419,22 @@ export default function Create(props) {
 					</CardHeader>
 
 					<CardContent className="p-5 sm:p-6">
-						<form className="space-y-6" onSubmit={onHandleSubmit}>
+						<form id="reportForm" className="space-y-6" onSubmit={onHandleSubmit}>
 							{/* --- BAGIAN LOKASI --- */}
 							<div className="space-y-3">
-								{/* Header Lokasi & Status Digabung */}
+								{/* Header Lokasi & Status GPS — hijau siap / kuning kurang akurat / merah gagal */}
 								<div className="flex items-center gap-3 border-b border-border pb-1">
-									{locationLoading ? (
+									{locState === 'scanning' ? (
 										<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-md bg-info/10 text-info">
 											<IconLoader2 className="h-4 w-4 animate-spin" />
 										</div>
-									) : userLocation ? (
+									) : locState === 'ready' ? (
 										<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-md bg-success/10 text-success">
 											<IconMapPinFilled className="h-4 w-4" />
+										</div>
+									) : locState === 'weak' ? (
+										<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-md bg-warning/10 text-warning">
+											<IconAlertTriangle className="h-4 w-4" />
 										</div>
 									) : (
 										<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-md bg-destructive/10 text-destructive">
@@ -388,11 +444,13 @@ export default function Create(props) {
 
 									<div className="min-w-0 flex-1 pb-2">
 										<p className="text-sm font-semibold uppercase tracking-wide text-foreground">
-											{locationLoading
-												? 'Memindai Koordinat...'
-												: userLocation
-													? 'Lokasi Terdeteksi'
-													: 'GPS Tidak Aktif'}
+											{locState === 'scanning'
+												? 'Memindai lokasi...'
+												: locState === 'ready'
+													? 'Lokasi terdeteksi'
+													: locState === 'weak'
+														? 'Lokasi kurang akurat'
+														: 'GPS gagal'}
 										</p>
 										{friendlyAddress && !locationLoading && (
 											<p className="mt-0.5 truncate text-[13px] text-muted-foreground">
@@ -416,22 +474,6 @@ export default function Create(props) {
 									Titik kurang tepat? Geser pin merah di peta untuk mengoreksi lokasi.
 								</p>
 
-								{/* Patokan Manual */}
-								<div className="pt-2">
-									<Label htmlFor="address" className="text-sm font-medium text-foreground/80">
-										Detail Patokan Lokasi
-									</Label>
-									<Input
-										name="address"
-										id="address"
-										value={data.address}
-										onChange={onHandleChange}
-										className="mt-1.5 h-10 rounded-md border-border bg-card focus-visible:ring-1 focus-visible:ring-destructive"
-										placeholder="Contoh: Samping warung cat biru, gang buntu..."
-									/>
-									{errors.address && <InputError message={errors.address} className="mt-1" />}
-								</div>
-
 								{/* Data Administratif (DISEMBUNYIKAN SEPENUHNYA DARI USER) */}
 								<input type="hidden" name="lat" value={data.lat} />
 								<input type="hidden" name="lng" value={data.lng} />
@@ -444,30 +486,85 @@ export default function Create(props) {
 
 							{/* --- BAGIAN FORM INFORMASI --- */}
 							<div className="space-y-4 pt-2">
-								<h3 className="border-b border-border pb-2 text-xs font-semibold uppercase tracking-wider text-foreground">
-									Informasi Laporan
-								</h3>
-
+								{/* Jenis kejadian: pilihan cepat (tombol besar) agar warga tak perlu mengetik */}
 								<div>
-									<Label htmlFor="title" className="text-sm font-medium text-foreground/80">
-										Apa yang terjadi?
+									<h3 className="border-b border-border pb-2 text-xs font-semibold uppercase tracking-wider text-foreground">
+										Apa yang terbakar?
+									</h3>
+									<div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
+										{INCIDENT_TYPES.map((type) => {
+											const Icon = type.icon;
+											const active = data.incident_type === type.value;
+											return (
+												<button
+													key={type.value}
+													type="button"
+													onClick={() => selectIncidentType(type)}
+													aria-pressed={active}
+													className={cn(
+														'flex min-h-[72px] flex-col items-center justify-center gap-1.5 rounded-md border p-2 text-center transition-colors',
+														active
+															? 'border-destructive bg-destructive/10 text-destructive'
+															: 'border-border bg-card text-foreground hover:bg-accent',
+													)}
+												>
+													<Icon className="h-6 w-6" stroke={1.5} />
+													<span className="text-xs font-semibold leading-tight">
+														{type.label}
+													</span>
+												</button>
+											);
+										})}
+									</div>
+									{errors.incident_type && (
+										<InputError message={errors.incident_type} className="mt-1" />
+									)}
+
+									{/* Judul teks bebas HANYA untuk darurat non-kebakaran ('Lainnya') */}
+									{isOther && (
+										<div className="mt-3">
+											<Label htmlFor="title" className="text-sm font-medium text-foreground/80">
+												Jelaskan jenis kejadian
+											</Label>
+											<Input
+												name="title"
+												id="title"
+												value={data.title}
+												type="text"
+												placeholder="Contoh: Pohon tumbang, evakuasi, kabel putus..."
+												onChange={onHandleChange}
+												className="mt-1.5 h-11 rounded-md border-border bg-card focus-visible:ring-1 focus-visible:ring-destructive"
+											/>
+										</div>
+									)}
+									{errors.title && <InputError message={errors.title} className="mt-1" />}
+								</div>
+
+								{/* Patokan Manual — wajib untuk darurat non-kebakaran, opsional untuk kebakaran */}
+								<div>
+									<Label htmlFor="address" className="text-sm font-medium text-foreground/80">
+										Patokan Lokasi{' '}
+										<span className="font-normal text-muted-foreground">
+											{isOther ? '(Wajib)' : '(Opsional)'}
+										</span>
 									</Label>
 									<Input
-										name="title"
-										id="title"
-										value={data.title}
-										type="text"
-										placeholder="Contoh: Kebakaran Rumah, Pohon Tumbang..."
+										name="address"
+										id="address"
+										value={data.address}
 										onChange={onHandleChange}
 										className="mt-1.5 h-10 rounded-md border-border bg-card focus-visible:ring-1 focus-visible:ring-destructive"
+										placeholder="Contoh: Samping warung cat biru, gang buntu..."
 									/>
-									{errors.title && <InputError message={errors.title} className="mt-1" />}
+									{errors.address && <InputError message={errors.address} className="mt-1" />}
 								</div>
 
 								<div>
 									<Label htmlFor="description" className="text-sm font-medium text-foreground/80">
 										Detail Kejadian{' '}
-										<span className="font-normal text-muted-foreground">(Opsional)</span>
+										<span className="font-normal text-muted-foreground">
+											{isOther ? '(Wajib)' : '(Opsional)'}
+										</span>
 									</Label>
 									<Textarea
 										name="description"
@@ -480,17 +577,42 @@ export default function Create(props) {
 									{errors.description && <InputError message={errors.description} className="mt-1" />}
 								</div>
 
-								{/* --- BAGIAN UPLOAD FOTO --- */}
+								{/* --- BAGIAN UPLOAD FOTO (collapsible) --- */}
 								<div className="pt-2">
-									<div className="mb-3">
+									{isOther ? (
 										<Label className="text-sm font-medium text-foreground/80">
-											Foto Bukti Kejadian
+											Foto Bukti Kejadian{' '}
+											<span className="font-normal text-muted-foreground">(Wajib)</span>
 										</Label>
-										<p className="mt-0.5 text-[13px] text-muted-foreground">
-											Sertakan satu atau beberapa foto (maks. {MAX_PHOTOS}) agar relawan dapat
-											menilai skala prioritas.
-										</p>
-									</div>
+									) : (
+										<button
+											type="button"
+											onClick={() => setShowPhotoSection((v) => !v)}
+											className="flex w-full items-center justify-between rounded-md border border-dashed border-border bg-muted/40 px-4 py-3 text-left transition-colors hover:bg-muted"
+										>
+											<span className="flex items-center gap-2 text-sm font-semibold text-foreground">
+												<IconCloudUpload
+													className="h-5 w-5 text-muted-foreground"
+													stroke={1.5}
+												/>
+												Tambah foto jika aman
+											</span>
+											<IconChevronDown
+												className={cn(
+													'h-4 w-4 text-muted-foreground transition-transform',
+													photoExpanded && 'rotate-180',
+												)}
+											/>
+										</button>
+									)}
+
+									{/* Pesan keselamatan — jangan ambil risiko demi foto */}
+									<p className="mt-2 flex items-start gap-1.5 text-[13px] text-muted-foreground">
+										<IconAlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
+										{isOther
+											? 'Sertakan foto agar petugas menilai situasi. Tetap utamakan keselamatan Anda.'
+											: 'Foto opsional. Jangan mendekat ke api hanya untuk mengambil foto.'}
+									</p>
 
 									{/* Satu input file tersembunyi, dipakai upload box & tombol "Tambah" */}
 									<input
@@ -504,68 +626,74 @@ export default function Create(props) {
 										className="sr-only"
 									/>
 
-									{previews.length > 0 ? (
-										<div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-											{previews.map((p, i) => (
-												<div
-													key={i}
-													className="group relative h-32 w-full overflow-hidden rounded-md border border-border shadow-sm"
-												>
-													<img
-														src={p.url}
-														alt={`Preview ${i + 1}`}
-														className="h-full w-full object-cover"
-													/>
-													<button
-														type="button"
-														onClick={() => removePhoto(i)}
-														className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-md border border-transparent bg-card/90 text-destructive shadow-sm backdrop-blur-sm transition-colors hover:border-destructive/30 hover:bg-destructive/10"
-														title="Hapus foto"
-													>
-														<IconX stroke={2.5} className="h-4 w-4" />
-													</button>
+									{photoExpanded && (
+										<div className="mt-3">
+											{previews.length > 0 ? (
+												<div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+													{previews.map((p, i) => (
+														<div
+															key={i}
+															className="group relative h-32 w-full overflow-hidden rounded-md border border-border shadow-sm"
+														>
+															<img
+																src={p.url}
+																alt={`Preview ${i + 1}`}
+																className="h-full w-full object-cover"
+															/>
+															<button
+																type="button"
+																onClick={() => removePhoto(i)}
+																className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-md border border-transparent bg-card/90 text-destructive shadow-sm backdrop-blur-sm transition-colors hover:border-destructive/30 hover:bg-destructive/10"
+																title="Hapus foto"
+															>
+																<IconX stroke={2.5} className="h-4 w-4" />
+															</button>
+														</div>
+													))}
+													{data.photos.length < MAX_PHOTOS && (
+														<button
+															type="button"
+															onClick={() => fileInputPhoto.current?.click()}
+															className="flex h-32 w-full flex-col items-center justify-center rounded-md border border-dashed border-border bg-muted/50 text-center text-muted-foreground transition-colors hover:bg-muted"
+														>
+															<IconCloudUpload className="mb-1 h-6 w-6" stroke={1.5} />
+															<span className="text-xs font-semibold">Tambah foto</span>
+														</button>
+													)}
 												</div>
-											))}
-											{data.photos.length < MAX_PHOTOS && (
-												<button
-													type="button"
+											) : (
+												<div
 													onClick={() => fileInputPhoto.current?.click()}
-													className="flex h-32 w-full flex-col items-center justify-center rounded-md border border-dashed border-border bg-muted/50 text-center text-muted-foreground transition-colors hover:bg-muted"
+													className="flex cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-border bg-muted/50 p-8 text-center transition-colors hover:bg-muted"
 												>
-													<IconCloudUpload className="mb-1 h-6 w-6" stroke={1.5} />
-													<span className="text-xs font-semibold">Tambah foto</span>
-												</button>
+													<div className="mb-4 flex h-12 w-12 items-center justify-center rounded-md border border-border bg-card shadow-sm">
+														<IconCloudUpload
+															className="h-6 w-6 text-muted-foreground"
+															stroke={1.5}
+														/>
+													</div>
+													<p className="text-sm font-semibold text-foreground">
+														Pilih foto kejadian
+													</p>
+													<p className="mb-5 mt-1 text-[13px] text-muted-foreground">
+														Format PNG/JPG/WEBP (Maks. 4MB / foto)
+													</p>
+													<span className="inline-flex h-9 items-center justify-center rounded-md bg-destructive px-5 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90">
+														Jelajahi File
+													</span>
+												</div>
 											)}
-										</div>
-									) : (
-										<div
-											onClick={() => fileInputPhoto.current?.click()}
-											className="flex cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-border bg-muted/50 p-8 text-center transition-colors hover:bg-muted"
-										>
-											<div className="mb-4 flex h-12 w-12 items-center justify-center rounded-md border border-border bg-card shadow-sm">
-												<IconCloudUpload
-													className="h-6 w-6 text-muted-foreground"
-													stroke={1.5}
-												/>
-											</div>
-											<p className="text-sm font-semibold text-foreground">Pilih foto kejadian</p>
-											<p className="mb-5 mt-1 text-[13px] text-muted-foreground">
-												Format PNG/JPG/WEBP (Maks. 4MB / foto)
-											</p>
-											<span className="inline-flex h-9 items-center justify-center rounded-md bg-destructive px-5 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90">
-												Jelajahi File
-											</span>
 										</div>
 									)}
 									{errors.photos && <InputError message={errors.photos} className="mt-1" />}
 								</div>
 							</div>
 
-							{/* --- ACTIONS --- */}
+							{/* --- ACTIONS (desktop; di mobile pakai sticky bar di bawah) --- */}
 							<div className="mt-5 border-t border-border pt-5">
 								<Button
 									type="submit"
-									className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-destructive px-8 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:cursor-not-allowed disabled:opacity-70"
+									className="hidden h-12 w-full items-center justify-center gap-2 rounded-md bg-destructive px-8 text-sm font-semibold text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:cursor-not-allowed disabled:opacity-70 sm:flex"
 									disabled={processing || locationLoading}
 								>
 									{processing ? (
@@ -573,12 +701,26 @@ export default function Create(props) {
 									) : (
 										<IconSend className="h-5 w-5" />
 									)}
-									Kirim Laporan
+									{submitLabel}
 								</Button>
 							</div>
 						</form>
 					</CardContent>
 				</Card>
+			</div>
+
+			{/* Sticky CTA mobile — tombol Kirim selalu terlihat tanpa perlu scroll ke bawah.
+			    Diangkat ke bottom-16 agar tidak tertutup MobileBottomNav (fixed bottom-0 h-16 z-50). */}
+			<div className="fixed inset-x-0 bottom-16 z-40 border-t border-border bg-card/95 p-3 shadow-[0_-2px_10px_rgba(0,0,0,0.06)] backdrop-blur sm:hidden">
+				<Button
+					type="submit"
+					form="reportForm"
+					className="flex h-12 w-full items-center justify-center gap-2 rounded-md bg-destructive text-base font-semibold text-destructive-foreground transition-colors hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-70"
+					disabled={processing || locationLoading}
+				>
+					{processing ? <IconLoader2 className="h-5 w-5 animate-spin" /> : <IconSend className="h-5 w-5" />}
+					{submitLabel}
+				</Button>
 			</div>
 		</div>
 	);

@@ -32,6 +32,25 @@ it('only lists reports within the logged-in admin tenant on the verification pag
     expect($ids)->not->toContain($reportInJabar->id);
 });
 
+it('defaults the verification queue to active reports and counts those awaiting verification', function () {
+    $admin = User::factory()->create(['province_code' => '51']);
+    $admin->assignRole('admin');
+
+    $terlapor = makeReport(['title' => 'Baru masuk', 'province_code' => '51', 'status' => 'TERLAPOR']);
+    $pending = makeReport(['title' => 'Sedang proses', 'province_code' => '51', 'status' => 'pending']);
+    $resolved = makeReport(['title' => 'Sudah selesai', 'province_code' => '51', 'status' => 'resolved']);
+
+    $props = $this->actingAs($admin)->get('/admin/reports')->original->getData()['page']['props'];
+    $ids = array_column($props['reports']['data'], 'id');
+
+    // Default triase = 'aktif': TERLAPOR & pending tampil, resolved disembunyikan.
+    expect($ids)->toContain($terlapor->id);
+    expect($ids)->toContain($pending->id);
+    expect($ids)->not->toContain($resolved->id);
+    // Hitung "menunggu verifikasi" = hanya yang masih TERLAPOR.
+    expect($props['menunggu_verifikasi'])->toBe(1);
+});
+
 it('blocks non-admin roles from viewing the report verification page', function () {
     $petugas = User::factory()->create(['village_code' => '5171012006']);
     $petugas->assignRole('petugas');

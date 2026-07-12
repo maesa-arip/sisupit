@@ -19,16 +19,20 @@ class ReportController extends Controller
      */
     public function index(Request $request): Response
     {
+        // Default triase: fokus ke laporan AKTIF (belum selesai/ditolak), bukan "Semua".
+        // Operator verifikasi hampir selalu ingin antrean yang masih perlu tindakan.
+        $status = $request->status ?: 'aktif';
+
         $reports = Report::query()
             ->with('user:id,name')
             ->filter($request->only(['search']))
-            ->when($request->filled('status') && $request->status !== 'Semua', function ($query) use ($request) {
+            ->when($status !== 'Semua', function ($query) use ($status) {
                 // 'aktif' = laporan yang masih berjalan (belum selesai/ditolak), selaras dgn
                 // kartu "Darurat Aktif" di dashboard (DashboardController active_reports).
-                if ($request->status === 'aktif') {
+                if ($status === 'aktif') {
                     $query->whereIn('status', ['pending', 'handling', 'TERLAPOR']);
                 } else {
-                    $query->where('status', $request->status);
+                    $query->where('status', $status);
                 }
             })
             ->latest('created_at')
@@ -38,13 +42,16 @@ class ReportController extends Controller
         return inertia('Admin/Reports/Index', [
             'reports' => $reports,
             'tenant_location' => $this->getTenantDefaultLocation(),
+            // Jumlah laporan yang MENUNGGU VERIFIKASI (masih TERLAPOR) di wilayah tenant —
+            // ter-scope Tenantable, independen dari search/filter aktif, untuk header triase.
+            'menunggu_verifikasi' => Report::where('status', 'TERLAPOR')->count(),
             'page_settings' => [
                 'title' => 'Verifikasi Laporan',
                 'subtitle' => 'Pantau dan verifikasi laporan kejadian di wilayah tenant Anda.',
             ],
             'state' => [
                 'search' => $request->search ?? '',
-                'status' => $request->status ?? 'Semua',
+                'status' => $status,
                 'load' => $request->load ?? 10,
             ],
         ]);

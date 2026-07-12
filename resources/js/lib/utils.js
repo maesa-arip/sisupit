@@ -16,8 +16,7 @@ export function flashMessage(params) {
 // (turunan OpenStreetMap, di-host CARTO) bila env belum di-set. Untuk self-host penuh lihat
 // docker/ (pola Nominatim/OSRM) — mis. TileServer-GL/OpenMapTiles.
 const CARTO_VOYAGER = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
-export const MAP_TILE_URL =
-	(typeof window !== 'undefined' && window.MAP_TILE_URL) || CARTO_VOYAGER;
+export const MAP_TILE_URL = (typeof window !== 'undefined' && window.MAP_TILE_URL) || CARTO_VOYAGER;
 
 // Opsi navigator.geolocation bersama. Default browser (timeout: Infinity, maximumAge: 0)
 // membuat request bisa menggantung selamanya, dan maximumAge:0 melarang pakai fix terbaru
@@ -45,6 +44,23 @@ export const GEO_ACCURACY_THRESHOLD = 1000;
 // Pusat peta default (Denpasar, Bali) — dipakai sebagai titik awal pin yang bisa
 // digeser saat deteksi lokasi gagal total. Selaras dengan setView UserLeafletMap.
 export const DEFAULT_MAP_CENTER = { lat: -8.65, lng: 115.22 };
+
+// Waktu relatif singkat berbahasa Indonesia ("3 menit lalu") untuk kartu triase admin —
+// menonjolkan umur laporan agar operator cepat menilai urgensi.
+export function timeAgo(value) {
+	if (!value) return '-';
+	const then = new Date(value).getTime();
+	if (isNaN(then)) return '-';
+	const diff = Math.max(0, Date.now() - then);
+	const menit = Math.floor(diff / 60000);
+	if (menit < 1) return 'Baru saja';
+	if (menit < 60) return `${menit} menit lalu`;
+	const jam = Math.floor(menit / 60);
+	if (jam < 24) return `${jam} jam lalu`;
+	const hari = Math.floor(jam / 24);
+	if (hari < 7) return `${hari} hari lalu`;
+	return new Date(value).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+}
 
 // Ambil satu fix GPS untuk lapor darurat: coba akurat & segar dulu; jika gagal atau
 // timeout, jatuh SEKALI ke mode akurasi-rendah (jaringan) sebelum menyerah. Mengembalikan

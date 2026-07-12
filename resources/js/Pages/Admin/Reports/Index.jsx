@@ -2,26 +2,36 @@ import HeaderTitle from '@/Components/HeaderTitle';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from '@/Components/ui/dropdown-menu';
 import { Input } from '@/Components/ui/input';
 import UseFilter from '@/hooks/UseFilter';
 import AppLayout from '@/Layouts/AppLayout';
-import { cn, MAP_TILE_URL } from '@/lib/utils';
+import { cn, MAP_TILE_URL, timeAgo } from '@/lib/utils';
 import { Link } from '@inertiajs/react';
 import {
+	IconAlertTriangle,
 	IconArrowDown,
 	IconClipboardPlus,
 	IconClock,
+	IconDotsVertical,
 	IconEye,
 	IconFileSpreadsheet,
 	IconMapPin,
 	IconMapPinFilled,
 	IconPhone,
+	IconPhoto,
 	IconSearch,
 	IconUser,
 } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 
-const STATUS_OPTIONS = ['Semua', 'TERLAPOR', 'pending', 'handling', 'resolved'];
+// 'aktif' dulu & jadi default triase (laporan yang masih perlu tindakan). 'Semua' tetap ada.
+const STATUS_OPTIONS = ['aktif', 'Semua', 'TERLAPOR', 'pending', 'handling', 'resolved'];
 
 // Metadata status kejadian (badge + pin peta + titik legenda). Warna selaras Peta Pemantauan,
 // KECUALI "Penanganan" yang memakai teal (permintaan produk). Gaya kartu/pill/paginasi
@@ -102,9 +112,32 @@ function formatDate(value) {
 	});
 }
 
+// Chip ringkas untuk pemindaian triase cepat (umur laporan, ada/tanpa foto, tanpa titik).
+const CHIP_TONE = {
+	muted: 'border-border bg-muted/60 text-muted-foreground',
+	ok: 'border-success/30 bg-success/10 text-success',
+	warn: 'border-warning/30 bg-warning/10 text-warning',
+	danger: 'border-destructive/30 bg-destructive/10 text-destructive',
+};
+
+function MetaChip({ icon: Icon, children, tone = 'muted' }) {
+	return (
+		<span
+			className={cn(
+				'inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px] font-semibold',
+				CHIP_TONE[tone],
+			)}
+		>
+			<Icon className="h-3 w-3 shrink-0" />
+			{children}
+		</span>
+	);
+}
+
 export default function Index(props) {
 	const { data: reports, links, from, to, total } = props.reports;
 	const { tenant_location } = props;
+	const menungguVerifikasi = props.menunggu_verifikasi ?? 0;
 	const [params, setParams] = useState(props.state);
 	const [activeReportId, setActiveReportId] = useState(null);
 
@@ -179,12 +212,44 @@ export default function Index(props) {
 					subtitle={props.page_settings.subtitle}
 					icon={IconClipboardPlus}
 				/>
-				<Button variant="outline" size="sm" asChild>
-					<a href={route('admin.reports.export', { search: params?.search, status: params?.status })}>
-						<IconFileSpreadsheet className="size-4" /> Export Excel
-					</a>
-				</Button>
+				{/* Export dipindah ke menu sekunder (kebab) agar tak bersaing dgn aksi triase. */}
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button variant="outline" size="icon" className="h-9 w-9" aria-label="Menu lainnya">
+							<IconDotsVertical className="size-4" />
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end">
+						<DropdownMenuItem asChild>
+							<a
+								href={route('admin.reports.export', {
+									search: params?.search,
+									status: params?.status,
+								})}
+							>
+								<IconFileSpreadsheet className="size-4" /> Export Excel
+							</a>
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
 			</div>
+
+			{/* Header triase: berapa laporan MENUNGGU VERIFIKASI (TERLAPOR). Klik → filter TERLAPOR. */}
+			{menungguVerifikasi > 0 && (
+				<button
+					type="button"
+					onClick={() => setParams((prev) => ({ ...prev, status: 'TERLAPOR' }))}
+					className="flex items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-left transition-colors hover:bg-destructive/15"
+				>
+					<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-destructive/15 text-destructive">
+						<IconAlertTriangle className="h-4 w-4" />
+					</span>
+					<span className="text-sm font-semibold text-destructive">
+						{menungguVerifikasi} laporan menunggu verifikasi
+					</span>
+					<span className="ml-auto text-xs font-semibold text-destructive/80">Tinjau →</span>
+				</button>
+			)}
 
 			<div className="flex w-full flex-col items-start gap-5 lg:flex-row lg:gap-6">
 				<div className="flex w-full shrink-0 flex-col gap-4 lg:w-5/12 xl:w-2/5">
@@ -238,6 +303,7 @@ export default function Index(props) {
 								{reports.map((report) => {
 									const style = markerStyle(report.status);
 									const isActive = activeReportId === report.id;
+									const isUrgent = report.status === 'TERLAPOR'; // butuh verifikasi → tonjolkan
 									const hasCoords = !isNaN(parseFloat(report.lat)) && !isNaN(parseFloat(report.lng));
 									return (
 										<Card
@@ -256,7 +322,11 @@ export default function Index(props) {
 															style.ring,
 														)}
 													>
-														<IconMapPin className="h-5 w-5" />
+														{isUrgent ? (
+															<IconAlertTriangle className="h-5 w-5" />
+														) : (
+															<IconMapPin className="h-5 w-5" />
+														)}
 													</div>
 													<div className="w-full min-w-0 flex-1">
 														<div className="flex items-start justify-between gap-2">
@@ -279,6 +349,27 @@ export default function Index(props) {
 													</div>
 												</div>
 
+												{/* Chip urgensi untuk pemindaian triase cepat: umur, ada/tanpa foto, titik */}
+												<div className="flex flex-wrap items-center gap-1.5">
+													<MetaChip icon={IconClock} tone={isUrgent ? 'danger' : 'muted'}>
+														{timeAgo(report.created_at)}
+													</MetaChip>
+													{report.photo ? (
+														<MetaChip icon={IconPhoto} tone="ok">
+															Ada foto
+														</MetaChip>
+													) : (
+														<MetaChip icon={IconPhoto} tone="muted">
+															Tanpa foto
+														</MetaChip>
+													)}
+													{!hasCoords && (
+														<MetaChip icon={IconMapPin} tone="warn">
+															Tanpa titik
+														</MetaChip>
+													)}
+												</div>
+
 												<div className="grid grid-cols-1 gap-1.5 border-t border-dashed border-border pt-2.5 text-xs text-muted-foreground sm:grid-cols-2">
 													<span className="flex items-center gap-1.5 truncate">
 														<IconUser className="h-3.5 w-3.5 shrink-0" />
@@ -298,21 +389,28 @@ export default function Index(props) {
 													className="flex items-center justify-end gap-2"
 													onClick={(e) => e.stopPropagation()}
 												>
-													{!hasCoords && (
-														<span className="mr-auto text-[10px] font-semibold text-muted-foreground">
-															Tanpa koordinat
-														</span>
+													{isUrgent ? (
+														<Button
+															size="sm"
+															asChild
+															className="h-8 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+														>
+															<Link href={route('reports.show', report.id)}>
+																<IconEye className="mr-1 size-4" /> Tinjau & Verifikasi
+															</Link>
+														</Button>
+													) : (
+														<Button
+															variant="ghost"
+															size="sm"
+															asChild
+															className="h-8 text-muted-foreground hover:text-primary"
+														>
+															<Link href={route('reports.show', report.id)}>
+																<IconEye className="mr-1 size-4" /> Detail
+															</Link>
+														</Button>
 													)}
-													<Button
-														variant="ghost"
-														size="sm"
-														asChild
-														className="h-8 text-muted-foreground hover:text-primary"
-													>
-														<Link href={route('reports.show', report.id)}>
-															<IconEye className="mr-1 size-4" /> Detail
-														</Link>
-													</Button>
 												</div>
 
 												{hasCoords && (
