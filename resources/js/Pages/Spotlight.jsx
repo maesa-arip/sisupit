@@ -1,7 +1,7 @@
 import { Button } from '@/Components/ui/button';
 import AppLayout from '@/Layouts/AppLayout';
 import { Link } from '@inertiajs/react';
-import { IconBrandAndroid, IconDownload, IconFlame, IconPhoneCall, IconShieldCheck } from '@tabler/icons-react';
+import { IconBrandAndroid, IconFlame, IconPhoneCall, IconShieldCheck } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 
 export default function Spotlight(props) {
@@ -64,43 +64,37 @@ export default function Spotlight(props) {
 				</p>
 			</div>
 
-			{/* --- TOMBOL AKSI (CTA) --- */}
-			<Button
-				asChild
-				className="h-14 rounded-xl border border-destructive bg-destructive px-10 text-base font-bold uppercase tracking-wider text-destructive-foreground shadow-none transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50"
-			>
-				<Link href={route('front.reports.create')}>
-					<IconFlame className="mr-2 h-5 w-5" stroke={2.5} />
-					LAPOR SEKARANG!
-				</Link>
-			</Button>
+			{/* --- AKSI berjenjang: primer (Lapor) › sekunder (telepon) › tersier (unduh) --- */}
+			<div className="mx-auto flex w-full max-w-sm flex-col gap-3">
+				<Button
+					asChild
+					className="h-14 w-full rounded-xl bg-destructive text-base font-bold uppercase tracking-wider text-destructive-foreground shadow-none transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50"
+				>
+					<Link href={route('front.reports.create')}>
+						<IconFlame className="mr-2 h-5 w-5" stroke={2.5} />
+						Lapor Sekarang
+					</Link>
+				</Button>
 
-			{/* --- TELEPON DARURAT RESMI --- */}
-			{/* Nomor darurat = aksi SEKUNDER kompak; primer tetap "Lapor Sekarang" (#37 F). */}
-			<a
-				href="tel:0361223333"
-				className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-semibold text-muted-foreground shadow-none transition-colors hover:border-destructive/40 hover:text-destructive"
-			>
-				<IconPhoneCall className="h-4 w-4 text-destructive" stroke={2} />
-				Darurat tanpa internet? <span className="font-bold text-destructive">(0361) 223333</span>
-			</a>
+				<a
+					href="tel:0361223333"
+					className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-border bg-card text-sm font-semibold text-muted-foreground shadow-none transition-colors hover:border-destructive/40 hover:text-destructive"
+				>
+					<IconPhoneCall className="h-4 w-4 text-destructive" stroke={2} />
+					Darurat tanpa internet? <span className="font-bold text-destructive">(0361) 223333</span>
+				</a>
 
-			{/* --- UNDUH APLIKASI --- */}
-			{!isWebView && (
-				<div className="mt-4 flex w-full flex-col items-center">
+				{!isWebView && (
 					<a
 						href="/apk/sisupit.apk"
 						download="Sisupit.apk"
-						className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-border bg-card px-6 font-medium text-foreground shadow-sm outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-muted-foreground/50 sm:w-auto"
+						className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-medium text-muted-foreground outline-none transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-muted-foreground/40"
 					>
-						<div className="flex items-center justify-center rounded-md bg-success/10 p-1">
-							<IconBrandAndroid className="h-5 w-5 text-success" stroke={2} />
-						</div>
-						<span className="text-sm">Unduh Aplikasi Android</span>
-						<IconDownload className="ml-1 h-4 w-4 text-muted-foreground" stroke={2} />
+						<IconBrandAndroid className="h-5 w-5 text-success" stroke={2} />
+						Unduh Aplikasi Android
 					</a>
-				</div>
-			)}
+				)}
+			</div>
 		</div>
 	);
 }
