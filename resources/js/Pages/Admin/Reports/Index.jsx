@@ -11,7 +11,7 @@ import {
 import { Input } from '@/Components/ui/input';
 import UseFilter from '@/hooks/UseFilter';
 import AppLayout from '@/Layouts/AppLayout';
-import { cn, MAP_TILE_URL, timeAgo } from '@/lib/utils';
+import { cn, MAP_TILE_URL, reportNumber, timeAgo } from '@/lib/utils';
 import { Link } from '@inertiajs/react';
 import {
 	IconAlertTriangle,
@@ -340,6 +340,9 @@ export default function Index(props) {
 															</h3>
 															<StatusBadge status={report.status} />
 														</div>
+														<p className="mt-0.5 font-mono text-xs font-semibold text-muted-foreground">
+															{reportNumber(report)}
+														</p>
 														<p className="mt-1 flex items-start gap-1 text-xs text-muted-foreground">
 															<IconMapPin className="mt-0.5 h-3 w-3 shrink-0" />
 															<span className="line-clamp-2">

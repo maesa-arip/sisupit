@@ -6,6 +6,7 @@ use App\Enums\MessageType;
 use App\Enums\TenantLevel;
 use App\Http\Requests\ReportRequest;
 use App\Models\Report;
+use App\Models\ReportResolution;
 use App\Models\Setting;
 use App\Models\TrackingLog;
 use App\Models\Unit;
@@ -130,12 +131,53 @@ class ReportController extends Controller
             ->groupBy('user_id')
             ->map(fn ($points) => $points->map(fn ($p) => ['lat' => (float) $p->lat, 'lng' => (float) $p->lng])->values());
 
+        // Berita Acara / Laporan Kegiatan Penyelamatan (FINDINGS #39) — staf saja.
+        // Append-only: banyak entri (sementara/final), terbaru dulu. KTP korban TIDAK
+        // dikirim sebagai path (PII); hanya URL route bergerbang saat foto tersedia.
+        $resolutions = [];
+        if ($isStaff) {
+            $resolutions = ReportResolution::with(['victims', 'photos', 'creator:id,name'])
+                ->where('report_id', $report->id)
+                ->latest('id')
+                ->get()
+                ->map(fn ($r) => [
+                    'id' => $r->id,
+                    'status' => $r->status,
+                    'jenis_kejadian' => $r->jenis_kejadian,
+                    'sumber_informasi' => $r->sumber_informasi,
+                    'occurred_at' => $r->occurred_at,
+                    'lokasi_alamat' => $r->lokasi_alamat,
+                    'kelurahan' => $r->kelurahan,
+                    'kecamatan' => $r->kecamatan,
+                    'pemilik_nama' => $r->pemilik_nama,
+                    'pemilik_umur' => $r->pemilik_umur,
+                    'kerugian' => $r->kerugian,
+                    'tim_atensi' => $r->tim_atensi,
+                    'kronologi' => $r->kronologi,
+                    'created_at' => $r->created_at,
+                    'creator' => optional($r->creator)->name,
+                    'victims' => $r->victims->map(fn ($v) => [
+                        'id' => $v->id,
+                        'nama' => $v->nama,
+                        'tanggal_lahir' => $v->tanggal_lahir,
+                        'alamat' => $v->alamat,
+                        'ktp_url' => $v->ktp_path ? route('reports.resolution.ktp', [$report->id, $v->id]) : null,
+                    ])->values(),
+                    'photos' => $r->photos->map(fn ($p) => [
+                        'id' => $p->id,
+                        'path' => $p->path,
+                    ])->values(),
+                ]);
+        }
+
         return inertia('Front/Reports/Show', [
             'report' => $report,
             'trails' => $trails,
             'availableUnits' => $availableUnits,
             'unitsTotal' => $unitsTotal,
             'canManageUnits' => $canManageUnits,
+            'resolutions' => $resolutions,
+            'canManageResolution' => $isStaff,
         ]);
     }
 

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Dialog, DialogContent } from '@/Components/ui/dialog';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
-import { cn, GEO_OPTIONS, MAP_TILE_URL } from '@/lib/utils';
+import { cn, GEO_OPTIONS, MAP_TILE_URL, reportNumber } from '@/lib/utils';
 import { Head, Link, router } from '@inertiajs/react';
 import {
 	IconAlertCircle,
@@ -18,6 +18,7 @@ import {
 	IconMap,
 	IconMapPin,
 	IconPhone,
+	IconPlus,
 	IconRadar,
 	IconShieldCheck,
 	IconTrash,
@@ -118,6 +119,13 @@ export default function ReportShow(props) {
 	const allUnitsBusy = unitsTotal > 0 && availableUnits.length === 0;
 	const [unitToDispatch, setUnitToDispatch] = useState('');
 	const [isUnitProcessing, setIsUnitProcessing] = useState(false);
+
+	// Berita Acara / Laporan Kegiatan Penyelamatan (FINDINGS #39) — staf saja. Append-only:
+	// banyak entri (sementara/final) yang bisa dibandingkan.
+	const resolutions = props.resolutions || [];
+	const canManageResolution = props.canManageResolution || false;
+	const [resolutionToDelete, setResolutionToDelete] = useState(null);
+	const [isDeletingResolution, setIsDeletingResolution] = useState(false);
 
 	const [isProcessing, setIsProcessing] = useState(false);
 	const [isActionLoading, setIsActionLoading] = useState(false);
@@ -296,6 +304,24 @@ export default function ReportShow(props) {
 				onFinish: () => setIsActionLoading(false),
 			},
 		);
+	};
+
+	const fmtDateTime = (v) =>
+		v ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v)) : '-';
+	const fmtDate = (v) => (v ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(new Date(v)) : '-');
+
+	const handleDeleteResolution = () => {
+		if (!resolutionToDelete) return;
+		setIsDeletingResolution(true);
+		router.delete(route('reports.resolution.destroy', [report.id, resolutionToDelete]), {
+			preserveScroll: true,
+			onSuccess: () => {
+				setResolutionToDelete(null);
+				toast.success('Entri berita acara dihapus.');
+			},
+			onError: () => toast.error('Gagal menghapus entri.'),
+			onFinish: () => setIsDeletingResolution(false),
+		});
 	};
 
 	const handleDispatchUnit = () => {
@@ -653,6 +679,9 @@ export default function ReportShow(props) {
 							{currentStatus.label}
 						</Badge>
 					</div>
+					<p className="mt-1 font-mono text-xs font-semibold tracking-tight text-muted-foreground">
+						{reportNumber(report)}
+					</p>
 				</div>
 				{/* Pelapor boleh mengedit hanya selama laporan belum divalidasi (TERLAPOR) — #30 */}
 				{isOwner && reportStatus === 'TERLAPOR' && (
@@ -1157,6 +1186,186 @@ export default function ReportShow(props) {
 							)}
 						</CardContent>
 					</Card>
+
+					{/* --- 📝 LAPORAN KEGIATAN PENYELAMATAN / BERITA ACARA (staf saja) --- */}
+					{canManageResolution && (reportStatus === 'resolved' || reportStatus === 'handling') && (
+						<Card className="rounded-xl border border-border bg-card shadow-none">
+							<CardContent className="space-y-3 p-4 sm:p-5">
+								<div className="flex items-center justify-between gap-2">
+									<h2 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-foreground">
+										<IconFileText className="h-4 w-4 text-info" /> Laporan Kegiatan Penyelamatan
+									</h2>
+									<Link
+										href={route('reports.resolution.create', report.id)}
+										className="inline-flex items-center gap-1 rounded-lg bg-info px-2.5 py-1.5 text-xs font-bold text-info-foreground shadow-none transition-colors hover:bg-info/90"
+									>
+										<IconPlus className="h-3.5 w-3.5" /> Buat
+									</Link>
+								</div>
+
+								<p className="text-[11px] leading-relaxed text-muted-foreground">
+									Data awal diisi sebagai <b>sementara</b>; setelah investigasi, buat entri <b>final</b>{' '}
+									baru (tidak menimpa yang lama) agar bisa dibandingkan.
+								</p>
+
+								{resolutions.length === 0 ? (
+									<div className="rounded-lg border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+										Belum ada berita acara. Klik "Buat" untuk mengisi data kejadian, korban, dan foto.
+									</div>
+								) : (
+									<div className="space-y-3">
+										{resolutions.map((r) => (
+											<div key={r.id} className="rounded-lg border border-border bg-muted/40 p-3">
+												<div className="flex items-center justify-between gap-2">
+													<Badge
+														className={cn(
+															'rounded-md border px-2 py-0.5 text-xs font-semibold shadow-none',
+															r.status === 'final'
+																? 'border-success/30 bg-success/10 text-success'
+																: 'border-warning/30 bg-warning/10 text-warning',
+														)}
+													>
+														{r.status === 'final' ? 'Final' : 'Sementara'}
+													</Badge>
+													<button
+														type="button"
+														onClick={() => setResolutionToDelete(r.id)}
+														className="text-muted-foreground transition-colors hover:text-destructive"
+														aria-label="Hapus entri"
+													>
+														<IconTrash className="h-4 w-4" />
+													</button>
+												</div>
+
+												<div className="mt-1 text-[10px] text-muted-foreground">
+													{r.creator ? `${r.creator} · ` : ''}
+													{fmtDateTime(r.created_at)}
+												</div>
+
+												<dl className="mt-2 space-y-1 text-xs">
+													{r.jenis_kejadian && (
+														<div className="flex gap-1.5">
+															<dt className="shrink-0 font-semibold text-muted-foreground">Jenis:</dt>
+															<dd className="text-foreground">{r.jenis_kejadian}</dd>
+														</div>
+													)}
+													{r.sumber_informasi && (
+														<div className="flex gap-1.5">
+															<dt className="shrink-0 font-semibold text-muted-foreground">Sumber:</dt>
+															<dd className="text-foreground">{r.sumber_informasi}</dd>
+														</div>
+													)}
+													{r.occurred_at && (
+														<div className="flex gap-1.5">
+															<dt className="shrink-0 font-semibold text-muted-foreground">Waktu:</dt>
+															<dd className="text-foreground">{fmtDateTime(r.occurred_at)}</dd>
+														</div>
+													)}
+													{(r.lokasi_alamat || r.kelurahan || r.kecamatan) && (
+														<div>
+															<dt className="font-semibold text-muted-foreground">Lokasi:</dt>
+															<dd className="mt-0.5 leading-relaxed text-foreground">
+																{r.lokasi_alamat && (
+																	<div className="whitespace-pre-line">{r.lokasi_alamat}</div>
+																)}
+																{(r.kelurahan || r.kecamatan) && (
+																	<div className="text-muted-foreground">
+																		{[r.kelurahan, r.kecamatan].filter(Boolean).join(', ')}
+																	</div>
+																)}
+															</dd>
+														</div>
+													)}
+													{(r.pemilik_nama || r.pemilik_umur) && (
+														<div className="flex gap-1.5">
+															<dt className="shrink-0 font-semibold text-muted-foreground">Pemilik:</dt>
+															<dd className="text-foreground">
+																{r.pemilik_nama || '-'}
+																{r.pemilik_umur ? ` (${r.pemilik_umur} th)` : ''}
+															</dd>
+														</div>
+													)}
+													{r.kerugian && (
+														<div className="flex gap-1.5">
+															<dt className="shrink-0 font-semibold text-muted-foreground">Kerugian:</dt>
+															<dd className="text-foreground">{r.kerugian}</dd>
+														</div>
+													)}
+													{r.tim_atensi && (
+														<div className="flex gap-1.5">
+															<dt className="shrink-0 font-semibold text-muted-foreground">Tim:</dt>
+															<dd className="text-foreground">{r.tim_atensi}</dd>
+														</div>
+													)}
+													{r.kronologi && (
+														<div className="flex gap-1.5">
+															<dt className="shrink-0 font-semibold text-muted-foreground">Kronologi:</dt>
+															<dd className="whitespace-pre-line text-foreground">{r.kronologi}</dd>
+														</div>
+													)}
+												</dl>
+
+												{r.victims.length > 0 && (
+													<div className="mt-2 border-t border-border pt-2">
+														<div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+															Korban ({r.victims.length})
+														</div>
+														<div className="mt-1 space-y-1.5">
+															{r.victims.map((v) => (
+																<div
+																	key={v.id}
+																	className="flex items-center justify-between gap-2 text-xs"
+																>
+																	<span className="min-w-0 truncate text-foreground">
+																		{v.nama || '-'}
+																		{v.tanggal_lahir ? ` · ${fmtDate(v.tanggal_lahir)}` : ''}
+																	</span>
+																	{v.ktp_url && (
+																		<a
+																			href={v.ktp_url}
+																			target="_blank"
+																			rel="noopener noreferrer"
+																			className="shrink-0 font-semibold text-info hover:underline"
+																		>
+																			Lihat KTP
+																		</a>
+																	)}
+																</div>
+															))}
+														</div>
+													</div>
+												)}
+
+												{r.photos.length > 0 && (
+													<div className="mt-2 border-t border-border pt-2">
+														<div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+															Foto kejadian ({r.photos.length})
+														</div>
+														<div className="mt-1.5 flex flex-wrap gap-1.5">
+															{r.photos.map((p) => (
+																<button
+																	key={p.id}
+																	type="button"
+																	onClick={() => setModalPhoto(p.path)}
+																	className="h-14 w-14 overflow-hidden rounded-md border border-border"
+																>
+																	<img
+																		src={`/storage/${p.path}`}
+																		alt="Foto kejadian"
+																		className="h-full w-full object-cover"
+																	/>
+																</button>
+															))}
+														</div>
+													</div>
+												)}
+											</div>
+										))}
+									</div>
+								)}
+							</CardContent>
+						</Card>
+					)}
 				</div>
 			</div>
 
@@ -1258,6 +1467,37 @@ export default function ReportShow(props) {
 								disabled={isActionLoading}
 							>
 								{isActionLoading ? <IconLoader2 className="h-4 w-4 animate-spin" /> : 'Ya, Selesaikan'}
+							</Button>
+						</div>
+					</div>
+				</DialogContent>
+			</Dialog>
+
+			<Dialog open={resolutionToDelete !== null} onOpenChange={(open) => !open && setResolutionToDelete(null)}>
+				<DialogContent className="max-w-sm rounded-xl border border-border bg-card p-6 shadow-none">
+					<div className="flex flex-col items-center space-y-4 text-center">
+						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+							<IconTrash className="h-6 w-6" />
+						</div>
+						<h2 className="text-lg font-bold text-foreground">Hapus Entri Berita Acara?</h2>
+						<p className="text-sm leading-relaxed text-muted-foreground">
+							Entri ini beserta data korban & fotonya akan dihapus permanen. Tindakan tidak dapat
+							dibatalkan.
+						</p>
+						<div className="mt-2 flex w-full gap-3 border-t border-border pt-4">
+							<Button
+								onClick={() => setResolutionToDelete(null)}
+								variant="outline"
+								className="h-10 flex-1 border-border bg-transparent text-foreground/80 shadow-none"
+							>
+								Batal
+							</Button>
+							<Button
+								onClick={handleDeleteResolution}
+								className="h-10 flex-1 bg-destructive font-bold text-destructive-foreground shadow-none hover:bg-destructive/90"
+								disabled={isDeletingResolution}
+							>
+								{isDeletingResolution ? <IconLoader2 className="h-4 w-4 animate-spin" /> : 'Ya, Hapus'}
 							</Button>
 						</div>
 					</div>

@@ -2,7 +2,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import { Badge } from '@/Components/ui/badge';
 import { Card, CardContent } from '@/Components/ui/card';
 import AppLayout from '@/Layouts/AppLayout';
-import { cn, GEO_OPTIONS, MAP_TILE_URL } from '@/lib/utils';
+import { cn, GEO_OPTIONS, MAP_TILE_URL, reportNumber } from '@/lib/utils';
 import { Head, Link } from '@inertiajs/react';
 import {
 	IconAlertCircle,
@@ -208,6 +208,9 @@ export default function PetugasDashboard({ auth, activeMissions = [] }) {
 												<IconFiretruck className="h-4 w-4 text-destructive" />
 												{mission.title}
 											</h4>
+											<p className="mt-0.5 font-mono text-xs font-semibold text-muted-foreground">
+												{reportNumber(mission)}
+											</p>
 											<div className="mt-2 flex flex-col gap-1.5 text-xs font-medium text-muted-foreground sm:flex-row sm:items-center sm:gap-3">
 												<span className="flex items-center gap-1.5 truncate">
 													<IconMapPin className="h-4 w-4 shrink-0" />

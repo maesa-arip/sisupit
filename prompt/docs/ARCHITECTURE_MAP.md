@@ -38,6 +38,8 @@ app/
     ReportController.php        CRUD laporan darurat (front-facing, milik user sendiri)
     ReportActionController.php  Workflow status: approve/reject/takeAction/cancelResponse/
                                  arrive/resolve/updateLocation/correctLocation
+    ReportResolutionController.php  Berita Acara/Laporan Kegiatan Penyelamatan (FINDINGS #39):
+                                 create/store/destroy + ktp (streaming KTP dari disk privat)
     DashboardController.php     3 varian dashboard berbeda per role (lihat alur di bawah)
     HomeController.php          Landing publik (/) + Spotlight (/spotlight) + chart statistik;
                                 landing() redirect WebView (UA∋SisupitApp) ke spotlight/dashboard
@@ -79,6 +81,7 @@ docker/osrm/      Self-hosted routing (OSRM Bali, MLD) — RUNNING lokal :5001 (
 |-------|----------------|-----------|
 | Laporan Darurat | CRUD laporan milik sendiri (status TERLAPOR→pending→handling→resolved/ditolak). Edit (TASK_16/#30) = pelapor saja & hanya saat TERLAPOR: konten + kelola galeri foto, lokasi tak diubah | `app/Http/Controllers/ReportController.php` |
 | Workflow Respons | approve/reject/takeAction/cancelResponse/arrive/resolve/updateLocation/correctLocation. `reject` (TASK_10) = status `ditolak` (arsip). `cancelResponse` (TASK_13) = batal meluncur saat `en_route` (revert handling→pending bila responder terakhir mundur). take-action/arrive ter-scope wilayah laporan (TASK_12) | `app/Http/Controllers/ReportActionController.php` |
+| Berita Acara | Laporan Kegiatan Penyelamatan yang diisi petugas pasca-insiden (FINDINGS #39). Append-only: entri `sementara` (data awal) & `final` (hasil investigasi) disimpan terpisah. Korban banyak; foto KTP di disk privat + route bergerbang. `resolve()` TIDAK diubah — berita acara diisi belakangan | `app/Http/Controllers/ReportResolutionController.php`, `resources/js/Pages/Front/Reports/Resolution/Create.jsx` |
 | Tracking Lokasi | Riwayat append-only + broadcast WebSocket ke command center. Status laporan juga disiarkan real-time via `ReportStatusChanged` (TASK_14) di channel privat yang sama → halaman Show update tanpa refresh | `app/Models/TrackingLog.php`, `app/Events/ResponderLocationUpdated.php`, `app/Events/ReportStatusChanged.php` |
 | Fasilitas Fisik | Hydrant, Pompa, PosPemadam — CRUD admin ter-scope yurisdiksi + tampilan publik | `app/Http/Controllers/Admin/{HydrantController,PompaController,PosPemadamController}.php`, `app/Http/Controllers/Front/*` |
 | RBAC Dinamis | Role, Permission, AssignPermission, AssignUser, RouteAccess | `app/Http/Controllers/Admin/*`, `app/Policies/UserPolicy.php` |
@@ -154,6 +157,9 @@ Model yang **sengaja global** (tidak pakai Tenantable): `Setting`, `RouteAccess`
 | User | hasMany Report, SocialAccount, FcmToken; belongsTo Province/City/District/Village (kode wilayah); roles via Spatie | Tidak pakai `Tenantable`, filter wilayah manual (`scopeIsAdmin`) |
 | Report | hasMany ReportHelper (`helpers()`), ReportOfficer (`officers()`), **ReportPhoto (`photos()`)**; belongsTo User + wilayah | Pakai `Tenantable` + `SoftDeletes`; status string (TERLAPOR/pending/handling/resolved/**ditolak**), bukan enum (lihat CONVENTIONS). `ditolak` (TASK_10) + kolom `rejected_reason`/`rejected_at`. Galeri foto via `report_photos` (TASK_07); kolom `photo` = sampul (foto pertama) |
 | ReportPhoto | belongsTo Report | Galeri foto laporan (TASK_07, FINDINGS #17). Tabel `report_photos` (report_id cascade, path) |
+| ReportResolution | belongsTo Report, User (creator); hasMany ReportVictim, ReportResolutionPhoto | Berita Acara/Laporan Kegiatan Penyelamatan (FINDINGS #39). **Append-only**: `report_id` TIDAK unik — banyak entri `sementara`/`final` per laporan agar bisa dibandingkan. Field terstruktur (jenis_kejadian, sumber_informasi, occurred_at, lokasi, pemilik, kerugian, tim_atensi, kronologi) |
+| ReportVictim | belongsTo ReportResolution | Identitas korban per berita acara (bisa banyak). `ktp_path` di disk **privat** (`local`), hanya diakses lewat route `reports.resolution.ktp` bergerbang role+yurisdiksi (PII) |
+| ReportResolutionPhoto | belongsTo ReportResolution | Foto kejadian per berita acara (disk public, pola report_photos) |
 | ReportOfficer | belongsTo Report, User | Eloquent model ADA, tapi `ReportActionController` mengakses tabel `report_officers` via `DB::table()` mentah, bukan model ini — dua jalur akses ke data yang sama |
 | ReportHelper | belongsTo Report, User; fillable: location_lat, location_lng, status | Dipakai sebagai Eloquent di `ReportHelperController`, tapi sebagai raw table di `ReportActionController` — sama seperti di atas |
 | TrackingLog | belongsTo Report, User | Append-only (riwayat GPS), tidak ada update/delete |
@@ -182,7 +188,8 @@ auth (login saja)       : POST /fcm-token, POST /notifications/{id}/read & /noti
                            padahal memanggil $request->user() — lihat FINDINGS_LOG #4)
 auth+verified           : /dashboard, /reports/* (CRUD milik sendiri + approve/reject/take-action/
                            cancel-response/dispatch-unit/release-unit/arrive/resolve/update-location/
-                           correct-location), /profile/*,
+                           correct-location/resolution[create,store,destroy]/victims/{v}/ktp
+                           — 4 terakhir = Berita Acara FINDINGS #39, staf+yurisdiksi), /profile/*,
                            /complete-profile, /volunteer/register, /volunteer/standby,
                            /helpers/create, /users/relawan/{user}, /users/detail/{user}
                            (2 terakhir TANPA role check — FINDINGS_LOG #1, P0)

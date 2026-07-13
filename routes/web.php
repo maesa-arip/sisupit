@@ -21,6 +21,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportActionController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReportResolutionController;
 use App\Http\Controllers\ReportHelperController;
 use App\Http\Controllers\VolunteerController;
 use Illuminate\Http\Request;
@@ -169,6 +170,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Koreksi Titik Insiden oleh Responder yang Sudah Tiba di Lokasi
     Route::post('/reports/{report}/correct-location', [ReportActionController::class, 'correctLocation'])->name('reports.correct-location');
+
+    // Berita Acara / Laporan Kegiatan Penyelamatan (FINDINGS #39). Append-only: tiap simpan
+    // = entri baru (sementara/final). KTP korban di disk privat, hanya lewat route ktp.
+    Route::get('/reports/{report}/resolution/create', [ReportResolutionController::class, 'create'])->name('reports.resolution.create');
+    Route::post('/reports/{report}/resolution', [ReportResolutionController::class, 'store'])->name('reports.resolution.store');
+    Route::delete('/reports/{report}/resolution/{resolution}', [ReportResolutionController::class, 'destroy'])->name('reports.resolution.destroy');
+    Route::get('/reports/{report}/victims/{victim}/ktp', [ReportResolutionController::class, 'ktp'])->name('reports.resolution.ktp');
 });
 
 Route::middleware(['auth', 'verified'])->controller(UserController::class)->group(function () {

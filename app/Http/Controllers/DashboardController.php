@@ -88,6 +88,7 @@ class DashboardController extends Controller
                 'lat' => $report->lat,
                 'lng' => $report->lng,
                 'time' => $report->created_at->diffForHumans(),
+                'created_at' => $report->created_at,
                 'status' => $report->status,
             ]);
 

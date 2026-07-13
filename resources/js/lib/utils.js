@@ -62,6 +62,15 @@ export function timeAgo(value) {
 	return new Date(value).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+// Nomor laporan yang bisa dibacakan warga ke Damkar. Sumber kebenaran tunggal untuk
+// formatnya (mula-mula dihitung inline di halaman Thanks) → dipakai konsisten di detail,
+// antrean admin, dan dasbor petugas. Murni turunan dari id + tahun created_at (tak disimpan).
+export function reportNumber(report) {
+	if (!report?.id) return '-';
+	const year = report.created_at ? new Date(report.created_at).getFullYear() : new Date().getFullYear();
+	return `LP-${year}-${String(report.id).padStart(5, '0')}`;
+}
+
 // Ambil satu fix GPS untuk lapor darurat: coba akurat & segar dulu; jika gagal atau
 // timeout, jatuh SEKALI ke mode akurasi-rendah (jaringan) sebelum menyerah. Mengembalikan
 // Promise<GeolocationPosition>. Mempercepat fix pertama (mis. cold start di WebView).

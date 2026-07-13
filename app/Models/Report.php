@@ -69,6 +69,12 @@ class Report extends Model
         return $this->hasMany(ReportUnit::class, 'report_id', 'id');
     }
 
+    // Berita Acara / Laporan Kegiatan Penyelamatan (append-only: entri sementara & final).
+    public function resolutions(): HasMany
+    {
+        return $this->hasMany(ReportResolution::class, 'report_id', 'id');
+    }
+
     // 3. Relasi ke wilayah
     public function province()
     {
