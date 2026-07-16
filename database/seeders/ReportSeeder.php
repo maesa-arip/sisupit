@@ -40,10 +40,17 @@ class ReportSeeder extends Seeder
         // Utamakan responder ber-yurisdiksi Kota Denpasar (city_code 5171); fallback ke semua.
         $denpasarWarga = $wargaList->where('city_code', '5171')->values();
         $denpasarWarga = $denpasarWarga->isNotEmpty() ? $denpasarWarga : $wargaList;
+        // Responder WAJIB ber-yurisdiksi Kota Denpasar (city_code 5171). SENGAJA tanpa fallback
+        // ke kota lain: relawan/petugas luar Denpasar tak akan pernah bisa merespons insiden
+        // Denpasar lewat alur normal (takeAction cek withinReportJurisdiction), jadi menaruh
+        // mereka di seed = state mustahil. Bila pool kosong → surface sebagai setup error.
         $denpasarRelawan = $relawanAll->where('city_code', '5171')->values();
-        $denpasarRelawan = $denpasarRelawan->isNotEmpty() ? $denpasarRelawan : $relawanAll;
         $denpasarPetugas = $petugasAll->where('city_code', '5171')->values();
-        $denpasarPetugas = $denpasarPetugas->isNotEmpty() ? $denpasarPetugas : $petugasAll;
+        if ($denpasarRelawan->isEmpty() || $denpasarPetugas->isEmpty()) {
+            $this->command->error('Tidak ada relawan/petugas Kota Denpasar (city_code 5171). Jalankan UserTenantSeeder dulu.');
+
+            return;
+        }
 
         $incidentTypes = [
             'Kebakaran Pemukiman', 'Pohon Tumbang', 'Evakuasi Hewan Liar',
@@ -113,8 +120,15 @@ class ReportSeeder extends Seeder
                 continue;
             }
 
-            $assignedPetugas = $denpasarPetugas->shuffle()->take(rand(1, 2));
-            $assignedRelawan = $denpasarRelawan->shuffle()->take(rand(2, 4));
+            // Utamakan responder yang BENAR-BENAR berwenang atas laporan ini (aturan yang sama
+            // dengan takeAction: withinReportJurisdiction). Bila tak ada yang cocok pada level
+            // spesifiknya (mis. tak ada relawan terdaftar di kelurahan insiden), fallback ke pool
+            // Kota Denpasar — dengan arrive berbasis KEANGGOTAAN, responder yang sudah commit tetap
+            // bisa menuntaskan misinya tanpa 403.
+            $eligiblePetugas = $denpasarPetugas->filter(fn ($u) => $u->withinReportJurisdiction($report))->values();
+            $eligibleRelawan = $denpasarRelawan->filter(fn ($u) => $u->withinReportJurisdiction($report))->values();
+            $assignedPetugas = ($eligiblePetugas->isNotEmpty() ? $eligiblePetugas : $denpasarPetugas)->shuffle()->take(rand(1, 2));
+            $assignedRelawan = ($eligibleRelawan->isNotEmpty() ? $eligibleRelawan : $denpasarRelawan)->shuffle()->take(rand(2, 4));
 
             foreach ($assignedPetugas as $petugas) {
                 $this->assignResponder($report, $petugas, 'petugas', $status, $createdAt, false);

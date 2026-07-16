@@ -124,6 +124,8 @@ export default function ReportShow(props) {
 	// banyak entri (sementara/final) yang bisa dibandingkan.
 	const resolutions = props.resolutions || [];
 	const canManageResolution = props.canManageResolution || false;
+	// Pejabat daerah: boleh MELIHAT berita acara (read-only) tapi tanpa tombol Buat/Hapus.
+	const canViewResolution = props.canViewResolution || canManageResolution;
 	const [resolutionToDelete, setResolutionToDelete] = useState(null);
 	const [isDeletingResolution, setIsDeletingResolution] = useState(false);
 
@@ -299,7 +301,21 @@ export default function ReportShow(props) {
 				preserveScroll: true,
 				onSuccess: () => {
 					setConfirmResolve(false);
-					toast.success('Insiden dinyatakan selesai.');
+					// Hand-off langsung ke Laporan Kegiatan Penyelamatan: begitu insiden ditutup,
+					// laporan hilang dari daftar misi aktif — beri jalur satu-ketuk ke form berita
+					// acara agar petugas tak perlu mencarinya lagi. Hanya untuk staf berwenang.
+					if (canManageResolution) {
+						toast.success('Insiden dinyatakan selesai.', {
+							description: 'Lengkapi Laporan Kegiatan Penyelamatan.',
+							duration: 8000,
+							action: {
+								label: 'Isi Sekarang',
+								onClick: () => router.visit(route('reports.resolution.create', report.id)),
+							},
+						});
+					} else {
+						toast.success('Insiden dinyatakan selesai.');
+					}
 				},
 				onFinish: () => setIsActionLoading(false),
 			},
@@ -1187,30 +1203,36 @@ export default function ReportShow(props) {
 						</CardContent>
 					</Card>
 
-					{/* --- 📝 LAPORAN KEGIATAN PENYELAMATAN / BERITA ACARA (staf saja) --- */}
-					{canManageResolution && (reportStatus === 'resolved' || reportStatus === 'handling') && (
+					{/* --- 📝 LAPORAN KEGIATAN PENYELAMATAN / BERITA ACARA (staf kelola, pejabat read-only) --- */}
+					{canViewResolution && (reportStatus === 'resolved' || reportStatus === 'handling') && (
 						<Card className="rounded-xl border border-border bg-card shadow-none">
 							<CardContent className="space-y-3 p-4 sm:p-5">
 								<div className="flex items-center justify-between gap-2">
 									<h2 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-foreground">
 										<IconFileText className="h-4 w-4 text-info" /> Laporan Kegiatan Penyelamatan
 									</h2>
-									<Link
-										href={route('reports.resolution.create', report.id)}
-										className="inline-flex items-center gap-1 rounded-lg bg-info px-2.5 py-1.5 text-xs font-bold text-info-foreground shadow-none transition-colors hover:bg-info/90"
-									>
-										<IconPlus className="h-3.5 w-3.5" /> Buat
-									</Link>
+									{canManageResolution && (
+										<Link
+											href={route('reports.resolution.create', report.id)}
+											className="inline-flex items-center gap-1 rounded-lg bg-info px-2.5 py-1.5 text-xs font-bold text-info-foreground shadow-none transition-colors hover:bg-info/90"
+										>
+											<IconPlus className="h-3.5 w-3.5" /> Buat
+										</Link>
+									)}
 								</div>
 
-								<p className="text-[11px] leading-relaxed text-muted-foreground">
-									Data awal diisi sebagai <b>sementara</b>; setelah investigasi, buat entri <b>final</b>{' '}
-									baru (tidak menimpa yang lama) agar bisa dibandingkan.
-								</p>
+								{canManageResolution && (
+									<p className="text-[11px] leading-relaxed text-muted-foreground">
+										Data awal diisi sebagai <b>sementara</b>; setelah investigasi, buat entri <b>final</b>{' '}
+										baru (tidak menimpa yang lama) agar bisa dibandingkan.
+									</p>
+								)}
 
 								{resolutions.length === 0 ? (
 									<div className="rounded-lg border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
-										Belum ada berita acara. Klik "Buat" untuk mengisi data kejadian, korban, dan foto.
+										{canManageResolution
+											? 'Belum ada berita acara. Klik "Buat" untuk mengisi data kejadian, korban, dan foto.'
+											: 'Belum ada berita acara untuk insiden ini.'}
 									</div>
 								) : (
 									<div className="space-y-3">
@@ -1227,14 +1249,16 @@ export default function ReportShow(props) {
 													>
 														{r.status === 'final' ? 'Final' : 'Sementara'}
 													</Badge>
-													<button
-														type="button"
-														onClick={() => setResolutionToDelete(r.id)}
-														className="text-muted-foreground transition-colors hover:text-destructive"
-														aria-label="Hapus entri"
-													>
-														<IconTrash className="h-4 w-4" />
-													</button>
+													{canManageResolution && (
+														<button
+															type="button"
+															onClick={() => setResolutionToDelete(r.id)}
+															className="text-muted-foreground transition-colors hover:text-destructive"
+															aria-label="Hapus entri"
+														>
+															<IconTrash className="h-4 w-4" />
+														</button>
+													)}
 												</div>
 
 												<div className="mt-1 text-[10px] text-muted-foreground">

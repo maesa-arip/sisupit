@@ -50,3 +50,22 @@ it('lets superadmin view the report regardless of region', function () {
 it('lets the reporter view their own report even across tenant', function () {
     $this->actingAs($this->reporter)->get("/reports/show/{$this->report->id}")->assertOk();
 });
+
+// Pejabat daerah (pemantau read-only setara admin) boleh melihat detail insiden di WILAYAHNYA.
+// Skenario nyata: pejabat Kota Denpasar (city_code 5171) membuka laporan yang terjadi di Denpasar.
+it('lets a pejabat within jurisdiction view the report (read-only)', function () {
+    $pejabat = User::factory()->create(['city_code' => '5171']); // sekota dengan laporan
+    $pejabat->assignRole('pejabat');
+
+    $this->actingAs($pejabat)->get("/reports/show/{$this->report->id}")
+        ->assertOk()
+        // Bukan staf pengelola: tidak boleh diberi hak kelola berita acara.
+        ->assertInertia(fn ($page) => $page->where('canManageResolution', false));
+});
+
+it('blocks a pejabat from another region from viewing the report', function () {
+    $pejabatLuar = User::factory()->create(['city_code' => '3171']); // Jakarta
+    $pejabatLuar->assignRole('pejabat');
+
+    $this->actingAs($pejabatLuar)->get("/reports/show/{$this->report->id}")->assertForbidden();
+});

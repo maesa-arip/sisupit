@@ -22,3 +22,6 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+# Dokumen bisnis draft (kontrak PKS) — jangan masuk repo/riwayat git
+/Kontrak_Sisupit_Damkar_Denpasar*.docx
+/Kontrak_Sisupit_Damkar_Denpasar*.pdf

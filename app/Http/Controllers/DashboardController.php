@@ -92,8 +92,32 @@ class DashboardController extends Controller
                 'status' => $report->status,
             ]);
 
+            // Antrian pasca-insiden: laporan yang SUDAH selesai ditangani tapi berita acara
+            // (Laporan Kegiatan Penyelamatan) belum FINAL. Setelah resolve(), laporan hilang
+            // dari daftar misi aktif — tanpa antrian ini petugas kesulitan menemukannya lagi
+            // untuk melengkapi dokumentasi. Ter-scope wilayah sama dgn misi (selaras
+            // authorizeStaff di ReportResolutionController: staf dalam yurisdiksi laporan).
+            $queryPending = Report::where('status', 'resolved')
+                ->whereDoesntHave('resolutions', fn ($r) => $r->where('status', 'final'))
+                ->withCount('resolutions');
+            if ($levelCode) {
+                $queryPending->where($column, $levelCode);
+            }
+
+            $pendingResolutions = $queryPending->orderBy('updated_at', 'desc')->limit(20)->get()
+                ->map(fn ($report) => [
+                    'id' => $report->id,
+                    'title' => $report->title,
+                    'location' => $report->address,
+                    'time' => $report->updated_at->diffForHumans(),
+                    // Ada entri 'sementara' → tinggal dilengkapi jadi final; jika 0 → belum mulai.
+                    'has_draft' => $report->resolutions_count > 0,
+                    'created_at' => $report->created_at,
+                ]);
+
             return Inertia::render('Petugas/Dashboard', [
                 'activeMissions' => $activeMissions->toArray(),
+                'pendingResolutions' => $pendingResolutions->toArray(),
             ]);
         }
 

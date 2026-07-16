@@ -76,6 +76,11 @@ class ReportController extends Controller
         // PII/GPS lintas wilayah; pelapor & helper tetap boleh lewat relasi meski lintas tenant.
         $isReporter = $user->id === $report->user_id;
         $isStaff = $user->hasAnyRole(['admin', 'superadmin', 'petugas']) && $user->withinReportJurisdiction($report);
+        // Pejabat daerah (Bupati/Gubernur/Kadis) — pemantau READ-ONLY setara admin DI WILAYAHNYA,
+        // selaras DashboardController JALUR 1 yang sudah mengirim flag isPejabat. Boleh melihat
+        // detail & berita acara insiden di yurisdiksinya, TAPI tanpa aksi/kelola (di-gate terpisah
+        // via $isStaff, dan tombol aksi di frontend memang tidak menyertakan role pejabat).
+        $isPejabat = $user->hasRole('pejabat') && $user->withinReportJurisdiction($report);
         $isHelper = DB::table('report_helpers')->where('report_id', $report->id)->where('user_id', $user->id)->exists();
         // Relawan boleh memantau insiden di wilayahnya secara read-only untuk menilai
         // sebelum memutuskan meluncur (alur respons disatukan di halaman detail). Ter-scope
@@ -84,7 +89,7 @@ class ReportController extends Controller
             && $report->status !== 'ditolak'
             && $user->withinReportJurisdiction($report);
 
-        if (! $isReporter && ! $isStaff && ! $isHelper && ! $isRelawanInArea) {
+        if (! $isReporter && ! $isStaff && ! $isPejabat && ! $isHelper && ! $isRelawanInArea) {
             abort(403, 'Anda tidak memiliki wewenang untuk memantau insiden ini.');
         }
 
@@ -135,7 +140,7 @@ class ReportController extends Controller
         // Append-only: banyak entri (sementara/final), terbaru dulu. KTP korban TIDAK
         // dikirim sebagai path (PII); hanya URL route bergerbang saat foto tersedia.
         $resolutions = [];
-        if ($isStaff) {
+        if ($isStaff || $isPejabat) {
             $resolutions = ReportResolution::with(['victims', 'photos', 'creator:id,name'])
                 ->where('report_id', $report->id)
                 ->latest('id')
@@ -178,6 +183,8 @@ class ReportController extends Controller
             'canManageUnits' => $canManageUnits,
             'resolutions' => $resolutions,
             'canManageResolution' => $isStaff,
+            // Pejabat boleh MELIHAT berita acara (read-only), tapi tidak mengelola.
+            'canViewResolution' => $isStaff || $isPejabat,
         ]);
     }
 

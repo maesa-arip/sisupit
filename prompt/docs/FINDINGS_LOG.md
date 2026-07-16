@@ -688,3 +688,43 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **Catatan PII:** KTP tidak pernah dapat URL publik; hanya via `reports.resolution.ktp` (auth+role+yurisdiksi). `php artisan storage:link` tetap diperlukan untuk foto kejadian (public) di server, bukan untuk KTP.
 - **Sumber:** permintaan user 2026-07-12.
 - **Status:** SELESAI (fitur baru FIXED; verifikasi visual browser pending).
+
+### #40 — Petugas kesulitan menemukan laporan Selesai untuk isi Berita Acara
+- **Severity:** P2 (UX gap — jalur kerja terputus pasca-insiden)
+- **Konteks:** permintaan user 2026-07-15. Setelah petugas menandai insiden **Selesai** (`resolve()` → status `resolved`) dan kembali ke dashboard, laporan itu **hilang dari semua permukaan** yang biasa dipakai petugas, sehingga sulit ditemukan lagi untuk mengisi Laporan Kegiatan Penyelamatan (#39).
+- **Root cause:**
+  1. `DashboardController` (branch petugas) hanya query `whereIn('status', ['pending','handling','TERLAPOR'])` → begitu `resolved`, laporan lenyap dari banner, peta taktis, & daftar misi.
+  2. Satu-satunya pintu ke form berita acara ada di halaman **detail** (`Show.jsx` → `reports.resolution.create`); butuh entry point.
+  3. Nav "Arsip & Riwayat" → `front.reports.index?filter=mine` = `where user_id = petugas.id` (laporan yang DIA buat sbg pelapor), bukan yang dia tangani → laporan warga tak muncul.
+- **Fix (best practice: work-queue + hand-off, alur `resolve()` TIDAK diubah):**
+  - **A — Antrian dashboard.** `DashboardController` petugas kirim prop baru `pendingResolutions`: `Report::where('status','resolved')->whereDoesntHave('resolutions', status=final)->withCount('resolutions')`, ter-scope wilayah sama dgn `activeMissions`, urut `updated_at desc`, limit 20. `Petugas/Dashboard.jsx` tampilkan seksi **"Menunggu Berita Acara"** (hanya bila ada) dengan pill progres `has_draft` ("Draft tersimpan"/"Belum dibuat") + CTA satu-ketuk ke `reports.resolution.create`.
+  - **B — Hand-off saat resolve.** `Show.jsx executeResolve` onSuccess kini toast beraksi **"Isi Sekarang"** → `router.visit(reports.resolution.create)`, hanya bila `canManageResolution` (staf berwenang).
+- **Verifikasi:** `npm run build` lulus (client+SSR). `php artisan test` **146 passed** (465 assertions; +5 test baru `PetugasDashboardPendingResolutionTest`: muncul saat belum final, flag `has_draft` untuk entri sementara, tersembunyi saat sudah final, ter-scope yurisdiksi, laporan aktif tidak masuk queue). Verifikasi visual browser pending.
+- **Sumber:** permintaan user 2026-07-15.
+- **Status:** SELESAI (FIXED; verifikasi visual browser pending).
+
+### #41 — Pejabat daerah 403 saat membuka detail laporan di wilayahnya
+- **Severity:** P2 (akses terputus — role pemantau resmi tak bisa menjalankan fungsinya)
+- **Konteks:** permintaan user 2026-07-16. User menetapkan pejabat untuk **Kota Denpasar** (mis. `city_code 5171`). Dashboard pejabat (`Admin/Dashboard`) benar menampilkan daftar laporan Denpasar, tapi **klik salah satu → 403**. Ekspektasi: pejabat = akses **setara admin di yurisdiksinya, VIEW-ONLY**.
+- **Root cause:** `DashboardController` JALUR 1 sudah menyertakan role `pejabat` (dengan isolasi yurisdiksi + flag `isPejabat`), TAPI `ReportController::show` — satu-satunya gerbang halaman detail — hanya mengakui `['admin','superadmin','petugas']` sbg `$isStaff`. Role `pejabat` tak ada di daftar mana pun (bukan reporter/staff/helper/relawan) → `abort(403)`. Konsistensi role bocor: pola pejabat diterapkan di dashboard tapi tidak di halaman detail.
+- **Fix (minimal, meniru pola dashboard read-only):**
+  - `ReportController::show`: tambah `$isPejabat = hasRole('pejabat') && withinReportJurisdiction($report)`; masukkan ke gerbang akses; muat berita acara bila `$isStaff || $isPejabat`; prop baru `canViewResolution` (view) terpisah dari `canManageResolution` (kelola, tetap `$isStaff`). Flag aksi/dispatch tetap staf-saja → view-only otomatis.
+  - `Front/Reports/Show.jsx`: panel Berita Acara kini tampil untuk `canViewResolution`; tombol **Buat**, teks panduan, dan tombol **Hapus** disembunyikan bila `!canManageResolution`. Tombol aksi memang sudah di-gate `isStaffOrAdmin` (pejabat tak termasuk).
+  - `ReportResolutionController::ktp`: gerbang BACA baru `authorizeView` (staf ATAU pejabat, keduanya ter-yurisdiksi) agar link KTP dari tampilan pejabat tak 403; `create/store/destroy` tetap `authorizeStaff`.
+- **Verifikasi:** `php artisan test` (subset Report) **62 passed** (+2 test baru di `ReportShowJurisdictionTest`: pejabat sewilayah boleh lihat & `canManageResolution=false`, pejabat luar wilayah 403). `npm run build` lulus (client+SSR). Verifikasi visual browser pending.
+- **Sumber:** permintaan user 2026-07-16.
+- **Status:** SELESAI (FIXED; verifikasi visual browser pending).
+
+### #42 — `arrive` menolak responder yang sudah meluncur (403) saat kode wilayahnya beda dari kelurahan insiden
+- **Severity:** P2 (alur misi terputus — responder yang sudah commit tak bisa menandai Tiba)
+- **Konteks:** permintaan user 2026-07-17. Dari data seeder, relawan yang bukan dari kelurahan insiden muncul berstatus "menuju lokasi" (`en_route`) pada insiden `handling`; saat klik **Tiba** → 403 "di luar wilayah penugasan".
+- **Root cause (dua lapis):**
+  1. **`arrive` adalah satu-satunya aksi in-mission yang masih cek yurisdiksi.** `takeAction` (gabung) benar memakai `ensureWithinJurisdiction`, TAPI `cancelResponse`/`updateLocation`/`correctLocation` semuanya berbasis KEANGGOTAAN (cek baris responder milik user). `arrive` malah ikut `ensureWithinJurisdiction` → ganjil sendiri. `withinReportJurisdiction` mencocokkan level PALING SPESIFIK user: relawan (punya `village_code`) dicek per-**kelurahan**, petugas (tanpa village) per-**kecamatan**. Bonus bug: `arrive` tak memverifikasi user memang responder → UPDATE 0-baris diam-diam tapi balas "sukses".
+  2. **Data seeder tak setia pada aturan app.** `ReportSeeder` memilih responder per-**kota** (5171) + fallback `: $relawanAll` (bisa tarik kota lain). Anchor insiden tersebar di 18 kelurahan / 4 kecamatan, sedangkan relawan seed hanya di 3 kelurahan & petugas hanya di kec. 517101 → mayoritas gagal `withinReportJurisdiction`. State ini mustahil lewat alur normal (takeAction memblokirnya di titik gabung).
+- **Best practice:** yurisdiksi menjaga saat **GABUNG** (takeAction); **keanggotaan** menjaga sisa siklus hidup misi. Sekali sah jadi responder, aksi lanjutan mengikuti keanggotaan, bukan lokasi terkini — konsisten dgn "pelapor selalu bisa lihat laporannya" & jawaban #41.
+- **Fix (A+B, keputusan user):**
+  - **A — `ReportActionController::arrive`:** ganti `ensureWithinJurisdiction` dgn gerbang keanggotaan (harus punya baris responder `en_route` di insiden ini), meniru `correctLocation`. Cek status `resolved/ditolak` tetap didahulukan. `ensureWithinJurisdiction` masih dipakai `takeAction`/`dispatchUnit`/`releaseUnit`.
+  - **B — `ReportSeeder`:** buang fallback lintas-kota (`: $relawanAll`/`$petugasAll`) — pool WAJIB Kota Denpasar, kosong → error. Assign per-laporan **utamakan** responder yang lolos `withinReportJurisdiction($report)`, fallback ke pool Denpasar untuk jaminan coverage (aman karena arrive kini berbasis keanggotaan). Catatan: relawan TIDAK bisa dibuat city-level (null village) karena `EnsureProfileComplete` tak mengecualikan relawan → jebakan loop "lengkapi profil".
+- **Verifikasi:** full `php artisan test` **149 passed** (480 assertions; +1 test `ReportResponderJurisdictionTest`: "committed responder mark arrival even if region no longer matches"). 16 test aksi/yurisdiksi/cancel/notif tetap hijau. Lint bersih. Verifikasi visual browser + reseed manual pending.
+- **Sumber:** permintaan user 2026-07-17.
+- **Status:** SELESAI (FIXED; verifikasi visual browser + reseed pending).

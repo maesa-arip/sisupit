@@ -9,6 +9,7 @@ import {
 	IconCheck,
 	IconChevronRight,
 	IconClock,
+	IconFileText,
 	IconFiretruck,
 	IconMapPin,
 	IconRadar,
@@ -28,7 +29,7 @@ function distanceKm(lat1, lng1, lat2, lng2) {
 	return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-export default function PetugasDashboard({ auth, activeMissions = [] }) {
+export default function PetugasDashboard({ auth, activeMissions = [], pendingResolutions = [] }) {
 	const user = auth.user;
 
 	// Ambil nama depan saja untuk sapaan
@@ -276,6 +277,75 @@ export default function PetugasDashboard({ auth, activeMissions = [] }) {
 					</CardContent>
 				</Card>
 			</div>
+
+			{/* --- MENUNGGU BERITA ACARA (insiden selesai, laporan kegiatan belum final) --- */}
+			{pendingResolutions.length > 0 && (
+				<div className="space-y-4">
+					<h2 className="flex items-center gap-2 px-1 text-lg font-semibold text-foreground">
+						<IconFileText className="h-5 w-5 text-warning" />
+						Menunggu Berita Acara
+						<span className="rounded-md bg-warning/15 px-2 py-0.5 text-xs font-bold text-warning">
+							{pendingResolutions.length}
+						</span>
+					</h2>
+					<p className="-mt-2 px-1 text-sm text-muted-foreground">
+						Insiden sudah selesai ditangani, tetapi Laporan Kegiatan Penyelamatan belum final. Lengkapi
+						dokumentasinya di sini.
+					</p>
+
+					<Card className="overflow-hidden rounded-xl border border-warning/30 bg-card shadow-sm">
+						<CardContent className="p-0">
+							<div className="flex flex-col">
+								{pendingResolutions.map((item) => (
+									<Link
+										key={item.id}
+										href={route('reports.resolution.create', item.id)}
+										className="group flex flex-col justify-between border-b border-border p-4 transition-all duration-200 last:border-b-0 hover:bg-warning/5 sm:flex-row sm:items-center sm:p-5"
+									>
+										<div className="min-w-0 flex-1 pr-4">
+											<h4 className="flex items-center gap-2 truncate text-sm font-bold text-foreground transition-colors group-hover:text-warning sm:text-base">
+												<IconFileText className="h-4 w-4 shrink-0 text-warning" />
+												{item.title}
+											</h4>
+											<p className="mt-0.5 font-mono text-xs font-semibold text-muted-foreground">
+												{reportNumber(item)}
+											</p>
+											<div className="mt-2 flex flex-col gap-1.5 text-xs font-medium text-muted-foreground sm:flex-row sm:items-center sm:gap-3">
+												<span className="flex items-center gap-1.5 truncate">
+													<IconMapPin className="h-4 w-4 shrink-0" />
+													<span className="truncate">{item.location}</span>
+												</span>
+												<span className="hidden text-muted-foreground/60 sm:inline">•</span>
+												<span className="flex shrink-0 items-center gap-1.5">
+													<IconCheck className="h-4 w-4 shrink-0 text-success" />
+													Selesai {item.time}
+												</span>
+											</div>
+										</div>
+
+										<div className="mt-4 flex w-full items-center justify-between gap-4 border-t border-border pt-3 sm:mt-0 sm:w-auto sm:justify-end sm:border-t-0 sm:pt-0">
+											<span
+												className={cn(
+													'rounded-md border px-2 py-0.5 text-xs font-semibold',
+													item.has_draft
+														? 'border-warning/30 bg-warning/10 text-warning'
+														: 'border-border bg-muted text-muted-foreground',
+												)}
+											>
+												{item.has_draft ? 'Draft tersimpan' : 'Belum dibuat'}
+											</span>
+											<div className="flex h-10 items-center justify-center gap-1.5 rounded-lg bg-warning px-4 text-xs font-bold uppercase tracking-wider text-warning-foreground transition-all group-hover:bg-warning/90">
+												{item.has_draft ? 'Lengkapi' : 'Buat Laporan'}
+												<IconChevronRight className="h-4 w-4" />
+											</div>
+										</div>
+									</Link>
+								))}
+							</div>
+						</CardContent>
+					</Card>
+				</div>
+			)}
 		</div>
 	);
 }

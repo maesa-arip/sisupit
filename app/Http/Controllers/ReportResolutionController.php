@@ -202,7 +202,7 @@ class ReportResolutionController extends Controller
     public function ktp($id, $victimId)
     {
         $report = Report::withoutGlobalScopes()->findOrFail($id);
-        $this->authorizeStaff($report);
+        $this->authorizeView($report);
 
         $victim = ReportVictim::whereHas('resolution', fn ($q) => $q->where('report_id', $report->id))
             ->findOrFail($victimId);
@@ -220,6 +220,18 @@ class ReportResolutionController extends Controller
     {
         $user = auth()->user();
         abort_unless($user->hasAnyRole(['petugas', 'admin', 'superadmin']), 403, 'Akses Ditolak.');
+        abort_unless($user->withinReportJurisdiction($report), 403, 'Insiden ini di luar wilayah penugasan Anda.');
+    }
+
+    /**
+     * Gerbang BACA (read-only) berita acara/KTP: staf ATAU pejabat daerah, keduanya dibatasi
+     * ke wilayah laporan. Pejabat setara admin dalam melihat, tapi TIDAK boleh mengelola —
+     * karena itu create/store/destroy tetap memakai authorizeStaff (selaras ReportController::show).
+     */
+    private function authorizeView(Report $report): void
+    {
+        $user = auth()->user();
+        abort_unless($user->hasAnyRole(['petugas', 'admin', 'superadmin', 'pejabat']), 403, 'Akses Ditolak.');
         abort_unless($user->withinReportJurisdiction($report), 403, 'Insiden ini di luar wilayah penugasan Anda.');
     }
 }

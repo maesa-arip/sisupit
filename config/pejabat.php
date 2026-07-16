@@ -16,7 +16,7 @@
 */
 
 return [
-    'nama' => env('PEJABAT_NAMA', 'I Made Triana, S.H., M.H.'),
+    'nama' => env('PEJABAT_NAMA', 'I Made Tirana, S.H., M.H.'),
 
     'jabatan' => env(
         'PEJABAT_JABATAN',

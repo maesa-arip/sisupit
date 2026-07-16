@@ -288,13 +288,29 @@ class ReportActionController extends Controller
         }
 
         $report = Report::withoutGlobalScopes()->findOrFail($id);
-        $this->ensureWithinJurisdiction($report, $user);
 
         if (in_array($report->status, ['resolved', 'ditolak'], true)) {
             abort(403, 'Insiden ini sudah ditutup.');
         }
 
         $table = $user->hasRole('petugas') ? 'report_officers' : 'report_helpers';
+
+        // Gerbang berbasis KEANGGOTAAN, bukan yurisdiksi: hanya responder yang MEMANG
+        // terdaftar & masih 'en_route' di insiden ini yang boleh menandai Tiba. Yurisdiksi
+        // sudah dijaga sekali saat GABUNG (takeAction); aksi lanjutan misi mengikuti
+        // keanggotaan — selaras cancelResponse, updateLocation, & correctLocation. Ini juga
+        // menutup UPDATE 0-baris diam-diam bila pemanggil bukan responder insiden ini, dan
+        // membuat responder yang sudah meluncur tetap bisa menuntaskan misinya walau kode
+        // wilayahnya berubah/berbeda dari kelurahan insiden.
+        $isEnRoute = DB::table($table)
+            ->where('report_id', $report->id)
+            ->where('user_id', $user->id)
+            ->where('status', 'en_route')
+            ->exists();
+
+        if (! $isEnRoute) {
+            abort(403, 'Hanya responder yang masih "Meluncur" di insiden ini yang bisa menandai Tiba.');
+        }
 
         // Apakah ini kedatangan PERTAMA di insiden ini (di kedua tabel responder)? Dicek
         // sebelum update agar notifikasi "responder tiba" ke pelapor hanya sekali.
