@@ -728,3 +728,13 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **Verifikasi:** full `php artisan test` **149 passed** (480 assertions; +1 test `ReportResponderJurisdictionTest`: "committed responder mark arrival even if region no longer matches"). 16 test aksi/yurisdiksi/cancel/notif tetap hijau. Lint bersih. Verifikasi visual browser + reseed manual pending.
 - **Sumber:** permintaan user 2026-07-17.
 - **Status:** SELESAI (FIXED; verifikasi visual browser + reseed pending).
+
+### #43 — "Lihat Semua Laporan" pemantau (pejabat/relawan) pakai tampilan sederhana, bukan ala admin/reports
+- **Severity:** P3 (konsistensi UX — pemantau tak dapat peta sebaran + triase seperti admin)
+- **Konteks:** permintaan user 2026-07-17. Dari dashboard, "Lihat Semua Laporan" pejabat (dan nav relawan) mengarah ke `front.reports.index` yang merender `Front/Reports/Index` (daftar polos), padahal admin dapat `Admin/Reports/Index` (peta + triase). `admin.reports.index` di-gate `role:admin|superadmin` → pejabat/relawan tak bisa pakai rute itu. Permintaan: samakan tampilan dgn admin/reports, disesuaikan role; utk pejabat/relawan teks aksi BUKAN "Tinjau & Verifikasi".
+- **Fix (DRY — pakai ulang komponen admin, parameter role):**
+  - `ReportController::index`: untuk `pejabat`/`relawan` (kecuali `filter=mine` → tetap "Riwayat Saya" milik sendiri) render `Admin/Reports/Index` via `monitoringIndex()` — ter-scope Tenantable, sembunyikan TERLAPOR+ditolak, `status` aktif=pending+handling, kirim `canVerify=false`, `canExport=false`, `indexRouteName='front.reports.index'`. Warga/petugas tetap `Front/Reports/Index`.
+  - `Admin/Reports/Index.jsx`: parameter `canVerify`/`canExport`/`indexRouteName` (default = perilaku admin lama). Efek saat pemantau: UseFilter & paginasi lewat `front.reports.index`; kebab Export & banner "menunggu verifikasi" disembunyikan; pill & legenda TERLAPOR dibuang; CTA urgent "Tinjau & Verifikasi" hanya bila `canVerify` — pemantau dapat tombol "Detail".
+- **Verifikasi:** `npm run build` lulus. `php artisan test` **153 passed** (full 149 + 4 test baru `ReportIndexRoleViewTest`: pejabat/relawan→Admin/Reports/Index canVerify=false, warga→Front/Reports/Index, relawan filter=mine→Front/Reports/Index). Verifikasi visual browser pending.
+- **Sumber:** permintaan user 2026-07-17.
+- **Status:** SELESAI (FIXED; verifikasi visual browser pending; belum di-commit/deploy).

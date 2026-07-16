@@ -32,6 +32,16 @@ class ReportController extends Controller
     {
         $user = auth()->user();
 
+        // Pemantau — pejabat (read-only) & relawan — melihat daftar laporan dengan tampilan
+        // SAMA seperti admin/reports (peta sebaran + triase), tapi disesuaikan perannya: tanpa
+        // aksi Verifikasi/Export, teks aksi "Detail" (bukan "Tinjau & Verifikasi"), dan laporan
+        // mentah (TERLAPOR)/ditolak tetap disembunyikan. Rute filter/paginasi pakai
+        // front.reports.index karena admin.reports.index di-gate role:admin|superadmin.
+        // Pengecualian tab "Riwayat Saya" (filter=mine) → biarkan jatuh ke daftar milik sendiri.
+        if ($user->hasAnyRole(['pejabat', 'relawan']) && request('filter') !== 'mine') {
+            return $this->monitoringIndex($user);
+        }
+
         $query = Report::query()
             ->with(['helpers.user'])
             ->filter(request()->only(['search']))
@@ -61,6 +71,53 @@ class ReportController extends Controller
                 'page' => request()->page ?? 1,
                 'search' => request()->search ?? '',
                 'load' => 10,
+            ],
+        ]);
+    }
+
+    /**
+     * Daftar laporan untuk PEMANTAU (pejabat read-only & relawan): tampilan sama dengan
+     * Admin/Reports/Index, ter-scope Tenantable (wilayah user, laporan mentah TERLAPOR &
+     * ditolak disembunyikan), dan tanpa afordans verifikasi/ekspor (di-gate di frontend via
+     * canVerify/canExport). 'aktif' = pending+handling (tanpa TERLAPOR, beda dari admin).
+     */
+    private function monitoringIndex(User $user): Response
+    {
+        $status = request('status') ?: 'aktif';
+
+        $reports = Report::query()
+            ->with('user:id,name')
+            ->filter(request()->only(['search']))
+            ->whereNotIn('status', ['TERLAPOR', 'ditolak'])
+            ->when($status !== 'Semua', function ($query) use ($status) {
+                if ($status === 'aktif') {
+                    $query->whereIn('status', ['pending', 'handling']);
+                } else {
+                    $query->where('status', $status);
+                }
+            })
+            ->latest('created_at')
+            ->paginate(request()->load ?? 10)
+            ->withQueryString();
+
+        return inertia('Admin/Reports/Index', [
+            'reports' => $reports,
+            'tenant_location' => [
+                'lat' => $user->lat ?? -8.650000,
+                'lng' => $user->lng ?? 115.220000,
+            ],
+            'menunggu_verifikasi' => 0,
+            'canVerify' => false,
+            'canExport' => false,
+            'indexRouteName' => 'front.reports.index',
+            'page_settings' => [
+                'title' => 'Pemantauan Laporan',
+                'subtitle' => 'Pantau laporan kejadian di wilayah Anda.',
+            ],
+            'state' => [
+                'search' => request()->search ?? '',
+                'status' => $status,
+                'load' => request()->load ?? 10,
             ],
         ]);
     }

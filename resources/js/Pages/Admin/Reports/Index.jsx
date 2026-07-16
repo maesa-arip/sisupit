@@ -138,11 +138,21 @@ export default function Index(props) {
 	const { data: reports, links, from, to, total } = props.reports;
 	const { tenant_location } = props;
 	const menungguVerifikasi = props.menunggu_verifikasi ?? 0;
+	// Default = perilaku admin (verifikator penuh). Pemantau (pejabat/relawan) mengirim
+	// canVerify/canExport=false + indexRouteName='front.reports.index' agar tak 403 di rute admin.
+	const canVerify = props.canVerify ?? true;
+	const canExport = props.canExport ?? true;
+	const indexRouteName = props.indexRouteName || 'admin.reports.index';
+	// Pemantau tak melihat antrean laporan mentah (TERLAPOR) — buang dari pill & legenda.
+	const statusOptions = canVerify ? STATUS_OPTIONS : STATUS_OPTIONS.filter((s) => s !== 'TERLAPOR');
+	const legendStatuses = canVerify
+		? ['TERLAPOR', 'pending', 'handling', 'resolved']
+		: ['pending', 'handling', 'resolved'];
 	const [params, setParams] = useState(props.state);
 	const [activeReportId, setActiveReportId] = useState(null);
 
 	UseFilter({
-		route: route('admin.reports.index'),
+		route: route(indexRouteName),
 		values: params,
 		only: ['reports'],
 	});
@@ -212,30 +222,34 @@ export default function Index(props) {
 					subtitle={props.page_settings.subtitle}
 					icon={IconClipboardPlus}
 				/>
-				{/* Export dipindah ke menu sekunder (kebab) agar tak bersaing dgn aksi triase. */}
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button variant="outline" size="icon" className="h-9 w-9" aria-label="Menu lainnya">
-							<IconDotsVertical className="size-4" />
-						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent align="end">
-						<DropdownMenuItem asChild>
-							<a
-								href={route('admin.reports.export', {
-									search: params?.search,
-									status: params?.status,
-								})}
-							>
-								<IconFileSpreadsheet className="size-4" /> Export Excel
-							</a>
-						</DropdownMenuItem>
-					</DropdownMenuContent>
-				</DropdownMenu>
+				{/* Export dipindah ke menu sekunder (kebab) agar tak bersaing dgn aksi triase.
+				    Hanya untuk verifikator (admin) — pemantau tak punya rute admin.reports.export. */}
+				{canExport && (
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button variant="outline" size="icon" className="h-9 w-9" aria-label="Menu lainnya">
+								<IconDotsVertical className="size-4" />
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end">
+							<DropdownMenuItem asChild>
+								<a
+									href={route('admin.reports.export', {
+										search: params?.search,
+										status: params?.status,
+									})}
+								>
+									<IconFileSpreadsheet className="size-4" /> Export Excel
+								</a>
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				)}
 			</div>
 
-			{/* Header triase: berapa laporan MENUNGGU VERIFIKASI (TERLAPOR). Klik → filter TERLAPOR. */}
-			{menungguVerifikasi > 0 && (
+			{/* Header triase: berapa laporan MENUNGGU VERIFIKASI (TERLAPOR). Klik → filter TERLAPOR.
+			    Hanya untuk verifikator — pemantau (pejabat/relawan) tak punya aksi verifikasi. */}
+			{canVerify && menungguVerifikasi > 0 && (
 				<button
 					type="button"
 					onClick={() => setParams((prev) => ({ ...prev, status: 'TERLAPOR' }))}
@@ -265,7 +279,7 @@ export default function Index(props) {
 							/>
 						</div>
 						<div className="flex flex-wrap gap-1.5">
-							{STATUS_OPTIONS.map((status) => {
+							{statusOptions.map((status) => {
 								const isActive = params?.status === status;
 								const dot = STATUS_META[status]?.dot;
 								return (
@@ -392,7 +406,7 @@ export default function Index(props) {
 													className="flex items-center justify-end gap-2"
 													onClick={(e) => e.stopPropagation()}
 												>
-													{isUrgent ? (
+													{isUrgent && canVerify ? (
 														<Button
 															size="sm"
 															asChild
@@ -477,7 +491,7 @@ export default function Index(props) {
 							<h2 className="text-sm font-semibold text-foreground">Peta Sebaran Laporan</h2>
 						</div>
 						<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-semibold text-muted-foreground">
-							{['TERLAPOR', 'pending', 'handling', 'resolved'].map((status) => (
+							{legendStatuses.map((status) => (
 								<span key={status} className="flex items-center gap-1">
 									<span
 										className={cn('inline-block h-2 w-2 rounded-full', STATUS_META[status].dot)}
