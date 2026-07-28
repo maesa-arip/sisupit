@@ -98,6 +98,13 @@
 	* {
 		@apply border-border;
 	}
+	/* Cegah "pull-to-refresh" browser mobile (swipe ke bawah di ujung atas) yang bikin
+	   scroll ke atas terasa aneh / malah me-refresh halaman. `contain` mematikan refresh &
+	   scroll-chaining ke luar dokumen, tapi scroll normal di dalam tetap jalan. */
+	html,
+	body {
+		overscroll-behavior-y: contain;
+	}
 	body {
 		@apply bg-background text-foreground;
 	}
