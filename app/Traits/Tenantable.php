@@ -42,6 +42,14 @@ trait Tenantable
 
                     return;
                 }
+
+                // User login TANPA kode wilayah sama sekali & BUKAN superadmin → JANGAN beri
+                // akses nasional. Ini bug nyata: akun Google/pendaftar yang belum melengkapi
+                // profil (village_code null) tadinya lolos semua filter = melihat SELURUH data
+                // nasional (termasuk PII laporan). Kembalikan hasil KOSONG; akses baru terbuka
+                // setelah wilayah diisi di complete-profile. Superadmin sudah bypass di atas.
+                // Guest (auth tak login) tak masuk blok ini → halaman publik fasilitas tetap normal.
+                $builder->whereRaw('1 = 0');
             }
         });
     }

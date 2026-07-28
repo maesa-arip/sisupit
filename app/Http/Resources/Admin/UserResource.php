@@ -27,7 +27,11 @@ class UserResource extends JsonResource
             'address' => $this->address,
             'created_at' => $this->created_at->format('d M Y'),
             'roles' => $this->roles->pluck('name'),
-            'region' => $this->village?->name ?? $this->district?->name ?? $this->city?->name ?? $this->province?->name ?? 'Nasional',
+            // Hanya superadmin yang benar-benar "Nasional". User lain tanpa kode wilayah =
+            // belum melengkapi profil (akses justru KOSONG, lihat scopeIsAdmin/Tenantable #44) —
+            // jangan dilabeli "Nasional" yang menyesatkan.
+            'region' => $this->village?->name ?? $this->district?->name ?? $this->city?->name ?? $this->province?->name
+                ?? ($this->hasRole('superadmin') ? 'Nasional' : 'Belum diisi'),
             // Rank wilayah terdalam (desa=4 … provinsi=1, 0 jika tanpa wilayah) — dipakai
             // dialog penetapan peran untuk membatasi tingkat yurisdiksi yang bisa dipilih.
             'region_level' => $this->village_code ? 4 : ($this->district_code ? 3 : ($this->city_code ? 2 : ($this->province_code ? 1 : 0))),

@@ -30,7 +30,8 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 		if (auth?.user?.district_code) return `Kecamatan`;
 		if (auth?.user?.city_code) return `Kabupaten/Kota`;
 		if (auth?.user?.province_code) return `Provinsi`;
-		return 'Pusat (Nasional)';
+		// Hanya superadmin yang benar-benar nasional; admin tanpa wilayah = belum diisi (#44).
+		return (auth?.user?.role || []).includes('superadmin') ? 'Pusat (Nasional)' : 'Belum diisi';
 	};
 
 	const currentStats = stats || { active_reports: 0, standby_helpers: 0, active_hydrants: 0, resolved_this_month: 0 };

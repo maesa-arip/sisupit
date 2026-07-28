@@ -35,8 +35,9 @@ class ProfileController extends Controller
 
     /**
      * Susun cakupan yurisdiksi akun untuk ditampilkan di profil: daftar level wilayah yang
-     * terisi (nama) + level paling spesifik sebagai cakupan kewenangan. Selaras dengan logika
-     * di User::withinReportJurisdiction() — akun tanpa kode wilayah berarti cakupan nasional.
+     * terisi (nama) + level paling spesifik sebagai cakupan kewenangan. Akun tanpa kode wilayah:
+     * hanya SUPERADMIN yang benar-benar nasional; user lain "Belum diisi" (aksesnya justru kosong,
+     * lihat scopeIsAdmin/Tenantable #44) — jangan ditampilkan "Nasional" yang menyesatkan.
      */
     private function resolveJurisdiction(\App\Models\User $user): array
     {
@@ -50,7 +51,8 @@ class ProfileController extends Controller
         $scopeLevel = $user->village_code ? 'Desa/Kelurahan'
             : ($user->district_code ? 'Kecamatan'
             : ($user->city_code ? 'Kabupaten/Kota'
-            : ($user->province_code ? 'Provinsi' : 'Nasional')));
+            : ($user->province_code ? 'Provinsi'
+            : ($user->hasRole('superadmin') ? 'Nasional' : 'Belum diisi'))));
 
         // Nama wilayah pada level terspesifik (= cakupan kewenangan). Mis. cakupan desa →
         // nama desa, cakupan kecamatan → nama kecamatan, dst.

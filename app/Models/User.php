@@ -78,6 +78,11 @@ class User extends Authenticatable implements MustVerifyEmail
             $query->where('city_code', $admin->city_code);
         } elseif ($admin->province_code) {
             $query->where('province_code', $admin->province_code);
+        } else {
+            // Admin non-superadmin TANPA kode wilayah → JANGAN beri daftar NASIONAL (analog
+            // bug #44 di Tenantable): mis. akun yang belum melengkapi wilayah tak boleh melihat
+            // seluruh pengguna nasional. Kosongkan; superadmin sudah bypass di atas.
+            $query->whereRaw('1 = 0');
         }
 
         return $query;
@@ -86,9 +91,10 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Apakah user ini berwenang atas insiden DI WILAYAH laporan. Sumber kebenaran tunggal
      * untuk pembatasan yurisdiksi laporan (dipakai di ReportActionController,
-     * ReportController::show, dan routes/channels.php). Superadmin & user tanpa kode wilayah
-     * (admin nasional) selalu true, mengikuti pola bypass Tenantable/scopeIsAdmin. Untuk
-     * staf wilayah, level paling spesifik user dicocokkan dengan kolom laporan yang sederajat.
+     * ReportController::show, dan routes/channels.php). HANYA superadmin yang lintas wilayah;
+     * user tanpa kode wilayah (mis. akun belum melengkapi profil) TIDAK berwenang atas laporan
+     * mana pun (#44 — jangan beri akses nasional). Untuk staf wilayah, level paling spesifik
+     * user dicocokkan dengan kolom laporan yang sederajat.
      */
     public function withinReportJurisdiction(Report $report): bool
     {
@@ -102,7 +108,8 @@ class User extends Authenticatable implements MustVerifyEmail
             : ($this->province_code ? 'province_code' : null)));
 
         if ($column === null) {
-            return true;
+            // Non-superadmin tanpa kode wilayah → bukan wewenang atas laporan apa pun.
+            return false;
         }
 
         return $this->{$column} === $report->{$column};
