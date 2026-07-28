@@ -21,7 +21,11 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : BELUM DIPILIH — TASK_10, 06, 11, 14, 12, 13, 07, 15, 16 SELESAI
+Task aktif   : TASK_18 (prompt/tasks/TASK_18_edition_sewa_beli.md) — TODO, dokumen rencana
+                selesai 2026-07-28, BELUM ada kode. Lapisan edition sewa/beli + hak eksit;
+                kerjakan slice 1 (edition/features + guard #45) & slice 4 (tenant:export) dulu.
+                TASK_17 multi-tenant subdomain SELESAI slice 1-3 (2026-07-25, belum di-commit).
+                Sebelumnya: TASK_10, 06, 11, 14, 12, 13, 07, 15, 16 SELESAI
                 2026-06-28 (9 task) + TASK_09 armada/Unit SELESAI 2026-06-29.
                 TASK_08 (chat) DITUNDA atas keputusan user.
                 #9 mass-reformat Pint/Prettier SELESAI 2026-06-29 (PR formatting terpisah).
