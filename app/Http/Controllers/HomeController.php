@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Report;
+use App\Models\Tenant;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -39,9 +40,7 @@ class HomeController extends Controller
     {
         return inertia('Landing', [
             'page_data' => [
-                'total_reports' => Report::count(),
-                'total_handled_reports' => Report::where('status', 'TERKENDALI')->count(),
-                'total_users' => $this->countRespondersByRole(),
+                ...$this->pageStats(),
             ],
         ]);
     }
@@ -55,9 +54,7 @@ class HomeController extends Controller
             ],
             'page_data' => [
                 'reportChart' => $this->chart(),
-                'total_reports' => Report::count(),
-                'total_handled_reports' => Report::where('status', 'TERKENDALI')->count(),
-                'total_users' => $this->countRespondersByRole(),
+                ...$this->pageStats(),
             ],
         ]);
     }
@@ -71,11 +68,35 @@ class HomeController extends Controller
             ],
             'page_data' => [
                 'reportChart' => $this->chart(),
-                'total_reports' => Report::count(),
-                'total_handled_reports' => Report::where('status', 'TERKENDALI')->count(),
-                'total_users' => $this->countRespondersByRole(),
+                ...$this->pageStats(),
             ],
         ]);
+    }
+
+    /**
+     * Statistik publik. Di-scope ke kota tenant HANYA bila request datang dari subdomain
+     * tenant (badung.sisupit.com → angka Badung); apex/unknown → null → GLOBAL (perilaku
+     * lama tak berubah). Keputusan TASK_17.
+     */
+    private function tenantCityCode(): ?string
+    {
+        return Tenant::resolveFromHost(request()->getHost())?->city_code;
+    }
+
+    private function pageStats(): array
+    {
+        $cityCode = $this->tenantCityCode();
+
+        return [
+            'total_reports' => Report::query()
+                ->when($cityCode, fn ($q) => $q->where('city_code', $cityCode))
+                ->count(),
+            'total_handled_reports' => Report::query()
+                ->when($cityCode, fn ($q) => $q->where('city_code', $cityCode))
+                ->where('status', 'TERKENDALI')
+                ->count(),
+            'total_users' => $this->countRespondersByRole($cityCode),
+        ];
     }
 
     /**
@@ -83,22 +104,23 @@ class HomeController extends Controller
      * (e.g. fresh install before RolePermissionSeeder runs), which would crash this
      * public landing page. whereHas() on the relation simply returns 0 instead.
      */
-    private function countRespondersByRole(): int
+    private function countRespondersByRole(?string $cityCode = null): int
     {
-        return User::whereHas('roles', function ($query) {
-            $query->whereIn('name', ['petugas', 'relawan']);
-        })->count();
+        return User::query()
+            ->when($cityCode, fn ($q) => $q->where('city_code', $cityCode))
+            ->whereHas('roles', function ($query) {
+                $query->whereIn('name', ['petugas', 'relawan']);
+            })->count();
     }
 
     public function chart(): array
     {
         $end_date = Carbon::now();
         $start_date = $end_date->copy()->subMonth()->startOfMonth();
+        $cityCode = $this->tenantCityCode();
         $reports = Report::query()
             ->selectRaw('DATE(created_at) as date, COUNT(*) as total')
-            // ->when(auth()->user()->hasAnyRole(['god']), function ($query) {
-            //     return $query;
-            // })
+            ->when($cityCode, fn ($query) => $query->where('city_code', $cityCode))
             ->whereBetween('created_at', [$start_date, $end_date])
             ->groupBy('date')
             ->orderBy('date')
@@ -106,6 +128,7 @@ class HomeController extends Controller
 
         $handled_reports = Report::query()
             ->selectRaw('DATE(created_at) as date, COUNT(*) as total')
+            ->when($cityCode, fn ($query) => $query->where('city_code', $cityCode))
             ->where('status', 'TERKENDALI')
             ->whereNotNull('created_at')
             ->whereBetween('created_at', [$start_date, $end_date])

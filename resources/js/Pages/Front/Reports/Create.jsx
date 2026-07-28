@@ -80,6 +80,8 @@ export default function Create(props) {
 
 	// Pastikan Controller mengirim data 'provinces' agar sistem bisa memulai pencocokan
 	const provinces = props.provinces || [];
+	// Kabupaten yang sudah bekerjasama (TASK_17) → notice arah laporan berdasarkan pin.
+	const registeredTenants = props.registered_tenants || [];
 
 	const [userLocation, setUserLocation] = useState(null);
 	const [locationLoading, setLocationLoading] = useState(true);
@@ -390,6 +392,10 @@ export default function Create(props) {
 	// saat yurisdiksi (province_code) terisi dari titik yang benar.
 	const locState = locationLoading ? 'scanning' : !userLocation ? 'failed' : data.province_code ? 'ready' : 'weak';
 
+	// Notice arah laporan (TASK_17): begitu kota (city_code) ter-resolve dari pin, tampilkan
+	// tujuan. Kota tanpa tenant terdaftar → warga diarahkan ke 112 (jujur, tanpa jaminan palsu).
+	const matchedTenant = data.city_code ? registeredTenants.find((t) => t.city_code === data.city_code) : null;
+
 	const submitLabel = 'Kirim Laporan Darurat';
 
 	return (
@@ -473,6 +479,27 @@ export default function Create(props) {
 								<p className="mt-1.5 text-xs text-muted-foreground">
 									Titik kurang tepat? Geser pin merah di peta untuk mengoreksi lokasi.
 								</p>
+
+								{/* Notice arah laporan berdasarkan kota kejadian (TASK_17) */}
+								{data.city_code &&
+									(matchedTenant ? (
+										<div className="flex items-start gap-2 rounded-md border border-success/30 bg-success/10 p-2.5 text-[13px] text-success">
+											<IconMapPinFilled className="mt-0.5 h-4 w-4 shrink-0" />
+											<span>
+												Laporan akan diarahkan ke{' '}
+												<span className="font-semibold">{matchedTenant.nama_instansi}</span>.
+											</span>
+										</div>
+									) : (
+										<div className="flex items-start gap-2 rounded-md border border-warning/30 bg-warning/10 p-2.5 text-[13px] text-warning">
+											<IconAlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+											<span>
+												Kabupatenmu belum terdaftar di layanan ini. Laporan tetap tercatat, namun
+												untuk darurat segera hubungi{' '}
+												<span className="font-bold text-destructive">112</span>.
+											</span>
+										</div>
+									))}
 
 								{/* Data Administratif (DISEMBUNYIKAN SEPENUHNYA DARI USER) */}
 								<input type="hidden" name="lat" value={data.lat} />

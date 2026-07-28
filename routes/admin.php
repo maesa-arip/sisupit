@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\RouteAccessController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -73,6 +74,16 @@ Route::middleware(['auth', 'verified', 'role:admin|superadmin'])->prefix('admin'
         Route::controller(SettingController::class)->group(function () {
             Route::get('settings', 'edit')->name('admin.settings.edit');
             Route::put('settings', 'update')->name('admin.settings.update');
+        });
+
+        // Tenant per kabupaten/kota (TASK_17) — identitas publik lintas-tenant, superadmin saja.
+        Route::controller(TenantController::class)->group(function () {
+            Route::get('tenants', 'index')->name('admin.tenants.index');
+            Route::get('tenants/create', 'create')->name('admin.tenants.create');
+            Route::post('tenants/create', 'store')->name('admin.tenants.store');
+            Route::get('tenants/edit/{tenant}', 'edit')->name('admin.tenants.edit');
+            Route::put('tenants/edit/{tenant}', 'update')->name('admin.tenants.update');
+            Route::delete('tenants/destroy/{tenant}', 'destroy')->name('admin.tenants.destroy');
         });
     });
 });

@@ -1,5 +1,6 @@
 import NavLink from '@/Components/NavLink';
 import {
+	IconBuildingCommunity,
 	IconClipboardPlus,
 	IconDashboard,
 	IconDroplet,
@@ -212,6 +213,12 @@ export default function Sidebar({ url, auth }) {
 							/>
 
 							<NavHeading>Sistem</NavHeading>
+							<NavLink
+								url={route('admin.tenants.index')}
+								active={url.startsWith('/admin/tenants')}
+								title="Instansi / Kabupaten"
+								icon={IconBuildingCommunity}
+							/>
 							<NavLink
 								url={route('admin.settings.edit')}
 								active={url.startsWith('/admin/settings')}

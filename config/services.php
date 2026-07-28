@@ -74,4 +74,12 @@ return [
         'tile_url' => env('MAP_TILE_URL', 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'),
     ],
 
+    'tenant' => [
+        // Domain dasar (registrable) untuk multi-tenant per kabupaten (TASK_17). Subdomain
+        // di-strip dari Host memakai nilai ini: badung.sisupit.com → subdomain "badung".
+        // Bila kosong, Tenant::subdomainFromHost() jatuh ke host APP_URL. Set di prod
+        // (mis. TENANT_BASE_DOMAIN=sisupit.com). Lokal bisa pakai lvh.me / *.sisupit.test.
+        'base_domain' => env('TENANT_BASE_DOMAIN'),
+    ],
+
 ];

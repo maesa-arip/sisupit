@@ -1,10 +1,16 @@
 import { Button } from '@/Components/ui/button';
 import AppLayout from '@/Layouts/AppLayout';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { IconBrandAndroid, IconFlame, IconPhoneCall, IconShieldCheck } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 
 export default function Spotlight(props) {
+	// Wajah publik kabupaten (TASK_17) dari shared prop: judul & nomor darurat ikut subdomain.
+	const tenant = usePage().props.tenant || {};
+	const namaInstansi = tenant.nama_instansi || 'Damkar Kota Denpasar';
+	const teleponDarurat = tenant.telepon_darurat || '(0361) 223333';
+	const telHref = `tel:${teleponDarurat.replace(/[^0-9+]/g, '')}`;
+
 	const [isWebView, setIsWebView] = useState(true);
 
 	useEffect(() => {
@@ -24,7 +30,7 @@ export default function Spotlight(props) {
 			{/* --- HEADER TEKS BARU (TAKTIS & TEGAS) --- */}
 			<div className="mt-4 space-y-2">
 				<h1 className="text-2xl font-black uppercase tracking-tight text-foreground sm:text-3xl">
-					Damkar Kota Denpasar
+					{namaInstansi}
 				</h1>
 
 				<p className="text-sm font-bold text-destructive sm:text-base">
@@ -77,11 +83,11 @@ export default function Spotlight(props) {
 				</Button>
 
 				<a
-					href="tel:0361223333"
+					href={telHref}
 					className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-border bg-card text-sm font-semibold text-muted-foreground shadow-none transition-colors hover:border-destructive/40 hover:text-destructive"
 				>
 					<IconPhoneCall className="h-4 w-4 text-destructive" stroke={2} />
-					Darurat tanpa internet? <span className="font-bold text-destructive">(0361) 223333</span>
+					Darurat tanpa internet? <span className="font-bold text-destructive">{teleponDarurat}</span>
 				</a>
 
 				{!isWebView && (

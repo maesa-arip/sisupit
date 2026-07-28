@@ -46,6 +46,12 @@ class HandleInertiaRequests extends Middleware
                 'message' => $request->session()->get('message'),
             ],
             'announcemet' => fn () => Announcement::query()->where('is_active', true)->first(),
+            // Wajah publik tenant (TASK_17): dipakai Spotlight/branding. Di-resolve dari
+            // subdomain oleh ResolveTenant; apex → default (Denpasar, kosmetik).
+            'tenant' => fn () => currentTenant()->only([
+                'nama_instansi', 'pejabat_nama', 'pejabat_jabatan', 'pejabat_foto',
+                'telepon_darurat', 'subdomain', 'city_code',
+            ]),
             // Lonceng notifikasi web (FINDINGS #25): daftar terbaru + jumlah belum dibaca.
             'notifications' => fn () => $request->user()
                 ? $request->user()->notifications()->latest()->take(8)->get()->map(fn ($n) => [

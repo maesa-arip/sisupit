@@ -10,7 +10,10 @@ import { Fragment } from 'react';
 // setelah submit selalu "Laporan Masuk" (status TERLAPOR).
 const STEPS = ['Laporan Masuk', 'Terverifikasi', 'Penanganan', 'Selesai'];
 
-export default function ReportThanks({ report, pejabat, teleponDarurat }) {
+// Foto pejabat: path publik statis (/images/..) atau hasil upload di disk public (tenants/..).
+const fotoUrl = (path) => (!path || path.startsWith('http') || path.startsWith('/') ? path : `/storage/${path}`);
+
+export default function ReportThanks({ report, pejabat, namaInstansi, teleponDarurat, cityCode, isPartner }) {
 	const submittedAt = new Intl.DateTimeFormat('id-ID', {
 		dateStyle: 'long',
 		timeStyle: 'short',
@@ -123,22 +126,26 @@ export default function ReportThanks({ report, pejabat, teleponDarurat }) {
 					</CardContent>
 				</Card>
 
-				{/* 3. Footer Otoritas & Kontrak (legitimasi instansi + pejabat, tanpa logo pariwisata) */}
+				{/* 3. Footer Otoritas & Kontrak (legitimasi instansi + pejabat, tanpa logo pariwisata).
+				    Instansi/pejabat berasal dari kota LAPORAN (tenant), bukan hardcode Denpasar. */}
 				<div className="flex flex-col items-center justify-between gap-4 rounded-2xl border border-border bg-card px-5 py-4 sm:flex-row sm:gap-5">
 					{/* Kiri: Legitimasi Instansi */}
 					<div className="flex items-center gap-3">
-						<span className="flex h-12 w-12 shrink-0 items-center justify-center">
-							<img
-								src="/images/lambang-denpasar.png"
-								alt="Lambang Kota Denpasar"
-								loading="lazy"
-								className="max-h-11 w-auto"
-							/>
-						</span>
+						{/* Lambang kota spesifik hanya untuk Denpasar (aset tersedia). Kota lain: mark Damkar generik. */}
+						{cityCode === '5171' && (
+							<span className="flex h-12 w-12 shrink-0 items-center justify-center">
+								<img
+									src="/images/lambang-denpasar.png"
+									alt="Lambang Kota Denpasar"
+									loading="lazy"
+									className="max-h-11 w-auto"
+								/>
+							</span>
+						)}
 						<span className="flex h-12 w-12 shrink-0 items-center justify-center">
 							<img
 								src="/images/damkar-mark.png"
-								alt="Pemadam Kebakaran Kota Denpasar"
+								alt="Pemadam Kebakaran"
 								loading="lazy"
 								className="max-h-12 w-auto"
 							/>
@@ -147,25 +154,35 @@ export default function ReportThanks({ report, pejabat, teleponDarurat }) {
 							<span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
 								Layanan Resmi
 							</span>
-							<span className="whitespace-nowrap text-sm font-semibold text-foreground">
-								Pemerintah Kota Denpasar
-							</span>
+							<span className="text-sm font-semibold text-foreground">{namaInstansi}</span>
 						</div>
 					</div>
 
-					{/* Kanan: Otoritas Pejabat (sesuai kontrak). Foto potret kotak membulat, urut foto→nama. */}
-					<div className="flex w-full items-center gap-3 border-t border-border pt-4 sm:w-auto sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
-						<img
-							src={pejabat.foto}
-							alt={`Foto ${pejabat.nama}`}
-							loading="lazy"
-							className="h-28 w-24 shrink-0 rounded-lg object-cover object-top ring-1 ring-border"
-						/>
-						<div className="min-w-0 leading-tight">
-							<p className="text-sm font-bold text-foreground">{pejabat.nama}</p>
-							<p className="mt-0.5 text-xs leading-snug text-muted-foreground">{pejabat.jabatan}</p>
+					{/* Kanan: Otoritas Pejabat (dari tenant). Kabupaten non-partner: pesan 112, tanpa pejabat. */}
+					{isPartner && pejabat ? (
+						<div className="flex w-full items-center gap-3 border-t border-border pt-4 sm:w-auto sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
+							{pejabat.foto && (
+								<img
+									src={fotoUrl(pejabat.foto)}
+									alt={`Foto ${pejabat.nama}`}
+									loading="lazy"
+									className="h-28 w-24 shrink-0 rounded-lg object-cover object-top ring-1 ring-border"
+								/>
+							)}
+							<div className="min-w-0 leading-tight">
+								<p className="text-sm font-bold text-foreground">{pejabat.nama}</p>
+								<p className="mt-0.5 text-xs leading-snug text-muted-foreground">{pejabat.jabatan}</p>
+							</div>
 						</div>
-					</div>
+					) : (
+						<div className="flex w-full items-start gap-2 border-t border-border pt-4 text-xs text-muted-foreground sm:w-auto sm:max-w-xs sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
+							<IconInfoCircle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+							<span>
+								Layanan langsung Damkar di wilayah ini belum aktif. Untuk darurat hubungi{' '}
+								<span className="font-bold text-destructive">112</span>.
+							</span>
+						</div>
+					)}
 				</div>
 			</div>
 		</>

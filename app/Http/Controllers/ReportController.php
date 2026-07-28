@@ -8,6 +8,7 @@ use App\Http\Requests\ReportRequest;
 use App\Models\Report;
 use App\Models\ReportResolution;
 use App\Models\Setting;
+use App\Models\Tenant;
 use App\Models\TrackingLog;
 use App\Models\Unit;
 use App\Models\User;
@@ -260,6 +261,9 @@ class ReportController extends Controller
                 'action' => route('front.reports.store'),
             ],
             'provinces' => $provinces,
+            // Daftar kabupaten yang sudah bekerjasama (TASK_17) → form menampilkan notice
+            // "laporan akan diarahkan ke Damkar X" / "belum terdaftar" begitu pin ter-resolve.
+            'registered_tenants' => Tenant::where('is_active', true)->get(['city_code', 'subdomain', 'nama_instansi']),
         ]);
     }
 
@@ -307,6 +311,14 @@ class ReportController extends Controller
                 Notification::send($commandCenterUsers, new EmergencyAlertNotification($report, 'petugas'));
             }
 
+            // Redirect-saat-save ke subdomain tenant (TASK_17) agar Thanks tampil dengan
+            // branding kabupaten kejadian. HANYA saat TENANT_BASE_DOMAIN di-set (produksi
+            // multi-tenant + SESSION_DOMAIN=.domain agar login/flash selamat lintas-subdomain);
+            // di lokal/testing (base_domain kosong) tetap redirect internal biasa.
+            if ($redirect = $this->crossSubdomainThanksRedirect($request, $report)) {
+                return $redirect;
+            }
+
             return to_route('front.reports.thanks', $report->id);
         } catch (Throwable $e) {
             flashMessage(MessageType::ERROR->message(error: $e->getMessage()), 'error');
@@ -326,7 +338,7 @@ class ReportController extends Controller
         // Bypass Tenantable agar bisa dicari via ID (withoutGlobalScopes — aturan
         // emas #7: wajib recheck otorisasi manual di bawah).
         $report = Report::withoutGlobalScopes()
-            ->select('id', 'user_id', 'title', 'created_at')
+            ->select('id', 'user_id', 'title', 'created_at', 'city_code')
             ->findOrFail($id);
 
         $user = auth()->user();
@@ -336,19 +348,50 @@ class ReportController extends Controller
             abort(403, 'Anda tidak memiliki wewenang untuk melihat laporan ini.');
         }
 
+        // Pejabat/nomor/instansi SELALU dari kota LAPORAN (pin), bukan subdomain yang dibuka
+        // (TASK_17) — jadi selalu akurat wilayah kejadian. Kabupaten non-partner (belum punya
+        // tenant): nomor jatuh ke 112 nasional, pejabat kosong (jangan tampilkan nomor kota lain).
+        $tenant = Tenant::forCity($report->city_code);
+
         return inertia('Front/Reports/Thanks', [
             'report' => [
                 'id' => $report->id,
                 'title' => $report->title,
                 'created_at' => $report->created_at,
             ],
-            'pejabat' => [
-                'nama' => config('pejabat.nama'),
-                'jabatan' => config('pejabat.jabatan'),
-                'foto' => config('pejabat.foto'),
-            ],
-            'teleponDarurat' => config('pejabat.telepon_darurat'),
+            'pejabat' => $tenant && $tenant->pejabat_nama ? [
+                'nama' => $tenant->pejabat_nama,
+                'jabatan' => $tenant->pejabat_jabatan,
+                'foto' => $tenant->pejabat_foto,
+            ] : null,
+            'namaInstansi' => $tenant?->nama_instansi ?: 'Pemadam Kebakaran & Penyelamatan',
+            'teleponDarurat' => $tenant?->telepon_darurat ?: '112',
+            'cityCode' => $report->city_code,
+            'isPartner' => (bool) $tenant,
         ]);
+    }
+
+    /**
+     * Bila laporan jatuh di kabupaten tenant yang subdomain-nya BEDA dari host sekarang,
+     * kembalikan RedirectResponse lintas-subdomain ke halaman Thanks kabupaten itu (TASK_17).
+     * Aktif hanya bila TENANT_BASE_DOMAIN di-set (produksi). Null → pemanggil pakai redirect biasa.
+     */
+    private function crossSubdomainThanksRedirect(ReportRequest $request, Report $report): ?RedirectResponse
+    {
+        $base = config('services.tenant.base_domain');
+        if (! $base) {
+            return null; // lokal/testing single-host: tidak ada perpindahan subdomain.
+        }
+
+        $tenant = Tenant::forCity($report->city_code);
+        if (! $tenant || $tenant->subdomain === Tenant::subdomainFromHost($request->getHost())) {
+            return null; // non-partner, atau sudah di subdomain yang benar.
+        }
+
+        $url = $request->getScheme().'://'.$tenant->subdomain.'.'.$base
+            .route('front.reports.thanks', $report->id, false);
+
+        return redirect()->away($url);
     }
 
     // =========================================================================
