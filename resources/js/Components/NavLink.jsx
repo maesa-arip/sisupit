@@ -1,11 +1,24 @@
 import { cn } from '@/lib/utils';
 import { Link } from '@inertiajs/react';
 
-export default function NavLink({ active = false, url = '#', title, icon: Icon, className, ...props }) {
+export default function NavLink({
+	active = false,
+	url = '#',
+	title,
+	icon: Icon,
+	className,
+	// Kelas tambahan untuk label. Dipakai sidebar mode rail (tablet) untuk menyembunyikan
+	// teks lewat CSS saja — komponen yang sama tetap menampilkan label penuh di layar besar
+	// maupun di dalam Sheet menu mobile.
+	labelClassName,
+	...props
+}) {
 	return (
 		<Link
 			{...props}
 			href={url}
+			// Tooltip native: satu-satunya penanda tujuan saat label disembunyikan di mode rail.
+			title={typeof title === 'string' ? title : undefined}
 			className={cn(
 				// Base classes: w-full memastikan rentang full, overflow tersembunyi
 				'flex w-full items-center gap-3 rounded-xl p-3 font-medium outline-none transition-all focus-visible:ring-2 focus-visible:ring-destructive',
@@ -22,7 +35,7 @@ export default function NavLink({ active = false, url = '#', title, icon: Icon, 
 			{Icon && <Icon className="h-5 w-5 shrink-0" />}
 
 			{/* truncate memotong teks menjadi "..." jika melewati batas sidebar */}
-			<span className="truncate">{title}</span>
+			<span className={cn('truncate', labelClassName)}>{title}</span>
 		</Link>
 	);
 }

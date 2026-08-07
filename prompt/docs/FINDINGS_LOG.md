@@ -816,3 +816,15 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **Rencana fix:** isi `LEGAL_PENYEDIA_ALAMAT` (dan telepon) di `.env` produksi sesuai akta pendirian PT, lalu verifikasi tampilannya di `/syarat-ketentuan` bagian "Hubungi kami" dan "Kontak legal".
 - **Sumber:** permintaan user 2026-08-07.
 - **Status:** OPEN
+
+### #53 — Menu "Bantuan & Legal" tak terjangkau di mobile; menu admin menumpuk dalam popover
+- **Severity:** P2 (kepatuhan distribusi + UX; bukan keamanan)
+- **Konteks:** dilaporkan user 2026-08-07. Akar masalahnya duplikasi: `Sidebar.jsx` dan `MobileBottomNav.jsx` masing-masing memelihara daftar menu sendiri (komentar "Sinkronisasi dengan Sidebar" di `MobileBottomNav.jsx:32` menunjukkan ini sudah disadari). TASK_19 hanya menambah seksi "Bantuan & Legal" di `Sidebar.jsx`, sementara sidebar itu di-mount `hidden lg:block` (`AppLayout.jsx:107`) — hanya tampil ≥1024px.
+- **Dampak:**
+  1. Di bawah 1024px tak ada satu pun tautan Pusat Bantuan/S&K/Privasi/Tentang. Untuk NON-admin bahkan tak ada tombol menu sama sekali (`MobileBottomNav.jsx:386-392` langsung menjadi ikon Profil), sehingga warga/petugas/relawan di ponsel tak punya jalan ke halaman legal selain mengetik URL. APK sudah dibagikan dan Google mensyaratkan Kebijakan Privasi terjangkau dari dalam aplikasi.
+  2. Popover admin memuat sampai 13 item dalam panel `w-52` (208px) ber-`max-h-[70vh]` yang harus di-scroll — wadah yang salah untuk sebanyak itu (Material 3: bottom nav 3–5 destinasi, overflow ke panel penuh).
+  3. Tablet 768–1023px masuk zona mati: sidebar belum muncul, sedangkan bottom-nav dibatasi `max-w-md` (448px) di tengah layar selebar 1024px.
+- **Fix (2026-08-07):** `Sidebar` dijadikan SATU sumber kebenaran untuk semua ukuran layar — dipakai sebagai sidebar desktop, rail tablet (prop `compact`; label & judul seksi disembunyikan lewat arbitrary variant Tailwind, bukan cabang render terpisah), dan isi Sheet "Menu" pada bottom-nav. Slot ke-5 bottom-nav kini tombol "Menu" untuk SEMUA peran; popover admin 13 item dihapus. Breakpoint sidebar turun ke `md` (rail 80px) dan penuh di `lg`. Footer `AppLayout` mendapat baris tautan legal sebagai jaring pengaman lintas-ukuran, dan nama penyedia di footer ditarik dari `config/legal.php` lewat shared prop `penyedia_nama` — sebelumnya hardcoded "PT. Tawarin Dimana Saja", ejaan yang berbeda dari dokumen legal.
+- **Verifikasi:** `php artisan test` 182 passed (726 assertions), `npm run build` lulus (client + SSR), Pint & Prettier bersih. Markup diperiksa lewat render SSR sungguhan (login superadmin → `/dashboard`): kelas `md:block`/`lg:w-64` pada sidebar, `md:hidden` pada bar bawah, tombol `aria-label="Buka menu"`, seksi "Bantuan & Legal", dan keempat tautan legal di footer — semuanya ter-render, dan kelas responsifnya terbukti ada di CSS terkompilasi. **Sisa yang belum diverifikasi = perilaku interaktif & rupa visual** (Sheet membuka/menutup, keterbacaan rail) — daftar periksa manual di `prompt/tasks/TASK_20_navigasi_mobile_tablet.md`.
+- **Sumber:** laporan user 2026-08-07.
+- **Status:** SELESAI (FIXED).

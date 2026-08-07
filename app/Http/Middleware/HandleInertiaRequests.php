@@ -66,6 +66,10 @@ class HandleInertiaRequests extends Middleware
             'unread_notifications_count' => fn () => $request->user()
                 ? $request->user()->unreadNotifications()->count()
                 : 0,
+            // Nama badan hukum penyedia untuk footer layout. Dibagikan supaya nama ini hanya
+            // ditulis di satu tempat (config/legal.php) — sebelumnya ter-hardcode di AppLayout
+            // dengan ejaan yang berbeda dari dokumen legal.
+            'penyedia_nama' => fn () => config('legal.penyedia.nama'),
         ];
     }
 }

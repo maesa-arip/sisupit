@@ -21,8 +21,14 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : TASK_19 (prompt/tasks/TASK_19_halaman_legal_bantuan.md) — SELESAI 2026-08-04,
-                belum di-commit. Halaman legal/bantuan publik (S&K, Privasi, Pusat Bantuan,
+Task aktif   : TASK_20 (prompt/tasks/TASK_20_navigasi_mobile_tablet.md) — SELESAI 2026-08-07,
+                branch `feat/mobile-nav-legal`. Menu Bantuan & Legal kini terjangkau di
+                mobile lewat Sheet berisi <Sidebar/> yang sama (duplikasi daftar menu
+                dihapus), rail ikon untuk tablet md, tautan legal di footer AppLayout.
+                Temuan #53 FIXED. SISA: verifikasi visual responsif manual (daftar periksa
+                ada di file task) — repo tak punya browser automation.
+               TASK_19 (prompt/tasks/TASK_19_halaman_legal_bantuan.md) — SELESAI 2026-08-04,
+                DI-COMMIT 2026-08-07 (f5793c7). Halaman legal/bantuan publik (S&K, Privasi, Pusat Bantuan,
                 Tentang, Paket & Lisensi) + persetujuan S&K saat daftar. Kolom
                 `tenants.edition`/`features` + enum TenantEdition DIBUAT di sini (bagian
                 data TASK_18 slice 1); temuan #48 FIXED, #49/#50 dicatat OPEN.

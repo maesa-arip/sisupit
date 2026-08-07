@@ -4,7 +4,7 @@ import SoundNotificationControl from '@/Components/SoundNotificationControl';
 import ThemeSwitcher from '@/Components/ThemeSwitcher';
 import { Toaster } from '@/Components/ui/sonner';
 import { cn } from '@/lib/utils';
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { IconBell } from '@tabler/icons-react';
 import { useEffect } from 'react';
 import MobileBottomNav from './Partials/MobileBottomNav';
@@ -18,6 +18,9 @@ export default function AppLayout({ title, children }) {
 	const auth = usePage().props.auth?.user ?? null;
 	const notifications = usePage().props.notifications ?? [];
 	const unreadCount = usePage().props.unread_notifications_count ?? 0;
+	// Nama badan hukum penyedia dari config/legal.php (shared prop) — sebelumnya ter-hardcode
+	// di footer dengan ejaan yang berbeda dari dokumen legal.
+	const penyediaNama = usePage().props.penyedia_nama ?? 'PT Tawarin Dimana Aja';
 
 	useEffect(() => {
 		if (!auth) return;
@@ -102,30 +105,31 @@ export default function AppLayout({ title, children }) {
 			<Toaster position="top-center" richColors />
 			<SoundNotificationControl />
 
-			<div className="flex w-full min-h-screen bg-background">
-				{/* SIDEBAR */}
-				<div className="z-20 hidden w-64 border-r shrink-0 border-border bg-card lg:block">
-					<div className="sticky top-0 flex flex-col h-screen">
-						<div className="flex items-center h-16 px-6 border-b shrink-0 border-border">
+			<div className="flex min-h-screen w-full bg-background">
+				{/* SIDEBAR — rail ikon di tablet (md), penuh berlabel di ≥lg. Di bawah md
+				    navigasi dipegang MobileBottomNav. */}
+				<div className="z-20 hidden w-20 shrink-0 border-r border-border bg-card md:block lg:w-64">
+					<div className="sticky top-0 flex h-screen flex-col">
+						<div className="flex h-16 shrink-0 items-center border-b border-border px-6">
 							{/* <ApplicationLogo /> */}
 						</div>
 						<div className="flex-1 overflow-y-auto">
-							<Sidebar url={url} auth={auth} />
+							<Sidebar url={url} auth={auth} compact />
 						</div>
 					</div>
 				</div>
 
 				{/* AREA KONTEN UTAMA */}
-				<div className="flex flex-col flex-1 min-w-0 min-h-screen pb-20 lg:pb-0">
+				<div className="flex min-h-screen min-w-0 flex-1 flex-col pb-20 md:pb-0">
 					{/* HEADER */}
-					<header className="sticky top-0 z-40 flex items-center justify-between h-16 px-4 border-b border-border bg-background/95 backdrop-blur-md lg:px-8">
+					<header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur-md lg:px-8">
 						<ApplicationLogo />
 						<div className="flex items-center gap-2 lg:gap-4">
 							{auth && (
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild>
-										<button className="relative flex items-center justify-center transition-colors rounded-md outline-none h-9 w-9 hover:bg-accent focus-visible:ring-2 focus-visible:ring-muted-foreground/50">
-											<IconBell className="w-5 h-5 text-muted-foreground" />
+										<button className="relative flex h-9 w-9 items-center justify-center rounded-md outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-muted-foreground/50">
+											<IconBell className="h-5 w-5 text-muted-foreground" />
 											{unreadCount > 0 && (
 												<span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
 													{unreadCount > 9 ? '9+' : unreadCount}
@@ -135,9 +139,9 @@ export default function AppLayout({ title, children }) {
 									</DropdownMenuTrigger>
 									<DropdownMenuContent
 										align="end"
-										className="p-0 mt-2 overflow-hidden border shadow-md w-80 rounded-xl border-border bg-card"
+										className="mt-2 w-80 overflow-hidden rounded-xl border border-border bg-card p-0 shadow-md"
 									>
-										<div className="flex items-center justify-between px-4 py-3 border-b border-border">
+										<div className="flex items-center justify-between border-b border-border px-4 py-3">
 											<h4 className="text-sm font-bold text-foreground">Notifikasi</h4>
 											{unreadCount > 0 && (
 												<button
@@ -154,7 +158,7 @@ export default function AppLayout({ title, children }) {
 												</button>
 											)}
 										</div>
-										<div className="overflow-y-auto divide-y max-h-80 divide-border">
+										<div className="max-h-80 divide-y divide-border overflow-y-auto">
 											{notifications.length > 0 ? (
 												notifications.map((n) => (
 													<button
@@ -174,7 +178,7 @@ export default function AppLayout({ title, children }) {
 														{!n.read_at && (
 															<span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-destructive" />
 														)}
-														<div className="flex-1 min-w-0">
+														<div className="min-w-0 flex-1">
 															<p className="text-xs font-bold text-foreground">
 																{n.title}
 															</p>
@@ -269,7 +273,7 @@ export default function AppLayout({ title, children }) {
 							)} */}
 
 							{/* Divider */}
-							<div className="w-px h-5 mx-1 bg-border"></div>
+							<div className="mx-1 h-5 w-px bg-border"></div>
 
 							<ThemeSwitcher />
 						</div>
@@ -283,15 +287,34 @@ export default function AppLayout({ title, children }) {
 					)}
 
 					{/* MAIN CONTENT */}
-					<main className="flex-1 w-full mx-auto max-w-7xl">
+					<main className="mx-auto w-full max-w-7xl flex-1">
 						<div className="p-4 lg:p-8">{children}</div>
 					</main>
 
-					{/* FOOTER */}
-					<footer className="w-full px-4 py-6 mt-auto border-t shrink-0 border-border lg:px-8">
-						<p className="text-xs font-medium text-center text-muted-foreground lg:text-left">
-							&copy; {new Date().getFullYear()} Sisupit. Developed by PT. Tawarin Dimana Saja.
-						</p>
+					{/* FOOTER — tautan legal di sini adalah jaring pengaman yang muncul di SEMUA
+					    ukuran layar, tak bergantung sidebar maupun Sheet menu. */}
+					<footer className="mt-auto w-full shrink-0 border-t border-border px-4 py-6 lg:px-8">
+						<div className="flex flex-col items-center gap-3 lg:flex-row lg:justify-between">
+							<p className="text-center text-xs font-medium text-muted-foreground lg:text-left">
+								&copy; {new Date().getFullYear()} Sisupit. Dikembangkan oleh {penyediaNama}.
+							</p>
+							<nav className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+								{[
+									{ href: route('info.help'), label: 'Pusat Bantuan' },
+									{ href: route('info.terms'), label: 'Syarat & Ketentuan' },
+									{ href: route('info.privacy'), label: 'Kebijakan Privasi' },
+									{ href: route('info.about'), label: 'Tentang' },
+								].map((item) => (
+									<Link
+										key={item.href}
+										href={item.href}
+										className="text-xs font-medium text-muted-foreground transition-colors hover:text-destructive"
+									>
+										{item.label}
+									</Link>
+								))}
+							</nav>
+						</div>
 					</footer>
 				</div>
 			</div>

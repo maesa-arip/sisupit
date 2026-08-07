@@ -1,4 +1,5 @@
 import NavLink from '@/Components/NavLink';
+import { cn } from '@/lib/utils';
 import {
 	IconBuildingCommunity,
 	IconClipboardPlus,
@@ -26,7 +27,16 @@ import {
 	IconUsersGroup,
 } from '@tabler/icons-react';
 
-export default function Sidebar({ url, auth }) {
+/**
+ * Daftar navigasi tunggal untuk SELURUH ukuran layar — dipakai tiga kali:
+ *   - AppLayout ≥lg  : sidebar penuh berlabel
+ *   - AppLayout md   : rail ikon (`compact`), label & judul seksi disembunyikan lewat CSS
+ *   - MobileBottomNav: isi Sheet "Menu" (<md), selalu berlabel penuh
+ *
+ * Sengaja SATU komponen: sebelumnya bottom-nav menyimpan salinan daftar menunya sendiri,
+ * sehingga seksi "Bantuan & Legal" yang ditambahkan di sini tidak pernah muncul di mobile.
+ */
+export default function Sidebar({ url, auth, compact = false }) {
 	// 🛠️ Detektor Role Sapu Jagat (Kebal Segala Format Output Spatie)
 	const rawRoles = auth?.roles || auth?.role || auth?.user?.roles || auth?.user?.role || [];
 	const rolesArray = Array.isArray(rawRoles) ? rawRoles : [rawRoles];
@@ -45,15 +55,32 @@ export default function Sidebar({ url, auth }) {
 	// Peta Pemantauan = Pusat Komando + pejabat pemantau (selaras gating route front.monitoring.map).
 	const isCommandCenter = isStaff || userRoles.includes('pejabat');
 
-	// Komponen Header Seksi Menu (Tipografi Taktis/Militeristik)
+	// Komponen Header Seksi Menu (Tipografi Taktis/Militeristik). Di mode rail judulnya
+	// tak muat, jadi diganti garis pemisah tipis agar pengelompokan tetap terbaca.
 	const NavHeading = ({ children }) => (
-		<div className="mb-1 mt-6 px-3 py-2 text-[11px] font-black uppercase tracking-widest text-muted-foreground first:mt-2">
-			{children}
-		</div>
+		<>
+			{compact && <div className="mx-auto my-2 h-px w-8 shrink-0 bg-border lg:hidden" />}
+			<div
+				className={cn(
+					'mb-1 mt-6 px-3 py-2 text-[11px] font-black uppercase tracking-widest text-muted-foreground first:mt-2',
+					compact && 'hidden lg:block',
+				)}
+			>
+				{children}
+			</div>
+		</>
 	);
 
 	return (
-		<nav className="no-scrollbar flex w-full flex-col items-start gap-0.5 overflow-y-auto px-3 pb-24 text-sm lg:px-4">
+		<nav
+			className={cn(
+				'no-scrollbar flex w-full flex-col items-start gap-0.5 overflow-y-auto px-3 pb-24 text-sm lg:px-4',
+				// Mode rail (tablet): ikon saja di tengah, label disembunyikan lewat CSS —
+				// bukan cabang render terpisah, supaya tak ada dua daftar menu lagi.
+				compact &&
+					'items-center px-2 lg:items-start lg:px-4 [&>a]:justify-center lg:[&>a]:justify-start [&>button]:justify-center lg:[&>button]:justify-start [&_span]:hidden lg:[&_span]:inline',
+			)}
+		>
 			{/* --- SEKSI UTAMA --- */}
 			<NavHeading>Menu Utama</NavHeading>
 			<NavLink
