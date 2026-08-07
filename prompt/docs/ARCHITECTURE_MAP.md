@@ -71,10 +71,15 @@ resources/js/
   Pages/          Inertia pages: Admin/, Front/, Auth/, Petugas/, Profile/, Settings/ (dead, lihat CONVENTIONS)
   Components/ui/  38 komponen shadcn-style (Radix + cva)
   Layouts/        AppLayout (utama), AuthenticatedLayout (Breeze legacy), GuestLayout
-                  Navigasi = SATU daftar di Partials/Sidebar.jsx, dipakai 3x: sidebar penuh
-                  (≥lg), rail ikon (md, prop `compact`), dan isi Sheet "Menu" di
-                  Partials/MobileBottomNav.jsx (<md). Jangan bikin daftar menu kedua —
-                  duplikasi itu yang membuat menu legal tak muncul di mobile (FINDINGS #53).
+                  Navigasi = SATU daftar di Partials/navItems.js (buildNavSections). Jangan
+                  bikin daftar menu kedua — duplikasi itu yang membuat menu legal tak muncul
+                  di mobile (FINDINGS #53). Tiga permukaan MERENDER daftar itu berbeda-beda
+                  (FINDINGS #54): Partials/Sidebar.jsx = sidebar penuh (≥lg) + rail ikon
+                  (md, prop `compact`); Partials/MobileMenuPanel.jsx = drawer-dari-bawah
+                  bertitik-henti (<md) dengan kepala identitas, petak aksi cepat, seksi
+                  admin terlipat & pencarian; Partials/MobileBottomNav.jsx = bar 5 slot +
+                  drawer "Fasilitas". Panel melayang memakai hooks/use-sheet-history.js
+                  supaya tombol Back perangkat menutup panel, bukan keluar halaman.
 database/
   migrations/     27 file (lihat daftar di bawah)
   seeders/        RolePermissionSeeder (sumber role & permission), PompaSeeder, HydrantSeeder, dll.

@@ -120,7 +120,9 @@ export default function AppLayout({ title, children }) {
 				</div>
 
 				{/* AREA KONTEN UTAMA */}
-				<div className="flex min-h-screen min-w-0 flex-1 flex-col pb-20 md:pb-0">
+				{/* Ruang untuk MobileBottomNav yang fixed — ikut memperhitungkan poni/gesture
+				    bar perangkat, sama seperti padding di bilahnya sendiri. */}
+				<div className="flex min-h-screen min-w-0 flex-1 flex-col pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">
 					{/* HEADER */}
 					<header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur-md lg:px-8">
 						<ApplicationLogo />

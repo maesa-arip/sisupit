@@ -2,7 +2,9 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        {{-- viewport-fit=cover: syarat agar env(safe-area-inset-*) berisi nilai nyata di
+             ponsel berponi/gesture-bar. Tanpa ini bottom nav & drawer tertimpa UI sistem. --}}
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="theme-color" content="#b91c1c">
 
         <!-- Favicon -->

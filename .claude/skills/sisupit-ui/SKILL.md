@@ -47,7 +47,8 @@ State          : useState lokal + props Inertia (server-driven), tidak ada redux
 | Warna/token | CSS variable HSL di `:root` (`resources/css/app.css:6-49`, dark mode 50-91), dipetakan ke Tailwind theme. **Jangan masukkan hex mentah baru** | `resources/css/app.css`; `tailwind.config.js:27-93` |
 | Konfirmasi destruktif | `AlertDialog` (`Components/ui/alert-dialog`) sebelum `router.delete()` | `resources/js/Pages/Admin/Users/Index.jsx:207-245` |
 | Notifikasi | `sonner`, `<Toaster position="top-center" richColors />` di-mount sekali di `AppLayout`, jangan mount ulang di halaman lain | `resources/js/Layouts/AppLayout.jsx:5,100` |
-| Layout & navigasi | `AppLayout` untuk semua halaman Admin & Front baru (bukan `AuthenticatedLayout`, itu legacy Breeze). Sidebar role-aware via shared prop `auth.role` | `resources/js/Layouts/AppLayout.jsx:21,113,159-163` |
+| Layout & navigasi | `AppLayout` untuk semua halaman Admin & Front baru (bukan `AuthenticatedLayout`, itu legacy Breeze). Menu role-aware ditulis HANYA di `Layouts/Partials/navItems.js` — jangan bikin daftar kedua; `Sidebar.jsx` (desktop/rail), `MobileMenuPanel.jsx` (drawer bawah <md), dan `MobileBottomNav.jsx` semuanya merender daftar itu | `resources/js/Layouts/Partials/navItems.js` |
+| Panel melayang di mobile | Panel yang dipicu dari bar bawah memakai `Components/ui/drawer` (vaul) dari BAWAH, bukan `Sheet` dari samping — searah pemicu & zona jempol. Wajib: tombol ✕ eksplisit (grab handle saja tak cukup), `useSheetHistory` agar Back perangkat menutup panel, dan padding `env(safe-area-inset-bottom)` | `resources/js/Layouts/Partials/MobileMenuPanel.jsx`, `resources/js/hooks/use-sheet-history.js` |
 | Format tanggal | `Intl.DateTimeFormat('id-ID', {...})` manual — **jangan** tambah `date-fns` baru, dependency-nya sudah ada tapi tidak dipakai (pakai pola `Intl` yang sudah ada) | `resources/js/Pages/Admin/Dashboard.jsx:19` |
 
 ## Aturan saat mengedit UI di repo ini

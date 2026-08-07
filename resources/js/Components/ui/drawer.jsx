@@ -32,7 +32,9 @@ const DrawerContent = React.forwardRef(({ className, children, ...props }, ref) 
 			)}
 			{...props}
 		>
-			<div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
+			{/* Grab handle sesuai proporsi Material 3 (±32×4dp). Dekoratif: penutupan yang
+			    dapat diakses disediakan tombol ✕ di dalam panel, bukan gestur ini. */}
+			<div aria-hidden="true" className="mx-auto mt-3 h-1.5 w-10 shrink-0 rounded-full bg-muted-foreground/30" />
 			{children}
 		</DrawerPrimitive.Content>
 	</DrawerPortal>

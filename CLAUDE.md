@@ -21,7 +21,15 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : TASK_20 (prompt/tasks/TASK_20_navigasi_mobile_tablet.md) — SELESAI 2026-08-07,
+Task aktif   : TASK_21 (prompt/tasks/TASK_21_panel_menu_mobile.md) — SELESAI 2026-08-08,
+                branch `worktree-mobile-menu-drawer`. Panel "Menu" mobile berhenti menuang
+                sidebar desktop ke Sheet: daftar menu pindah ke Partials/navItems.js sebagai
+                satu-satunya sumber DATA, penyajian per permukaan jadi berbeda. Mobile kini
+                drawer-dari-bawah bertitik-henti + kepala identitas + petak aksi cepat +
+                seksi admin terlipat + pencarian; Back perangkat menutup panel; safe-area
+                dihormati. Temuan #54 FIXED. SISA: verifikasi visual/interaktif manual
+                (daftar periksa di file task) — repo tak punya browser automation.
+               TASK_20 (prompt/tasks/TASK_20_navigasi_mobile_tablet.md) — SELESAI 2026-08-07,
                 branch `feat/mobile-nav-legal`. Menu Bantuan & Legal kini terjangkau di
                 mobile lewat Sheet berisi <Sidebar/> yang sama (duplikasi daftar menu
                 dihapus), rail ikon untuk tablet md, tautan legal di footer AppLayout.
