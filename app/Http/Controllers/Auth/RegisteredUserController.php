@@ -34,6 +34,12 @@ class RegisteredUserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            // Persetujuan Syarat & Ketentuan + Kebijakan Privasi (TASK_19). Waktunya dicatat
+            // di kolom terms_accepted_at supaya persetujuan bisa dibuktikan, bukan sekadar
+            // centang yang hilang setelah submit.
+            'terms' => ['accepted'],
+        ], [
+            'terms.accepted' => 'Anda harus menyetujui Syarat & Ketentuan dan Kebijakan Privasi.',
         ]);
 
         $user = User::create([
@@ -41,6 +47,7 @@ class RegisteredUserController extends Controller
             'username' => usernameGenerator($name),
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'terms_accepted_at' => now(),
         ]);
 
         $user->assignRole('masyarakat');

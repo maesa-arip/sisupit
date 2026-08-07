@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TenantEdition;
 use App\Traits\HasFile;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -29,7 +30,37 @@ class Tenant extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
+        'features' => 'array',
     ];
+
+    /**
+     * Paket layanan tenant (TASK_19). Selalu mengembalikan enum yang valid: nilai kosong /
+     * tak dikenal (mis. objek transien fromConfig(), atau baris lama sebelum migrasi)
+     * dianggap SEWA — default yang paling tidak mengejutkan & sesuai kontrak lama.
+     */
+    public function edition(): TenantEdition
+    {
+        // getAttributes() dulu: model yang baru di-create() belum memuat nilai default kolom
+        // dari DB, dan mode strict Eloquent melempar error untuk atribut yang tak dimuat.
+        $value = array_key_exists('edition', $this->getAttributes()) ? $this->getAttributes()['edition'] : null;
+
+        return TenantEdition::tryFrom((string) $value) ?? TenantEdition::SEWA;
+    }
+
+    public function isBeli(): bool
+    {
+        return $this->edition() === TenantEdition::BELI;
+    }
+
+    /** Aman saat kolom `features` null / belum dimuat (tenant lama, objek transien fromConfig()). */
+    public function hasFeature(string $key): bool
+    {
+        if (! array_key_exists('features', $this->getAttributes())) {
+            return false;
+        }
+
+        return in_array($key, (array) ($this->features ?? []), true);
+    }
 
     /**
      * Cari tenant dari Host request via subdomain-nya. Return null bila apex/unknown
@@ -92,6 +123,7 @@ class Tenant extends Model
             'pejabat_foto' => config('pejabat.foto'),
             'telepon_darurat' => config('pejabat.telepon_darurat'),
             'is_active' => true,
+            'edition' => TenantEdition::SEWA->value,
         ]);
     }
 

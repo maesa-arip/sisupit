@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\MessageType;
+use App\Enums\TenantEdition;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\TenantRequest;
 use App\Models\Tenant;
@@ -56,6 +57,7 @@ class TenantController extends Controller
             'provinces' => DB::table('indonesia_provinces')->orderBy('name')->get(['code', 'name']),
             'cities' => [],
             'app_base_domain' => $this->baseDomain(),
+            'editions' => TenantEdition::options(),
             'page_settings' => [
                 'title' => 'Tambah Instansi / Kabupaten',
                 'subtitle' => 'Daftarkan kabupaten/kota baru. Klik simpan setelah selesai.',
@@ -96,6 +98,7 @@ class TenantController extends Controller
                 ? DB::table('indonesia_cities')->where('province_code', $provinceCode)->orderBy('name')->get(['code', 'name'])
                 : [],
             'app_base_domain' => $this->baseDomain(),
+            'editions' => TenantEdition::options(),
             'page_settings' => [
                 'title' => 'Edit Instansi / Kabupaten',
                 'subtitle' => 'Perbarui identitas publik kabupaten ini. Klik simpan setelah selesai.',

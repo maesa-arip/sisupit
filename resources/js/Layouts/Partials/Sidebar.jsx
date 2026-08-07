@@ -8,19 +8,20 @@ import {
 	IconFireHydrant,
 	IconFiretruck,
 	IconFlame,
+	IconGavel,
 	IconHeartHandshake,
 	IconHistory,
+	IconInfoCircle,
 	IconKey,
+	IconLifebuoy,
 	IconLockAccess,
 	IconLogin2,
 	IconLogout,
-	IconMapPin,
 	IconMapSearch,
 	IconRoute,
 	IconSettings,
 	IconShieldLock,
 	IconSpeakerphone,
-	IconTruck,
 	IconUser,
 	IconUsersGroup,
 } from '@tabler/icons-react';
@@ -61,7 +62,6 @@ export default function Sidebar({ url, auth }) {
 				title="Beranda"
 				icon={IconDashboard}
 			/>
-			<NavLink url={'/'} active={url === '/'} title="Pusat Bantuan" icon={IconMapPin} />
 			{isCommandCenter && (
 				<NavLink
 					url={route('front.monitoring.map')}
@@ -229,6 +229,33 @@ export default function Sidebar({ url, auth }) {
 					)}
 				</>
 			)}
+
+			{/* --- SEKSI BANTUAN & LEGAL (halaman publik, semua peran) --- */}
+			<NavHeading>Bantuan & Legal</NavHeading>
+			<NavLink
+				url={route('info.help')}
+				active={url.startsWith('/pusat-bantuan')}
+				title="Pusat Bantuan"
+				icon={IconLifebuoy}
+			/>
+			<NavLink
+				url={route('info.terms')}
+				active={url.startsWith('/syarat-ketentuan')}
+				title="Syarat & Ketentuan"
+				icon={IconGavel}
+			/>
+			<NavLink
+				url={route('info.privacy')}
+				active={url.startsWith('/kebijakan-privasi')}
+				title="Kebijakan Privasi"
+				icon={IconShieldLock}
+			/>
+			<NavLink
+				url={route('info.about')}
+				active={url.startsWith('/tentang')}
+				title="Tentang Aplikasi"
+				icon={IconInfoCircle}
+			/>
 
 			{/* --- SEKSI AKUN & SISTEM --- */}
 			<NavHeading>Akun & Sistem</NavHeading>

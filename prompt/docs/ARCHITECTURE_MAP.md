@@ -43,6 +43,9 @@ app/
     DashboardController.php     3 varian dashboard berbeda per role (lihat alur di bawah)
     HomeController.php          Landing publik (/) + Spotlight (/spotlight) + chart statistik;
                                 landing() redirect WebView (UA∋SisupitApp) ke spotlight/dashboard
+    InfoController.php          Halaman informasi publik (TASK_19): Syarat & Ketentuan,
+                                Kebijakan Privasi, Pusat Bantuan, Tentang, Paket & Lisensi —
+                                isi statis di React, PIHAK-nya dari tenant + tenants.edition
     ProfileController.php       Profil user (Breeze + complete-profile + KTP)
     VolunteerController.php     Self-register relawan + toggle standby
     ReportHelperController.php  (terpisah dari ReportActionController — lihat catatan risiko)
@@ -86,7 +89,8 @@ docker/osrm/      Self-hosted routing (OSRM Bali, MLD) — RUNNING lokal :5001 (
 | Fasilitas Fisik | Hydrant, Pompa, PosPemadam — CRUD admin ter-scope yurisdiksi + tampilan publik | `app/Http/Controllers/Admin/{HydrantController,PompaController,PosPemadamController}.php`, `app/Http/Controllers/Front/*` |
 | RBAC Dinamis | Role, Permission, AssignPermission, AssignUser, RouteAccess | `app/Http/Controllers/Admin/*`, `app/Policies/UserPolicy.php` |
 | Multi-Tenant | Isolasi otomatis per wilayah via global scope Eloquent | `app/Traits/Tenantable.php` |
-| Tenant Publik per Kabupaten | "Wajah publik" tiap Damkar kabupaten (TASK_17): nama instansi, pejabat, nomor darurat, subdomain — di-key `city_code`, dikelola superadmin di `/admin/tenants`. Di-resolve dari subdomain (`ResolveTenant` middleware → `currentTenant()` → shared prop Inertia `tenant`), apex→default Denpasar (kosmetik). Spotlight & Thanks tenant-driven; Thanks SELALU dari `city_code` LAPORAN (pin), non-partner→112. Statistik `HomeController` di-scope hanya saat request dari subdomain. Redirect-saat-save lintas-subdomain aktif bila `TENANT_BASE_DOMAIN` di-set. BUKAN `Tenantable` (katalog global) | `app/Models/Tenant.php`, `app/Http/Middleware/ResolveTenant.php`, `app/Http/Controllers/Admin/TenantController.php` |
+| Tenant Publik per Kabupaten | "Wajah publik" tiap Damkar kabupaten (TASK_17): nama instansi, pejabat, nomor darurat, subdomain — di-key `city_code`, dikelola superadmin di `/admin/tenants`. Di-resolve dari subdomain (`ResolveTenant` middleware → `currentTenant()` → shared prop Inertia `tenant`), apex→default Denpasar (kosmetik). Spotlight & Thanks tenant-driven; Thanks SELALU dari `city_code` LAPORAN (pin), non-partner→112. Statistik `HomeController` di-scope hanya saat request dari subdomain. Redirect-saat-save lintas-subdomain aktif bila `TENANT_BASE_DOMAIN` di-set. BUKAN `Tenantable` (katalog global). **TASK_19** menambah kolom `edition` (enum `TenantEdition` sewa/beli, default `sewa`, ter-index), `features` (json, belum ada UI), serta kontak legal `email_kontak`/`alamat_instansi`/`penanggung_jawab_data` — dipakai halaman Info; helper model `edition()`/`isBeli()`/`hasFeature()` aman saat atribut belum dimuat | `app/Models/Tenant.php`, `app/Http/Middleware/ResolveTenant.php`, `app/Http/Controllers/Admin/TenantController.php` |
+| Halaman Informasi & Legal | Lima halaman publik tanpa auth (TASK_19): `/syarat-ketentuan`, `/kebijakan-privasi`, `/pusat-bantuan`, `/tentang`, `/paket-lisensi`. Isi dokumen statis di komponen React (pola `/guideline`), tetapi instansi penyelenggara diambil dari tenant hasil subdomain & klausul lisensi dari `tenants.edition` (sewa/beli) — kabupaten baru cukup diisi lewat `/admin/tenants`. Identitas penyedia sistem, versi & tanggal berlaku dokumen, retensi ada di `config/legal.php` (override lewat `.env`). Persetujuan S&K saat daftar dicatat di `users.terms_accepted_at`. **2026-08-07:** penyedia = `PT Tawarin Dimana Aja`; `/syarat-ketentuan` memuat DUA dokumen dalam satu halaman bertab — *Pengguna Umum* (warga/petugas/relawan) & *Pengguna Berkontrak* (instansi ber-PKS: wanprestasi, non-refundable, pengesampingan Ps. 1266 KUHPerdata, batas ganti rugi). Larangan resell/white-label berlaku penuh termasuk paket `beli`. Kontak legal terpisah dari dukungan teknis (`penyedia.email_legal`); `penyedia.alamat` menentukan yurisdiksi PN & baris disembunyikan bila kosong | `app/Http/Controllers/InfoController.php`, `resources/js/Pages/Info/*`, `config/legal.php` |
 | Auth & Identitas | Breeze + Socialite (Google), auto-assign role `masyarakat`, validasi profil | `app/Http/Controllers/Auth/SocialiteController.php`, `app/Http/Controllers/ProfileController.php` |
 | Relawan | Self-register, toggle siaga, radar insiden di area relawan. Daftar relawan (`Front/RelawanController`) BUKAN publik: di-gate `role:petugas\|admin\|superadmin` + ter-scope yurisdiksi via `User::scopeIsAdmin()` (FINDINGS #22) | `app/Http/Controllers/VolunteerController.php`, `app/Http/Controllers/Front/RelawanController.php` |
 | Pengumuman | Broadcast info publik | `app/Http/Controllers/Admin/AnnouncementController.php` |
@@ -155,7 +159,7 @@ Model yang **sengaja global** (tidak pakai Tenantable): `Setting`, `RouteAccess`
 
 | Entitas | Relasi penting | Catatan |
 |---------|----------------|---------|
-| User | hasMany Report, SocialAccount, FcmToken; belongsTo Province/City/District/Village (kode wilayah); roles via Spatie | Tidak pakai `Tenantable`, filter wilayah manual (`scopeIsAdmin`) |
+| User | hasMany Report, SocialAccount, FcmToken; belongsTo Province/City/District/Village (kode wilayah); roles via Spatie | Tidak pakai `Tenantable`, filter wilayah manual (`scopeIsAdmin`). `terms_accepted_at` (TASK_19) = waktu persetujuan S&K+Privasi saat daftar (nullable; akun lama sengaja kosong, tanpa backfill) |
 | Report | hasMany ReportHelper (`helpers()`), ReportOfficer (`officers()`), **ReportPhoto (`photos()`)**; belongsTo User + wilayah | Pakai `Tenantable` + `SoftDeletes`; status string (TERLAPOR/pending/handling/resolved/**ditolak**), bukan enum (lihat CONVENTIONS). `ditolak` (TASK_10) + kolom `rejected_reason`/`rejected_at`. Galeri foto via `report_photos` (TASK_07); kolom `photo` = sampul (foto pertama) |
 | ReportPhoto | belongsTo Report | Galeri foto laporan (TASK_07, FINDINGS #17). Tabel `report_photos` (report_id cascade, path) |
 | ReportResolution | belongsTo Report, User (creator); hasMany ReportVictim, ReportResolutionPhoto | Berita Acara/Laporan Kegiatan Penyelamatan (FINDINGS #39). **Append-only**: `report_id` TIDAK unik — banyak entri `sementara`/`final` per laporan agar bisa dibandingkan. Field terstruktur (jenis_kejadian, sumber_informasi, occurred_at, lokasi, pemilik, kerugian, tim_atensi, kronologi) |
@@ -183,6 +187,9 @@ Publik (tanpa auth)     : GET / (landing publik; WebView UA∋SisupitApp di-redi
                            /spotlight, /home, /relawan, /relawan/{id}, /pumps,
                            /fire-stations, /hydrants, /login, /register, /forgot-password,
                            /api/regions/{cities,districts,villages}, /webpush/public-key,
+                           /syarat-ketentuan, /kebijakan-privasi, /pusat-bantuan, /tentang,
+                           /paket-lisensi (TASK_19 — sengaja publik: dokumen legal harus
+                           terbaca sebelum daftar & syarat Google OAuth/Play Store),
                            /openssl-test  (?? debug leftover — lihat FINDINGS_LOG #3)
 auth (login saja)       : POST /fcm-token, POST /notifications/{id}/read & /notifications/read-all
                            (lonceng web, TASK_11), POST /webpush/subscribe (tanpa middleware 'auth'

@@ -120,6 +120,10 @@ class SocialiteController extends Controller
                     'name' => $socialUser->getName(),
                     'email' => $socialUser->getEmail(),
                     'email_verified_at' => Carbon::now(),
+                    // Masuk dengan Google = mendaftar sekaligus. Persetujuan Syarat &
+                    // Ketentuan disampaikan sebagai keterangan di bawah tombol Google
+                    // (halaman Login & Register), jadi waktunya dicatat di sini (TASK_19).
+                    'terms_accepted_at' => Carbon::now(),
                     'username' => str($socialUser->getNickname() ?? $socialUser->getName())->slug().'-'.Str::lower(Str::random(6)),
                 ])->assignRole('masyarakat');
             }

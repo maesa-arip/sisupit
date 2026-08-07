@@ -12,6 +12,8 @@ test('new users can register', function () {
         'email' => 'test@example.com',
         'password' => 'password',
         'password_confirmation' => 'password',
+        // Persetujuan Syarat & Ketentuan wajib sejak TASK_19.
+        'terms' => true,
     ]);
 
     $this->assertAuthenticated();

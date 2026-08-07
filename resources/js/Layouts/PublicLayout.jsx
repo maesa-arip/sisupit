@@ -6,8 +6,12 @@ import {
 	IconDroplet,
 	IconFireHydrant,
 	IconFlame,
+	IconGavel,
+	IconInfoCircle,
+	IconLifebuoy,
 	IconLogin2,
 	IconPhoneCall,
+	IconShieldLock,
 	IconUsersGroup,
 } from '@tabler/icons-react';
 
@@ -64,7 +68,7 @@ export default function PublicLayout({ children, title }) {
 			{/* ===== FOOTER ===== */}
 			<footer className="border-t border-border bg-background">
 				<div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-					<div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+					<div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
 						<div className="sm:col-span-2 lg:col-span-1">
 							<div className="flex items-center gap-2.5">
 								<img src="/icon.png" alt="SISUPIT" className="size-9 rounded-lg object-contain" />
@@ -112,6 +116,36 @@ export default function PublicLayout({ children, title }) {
 										href={route('front.reports.create')}
 										icon={IconFlame}
 										label="Lapor Darurat"
+									/>
+								</li>
+							</ul>
+						</div>
+
+						<div>
+							<h4 className="text-sm font-bold uppercase tracking-wide text-foreground">Informasi</h4>
+							<ul className="mt-4 space-y-2.5 text-sm">
+								<li>
+									<FooterLink href={route('info.help')} icon={IconLifebuoy} label="Pusat Bantuan" />
+								</li>
+								<li>
+									<FooterLink
+										href={route('info.terms')}
+										icon={IconGavel}
+										label="Syarat & Ketentuan"
+									/>
+								</li>
+								<li>
+									<FooterLink
+										href={route('info.privacy')}
+										icon={IconShieldLock}
+										label="Kebijakan Privasi"
+									/>
+								</li>
+								<li>
+									<FooterLink
+										href={route('info.about')}
+										icon={IconInfoCircle}
+										label="Tentang Aplikasi"
 									/>
 								</li>
 							</ul>

@@ -257,6 +257,20 @@ export default function Login({ status, canResetPassword }) {
 							{isGoogleLoading ? 'Mengalihkan...' : 'Lanjutkan dengan Google'}
 						</Button>
 
+						{/* Masuk dengan Google otomatis membuat akun bila belum ada, jadi
+						    persetujuan dokumen legal disampaikan di sini juga (TASK_19). */}
+						<p className="-mt-4 text-center text-xs leading-relaxed text-muted-foreground">
+							Dengan melanjutkan menggunakan Google, Anda menyetujui{' '}
+							<Link href={route('info.terms')} className="font-medium text-foreground hover:underline">
+								Syarat &amp; Ketentuan
+							</Link>{' '}
+							dan{' '}
+							<Link href={route('info.privacy')} className="font-medium text-foreground hover:underline">
+								Kebijakan Privasi
+							</Link>
+							.
+						</p>
+
 						{/* Link Daftar */}
 						<div className="text-center text-sm text-muted-foreground">
 							Belum punya akun?{' '}
@@ -276,10 +290,7 @@ export default function Login({ status, canResetPassword }) {
 									className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-border bg-card px-6 font-medium text-foreground shadow-sm outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-muted-foreground/50 sm:w-auto"
 								>
 									<div className="flex items-center justify-center rounded-md bg-success/10 p-1">
-										<IconBrandAndroid
-											className="h-5 w-5 text-success"
-											stroke={2}
-										/>
+										<IconBrandAndroid className="h-5 w-5 text-success" stroke={2} />
 									</div>
 									<span className="text-sm">Unduh Aplikasi Android</span>
 									<IconDownload className="ml-1 h-4 w-4 text-muted-foreground" stroke={2} />

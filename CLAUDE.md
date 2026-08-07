@@ -21,9 +21,18 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : TASK_18 (prompt/tasks/TASK_18_edition_sewa_beli.md) — TODO, dokumen rencana
-                selesai 2026-07-28, BELUM ada kode. Lapisan edition sewa/beli + hak eksit;
-                kerjakan slice 1 (edition/features + guard #45) & slice 4 (tenant:export) dulu.
+Task aktif   : TASK_19 (prompt/tasks/TASK_19_halaman_legal_bantuan.md) — SELESAI 2026-08-04,
+                belum di-commit. Halaman legal/bantuan publik (S&K, Privasi, Pusat Bantuan,
+                Tentang, Paket & Lisensi) + persetujuan S&K saat daftar. Kolom
+                `tenants.edition`/`features` + enum TenantEdition DIBUAT di sini (bagian
+                data TASK_18 slice 1); temuan #48 FIXED, #49/#50 dicatat OPEN.
+                ADENDUM 2026-08-07 (§6 file task): dua draf legal di `docs/*.docx` digabung ke
+                `/syarat-ketentuan` bertab (Pengguna Umum + Pengguna Berkontrak); penyedia
+                kini `PT Tawarin Dimana Aja`, S&K naik ke versi 2.0. Temuan BARU #51 (PKS
+                masih menyebut MAESA perorangan) & #52 (alamat kantor PT kosong) OPEN.
+               TASK_18 (prompt/tasks/TASK_18_edition_sewa_beli.md) — SISA: guard #45
+                (EnsureTenantHostMatchesStaff), slice 2 (resolver halaman), slice 3 (modul
+                per-tenant), slice 4 (tenant:export). Lapisan data edition sudah ada.
                 TASK_17 multi-tenant subdomain SELESAI slice 1-3 (2026-07-25, belum di-commit).
                 Sebelumnya: TASK_10, 06, 11, 14, 12, 13, 07, 15, 16 SELESAI
                 2026-06-28 (9 task) + TASK_09 armada/Unit SELESAI 2026-06-29.

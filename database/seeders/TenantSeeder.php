@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\TenantEdition;
 use App\Models\Tenant;
 use Illuminate\Database\Seeder;
 
@@ -26,6 +27,8 @@ class TenantSeeder extends Seeder
                 'pejabat_foto' => config('pejabat.foto'),
                 'telepon_darurat' => config('pejabat.telepon_darurat'),
                 'is_active' => true,
+                // Paket layanan (TASK_19): Denpasar menyewa, Badung membeli.
+                'edition' => TenantEdition::SEWA->value,
             ],
             [
                 'subdomain' => 'badung',
@@ -38,6 +41,7 @@ class TenantSeeder extends Seeder
                 'pejabat_foto' => null,
                 'telepon_darurat' => '112',
                 'is_active' => true,
+                'edition' => TenantEdition::BELI->value,
             ],
         ];
 

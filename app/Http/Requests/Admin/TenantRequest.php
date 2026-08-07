@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\TenantEdition;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -21,6 +22,14 @@ class TenantRequest extends FormRequest
         if ($this->has('subdomain')) {
             $this->merge([
                 'subdomain' => strtolower(trim((string) $this->subdomain)),
+            ]);
+        }
+
+        // Paket layanan boleh tidak dikirim (mis. pemanggil lama / skrip): anggap SEWA,
+        // sama dengan default kolomnya. Tenant lama tidak berubah perilaku (TASK_19).
+        if (! $this->filled('edition')) {
+            $this->merge([
+                'edition' => TenantEdition::SEWA->value,
             ]);
         }
     }
@@ -47,6 +56,12 @@ class TenantRequest extends FormRequest
             'pejabat_jabatan' => ['nullable', 'string', 'max:255'],
             'pejabat_foto' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'telepon_darurat' => ['nullable', 'string', 'max:30'],
+            'email_kontak' => ['nullable', 'email', 'max:255'],
+            'alamat_instansi' => ['nullable', 'string', 'max:255'],
+            'penanggung_jawab_data' => ['nullable', 'string', 'max:255'],
+            'edition' => ['required', Rule::enum(TenantEdition::class)],
+            'features' => ['nullable', 'array'],
+            'features.*' => ['string', 'max:50'],
             'is_active' => ['required', 'boolean'],
         ];
     }
@@ -62,6 +77,11 @@ class TenantRequest extends FormRequest
             'pejabat_jabatan' => 'Jabatan Pejabat',
             'pejabat_foto' => 'Foto Pejabat',
             'telepon_darurat' => 'Telepon Darurat',
+            'email_kontak' => 'Email Kontak Resmi',
+            'alamat_instansi' => 'Alamat Instansi',
+            'penanggung_jawab_data' => 'Penanggung Jawab Data',
+            'edition' => 'Paket Layanan',
+            'features' => 'Fitur Aktif',
             'is_active' => 'Aktif',
         ];
     }

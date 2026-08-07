@@ -17,12 +17,13 @@ use App\Http\Controllers\Front\PompaController;
 use App\Http\Controllers\Front\PosPemadamController;
 use App\Http\Controllers\Front\RelawanController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\InfoController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportActionController;
 use App\Http\Controllers\ReportController;
-use App\Http\Controllers\ReportResolutionController;
 use App\Http\Controllers\ReportHelperController;
+use App\Http\Controllers\ReportResolutionController;
 use App\Http\Controllers\VolunteerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -98,6 +99,17 @@ Route::get('/pumps', [PompaController::class, 'index'])->name('front.pumps.index
 Route::get('/fire-stations', [PosPemadamController::class, 'index'])->name('front.fire_stations.index');
 
 Route::get('/hydrants', [HydrantController::class, 'index'])->name('front.hydrants.index');
+
+// Halaman informasi publik (TASK_19): legal, bantuan, & paket layanan. SENGAJA tanpa auth —
+// dokumen harus terbaca sebelum orang mendaftar, dan tautan Kebijakan Privasi wajib bisa
+// dibuka tanpa login (syarat Google OAuth & Play Store).
+Route::controller(InfoController::class)->group(function () {
+    Route::get('/syarat-ketentuan', 'terms')->name('info.terms');
+    Route::get('/kebijakan-privasi', 'privacy')->name('info.privacy');
+    Route::get('/pusat-bantuan', 'help')->name('info.help');
+    Route::get('/tentang', 'about')->name('info.about');
+    Route::get('/paket-lisensi', 'pricing')->name('info.pricing');
+});
 
 // Panduan Desain internal (referensi sistem warna, komponen, & aturan UI). Tanpa auth
 // agar mudah dibuka sebagai rujukan tim; halaman statis, tak memuat data sensitif.

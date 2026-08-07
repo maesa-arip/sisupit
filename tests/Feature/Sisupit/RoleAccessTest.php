@@ -8,6 +8,8 @@ it('assigns the masyarakat role to a freshly registered user', function () {
         'email' => 'warga@example.com',
         'password' => 'password',
         'password_confirmation' => 'password',
+        // Persetujuan Syarat & Ketentuan wajib sejak TASK_19.
+        'terms' => true,
     ]);
 
     $user = User::where('email', 'warga@example.com')->first();

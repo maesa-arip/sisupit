@@ -6,6 +6,7 @@ import { Checkbox } from '@/Components/ui/checkbox';
 import { Combobox } from '@/Components/ui/combobox';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import AppLayout from '@/Layouts/AppLayout';
 import { flashMessage } from '@/lib/utils';
 import { Link, useForm } from '@inertiajs/react';
@@ -22,7 +23,7 @@ const fotoUrl = (path) => {
 };
 
 export default function Form(props) {
-	const { tenant, provinces, page_settings, app_base_domain } = props;
+	const { tenant, provinces, page_settings, app_base_domain, editions } = props;
 
 	const { data, setData, post, processing, errors, reset } = useForm({
 		subdomain: tenant?.subdomain || '',
@@ -32,6 +33,10 @@ export default function Form(props) {
 		pejabat_nama: tenant?.pejabat_nama || '',
 		pejabat_jabatan: tenant?.pejabat_jabatan || '',
 		telepon_darurat: tenant?.telepon_darurat || '',
+		email_kontak: tenant?.email_kontak || '',
+		alamat_instansi: tenant?.alamat_instansi || '',
+		penanggung_jawab_data: tenant?.penanggung_jawab_data || '',
+		edition: tenant?.edition || 'sewa',
 		pejabat_foto: null,
 		is_active: tenant ? Boolean(tenant.is_active) : true,
 		_method: page_settings.method,
@@ -66,7 +71,11 @@ export default function Form(props) {
 	return (
 		<div className="flex w-full flex-col pb-32">
 			<div className="mb-8 flex flex-col items-start justify-between gap-y-4 lg:flex-row lg:items-center">
-				<HeaderTitle title={page_settings.title} subtitle={page_settings.subtitle} icon={IconBuildingCommunity} />
+				<HeaderTitle
+					title={page_settings.title}
+					subtitle={page_settings.subtitle}
+					icon={IconBuildingCommunity}
+				/>
 				<Button variant="orange" size="sm" asChild>
 					<Link href={route('admin.tenants.index')}>
 						<IconArrowLeft className="size-4" /> Kembali
@@ -197,12 +206,77 @@ export default function Form(props) {
 							{errors.pejabat_foto && <InputError message={errors.pejabat_foto} />}
 						</div>
 
+						{/* Paket layanan + kontak resmi: dipakai halaman Syarat & Ketentuan,
+						    Kebijakan Privasi, dan Paket & Lisensi (TASK_19). Bukan kosmetik —
+						    klausul lisensi & alamat pengaduan data ditulis dari nilai ini. */}
+						<div className="grid w-full items-center gap-1.5">
+							<Label htmlFor="edition">Paket Layanan</Label>
+							<Select value={data.edition} onValueChange={(value) => setData('edition', value)}>
+								<SelectTrigger id="edition">
+									<SelectValue placeholder="Pilih paket layanan..." />
+								</SelectTrigger>
+								<SelectContent>
+									{(editions ?? []).map((item) => (
+										<SelectItem key={item.value} value={item.value}>
+											{item.label}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+							<p className="text-xs text-muted-foreground">
+								Menentukan klausul lisensi di halaman <b>Syarat &amp; Ketentuan</b>: sewa = hak pakai
+								selama berlangganan; beli = lisensi perpetual + penyerahan kode sumber.
+							</p>
+							{errors.edition && <InputError message={errors.edition} />}
+						</div>
+
+						<div className="grid gap-4 sm:grid-cols-2">
+							<div className="grid w-full items-center gap-1.5">
+								<Label htmlFor="email_kontak">Email Kontak Resmi</Label>
+								<Input
+									name="email_kontak"
+									id="email_kontak"
+									type="email"
+									value={data.email_kontak}
+									onChange={onHandleChange}
+									placeholder="damkar@badungkab.go.id"
+								/>
+								{errors.email_kontak && <InputError message={errors.email_kontak} />}
+							</div>
+							<div className="grid w-full items-center gap-1.5">
+								<Label htmlFor="penanggung_jawab_data">Penanggung Jawab Data</Label>
+								<Input
+									name="penanggung_jawab_data"
+									id="penanggung_jawab_data"
+									value={data.penanggung_jawab_data}
+									onChange={onHandleChange}
+									placeholder="Kepala Bidang / pejabat yang ditunjuk"
+								/>
+								{errors.penanggung_jawab_data && <InputError message={errors.penanggung_jawab_data} />}
+							</div>
+						</div>
+
+						<div className="grid w-full items-center gap-1.5">
+							<Label htmlFor="alamat_instansi">Alamat Instansi</Label>
+							<Input
+								name="alamat_instansi"
+								id="alamat_instansi"
+								value={data.alamat_instansi}
+								onChange={onHandleChange}
+								placeholder="Jl. Raya Sempidi No. 1, Mengwi, Badung"
+							/>
+							<p className="text-xs text-muted-foreground">
+								Ditampilkan di <b>Kebijakan Privasi</b> sebagai alamat pengaduan warga atas datanya.
+							</p>
+							{errors.alamat_instansi && <InputError message={errors.alamat_instansi} />}
+						</div>
+
 						<div className="flex items-start gap-3 rounded-md border border-border bg-accent/40 p-3">
 							<IconInfoCircle className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
 							<p className="text-xs leading-relaxed text-muted-foreground">
 								Data ini hanya mengatur <b>wajah publik</b> kabupaten (Spotlight, halaman "Laporan
-								Diterima", pejabat, nomor darurat). Routing laporan tetap mengikuti lokasi kejadian
-								(pin GPS), bukan tenant ini.
+								Diterima", pejabat, nomor darurat). Routing laporan tetap mengikuti lokasi kejadian (pin
+								GPS), bukan tenant ini.
 							</p>
 						</div>
 

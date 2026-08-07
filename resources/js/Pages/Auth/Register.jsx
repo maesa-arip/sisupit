@@ -2,6 +2,7 @@ import ApplicationLogo from '@/Components/ApplicationLogo';
 import InputError from '@/Components/InputError';
 import ThemeSwitcher from '@/Components/ThemeSwitcher';
 import { Button } from '@/Components/ui/button';
+import { Checkbox } from '@/Components/ui/checkbox';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import GuestLayout from '@/Layouts/GuestLayout';
@@ -19,6 +20,7 @@ export default function Register() {
 		email: '',
 		password: '',
 		password_confirmation: '',
+		terms: false,
 	});
 
 	const onHandleChange = (e) => setData(e.target.name, e.target.value);
@@ -192,6 +194,38 @@ export default function Register() {
 								{errors.password_confirmation && <InputError message={errors.password_confirmation} />}
 							</div>
 
+							{/* Persetujuan dokumen legal (TASK_19). Divalidasi ulang di server
+							    (RegisteredUserController) — centang di sini bukan satu-satunya gerbang. */}
+							<div className="space-y-1.5 pt-1">
+								<label htmlFor="terms" className="flex items-start gap-2.5">
+									<Checkbox
+										id="terms"
+										name="terms"
+										checked={data.terms}
+										onCheckedChange={(checked) => setData('terms', Boolean(checked))}
+										className="mt-0.5"
+									/>
+									<span className="text-sm leading-relaxed text-muted-foreground">
+										Saya menyetujui{' '}
+										<Link
+											href={route('info.terms')}
+											className="font-medium text-destructive hover:underline"
+										>
+											Syarat &amp; Ketentuan
+										</Link>{' '}
+										dan{' '}
+										<Link
+											href={route('info.privacy')}
+											className="font-medium text-destructive hover:underline"
+										>
+											Kebijakan Privasi
+										</Link>
+										.
+									</span>
+								</label>
+								{errors.terms && <InputError message={errors.terms} />}
+							</div>
+
 							<Button
 								type="submit"
 								disabled={processing || isGoogleLoading}
@@ -249,6 +283,20 @@ export default function Register() {
 							)}
 							{isGoogleLoading ? 'Mengalihkan...' : 'Lanjutkan dengan Google'}
 						</Button>
+
+						{/* Masuk dengan Google membuat akun otomatis, jadi persetujuannya
+						    disampaikan di sini (dicatat sebagai terms_accepted_at di server). */}
+						<p className="-mt-4 text-center text-xs leading-relaxed text-muted-foreground">
+							Dengan melanjutkan menggunakan Google, Anda menyetujui{' '}
+							<Link href={route('info.terms')} className="font-medium text-foreground hover:underline">
+								Syarat &amp; Ketentuan
+							</Link>{' '}
+							dan{' '}
+							<Link href={route('info.privacy')} className="font-medium text-foreground hover:underline">
+								Kebijakan Privasi
+							</Link>
+							.
+						</p>
 
 						{/* Link Login */}
 						<div className="text-center text-sm text-muted-foreground">

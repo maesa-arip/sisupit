@@ -759,3 +759,60 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **Rencana fix:** middleware `EnsureTenantHostMatchesStaff` di grup `routes/admin.php` (BUKAN grup `web` global — jaga jalur lapor warga tetap tak tersentuh). Bypass superadmin/guest/user tanpa `city_code`. **KRITIS:** pakai `Tenant::resolveFromHost($request->getHost())`, JANGAN `currentTenant()` — `currentTenant()` jatuh ke default Denpasar di apex, sehingga memakainya akan memantulkan seluruh staf non-Denpasar begitu mereka membuka `sisupit.com`. Host tak me-resolve ke tenant nyata → no-op.
 - **Sumber:** analisis atas permintaan user 2026-07-28.
 - **Status:** OPEN — dikerjakan sebagai slice 1 `TASK_18` (`prompt/tasks/TASK_18_edition_sewa_beli.md`).
+
+### #46 — Lonceng notifikasi tidak pernah update sendiri (tanpa Echo & tanpa polling)
+- **Severity:** P2 (fungsional/UX — bukan keamanan; menghambat klaim "real-time" ke pelanggan)
+- **Konteks:** ditemukan 2026-07-31 saat menyiapkan video panduan alur. `EmergencyAlertNotification::via()` (`app/Notifications/EmergencyAlertNotification.php:33`) sudah mengirim ke `['fcm', 'database', 'broadcast']`, jadi payload lonceng MEMANG disiarkan. Tetapi di sisi klien tidak ada yang mendengarkan: `AppLayout.jsx:19-20` membaca `notifications` + `unread_notifications_count` murni dari shared props Inertia, dan `useEffect` di bawahnya (`AppLayout.jsx:22-79`) hanya mengurus token FCM WebView — tak ada `window.Echo.private(...).notification(...)` maupun `setInterval` polling. Satu-satunya pemakaian Echo di seluruh `resources/js` adalah `Front/Reports/Show.jsx:618` (channel `report-tracking.{id}`).
+- **Dampak:** petugas/relawan yang membuka aplikasi di desktop TIDAK melihat badge lonceng bertambah sampai mereka berpindah halaman atau me-refresh. Kanal `broadcast` pada notifikasi jadi terkirim tanpa konsumen. Di ponsel dampaknya tertutup oleh push FCM, sehingga isu ini mudah luput.
+- **Rencana fix (belum dikerjakan):** di `AppLayout`, berlangganan `window.Echo.private('App.Models.User.'+auth.id).notification(cb)` lalu `router.reload({ only: ['notifications','unread_notifications_count'] })` — pola yang sama dengan `Show.jsx`. Perlu memastikan `BroadcastServiceProvider`/`channels.php` mengizinkan channel notifikasi milik user sendiri.
+- **Sumber:** temuan sampingan saat produksi video panduan 2026-07-31 (di luar scope, tidak dikerjakan).
+- **Status:** OPEN
+
+### #47 — Reverb dan kontainer Nominatim sama-sama memakai port 8080 → BroadcastException saat Docker menyala
+- **Severity:** P2 (dev/ops — memunculkan layar "Internal Server Error" ke pengguna pada aksi normal)
+- **Konteks:** ditemukan 2026-07-31. `.env` lokal memakai `REVERB_PORT=8080` sementara `docker/nominatim/` memetakan `0.0.0.0:8080->8080` (`NOMINATIM_BASE_URL=http://127.0.0.1:8080`). Selama Docker mati keduanya tak pernah bertemu, tetapi begitu kontainer `sisupit-nominatim` menyala, panggilan HTTP Laravel ke broker Reverb mendarat di Apache milik Nominatim.
+- **Reproduce:** nyalakan `docker start sisupit-nominatim` + `php artisan reverb:start --port=8080`, lalu jalankan aksi yang menyiarkan event (`ReportActionController::resolve` → `ReportStatusChanged` yang `ShouldBroadcastNow`). Hasil: `Illuminate\Broadcasting\BroadcastException: Pusher error: ... 404 Not Found ... Apache/2.4.52 (Ubuntu) Server at localhost Port 8080` dan halaman error Inertia menutupi UI. Status laporan tetap berubah (transaksi DB sudah commit sebelum broadcast), jadi gejalanya "aksi berhasil tapi layar error".
+- **Rencana fix (belum dikerjakan):** pisahkan port secara permanen — mis. `REVERB_PORT=8090` di `.env`/`.env.example` (VPS memakai 8080/8081/8082 untuk Reverb, jadi cukup lokal), atau pindahkan pemetaan port Nominatim. Perlu juga dipertimbangkan agar kegagalan broadcast tidak menjatuhkan seluruh request (`ShouldBroadcastNow` sinkron di dalam siklus request).
+- **Catatan:** selama pembuatan video, `.env` lokal sempat diarahkan ke 8090 lalu **dikembalikan ke 8080** (kondisi semula).
+- **Sumber:** temuan sampingan saat produksi video panduan 2026-07-31 (di luar scope, tidak dikerjakan).
+- **Status:** OPEN
+
+### #48 — Menu "Pusat Bantuan" di sidebar mengarah ke `/` (halaman bantuan tidak pernah ada)
+- **Severity:** P3 (UX/kepercayaan — menu yang menjanjikan bantuan justru melempar ke landing)
+- **Konteks:** ditemukan 2026-08-04 saat mengerjakan TASK_19. `resources/js/Layouts/Partials/Sidebar.jsx:64` memasang `<NavLink url={'/'} title="Pusat Bantuan" icon={IconMapPin} />` — tautan ke landing, bukan halaman bantuan; ikonnya pun peta, bukan bantuan. Tidak ada route/halaman bantuan di seluruh repo.
+- **Dampak:** pengguna yang mencari pertolongan (termasuk petugas baru) diputar balik ke landing tanpa jawaban. Aplikasi juga sama sekali tidak punya Syarat & Ketentuan / Kebijakan Privasi padahal memproses PII berat (GPS presisi, foto, KTP korban) dan sudah didistribusikan sebagai APK.
+- **Fix (TASK_19):** dibuat `InfoController` + 5 halaman publik (`/pusat-bantuan`, `/syarat-ketentuan`, `/kebijakan-privasi`, `/tentang`, `/paket-lisensi`); tautan sidebar diarahkan ke `info.help` dan dipindah ke seksi baru "Bantuan & Legal"; footer `PublicLayout` mendapat kolom "Informasi".
+- **Sumber:** permintaan user 2026-08-04.
+- **Status:** SELESAI (FIXED; belum di-commit/deploy).
+
+### #49 — Belum ada halaman/alur penghapusan akun (syarat Google Play untuk APK)
+- **Severity:** P2 (kepatuhan distribusi — bukan keamanan)
+- **Konteks:** ditemukan 2026-08-04 saat TASK_19. APK sudah dibagikan (`public/apk/sisupit.apk`, tombol unduh di halaman Login). Google Play mensyaratkan tautan publik berisi cara meminta penghapusan akun beserta data apa yang dihapus dan apa yang tetap disimpan. Saat ini Syarat & Ketentuan baru menyebut "hubungi kontak instansi" — belum ada halaman khusus maupun alur mandiri di aplikasi.
+- **Catatan teknis:** `ProfileController::destroy` sudah ada (Breeze), tetapi belum diputuskan perilakunya terhadap laporan & berita acara yang menjadi arsip resmi instansi — itulah keputusan yang harus dibuat sebelum halaman ini dibuat.
+- **Rencana fix (belum dikerjakan):** halaman `/hapus-akun` yang menjelaskan cakupan penghapusan + tombol permintaan; sinkronkan dengan kebijakan retensi di Kebijakan Privasi.
+- **Sumber:** TASK_19 — opsi ini TIDAK dipilih user saat penentuan cakupan 2026-08-04.
+- **Status:** OPEN
+
+### #50 — Video panduan (`docs/video/*.mp4`) tidak tersaji ke pengguna
+- **Severity:** P3 (pemanfaatan aset yang sudah dibuat)
+- **Konteks:** ditemukan 2026-08-04 saat TASK_19. Video alur lengkap (desktop & mobile) sudah diproduksi 2026-07-31 dan disimpan di `docs/video/`, yang **tidak** disajikan web server (`public/` yang disajikan). Akibatnya Pusat Bantuan baru hanya bisa memakai panduan teks.
+- **Pertimbangan:** menyalin mp4 ke `public/` menambah berkas besar ke git (repo ini juga sudah men-track `public/build`). Alternatif: hosting video di luar repo lalu tautkan dari Pusat Bantuan.
+- **Sumber:** TASK_19 (di luar scope, tidak dikerjakan).
+- **Status:** OPEN
+
+### #51 — Identitas penyedia di dokumen legal (PT Tawarin Dimana Aja) bertentangan dengan draf PKS (MAESA perorangan)
+- **Severity:** P1 (cacat hukum — dua dokumen yang saling merujuk menyebut PIHAK PERTAMA yang berbeda)
+- **Konteks:** ditemukan 2026-08-07 saat menggabungkan dua draf legal dari `docs/*.docx` ke halaman Syarat & Ketentuan. Kedua draf menyebut aplikasi dimiliki dan dioperasikan **PT Tawarin Dimana Aja**, sedangkan `Kontrak_Sisupit_Damkar_Denpasar_v2.docx` menuliskan komparisi **"MAESA, warga negara Indonesia, pemegang NIK [___] ... bertindak untuk dan atas nama diri sendiri"** sebagai PIHAK PERTAMA. Draf PKS itu bahkan sudah memuat catatan penyusun bahwa komparisi wajib disesuaikan bila usaha berbadan hukum.
+- **Dampak:** halaman `/syarat-ketentuan` menyatakan ketentuannya satu kesatuan dengan PKS, tetapi pihak yang disebut di kedua dokumen berbeda badan hukumnya. Klausul yang bersandar pada identitas penyedia ikut menggantung: yurisdiksi Pengadilan Negeri (kantor pusat PT), tanggung jawab direksi/komisaris, dan kepemilikan hak cipta aplikasi (perorangan vs badan hukum).
+- **Keputusan user 2026-08-07:** halaman aplikasi memakai **PT Tawarin Dimana Aja**; berkas PKS **tidak** ikut diubah pada sesi ini.
+- **Rencana fix (belum dikerjakan):** perbarui komparisi + seluruh penyebutan PIHAK PERTAMA di `Kontrak_Sisupit_Damkar_Denpasar.docx` dan `_v2.docx` menjadi badan hukum PT (nama penanda tangan, jabatan, akta pendirian, NPWP/NIB), lalu selaraskan klausul HKI dan yurisdiksi. Wajib ditinjau bagian hukum sebelum dipakai tanda tangan.
+- **Sumber:** permintaan user 2026-08-07 (penggabungan draf ToS).
+- **Status:** OPEN
+
+### #52 — Alamat kantor pusat penyedia masih kosong padahal menentukan yurisdiksi sengketa
+- **Severity:** P2 (kelengkapan dokumen legal)
+- **Konteks:** ditemukan 2026-08-07. Klausul penyelesaian sengketa pada kedua tab Syarat & Ketentuan menunjuk "Pengadilan Negeri yang wilayah hukumnya mencakup kantor pusat PT Tawarin Dimana Aja", tetapi alamatnya belum diketahui. Kedua draf `docs/*.docx` juga masih memuat placeholder `[Masukkan Alamat Kantor Resmi]`.
+- **Penanganan sementara:** `config/legal.php` mendapat kunci `penyedia.alamat` dan `penyedia.telepon` (default `null`, dapat diisi lewat `LEGAL_PENYEDIA_ALAMAT` / `LEGAL_PENYEDIA_TELEPON` di `.env`). Bila kosong, baris alamat/telepon **tidak ditampilkan** di halaman — dokumen tidak menampilkan placeholder kepada publik, tetapi juga belum lengkap.
+- **Rencana fix:** isi `LEGAL_PENYEDIA_ALAMAT` (dan telepon) di `.env` produksi sesuai akta pendirian PT, lalu verifikasi tampilannya di `/syarat-ketentuan` bagian "Hubungi kami" dan "Kontak legal".
+- **Sumber:** permintaan user 2026-08-07.
+- **Status:** OPEN
