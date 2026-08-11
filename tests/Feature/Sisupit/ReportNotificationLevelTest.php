@@ -119,6 +119,39 @@ it('excludes relawan who turned off siaga from the notification broadcast', func
     Notification::assertNotSentTo($inactiveRelawan, \App\Notifications\EmergencyAlertNotification::class);
 });
 
+// FINDINGS #56 — kolom wilayah kosong punya DUA makna dan pembedanya cuma PERAN:
+// staf = yurisdiksi nasional yang sengaja luas, non-staf = profil belum lengkap.
+// Sebelum perbaikan, keduanya ikut cabang jaring pengaman yang sama sehingga relawan
+// berprofil kosong menerima sirine untuk kebakaran di seluruh Indonesia.
+it('distinguishes an empty region on staff (national) from an incomplete volunteer profile', function () {
+    Notification::fake();
+
+    $petugasNasional = User::factory()->create();
+    $petugasNasional->assignRole('petugas');
+
+    $relawanBelumLengkap = User::factory()->create();
+    $relawanBelumLengkap->assignRole('relawan');
+
+    $relawanDesa = User::factory()->create(['village_code' => '5171012006']);
+    $relawanDesa->assignRole('relawan');
+
+    $this->actingAs($this->approver)->post("/reports/{$this->report->id}/approve")->assertRedirect();
+
+    Notification::assertSentTo($petugasNasional, \App\Notifications\EmergencyAlertNotification::class);
+    Notification::assertSentTo($relawanDesa, \App\Notifications\EmergencyAlertNotification::class);
+    Notification::assertNotSentTo($relawanBelumLengkap, \App\Notifications\EmergencyAlertNotification::class);
+});
+
+it('derives the jurisdiction level from the deepest filled region column', function () {
+    expect(User::factory()->create(['village_code' => '5171012006'])->jurisdictionLevel())->toBe(TenantLevel::DESA)
+        ->and(User::factory()->create(['district_code' => '517101'])->jurisdictionLevel())->toBe(TenantLevel::KECAMATAN)
+        ->and(User::factory()->create(['city_code' => '5171'])->jurisdictionLevel())->toBe(TenantLevel::KABUPATEN)
+        ->and(User::factory()->create(['province_code' => '51'])->jurisdictionLevel())->toBe(TenantLevel::PROVINSI)
+        ->and(User::factory()->create()->jurisdictionLevel())->toBeNull()
+        // String kosong diperlakukan sama dengan NULL, sejalan dengan withinReportJurisdiction().
+        ->and(User::factory()->create(['city_code' => '5171', 'village_code' => ''])->jurisdictionLevel())->toBe(TenantLevel::KABUPATEN);
+});
+
 it('restricts the notification settings page to superadmin, not regional admin', function () {
     $admin = User::factory()->create();
     $admin->assignRole('admin');

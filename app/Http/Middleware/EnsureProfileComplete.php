@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -37,8 +38,12 @@ class EnsureProfileComplete
      * provinsi, Admin\UserController::trimRegionToLevel() sengaja meng-null-kan village_code
      * agar tenant scope berhenti di tingkat itu - tanpa pengecualian ini mereka akan terjebak
      * loop "lengkapi profil sampai desa" (lihat cek village_code di handle()).
+     *
+     * Daftarnya sengaja menunjuk User::STAFF_ROLES agar aturan "kolom wilayah kosong =
+     * sengaja luas" hanya punya satu sumber, tidak bisa berbeda diam-diam dengan
+     * scopeNotifiableForReport (#56).
      */
-    private const EXEMPT_ROLES = ['superadmin', 'admin', 'petugas', 'pejabat'];
+    private const EXEMPT_ROLES = User::STAFF_ROLES;
 
     public function handle(Request $request, Closure $next): Response
     {

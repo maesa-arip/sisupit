@@ -25,6 +25,20 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasFactory, HasPushSubscriptions, HasRoles, Notifiable;
 
     /**
+     * Peran yang kode wilayahnya boleh kosong SECARA SENGAJA — mereka dikelola terpusat
+     * lewat Admin\UserController (assignRole + trimRegionToLevel yang meng-null-kan kolom
+     * di bawah tingkat yurisdiksinya), bukan lewat onboarding mandiri.
+     *
+     * Ini satu-satunya pembeda antara "sengaja luas" dan "profil belum lengkap" (#56):
+     * bentuk datanya identik (kolom NULL), yang berbeda hanya perannya. Dipakai
+     * EnsureProfileComplete (siapa yang tak wajib onboarding) dan scopeNotifiableForReport
+     * (siapa yang kolom kosongnya berarti nasional).
+     *
+     * @var list<string>
+     */
+    public const STAFF_ROLES = ['superadmin', 'admin', 'petugas', 'pejabat'];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -116,6 +130,21 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->{$column} === $report->{$column};
     }
 
+    /**
+     * Tingkat yurisdiksi user (desa/kecamatan/kabupaten/provinsi) menurut kolom wilayah
+     * terdalam yang terisi. `null` berarti tanpa kode wilayah — maknanya bergantung peran,
+     * lihat STAFF_ROLES.
+     */
+    public function jurisdictionLevel(): ?TenantLevel
+    {
+        return TenantLevel::forCodes(
+            $this->province_code,
+            $this->city_code,
+            $this->district_code,
+            $this->village_code,
+        );
+    }
+
     public function socialAccounts()
     {
         return $this->hasMany(SocialAccount::class);
@@ -191,11 +220,18 @@ class User extends Authenticatable implements MustVerifyEmail
         return $query->where(function (Builder $query) use ($report, $ceiling) {
             $query->whereHas('roles', fn ($q) => $q->where('name', 'superadmin'));
 
+            // Jaring pengaman "tanpa kode wilayah = nasional" HANYA berlaku untuk peran staf
+            // (#56). Bagi masyarakat/relawan kolom kosong berarti profil belum lengkap, bukan
+            // yurisdiksi nasional — dulu mereka ikut cabang ini dan menerima sirine untuk
+            // kebakaran di seluruh Indonesia, dan EnsureProfileComplete tidak menghalanginya
+            // karena push FCM tidak lewat middleware HTTP. Sejalan dengan #44 yang sudah
+            // ditegakkan di withinReportJurisdiction() dan scopeIsAdmin().
             $query->orWhere(function (Builder $q) {
                 $q->whereNull('village_code')
                     ->whereNull('district_code')
                     ->whereNull('city_code')
-                    ->whereNull('province_code');
+                    ->whereNull('province_code')
+                    ->whereHas('roles', fn ($r) => $r->whereIn('name', self::STAFF_ROLES));
             });
 
             if ($report->village_code) {

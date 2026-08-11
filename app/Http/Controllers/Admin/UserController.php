@@ -253,13 +253,7 @@ class UserController extends Controller
      */
     private function regionRank(User $user): int
     {
-        return match (true) {
-            (bool) $user->village_code => TenantLevel::DESA->rank(),
-            (bool) $user->district_code => TenantLevel::KECAMATAN->rank(),
-            (bool) $user->city_code => TenantLevel::KABUPATEN->rank(),
-            (bool) $user->province_code => TenantLevel::PROVINSI->rank(),
-            default => 0,
-        };
+        return $user->jurisdictionLevel()?->rank() ?? 0;
     }
 
     /**
