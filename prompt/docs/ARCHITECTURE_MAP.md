@@ -141,6 +141,23 @@ POST /reports/{id}/update-location  (tanpa nama rute, dipanggil axios background
   → broadcast(ResponderLocationUpdated)  → Reverb → command center map (Leaflet)
 ```
 
+**3. Otorisasi channel privat (WebSocket)**
+```
+POST /broadcasting/auth   (middleware web; didaftarkan lewat `channels:` di bootstrap/app.php)
+  → Illuminate\Broadcasting\BroadcastController@authenticate
+  → callback di routes/channels.php:
+      private-App.Models.User.{id}      → id cocok dengan user login
+      private-report-tracking.{report}  → pelapor  ATAU  staf (petugas/admin/superadmin)
+                                          yang withinReportJurisdiction()  ATAU  anggota
+                                          report_helpers (relawan yang mengambil tugas)
+```
+Argumen `channels:` pada `withRouting()` **wajib** — tanpa itu `routes/channels.php` tak
+pernah dimuat, `/broadcasting/auth` 404, dan seluruh `Echo.private(...)` gagal diam-diam
+tanpa gejala yang terlihat pengguna (FINDINGS #55, diperbaiki 2026-08-11). Callback
+`report-tracking` memakai `Report::withoutGlobalScopes()->find()` supaya responder lintas
+desa tetap bisa memantau; ketiga cek di dalamnya adalah re-check otorisasi manual yang
+menyertai bypass itu.
+
 ## Autentikasi & otorisasi
 
 - **Login**: Breeze (email/password) + Socialite Google (`Auth\SocialiteController`), auto-assign role `masyarakat` untuk user baru via Socialite.
@@ -163,6 +180,19 @@ Global scope Eloquent yang otomatis menambahkan filter `WHERE *_code = ...` ke q
 
 Model yang memakai `Tenantable`: **Report**, **Hydrant**, **Pompa**, **PosPemadam** (dua terakhir ditambah 2026-06-28 saat manajemen fasilitas Pompa/Pos diaktifkan — FINDINGS #23; kolom wilayahnya sudah ada sejak migrasi `2026_05_15_132259`). Model tenant-aware lain (`User` punya kolom wilayah tapi filter manual via `scopeIsAdmin`, bukan trait `Tenantable`) — **catat sebagai inkonsistensi** (lihat CONVENTIONS.md anti-pola).
 Model yang **sengaja global** (tidak pakai Tenantable): `Setting`, `RouteAccess`, `Announcement` (lintas tenant by design — sesuai catatan di CLAUDE.md lama).
+
+### Dua makna "kolom wilayah kosong" (`User::STAFF_ROLES`)
+Kolom `*_code` yang NULL **tidak** punya satu arti. Pembedanya adalah **peran**, bukan bentuk data:
+- **Peran staf** (`User::STAFF_ROLES` = superadmin/admin/petugas/pejabat) → yurisdiksi sengaja luas.
+  `Admin\UserController::trimRegionToLevel()` memang meng-NULL-kan kolom di bawah tingkat yang
+  diberikan; `EnsureProfileComplete` mengecualikan peran-peran ini karena itu.
+- **Selain staf** (masyarakat/relawan) → profil belum lengkap, **bukan** yurisdiksi nasional.
+
+Tingkat yurisdiksi diturunkan dari **kolom terdalam yang terisi** lewat satu sumber:
+`TenantLevel::forCodes()` (dipakai `User::jurisdictionLevel()` dan `Admin\UserController::regionRank()`).
+Cabang jaring pengaman "keempat kolom NULL = nasional" di `User::scopeNotifiableForReport()`
+karena itu dibatasi ke `STAFF_ROLES` — sebelumnya relawan berprofil kosong ikut cabang ini dan
+menerima siaran darurat se-Indonesia (FINDINGS #56, diperbaiki 2026-08-11).
 
 ## Entitas / model data
 

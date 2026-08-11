@@ -21,7 +21,22 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : TASK_21 (prompt/tasks/TASK_21_panel_menu_mobile.md) — SELESAI 2026-08-08,
+Task aktif   : TASK_22 (prompt/tasks/TASK_22_broadcasting_auth.md) — SELESAI 2026-08-11.
+                `bootstrap/app.php` kini memuat `channels:` sehingga POST /broadcasting/auth
+                terdaftar; sebelumnya SEMUA channel privat mati diam-diam (Echo.private gagal
+                otorisasi tanpa gejala). `routes/channels.php` pakai withoutGlobalScopes agar
+                responder lintas desa tak ikut tertutup Tenantable. Temuan #55 FIXED.
+                SISA: verifikasi end-to-end di produksi setelah deploy (curl /broadcasting/auth
+                harus 419/302, bukan 404) + marker responder bergerak di halaman Show.
+               TASK_23 (prompt/tasks/TASK_23_makna_wilayah_kosong.md) — SELESAI 2026-08-11.
+                Kolom wilayah kosong kini punya aturan bernama: `User::STAFF_ROLES` (staf =
+                sengaja luas) vs non-staf (= profil belum lengkap), tingkat diturunkan lewat
+                `TenantLevel::forCodes()`. Cabang jaring pengaman "keempat kolom NULL = nasional"
+                dibatasi ke staf — relawan berprofil kosong tak lagi dibanjiri siaran darurat
+                se-Indonesia. Temuan #56 FIXED (dua "zona mati" yang dicatat di #56 ternyata
+                by-design & dikunci test — koreksinya ada di entri #56). SISA: jalankan query
+                verifikasi '0'/'' di DB produksi.
+               TASK_21 (prompt/tasks/TASK_21_panel_menu_mobile.md) — SELESAI 2026-08-08,
                 branch `worktree-mobile-menu-drawer`. Panel "Menu" mobile berhenti menuang
                 sidebar desktop ke Sheet: daftar menu pindah ke Partials/navItems.js sebagai
                 satu-satunya sumber DATA, penyajian per permukaan jadi berbeda. Mobile kini
