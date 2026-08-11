@@ -74,6 +74,21 @@ return [
         'tile_url' => env('MAP_TILE_URL', 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'),
     ],
 
+    'reverb' => [
+        // Konfigurasi Reverb yang boleh dilihat BROWSER, di-inject ke window.REVERB_CONFIG
+        // lewat app.blade.php lalu dibaca resources/js/echo.js — pola sama dengan map.tile_url
+        // di atas. Sebelumnya nilainya ditanam ke bundel saat build lewat VITE_REVERB_*, dan
+        // sekali build berjalan tanpa env itu window.Echo tak pernah dibuat = seluruh realtime
+        // mati tanpa gejala; host-nya juga terpaku satu domain sehingga staging/dev menyambung
+        // ke Reverb produksi (#58). Nilainya sengaja diambil ulang dari config broadcasting
+        // agar hanya ADA SATU sumber. 'secret' TIDAK BOLEH ditambahkan di sini — ia menandatangani
+        // otorisasi channel; bocor ke browser = siapa pun bisa memalsukan langganan channel privat.
+        'key' => env('REVERB_APP_KEY'),
+        'host' => env('REVERB_HOST'),
+        'port' => env('REVERB_PORT', 443),
+        'scheme' => env('REVERB_SCHEME', 'https'),
+    ],
+
     'tenant' => [
         // Domain dasar (registrable) untuk multi-tenant per kabupaten (TASK_17). Subdomain
         // di-strip dari Host memakai nilai ini: badung.sisupit.com → subdomain "badung".

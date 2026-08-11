@@ -31,6 +31,13 @@
              dialihkan ke tile server sendiri lewat 1 env var MAP_TILE_URL tanpa rebuild JS.
              Skrip biasa (bukan module) → jalan sebelum bundel @vite yang deferred. --}}
         <script>window.MAP_TILE_URL = @json(config('services.map.tile_url'));</script>
+        {{-- Konfigurasi Reverb untuk BROWSER, di-inject runtime dengan pola yang sama.
+             Sebelumnya echo.js membacanya dari import.meta.env saat BUILD, sehingga sekali
+             `npm run build` dijalankan tanpa VITE_REVERB_APP_KEY (mis. dari git worktree yang
+             tak punya .env) window.Echo tak pernah dibuat DAN host-nya ikut terpaku ke satu
+             domain — staging/dev jadi menyambung ke Reverb produksi (#58). Hanya app KEY yang
+             dikirim ke browser; REVERB_APP_SECRET tidak boleh ikut. --}}
+        <script>window.REVERB_CONFIG = @json(config('services.reverb'));</script>
         <!-- Leaflet CSS -->
         <link
         rel="stylesheet"

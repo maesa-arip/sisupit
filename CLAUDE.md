@@ -21,7 +21,19 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : TASK_22 (prompt/tasks/TASK_22_broadcasting_auth.md) — SELESAI 2026-08-11.
+Task aktif   : TASK_24 (prompt/tasks/TASK_24_app_env_produksi.md) — SELESAI 2026-08-11.
+                Produksi tadinya jalan dengan APP_ENV=local + APP_DEBUG=true → jejak galat
+                & isi environment terbuka ke publik, dan halaman ErrorHandling tak pernah
+                terpakai. Kini APP_ENV=production + APP_DEBUG=false (staging/dev ikut
+                APP_DEBUG=false). Perubahan .env server saja, cadangan .env.bak-57-*.
+                Temuan #57 FIXED.
+               TASK_25 (prompt/tasks/TASK_25_reverb_config_runtime.md) — SELESAI 2026-08-11.
+                Konfigurasi Reverb sisi browser dibaca RUNTIME (config/services.php →
+                window.REVERB_CONFIG → echo.js), pola sama dengan MAP_TILE_URL. Sebelumnya
+                dipaku saat build lewat VITE_REVERB_*, sehingga window.Echo TAK PERNAH ada
+                di semua env dan host terpaku satu domain. Temuan #58 FIXED. SISA: cek di
+                browser bahwa WS staging menyambung ke staging.sisupit.com.
+               TASK_22 (prompt/tasks/TASK_22_broadcasting_auth.md) — SELESAI 2026-08-11.
                 `bootstrap/app.php` kini memuat `channels:` sehingga POST /broadcasting/auth
                 terdaftar; sebelumnya SEMUA channel privat mati diam-diam (Echo.private gagal
                 otorisasi tanpa gejala). `routes/channels.php` pakai withoutGlobalScopes agar
