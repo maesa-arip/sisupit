@@ -8,7 +8,13 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 });
 // 👇 TAMBAHKAN KODE INI UNTUK SISUPIT 👇
 Broadcast::channel('report-tracking.{reportId}', function ($user, $reportId) {
-    $report = Report::find($reportId);
+    // withoutGlobalScopes: global scope Tenantable memfilter laporan ke wilayah user yang
+    // login, sehingga relawan/pelapor DI LUAR desa laporan tak pernah menemukan laporannya
+    // dan ditolak walau berhak (mis. relawan yang sudah mengambil tugas lintas desa — lihat
+    // #42 yang menegaskan keanggotaan, bukan wilayah). Otorisasi TIDAK dilonggarkan: ketiga
+    // cek di bawah (pelapor / staf + withinReportJurisdiction / anggota report_helpers)
+    // adalah re-check manual yang wajib menyertai withoutGlobalScopes (ATURAN EMAS #7).
+    $report = Report::withoutGlobalScopes()->find($reportId);
 
     // Jika laporan tidak ada, tolak akses
     if (! $report) {

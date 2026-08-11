@@ -11,6 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
+        // Memuat routes/channels.php SEKALIGUS mendaftarkan POST /broadcasting/auth.
+        // Tanpa argumen ini semua Echo.private(...) gagal otorisasi tanpa gejala yang
+        // terlihat pengguna — pelacakan responder & badge status realtime mati (#55).
+        channels: __DIR__.'/../routes/channels.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
