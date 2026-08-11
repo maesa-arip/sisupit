@@ -938,3 +938,11 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **SISA (belum diverifikasi):** pemeriksaan langsung di browser — buka detail laporan aktif di staging, pastikan `window.Echo` ada dan DevTools→Network→WS menyambung ke `staging.sisupit.com`, bukan `sisupit.com`. Repo tak punya browser automation.
 - **Sumber:** verifikasi pasca-deploy #55 di staging 2026-08-11.
 - **Status:** SELESAI (FIXED) 2026-08-11 — TASK_25
+
+### #59 — `REVERB_APP_KEY`/`SECRET` identik di produksi, staging, dan dev
+- **Severity:** P3 (higiene kredensial; bukan celah langsung, tapi menghapus batas antar-environment)
+- **Ditemukan 2026-08-11** setelah #58 diperbaiki: `window.REVERB_CONFIG` yang dikirim ketiga environment memuat app key yang sama persis (`k6wxyftqnvctsl54svr6`). Wajar — `.env` staging/dev disalin dari produksi saat provisioning 2026-07-06 dan hanya `APP_ENV/APP_URL/DB_DATABASE/REVERB_HOST/REVERB_SERVER_PORT/SESSION_COOKIE` yang diubah.
+- **Dampak:** karena `REVERB_APP_SECRET` juga sama, tanda tangan otorisasi channel yang dibuat server staging **valid di Reverb produksi**, dan sebaliknya. Siapa pun yang bisa login di staging/dev (data PII produksi tersalin ke sana) bisa memakainya untuk berlangganan channel privat di produksi bila mengetahui socket id yang tepat. Selama #58 belum diperbaiki hal ini tersembunyi karena browser staging/dev memang menyambung ke Reverb produksi.
+- **Rencana fix (belum dikerjakan):** buat `REVERB_APP_ID`/`APP_KEY`/`APP_SECRET` sendiri untuk staging dan dev, lalu restart `reverb-staging`/`reverb-dev`. Sejak #58 nilai sisi browser dibaca runtime, jadi **tidak perlu rebuild frontend** — cukup ubah `.env` masing-masing. Pertimbangkan sekalian memisahkan `APP_KEY` per environment (saat provisioning sengaja disamakan agar data terenkripsi hasil salinan tetap terbaca — kalau diubah, kolom terenkripsi di salinan DB jadi tak terbaca, jadi ini keputusan tersendiri).
+- **Sumber:** verifikasi pasca-perbaikan #58, 2026-08-11.
+- **Status:** OPEN
