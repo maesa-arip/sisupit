@@ -914,3 +914,23 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **SISA (belum diverifikasi):** query verifikasi `'0'`/`''` di produksi belum dijalankan (tak ada akses DB produksi pada sesi ini). Bila ada barisnya, `forCodes()` sudah memperlakukannya sebagai kosong, tetapi `whereNull` di cabang jaring pengaman dan di cascade TIDAK — jadi normalisasi data satu kali tetap perlu. Baris relawan berwilayah kosong = kandidat yang harus diminta melengkapi profil; baris berperan admin/petugas/pejabat SAH, jangan diperlakukan sebagai data rusak.
 - **Sumber:** laporan user 2026-08-10 saat membahas cakupan penerima notifikasi.
 - **Status:** SELESAI (FIXED) 2026-08-11 — TASK_23
+
+### #57 — Produksi berjalan dengan `APP_ENV=local` dan `APP_DEBUG=true`
+- **Severity:** P1 (kebocoran informasi: jejak galat penuh + isi konfigurasi terbuka ke publik)
+- **Ditemukan 2026-08-11** saat menyiapkan deploy #55/#56 ke staging & dev: `/var/www/sisupit/.env` di VPS produksi berisi `APP_ENV=local` dan `APP_DEBUG=true` (staging & dev juga `APP_DEBUG=true`, tapi dampaknya lebih ringan karena bukan lingkungan publik utama).
+- **Dampak:**
+  1. Setiap galat 500 menampilkan halaman debug Laravel berisi jejak tumpukan, potongan kode sumber, dan **isi variabel environment** (kredensial DB, APP_KEY, kunci Reverb/FCM) kepada siapa pun yang memicunya.
+  2. Penangan pengecualian di `bootstrap/app.php:31-45` sengaja hanya merender halaman `ErrorHandling` yang ramah bila `! app()->environment(['local','testing'])`. Dengan `APP_ENV=local`, cabang itu **tidak pernah** aktif di produksi — jadi halaman error rapi yang sudah dibuat justru tak pernah terpakai di tempat yang paling membutuhkannya.
+  3. Perilaku lain yang bergantung environment (mis. `crossSubdomainThanksRedirect`, penulisan log verbose) ikut memakai jalur "local" di produksi.
+- **Rencana fix (belum dikerjakan — perubahan konfigurasi server, butuh keputusan user):** di `/var/www/sisupit/.env` set `APP_ENV=production` dan `APP_DEBUG=false`, lalu `php artisan config:clear`. **Perlu diuji dulu di staging** karena mengubah `APP_ENV` mengaktifkan cabang penangan galat yang selama ini tidak pernah jalan di produksi, dan bisa mengubah perilaku fitur yang mengecek `environment()`.
+- **Sumber:** inspeksi `.env` ketiga environment saat deploy 2026-08-11.
+- **Status:** OPEN
+
+### #58 — `public/build` yang ter-commit dibangun tanpa `VITE_REVERB_APP_KEY`: `window.Echo` tak pernah dibuat
+- **Severity:** P1 (seluruh fitur real-time di browser mati, di SEMUA environment)
+- **Ditemukan 2026-08-11** saat memverifikasi hasil perbaikan #55 di staging. `resources/js/echo.js:12` hanya membuat `window.Echo` bila `import.meta.env.VITE_REVERB_APP_KEY` terisi; Vite mengganti nilai itu **saat build**. Pada aset yang ter-commit (`public/build/assets/app-*.js`) tidak ada satu pun string `broadcaster:"reverb"` maupun `sisupit.com`, sementara string peringatan pada cabang `else` (`VITE_REVERB_APP_KEY tidak di-set`) ADA — bukti bahwa nilainya kosong saat build sehingga blok `new Echo({...})` dibuang sebagai kode mati. `pusher-js` tetap ikut ter-bundle, jadi ukurannya tidak berubah dan tidak ada gejala yang terlihat.
+- **Dampak:** `window.Echo` `undefined` di browser, dan semua pemakainya dijaga `if (window.Echo)` sehingga gagal **tanpa error**. Pelacakan responder di `Front/Reports/Show.jsx:619` dan badge status real-time (#28) tidak akan hidup walaupun #55 sudah memperbaiki sisi server. **Aplikasi desktop Electron TIDAK terpengaruh** — ia memakai WebSocket sendiri di main process, bukan `window.Echo`.
+- **Dugaan penyebab:** build terakhir yang ter-commit (`1403441`, sesudah TASK_21) dijalankan dari **git worktree** yang tidak punya `.env`/`.env.production`, sehingga variabel `VITE_*` kosong. `.env` di repo utama memakai interpolasi gaya Laravel (`"${REVERB_APP_KEY}"`) sedangkan `.env.production` berisi nilai harfiah — keduanya ada di repo utama, tidak ada di worktree.
+- **Rencana fix:** jalankan `npm run build` **dari repo utama** (bukan worktree), pastikan aset hasilnya memuat `broadcaster:"reverb"`, lalu commit `public/build` mengikuti alur deploy baku repo ini. Pertimbangkan menambahkan pemeriksaan build yang gagal keras bila `VITE_REVERB_APP_KEY` kosong, supaya kejadian ini tidak terulang senyap.
+- **Sumber:** verifikasi pasca-deploy #55 di staging 2026-08-11.
+- **Status:** OPEN
