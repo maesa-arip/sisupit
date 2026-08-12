@@ -44,6 +44,10 @@ return [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect' => env('GOOGLE_CLIENT_REDIRECT'),
+        // Client ID OAuth khusus iOS. Google Sign-In di iPhone menerbitkan ID token dengan
+        // aud = nilai ini (bukan Web Client ID), jadi tanpa diisi login Google dari aplikasi
+        // iOS akan ditolak SocialiteController::handleNativeGoogle. Kosong = fitur mati.
+        'ios_client_id' => env('GOOGLE_IOS_CLIENT_ID'),
     ],
 
     'nominatim' => [

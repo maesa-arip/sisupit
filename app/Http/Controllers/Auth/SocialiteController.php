@@ -66,13 +66,21 @@ class SocialiteController extends Controller
 
         $payload = $response->json();
 
-        // aud HARUS sama dengan Web Client ID kita (cegah token yang diterbitkan untuk app lain).
-        $expectedAud = config('services.google.client_id');
+        // aud HARUS salah satu Client ID milik kita (cegah token yang diterbitkan untuk app
+        // lain). Berupa DAFTAR, bukan nilai tunggal: tiap klien native menerbitkan token
+        // dengan aud client-nya sendiri — browser & Android memakai Web Client ID, sedangkan
+        // GIDSignIn di iOS memakai iOS Client ID sehingga token iPhone akan selalu ditolak
+        // bila dibandingkan dengan satu nilai saja. array_filter() membuang kunci yang belum
+        // diisi di .env agar string kosong tidak pernah lolos sebagai aud yang sah.
+        $allowedAuds = array_filter([
+            config('services.google.client_id'),
+            config('services.google.ios_client_id'),
+        ]);
         $validIssuers = ['accounts.google.com', 'https://accounts.google.com'];
         $emailVerified = filter_var($payload['email_verified'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
         if (
-            empty($payload['aud']) || $payload['aud'] !== $expectedAud ||
+            empty($payload['aud']) || ! in_array($payload['aud'], $allowedAuds, true) ||
             empty($payload['iss']) || ! in_array($payload['iss'], $validIssuers, true) ||
             empty($payload['sub']) || empty($payload['email']) || ! $emailVerified
         ) {
