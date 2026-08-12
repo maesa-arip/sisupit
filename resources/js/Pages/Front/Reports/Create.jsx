@@ -1,6 +1,7 @@
 import InputError from '@/Components/InputError';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Combobox } from '@/Components/ui/combobox';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
@@ -75,6 +76,29 @@ const INCIDENT_TYPES = [
 	{ value: 'lainnya', label: 'Bukan Kebakaran', title: '', icon: IconDotsCircleHorizontal },
 ];
 
+// Kedekatan peta saat operator memilih wilayah (TASK_28): makin dalam tingkatnya makin
+// rapat, supaya pin tinggal digeser sedikit dari titik tengah wilayah terpilih.
+const REGION_ZOOM = { city: 12, district: 14, village: 16 };
+
+// Titik tengah wilayah dari kolom `meta` tabel indonesia_* (laravolt) yang ikut terkirim
+// apa adanya oleh /api/regions/*. Bentuknya {"lat":"..","long":".."} — bisa berupa string
+// JSON (MySQL) atau objek, jadi keduanya ditangani. null = wilayah tanpa koordinat.
+const regionCoords = (item) => {
+	if (!item?.meta) return null;
+
+	try {
+		const meta = typeof item.meta === 'string' ? JSON.parse(item.meta) : item.meta;
+		const lat = parseFloat(meta?.lat);
+		const lng = parseFloat(meta?.long ?? meta?.lng);
+
+		return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+	} catch {
+		return null;
+	}
+};
+
+const regionName = (list, code) => (code ? list.find((item) => item.code === code)?.name || '' : '');
+
 export default function Create(props) {
 	const auth = props.auth.user;
 
@@ -82,10 +106,30 @@ export default function Create(props) {
 	const provinces = props.provinces || [];
 	// Kabupaten yang sudah bekerjasama (TASK_17) → notice arah laporan berdasarkan pin.
 	const registeredTenants = props.registered_tenants || [];
+	// Pemilih wilayah manual (TASK_28) — HANYA dikirim server untuk Pusat Komando
+	// (petugas/admin/superadmin) berisi yurisdiksi operator sebagai nilai awal. null =
+	// warga: form tetap darurat-first, seluruh UI & state di bawah ini tidak aktif.
+	const regionPicker = props.region_picker || null;
 
 	const [userLocation, setUserLocation] = useState(null);
 	const [locationLoading, setLocationLoading] = useState(true);
 	const [friendlyAddress, setFriendlyAddress] = useState('');
+
+	// 'manual' = wilayah pilihan operator yang jadi sumber kebenaran (geser pin hanya
+	// mengoreksi titik, tidak menimpa kode wilayah); 'pin' = perilaku lama, wilayah
+	// diturunkan dari reverse-geocode pin. Warga selalu 'pin'.
+	const [regionMode, setRegionMode] = useState(regionPicker ? 'manual' : 'pin');
+	// Dibaca dari dalam callback GPS/geocode yang closure-nya dibuat saat mount, jadi
+	// nilainya harus lewat ref — bukan state yang sudah basi di closure itu.
+	const regionModeRef = useRef(regionMode);
+	// Operator sudah memilih wilayah sendiri → deteksi GPS awal (yang jalan asinkron sejak
+	// halaman dibuka) tidak boleh lagi memindahkan pin ke lokasi operator saat balasannya
+	// datang belakangan.
+	const regionTouchedRef = useRef(false);
+	const [cities, setCities] = useState([]);
+	const [districts, setDistricts] = useState([]);
+	const [villages, setVillages] = useState([]);
+	const [mapZoom, setMapZoom] = useState(null);
 
 	const [previews, setPreviews] = useState([]); // galeri foto (FINDINGS #17)
 	const previewsRef = useRef([]);
@@ -102,10 +146,12 @@ export default function Create(props) {
 		description: '',
 		lat: '',
 		lng: '',
-		province_code: '',
-		city_code: '',
-		district_code: '',
-		village_code: '',
+		// Untuk Pusat Komando, yurisdiksi operator jadi nilai awal (TASK_28) — akun Damkar
+		// Bali otomatis terisi provinsi, akun tingkat kabupaten sekalian kabupatennya.
+		province_code: regionPicker?.province_code || '',
+		city_code: regionPicker?.city_code || '',
+		district_code: regionPicker?.district_code || '',
+		village_code: regionPicker?.village_code || '',
 		road: '',
 		phone: auth?.phone || '',
 		photos: [],
@@ -124,23 +170,34 @@ export default function Create(props) {
 	// Titik dipakai tapi yurisdiksi TIDAK di-auto-isi (fix tak akurat / gagal deteksi).
 	// User wajib menggeser pin merah ke titik kejadian agar wilayah terisi dari titik benar.
 	const applyUntrustedPoint = (latitude, longitude, message) => {
+		// Mode manual (TASK_28): wilayah datang dari pilihan operator, bukan dari titik —
+		// jadi fix GPS yang buruk tidak boleh mengosongkannya.
+		const keepRegion = regionModeRef.current === 'manual';
+
 		setFriendlyAddress(message);
 		setData((prevData) => ({
 			...prevData,
 			lat: latitude,
 			lng: longitude,
 			// Kosongkan yurisdiksi: jangan percaya wilayah dari fix yang tidak akurat.
-			province_code: '',
-			city_code: '',
-			district_code: '',
-			village_code: '',
+			...(keepRegion
+				? {}
+				: {
+						province_code: '',
+						city_code: '',
+						district_code: '',
+						village_code: '',
+					}),
 			road: '',
 		}));
 	};
 
 	// Reverse-geocode sebuah titik lalu auto-isi alamat & yurisdiksi (provinsi..desa).
 	// Dipakai baik oleh deteksi GPS awal maupun saat pin peta digeser manual.
+	// TASK_28: pada mode 'manual' wilayah TIDAK ikut ditimpa — hanya titik, nama jalan,
+	// dan teks alamat yang diperbarui, karena kode wilayah adalah pilihan operator.
 	const resolveLocation = async (latitude, longitude) => {
+		const keepRegion = regionModeRef.current === 'manual';
 		setUserLocation({ latitude, longitude });
 
 		try {
@@ -159,6 +216,20 @@ export default function Create(props) {
 				const displayAddr = [roadName, villageName, districtName].filter(Boolean).join(', ');
 
 				setFriendlyAddress(displayAddr || response.data.display_name?.split(',')[0] || 'Lokasi terdeteksi');
+
+				// TASK_28: wilayah sedang dipegang operator (mode manual) — titik & nama jalan
+				// saja yang diperbarui, pencocokan nama OSM ke tabel wilayah dilewati agar
+				// pilihannya tidak tertimpa tebakan geocoder.
+				if (keepRegion) {
+					setData((prevData) => ({
+						...prevData,
+						lat: latitude,
+						lng: longitude,
+						road: roadName,
+					}));
+
+					return;
+				}
 
 				// 2. AUTO-FILL YURISDIKSI (OMNI-SEARCH GAIB)
 				let pCode = '',
@@ -257,6 +328,13 @@ export default function Create(props) {
 		setLocationLoading(true);
 		getFreshPosition()
 			.then(({ coords }) => {
+				// Operator keburu memilih wilayah sebelum GPS menjawab: jangan tarik pin
+				// kembali ke posisi operator (TASK_28).
+				if (regionTouchedRef.current) {
+					setLocationLoading(false);
+					return;
+				}
+
 				setUserLocation({ latitude: coords.latitude, longitude: coords.longitude });
 
 				if (coords.accuracy != null && coords.accuracy > GEO_ACCURACY_THRESHOLD) {
@@ -276,6 +354,13 @@ export default function Create(props) {
 			})
 			.catch((error) => {
 				console.error('Error getting user location:', error);
+
+				// Wilayah sudah dipilih operator → pin sudah benar, GPS gagal tidak relevan.
+				if (regionTouchedRef.current) {
+					setLocationLoading(false);
+					return;
+				}
+
 				// Gagal total: taruh pin di pusat peta agar user tetap bisa menandai manual.
 				setUserLocation(null);
 				applyUntrustedPoint(
@@ -301,6 +386,103 @@ export default function Create(props) {
 			previewsRef.current.forEach((p) => URL.revokeObjectURL(p.url));
 		};
 	}, []);
+
+	// ---------------------------------------------------------------------------
+	// PEMILIH WILAYAH MANUAL (TASK_28) — hanya aktif untuk Pusat Komando
+	// ---------------------------------------------------------------------------
+	// Rantai bertingkat provinsi→kabupaten→kecamatan→desa lewat endpoint yang sudah ada.
+	// Daftar ini juga dipakai mode 'pin' untuk menampilkan wilayah hasil deteksi otomatis.
+	const hasRegionPicker = Boolean(regionPicker);
+
+	useEffect(() => {
+		if (!hasRegionPicker || !data.province_code) {
+			setCities([]);
+
+			return;
+		}
+
+		axios
+			.get(`/api/regions/cities/${data.province_code}`)
+			.then((res) => setCities(res.data))
+			.catch(() => setCities([]));
+	}, [hasRegionPicker, data.province_code]);
+
+	useEffect(() => {
+		if (!hasRegionPicker || !data.city_code) {
+			setDistricts([]);
+
+			return;
+		}
+
+		axios
+			.get(`/api/regions/districts/${data.city_code}`)
+			.then((res) => setDistricts(res.data))
+			.catch(() => setDistricts([]));
+	}, [hasRegionPicker, data.city_code]);
+
+	useEffect(() => {
+		if (!hasRegionPicker || !data.district_code) {
+			setVillages([]);
+
+			return;
+		}
+
+		axios
+			.get(`/api/regions/villages/${data.district_code}`)
+			.then((res) => setVillages(res.data))
+			.catch(() => setVillages([]));
+	}, [hasRegionPicker, data.district_code]);
+
+	// Memilih wilayah = beralih ke mode manual + kosongkan tingkat di bawahnya, lalu
+	// lompatkan pin ke titik tengah wilayah terpilih supaya operator hanya perlu menggeser
+	// sedikit. Provinsi tidak punya koordinat (prop provinces hanya code+name) → pin diam.
+	const selectRegion = (level, code) => {
+		const list = { province: provinces, city: cities, district: districts, village: villages }[level];
+		const coords = regionCoords(list.find((item) => item.code === code));
+
+		regionModeRef.current = 'manual';
+		regionTouchedRef.current = true;
+		setRegionMode('manual');
+
+		setData((prev) => ({
+			...prev,
+			province_code: level === 'province' ? code : prev.province_code,
+			city_code: level === 'province' ? '' : level === 'city' ? code : prev.city_code,
+			district_code:
+				level === 'province' || level === 'city' ? '' : level === 'district' ? code : prev.district_code,
+			village_code: level === 'village' ? code : '',
+			...(coords ? { lat: coords.lat.toFixed(6), lng: coords.lng.toFixed(6) } : {}),
+		}));
+
+		if (coords) {
+			setUserLocation({ latitude: coords.lat, longitude: coords.lng });
+			setMapZoom(REGION_ZOOM[level]);
+			setFriendlyAddress('');
+			// Titik sudah pasti dari wilayah terpilih: jangan biarkan tombol Kirim terkunci
+			// menunggu GPS yang masih memindai (tombol disable-nya membaca locationLoading).
+			setLocationLoading(false);
+		}
+	};
+
+	// Kembali ke perilaku lama: wilayah diturunkan dari titik pin lewat reverse-geocode.
+	const useMapPinRegion = () => {
+		regionModeRef.current = 'pin';
+		setRegionMode('pin');
+
+		if (data.lat && data.lng) {
+			setLocationLoading(true);
+			resolveLocation(parseFloat(data.lat), parseFloat(data.lng));
+		}
+	};
+
+	// Ringkasan wilayah terpilih untuk baris keterangan di kepala bagian lokasi.
+	const manualRegionLabel = [
+		regionName(villages, data.village_code) && `Desa/Kel. ${regionName(villages, data.village_code)}`,
+		regionName(districts, data.district_code) && `Kec. ${regionName(districts, data.district_code)}`,
+		regionName(cities, data.city_code),
+	]
+		.filter(Boolean)
+		.join(', ');
 
 	const onHandleChange = (e) => setData(e.target.name, e.target.value);
 
@@ -364,6 +546,13 @@ export default function Create(props) {
 			return;
 		}
 
+		// Mode manual (TASK_28): server tetap mewajibkan sampai desa, jadi minta operator
+		// melengkapinya di sini — bukan gagal di server dengan field yang tak terlihat.
+		if (data._method === 'POST' && regionMode === 'manual' && !data.village_code) {
+			toast.warning('Lengkapi wilayah kejadian sampai desa/kelurahan.');
+			return;
+		}
+
 		// Saat membuat laporan wilayah wajib terisi (server memvalidasi provinsi..desa).
 		// Jika kosong berarti titik belum dikenali (fix tak akurat / gagal) — minta koreksi
 		// pin lebih dulu daripada gagal validasi dengan pesan field tersembunyi.
@@ -390,7 +579,36 @@ export default function Create(props) {
 	// Status lokasi 4-tingkat untuk badge GPS. 'weak' = titik ada tapi wilayah belum
 	// terkenali (fix tak akurat / gagal geocode) → minta warga geser pin. 'ready' hanya
 	// saat yurisdiksi (province_code) terisi dari titik yang benar.
-	const locState = locationLoading ? 'scanning' : !userLocation ? 'failed' : data.province_code ? 'ready' : 'weak';
+	// Mode manual (TASK_28) tidak bergantung GPS sama sekali: siap begitu desa dipilih.
+	const locState =
+		regionMode === 'manual'
+			? data.village_code && data.lat
+				? 'ready'
+				: 'weak'
+			: locationLoading
+				? 'scanning'
+				: !userLocation
+					? 'failed'
+					: data.province_code
+						? 'ready'
+						: 'weak';
+
+	const locTitle =
+		regionMode === 'manual'
+			? locState === 'ready'
+				? 'Lokasi dipilih manual'
+				: 'Lengkapi wilayah kejadian'
+			: locState === 'scanning'
+				? 'Memindai lokasi...'
+				: locState === 'ready'
+					? 'Lokasi terdeteksi'
+					: locState === 'weak'
+						? 'Lokasi kurang akurat'
+						: 'GPS gagal';
+
+	// Baris keterangan di bawah judul: mode manual menunjukkan wilayah pilihan operator,
+	// mode pin menunjukkan alamat hasil reverse-geocode.
+	const locSubtitle = regionMode === 'manual' ? manualRegionLabel : friendlyAddress;
 
 	// Notice arah laporan (TASK_17): begitu kota (city_code) ter-resolve dari pin, tampilkan
 	// tujuan. Kota tanpa tenant terdaftar → warga diarahkan ke 112 (jujur, tanpa jaminan palsu).
@@ -450,21 +668,125 @@ export default function Create(props) {
 
 									<div className="min-w-0 flex-1 pb-2">
 										<p className="text-sm font-semibold uppercase tracking-wide text-foreground">
-											{locState === 'scanning'
-												? 'Memindai lokasi...'
-												: locState === 'ready'
-													? 'Lokasi terdeteksi'
-													: locState === 'weak'
-														? 'Lokasi kurang akurat'
-														: 'GPS gagal'}
+											{locTitle}
 										</p>
-										{friendlyAddress && !locationLoading && (
+										{locSubtitle && (regionMode === 'manual' || !locationLoading) && (
 											<p className="mt-0.5 truncate text-[13px] text-muted-foreground">
-												{friendlyAddress}
+												{locSubtitle}
 											</p>
 										)}
 									</div>
 								</div>
+
+								{/* --- PEMILIH WILAYAH MANUAL (TASK_28) — Pusat Komando saja ---
+								    Laporan yang masuk lewat telepon: operator tahu nama desanya, bukan
+								    titik petanya. Memilih wilayah melompatkan pin ke titik tengah
+								    wilayah itu, lalu tinggal digeser sedikit ke titik kejadian. */}
+								{regionPicker && (
+									<div className="space-y-3 rounded-md border border-border bg-muted/30 p-3">
+										<div className="flex flex-wrap items-start justify-between gap-2">
+											<div className="min-w-0">
+												<p className="text-xs font-semibold uppercase tracking-wider text-foreground">
+													Wilayah Kejadian
+												</p>
+												<p className="mt-0.5 text-[13px] text-muted-foreground">
+													{regionMode === 'manual'
+														? 'Pilih sampai desa/kelurahan — peta akan melompat ke sana.'
+														: 'Wilayah mengikuti pin peta (deteksi otomatis).'}
+												</p>
+											</div>
+
+											<div className="flex shrink-0 rounded-md border border-border bg-card p-0.5 text-xs font-semibold">
+												<button
+													type="button"
+													onClick={() => {
+														regionModeRef.current = 'manual';
+														setRegionMode('manual');
+													}}
+													aria-pressed={regionMode === 'manual'}
+													className={cn(
+														'rounded px-3 py-1.5 transition-colors',
+														regionMode === 'manual'
+															? 'bg-destructive/10 text-destructive'
+															: 'text-muted-foreground hover:bg-accent',
+													)}
+												>
+													Pilih manual
+												</button>
+												<button
+													type="button"
+													onClick={useMapPinRegion}
+													aria-pressed={regionMode === 'pin'}
+													className={cn(
+														'rounded px-3 py-1.5 transition-colors',
+														regionMode === 'pin'
+															? 'bg-destructive/10 text-destructive'
+															: 'text-muted-foreground hover:bg-accent',
+													)}
+												>
+													Ikuti pin peta
+												</button>
+											</div>
+										</div>
+
+										<div className="grid gap-3 sm:grid-cols-2">
+											<div className="grid gap-1.5">
+												<Label className="text-sm font-medium text-foreground/80">
+													Provinsi
+												</Label>
+												<Combobox
+													items={provinces}
+													value={data.province_code}
+													onChange={(val) => selectRegion('province', val)}
+													placeholder="Pilih Provinsi..."
+												/>
+												{errors.province_code && <InputError message={errors.province_code} />}
+											</div>
+
+											<div className="grid gap-1.5">
+												<Label className="text-sm font-medium text-foreground/80">
+													Kabupaten / Kota
+												</Label>
+												<Combobox
+													items={cities}
+													value={data.city_code}
+													disabled={!data.province_code}
+													onChange={(val) => selectRegion('city', val)}
+													placeholder="Pilih Kabupaten/Kota..."
+												/>
+												{errors.city_code && <InputError message={errors.city_code} />}
+											</div>
+
+											<div className="grid gap-1.5">
+												<Label className="text-sm font-medium text-foreground/80">
+													Kecamatan
+												</Label>
+												<Combobox
+													items={districts}
+													value={data.district_code}
+													disabled={!data.city_code}
+													onChange={(val) => selectRegion('district', val)}
+													placeholder="Pilih Kecamatan..."
+												/>
+												{errors.district_code && <InputError message={errors.district_code} />}
+											</div>
+
+											<div className="grid gap-1.5">
+												<Label className="text-sm font-medium text-foreground/80">
+													Desa / Kelurahan
+												</Label>
+												<Combobox
+													items={villages}
+													value={data.village_code}
+													disabled={!data.district_code}
+													onChange={(val) => selectRegion('village', val)}
+													placeholder="Pilih Desa/Kelurahan..."
+												/>
+												{errors.village_code && <InputError message={errors.village_code} />}
+											</div>
+										</div>
+									</div>
+								)}
 
 								{/* Peta - pin bisa digeser untuk mengoreksi titik lokasi */}
 								<div className="relative z-0 h-[200px] w-full overflow-hidden rounded-md border border-border bg-muted shadow-inner sm:h-[250px]">
@@ -474,10 +796,13 @@ export default function Create(props) {
 										draggable
 										autoLocate={false}
 										onLocationChange={handleMarkerDrag}
+										zoom={mapZoom}
 									/>
 								</div>
 								<p className="mt-1.5 text-xs text-muted-foreground">
-									Titik kurang tepat? Geser pin merah di peta untuk mengoreksi lokasi.
+									{regionMode === 'manual'
+										? 'Pin berada di tengah wilayah terpilih — geser ke titik kejadian sebenarnya. Pilihan wilayah di atas tidak ikut berubah.'
+										: 'Titik kurang tepat? Geser pin merah di peta untuk mengoreksi lokasi.'}
 								</p>
 
 								{/* Notice arah laporan berdasarkan kota kejadian (TASK_17) */}
@@ -494,8 +819,8 @@ export default function Create(props) {
 										<div className="flex items-start gap-2 rounded-md border border-warning/30 bg-warning/10 p-2.5 text-[13px] text-warning">
 											<IconAlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
 											<span>
-												Kabupatenmu belum terdaftar di layanan ini. Laporan tetap tercatat, namun
-												untuk darurat segera hubungi{' '}
+												Kabupatenmu belum terdaftar di layanan ini. Laporan tetap tercatat,
+												namun untuk darurat segera hubungi{' '}
 												<span className="font-bold text-destructive">112</span>.
 											</span>
 										</div>

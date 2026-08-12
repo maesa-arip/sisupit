@@ -11,12 +11,18 @@ const UserLeafletMap = ({
 	// (dipakai Pumps/FireStations untuk memusatkan ke user). Form lapor mengelola GPS-nya
 	// sendiri lewat parent, jadi mematikan ini agar tidak ada permintaan GPS ganda.
 	autoLocate = true,
+	// Tingkat zoom yang diminta parent (TASK_28: melompat ke centroid kabupaten/kecamatan/
+	// desa yang dipilih operator). null = jangan sentuh zoom sama sekali (perilaku lama).
+	// Hanya diterapkan saat NILAINYA BERUBAH, supaya zoom manual pengguna tidak dipaksa
+	// kembali tiap kali pin digeser (pergeseran pin memicu effect ini juga).
+	zoom = null,
 }) => {
 	const mapRef = useRef(null);
 	const mapInstanceRef = useRef(null);
 	const markersLayerRef = useRef(null);
 	const userMarkerLayerRef = useRef(null);
 	const onLocationChangeRef = useRef(onLocationChange);
+	const appliedZoomRef = useRef(null);
 
 	// Simpan callback terbaru di ref agar identitas fungsi yang berubah tiap render
 	// tidak memicu re-inisialisasi marker peta.
@@ -104,7 +110,13 @@ const UserLeafletMap = ({
 			setTimeout(() => {
 				if (mapInstanceRef.current) {
 					mapInstanceRef.current.invalidateSize(true);
-					mapInstanceRef.current.panTo([userLat, userLng], { animate: true, duration: 0.5 });
+
+					if (zoom && zoom !== appliedZoomRef.current) {
+						appliedZoomRef.current = zoom;
+						mapInstanceRef.current.setView([userLat, userLng], zoom, { animate: true });
+					} else {
+						mapInstanceRef.current.panTo([userLat, userLng], { animate: true, duration: 0.5 });
+					}
 				}
 			}, 300);
 		};
@@ -120,7 +132,7 @@ const UserLeafletMap = ({
 				GEO_OPTIONS.oneShot,
 			);
 		}
-	}, [lat, lng, draggable, autoLocate]);
+	}, [lat, lng, draggable, autoLocate, zoom]);
 
 	// ==========================================
 	// EFFECT 3: RENDER MARKER ASET (Pompa / Pos)

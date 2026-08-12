@@ -302,6 +302,21 @@ class ReportController extends Controller
     public function create(): Response
     {
         $provinces = Province::select('code', 'name')->get();
+        $user = auth()->user();
+
+        // Pusat Komando banyak menerima laporan lewat TELEPON: titik GPS operator tidak ada
+        // hubungannya dengan kejadian, jadi ia memilih wilayah (provinsi..desa) lalu pin
+        // dilompatkan ke centroid pilihannya (TASK_28). Nilai awal = yurisdiksi operator
+        // sendiri, sehingga akun Damkar Bali langsung terisi provinsi (dan kabupaten bila
+        // yurisdiksinya kabupaten) — bukan string 'Bali' yang ditulis di kode.
+        // Prop ini juga GERBANG fiturnya: null untuk warga, sehingga form pelaporan warga
+        // tetap darurat-first (GPS + geser pin) tanpa tambahan langkah apa pun.
+        $regionPicker = $user->hasAnyRole(['petugas', 'admin', 'superadmin']) ? [
+            'province_code' => $user->province_code,
+            'city_code' => $user->city_code,
+            'district_code' => $user->district_code,
+            'village_code' => $user->village_code,
+        ] : null;
 
         return inertia('Front/Reports/Create', [
             'page_settings' => [
@@ -311,6 +326,7 @@ class ReportController extends Controller
                 'action' => route('front.reports.store'),
             ],
             'provinces' => $provinces,
+            'region_picker' => $regionPicker,
             // Daftar kabupaten yang sudah bekerjasama (TASK_17) → form menampilkan notice
             // "laporan akan diarahkan ke Damkar X" / "belum terdaftar" begitu pin ter-resolve.
             'registered_tenants' => Tenant::where('is_active', true)->get(['city_code', 'subdomain', 'nama_instansi']),

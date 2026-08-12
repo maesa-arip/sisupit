@@ -21,7 +21,18 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : TASK_27 (prompt/tasks/TASK_27_opd_terkait.md) — SELESAI (kode) 2026-08-12.
+Task aktif   : TASK_28 (prompt/tasks/TASK_28_pilih_lokasi_manual.md) — SELESAI (kode) 2026-08-13.
+                Pilih lokasi manual saat Pusat Komando input kejadian: dropdown bertingkat
+                Provinsi→Kabupaten→Kecamatan→Desa, pin melompat ke centroid wilayah terpilih
+                (kolom `meta` tabel indonesia_*, ikut terkirim /api/regions/*), lalu digeser
+                sedikit. Provinsi/kabupaten terisi dari YURISDIKSI OPERATOR (bukan string
+                'Bali' di kode) & tetap bisa diganti. Gerbangnya prop `region_picker` dari
+                ReportController::create — null untuk warga, jadi alur pelaporan warga
+                (GPS + geser pin) tidak berubah sama sekali. Aturan penting: di mode manual
+                geser pin TIDAK menimpa kode wilayah (pilihan operator = sumber kebenaran);
+                tombol "Ikuti pin peta" mengembalikan perilaku lama. Test 212 → 215 passed.
+                SISA: verifikasi manual di browser (daftar periksa §6 file task).
+               TASK_27 (prompt/tasks/TASK_27_opd_terkait.md) — SELESAI (kode) 2026-08-12.
                 OPD terkait: saat verifikasi/broadcast, operator memilih instansi luar (BPBD/PLN/
                 dst.) yang ikut diberi tahu. Kebakaran → OPD default TERCENTANG OTOMATIS tapi bisa
                 di-uncentang. Daftarnya DINAMIS lewat /admin/agencies; "butuh konfirmasi" (mis. PLN
