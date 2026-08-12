@@ -946,3 +946,16 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **Rencana fix (belum dikerjakan):** buat `REVERB_APP_ID`/`APP_KEY`/`APP_SECRET` sendiri untuk staging dan dev, lalu restart `reverb-staging`/`reverb-dev`. Sejak #58 nilai sisi browser dibaca runtime, jadi **tidak perlu rebuild frontend** — cukup ubah `.env` masing-masing. Pertimbangkan sekalian memisahkan `APP_KEY` per environment (saat provisioning sengaja disamakan agar data terenkripsi hasil salinan tetap terbaca — kalau diubah, kolom terenkripsi di salinan DB jadi tak terbaca, jadi ini keputusan tersendiri).
 - **Sumber:** verifikasi pasca-perbaikan #58, 2026-08-11.
 - **Status:** OPEN
+
+### #60 — OPD tingkat kota tak terlihat oleh staf ber-`district_code`/`village_code` (Tenantable memfilter pakai kode tersempit)
+- **Severity:** P2 (fitur OPD terkait mati diam-diam bagi sepertiga staf Denpasar; pola yang sama menular ke Unit/Hydrant/Pompa/PosPemadam)
+- **Ditemukan 2026-08-13** saat mengisi master OPD Denpasar lewat `AgencySeeder` di produksi (permintaan user, TASK_27 §SISA). Bukan bug baru dari TASK_27 — ini sifat `app/Traits/Tenantable.php:14-52` yang baru terasa akibatnya sekarang.
+- **Akar:** scope global memilih SATU kolom, yaitu yang **tersempit** milik user, lalu menuntut kecocokan persis: `village_code` → `district_code` → `city_code` → `province_code`. Tidak ada gagasan "baris yang lebih luas tetap terlihat oleh yang lebih sempit". Sementara itu `Admin\AgencyController::withTenantCodes()` menyalin yurisdiksi admin yang menyimpan — admin kota Denpasar (`51/5171/NULL/NULL`) menghasilkan baris ber-`district_code = NULL`, yang tak akan pernah cocok dengan `where district_code = '517101'`.
+- **Dampak terukur di produksi (2026-08-13):** dari 18 akun admin+petugas ber-`city_code=5171`, **6 melihat daftar OPD KOSONG**. Diverifikasi dengan menjalankan `Agency::recommendedIdsFor('rumah')` sebagai user sungguhan: admin kota → `BPBD,PLN,PMI` + 2 OPD tercentang otomatis; petugas kecamatan (`.../517101/NULL`) dan petugas desa → `(KOSONG)` + 0 rekomendasi. Bagi mereka fitur "OPD terkait" hilang tanpa pesan galat apa pun — persis pola gagal-diam yang sudah dua kali jadi sumber temuan di repo ini (#55, #58).
+- **Catatan:** ini konsisten dengan Unit/Hydrant/Pompa/PosPemadam yang memakai trait sama, jadi kemungkinan besar mereka pun tak terlihat oleh staf ber-kecamatan/desa. Belum diukur.
+- **Opsi fix (belum diputuskan — menyentuh trait yang dipakai banyak model, butuh keputusan user):**
+  1. Ubah `Tenantable` jadi hierarkis: baris cocok bila kolomnya NULL **atau** sama, dari provinsi ke desa (paling benar, blast radius paling besar — semua model ber-Tenantable ikut berubah, termasuk `Report`).
+  2. Khusus `Agency`: pakai scope sendiri yang hierarkis, biarkan model lain apa adanya (diff kecil, tapi menambah satu aturan wilayah kedua di codebase — melanggar semangat "satu sumber kebenaran").
+  3. Operasional saja: kosongkan `district_code`/`village_code` pada 6 akun staf tersebut agar mereka jadi tingkat kota. Tidak menyentuh kode, tapi mengubah arti data dan bertabrakan dengan #56 (`STAFF_ROLES`: kolom kosong pada staf memang berarti "sengaja luas").
+- **Sumber:** verifikasi pasca-pengisian master OPD Denpasar, 2026-08-13.
+- **Status:** OPEN
