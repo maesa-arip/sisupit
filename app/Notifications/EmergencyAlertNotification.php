@@ -74,6 +74,43 @@ class EmergencyAlertNotification extends Notification implements ShouldQueue
                 'android' => [
                     'priority' => 'high',
                 ],
+                // iOS TIDAK memperlakukan data-only seperti Android. Pesan tanpa blok
+                // apns.payload.aps.alert dianggap BACKGROUND push: tidak menampilkan UI
+                // apa pun, dibatasi (throttled) sistem, dan tidak terkirim saat app
+                // ditutup — artinya tanpa blok ini notifikasi darurat TIDAK PERNAH muncul
+                // di iPhone. Blok `data` di atas tetap ikut terkirim dan tetap terbaca
+                // aplikasi iOS untuk deep-link (action_url), jadi keduanya saling
+                // melengkapi, bukan menggantikan.
+                'apns' => [
+                    'headers' => [
+                        // 10 = kirim segera; padanan priority "high" milik Android.
+                        'apns-priority' => '10',
+                        // Wajib sejak iOS 13 bila payload memuat aps.alert.
+                        'apns-push-type' => 'alert',
+                    ],
+                    'payload' => [
+                        'aps' => [
+                            'alert' => [
+                                'title' => $title,
+                                'body' => (string) $this->report->address,
+                            ],
+                            // Berkas suara di dalam bundle aplikasi iOS (hasil konversi
+                            // sirine.mp3 milik Android — iOS hanya menerima caf/wav/aiff
+                            // dan memotong diam-diam bila lebih dari 30 detik).
+                            'sound' => 'sirine.caf',
+                            // time-sensitive menembus Focus/DND dan TIDAK butuh
+                            // persetujuan Apple. Menembus saklar senyap hanya mungkin
+                            // dengan 'critical' + sound objek {critical:1,...}, dan itu
+                            // menuntut entitlement Critical Alerts yang harus disetujui
+                            // Apple lebih dulu — jangan dinaikkan sebelum surat itu ada.
+                            'interruption-level' => 'time-sensitive',
+                            // Bangunkan app agar sempat memproses data (deep-link).
+                            'content-available' => 1,
+                            'mutable-content' => 1,
+                            'thread-id' => 'emergency',
+                        ],
+                    ],
+                ],
             ]);
     }
 
