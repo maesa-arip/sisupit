@@ -21,7 +21,17 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : TASK_24 (prompt/tasks/TASK_24_app_env_produksi.md) — SELESAI 2026-08-11.
+Task aktif   : TASK_26 (prompt/tasks/TASK_26_ios_prasyarat_server.md) — SELESAI (kode) 2026-08-12.
+                Prasyarat server untuk wrapper iOS: (a) payload FCM kini punya blok `apns`
+                di samping `android` — tanpa itu notifikasi darurat TIDAK PERNAH muncul di
+                iPhone karena data-only dianggap background push; (b) verifikasi `aud` Google
+                jadi DAFTAR PUTIH (Web + iOS Client ID) karena GIDSignIn iOS menerbitkan token
+                ber-aud iOS Client ID; (c) `device_type` tak lagi dipaku 'android'.
+                Test 193 → 201 passed. SISA: isi GOOGLE_IOS_CLIENT_ID di server + VERIFIKASI
+                MANUAL di device Android nyata (notif + login Google) sebelum rilis, dan
+                commit ulang public/build (297 berkas) agar device_type sampai ke produksi.
+                Pembangunan app iOS-nya sendiri dipandu docs/ios/PROMPT_SISUPIT_IOS.md (Mac).
+               TASK_24 (prompt/tasks/TASK_24_app_env_produksi.md) — SELESAI 2026-08-11.
                 Produksi tadinya jalan dengan APP_ENV=local + APP_DEBUG=true → jejak galat
                 & isi environment terbuka ke publik, dan halaman ErrorHandling tak pernah
                 terpakai. Kini APP_ENV=production + APP_DEBUG=false (staging/dev ikut
@@ -111,7 +121,8 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-06-25: 65 passed, 164 assertions)
+Test      : php artisan test            (baseline 2026-08-12: 201 passed, 782 assertions —
+            angka lama "65 passed, 164 assertions" per 2026-06-25 sudah jauh tertinggal)
 Run (dev) : composer dev
 Lint      : vendor/bin/pint  /  npm run format (auto-fix, BUKAN check-only — tidak ada di CI)
 ```

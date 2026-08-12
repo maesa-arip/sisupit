@@ -28,12 +28,17 @@ export default function AppLayout({ title, children }) {
 		// Kirim token ke server dengan RETRY. Registrasi FCM tidak boleh gagal permanen
 		// hanya karena satu hambatan sesaat (jaringan/sesi belum siap) di device baru —
 		// ini penyebab "device baru tidak terdaftar di fcm_tokens".
+		// Platform device pengirim token. Sebelumnya dipaku 'android' sehingga baris
+		// fcm_tokens dari iPhone ikut tercatat sebagai android — menyesatkan saat
+		// mendiagnosis kegagalan kirim per platform (payload APNs vs Android berbeda).
+		const deviceType = /iPhone|iPad|iPod/i.test(navigator.userAgent || '') ? 'ios' : 'android';
+
 		const postTokenWithRetry = (token, attempt = 1) => {
 			const maxAttempts = 4;
 			axios
 				.post(route('fcm.store'), {
 					token: token,
-					device_type: 'android',
+					device_type: deviceType,
 				})
 				.then(() => {
 					console.log('Token FCM berhasil disimpan ke database');
