@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AgencyController as AdminAgencyController;
 use App\Http\Controllers\Admin\HydrantController as AdminHydrantController;
 use App\Http\Controllers\Admin\PompaController as AdminPompaController;
 use App\Http\Controllers\Admin\PosPemadamController as AdminPosPemadamController;
@@ -59,6 +60,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('pumps', AdminPompaController::class)->except(['show']);
         Route::resource('fire-stations', AdminPosPemadamController::class)->except(['show']);
         Route::resource('units', AdminUnitController::class)->except(['show']);
+        // Master OPD/instansi terkait (TASK_27) — ter-scope wilayah via Tenantable.
+        Route::resource('agencies', AdminAgencyController::class)->except(['show']);
 
         Route::prefix('reports')->name('reports.')->controller(AdminReportController::class)->group(function () {
             Route::get('/', 'index')->name('index');
@@ -174,6 +177,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Pengerahan unit/armada ke insiden (TASK_09)
     Route::post('/reports/{report}/dispatch-unit', [ReportActionController::class, 'dispatchUnit'])->name('reports.dispatch-unit');
     Route::post('/reports/{report}/release-unit', [ReportActionController::class, 'releaseUnit'])->name('reports.release-unit');
+    // OPD/instansi terkait pada insiden (TASK_27). notify/remove = Pusat Komando; confirm juga
+    // boleh dari akun OPD yang bersangkutan (otorisasi dicek di dalam controller).
+    Route::post('/reports/{report}/agencies', [ReportActionController::class, 'notifyAgencies'])->name('reports.agencies.notify');
+    Route::delete('/reports/{report}/agencies', [ReportActionController::class, 'removeAgency'])->name('reports.agencies.remove');
+    Route::post('/reports/{report}/agencies/confirm', [ReportActionController::class, 'confirmAgency'])->name('reports.agencies.confirm');
+
     Route::post('/reports/{report}/arrive', [ReportActionController::class, 'arrive'])->name('reports.arrive');
     Route::post('/reports/{report}/resolve', [ReportActionController::class, 'resolve'])->name('reports.resolve');
 

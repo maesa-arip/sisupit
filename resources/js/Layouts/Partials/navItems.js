@@ -211,6 +211,13 @@ export function buildNavSections({ auth, url = '' }) {
 							url: route('admin.fire-stations.index'),
 							active: startsWith('/admin/fire-stations'),
 						},
+						{
+							key: 'admin.agencies',
+							title: 'Manajemen OPD Terkait',
+							icon: IconBuildingCommunity,
+							url: route('admin.agencies.index'),
+							active: startsWith('/admin/agencies'),
+						},
 						// SEMENTARA DISEMBUNYIKAN (keputusan user 2026-06-29): menu "Kelola Armada"
 						// disembunyikan selaras dengan panel Pengerahan Armada di Show.jsx.
 						// Backend & route admin.units.* tetap utuh — buka kembali entri ini

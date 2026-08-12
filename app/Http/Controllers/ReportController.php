@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Enums\MessageType;
 use App\Enums\TenantLevel;
 use App\Http\Requests\ReportRequest;
+use App\Models\Agency;
 use App\Models\Report;
+use App\Models\ReportAgency;
 use App\Models\ReportResolution;
 use App\Models\Setting;
 use App\Models\Tenant;
@@ -147,7 +149,15 @@ class ReportController extends Controller
             && $report->status !== 'ditolak'
             && $user->withinReportJurisdiction($report);
 
-        if (! $isReporter && ! $isStaff && ! $isPejabat && ! $isHelper && ! $isRelawanInArea) {
+        // Akun OPD (TASK_27) boleh membuka insiden yang instansinya DIMINTA membantu — dan
+        // hanya itu. Gerbangnya keanggotaan pada insiden, bukan wilayah: PLN wilayah kabupaten
+        // tetap harus bisa menindaklanjuti permintaan di kelurahan mana pun yang mengirimnya
+        // (pola yang sama dipakai $isHelper untuk relawan).
+        $isAgencyPartner = $user->hasRole('opd')
+            && $user->agency_id
+            && DB::table('report_agencies')->where('report_id', $report->id)->where('agency_id', $user->agency_id)->exists();
+
+        if (! $isReporter && ! $isStaff && ! $isPejabat && ! $isHelper && ! $isRelawanInArea && ! $isAgencyPartner) {
             abort(403, 'Anda tidak memiliki wewenang untuk memantau insiden ini.');
         }
 
@@ -174,6 +184,39 @@ class ReportController extends Controller
             $availableUnits = Unit::where('status', 'available')->get(['id', 'name', 'type']);
             $unitsTotal = Unit::count();
             $canManageUnits = $user->hasAnyRole(['admin', 'superadmin']);
+        }
+
+        // OPD terkait (TASK_27). Daftar pilihan & rekomendasi hanya untuk staf; catatan
+        // pelibatan juga dibaca pejabat (pemantau) & akun OPD yang terlibat. Rekomendasi
+        // dihitung di SERVER dari incident_type — frontend hanya menyajikan centang awalnya,
+        // dan apa pun yang dikirim balik tetap divalidasi ulang saat menyimpan.
+        $agencyOptions = [];
+        $agencyRecommendations = [];
+        $reportAgencies = [];
+        if ($isStaff) {
+            $agencyOptions = Agency::where('is_active', true)->orderBy('name')
+                ->get(['id', 'name', 'code', 'category', 'phone', 'requires_confirmation', 'confirmation_label']);
+            $agencyRecommendations = Agency::recommendedIdsFor($report->incident_type);
+        }
+        if ($isStaff || $isPejabat || $isAgencyPartner) {
+            $reportAgencies = ReportAgency::with(['confirmedBy:id,name', 'notifiedBy:id,name'])
+                ->where('report_id', $report->id)
+                ->orderBy('id')
+                ->get()
+                ->map(fn ($row) => [
+                    'id' => $row->id,
+                    'agency_id' => $row->agency_id,
+                    'agency_name' => $row->agency_name,
+                    'status' => $row->status,
+                    'notified_at' => $row->notified_at,
+                    'notified_by' => optional($row->notifiedBy)->name,
+                    'requires_confirmation' => $row->requires_confirmation,
+                    'confirmation_label' => $row->confirmation_label,
+                    'confirmed_at' => $row->confirmed_at,
+                    'confirmed_by' => optional($row->confirmedBy)->name,
+                    'confirmed_source' => $row->confirmed_source,
+                    'confirmation_note' => $row->confirmation_note,
+                ]);
         }
 
         // Jejak yang sudah ditempuh tiap responder yang masih aktif (belum selesai),
@@ -243,6 +286,13 @@ class ReportController extends Controller
             'canManageResolution' => $isStaff,
             // Pejabat boleh MELIHAT berita acara (read-only), tapi tidak mengelola.
             'canViewResolution' => $isStaff || $isPejabat,
+            // OPD terkait (TASK_27)
+            'agencyOptions' => $agencyOptions,
+            'agencyRecommendations' => $agencyRecommendations,
+            'reportAgencies' => $reportAgencies,
+            'canManageAgencies' => $isStaff,
+            // Dipakai frontend untuk menampilkan tombol konfirmasi pada baris instansinya sendiri.
+            'myAgencyId' => $isAgencyPartner ? $user->agency_id : null,
         ]);
     }
 
@@ -282,6 +332,9 @@ class ReportController extends Controller
                 'name' => $request->name,
                 'phone' => $request->phone,
                 'title' => $request->title,
+                // Disimpan sejak TASK_27: dibaca lagi saat verifikasi untuk merekomendasikan
+                // OPD terkait. Sebelumnya nilai ini dibuang setelah validasi.
+                'incident_type' => $request->incident_type,
                 'description' => $request->description,
                 'lat' => $request->lat,
                 'lng' => $request->lng,

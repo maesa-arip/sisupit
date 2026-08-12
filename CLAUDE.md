@@ -21,7 +21,18 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : TASK_26 (prompt/tasks/TASK_26_ios_prasyarat_server.md) — SELESAI (kode) 2026-08-12.
+Task aktif   : TASK_27 (prompt/tasks/TASK_27_opd_terkait.md) — SELESAI (kode) 2026-08-12.
+                OPD terkait: saat verifikasi/broadcast, operator memilih instansi luar (BPBD/PLN/
+                dst.) yang ikut diberi tahu. Kebakaran → OPD default TERCENTANG OTOMATIS tapi bisa
+                di-uncentang. Daftarnya DINAMIS lewat /admin/agencies; "butuh konfirmasi" (mis. PLN
+                "listrik sudah dipadamkan") juga DATA (`requires_confirmation`+`confirmation_label`),
+                bukan `if` bernama instansi — jangan pernah menulis `if (code === 'pln')`.
+                Auto-centang butuh kolom BARU `reports.incident_type` (dulu dibuang setelah
+                validasi). Akun OPD = peran `opd` + `users.agency_id`; konfirmasi boleh dari OPD
+                sendiri maupun dicatatkan operator (`confirmed_source`). Konfirmasi tertunda TIDAK
+                memblokir "Selesai", hanya peringatan. Test 201 → 212 passed. SISA: verifikasi
+                manual end-to-end + isi master OPD tiap kabupaten lewat /admin/agencies.
+               TASK_26 (prompt/tasks/TASK_26_ios_prasyarat_server.md) — SELESAI (kode) 2026-08-12.
                 Prasyarat server untuk wrapper iOS: (a) payload FCM kini punya blok `apns`
                 di samping `android` — tanpa itu notifikasi darurat TIDAK PERNAH muncul di
                 iPhone karena data-only dianggap background push; (b) verifikasi `aud` Google
@@ -121,7 +132,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-08-12: 201 passed, 782 assertions —
+Test      : php artisan test            (baseline 2026-08-12: 212 passed, 815 assertions —
             angka lama "65 passed, 164 assertions" per 2026-06-25 sudah jauh tertinggal)
 Run (dev) : composer dev
 Lint      : vendor/bin/pint  /  npm run format (auto-fix, BUKAN check-only — tidak ada di CI)

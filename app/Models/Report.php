@@ -16,11 +16,22 @@ class Report extends Model
 {
     use SoftDeletes, Tenantable;
 
+    /**
+     * Jenis kejadian dari tombol pilihan cepat form Lapor Darurat. SUMBER TUNGGAL —
+     * dipakai `ReportRequest` (validasi), `Admin\AgencyController` (aturan auto-centang OPD),
+     * dan kolom `reports.incident_type`. Empat yang pertama = kebakaran, `lainnya` = darurat
+     * non-kebakaran (detail wajib, lihat ReportRequest).
+     *
+     * @var list<string>
+     */
+    public const INCIDENT_TYPES = ['rumah', 'toko', 'kendaraan', 'lahan', 'lainnya'];
+
     protected $fillable = [
         'user_id',
         'name',
         'phone',
         'title',
+        'incident_type',
         'description',
         'address',
         'lat',
@@ -67,6 +78,12 @@ class Report extends Model
     public function reportUnits(): HasMany
     {
         return $this->hasMany(ReportUnit::class, 'report_id', 'id');
+    }
+
+    // OPD/instansi terkait yang dilibatkan di insiden ini (TASK_27).
+    public function reportAgencies(): HasMany
+    {
+        return $this->hasMany(ReportAgency::class, 'report_id', 'id');
     }
 
     // Berita Acara / Laporan Kegiatan Penyelamatan (append-only: entri sementara & final).

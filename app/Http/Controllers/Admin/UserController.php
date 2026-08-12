@@ -8,6 +8,7 @@ use App\Enums\UserGender;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UserRequest;
 use App\Http\Resources\Admin\UserResource;
+use App\Models\Agency;
 use App\Models\User;
 use App\Traits\HasFile;
 use Illuminate\Http\RedirectResponse;
@@ -33,7 +34,7 @@ class UserController extends Controller
     public function index(): Response
     {
         $users = User::query()
-            ->select(['id', 'name', 'username', 'email', 'phone', 'avatar', 'gender', 'date_of_birth', 'address', 'created_at', 'province_code', 'city_code', 'district_code', 'village_code'])
+            ->select(['id', 'name', 'username', 'email', 'phone', 'avatar', 'gender', 'date_of_birth', 'address', 'created_at', 'province_code', 'city_code', 'district_code', 'village_code', 'agency_id'])
             ->with(['roles:id,name', 'province:code,name', 'city:code,name', 'district:code,name', 'village:code,name'])
             ->isAdmin()
             ->filter(request()->only(['search']))
@@ -56,6 +57,8 @@ class UserController extends Controller
             'assignable_roles' => $this->assignableRoleNames(),
             'assignable_levels' => $this->assignableLevels(),
             'jurisdictional_roles' => self::JURISDICTIONAL_ROLES,
+            // Pilihan instansi saat menetapkan peran `opd` (TASK_27), ter-scope Tenantable.
+            'agencies' => Agency::where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'state' => [
                 'page' => request()->page ?? 1,
                 'search' => request()->search ?? '',
@@ -193,6 +196,23 @@ class UserController extends Controller
         $role = $validated['role'];
         $regionCodes = null;
 
+        // Akun berperan `opd` (TASK_27) HARUS menunjuk satu instansi — dari situlah ditentukan
+        // permintaan bantuan mana yang ia terima & boleh ia konfirmasi. Akun `opd` tanpa
+        // instansi tak punya arti apa pun di alur insiden.
+        $agencyId = null;
+        if ($role === 'opd') {
+            $request->validate(['agency_id' => ['required', 'integer']]);
+
+            // Query ber-scope Tenantable: admin hanya bisa menautkan OPD di wilayahnya sendiri.
+            if (! Agency::whereKey($request->agency_id)->exists()) {
+                throw ValidationException::withMessages([
+                    'agency_id' => 'Instansi tidak ditemukan di wilayah Anda.',
+                ]);
+            }
+
+            $agencyId = (int) $request->agency_id;
+        }
+
         if (in_array($role, self::JURISDICTIONAL_ROLES, true)) {
             // Tingkat dibatasi: admin tak boleh memberi yurisdiksi lebih luas dari dirinya
             // (assignableLevels) DAN pengguna harus punya kode wilayah sampai tingkat itu.
@@ -212,11 +232,15 @@ class UserController extends Controller
         }
 
         try {
-            DB::transaction(function () use ($user, $role, $regionCodes) {
+            DB::transaction(function () use ($user, $role, $regionCodes, $agencyId) {
                 $user->syncRoles([$role]);
                 if ($regionCodes !== null) {
                     $user->update($regionCodes);
                 }
+                // Selalu ditulis (bukan hanya saat role `opd`) agar tautan instansi ikut lepas
+                // ketika akun dipindah ke peran lain — kalau tidak, mantan akun OPD tetap
+                // menerima permintaan bantuan instansinya.
+                $user->update(['agency_id' => $agencyId]);
             });
             flashMessage("Berhasil menetapkan peran {$role} ke pengguna {$user->name}");
 
@@ -289,6 +313,7 @@ class UserController extends Controller
             'relawan' => 'Relawan',
             'petugas' => 'Petugas',
             'pejabat' => 'Pejabat',
+            'opd' => 'OPD / Instansi Terkait',
             'admin' => 'Admin',
             'superadmin' => 'Superadmin',
         ];

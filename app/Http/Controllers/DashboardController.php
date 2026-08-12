@@ -122,6 +122,46 @@ class DashboardController extends Controller
         }
 
         // ====================================================================
+        // JALUR 2b: DASHBOARD OPD / INSTANSI TERKAIT (TASK_27)
+        // ====================================================================
+        // Mitra eksternal: yang relevan baginya HANYA insiden yang instansinya diminta
+        // membantu — bukan seluruh laporan wilayah. Karena itu daftar diambil lewat
+        // report_agencies (keanggotaan), bukan lewat kode wilayah, dan withoutGlobalScopes
+        // dipakai agar permintaan lintas kelurahan tetap terlihat. Pembatasnya = agency_id
+        // akun itu sendiri, yang merupakan re-check ownership pengganti Tenantable (ATURAN EMAS #7).
+        if ($user->hasRole('opd')) {
+            $requests = [];
+
+            if ($user->agency_id) {
+                $requests = Report::withoutGlobalScopes()
+                    ->whereHas('reportAgencies', fn ($q) => $q->where('agency_id', $user->agency_id))
+                    ->with(['reportAgencies' => fn ($q) => $q->where('agency_id', $user->agency_id)])
+                    ->latest('created_at')
+                    ->limit(30)
+                    ->get()
+                    ->map(function ($report) {
+                        $pivot = $report->reportAgencies->first();
+
+                        return [
+                            'id' => $report->id,
+                            'title' => $report->title,
+                            'location' => $report->address,
+                            'time' => $report->created_at->diffForHumans(),
+                            'status' => $report->status,
+                            'requires_confirmation' => (bool) $pivot?->requires_confirmation,
+                            'confirmation_label' => $pivot?->confirmation_label,
+                            'confirmed_at' => $pivot?->confirmed_at,
+                        ];
+                    });
+            }
+
+            return Inertia::render('Opd/Dashboard', [
+                'agencyName' => $user->agency?->name,
+                'requests' => $requests,
+            ]);
+        }
+
+        // ====================================================================
         // JALUR 3: DASHBOARD PUBLIK (WARGA & RELAWAN)
         // ====================================================================
 

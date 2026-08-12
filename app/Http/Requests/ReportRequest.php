@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Report;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ReportRequest extends FormRequest
 {
@@ -33,12 +35,13 @@ class ReportRequest extends FormRequest
         $detailRule = $isOtherEmergency ? 'required' : 'nullable';
 
         return [
-            // Sinyal jenis kejadian dari tombol pilihan cepat (tidak disimpan sebagai kolom;
-            // jenis tersimpan di `title`). Hanya menentukan wajib/opsional field detail.
+            // Jenis kejadian dari tombol pilihan cepat. Selain menentukan wajib/opsional field
+            // detail, sejak TASK_27 nilainya DISIMPAN di kolom `reports.incident_type` karena
+            // dipakai lagi saat verifikasi untuk merekomendasikan OPD terkait.
             'incident_type' => [
                 'nullable',
                 'string',
-                'in:rumah,toko,kendaraan,lahan,lainnya',
+                Rule::in(Report::INCIDENT_TYPES),
             ],
             'name' => [
                 'nullable',

@@ -59,6 +59,13 @@ class RolePermissionSeeder extends Seeder
             'view_dashboard',
         ]);
 
+        // C2. OPD / Instansi Terkait (TASK_27) — BPBD, PLN, PMI, dst.
+        // Mitra eksternal, BUKAN bagian Damkar: hanya menerima permintaan bantuan untuk
+        // instansinya (users.agency_id) lalu menindaklanjuti/mengonfirmasi. Tidak diberi
+        // manage_reports — mereka tak boleh mengubah status insiden milik Damkar.
+        $roleOpd = Role::firstOrCreate(['name' => 'opd']);
+        $roleOpd->givePermissionTo(['view_dashboard']);
+
         // B. Relawan Lapangan
         $roleRelawan = Role::firstOrCreate(['name' => 'relawan']);
         $roleRelawan->givePermissionTo(['create_reports']);

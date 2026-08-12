@@ -131,7 +131,11 @@ export default function Index(props) {
 	const [params, setParams] = useState(props.state);
 
 	const [roleUser, setRoleUser] = useState(null);
-	const { data, setData, put, processing, errors, reset } = useForm({ role: '', level: '' });
+	const { data, setData, put, processing, errors, reset } = useForm({ role: '', level: '', agency_id: '' });
+
+	// Peran `opd` (TASK_27) menuntut satu instansi — dari situlah ditentukan permintaan bantuan
+	// mana yang diterima akun ini. Daftar sudah ter-scope wilayah admin dari server.
+	const agencies = props.agencies ?? [];
 
 	const jurisdictionalRoles = props.jurisdictional_roles ?? [];
 	const isJurisdictional = (role) => jurisdictionalRoles.includes(role);
@@ -163,12 +167,14 @@ export default function Index(props) {
 		const role = user.roles?.[0] ?? '';
 		setData('role', role);
 		setData('level', isJurisdictional(role) ? defaultLevelFor(user) : '');
+		setData('agency_id', user.agency_id ? String(user.agency_id) : '');
 		setRoleUser(user);
 	};
 
 	const onRoleChange = (value) => {
 		setData('role', value);
 		setData('level', isJurisdictional(value) ? defaultLevelFor(roleUser) : '');
+		if (value !== 'opd') setData('agency_id', '');
 	};
 
 	const closeRoleDialog = () => {
@@ -502,6 +508,42 @@ export default function Index(props) {
 							</div>
 						)}
 
+						{data.role === 'opd' && (
+							<div className="space-y-2 border-t pt-2">
+								<Label htmlFor="agency_id">Instansi yang Diwakili</Label>
+								{agencies.length > 0 ? (
+									<>
+										<Select
+											value={data.agency_id}
+											onValueChange={(value) => setData('agency_id', value)}
+										>
+											<SelectTrigger id="agency_id" className="w-full">
+												<SelectValue placeholder="Pilih instansi" />
+											</SelectTrigger>
+											<SelectContent>
+												{agencies.map((agency) => (
+													<SelectItem key={agency.id} value={String(agency.id)}>
+														{agency.name}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+										<p className="text-xs text-muted-foreground">
+											Akun ini akan menerima permintaan bantuan yang ditujukan ke instansi
+											tersebut, dan hanya bisa mengonfirmasi tindakan atas namanya.
+										</p>
+									</>
+								) : (
+									<p className="flex items-start gap-2 text-xs text-muted-foreground">
+										<IconInfoCircle className="mt-0.5 size-4 shrink-0" />
+										Belum ada OPD terdaftar di wilayah Anda. Tambahkan lebih dulu lewat Manajemen
+										OPD Terkait.
+									</p>
+								)}
+								{errors.agency_id && <InputError message={errors.agency_id} />}
+							</div>
+						)}
+
 						<DialogFooter className="gap-2">
 							<Button type="button" variant="secondary" size="sm" onClick={closeRoleDialog}>
 								Batal
@@ -514,7 +556,8 @@ export default function Index(props) {
 									processing ||
 									!data.role ||
 									!isAssignable(data.role) ||
-									(isJurisdictional(data.role) && !data.level)
+									(isJurisdictional(data.role) && !data.level) ||
+									(data.role === 'opd' && !data.agency_id)
 								}
 							>
 								Simpan

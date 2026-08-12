@@ -35,6 +35,9 @@ class UserResource extends JsonResource
             // Rank wilayah terdalam (desa=4 … provinsi=1, 0 jika tanpa wilayah) — dipakai
             // dialog penetapan peran untuk membatasi tingkat yurisdiksi yang bisa dipilih.
             'region_level' => $this->village_code ? 4 : ($this->district_code ? 3 : ($this->city_code ? 2 : ($this->province_code ? 1 : 0))),
+            // Instansi yang diwakili akun berperan `opd` (TASK_27) — dipakai dialog penetapan
+            // peran agar pilihan instansi ikut terisi saat dibuka ulang.
+            'agency_id' => $this->agency_id,
         ];
     }
 }

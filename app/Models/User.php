@@ -9,6 +9,7 @@ use App\Enums\UserGender;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -39,6 +40,20 @@ class User extends Authenticatable implements MustVerifyEmail
     public const STAFF_ROLES = ['superadmin', 'admin', 'petugas', 'pejabat'];
 
     /**
+     * Peran yang akunnya dibuat & diberi wilayah oleh admin, bukan lewat pendaftaran mandiri —
+     * karena itu tidak boleh dipaksa lewat onboarding `EnsureProfileComplete` (akun OPD tingkat
+     * kabupaten memang tak punya `village_code`, persis seperti petugas kabupaten).
+     *
+     * SENGAJA TERPISAH dari STAFF_ROLES, jangan digabung: STAFF_ROLES menjawab pertanyaan lain
+     * — "kolom wilayah kosong berarti yurisdiksi nasional" (#56). Memasukkan `opd` ke sana akan
+     * membuat akun OPD berprofil kosong menerima siaran darurat se-Indonesia, regresi yang persis
+     * sama dengan yang baru diperbaiki untuk relawan.
+     *
+     * @var list<string>
+     */
+    public const CENTRALLY_MANAGED_ROLES = [...self::STAFF_ROLES, 'opd'];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -62,6 +77,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'village_code',
         'is_standby',
         'skills',
+        'agency_id',
     ];
 
     /**
@@ -148,6 +164,12 @@ class User extends Authenticatable implements MustVerifyEmail
     public function socialAccounts()
     {
         return $this->hasMany(SocialAccount::class);
+    }
+
+    /** Instansi yang diwakili akun berperan `opd` (TASK_27); null untuk peran lain. */
+    public function agency(): BelongsTo
+    {
+        return $this->belongsTo(Agency::class);
     }
 
     public function province()

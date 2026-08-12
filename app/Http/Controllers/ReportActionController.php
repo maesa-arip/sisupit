@@ -7,12 +7,15 @@ use App\Events\IncidentLocationCorrected;
 use App\Events\ReportStatusChanged;
 use App\Events\ResponderLocationUpdated;
 use App\Events\ResponderRosterChanged;
+use App\Models\Agency;
 use App\Models\Report;
+use App\Models\ReportAgency;
 use App\Models\ReportUnit;
 use App\Models\Setting; // <-- Wajib ditambahkan
 use App\Models\TrackingLog;
 use App\Models\Unit;
 use App\Models\User;
+use App\Notifications\AgencyDispatchNotification;
 use App\Notifications\EmergencyAlertNotification;
 use App\Notifications\ReportStatusUpdatedNotification;
 use Illuminate\Http\Request;
@@ -28,11 +31,18 @@ use Illuminate\Support\Facades\Notification;
 class ReportActionController extends Controller
 {
     // 1. Saat Pusat Komando memvalidasi laporan
-    public function approve($id)
+    public function approve(Request $request, $id)
     {
         if (! auth()->user()->hasAnyRole(['petugas', 'admin', 'superadmin'])) {
             abort(403, 'Akses Ditolak.');
         }
+
+        // OPD terkait yang ikut dilibatkan saat broadcast (TASK_27). OPSIONAL: verifikasi tanpa
+        // melibatkan instansi mana pun tetap sah, dan pemanggil lama (tanpa body) tetap jalan.
+        $request->validate([
+            'agency_ids' => 'nullable|array',
+            'agency_ids.*' => 'integer',
+        ]);
 
         $report = Report::withoutGlobalScopes()->findOrFail($id);
 
@@ -66,11 +76,20 @@ class ReportActionController extends Controller
             }
         });
 
+        // OPD terkait dilibatkan SETELAH transaksi siaran internal: kegagalan menghubungi
+        // instansi luar tidak boleh membatalkan validasi laporan yang sudah sah.
+        $agencyCount = $this->attachAgencies($report, $request->input('agency_ids', []));
+
         // Loop-balik ke pelapor: laporannya sudah divalidasi.
         $this->notifyReporter($report, 'approved');
         broadcast(new ReportStatusChanged($report->id, 'pending'));
 
-        return back()->with('success', 'Laporan berhasil divalidasi dan disiarkan ke lapangan!');
+        $message = 'Laporan berhasil divalidasi dan disiarkan ke lapangan!';
+        if ($agencyCount > 0) {
+            $message .= ' '.$agencyCount.' OPD terkait ikut diberi tahu.';
+        }
+
+        return back()->with('success', $message);
     }
 
     // 1b. Saat Pusat Komando menolak laporan (hoax / tidak valid)
@@ -277,6 +296,158 @@ class ReportActionController extends Controller
         });
 
         return back()->with('success', 'Unit ditarik dari insiden.');
+    }
+
+    // 2e. Melibatkan OPD terkait SETELAH broadcast (TASK_27). Eskalasi menyusul itu normal:
+    // PLN baru dibutuhkan setelah petugas melihat kabel di lokasi, BPBD setelah api meluas.
+    // Mengunci pilihan OPD hanya di detik verifikasi akan memaksa operator memakai jalur luar
+    // sistem — persis kebiasaan yang hendak digantikan fitur ini.
+    public function notifyAgencies(Request $request, $id)
+    {
+        if (! auth()->user()->hasAnyRole(['petugas', 'admin', 'superadmin'])) {
+            abort(403, 'Akses Ditolak.');
+        }
+
+        $request->validate([
+            'agency_ids' => 'required|array|min:1',
+            'agency_ids.*' => 'integer',
+        ]);
+
+        $report = Report::withoutGlobalScopes()->findOrFail($id);
+        $this->ensureWithinJurisdiction($report, auth()->user());
+
+        if (in_array($report->status, ['resolved', 'ditolak'], true)) {
+            abort(403, 'Insiden ini sudah ditutup.');
+        }
+
+        $count = $this->attachAgencies($report, $request->input('agency_ids', []));
+
+        return back()->with('success', $count > 0
+            ? $count.' OPD terkait diberi tahu.'
+            : 'Tidak ada OPD baru yang ditambahkan.');
+    }
+
+    // 2f. Melepas OPD dari insiden (salah pilih / ternyata tak diperlukan). Barisnya DIHAPUS,
+    // bukan ditandai: pelibatan yang dicabut bukan riwayat yang perlu disimpan, dan unique
+    // (report_id, agency_id) membuat OPD yang sama bisa dilibatkan lagi nanti.
+    public function removeAgency(Request $request, $id)
+    {
+        if (! auth()->user()->hasAnyRole(['petugas', 'admin', 'superadmin'])) {
+            abort(403, 'Akses Ditolak.');
+        }
+
+        $request->validate(['agency_id' => 'required|integer']);
+
+        $report = Report::withoutGlobalScopes()->findOrFail($id);
+        $this->ensureWithinJurisdiction($report, auth()->user());
+
+        ReportAgency::where('report_id', $report->id)
+            ->where('agency_id', $request->agency_id)
+            ->delete();
+
+        return back()->with('success', 'OPD dilepas dari insiden.');
+    }
+
+    // 2g. Mencatat konfirmasi tindakan berkondisi (mis. PLN: listrik sudah dipadamkan).
+    // Dua pihak boleh mencatat (keputusan user): akun OPD itu sendiri, atau operator Pusat
+    // Komando atas laporan lisan/telepon. Keduanya sah, tapi bobot buktinya berbeda — karena
+    // itu `confirmed_source` menyimpan yang mana, bukan disamarkan jadi satu.
+    public function confirmAgency(Request $request, $id)
+    {
+        $user = auth()->user();
+
+        $request->validate([
+            'agency_id' => 'required|integer',
+            'note' => 'nullable|string|max:500',
+        ]);
+
+        $report = Report::withoutGlobalScopes()->findOrFail($id);
+
+        $pivot = ReportAgency::where('report_id', $report->id)
+            ->where('agency_id', $request->agency_id)
+            ->firstOrFail();
+
+        // Otorisasi eksplisit — $report diambil withoutGlobalScopes (ATURAN EMAS #7). Staf
+        // dibatasi wilayah laporan; akun OPD hanya boleh mengonfirmasi baris instansinya
+        // SENDIRI, tak peduli wilayahnya, karena keanggotaan pada insiden inilah yang
+        // memberinya wewenang (pola yang sama dipakai arrive(), FINDINGS #42).
+        $isStaff = $user->hasAnyRole(['petugas', 'admin', 'superadmin']);
+        $isOwningAgency = $user->hasRole('opd') && $user->agency_id === $pivot->agency_id;
+
+        if ($isStaff) {
+            $this->ensureWithinJurisdiction($report, $user);
+        } elseif (! $isOwningAgency) {
+            abort(403, 'Akses Ditolak.');
+        }
+
+        if (! $pivot->requires_confirmation) {
+            abort(403, 'Pelibatan ini tidak menuntut konfirmasi.');
+        }
+
+        $pivot->update([
+            'status' => ReportAgency::STATUS_RESPONDED,
+            'confirmed_at' => now(),
+            'confirmed_by' => $user->id,
+            'confirmed_source' => $isOwningAgency ? ReportAgency::SOURCE_OPD : ReportAgency::SOURCE_OPERATOR,
+            'confirmation_note' => $request->note,
+        ]);
+
+        return back()->with('success', 'Konfirmasi dicatat: '.$pivot->confirmation_label);
+    }
+
+    /**
+     * Catat pelibatan OPD + kirim permintaan bantuan ke akun instansinya. Mengembalikan jumlah
+     * OPD yang BARU dilibatkan (pelibatan ganda diabaikan diam-diam, mengikuti pola takeAction).
+     *
+     * `Agency::whereIn(...)` sengaja TIDAK memakai withoutGlobalScopes: scope Tenantable-lah
+     * yang memastikan operator hanya bisa melibatkan OPD di wilayahnya, sehingga id instansi
+     * kabupaten lain yang disuntik lewat request buatan tidak akan ketemu (pelajaran #32).
+     */
+    private function attachAgencies(Report $report, array $agencyIds): int
+    {
+        $agencyIds = array_filter(array_map('intval', $agencyIds));
+        if (empty($agencyIds)) {
+            return 0;
+        }
+
+        $agencies = Agency::whereIn('id', $agencyIds)->where('is_active', true)->get();
+        $attached = 0;
+
+        foreach ($agencies as $agency) {
+            $pivot = ReportAgency::firstOrNew([
+                'report_id' => $report->id,
+                'agency_id' => $agency->id,
+            ]);
+
+            if ($pivot->exists) {
+                continue; // sudah dilibatkan sebelumnya — jangan kirim permintaan dua kali.
+            }
+
+            // Snapshot: master boleh berubah kapan saja, catatan insiden tidak boleh ikut
+            // berubah (ikut jadi bahan Berita Acara).
+            $pivot->fill([
+                'agency_name' => $agency->name,
+                'requires_confirmation' => (bool) $agency->requires_confirmation,
+                'confirmation_label' => $agency->confirmation_label,
+                'status' => ReportAgency::STATUS_NOTIFIED,
+                'notified_by' => auth()->id(),
+                'notified_at' => now(),
+            ])->save();
+
+            $attached++;
+
+            // User::role('opd') bisa melempar RoleDoesNotExist di DB yang belum ter-seed
+            // (workaround yang sama sudah dipakai HomeController) — pakai whereHas.
+            $accounts = User::where('agency_id', $agency->id)
+                ->whereHas('roles', fn ($q) => $q->where('name', 'opd'))
+                ->get();
+
+            if ($accounts->isNotEmpty()) {
+                Notification::send($accounts, new AgencyDispatchNotification($report, $pivot));
+            }
+        }
+
+        return $attached;
     }
 
     // 3. Saat Relawan/Petugas Tiba di Lokasi

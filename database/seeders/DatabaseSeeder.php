@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             TenantSeeder::class,
             SkillSeeder::class,
+            AgencySeeder::class,
             HydrantSeeder::class,
             PompaSeeder::class,
             PosPemadamSeeder::class,

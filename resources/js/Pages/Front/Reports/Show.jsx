@@ -9,6 +9,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import {
 	IconAlertCircle,
 	IconArrowBackUp,
+	IconBuildingCommunity,
 	IconCheck,
 	IconChevronLeft,
 	IconFileText,
@@ -120,6 +121,26 @@ export default function ReportShow(props) {
 	const [unitToDispatch, setUnitToDispatch] = useState('');
 	const [isUnitProcessing, setIsUnitProcessing] = useState(false);
 
+	// OPD/instansi terkait (TASK_27). Rekomendasi dihitung SERVER dari incident_type dan hanya
+	// menjadi centang AWAL — yang dikirim adalah apa yang operator sisakan, dan server tetap
+	// memvalidasinya ulang (id di luar wilayah gugur di sana, bukan di sini).
+	const agencyOptions = props.agencyOptions || [];
+	const agencyRecommendations = props.agencyRecommendations || [];
+	const reportAgencies = props.reportAgencies || [];
+	const canManageAgencies = props.canManageAgencies || false;
+	const myAgencyId = props.myAgencyId || null;
+	const involvedAgencyIds = reportAgencies.map((a) => a.agency_id);
+	const [selectedAgencyIds, setSelectedAgencyIds] = useState([]);
+	const [agencyToAdd, setAgencyToAdd] = useState('');
+	const [isAgencyProcessing, setIsAgencyProcessing] = useState(false);
+	const [agencyToConfirm, setAgencyToConfirm] = useState(null);
+	const [agencyToRemove, setAgencyToRemove] = useState(null);
+	const [confirmationNote, setConfirmationNote] = useState('');
+	// Tindakan berkondisi yang masih ditunggu (mis. PLN belum memadamkan listrik). Dipakai
+	// sebagai PERINGATAN saat menutup insiden — bukan penghalang: menyandera penutupan karena
+	// pihak eksternal lambat membalas akan memaksa petugas mencari jalan pintas.
+	const awaitingConfirmations = reportAgencies.filter((a) => a.requires_confirmation && !a.confirmed_at);
+
 	// Berita Acara / Laporan Kegiatan Penyelamatan (FINDINGS #39) — staf saja. Append-only:
 	// banyak entri (sementara/final) yang bisa dibandingkan.
 	const resolutions = props.resolutions || [];
@@ -219,11 +240,22 @@ export default function ReportShow(props) {
 	// -----------------------------------------------------------------
 	// AKSI OPERASIONAL
 	// -----------------------------------------------------------------
+	// Centang awal OPD di-reset tiap dialog dibuka, supaya rekomendasi server selalu jadi
+	// titik mulai — bukan sisa pilihan dari percobaan sebelumnya.
+	const openApproveDialog = () => {
+		setSelectedAgencyIds(agencyRecommendations);
+		setConfirmApprove(true);
+	};
+
+	const toggleAgencySelection = (id) => {
+		setSelectedAgencyIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+	};
+
 	const executeApprove = () => {
 		setIsProcessing(true);
 		router.post(
 			route('reports.approve', report.id),
-			{},
+			{ agency_ids: selectedAgencyIds },
 			{
 				preserveScroll: true,
 				onSuccess: () => {
@@ -231,6 +263,55 @@ export default function ReportShow(props) {
 					toast.success('Sinyal darurat disiarkan!');
 				},
 				onFinish: () => setIsProcessing(false),
+			},
+		);
+	};
+
+	const handleAddAgency = () => {
+		if (!agencyToAdd) return;
+		setIsAgencyProcessing(true);
+		router.post(
+			route('reports.agencies.notify', report.id),
+			{ agency_ids: [Number(agencyToAdd)] },
+			{
+				preserveScroll: true,
+				onSuccess: () => {
+					setAgencyToAdd('');
+					toast.success('Permintaan bantuan dikirim ke OPD.');
+				},
+				onFinish: () => setIsAgencyProcessing(false),
+			},
+		);
+	};
+
+	const handleRemoveAgency = () => {
+		if (!agencyToRemove) return;
+		setIsAgencyProcessing(true);
+		router.delete(route('reports.agencies.remove', report.id), {
+			data: { agency_id: agencyToRemove.agency_id },
+			preserveScroll: true,
+			onSuccess: () => {
+				setAgencyToRemove(null);
+				toast.success('OPD dilepas dari insiden.');
+			},
+			onFinish: () => setIsAgencyProcessing(false),
+		});
+	};
+
+	const handleConfirmAgency = () => {
+		if (!agencyToConfirm) return;
+		setIsAgencyProcessing(true);
+		router.post(
+			route('reports.agencies.confirm', report.id),
+			{ agency_id: agencyToConfirm.agency_id, note: confirmationNote },
+			{
+				preserveScroll: true,
+				onSuccess: () => {
+					setAgencyToConfirm(null);
+					setConfirmationNote('');
+					toast.success('Konfirmasi dicatat.');
+				},
+				onFinish: () => setIsAgencyProcessing(false),
 			},
 		);
 	};
@@ -734,7 +815,7 @@ export default function ReportShow(props) {
 						<div className="flex w-full shrink-0 flex-col items-stretch gap-2 border-t border-border pt-4 sm:items-center md:w-auto md:border-t-0 md:pt-0">
 							{/* Satu aksi dominan (Broadcast); Tolak diturunkan jadi tombol teks destructive kecil (#37 Kluster E). */}
 							<Button
-								onClick={() => setConfirmApprove(true)}
+								onClick={openApproveDialog}
 								className="h-12 w-full rounded-lg border border-destructive bg-destructive text-xs font-bold uppercase tracking-wider text-destructive-foreground transition-colors hover:bg-destructive/90 md:h-11 md:w-auto md:px-6"
 							>
 								<IconRadar className="mr-1.5 h-4 w-4" /> Broadcast Misi
@@ -1137,6 +1218,145 @@ export default function ReportShow(props) {
 							</Card>
 						)}
 
+					{/* --- 🏛️ PANEL OPD TERKAIT (TASK_27) --- */}
+					{/* Terlihat oleh staf & pejabat (pemantau) serta akun OPD yang dilibatkan. Bisa
+					    ditambah/dilepas SETELAH broadcast: kebutuhan OPD sering baru terbaca di lokasi
+					    (kabel terbakar → PLN), jadi mengunci pilihannya di detik verifikasi saja akan
+					    mendorong operator kembali ke WA pribadi — kebiasaan yang hendak digantikan. */}
+					{(reportAgencies.length > 0 ||
+						(canManageAgencies && reportStatus !== 'TERLAPOR' && reportStatus !== 'ditolak')) && (
+						<Card className="rounded-xl border border-border bg-card shadow-none">
+							<CardContent className="space-y-3 p-4 sm:p-5">
+								<h2 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-foreground">
+									<IconBuildingCommunity className="h-4 w-4 text-muted-foreground" /> OPD Terkait
+								</h2>
+
+								{reportAgencies.length > 0 ? (
+									<div className="space-y-2">
+										{reportAgencies.map((row) => {
+											const awaiting = row.requires_confirmation && !row.confirmed_at;
+											const canConfirm =
+												awaiting && (canManageAgencies || myAgencyId === row.agency_id);
+
+											return (
+												<div
+													key={row.id}
+													className="space-y-2 rounded-lg border border-border bg-muted/50 p-2.5"
+												>
+													<div className="flex items-start justify-between gap-2">
+														<div className="min-w-0">
+															<div className="truncate text-xs font-bold text-foreground">
+																{row.agency_name}
+															</div>
+															<div className="truncate text-[10px] text-muted-foreground">
+																Diminta oleh {row.notified_by || 'Pusat Komando'}
+															</div>
+														</div>
+														{canManageAgencies && reportStatus !== 'resolved' && (
+															<Button
+																onClick={() => setAgencyToRemove(row)}
+																variant="ghost"
+																className="h-7 shrink-0 rounded-md px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+															>
+																<IconX className="h-3.5 w-3.5" />
+															</Button>
+														)}
+													</div>
+
+													{row.requires_confirmation && (
+														<div
+															className={cn(
+																'rounded-md border px-2.5 py-2 text-[11px] leading-relaxed',
+																row.confirmed_at
+																	? 'border-success/20 bg-success/10 text-success'
+																	: 'border-warning/20 bg-warning/10 text-warning',
+															)}
+														>
+															<div className="flex items-start gap-1.5 font-bold">
+																{row.confirmed_at ? (
+																	<IconCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+																) : (
+																	<IconAlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+																)}
+																<span>{row.confirmation_label}</span>
+															</div>
+															{row.confirmed_at ? (
+																<div className="mt-1 pl-5 text-[10px] font-medium opacity-80">
+																	Dikonfirmasi {row.confirmed_by || '—'}
+																	{row.confirmed_source === 'operator'
+																		? ' (dicatat Pusat Komando)'
+																		: ''}
+																	{row.confirmation_note
+																		? ` — ${row.confirmation_note}`
+																		: ''}
+																</div>
+															) : (
+																<div className="mt-1 pl-5 text-[10px] font-medium opacity-80">
+																	Belum dikonfirmasi.
+																</div>
+															)}
+														</div>
+													)}
+
+													{canConfirm && (
+														<Button
+															onClick={() => {
+																setConfirmationNote('');
+																setAgencyToConfirm(row);
+															}}
+															className="h-9 w-full rounded-lg bg-success text-[11px] font-bold uppercase tracking-wider text-success-foreground shadow-none hover:bg-success/90"
+														>
+															<IconCheck className="mr-1.5 h-4 w-4" /> Catat Konfirmasi
+														</Button>
+													)}
+												</div>
+											);
+										})}
+									</div>
+								) : (
+									<p className="text-xs text-muted-foreground">
+										Belum ada OPD yang dilibatkan di insiden ini.
+									</p>
+								)}
+
+								{canManageAgencies &&
+									reportStatus !== 'TERLAPOR' &&
+									reportStatus !== 'ditolak' &&
+									reportStatus !== 'resolved' && (
+										<div className="flex flex-col gap-2 border-t border-border pt-2 sm:flex-row">
+											<select
+												value={agencyToAdd}
+												onChange={(e) => setAgencyToAdd(e.target.value)}
+												className="h-10 flex-1 rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+											>
+												<option value="">Libatkan OPD lain...</option>
+												{agencyOptions
+													.filter((a) => !involvedAgencyIds.includes(a.id))
+													.map((a) => (
+														<option key={a.id} value={a.id}>
+															{a.name}
+														</option>
+													))}
+											</select>
+											<Button
+												onClick={handleAddAgency}
+												disabled={isAgencyProcessing || !agencyToAdd}
+												className="h-10 shrink-0 rounded-lg text-xs font-bold uppercase tracking-wider shadow-none"
+											>
+												{isAgencyProcessing ? (
+													<IconLoader2 className="h-4 w-4 animate-spin" />
+												) : (
+													<>
+														<IconPlus className="mr-1.5 h-4 w-4" /> Minta
+													</>
+												)}
+											</Button>
+										</div>
+									)}
+							</CardContent>
+						</Card>
+					)}
+
 					<h2 className="px-1 pt-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
 						Manifes Responden
 					</h2>
@@ -1395,7 +1615,7 @@ export default function ReportShow(props) {
 
 			{/* MODALS */}
 			<Dialog open={confirmApprove} onOpenChange={setConfirmApprove}>
-				<DialogContent className="max-w-sm rounded-xl border border-border bg-card p-6 shadow-none">
+				<DialogContent className="max-w-md rounded-xl border border-border bg-card p-6 shadow-none">
 					<div className="flex flex-col items-center space-y-4 text-center">
 						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-info/10 text-info">
 							<IconRadar className="h-6 w-6" />
@@ -1404,6 +1624,67 @@ export default function ReportShow(props) {
 						<p className="text-sm leading-relaxed text-muted-foreground">
 							Aksi ini memicu notifikasi ke seluruh personil aktif di area tersebut.
 						</p>
+
+						{/* OPD terkait (TASK_27). Yang tercentang datang dari jenis kejadian laporan —
+						    saran, bukan keputusan: operator bebas melepas centangnya sebelum menyiarkan. */}
+						{agencyOptions.length > 0 && (
+							<div className="w-full space-y-2 border-t border-border pt-4 text-left">
+								<div className="flex items-baseline justify-between gap-2">
+									<span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+										OPD Terkait
+									</span>
+									<span className="text-[10px] text-muted-foreground">
+										{selectedAgencyIds.length} dipilih
+									</span>
+								</div>
+								<div className="max-h-52 space-y-1.5 overflow-y-auto pr-1">
+									{agencyOptions.map((agency) => {
+										const checked = selectedAgencyIds.includes(agency.id);
+										const recommended = agencyRecommendations.includes(agency.id);
+
+										return (
+											<label
+												key={agency.id}
+												className={cn(
+													'flex cursor-pointer items-start gap-2.5 rounded-lg border p-2.5 transition-colors',
+													checked
+														? 'border-info/40 bg-info/5'
+														: 'border-border bg-card hover:bg-muted/50',
+												)}
+											>
+												<input
+													type="checkbox"
+													checked={checked}
+													onChange={() => toggleAgencySelection(agency.id)}
+													className="mt-0.5 h-4 w-4 shrink-0 rounded border-border text-info focus:ring-1 focus:ring-info"
+												/>
+												<span className="min-w-0 flex-1">
+													<span className="flex flex-wrap items-center gap-1.5">
+														<span className="text-xs font-bold text-foreground">
+															{agency.name}
+														</span>
+														{recommended && (
+															<Badge
+																variant="outline"
+																className="rounded-md border-info/20 bg-info/10 px-1.5 py-0 text-[10px] font-bold text-info shadow-none"
+															>
+																Disarankan
+															</Badge>
+														)}
+													</span>
+													{agency.requires_confirmation && agency.confirmation_label && (
+														<span className="mt-0.5 block text-[11px] leading-relaxed text-muted-foreground">
+															Perlu konfirmasi: {agency.confirmation_label}
+														</span>
+													)}
+												</span>
+											</label>
+										);
+									})}
+								</div>
+							</div>
+						)}
+
 						<div className="mt-2 flex w-full gap-3 border-t border-border pt-4">
 							<Button
 								onClick={() => setConfirmApprove(false)}
@@ -1477,6 +1758,23 @@ export default function ReportShow(props) {
 						<p className="text-sm leading-relaxed text-muted-foreground">
 							Laporan ditandai selesai. Seluruh personil di lapangan akan dihentikan penugasannya.
 						</p>
+
+						{/* Peringatan, BUKAN penghalang (keputusan user): insiden tetap boleh ditutup
+						    walau OPD belum mengonfirmasi — yang belum terpenuhi ikut tercatat apa adanya. */}
+						{awaitingConfirmations.length > 0 && (
+							<div className="w-full space-y-1 rounded-lg border border-warning/20 bg-warning/10 p-3 text-left">
+								<div className="flex items-center gap-1.5 text-xs font-bold text-warning">
+									<IconAlertCircle className="h-4 w-4 shrink-0" /> Masih ditunggu
+								</div>
+								<ul className="space-y-0.5 pl-5 text-[11px] leading-relaxed text-warning">
+									{awaitingConfirmations.map((a) => (
+										<li key={a.id} className="list-disc">
+											<b>{a.agency_name}</b> — {a.confirmation_label}
+										</li>
+									))}
+								</ul>
+							</div>
+						)}
 						<div className="mt-2 flex w-full gap-3 border-t border-border pt-4">
 							<Button
 								onClick={() => setConfirmResolve(false)}
@@ -1491,6 +1789,85 @@ export default function ReportShow(props) {
 								disabled={isActionLoading}
 							>
 								{isActionLoading ? <IconLoader2 className="h-4 w-4 animate-spin" /> : 'Ya, Selesaikan'}
+							</Button>
+						</div>
+					</div>
+				</DialogContent>
+			</Dialog>
+
+			{/* Catat konfirmasi tindakan berkondisi (mis. PLN: listrik sudah dipadamkan). Dibuka
+			    baik oleh akun OPD itu sendiri maupun operator Pusat Komando — server yang menandai
+			    sumbernya, jadi dialognya satu dan tidak bisa dipakai mengaku-aku. */}
+			<Dialog open={agencyToConfirm !== null} onOpenChange={(open) => !open && setAgencyToConfirm(null)}>
+				<DialogContent className="max-w-sm rounded-xl border border-border bg-card p-6 shadow-none">
+					<div className="flex flex-col items-center space-y-4 text-center">
+						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/10 text-success">
+							<IconCheck className="h-6 w-6" />
+						</div>
+						<h2 className="text-lg font-bold text-foreground">Catat Konfirmasi?</h2>
+						<p className="text-sm leading-relaxed text-muted-foreground">
+							<b>{agencyToConfirm?.agency_name}</b> — {agencyToConfirm?.confirmation_label}.
+							{canManageAgencies && myAgencyId !== agencyToConfirm?.agency_id
+								? ' Konfirmasi ini akan tercatat sebagai catatan Pusat Komando, bukan dari OPD langsung.'
+								: ''}
+						</p>
+						<div className="w-full text-left">
+							<label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+								Catatan <span className="font-normal normal-case">(opsional)</span>
+							</label>
+							<Textarea
+								value={confirmationNote}
+								onChange={(e) => setConfirmationNote(e.target.value)}
+								placeholder="Contoh: jaringan dipadamkan pukul 14.10, petugas PLN di lokasi."
+								maxLength={500}
+								className="mt-1.5 min-h-[72px] resize-y rounded-lg border-border bg-card text-sm focus-visible:ring-1 focus-visible:ring-ring"
+							/>
+						</div>
+						<div className="mt-2 flex w-full gap-3 border-t border-border pt-4">
+							<Button
+								onClick={() => setAgencyToConfirm(null)}
+								variant="outline"
+								className="h-10 flex-1 border-border bg-transparent text-foreground/80 shadow-none"
+							>
+								Batal
+							</Button>
+							<Button
+								onClick={handleConfirmAgency}
+								disabled={isAgencyProcessing}
+								className="h-10 flex-1 bg-success font-bold text-success-foreground shadow-none hover:bg-success/90"
+							>
+								{isAgencyProcessing ? <IconLoader2 className="h-4 w-4 animate-spin" /> : 'Ya, Catat'}
+							</Button>
+						</div>
+					</div>
+				</DialogContent>
+			</Dialog>
+
+			<Dialog open={agencyToRemove !== null} onOpenChange={(open) => !open && setAgencyToRemove(null)}>
+				<DialogContent className="max-w-sm rounded-xl border border-border bg-card p-6 shadow-none">
+					<div className="flex flex-col items-center space-y-4 text-center">
+						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+							<IconX className="h-6 w-6" />
+						</div>
+						<h2 className="text-lg font-bold text-foreground">Lepas OPD dari Insiden?</h2>
+						<p className="text-sm leading-relaxed text-muted-foreground">
+							<b>{agencyToRemove?.agency_name}</b> tidak lagi tercatat dilibatkan di insiden ini.
+							Instansi yang sama bisa diminta lagi kapan saja.
+						</p>
+						<div className="mt-2 flex w-full gap-3 border-t border-border pt-4">
+							<Button
+								onClick={() => setAgencyToRemove(null)}
+								variant="outline"
+								className="h-10 flex-1 border-border bg-transparent text-foreground/80 shadow-none"
+							>
+								Batal
+							</Button>
+							<Button
+								onClick={handleRemoveAgency}
+								disabled={isAgencyProcessing}
+								className="h-10 flex-1 bg-destructive font-bold text-destructive-foreground shadow-none hover:bg-destructive/90"
+							>
+								{isAgencyProcessing ? <IconLoader2 className="h-4 w-4 animate-spin" /> : 'Ya, Lepas'}
 							</Button>
 						</div>
 					</div>

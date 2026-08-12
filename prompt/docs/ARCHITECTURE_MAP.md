@@ -28,7 +28,8 @@ Pint/Prettier/Duster terpasang tapi tidak digerbangkan.
 app/
   Http/Controllers/
     Admin/        CRUD admin: User (incl. assignRole), Role, Permission, AssignPermission,
-                  RouteAccess, Announcement, Hydrant, Report (index/export), Setting
+                  RouteAccess, Announcement, Hydrant, Report (index/export), Setting,
+                  Agency (master OPD/instansi terkait — TASK_27)
     Front/        Controller publik: HydrantController, PompaController,
                   PosPemadamController, RelawanController,
                   MonitoringMapController (Peta Pemantauan terpadu — semua layer)
@@ -49,7 +50,9 @@ app/
     ProfileController.php       Profil user (Breeze + complete-profile + KTP)
     VolunteerController.php     Self-register relawan + toggle standby
     ReportHelperController.php  (terpisah dari ReportActionController — lihat catatan risiko)
-  Models/        Announcement, Pompa, PosPemadam, ReportHelper, RouteAccess,
+  Models/        Agency (OPD/instansi terkait — Tenantable+SoftDeletes, TASK_27),
+                 ReportAgency (pivot pelibatan OPD↔laporan, TASK_27),
+                 Announcement, Pompa, PosPemadam, ReportHelper, RouteAccess,
                  SocialAccount, Unit (armada/kendaraan — Tenantable+SoftDeletes, TASK_09),
                  ReportUnit (pivot dispatch unit↔laporan, TASK_09), Hydrant, TrackingLog,
                  ReportOfficer, Report, FcmToken, Setting, User
@@ -93,6 +96,7 @@ docker/osrm/      Self-hosted routing (OSRM Bali, MLD) — RUNNING lokal :5001 (
 |-------|----------------|-----------|
 | Laporan Darurat | CRUD laporan milik sendiri (status TERLAPOR→pending→handling→resolved/ditolak). Edit (TASK_16/#30) = pelapor saja & hanya saat TERLAPOR: konten + kelola galeri foto, lokasi tak diubah | `app/Http/Controllers/ReportController.php` |
 | Workflow Respons | approve/reject/takeAction/cancelResponse/arrive/resolve/updateLocation/correctLocation. `reject` (TASK_10) = status `ditolak` (arsip). `cancelResponse` (TASK_13) = batal meluncur saat `en_route` (revert handling→pending bila responder terakhir mundur). take-action/arrive ter-scope wilayah laporan (TASK_12) | `app/Http/Controllers/ReportActionController.php` |
+| OPD / Instansi Terkait | Pelibatan instansi luar Damkar (BPBD, PLN, PMI, ...) pada insiden (TASK_27). Master `agencies` ter-`Tenantable` dikelola admin di `/admin/agencies`; pelibatan per insiden di `report_agencies`. **Dua perilaku khusus disimpan sebagai DATA, bukan cabang kode** — `default_incident_types` (OPD mana tercentang otomatis untuk jenis kejadian apa; rekomendasi dihitung server lewat `Agency::recommendedIdsFor()`, tetap bisa di-uncentang operator) dan `requires_confirmation`+`confirmation_label` (mis. PLN "Listrik sudah dipadamkan di lokasi kejadian"). Karena itu **jangan pernah menulis `if ($agency->code === 'pln')`** — menambah OPD yang butuh konfirmasi harus cukup lewat admin. Pivot menyimpan SNAPSHOT nama+aturan konfirmasi agar catatan insiden lama tak berubah saat master disunting. Konfirmasi boleh dari akun OPD sendiri maupun dicatatkan operator; `confirmed_source` membedakan. Konfirmasi yang belum terpenuhi **tidak memblokir** `resolve()` — hanya peringatan di dialog penutupan | `app/Models/Agency.php`, `app/Models/ReportAgency.php`, `app/Http/Controllers/Admin/AgencyController.php`, `ReportActionController::{approve,notifyAgencies,removeAgency,confirmAgency}` |
 | Berita Acara | Laporan Kegiatan Penyelamatan yang diisi petugas pasca-insiden (FINDINGS #39). Append-only: entri `sementara` (data awal) & `final` (hasil investigasi) disimpan terpisah. Korban banyak; foto KTP di disk privat + route bergerbang. `resolve()` TIDAK diubah — berita acara diisi belakangan | `app/Http/Controllers/ReportResolutionController.php`, `resources/js/Pages/Front/Reports/Resolution/Create.jsx` |
 | Tracking Lokasi | Riwayat append-only + broadcast WebSocket ke command center. Status laporan juga disiarkan real-time via `ReportStatusChanged` (TASK_14) di channel privat yang sama → halaman Show update tanpa refresh | `app/Models/TrackingLog.php`, `app/Events/ResponderLocationUpdated.php`, `app/Events/ReportStatusChanged.php` |
 | Fasilitas Fisik | Hydrant, Pompa, PosPemadam — CRUD admin ter-scope yurisdiksi + tampilan publik | `app/Http/Controllers/Admin/{HydrantController,PompaController,PosPemadamController}.php`, `app/Http/Controllers/Front/*` |
@@ -107,8 +111,8 @@ docker/osrm/      Self-hosted routing (OSRM Bali, MLD) — RUNNING lokal :5001 (
 | Routing Proxy | Rute jalan asli OSRM (driving, geojson), cache 1h, lock throttle — dipakai peta tracking (`Reports/Show.jsx`) menggambar rute mengikuti jalan, bukan garis lurus. Base URL dari `config('services.osrm.base_url')` (default LOKAL, self-hosted `docker/osrm/`) | `app/Http/Controllers/Api/RouteController.php` |
 | Basemap tiles | URL tile Leaflet terpusat di `MAP_TILE_URL` (`resources/js/lib/utils.js`) — dipakai 14 peta. Nilai di-inject RUNTIME dari `config('services.map.tile_url')` → `window.MAP_TILE_URL` (`app.blade.php`), swappable ke tile server sendiri lewat 1 env var `MAP_TILE_URL` TANPA rebuild (pola sama Nominatim/OSRM). Default = CARTO Voyager (turunan OSM). Tile ditarik BROWSER (bukan server) → tile server harus publik bila di-self-host | `resources/js/lib/utils.js`, `config/services.php`, `app/Http/Middleware`→`app.blade.php` |
 | Simulasi Responden | Artisan `sisupit:simulate-responders` (live & `--snapshot`) gerakkan petugas/relawan menyusuri rute jalan asli ke TKP; seeder `ResponderSimulationSeeder` (snapshot, manual) | `app/Console/Commands/SimulateResponders.php` |
-| Push Notification | FCM untuk insiden; WebPush dimatikan & PWA web dihapus. Payload `EmergencyAlertNotification::toFcm()` **data-only** + blok `android` (priority high) **dan** blok `apns` (aps.alert/sound `sirine.caf`/interruption-level `time-sensitive`, header push-type `alert`) — iOS memperlakukan pesan tanpa `aps.alert` sebagai background push yang tak menampilkan UI, jadi kedua blok wajib ada berdampingan (TASK_26). `device_type` dikirim frontend (`ios`/`android`). Lifecycle token per-DEVICE: login memindahkan token ke user aktif (`FcmController::store`), logout melepas token device ini (`AuthenticatedSessionController::destroy` menerima `fcm_token` di body) agar HP berhenti dapat sirine setelah keluar. **Notif balik ke PELAPOR** tiap transisi status via `ReportStatusUpdatedNotification` (FCM+database, TASK_06). **Lonceng web** (TASK_11): `notifications` di-share via `HandleInertiaRequests`, ditandai-baca lewat `NotificationController` (`notifications.read`/`readAll`), ditampilkan di header `AppLayout` | `app/Notifications/EmergencyAlertNotification.php`, `app/Notifications/ReportStatusUpdatedNotification.php`, `app/Http/Controllers/NotificationController.php` |
-| Dashboard per Role | Command center (admin) / misi aktif (petugas) / riwayat+radar (publik/relawan). Mini-peta lama di dashboard admin DIHAPUS → dipindah ke Peta Pemantauan (CTA di dashboard) | `app/Http/Controllers/DashboardController.php` |
+| Push Notification | FCM untuk insiden; WebPush dimatikan & PWA web dihapus. Payload `EmergencyAlertNotification::toFcm()` **data-only** + blok `android` (priority high) **dan** blok `apns` (aps.alert/sound `sirine.caf`/interruption-level `time-sensitive`, header push-type `alert`) — iOS memperlakukan pesan tanpa `aps.alert` sebagai background push yang tak menampilkan UI, jadi kedua blok wajib ada berdampingan (TASK_26). `device_type` dikirim frontend (`ios`/`android`). Lifecycle token per-DEVICE: login memindahkan token ke user aktif (`FcmController::store`), logout melepas token device ini (`AuthenticatedSessionController::destroy` menerima `fcm_token` di body) agar HP berhenti dapat sirine setelah keluar. **Permintaan bantuan ke OPD** via `AgencyDispatchNotification` (FCM+database, TASK_27) — DITUJUKAN ke akun peran `opd` milik instansi yang dipilih, bukan siaran wilayah; blok `apns` ikut disertakan (aturan TASK_26) tapi tanpa sirine karena ini koordinasi mitra, bukan panggilan meluncur. **Notif balik ke PELAPOR** tiap transisi status via `ReportStatusUpdatedNotification` (FCM+database, TASK_06). **Lonceng web** (TASK_11): `notifications` di-share via `HandleInertiaRequests`, ditandai-baca lewat `NotificationController` (`notifications.read`/`readAll`), ditampilkan di header `AppLayout` | `app/Notifications/EmergencyAlertNotification.php`, `app/Notifications/ReportStatusUpdatedNotification.php`, `app/Http/Controllers/NotificationController.php` |
+| Dashboard per Role | Command center (admin) / misi aktif (petugas) / **permintaan bantuan instansi (peran `opd`, TASK_27 — ter-filter `agency_id`, bukan wilayah)** / riwayat+radar (publik/relawan). Mini-peta lama di dashboard admin DIHAPUS → dipindah ke Peta Pemantauan (CTA di dashboard) | `app/Http/Controllers/DashboardController.php` |
 | Peta Pemantauan | Peta terpadu satu halaman: 5 layer (kejadian, hydrant, pos pemadam, pompa, relawan), tiap layer punya filter sendiri (kejadian per status; fasilitas per status; relawan siaga/nonaktif), filtering client-side. Data ter-scope yurisdiksi di server (Report/Hydrant/Pompa/PosPemadam via Tenantable; relawan via `User::scopeIsAdmin`). Relawan tak punya GPS → diposisikan di centroid wilayah dari `indonesia_*.meta` (desa→kecamatan→kabupaten). Akses: `role:petugas\|admin\|superadmin\|pejabat` | `app/Http/Controllers/Front/MonitoringMapController.php`, `resources/js/Pages/Monitoring/Map.jsx` |
 | Setting Global | Tingkat siaran notifikasi (superadmin-only) | `app/Models/Setting.php`, `app/Http/Controllers/Admin/SettingController.php` |
 
@@ -195,12 +199,27 @@ Cabang jaring pengaman "keempat kolom NULL = nasional" di `User::scopeNotifiable
 karena itu dibatasi ke `STAFF_ROLES` — sebelumnya relawan berprofil kosong ikut cabang ini dan
 menerima siaran darurat se-Indonesia (FINDINGS #56, diperbaiki 2026-08-11).
 
+### Peran `opd` & `User::CENTRALLY_MANAGED_ROLES` (TASK_27)
+Akun mitra eksternal (BPBD/PLN/PMI) memakai peran `opd` + `users.agency_id`. Dua hal yang mudah
+salah saat menyentuhnya:
+- **`opd` TIDAK boleh dimasukkan ke `User::STAFF_ROLES`.** Konstanta itu menjawab pertanyaan lain
+  ("kolom wilayah kosong = yurisdiksi nasional", #56) — akun OPD yang ikut ke sana akan menerima
+  siaran darurat se-Indonesia. Yang dipakai `EnsureProfileComplete` adalah
+  `User::CENTRALLY_MANAGED_ROLES` (= STAFF_ROLES + `opd`), yang hanya berarti "wilayahnya diisi
+  admin, bukan lewat onboarding mandiri" — tanpa ini akun OPD kabupaten terjebak loop
+  "lengkapi profil sampai desa", persis regresi petugas yang pernah terjadi.
+- **Gerbang akses OPD ke detail insiden berbasis KEANGGOTAAN**, bukan wilayah: `ReportController::show`
+  mengizinkan akun `opd` hanya bila ada baris `report_agencies` untuk instansinya (pola yang sama
+  dengan `$isHelper` relawan). Ini re-check manual yang menyertai `withoutGlobalScopes()` di sana.
+
 ## Entitas / model data
 
 | Entitas | Relasi penting | Catatan |
 |---------|----------------|---------|
-| User | hasMany Report, SocialAccount, FcmToken; belongsTo Province/City/District/Village (kode wilayah); roles via Spatie | Tidak pakai `Tenantable`, filter wilayah manual (`scopeIsAdmin`). `terms_accepted_at` (TASK_19) = waktu persetujuan S&K+Privasi saat daftar (nullable; akun lama sengaja kosong, tanpa backfill) |
-| Report | hasMany ReportHelper (`helpers()`), ReportOfficer (`officers()`), **ReportPhoto (`photos()`)**; belongsTo User + wilayah | Pakai `Tenantable` + `SoftDeletes`; status string (TERLAPOR/pending/handling/resolved/**ditolak**), bukan enum (lihat CONVENTIONS). `ditolak` (TASK_10) + kolom `rejected_reason`/`rejected_at`. Galeri foto via `report_photos` (TASK_07); kolom `photo` = sampul (foto pertama) |
+| User | hasMany Report, SocialAccount, FcmToken; belongsTo Province/City/District/Village (kode wilayah), **Agency** (`agency_id`, TASK_27 — hanya untuk peran `opd`); roles via Spatie | Tidak pakai `Tenantable`, filter wilayah manual (`scopeIsAdmin`). `terms_accepted_at` (TASK_19) = waktu persetujuan S&K+Privasi saat daftar (nullable; akun lama sengaja kosong, tanpa backfill) |
+| Report | hasMany ReportHelper (`helpers()`), ReportOfficer (`officers()`), **ReportPhoto (`photos()`)**, **ReportAgency (`reportAgencies()`)**; belongsTo User + wilayah | Pakai `Tenantable` + `SoftDeletes`; status string (TERLAPOR/pending/handling/resolved/**ditolak**), bukan enum (lihat CONVENTIONS). `ditolak` (TASK_10) + kolom `rejected_reason`/`rejected_at`. Galeri foto via `report_photos` (TASK_07); kolom `photo` = sampul (foto pertama). `incident_type` (TASK_27) menyimpan jenis kejadian dari tombol pilihan cepat — sebelumnya dibuang setelah validasi; nilainya dari `Report::INCIDENT_TYPES` (sumber tunggal, dipakai `ReportRequest` & aturan auto-centang OPD). Nullable tanpa backfill: laporan lama tak menghasilkan rekomendasi OPD |
+| Agency | hasMany ReportAgency, User (akun peran `opd`); relasi wilayah | Master OPD (TASK_27). `Tenantable`+SoftDeletes, `$guarded=[]`. `default_incident_types` (json, cast array) = aturan auto-centang; `requires_confirmation`+`confirmation_label` = konfirmasi berkondisi. `recommendedIdsFor()` mencocokkan di PHP (bukan `whereJsonContains`) karena dukungan JSON beda antara SQLite lokal/testing & MySQL produksi |
+| ReportAgency | belongsTo Report, Agency, notifiedBy/confirmedBy (User) | Pivot pelibatan OPD (TASK_27), pola ReportUnit. `unique(report_id, agency_id)`; melepas = hapus baris. Kolom SNAPSHOT `agency_name`/`requires_confirmation`/`confirmation_label` sengaja menduplikasi master agar riwayat insiden tak ikut berubah saat master disunting. `confirmed_source` ∈ {`opd`,`operator`} |
 | ReportPhoto | belongsTo Report | Galeri foto laporan (TASK_07, FINDINGS #17). Tabel `report_photos` (report_id cascade, path) |
 | ReportResolution | belongsTo Report, User (creator); hasMany ReportVictim, ReportResolutionPhoto | Berita Acara/Laporan Kegiatan Penyelamatan (FINDINGS #39). **Append-only**: `report_id` TIDAK unik — banyak entri `sementara`/`final` per laporan agar bisa dibandingkan. Field terstruktur (jenis_kejadian, sumber_informasi, occurred_at, lokasi, pemilik, kerugian, tim_atensi, kronologi) |
 | ReportVictim | belongsTo ReportResolution | Identitas korban per berita acara (bisa banyak). `ktp_path` di disk **privat** (`local`), hanya diakses lewat route `reports.resolution.ktp` bergerbang role+yurisdiksi (PII) |
@@ -235,7 +254,10 @@ auth (login saja)       : POST /fcm-token, POST /notifications/{id}/read & /noti
                            (lonceng web, TASK_11), POST /webpush/subscribe (tanpa middleware 'auth'
                            padahal memanggil $request->user() — lihat FINDINGS_LOG #4)
 auth+verified           : /dashboard, /reports/* (CRUD milik sendiri + approve/reject/take-action/
-                           cancel-response/dispatch-unit/release-unit/arrive/resolve/update-location/
+                           cancel-response/dispatch-unit/release-unit/agencies[POST/DELETE]/
+                           agencies/confirm (OPD terkait TASK_27 — notify & remove = Pusat Komando
+                           dalam yurisdiksi; confirm juga boleh dari akun OPD yang bersangkutan,
+                           otorisasi dicek di controller)/arrive/resolve/update-location/
                            correct-location/resolution[create,store,destroy]/victims/{v}/ktp
                            — 4 terakhir = Berita Acara FINDINGS #39, staf+yurisdiksi), /profile/*,
                            /complete-profile, /volunteer/register, /volunteer/standby,
@@ -246,6 +268,7 @@ role:petugas|admin|superadmin|pejabat : /peta-pemantauan (front.monitoring.map �
 role:admin|superadmin   : /admin/users/*, /admin/facilities (dead, no view),
                            /admin/hydrants/* (resource), /admin/pumps/* (resource),
                            /admin/fire-stations/* (resource), /admin/units/* (resource, TASK_09),
+                           /admin/agencies/* (resource, TASK_27 — master OPD terkait),
                            /admin/reports/*
 role:superadmin (admin.php): /admin/announcements/*, /admin/roles/*, /admin/permissions/*,
                            /admin/assign-permissions/*, /admin/route-accesses/* (FINDINGS #21)

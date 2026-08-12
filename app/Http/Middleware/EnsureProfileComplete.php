@@ -39,11 +39,13 @@ class EnsureProfileComplete
      * agar tenant scope berhenti di tingkat itu - tanpa pengecualian ini mereka akan terjebak
      * loop "lengkapi profil sampai desa" (lihat cek village_code di handle()).
      *
-     * Daftarnya sengaja menunjuk User::STAFF_ROLES agar aturan "kolom wilayah kosong =
-     * sengaja luas" hanya punya satu sumber, tidak bisa berbeda diam-diam dengan
+     * Daftarnya sengaja menunjuk User::CENTRALLY_MANAGED_ROLES (= STAFF_ROLES + `opd`, TASK_27)
+     * agar aturan "akun ini diberi wilayah oleh admin, bukan mengisi sendiri" hanya punya satu
+     * sumber. Perhatikan bahwa itu BUKAN STAFF_ROLES: peran `opd` sengaja tidak ikut ke sana
+     * supaya kolom wilayahnya yang kosong tidak diartikan "yurisdiksi nasional" oleh
      * scopeNotifiableForReport (#56).
      */
-    private const EXEMPT_ROLES = User::STAFF_ROLES;
+    private const EXEMPT_ROLES = User::CENTRALLY_MANAGED_ROLES;
 
     public function handle(Request $request, Closure $next): Response
     {
