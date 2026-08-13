@@ -16,6 +16,10 @@ const UserLeafletMap = ({
 	// Hanya diterapkan saat NILAINYA BERUBAH, supaya zoom manual pengguna tidak dipaksa
 	// kembali tiap kali pin digeser (pergeseran pin memicu effect ini juga).
 	zoom = null,
+	// Klik di peta = pindahkan titik (parity dengan Admin/Hydrants/Create). Default MATI:
+	// hanya permukaan yang memintanya (form Pusat Komando) yang menyalakan, supaya sentuhan
+	// tak sengaja di form lapor warga tidak menggeser pin darurat.
+	clickToPlace = false,
 }) => {
 	const mapRef = useRef(null);
 	const mapInstanceRef = useRef(null);
@@ -45,6 +49,14 @@ const UserLeafletMap = ({
 
 		markersLayerRef.current = window.L.layerGroup().addTo(mapInstanceRef.current);
 		userMarkerLayerRef.current = window.L.layerGroup().addTo(mapInstanceRef.current);
+
+		// Callback dibaca lewat ref, jadi handler yang dipasang sekali di sini tetap
+		// memanggil versi terbaru milik parent.
+		if (clickToPlace) {
+			mapInstanceRef.current.on('click', (e) => {
+				onLocationChangeRef.current?.(e.latlng.lat, e.latlng.lng);
+			});
+		}
 
 		const resizeObserver = new ResizeObserver(() => {
 			if (mapInstanceRef.current) {

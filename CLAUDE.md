@@ -43,7 +43,26 @@ Task aktif   : TASK_29 (prompt/tasks/TASK_29_tenantable_hierarkis.md) — SELESA
                 (GPS + geser pin) tidak berubah sama sekali. Aturan penting: di mode manual
                 geser pin TIDAK menimpa kode wilayah (pilihan operator = sumber kebenaran);
                 tombol "Ikuti pin peta" mengembalikan perilaku lama. Test 212 → 215 passed.
-                SISA: verifikasi manual di browser (daftar periksa §6 file task).
+                ADENDUM 2026-08-13 (§ADENDUM file task, permintaan user): keempat dropdown
+                masih terlalu lambat saat operator mengangkat telepon, jadi pola
+                `admin/hydrants/create` disalin ke form lapor — kotak "Cari Lokasi Kejadian"
+                (debounce 1 detik lewat proxy GeocodeController) yang melompatkan pin DAN
+                mengisi provinsi..desa otomatis, plus peta bisa diklik (`UserLeafletMap`
+                prop baru `clickToPlace`, default false = form warga tak berubah). Dropdown
+                tetap ada sebagai koreksi & tetap mengunci mode manual. Guard "lengkapi
+                sampai desa" kini berlaku untuk semua Pusat Komando (server mewajibkan desa,
+                pencocokan nama OSM sering berhenti di kecamatan). Lalu BUG dari user: geser
+                pin terasa "diam" karena `resolveLocation()` menghitung alamat lalu membuangnya
+                di mode manual (`locSubtitle` memilih label wilayah) — kini ada panel read-only
+                "Alamat Lengkap (otomatis)" bertiga keadaan (mencari/ada/belum ada) + tombol
+                "Salin ke patokan"; patokan TIDAK diisi otomatis karena itu teks manusia.
+                Lalu keluhan berikutnya: "gema mer" nihil padahal Google Maps menampilkannya —
+                Nominatim mencocokkan KATA UTUH. `GeocodeController::search` kini punya
+                fallback: bila nihil & query >1 kata, cari ulang TANPA kata terakhir lalu
+                saring hasilnya memakai kata itu sebagai AWALAN (kandidat dikembalikan apa
+                adanya bila awalan tak cocok). Query dipendekkan itu biasanya sudah di cache
+                → nyaris tanpa panggilan tambahan. Test 224 → 227 passed.
+                SISA: verifikasi manual di browser (daftar periksa §6 + §ADENDUM file task).
                TASK_27 (prompt/tasks/TASK_27_opd_terkait.md) — SELESAI (kode) 2026-08-12.
                 OPD terkait: saat verifikasi/broadcast, operator memilih instansi luar (BPBD/PLN/
                 dst.) yang ikut diberi tahu. Kebakaran → OPD default TERCENTANG OTOMATIS tapi bisa
@@ -100,7 +119,7 @@ Task aktif   : TASK_29 (prompt/tasks/TASK_29_tenantable_hierarkis.md) — SELESA
                 rail sidebar md di AppLayout). Konsekuensi diterima: #53/#54 terbuka lagi,
                 tautan legal di ponsel hanya lewat footer AppLayout, dan daftar menu jadi dua
                 tempat (navItems.js untuk Sidebar + MobileBottomNav.jsx sendiri).
-                MobileMenuPanel.jsx & hooks/use-sheet-history.js jadi yatim (tidak dihapus).
+                MobileMenuPanel.jsx & hooks/use-sheet-history.js DIHAPUS (pulihkan dari 2a1e2b6).
                 Catatan lengkap: "Catatan pembalikan #53/#54" di FINDINGS_LOG.
                 Isi TASK_21 aslinya, sebagai arsip: SELESAI 2026-08-08,
                 branch `worktree-mobile-menu-drawer`. Panel "Menu" mobile berhenti menuang
@@ -165,7 +184,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-08-13: 224 passed, 883 assertions —
+Test      : php artisan test            (baseline 2026-08-13: 227 passed, 891 assertions —
             angka lama "65 passed, 164 assertions" per 2026-06-25 sudah jauh tertinggal)
 Run (dev) : composer dev
 Lint      : vendor/bin/pint  /  npm run format (auto-fix, BUKAN check-only — tidak ada di CI)

@@ -15,6 +15,13 @@ class GeocodeController extends Controller
     // Kebijakan penggunaan Nominatim membatasi maksimal ~1 request/detik.
     private const MIN_INTERVAL_MS = 1100;
 
+    // Jumlah hasil yang dikirim ke UI.
+    private const RESULT_LIMIT = 4;
+
+    // Kandidat yang diambil saat mencari ulang tanpa kata terakhir: lebih banyak dari
+    // RESULT_LIMIT karena masih akan disaring dengan awalan kata itu.
+    private const CANDIDATE_LIMIT = 10;
+
     public function reverse(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -46,17 +53,72 @@ class GeocodeController extends Controller
         ]);
 
         $query = trim($validated['q']);
+        $results = $this->searchNominatim($query, self::RESULT_LIMIT);
 
-        $data = Cache::remember('nominatim:search:'.md5(strtolower($query)), self::CACHE_TTL_SECONDS, function () use ($query) {
-            return $this->callNominatim('/search', [
+        // Nominatim mencocokkan KATA UTUH, bukan awalan: mengetik "gema mer" bernilai 0
+        // hasil padahal "gema merdeka" ketemu. Operator yang terbiasa Google Maps (yang
+        // mencocokkan awalan) akan menyimpulkan datanya memang tidak ada, lalu berhenti.
+        // Jadi saat nihil DAN masih ada kata di depannya, ulangi TANPA kata terakhir lalu
+        // saring sendiri memakai kata itu sebagai awalan. Query yang dipendekkan itu
+        // hampir selalu sudah ada di cache (dilewati saat mengetik), sehingga umumnya
+        // TIDAK menambah panggilan ke Nominatim.
+        if ($results === [] && str_contains($query, ' ')) {
+            $results = $this->searchByPrefixOfLastWord($query);
+        }
+
+        return response()->json($results);
+    }
+
+    /**
+     * Cari ulang tanpa kata terakhir (yang diasumsikan belum selesai diketik), lalu saring
+     * hasilnya dengan kata itu sebagai awalan — meniru perilaku "ketik separuh" Google Maps.
+     */
+    private function searchByPrefixOfLastWord(string $query): array
+    {
+        $words = preg_split('/\s+/', $query, -1, PREG_SPLIT_NO_EMPTY);
+        $prefix = mb_strtolower((string) array_pop($words));
+        $head = implode(' ', $words);
+
+        if ($head === '' || $prefix === '') {
+            return [];
+        }
+
+        $candidates = $this->searchNominatim($head, self::CANDIDATE_LIMIT);
+
+        $matched = array_values(array_filter(
+            $candidates,
+            fn ($row) => is_array($row) && $this->hasWordStartingWith((string) ($row['display_name'] ?? ''), $prefix)
+        ));
+
+        // Tidak ada yang cocok dengan awalan itu → kembalikan kandidatnya apa adanya.
+        // Hasil yang relevan sebagian jauh lebih berguna bagi operator yang sedang
+        // mengangkat telepon daripada layar nol hasil.
+        return array_slice($matched !== [] ? $matched : $candidates, 0, self::RESULT_LIMIT);
+    }
+
+    private function hasWordStartingWith(string $displayName, string $prefix): bool
+    {
+        foreach (preg_split('/[\s,]+/', mb_strtolower($displayName), -1, PREG_SPLIT_NO_EMPTY) as $word) {
+            if (str_starts_with($word, $prefix)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function searchNominatim(string $query, int $limit): array
+    {
+        return Cache::remember(
+            'nominatim:search:'.$limit.':'.md5(mb_strtolower($query)),
+            self::CACHE_TTL_SECONDS,
+            fn () => $this->callNominatim('/search', [
                 'format' => 'json',
                 'q' => $query,
-                'limit' => 4,
+                'limit' => $limit,
                 'accept-language' => 'id',
-            ]);
-        });
-
-        return response()->json($data);
+            ])
+        );
     }
 
     /**
