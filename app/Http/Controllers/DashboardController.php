@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Agency;
 use App\Models\Hydrant;
 use App\Models\Report;
 use App\Models\User;
@@ -156,7 +157,16 @@ class DashboardController extends Controller
             }
 
             return Inertia::render('Opd/Dashboard', [
-                'agencyName' => $user->agency?->name,
+                // Relasi $user->agency TIDAK dipakai: Agency ber-Tenantable, sedangkan akun OPD
+                // sengaja tanpa kode wilayah (mitra luar, relevansinya keanggotaan bukan wilayah)
+                // sehingga relasi itu kena cabang "tanpa kode wilayah → whereRaw('1 = 0')" (#44)
+                // dan mengembalikan null. Akibatnya dashboard menuduh akun yang SUDAH tertaut
+                // "belum ditautkan ke instansi mana pun". Pembatasnya tetap agency_id akun itu
+                // sendiri — re-check ownership yang sama seperti query $requests di atas
+                // (ATURAN EMAS #7).
+                'agencyName' => $user->agency_id
+                    ? Agency::withoutGlobalScopes()->whereKey($user->agency_id)->value('name')
+                    : null,
                 'requests' => $requests,
             ]);
         }
