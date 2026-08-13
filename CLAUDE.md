@@ -21,7 +21,19 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : TASK_28 (prompt/tasks/TASK_28_pilih_lokasi_manual.md) — SELESAI (kode) 2026-08-13.
+Task aktif   : TASK_29 (prompt/tasks/TASK_29_tenantable_hierarkis.md) — SELESAI & TERDEPLOY
+                2026-08-13 (prod/staging/dev @787593c). `Tenantable` jadi HIERARKIS: untuk tiap
+                tingkat yang dimiliki user, baris harus NULL ATAU sama — dulu ia memilih SATU
+                kolom (tersempit) lalu menuntut cocok persis, sehingga master OPD/armada yang
+                disimpan admin tingkat kota (district/village NULL) TIDAK TERLIHAT oleh staf
+                ber-kecamatan/desa: 6 dari 18 staf Denpasar melihat daftar OPD kosong tanpa
+                pesan galat. Bukan aturan baru — `User::scopeNotifiableForReport` sudah lama
+                memakai makna "kolom NULL = wewenang lebih luas"; ini menyelaraskannya.
+                TIDAK mengubah penerima notifikasi (User tak memakai trait ini) dan TIDAK
+                melebarkan visibilitas laporan — dibuktikan di data prod: 0 dari 18 akun
+                berubah, hanya 5 baris data master yang terbuka. Temuan #60 FIXED.
+                Test 215 → 222 passed.
+               TASK_28 (prompt/tasks/TASK_28_pilih_lokasi_manual.md) — SELESAI (kode) 2026-08-13.
                 Pilih lokasi manual saat Pusat Komando input kejadian: dropdown bertingkat
                 Provinsi→Kabupaten→Kecamatan→Desa, pin melompat ke centroid wilayah terpilih
                 (kolom `meta` tabel indonesia_*, ikut terkirim /api/regions/*), lalu digeser
@@ -143,7 +155,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-08-12: 212 passed, 815 assertions —
+Test      : php artisan test            (baseline 2026-08-13: 222 passed, 859 assertions —
             angka lama "65 passed, 164 assertions" per 2026-06-25 sudah jauh tertinggal)
 Run (dev) : composer dev
 Lint      : vendor/bin/pint  /  npm run format (auto-fix, BUKAN check-only — tidak ada di CI)
