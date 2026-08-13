@@ -862,9 +862,14 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
   `AppLayout` (ditambahkan pada perbaikan #53, tidak ikut dibalikkan). Duplikasi daftar
   menu hidup lagi: menu baru harus ditulis di `navItems.js` **dan** `MobileBottomNav.jsx`.
 - **Kode yatim:** `resources/js/Layouts/Partials/MobileMenuPanel.jsx` dan
-  `resources/js/hooks/use-sheet-history.js` tidak lagi diimpor siapa pun. Sengaja TIDAK
-  dihapus agar pembalikan mudah dibatalkan; `navItems.js` tetap hidup karena dipakai
-  `Sidebar.jsx`.
+  `resources/js/hooks/use-sheet-history.js` tidak lagi diimpor siapa pun. **DIHAPUS
+  2026-08-13 atas permintaan user** (pulihkan dari commit `2a1e2b6` bila pembalikan ini
+  dibatalkan). `navItems.js` tetap hidup karena dipakai `Sidebar.jsx`.
+- **Sisa yang sengaja dibiarkan (di luar scope, belum dikerjakan):** setelah penghapusan
+  itu, tiga ekspor `navItems.js` tak lagi punya pemakai — `buildQuickActions`,
+  `flattenNavItems`, `findNavItem`. Begitu pula komponen `Components/ui/drawer.jsx`
+  beserta dependensi `vaul` (tidak diimpor komponen lain mana pun). Membersihkannya =
+  keputusan tersendiri; jangan dihapus diam-diam saat mengerjakan task lain.
 - **Verifikasi:** `php artisan test` 224 passed (883 assertions), `npm run build` lulus
   (client + SSR). Rupa visual & perilaku popover belum dicek mata manusia.
 

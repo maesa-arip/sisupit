@@ -85,8 +85,8 @@ resources/js/
                   tautan legal tak ada di bar ini (FINDINGS #53 REOPEN) — satu-satunya
                   jalur legal di ponsel = footer AppLayout. Kalau menambah menu baru,
                   ingat mengubah DUA tempat.
-                  Partials/MobileMenuPanel.jsx + hooks/use-sheet-history.js kini TIDAK
-                  DIPAKAI (sisa TASK_21, disimpan agar mudah dipulihkan).
+                  Partials/MobileMenuPanel.jsx + hooks/use-sheet-history.js DIHAPUS
+                  2026-08-13 (sisa TASK_21; pulihkan dari commit 2a1e2b6 bila dibutuhkan).
 database/
   migrations/     27 file (lihat daftar di bawah)
   seeders/        RolePermissionSeeder (sumber role & permission), PompaSeeder, HydrantSeeder, dll.

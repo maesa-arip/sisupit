@@ -30,8 +30,7 @@ import {
  *
  * Aturan yang lahir dari FINDINGS #53: JANGAN pernah membuat daftar menu kedua. Menu baru
  * cukup ditulis di sini dan otomatis muncul di semua permukaan yang memakainya:
- *   - <Sidebar/>          → sidebar penuh (≥lg) & rail ikon (md)
- *   - <MobileMenuPanel/>  → drawer "Menu" di bawah md — TIDAK LAGI DIPAKAI, lihat di bawah
+ *   - <Sidebar/>          → sidebar penuh (≥lg) & rail ikon (md) — kini satu-satunya pemakai
  *
  * Yang dipisah di sini hanyalah DATA-nya. Presentasi sengaja berbeda per permukaan —
  * menuang sidebar desktop apa adanya ke ponsel adalah persis keluhan yang memicu perubahan
@@ -42,6 +41,10 @@ import {
  * memelihara daftar menunya SENDIRI, jadi aturan "satu daftar" hanya berlaku untuk
  * desktop/tablet. Menu baru yang juga harus tampil di ponsel wajib ditulis DUA KALI:
  * di sini dan di MobileBottomNav.jsx.
+ *
+ * Sisa dari pembalikan itu: `buildQuickActions`, `flattenNavItems`, dan `findNavItem`
+ * tak lagi punya pemakai (dulu hanya dipanggil panel mobile yang sudah dihapus). Sengaja
+ * dibiarkan — pembersihannya di luar scope permintaan user, dicatat di FINDINGS_LOG.
  */
 
 /**
@@ -83,8 +86,8 @@ export function resolveAbilities(auth) {
 /**
  * Membangun seluruh seksi navigasi untuk peran & halaman aktif tertentu.
  *
- * Setiap seksi punya `mobile` — dulu dibaca <MobileMenuPanel/> (kini tak dipakai) untuk
- * menentukan cara menyajikannya:
+ * Setiap seksi punya `mobile` — metadata SISA: pembacanya (<MobileMenuPanel/>) sudah
+ * dihapus 2026-08-13, jadi nilai ini kini tak berpengaruh apa pun. Artinya dulu:
  *   - 'list'        → daftar terbuka
  *   - 'collapsible' → terlipat, default tertutup (seksi admin yang jarang disentuh)
  *   - 'legal'       → tautan teks kecil di kaki panel
