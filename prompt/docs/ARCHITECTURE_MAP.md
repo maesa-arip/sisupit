@@ -74,15 +74,19 @@ resources/js/
   Pages/          Inertia pages: Admin/, Front/, Auth/, Petugas/, Profile/, Settings/ (dead, lihat CONVENTIONS)
   Components/ui/  38 komponen shadcn-style (Radix + cva)
   Layouts/        AppLayout (utama), AuthenticatedLayout (Breeze legacy), GuestLayout
-                  Navigasi = SATU daftar di Partials/navItems.js (buildNavSections). Jangan
-                  bikin daftar menu kedua — duplikasi itu yang membuat menu legal tak muncul
-                  di mobile (FINDINGS #53). Tiga permukaan MERENDER daftar itu berbeda-beda
-                  (FINDINGS #54): Partials/Sidebar.jsx = sidebar penuh (≥lg) + rail ikon
-                  (md, prop `compact`); Partials/MobileMenuPanel.jsx = drawer-dari-bawah
-                  bertitik-henti (<md) dengan kepala identitas, petak aksi cepat, seksi
-                  admin terlipat & pencarian; Partials/MobileBottomNav.jsx = bar 5 slot +
-                  drawer "Fasilitas". Panel melayang memakai hooks/use-sheet-history.js
-                  supaya tombol Back perangkat menutup panel, bukan keluar halaman.
+                  Navigasi DESKTOP/TABLET = SATU daftar di Partials/navItems.js
+                  (buildNavSections), dirender Partials/Sidebar.jsx: sidebar penuh (≥lg)
+                  + rail ikon (md, prop `compact`).
+                  Partials/MobileBottomNav.jsx (<md) SENGAJA memelihara daftarnya sendiri
+                  sejak 2026-08-13 — atas permintaan user ia DIKEMBALIKAN ke bentuk
+                  pra-TASK_20: bar 5 slot dengan dua popover melayang buatan tangan
+                  (Fasilitas + "Menu" khusus admin/superadmin; peran lain dapat tautan
+                  Profil/Masuk). Konsekuensinya duplikasi daftar menu hidup kembali dan
+                  tautan legal tak ada di bar ini (FINDINGS #53 REOPEN) — satu-satunya
+                  jalur legal di ponsel = footer AppLayout. Kalau menambah menu baru,
+                  ingat mengubah DUA tempat.
+                  Partials/MobileMenuPanel.jsx + hooks/use-sheet-history.js kini TIDAK
+                  DIPAKAI (sisa TASK_21, disimpan agar mudah dipulihkan).
 database/
   migrations/     27 file (lihat daftar di bawah)
   seeders/        RolePermissionSeeder (sumber role & permission), PompaSeeder, HydrantSeeder, dll.

@@ -31,12 +31,17 @@ import {
  * Aturan yang lahir dari FINDINGS #53: JANGAN pernah membuat daftar menu kedua. Menu baru
  * cukup ditulis di sini dan otomatis muncul di semua permukaan yang memakainya:
  *   - <Sidebar/>          → sidebar penuh (≥lg) & rail ikon (md)
- *   - <MobileMenuPanel/>  → drawer "Menu" di bawah md
- *   - <MobileBottomNav/>  → drawer "Fasilitas" & aksi cepat
+ *   - <MobileMenuPanel/>  → drawer "Menu" di bawah md — TIDAK LAGI DIPAKAI, lihat di bawah
  *
  * Yang dipisah di sini hanyalah DATA-nya. Presentasi sengaja berbeda per permukaan —
  * menuang sidebar desktop apa adanya ke ponsel adalah persis keluhan yang memicu perubahan
  * ini (daftar 25 baris tanpa hierarki). Selama daftarnya satu, presentasi boleh beda.
+ *
+ * PENGECUALIAN SEJAK 2026-08-13 (permintaan user, catatan pembalikan #53/#54 di
+ * FINDINGS_LOG): <MobileBottomNav/> dikembalikan ke bentuk pra-TASK_20 dan kini
+ * memelihara daftar menunya SENDIRI, jadi aturan "satu daftar" hanya berlaku untuk
+ * desktop/tablet. Menu baru yang juga harus tampil di ponsel wajib ditulis DUA KALI:
+ * di sini dan di MobileBottomNav.jsx.
  */
 
 /**
@@ -78,7 +83,8 @@ export function resolveAbilities(auth) {
 /**
  * Membangun seluruh seksi navigasi untuk peran & halaman aktif tertentu.
  *
- * Setiap seksi punya `mobile` yang memberi tahu <MobileMenuPanel/> cara menyajikannya:
+ * Setiap seksi punya `mobile` — dulu dibaca <MobileMenuPanel/> (kini tak dipakai) untuk
+ * menentukan cara menyajikannya:
  *   - 'list'        → daftar terbuka
  *   - 'collapsible' → terlipat, default tertutup (seksi admin yang jarang disentuh)
  *   - 'legal'       → tautan teks kecil di kaki panel

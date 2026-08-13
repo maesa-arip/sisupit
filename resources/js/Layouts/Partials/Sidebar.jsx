@@ -8,8 +8,9 @@ import { buildNavSections } from './navItems';
  *   - AppLayout ≥lg : sidebar penuh berlabel
  *   - AppLayout md  : rail ikon (`compact`), label & judul seksi disembunyikan lewat CSS
  *
- * Daftar menunya TIDAK ditulis di sini melainkan di `navItems.js`, yang juga menyuplai
- * <MobileMenuPanel/>. Satu daftar, banyak presentasi — lihat catatan di navItems.js.
+ * Daftar menunya TIDAK ditulis di sini melainkan di `navItems.js`. Sejak 2026-08-13
+ * komponen ini satu-satunya pemakai navItems.js: <MobileBottomNav/> dikembalikan ke
+ * daftar miliknya sendiri atas permintaan user — lihat catatan di navItems.js.
  */
 export default function Sidebar({ url, auth, compact = false }) {
 	const sections = buildNavSections({ auth, url });

@@ -92,7 +92,17 @@ Task aktif   : TASK_29 (prompt/tasks/TASK_29_tenantable_hierarkis.md) — SELESA
                 se-Indonesia. Temuan #56 FIXED (dua "zona mati" yang dicatat di #56 ternyata
                 by-design & dikunci test — koreksinya ada di entri #56). SISA: jalankan query
                 verifikasi '0'/'' di DB produksi.
-               TASK_21 (prompt/tasks/TASK_21_panel_menu_mobile.md) — SELESAI 2026-08-08,
+               TASK_21 (prompt/tasks/TASK_21_panel_menu_mobile.md) — DIBALIKKAN 2026-08-13
+                atas permintaan user: MobileBottomNav.jsx dipulihkan ke bentuk pra-TASK_20
+                (commit ea96039) — dua popover melayang, slot ke-5 = popover "Menu" untuk
+                admin/superadmin & tautan Profil/Masuk untuk peran lain. Yang DIPERTAHANKAN:
+                breakpoint md:hidden + padding safe-area (versi lama lg:hidden akan menabrak
+                rail sidebar md di AppLayout). Konsekuensi diterima: #53/#54 terbuka lagi,
+                tautan legal di ponsel hanya lewat footer AppLayout, dan daftar menu jadi dua
+                tempat (navItems.js untuk Sidebar + MobileBottomNav.jsx sendiri).
+                MobileMenuPanel.jsx & hooks/use-sheet-history.js jadi yatim (tidak dihapus).
+                Catatan lengkap: "Catatan pembalikan #53/#54" di FINDINGS_LOG.
+                Isi TASK_21 aslinya, sebagai arsip: SELESAI 2026-08-08,
                 branch `worktree-mobile-menu-drawer`. Panel "Menu" mobile berhenti menuang
                 sidebar desktop ke Sheet: daftar menu pindah ke Partials/navItems.js sebagai
                 satu-satunya sumber DATA, penyajian per permukaan jadi berbeda. Mobile kini
@@ -155,7 +165,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-08-13: 222 passed, 859 assertions —
+Test      : php artisan test            (baseline 2026-08-13: 224 passed, 883 assertions —
             angka lama "65 passed, 164 assertions" per 2026-06-25 sudah jauh tertinggal)
 Run (dev) : composer dev
 Lint      : vendor/bin/pint  /  npm run format (auto-fix, BUKAN check-only — tidak ada di CI)

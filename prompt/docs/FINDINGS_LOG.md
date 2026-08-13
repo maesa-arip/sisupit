@@ -827,7 +827,7 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **Fix (2026-08-07):** `Sidebar` dijadikan SATU sumber kebenaran untuk semua ukuran layar — dipakai sebagai sidebar desktop, rail tablet (prop `compact`; label & judul seksi disembunyikan lewat arbitrary variant Tailwind, bukan cabang render terpisah), dan isi Sheet "Menu" pada bottom-nav. Slot ke-5 bottom-nav kini tombol "Menu" untuk SEMUA peran; popover admin 13 item dihapus. Breakpoint sidebar turun ke `md` (rail 80px) dan penuh di `lg`. Footer `AppLayout` mendapat baris tautan legal sebagai jaring pengaman lintas-ukuran, dan nama penyedia di footer ditarik dari `config/legal.php` lewat shared prop `penyedia_nama` — sebelumnya hardcoded "PT. Tawarin Dimana Saja", ejaan yang berbeda dari dokumen legal.
 - **Verifikasi:** `php artisan test` 182 passed (726 assertions), `npm run build` lulus (client + SSR), Pint & Prettier bersih. Markup diperiksa lewat render SSR sungguhan (login superadmin → `/dashboard`): kelas `md:block`/`lg:w-64` pada sidebar, `md:hidden` pada bar bawah, tombol `aria-label="Buka menu"`, seksi "Bantuan & Legal", dan keempat tautan legal di footer — semuanya ter-render, dan kelas responsifnya terbukti ada di CSS terkompilasi. **Sisa yang belum diverifikasi = perilaku interaktif & rupa visual** (Sheet membuka/menutup, keterbacaan rail) — daftar periksa manual di `prompt/tasks/TASK_20_navigasi_mobile_tablet.md`.
 - **Sumber:** laporan user 2026-08-07.
-- **Status:** SELESAI (FIXED).
+- **Status:** REOPEN (2026-08-13) — lihat catatan pembalikan di #54.
 
 ### #54 — Panel menu mobile "terlalu primitif": sidebar desktop dituang apa adanya ke Sheet
 - **Severity:** P2 (UX; bukan keamanan)
@@ -841,7 +841,32 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **Fix (2026-08-08):** daftar menu dipindah ke `resources/js/Layouts/Partials/navItems.js` sebagai satu-satunya sumber data (`buildNavSections`, `buildQuickActions`, `resolveAbilities`), lalu tiap permukaan merendernya dengan idiom yang pantas. Panel mobile jadi `MobileMenuPanel.jsx`: drawer vaul dari bawah, titik henti `[0.62, 1]`, kepala identitas (avatar/nama/peran/instansi) + tombol ✕, petak aksi cepat 2 kolom, seksi Administrasi/Kontrol Akses/Sistem terlipat (default tertutup, otomatis terbuka kalau halaman aktif ada di dalamnya), pencarian saat tujuan >12, legal turun jadi teks kecil di kaki panel. Popover Fasilitas ikut memakai drawer yang sama. `hooks/use-sheet-history.js` membuat Back perangkat menutup panel. `viewport-fit=cover` + `env(safe-area-inset-bottom)` di bar bawah, kaki drawer, dan padding konten `AppLayout`.
 - **Verifikasi:** `php artisan test` 182 passed (726 assertions, sama dengan baseline), `npm run build` lulus (client + SSR), Prettier bersih. Markup diperiksa lewat render SSR sungguhan (login superadmin → `/dashboard`): `aria-label="Buka menu"` & `"Buka daftar fasilitas publik"`, slot Beranda/Riwayat, `env(safe-area-inset-bottom)`, `viewport-fit=cover`, serta ke-7 judul seksi + 26 NavLink sidebar desktop semuanya ter-render tanpa error SSR. **Sisa yang belum diverifikasi = perilaku interaktif & rupa visual** (seretan antar titik henti, Back di APK, keterbacaan gelap/terang) — daftar periksa manual di `prompt/tasks/TASK_21_panel_menu_mobile.md`.
 - **Sumber:** laporan user 2026-08-08.
-- **Status:** SELESAI (FIXED).
+- **Status:** DIBALIKKAN atas permintaan user (2026-08-13).
+
+#### Catatan pembalikan #53/#54 (2026-08-13)
+- **Permintaan:** "untuk menu di mobile bottomnav kembalikan ke sebelumnya". Ditanyakan
+  eksplisit versi mana yang dimaksud dengan dua pilihan berpratinjau; user memilih
+  **popover lama pra-TASK_20** (commit `ea96039`) **dan** meminta panel Fasilitas ikut
+  dikembalikan. Peringatan bahwa versi itu tidak memuat Pusat Bantuan/S&K/Privasi
+  tertulis di pilihan yang ia ambil.
+- **Perubahan:** `resources/js/Layouts/Partials/MobileBottomNav.jsx` dipulihkan ke isi
+  `ea96039` — dua popover melayang + slot ke-5 bercabang (popover "Menu" untuk
+  admin/superadmin, tautan Profil/Masuk untuk peran lain).
+- **Dua hal dari TASK_20/21 sengaja DIPERTAHANKAN** karena bukan bagian panel menu dan
+  mencabutnya merusak tata letak lain: breakpoint `md:hidden` (versi lama `lg:hidden`,
+  padahal `AppLayout.jsx:116` memasang rail ikon mulai `md` dan konten ber-`md:pb-0` →
+  di tablet akan muncul dua navigasi sekaligus + konten tertimpa), dan padding
+  `env(safe-area-inset-bottom)` pada bilah.
+- **Konsekuensi yang diterima:** dampak #53 poin 1 & 2 dan #54 poin 1–5 kembali berlaku
+  di bawah md. Jalur legal yang tersisa untuk pengguna ponsel = tautan di footer
+  `AppLayout` (ditambahkan pada perbaikan #53, tidak ikut dibalikkan). Duplikasi daftar
+  menu hidup lagi: menu baru harus ditulis di `navItems.js` **dan** `MobileBottomNav.jsx`.
+- **Kode yatim:** `resources/js/Layouts/Partials/MobileMenuPanel.jsx` dan
+  `resources/js/hooks/use-sheet-history.js` tidak lagi diimpor siapa pun. Sengaja TIDAK
+  dihapus agar pembalikan mudah dibatalkan; `navItems.js` tetap hidup karena dipakai
+  `Sidebar.jsx`.
+- **Verifikasi:** `php artisan test` 224 passed (883 assertions), `npm run build` lulus
+  (client + SSR). Rupa visual & perilaku popover belum dicek mata manusia.
 
 ### #55 — `routes/channels.php` tidak pernah dimuat: `/broadcasting/auth` tidak ada, semua channel privat mati
 - **Severity:** P1 (fitur inti real-time mati diam-diam — tanpa pesan error yang terlihat pengguna)
