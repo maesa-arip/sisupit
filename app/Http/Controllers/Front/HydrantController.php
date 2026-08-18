@@ -17,6 +17,11 @@ class HydrantController extends Controller
         // KUNCI UTAMANYA DI SINI:
         // Gunakan withoutGlobalScope('tenant') agar trait Tenantable diabaikan.
         // Dengan ini, SEMUA hydrant se-Indonesia akan ditarik ke peta.
+        //
+        // Halaman ini khusus hydrant milik instansi/PDAM. Hydrant swadaya warga hidup di
+        // tabelnya sendiri (`hydrant_wargas`) dan tampil di halaman SKKL (/pumps) —
+        // menampilkannya di kedua tempat membuat warga mengira ada dua titik air di lokasi
+        // yang sama (TASK_30).
         $query = Hydrant::withoutGlobalScope('tenant');
 
         // 1. Filter Pencarian Teks

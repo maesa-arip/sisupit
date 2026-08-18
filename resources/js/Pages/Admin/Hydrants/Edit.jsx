@@ -9,7 +9,7 @@ import { Textarea } from '@/Components/ui/textarea';
 // PERBAIKAN: Hanya mengimport Combobox tunggal sesuai komponen baru kita
 import { Combobox } from '@/Components/ui/combobox';
 import AppLayout from '@/Layouts/AppLayout';
-import { MAP_TILE_URL } from '@/lib/utils';
+import { facilityStatusLabel, MAP_TILE_URL } from '@/lib/utils';
 import { Head, Link, useForm } from '@inertiajs/react';
 import {
 	IconArrowLeft,
@@ -24,6 +24,7 @@ import {
 } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { HydrantTabs, hydrantVariant } from './variants';
 
 // Helper: Algoritma Pencocokan "Sapu Jagat" (Omni-Search)
 const matchRegionName = (dbList, osmNamesArray, removeWords = []) => {
@@ -63,6 +64,7 @@ const matchRegionName = (dbList, osmNamesArray, removeWords = []) => {
 };
 
 export default function Edit({
+	variant = 'resmi',
 	hydrant,
 	hydrant_province,
 	tenant_location,
@@ -72,6 +74,9 @@ export default function Edit({
 	admin_level,
 	admin_region_names,
 }) {
+	// Form yang sama melayani hydrant resmi & hydrant warga; `variant` menentukan judul,
+	// route simpan, dan apakah debit air wajib. Lihat ./variants.jsx.
+	const v = hydrantVariant(variant);
 	const defaultLat = tenant_location?.lat || -8.65;
 	const defaultLng = tenant_location?.lng || 115.22;
 
@@ -80,6 +85,10 @@ export default function Edit({
 		address: hydrant.address || '',
 		status: hydrant.status || 'Aktif',
 		type: hydrant.type || 'Stick',
+		// Kolomnya nullable untuk data lama, jadi jatuhkan ke string kosong agar Select &
+		// Input tetap terkendali (controlled).
+		water_pressure: hydrant.water_pressure || '',
+		debit_lpm: hydrant.debit_lpm ?? '',
 		description: hydrant.description || '',
 		lat: parseFloat(hydrant.lat) || defaultLat,
 		lng: parseFloat(hydrant.lng) || defaultLng,
@@ -325,7 +334,7 @@ export default function Edit({
 
 	const onHandleSubmit = (e) => {
 		e.preventDefault();
-		put(route('admin.hydrants.update', hydrant.id), {
+		put(route(v.routes.update, hydrant.id), {
 			preserveScroll: true,
 			preserveState: true,
 			onSuccess: (page) => {
@@ -371,13 +380,12 @@ export default function Edit({
 			<Head title={`Modifikasi Aset: ${hydrant.name}`} />
 
 			<div className="mb-2 flex flex-col items-start justify-between gap-y-4 lg:flex-row lg:items-center">
-				<HeaderTitle
-					title="Modifikasi Data Hydrant"
-					subtitle="Perbarui teknis, yurisdiksi, atau re-posisi titik aset."
-					icon={IconDroplet}
-				/>
+				<div className="flex flex-col gap-3">
+					<HeaderTitle title={v.editTitle} subtitle={v.editSubtitle} icon={IconDroplet} />
+					<HydrantTabs active={variant} />
+				</div>
 				<Button variant="secondary" size="sm" asChild>
-					<Link href={route('admin.hydrants.index')}>
+					<Link href={route(v.routes.index)}>
 						<IconArrowLeft className="mr-1.5 size-4" /> Kembali
 					</Link>
 				</Button>
@@ -596,11 +604,56 @@ export default function Edit({
 												<SelectValue placeholder="Pilih Status" />
 											</SelectTrigger>
 											<SelectContent>
-												<SelectItem value="Aktif">Kondisi Baik</SelectItem>
-												<SelectItem value="Perbaikan">Perbaikan</SelectItem>
+												<SelectItem value="Aktif">{facilityStatusLabel('Aktif')}</SelectItem>
+												<SelectItem value="Perbaikan">
+													{facilityStatusLabel('Perbaikan')}
+												</SelectItem>
 											</SelectContent>
 										</Select>
 										{errors.status && <InputError message={errors.status} />}
+									</div>
+								</div>
+
+								<div className="grid grid-cols-2 gap-4">
+									<div className="grid gap-1.5">
+										<Label>Kondisi Air</Label>
+										<Select
+											value={data.water_pressure || 'BELUM'}
+											onValueChange={(value) =>
+												setData('water_pressure', value === 'BELUM' ? '' : value)
+											}
+										>
+											<SelectTrigger className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal">
+												<SelectValue placeholder="Pilih Kondisi" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="BELUM">Belum disurvei</SelectItem>
+												<SelectItem value="Keras">Tekanan Keras</SelectItem>
+												<SelectItem value="Sedang">Tekanan Sedang</SelectItem>
+												<SelectItem value="Kecil">Tekanan Kecil</SelectItem>
+											</SelectContent>
+										</Select>
+										{errors.water_pressure && <InputError message={errors.water_pressure} />}
+									</div>
+									<div className="grid gap-1.5">
+										<Label htmlFor="debit_lpm">
+											Debit Air
+											<span className="ml-1 text-[11px] font-normal text-muted-foreground">
+												(liter/menit)
+											</span>
+											{v.debitRequired && <span className="ml-1 text-destructive">*</span>}
+										</Label>
+										<Input
+											type="number"
+											min="0"
+											name="debit_lpm"
+											id="debit_lpm"
+											value={data.debit_lpm}
+											onChange={onHandleChange}
+											className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
+											placeholder="Misal: 500"
+										/>
+										{errors.debit_lpm && <InputError message={errors.debit_lpm} />}
 									</div>
 								</div>
 
@@ -640,7 +693,7 @@ export default function Edit({
 
 								<div className="flex justify-end gap-2 pt-2">
 									<Button type="button" variant="secondary" asChild>
-										<Link href={route('admin.hydrants.index')}>Batal</Link>
+										<Link href={route(v.routes.index)}>Batal</Link>
 									</Button>
 									<Button
 										type="submit"

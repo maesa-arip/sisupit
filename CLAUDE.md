@@ -10,6 +10,9 @@ Saat sesi dimulai, baca file berikut secara penuh sebelum melakukan apapun:
 1. `prompt/MASTER_PROMPT.md` — disiplin perubahan, standar audit, keamanan regresi
 2. `prompt/docs/ARCHITECTURE_MAP.md` — peta codebase (modul, alur request, entitas, route, auth)
 3. `prompt/docs/CONVENTIONS.md` — pola yang WAJIB ditiru + anti-pola yang ada
+3b. `prompt/docs/PENGECUALIAN_ATURAN.md` — daftar aturan yang SENGAJA ditekuk atas persetujuan
+   user (jangan "perbaiki" pengecualian ini diam-diam; kalau menemukan pelanggaran baru,
+   konfirmasi ke user dulu beserta alasannya, lalu catat di sana)
 4. `.claude/skills/sisupit-ui/SKILL.md` — konvensi frontend (otomatis aktif saat menyentuh `resources/js/`)
 5. File task aktif yang tertera di STATUS di bawah (jika ada)
 
@@ -21,7 +24,34 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : TASK_29 (prompt/tasks/TASK_29_tenantable_hierarkis.md) — SELESAI & TERDEPLOY
+Task aktif   : TASK_30 (prompt/tasks/TASK_30_hydrant_warga_skkl.md) — SELESAI (kode) 2026-08-18.
+                Enam permintaan user sekaligus. (1) Status fasilitas kini berbunyi "Berfungsi/
+                Tidak Berfungsi" di SEMUA modul fasilitas — LABEL saja lewat `facilityStatusLabel()`
+                di lib/utils.js, nilai DB tetap 'Aktif'/'Perbaikan' (hukum warna peta & filter tak
+                tersentuh). (2) Kolom BARU `hydrants.water_pressure` (Tekanan Keras/Sedang/Kecil).
+                (3) HYDRANT WARGA: TABEL SENDIRI `hydrant_wargas` + model HydrantWarga + route
+                admin.hydrant-warga.* (revisi 2026-08-19 atas permintaan user; awalnya satu tabel
+                berkolom `ownership`). Pemisahan tabel ini = PENGECUALIAN ATURAN yang disetujui
+                user — daftar lengkap pengecualian ada di prompt/docs/PENGECUALIAN_ATURAN.md,
+                entri #1, termasuk harganya: menambah kolom hydrant = DUA migrasi. Yang TIDAK
+                dikembarkan: komponen React (Admin/Hydrants/{Index,Create,Edit}.jsx melayani dua
+                route lewat prop `variant`; nama route ada di Admin/Hydrants/variants.jsx) →
+                bagi pengguna keduanya tampak satu menu bertab. Dibaca di menu SKKL + /pumps
+                publik + layer SKKL Peta Pemantauan; TIDAK muncul di /hydrants publik. (4) Kolom `debit_lpm` (liter/menit, WAJIB untuk hydrant warga)
+                + kartu "Ringkasan Debit Air" per desa di /admin/pumps — satuannya sengaja sama
+                dengan `pompas.capacity_lpm` supaya bisa dijumlahkan. (5) "Manajemen Pompa" →
+                "Manajemen SKKL" — TEKS UI SAJA, route admin.pumps.*/model Pompa/tabel pompas
+                TETAP. (6) Popup "Pakai Lokasi Saat Ini?" di 3 form Tambah fasilitas admin
+                (Components/UseCurrentLocationDialog.jsx) — form lapor warga & Pusat Komando
+                SENGAJA tidak tersentuh (di sana GPS otomatis memang benar). Plus dua temuan:
+                #63 FIXED (konfirmasi OPD dulu berhenti sebagai flash message — Pusat Komando &
+                petugas di lokasi tak pernah tahu listrik sudah padam; kini AgencyConfirmation-
+                Notification) dan #64 OPEN sebagian (haversine SQL memakai acos/radians yang tak
+                ada di SQLite; sisi /hydrants belum dipindah ke PHP). Ikon responder di peta
+                detail insiden 28→40 px. Test 227 → 236 passed.
+                SISA: verifikasi manual di browser (daftar periksa §6 file task) + jalankan
+                `php artisan migrate` di staging/produksi sebelum deploy frontend.
+               TASK_29 (prompt/tasks/TASK_29_tenantable_hierarkis.md) — SELESAI & TERDEPLOY
                 2026-08-13 (prod/staging/dev @787593c). `Tenantable` jadi HIERARKIS: untuk tiap
                 tingkat yang dimiliki user, baris harus NULL ATAU sama — dulu ia memilih SATU
                 kolom (tersempit) lalu menuntut cocok persis, sehingga master OPD/armada yang
@@ -184,7 +214,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-08-13: 227 passed, 891 assertions —
+Test      : php artisan test            (baseline 2026-08-19: 236 passed, 924 assertions —
             angka lama "65 passed, 164 assertions" per 2026-06-25 sudah jauh tertinggal)
 Run (dev) : composer dev
 Lint      : vendor/bin/pint  /  npm run format (auto-fix, BUKAN check-only — tidak ada di CI)
@@ -237,7 +267,8 @@ sisupit/
 │   ├── MASTER_PROMPT.md
 │   ├── AUDIT_CHECKLIST.md
 │   ├── tasks/{TASK_00_TEMPLATE.md, TASK_01_onboarding.md, ...}
-│   └── docs/{ARCHITECTURE_MAP.md, CONVENTIONS.md, FINDINGS_LOG.md}
+│   └── docs/{ARCHITECTURE_MAP.md, CONVENTIONS.md, FINDINGS_LOG.md,
+│             PENGECUALIAN_ATURAN.md}
 ├── .claude/skills/sisupit-ui/SKILL.md
 ├── _PROMPT_KIT_EXISTING/             ← kit asal (template kosong, referensi — bukan output)
 └── (app/, resources/, routes/, database/, dst. — kode aplikasi existing)

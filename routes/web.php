@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AgencyController as AdminAgencyController;
 use App\Http\Controllers\Admin\HydrantController as AdminHydrantController;
+use App\Http\Controllers\Admin\HydrantWargaController as AdminHydrantWargaController;
 use App\Http\Controllers\Admin\PompaController as AdminPompaController;
 use App\Http\Controllers\Admin\PosPemadamController as AdminPosPemadamController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
@@ -57,6 +58,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
 
         Route::resource('hydrants', AdminHydrantController::class)->except(['show']);
+        // Hydrant swadaya warga — tabel & route sendiri, tapi dirender komponen halaman yang
+        // SAMA dengan hydrant resmi (prop `variant`) supaya bagi pengguna keduanya terasa satu
+        // kesatuan bertab. Pemisahan tabelnya = pengecualian aturan yang disetujui user,
+        // lihat prompt/docs/PENGECUALIAN_ATURAN.md #1.
+        Route::resource('hydrant-warga', AdminHydrantWargaController::class)
+            ->parameters(['hydrant-warga' => 'hydrant_warga'])
+            ->except(['show']);
         Route::resource('pumps', AdminPompaController::class)->except(['show']);
         Route::resource('fire-stations', AdminPosPemadamController::class)->except(['show']);
         Route::resource('units', AdminUnitController::class)->except(['show']);

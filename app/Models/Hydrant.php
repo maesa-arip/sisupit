@@ -13,7 +13,22 @@ class Hydrant extends Model
 {
     use Tenantable;
 
+    /**
+     * Kondisi tekanan air — penilaian cepat petugas di lapangan. Sengaja TERPISAH dari
+     * `debit_lpm`: yang ini kualitatif (bisa dinilai mata telanjang saat survei), yang itu
+     * kuantitatif untuk rekap debit per desa.
+     *
+     * Dipakai bersama oleh HydrantWarga (dirujuk sebagai `Hydrant::WATER_PRESSURES`) supaya
+     * daftar nilainya tetap satu, walau tabelnya sengaja dipisah — lihat
+     * `prompt/docs/PENGECUALIAN_ATURAN.md` #1.
+     */
+    public const WATER_PRESSURES = ['Keras', 'Sedang', 'Kecil'];
+
     protected $guarded = [];
+
+    protected $casts = [
+        'debit_lpm' => 'integer',
+    ];
 
     // 3. Relasi ke wilayah
     public function province()

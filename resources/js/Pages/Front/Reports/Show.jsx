@@ -564,14 +564,18 @@ export default function ReportShow(props) {
 			const iconEmoji = type === 'petugas' ? '🚒' : '🏃‍♂️';
 			const iconColor =
 				type === 'petugas' ? 'bg-destructive text-destructive-foreground' : 'bg-info text-info-foreground';
-			const htmlMarkup = `<div class="${iconColor} text-xs w-7 h-7 font-bold flex items-center justify-center rounded-full border-2 border-card shadow-none">${iconEmoji}</div>`;
+			// Ukuran marker responder diperbesar 28 → 40 px (TASK_30, permintaan user): dispatcher
+			// memantau peta ini dari jarak layar besar sambil menerima telepon, dan emoji 12 px di
+			// dalam lingkaran 28 px sulit dibedakan antara petugas dan relawan. Marker TKP
+			// (dangerIcon) sudah 36 px, jadi responder tetap tidak menenggelamkannya.
+			const htmlMarkup = `<div class="${iconColor} text-lg w-10 h-10 font-bold flex items-center justify-center rounded-full border-2 border-card shadow-none">${iconEmoji}</div>`;
 
 			const marker = window.L.marker([lat, lng], {
 				icon: window.L.divIcon({
 					html: htmlMarkup,
 					className: 'bg-transparent border-none',
-					iconSize: [28, 28],
-					iconAnchor: [14, 14],
+					iconSize: [40, 40],
+					iconAnchor: [20, 20],
 				}),
 			})
 				.addTo(map)

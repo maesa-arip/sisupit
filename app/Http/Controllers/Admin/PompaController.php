@@ -3,17 +3,46 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\HydrantWarga;
 use App\Models\Pompa;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class PompaController extends Controller
 {
+    /**
+     * Daftar SKKL (Sistem Ketahanan Kebakaran Lingkungan) = DUA sumber dalam satu halaman
+     * sejak TASK_30: aset pompa (tabel `pompas`) + hydrant swadaya warga (tabel
+     * `hydrant_wargas`). Hydrant warga tetap DISUNTING di menu Hydrant Warga — di sini ia
+     * hanya dibaca, dan tombol editnya menunjuk balik ke form asalnya.
+     *
+     * Penggabungan dilakukan di PHP, bukan lewat UNION SQL, dengan alasan yang disengaja:
+     * query Eloquent biasa dijamin membawa global scope `Tenantable`, sedangkan sub-query
+     * union gampang lolos darinya — kebocoran data lintas wilayah persis jenis bug yang
+     * pernah terjadi di repo ini (FINDINGS #32). Jumlah fasilitas per kabupaten ada di
+     * kisaran puluhan, jadi biayanya tak berarti.
+     */
     public function index(Request $request)
     {
-        $query = Pompa::query();
+        $rows = $this->filtered(Pompa::query(), $request)->get()->map->toSkklRow()
+            ->concat($this->filtered(HydrantWarga::query(), $request)->get()->map->toSkklRow())
+            ->sortByDesc('created_at')
+            ->values();
 
+        return Inertia::render('Admin/Pumps/Index', [
+            'pumps' => $this->paginateRows($rows, $request),
+            'summary' => $this->debitSummary($rows),
+            'filters' => $request->only(['search', 'status']),
+            'tenant_location' => $this->getTenantDefaultLocation(),
+        ]);
+    }
+
+    /** Filter daftar yang berlaku sama untuk kedua sumber (kolom name/address/status identik). */
+    private function filtered($query, Request $request)
+    {
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
                 $q->where('name', 'like', '%'.$request->search.'%')
@@ -25,13 +54,53 @@ class PompaController extends Controller
             $query->where('status', $request->status);
         }
 
-        $pumps = $query->latest()->paginate(10)->withQueryString();
+        return $query;
+    }
 
-        return Inertia::render('Admin/Pumps/Index', [
-            'pumps' => $pumps,
-            'filters' => $request->only(['search', 'status']),
-            'tenant_location' => $this->getTenantDefaultLocation(),
-        ]);
+    /**
+     * Paginator manual: dua sumber sudah terlanjur disatukan sebagai koleksi, jadi paginasi
+     * DB tak bisa dipakai lagi. `query()` disertakan supaya pencarian & filter tidak hilang
+     * saat pindah halaman (padanan ->withQueryString()).
+     */
+    private function paginateRows(Collection $rows, Request $request, int $perPage = 10): LengthAwarePaginator
+    {
+        $page = LengthAwarePaginator::resolveCurrentPage();
+
+        return new LengthAwarePaginator(
+            $rows->forPage($page, $perPage)->values(),
+            $rows->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+    }
+
+    /**
+     * Rekap debit air per desa — inti kegunaan kolom `debit_lpm` (TASK_30): menjawab "berapa
+     * total debit air di desa ini" saat menyusun kesiapsiagaan wilayah.
+     *
+     * `unknown_debit` sengaja ikut dikirim: total yang menyembunyikan berapa titik yang
+     * debitnya BELUM didata akan dibaca sebagai angka pasti, padahal ia batas bawah. Aset
+     * pompa lama umumnya belum mengisi `capacity_lpm`, jadi kasus ini normal, bukan langka.
+     */
+    private function debitSummary(Collection $rows): array
+    {
+        $names = DB::table('indonesia_villages')
+            ->whereIn('code', $rows->pluck('village_code')->filter()->unique()->all())
+            ->pluck('name', 'code');
+
+        return $rows
+            ->groupBy(fn ($row) => $row['village_code'] ?: '')
+            ->map(fn (Collection $group, $code) => [
+                'village_code' => $code ?: null,
+                'village' => $code ? ($names[$code] ?? $code) : 'Tanpa data desa',
+                'points' => $group->count(),
+                'debit_lpm' => $group->sum(fn ($row) => (int) ($row['debit_lpm'] ?? 0)),
+                'unknown_debit' => $group->whereNull('debit_lpm')->count(),
+            ])
+            ->sortByDesc('debit_lpm')
+            ->values()
+            ->all();
     }
 
     public function create()
@@ -71,7 +140,7 @@ class PompaController extends Controller
 
         Pompa::create($this->withTenantCodes($validated, $request));
 
-        return redirect()->route('admin.pumps.index')->with('success', 'Pompa berhasil ditambahkan.');
+        return redirect()->route('admin.pumps.index')->with('success', 'Aset SKKL berhasil ditambahkan.');
     }
 
     public function edit(Pompa $pump)
@@ -122,14 +191,14 @@ class PompaController extends Controller
 
         $pump->update($this->withTenantCodes($validated, $request));
 
-        return redirect()->route('admin.pumps.index')->with('success', 'Data Pompa berhasil diperbarui.');
+        return redirect()->route('admin.pumps.index')->with('success', 'Data aset SKKL berhasil diperbarui.');
     }
 
     public function destroy(Pompa $pump)
     {
         $pump->delete();
 
-        return redirect()->back()->with('success', 'Pompa berhasil dihapus.');
+        return redirect()->back()->with('success', 'Aset SKKL berhasil dihapus.');
     }
 
     private function validateData(Request $request): array

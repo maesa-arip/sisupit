@@ -1,6 +1,6 @@
 import { Button } from '@/Components/ui/button';
 import AppLayout from '@/Layouts/AppLayout';
-import { cn, MAP_TILE_URL } from '@/lib/utils';
+import { cn, facilityStatusLabel, MAP_TILE_URL } from '@/lib/utils';
 import { Head } from '@inertiajs/react';
 import {
 	IconAdjustmentsHorizontal,
@@ -180,7 +180,7 @@ export default function MonitoringMap({ layers }) {
 					<span>${address || 'Alamat tidak tersedia'}</span>
 				</div>
 				${extra}
-				<span class="inline-flex rounded-md border border-border bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">${status || '-'}</span>`);
+				<span class="inline-flex rounded-md border border-border bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">${facilityStatusLabel(status)}</span>`);
 
 		const allMarkers = [];
 
@@ -404,7 +404,7 @@ export default function MonitoringMap({ layers }) {
 							return (
 								<StatusChip
 									key={s}
-									label={s}
+									label={facilityStatusLabel(s)}
 									active={!hidden.has(s)}
 									glyph={
 										<Dot className={!hidden.has(s) ? facilityColor(s) : 'bg-muted-foreground/40'} />

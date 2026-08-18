@@ -15,6 +15,7 @@ use App\Models\Setting; // <-- Wajib ditambahkan
 use App\Models\TrackingLog;
 use App\Models\Unit;
 use App\Models\User;
+use App\Notifications\AgencyConfirmationNotification;
 use App\Notifications\AgencyDispatchNotification;
 use App\Notifications\EmergencyAlertNotification;
 use App\Notifications\ReportStatusUpdatedNotification;
@@ -392,7 +393,49 @@ class ReportActionController extends Controller
             'confirmation_note' => $request->note,
         ]);
 
+        // Kabar balik ke Pusat Komando (TASK_30). Sebelumnya konfirmasi berhenti sebagai flash
+        // message di layar orang yang menekannya — sehingga saat PLN sendiri yang mengonfirmasi
+        // dari akunnya, operator & petugas di lokasi tidak pernah tahu listrik sudah padam,
+        // padahal merekalah yang menunggu kabar itu untuk boleh menyemprot air.
+        $this->notifyCommandCenterOfConfirmation($report, $pivot, $user);
+
         return back()->with('success', 'Konfirmasi dicatat: '.$pivot->confirmation_label);
+    }
+
+    /**
+     * Siapa yang perlu tahu bahwa OPD sudah memenuhi tindakan berkondisinya (TASK_30):
+     *
+     *  1. Pusat Komando yang menaungi laporan — dipilih dengan scope & tingkat siaran yang
+     *     SAMA dengan siaran petugas saat approve() (Setting::KEY_NOTIFY_LEVEL_PETUGAS),
+     *     supaya "seberapa luas Pusat Komando sebuah laporan" tetap satu jawaban di seluruh
+     *     aplikasi, bukan angka baru yang dipaku di sini.
+     *  2. Petugas yang SEDANG menangani insiden ini — mereka orang di lokasi yang keselamatan
+     *     kerjanya bergantung pada kabar ini, dan keanggotaan pada insiden bisa saja berasal
+     *     dari luar wilayah siaran (pola yang sama dipakai arrive(), FINDINGS #42).
+     *
+     * Yang mencatat konfirmasi tak perlu diberi tahu tentang tindakannya sendiri.
+     */
+    private function notifyCommandCenterOfConfirmation(Report $report, ReportAgency $pivot, User $actor): void
+    {
+        $ceiling = TenantLevel::from(
+            Setting::getValue(Setting::KEY_NOTIFY_LEVEL_PETUGAS, TenantLevel::KABUPATEN->value)
+        );
+
+        $commandCenter = User::role(['admin', 'petugas'])->notifiableForReport($report, $ceiling)->get();
+
+        $onScene = User::whereIn(
+            'id',
+            DB::table('report_officers')->where('report_id', $report->id)->pluck('user_id')
+        )->get();
+
+        $recipients = $commandCenter->concat($onScene)
+            ->unique('id')
+            ->reject(fn (User $u) => $u->id === $actor->id)
+            ->values();
+
+        if ($recipients->isNotEmpty()) {
+            Notification::send($recipients, new AgencyConfirmationNotification($report, $pivot));
+        }
     }
 
     /**

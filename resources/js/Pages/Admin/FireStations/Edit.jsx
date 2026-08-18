@@ -8,7 +8,7 @@ import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
-import { MAP_TILE_URL } from '@/lib/utils';
+import { facilityStatusLabel, MAP_TILE_URL } from '@/lib/utils';
 import { Head, Link, useForm } from '@inertiajs/react';
 import {
 	IconArrowLeft,
@@ -577,8 +577,10 @@ export default function Edit({
 												<SelectValue placeholder="Pilih Status" />
 											</SelectTrigger>
 											<SelectContent>
-												<SelectItem value="Aktif">Aktif</SelectItem>
-												<SelectItem value="Perbaikan">Perbaikan</SelectItem>
+												<SelectItem value="Aktif">{facilityStatusLabel('Aktif')}</SelectItem>
+												<SelectItem value="Perbaikan">
+													{facilityStatusLabel('Perbaikan')}
+												</SelectItem>
 											</SelectContent>
 										</Select>
 										{errors.status && <InputError message={errors.status} />}

@@ -6,7 +6,7 @@ import { Input } from '@/Components/ui/input';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
 import PublicLayout from '@/Layouts/PublicLayout';
-import { GEO_OPTIONS } from '@/lib/utils';
+import { facilityStatusLabel, GEO_OPTIONS } from '@/lib/utils';
 import { Link, router, useForm, usePage } from '@inertiajs/react';
 import { IconFireHydrant, IconLoader2, IconMapPinFilled, IconRadar, IconRoute, IconSearch } from '@tabler/icons-react';
 import { useState } from 'react';
@@ -167,7 +167,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 												: 'border-border bg-card text-foreground/80 hover:bg-muted'
 										}`}
 									>
-										Aktif
+										{facilityStatusLabel('Aktif')}
 									</button>
 									<button
 										type="button"
@@ -178,7 +178,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 												: 'border-border bg-card text-foreground/80 hover:bg-muted'
 										}`}
 									>
-										Perbaikan
+										{facilityStatusLabel('Perbaikan')}
 									</button>
 								</div>
 							</form>
@@ -223,7 +223,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 															: 'border-destructive/30 bg-destructive/10 text-destructive'
 													}`}
 												>
-													{hydrant.status}
+													{facilityStatusLabel(hydrant.status)}
 												</span>
 												<span className="max-w-[80px] truncate border-l border-border pl-1.5 text-[10px] font-medium text-muted-foreground sm:max-w-none sm:pl-2">
 													Hydrant {hydrant.type}

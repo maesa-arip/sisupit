@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
 use App\Models\Hydrant;
+use App\Models\HydrantWarga;
 use App\Models\Pompa;
 use App\Models\PosPemadam;
 use App\Models\Report;
@@ -37,6 +38,9 @@ class MonitoringMapController extends Controller
                 'lng' => (float) $report->lng,
             ])->values();
 
+        // Layer hydrant = hydrant resmi (tabel `hydrants`). Hydrant swadaya warga punya
+        // tabel sendiri dan ikut layer SKKL di bawah, mengikuti pembagian yang sama dengan
+        // menu & halaman publik (TASK_30).
         $hydrants = Hydrant::whereNotNull('lat')->whereNotNull('lng')->get()
             ->map(fn (Hydrant $h) => [
                 'id' => $h->id,
@@ -57,7 +61,20 @@ class MonitoringMapController extends Controller
                 'type' => $p->type ?? 'Statis (Hydrant)',
                 'lat' => (float) $p->lat,
                 'lng' => (float) $p->lng,
-            ])->values();
+            ])
+            ->concat(
+                HydrantWarga::whereNotNull('lat')->whereNotNull('lng')->get()
+                    ->map(fn (HydrantWarga $h) => [
+                        'id' => $h->id,
+                        'name' => $h->name,
+                        'address' => $h->address ?? 'Alamat tidak tersedia',
+                        'status' => $h->status ?? 'Aktif',
+                        'type' => $h->type ? 'Hydrant Warga · '.$h->type : 'Hydrant Warga',
+                        'lat' => (float) $h->lat,
+                        'lng' => (float) $h->lng,
+                    ])
+            )
+            ->values();
 
         $stations = PosPemadam::whereNotNull('lat')->whereNotNull('lng')->get()
             ->map(fn (PosPemadam $s) => [

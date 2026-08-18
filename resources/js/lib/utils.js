@@ -45,6 +45,31 @@ export const GEO_ACCURACY_THRESHOLD = 1000;
 // digeser saat deteksi lokasi gagal total. Selaras dengan setView UserLeafletMap.
 export const DEFAULT_MAP_CENTER = { lat: -8.65, lng: 115.22 };
 
+// Kosakata status FASILITAS (hydrant, SKKL/pompa, pos pemadam) — TASK_30.
+//
+// Nilai yang tersimpan di database tetap 'Aktif'/'Perbaikan'; yang diseragamkan hanya kata
+// yang dibaca manusia. Sengaja tidak diubah sampai ke DB: nilai itu dipakai bersama oleh
+// empat tabel + hukum warna peta ("Perbaikan = merah"), dan mengubahnya berarti migrasi enum
+// + backfill di semua modul demi perubahan yang murni kebahasaan.
+//
+// Dipakai SEMUA permukaan fasilitas supaya satu aset tidak berbunyi "Aktif" di satu halaman
+// dan "Berfungsi" di halaman lain — persis keluhan yang memunculkan aturan ini.
+export const FACILITY_STATUS_LABELS = {
+	Aktif: 'Berfungsi',
+	Perbaikan: 'Tidak Berfungsi',
+};
+
+export const facilityStatusLabel = (status) => FACILITY_STATUS_LABELS[status] ?? status ?? '-';
+
+// Kondisi tekanan air hydrant (TASK_30). Nilai tersimpan cuma 'Keras'/'Sedang'/'Kecil' —
+// kata "Tekanan" ditambahkan saat tampil supaya berdiri sendiri tanpa label kolom.
+export const waterPressureLabel = (pressure) => (pressure ? `Tekanan ${pressure}` : null);
+
+// Debit air dalam liter per menit. Satuannya selalu ikut: angka telanjang di kartu aset
+// gampang dikira volume tangki.
+export const debitLabel = (lpm) =>
+	lpm === null || lpm === undefined || lpm === '' ? null : `${Number(lpm).toLocaleString('id-ID')} lpm`;
+
 // Waktu relatif singkat berbahasa Indonesia ("3 menit lalu") untuk kartu triase admin —
 // menonjolkan umur laporan agar operator cepat menilai urgensi.
 export function timeAgo(value) {

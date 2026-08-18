@@ -3,7 +3,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
-import { MAP_TILE_URL } from '@/lib/utils';
+import { debitLabel, facilityStatusLabel, MAP_TILE_URL, waterPressureLabel } from '@/lib/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
 	IconAlertTriangle,
@@ -16,8 +16,10 @@ import {
 	IconTrash,
 } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
+import { HydrantTabs, hydrantVariant } from './variants';
 
-export default function Index({ hydrants, filters, tenant_location }) {
+export default function Index({ variant = 'resmi', hydrants, filters, tenant_location }) {
+	const v = hydrantVariant(variant);
 	const [hydrantToDelete, setHydrantToDelete] = useState(null);
 	const [activeHydrantId, setActiveHydrantId] = useState(null);
 
@@ -53,10 +55,7 @@ export default function Index({ hydrants, filters, tenant_location }) {
 				const lat = parseFloat(hydrant.lat),
 					lng = parseFloat(hydrant.lng);
 				if (!isNaN(lat) && !isNaN(lng)) {
-					const iconColor =
-						hydrant.status === 'Aktif'
-							? 'text-info'
-							: 'text-destructive';
+					const iconColor = hydrant.status === 'Aktif' ? 'text-info' : 'text-destructive';
 					const customIcon = window.L.divIcon({
 						html: `<div class="${iconColor} drop-shadow-md hover:scale-110 transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
 						className: 'bg-transparent border-none',
@@ -88,19 +87,15 @@ export default function Index({ hydrants, filters, tenant_location }) {
 
 	const handleSearch = (e) => {
 		e.preventDefault();
-		get(route('admin.hydrants.index'), { preserveState: true, preserveScroll: true });
+		get(route(v.routes.index), { preserveState: true, preserveScroll: true });
 	};
 	const applyStatusFilter = (val) => {
 		setData('status', val);
-		router.get(
-			route('admin.hydrants.index'),
-			{ ...data, status: val },
-			{ preserveState: true, preserveScroll: true },
-		);
+		router.get(route(v.routes.index), { ...data, status: val }, { preserveState: true, preserveScroll: true });
 	};
 	const confirmDelete = () => {
 		if (hydrantToDelete)
-			router.delete(route('admin.hydrants.destroy', hydrantToDelete), {
+			router.delete(route(v.routes.destroy, hydrantToDelete), {
 				preserveScroll: true,
 				onSuccess: () => setHydrantToDelete(null),
 			});
@@ -108,7 +103,7 @@ export default function Index({ hydrants, filters, tenant_location }) {
 
 	return (
 		<div className="flex h-full w-full flex-col space-y-6">
-			<Head title="Manajemen Hydrant" />
+			<Head title={v.head} />
 
 			{hydrantToDelete && (
 				<div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
@@ -136,18 +131,17 @@ export default function Index({ hydrants, filters, tenant_location }) {
 			)}
 
 			<div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
-				<HeaderTitle
-					title="Manajemen Jaringan Hydrant"
-					subtitle="Kelola fasilitas hydrant pemadam di wilayah Anda."
-					icon={IconFireHydrant}
-				/>
+				<div className="flex flex-col gap-3">
+					<HeaderTitle title={v.title} subtitle={v.subtitle} icon={IconFireHydrant} />
+					<HydrantTabs active={variant} />
+				</div>
 				<Button
 					size="sm"
 					className="border-none bg-teal-600 text-white shadow-none hover:bg-teal-700 dark:bg-teal dark:hover:bg-teal/90"
 					asChild
 				>
-					<Link href={route('admin.hydrants.create')}>
-						<IconPlus className="mr-1.5 h-4 w-4" /> Tambah Hydrant
+					<Link href={route(v.routes.create)}>
+						<IconPlus className="mr-1.5 h-4 w-4" /> {v.addLabel}
 					</Link>
 				</Button>
 			</div>
@@ -177,11 +171,7 @@ export default function Index({ hydrants, filters, tenant_location }) {
 											: 'border-input bg-transparent text-muted-foreground hover:bg-accent'
 									}`}
 								>
-									{status === 'Aktif'
-										? 'Aktif'
-										: status === 'Perbaikan'
-											? 'Perbaikan'
-											: 'Semua'}
+									{facilityStatusLabel(status)}
 								</button>
 							))}
 						</div>
@@ -217,6 +207,15 @@ export default function Index({ hydrants, filters, tenant_location }) {
 													<p className="mt-0.5 truncate text-xs text-muted-foreground">
 														{hydrant.address}
 													</p>
+													<p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+														{[
+															facilityStatusLabel(hydrant.status),
+															waterPressureLabel(hydrant.water_pressure),
+															debitLabel(hydrant.debit_lpm),
+														]
+															.filter(Boolean)
+															.join(' · ')}
+													</p>
 												</div>
 												<div
 													className="flex shrink-0 gap-1"
@@ -228,7 +227,7 @@ export default function Index({ hydrants, filters, tenant_location }) {
 														asChild
 														className="h-8 w-8 text-muted-foreground hover:text-info"
 													>
-														<Link href={route('admin.hydrants.edit', hydrant.id)}>
+														<Link href={route(v.routes.edit, hydrant.id)}>
 															<IconEdit className="h-4 w-4" />
 														</Link>
 													</Button>

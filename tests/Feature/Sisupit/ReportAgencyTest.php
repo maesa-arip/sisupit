@@ -4,7 +4,9 @@ use App\Models\Agency;
 use App\Models\Report;
 use App\Models\ReportAgency;
 use App\Models\User;
+use App\Notifications\AgencyConfirmationNotification;
 use App\Notifications\AgencyDispatchNotification;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 
 /**
@@ -161,6 +163,51 @@ it('lets the command center record a confirmation on behalf of the agency, marke
 
     $pivot = ReportAgency::where('report_id', $this->report->id)->where('agency_id', $this->pln->id)->first();
     expect($pivot->confirmed_source)->toBe(ReportAgency::SOURCE_OPERATOR);
+});
+
+/**
+ * TASK_30. Konfirmasi OPD dulu berhenti sebagai flash message di layar orang yang menekannya —
+ * jadi saat PLN sendiri yang mengonfirmasi, Pusat Komando & petugas di lokasi tidak pernah tahu
+ * listrik sudah padam. Yang dijaga di sini: kabar itu sampai ke yang menunggunya, tanpa melebar
+ * ke petugas wilayah lain yang tak ada urusannya dengan insiden ini.
+ */
+it('tells the command center and the officers on scene when an agency confirms', function () {
+    $plnAccount = User::factory()->create(['village_code' => '5171012006', 'agency_id' => $this->pln->id]);
+    $plnAccount->assignRole('opd');
+
+    // Petugas desa lain: TIDAK sedang menangani insiden ini & di luar wilayah laporan.
+    $petugasLuar = User::factory()->create(['village_code' => '5103010001']);
+    $petugasLuar->assignRole('petugas');
+
+    // Petugas desa lain yang JUSTRU sedang di lokasi (keanggotaan mengalahkan wilayah, #42).
+    $petugasDiLokasi = User::factory()->create(['village_code' => '5103010002']);
+    $petugasDiLokasi->assignRole('petugas');
+
+    $this->actingAs($this->petugas)
+        ->post("/reports/{$this->report->id}/approve", ['agency_ids' => [$this->pln->id]]);
+
+    DB::table('report_officers')->insert([
+        'report_id' => $this->report->id,
+        'user_id' => $petugasDiLokasi->id,
+        'status' => 'en_route',
+        'dispatched_at' => now(),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $this->actingAs($plnAccount)
+        ->post("/reports/{$this->report->id}/agencies/confirm", [
+            'agency_id' => $this->pln->id,
+            'note' => 'Jaringan dipadamkan pukul 14.10',
+        ])->assertRedirect();
+
+    Notification::assertSentTo($this->petugas, AgencyConfirmationNotification::class);
+    Notification::assertSentTo($petugasDiLokasi, AgencyConfirmationNotification::class);
+
+    // Yang menekan tombolnya sendiri tak perlu dikabari tindakannya sendiri, dan petugas
+    // wilayah lain yang tak terlibat tidak ikut kebanjiran.
+    Notification::assertNotSentTo($plnAccount, AgencyConfirmationNotification::class);
+    Notification::assertNotSentTo($petugasLuar, AgencyConfirmationNotification::class);
 });
 
 it('blocks an agency account from confirming on behalf of a different agency', function () {

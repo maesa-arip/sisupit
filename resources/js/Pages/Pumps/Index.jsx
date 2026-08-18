@@ -6,9 +6,17 @@ import { Input } from '@/Components/ui/input';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
 import PublicLayout from '@/Layouts/PublicLayout';
-import { GEO_OPTIONS } from '@/lib/utils';
+import { debitLabel, facilityStatusLabel, GEO_OPTIONS } from '@/lib/utils';
 import { router, useForm, usePage } from '@inertiajs/react';
-import { IconDroplet, IconLoader2, IconMapPinFilled, IconRadar, IconRoute, IconSearch } from '@tabler/icons-react';
+import {
+	IconDroplet,
+	IconFireHydrant,
+	IconLoader2,
+	IconMapPinFilled,
+	IconRadar,
+	IconRoute,
+	IconSearch,
+} from '@tabler/icons-react';
 import { useState } from 'react';
 
 export default function Index({ pumps, filters, ...props }) {
@@ -165,7 +173,7 @@ export default function Index({ pumps, filters, ...props }) {
 												: 'border-border bg-card text-foreground/80 hover:bg-muted'
 										}`}
 									>
-										Aktif
+										{facilityStatusLabel('Aktif')}
 									</button>
 									<button
 										type="button"
@@ -176,7 +184,7 @@ export default function Index({ pumps, filters, ...props }) {
 												: 'border-border bg-card text-foreground/80 hover:bg-muted'
 										}`}
 									>
-										Perbaikan
+										{facilityStatusLabel('Perbaikan')}
 									</button>
 								</div>
 							</form>
@@ -188,7 +196,7 @@ export default function Index({ pumps, filters, ...props }) {
 						{pumps.data && pumps.data.length > 0 ? (
 							pumps.data.map((pump) => (
 								<Card
-									key={pump.id}
+									key={`${pump.source}-${pump.id}`}
 									className="group shrink-0 cursor-pointer overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-all duration-200 hover:border-muted-foreground/30"
 								>
 									<CardContent className="flex flex-row flex-nowrap items-center gap-3 p-3 sm:p-4">
@@ -200,8 +208,8 @@ export default function Index({ pumps, filters, ...props }) {
 													: 'border-destructive/30 bg-destructive/10 text-destructive'
 											}`}
 										>
-											{pump.status === 'Aktif' ? (
-												<IconDroplet className="h-5 w-5" stroke={1.5} />
+											{pump.source === 'hydrant_warga' ? (
+												<IconFireHydrant className="h-5 w-5" stroke={1.5} />
 											) : (
 												<IconDroplet className="h-5 w-5" stroke={1.5} />
 											)}
@@ -223,11 +231,16 @@ export default function Index({ pumps, filters, ...props }) {
 															: 'border-destructive/30 bg-destructive/10 text-destructive'
 													}`}
 												>
-													{pump.status}
+													{facilityStatusLabel(pump.status)}
 												</span>
 												<span className="max-w-[80px] truncate border-l border-border pl-1.5 text-[10px] font-medium text-muted-foreground sm:max-w-none sm:pl-2">
 													{pump.type}
 												</span>
+												{debitLabel(pump.debit_lpm) && (
+													<span className="whitespace-nowrap rounded border border-border bg-muted px-2 py-0.5 text-[10px] font-semibold text-foreground/80">
+														{debitLabel(pump.debit_lpm)}
+													</span>
+												)}
 											</div>
 										</div>
 

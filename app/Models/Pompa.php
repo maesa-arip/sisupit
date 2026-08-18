@@ -60,4 +60,32 @@ class Pompa extends Model
     {
         return $query->where('status', 'Aktif');
     }
+
+    /**
+     * Bentuk baris untuk daftar/peta SKKL — kembarannya Hydrant::toSkklRow() (TASK_30).
+     * Halaman SKKL menampilkan dua sumber (aset pompa + hydrant warga) dalam satu daftar,
+     * jadi keduanya WAJIB memancarkan kunci yang sama; kalau tidak, kartu yang satu kehilangan
+     * badge/debit yang dipunyai kartu lainnya.
+     *
+     * `capacity_lpm` dipetakan ke `debit_lpm` karena satuannya memang sama (liter per menit) —
+     * itulah yang membuat rekap debit per desa bisa menjumlahkan keduanya.
+     */
+    public function toSkklRow(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'address' => $this->address ?? 'Alamat tidak tersedia',
+            'status' => $this->status ?? 'Aktif',
+            'type' => $this->type ?? 'Statis (Hydrant)',
+            'lat' => $this->lat,
+            'lng' => $this->lng,
+            'debit_lpm' => $this->capacity_lpm,
+            'water_pressure' => null,
+            'village_code' => $this->village_code,
+            'created_at' => $this->created_at,
+            'category' => 'pompa',
+            'source' => 'pompa',
+        ];
+    }
 }

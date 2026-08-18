@@ -6,7 +6,7 @@ import { Input } from '@/Components/ui/input';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
 import PublicLayout from '@/Layouts/PublicLayout';
-import { GEO_OPTIONS } from '@/lib/utils';
+import { facilityStatusLabel, GEO_OPTIONS } from '@/lib/utils';
 import { useForm, usePage } from '@inertiajs/react';
 import {
 	IconFiretruck,
@@ -165,7 +165,7 @@ export default function Index({ stations, filters, ...props }) {
 															: 'border-destructive/30 bg-destructive/10 text-destructive'
 													}`}
 												>
-													{station.status}
+													{facilityStatusLabel(station.status)}
 												</span>
 												<span className="border-l border-border pl-1.5 text-[10px] font-medium text-muted-foreground sm:pl-2">
 													{station.vehicle_count} Armada

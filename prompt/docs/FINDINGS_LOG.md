@@ -1020,3 +1020,23 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **Verifikasi:** `tests/Feature/Sisupit/OpdDashboardTest.php` (2 kasus) — dibuktikan MERAH lebih dulu dengan mengembalikan controller ke versi lama (`agencyName` tidak cocok), hijau sesudah fix. Kasus kedua menjaga agar peringatan "belum ditautkan" TETAP muncul untuk akun yang memang `agency_id`-nya null.
 - **Sumber:** pembuatan akun uji OPD 2026-08-13.
 - **Status:** SELESAI (FIXED) 2026-08-13
+
+### #63 — Konfirmasi OPD berhenti sebagai flash message: Pusat Komando tak pernah tahu listrik sudah dipadamkan
+- **Severity:** P2 (keselamatan kerja petugas di lokasi; fitur "butuh konfirmasi" TASK_27 tak sampai ke pihak yang menunggunya)
+- **Ditemukan 2026-08-18** dari permintaan user "notif listrik padam masuk ke admin dll".
+- **Akar:** `ReportActionController::confirmAgency()` hanya meng-update baris pivot `report_agencies` lalu `return back()->with('success', ...)`. Tidak ada satu pun `Notification::send` di seluruh method. TASK_27 membangun notifikasi SATU ARAH saja (Damkar → OPD lewat `AgencyDispatchNotification`); arah baliknya tak pernah dibuat.
+- **Dampak:** ketika akun OPD (mis. PLN) sendiri yang menekan "Listrik sudah dipadamkan di lokasi kejadian", satu-satunya orang yang melihat kabar itu adalah petugas PLN yang menekannya. Operator Pusat Komando dan petugas Damkar yang sedang di lokasi tidak menerima apa pun — padahal justru merekalah yang menunggu konfirmasi itu untuk boleh menyemprot air ke material yang mungkin masih beraliran listrik. Satu-satunya cara mengetahuinya adalah kebetulan sedang membuka halaman detail insiden dan me-refresh.
+- **Fix (2026-08-18, TASK_30):** `AgencyConfirmationNotification` (FCM + database/lonceng web, blok `apns` sesuai TASK_26, tanpa sirine karena ini koordinasi bukan panggilan meluncur) dikirim lewat `notifyCommandCenterOfConfirmation()`. Penerimanya DUA kelompok: (a) admin+petugas yang menaungi laporan, dipilih dengan `notifiableForReport()` dan ceiling `Setting::KEY_NOTIFY_LEVEL_PETUGAS` — lebar yang SAMA dengan siaran `approve()`, supaya "seberapa luas Pusat Komando sebuah laporan" tetap satu jawaban di seluruh aplikasi; (b) petugas yang sedang menangani insiden itu (`report_officers`), karena keanggotaan bisa berasal dari luar wilayah siaran dan merekalah yang keselamatannya bergantung pada kabar ini (pola yang sama dipakai `arrive()`, #42). Yang mencatat konfirmasi tidak dikabari tindakannya sendiri.
+- **Tetap DATA, bukan cabang kode:** kalimatnya diambil dari snapshot `confirmation_label` pivot, bukan dari nama instansi — OPD baru yang butuh konfirmasi cukup didaftarkan lewat `/admin/agencies` (aturan TASK_27, jangan pernah menulis `if ($agency->code === 'pln')`).
+- **Verifikasi:** test `it tells the command center and the officers on scene when an agency confirms` di `ReportAgencyTest.php` — menjaga sekaligus bahwa petugas desa lain yang TIDAK terlibat tidak ikut kebanjiran, dan bahwa akun OPD yang menekan tombolnya tidak dikirimi notifikasi sendiri.
+- **Sumber:** permintaan user 2026-08-18.
+- **Status:** SELESAI (FIXED) 2026-08-18 — TASK_30
+
+### #64 — "Cari SKKL/Hydrant terdekat" memakai `acos()`/`radians()` yang tidak ada di SQLite bawaan PHP
+- **Severity:** P3 (fitur mati di lokal & testing, jalan di produksi — jenis bug yang tak pernah terlihat saat dikembangkan)
+- **Ditemukan 2026-08-18** saat menggabungkan dua sumber data di halaman SKKL (TASK_30).
+- **Akar:** `Front\PompaController` & `Front\HydrantController` menghitung jarak lewat `selectRaw` haversine (`6371 * acos(cos(radians(?)) * ...)`). Fungsi matematika itu hanya tersedia bila SQLite dikompilasi dengan `SQLITE_ENABLE_MATH_FUNCTIONS` — build bawaan PHP umumnya tidak. Di MySQL produksi fungsinya ada, jadi fiturnya jalan; di SQLite lokal/testing query yang sama melempar galat.
+- **Fix parsial (2026-08-18, TASK_30):** `Front\PompaController` kini menghitung jarak di PHP (`haversineKm()`), sekaligus karena daftar gabungan dua tabel tak lagi bisa diurutkan oleh satu `ORDER BY` di salah satu query.
+- **SISA (belum dikerjakan, di luar scope TASK_30):** `Front\HydrantController` masih memakai `selectRaw` haversine yang sama. Halaman `/hydrants` dengan tombol "Cari Terdekat" karena itu masih rawan galat di environment ber-SQLite. Perbaikannya: pindahkan ke pola `haversineKm()` yang sama.
+- **Sumber:** pengerjaan TASK_30.
+- **Status:** OPEN (sebagian) — sisi SKKL sudah, sisi Hydrant belum

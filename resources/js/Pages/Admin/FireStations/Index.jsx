@@ -3,7 +3,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
-import { MAP_TILE_URL } from '@/lib/utils';
+import { facilityStatusLabel, MAP_TILE_URL } from '@/lib/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
 	IconAlertTriangle,
@@ -177,7 +177,7 @@ export default function Index({ stations, filters, tenant_location }) {
 											: 'border-input bg-transparent text-muted-foreground hover:bg-accent'
 									}`}
 								>
-									{status === 'Aktif' ? 'Aktif' : status === 'Perbaikan' ? 'Perbaikan' : 'Semua'}
+									{facilityStatusLabel(status)}
 								</button>
 							))}
 						</div>

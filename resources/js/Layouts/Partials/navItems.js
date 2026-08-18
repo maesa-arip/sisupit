@@ -208,7 +208,7 @@ export function buildNavSections({ auth, url = '' }) {
 						},
 						{
 							key: 'admin.pumps',
-							title: 'Manajemen Pompa',
+							title: 'Manajemen SKKL',
 							icon: IconEngine,
 							url: route('admin.pumps.index'),
 							active: startsWith('/admin/pumps'),

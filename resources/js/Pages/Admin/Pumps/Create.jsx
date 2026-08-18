@@ -7,8 +7,9 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
+import UseCurrentLocationDialog from '@/Components/UseCurrentLocationDialog';
 import AppLayout from '@/Layouts/AppLayout';
-import { MAP_TILE_URL } from '@/lib/utils';
+import { facilityStatusLabel, MAP_TILE_URL } from '@/lib/utils';
 import { Head, Link, useForm } from '@inertiajs/react';
 import {
 	IconArrowLeft,
@@ -302,6 +303,18 @@ export default function Create({ tenant_location, provinces, cities, districts, 
 		if (typeof setCurrentStep === 'function') setCurrentStep(2);
 	};
 
+	// Dipakai dialog "Pakai Lokasi Saat Ini" (TASK_30): pindahkan pin + jalankan auto-fill
+	// yurisdiksi yang sama persis dengan klik peta, supaya tak ada dua jalur penetapan lokasi
+	// yang berperilaku beda.
+	const applyCoordinates = (lat, lng) => {
+		if (mapInstanceRef.current && markerRef.current) {
+			mapInstanceRef.current.flyTo([lat, lng], 17);
+			markerRef.current.setLatLng([lat, lng]);
+		}
+		updateLocationData(lat, lng);
+		setCurrentStep(2);
+	};
+
 	const onHandleSubmit = (e) => {
 		e.preventDefault();
 		post(route('admin.pumps.store'), {
@@ -349,6 +362,8 @@ export default function Create({ tenant_location, provinces, cities, districts, 
 	return (
 		<div className="flex h-full w-full flex-col space-y-6">
 			<Head title="Registrasi Pompa Baru" />
+
+			<UseCurrentLocationDialog onUse={applyCoordinates} assetLabel="aset SKKL" />
 
 			<div className="mb-2 flex flex-col items-start justify-between gap-y-4 lg:flex-row lg:items-center">
 				<HeaderTitle
@@ -576,8 +591,10 @@ export default function Create({ tenant_location, provinces, cities, districts, 
 												<SelectValue placeholder="Pilih Status" />
 											</SelectTrigger>
 											<SelectContent>
-												<SelectItem value="Aktif">Aktif</SelectItem>
-												<SelectItem value="Perbaikan">Perbaikan</SelectItem>
+												<SelectItem value="Aktif">{facilityStatusLabel('Aktif')}</SelectItem>
+												<SelectItem value="Perbaikan">
+													{facilityStatusLabel('Perbaikan')}
+												</SelectItem>
 											</SelectContent>
 										</Select>
 										{errors.status && <InputError message={errors.status} />}
