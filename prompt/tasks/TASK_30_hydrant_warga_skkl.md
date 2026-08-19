@@ -195,3 +195,36 @@ resmi↔warga = hapus lalu buat ulang.
 
 **Verifikasi revisi:** `HydrantWargaSkklTest` ditulis ulang jadi 8 kasus (termasuk
 `it keeps the two hydrant lists apart`), suite penuh & `npm run build` hijau.
+
+---
+
+## 9. REVISI UI 2026-08-19 — pemisah dua jenis hydrant dibuat jauh lebih tegas
+
+**Laporan user:** "tampilan tombol hydrant resmi dan hydrant warga kurang jelas, user pertama
+lihat tidak langsung tau kalau itu 2 menu yang berbeda."
+
+**Akar masalahnya** bukan penempatan, tapi BOBOT VISUAL: versi pertama `HydrantTabs` dirender
+`text-xs` + `px-3 py-1.5` dan menempel di bawah judul — persis setara chip filter status yang
+ada tepat di bawahnya. Dua kontrol dengan bobot sama padahal fungsinya beda jauh: yang satu
+menyaring baris, yang satu mengganti seluruh dataset DAN route.
+
+**Perbaikan:**
+- Tab dibuat **selebar konten, dua kolom sama besar** (`grid grid-cols-2` di dalam kotak
+  `bg-muted`) — meniru `/syarat-ketentuan`, satu-satunya pola "dua isi dalam satu halaman"
+  yang sudah ada di repo, jadi bukan gaya baru.
+- **Jumlah data ditampilkan di tiap sisi** ("51 titik" vs "0 titik"). Ini bagian yang paling
+  menentukan: dua angka berbeda menyatakan "ini dua kumpulan data" bahkan sebelum labelnya
+  dibaca. Controller kedua sisi mengirim `counts` (ter-scope Tenantable).
+- **Kalimat penjelas** di bawah tab untuk sisi yang sedang dibuka ("Hydrant swadaya banjar/desa.
+  Dibaca di menu SKKL ... bukan di halaman Lokasi Hydrant").
+- Halaman **Create** memakai tab yang menunjuk ke form sejenis (`target="create"`), bukan ke
+  daftar — supaya "salah jenis" bisa dikoreksi tanpa memutar lewat index.
+- Halaman **Edit** TIDAK lagi memakai tab, diganti `HydrantVariantBadge` statis: di sana
+  pengguna sedang menyunting satu baris tertentu, jadi "pindah jenis" tak punya arti dan satu
+  klik tak sengaja akan membuang perubahan yang belum disimpan.
+
+Sidebar sengaja TIDAK ditambah entri kedua (keputusan user) — pemisahan cukup terlihat setelah
+halaman dibuka.
+
+**Verifikasi:** `it keeps the two hydrant lists apart` diperluas untuk menjaga `counts` benar
+di kedua sisi (8 test, 30 assertion).

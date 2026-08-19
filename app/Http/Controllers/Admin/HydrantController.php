@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Hydrant;
+use App\Models\HydrantWarga;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -32,6 +33,13 @@ class HydrantController extends Controller
             // Halaman ini melayani DUA route (hydrant resmi & hydrant warga) dengan komponen
             // React yang sama; `variant` yang menentukan judul, warna, dan route tujuan tombol.
             'variant' => 'resmi',
+            // Jumlah KEDUA daftar dikirim supaya tab bisa menampilkan angkanya. Ini yang
+            // paling cepat memberi tahu pengguna bahwa keduanya dataset berbeda, bukan
+            // sekadar filter. Ter-scope Tenantable, jadi angkanya sesuai wilayah admin.
+            'counts' => [
+                'resmi' => Hydrant::count(),
+                'warga' => HydrantWarga::count(),
+            ],
             'hydrants' => $hydrants,
             'filters' => $request->only(['search', 'status']),
             'tenant_location' => $this->getTenantDefaultLocation(),

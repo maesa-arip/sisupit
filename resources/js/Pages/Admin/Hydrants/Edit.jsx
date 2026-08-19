@@ -24,7 +24,7 @@ import {
 } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { HydrantTabs, hydrantVariant } from './variants';
+import { hydrantVariant, HydrantVariantBadge } from './variants';
 
 // Helper: Algoritma Pencocokan "Sapu Jagat" (Omni-Search)
 const matchRegionName = (dbList, osmNamesArray, removeWords = []) => {
@@ -382,7 +382,7 @@ export default function Edit({
 			<div className="mb-2 flex flex-col items-start justify-between gap-y-4 lg:flex-row lg:items-center">
 				<div className="flex flex-col gap-3">
 					<HeaderTitle title={v.editTitle} subtitle={v.editSubtitle} icon={IconDroplet} />
-					<HydrantTabs active={variant} />
+					<HydrantVariantBadge variant={variant} />
 				</div>
 				<Button variant="secondary" size="sm" asChild>
 					<Link href={route(v.routes.index)}>

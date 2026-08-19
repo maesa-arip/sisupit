@@ -18,7 +18,7 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { HydrantTabs, hydrantVariant } from './variants';
 
-export default function Index({ variant = 'resmi', hydrants, filters, tenant_location }) {
+export default function Index({ variant = 'resmi', counts = {}, hydrants, filters, tenant_location }) {
 	const v = hydrantVariant(variant);
 	const [hydrantToDelete, setHydrantToDelete] = useState(null);
 	const [activeHydrantId, setActiveHydrantId] = useState(null);
@@ -131,10 +131,7 @@ export default function Index({ variant = 'resmi', hydrants, filters, tenant_loc
 			)}
 
 			<div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
-				<div className="flex flex-col gap-3">
-					<HeaderTitle title={v.title} subtitle={v.subtitle} icon={IconFireHydrant} />
-					<HydrantTabs active={variant} />
-				</div>
+				<HeaderTitle title={v.title} subtitle={v.subtitle} icon={IconFireHydrant} />
 				<Button
 					size="sm"
 					className="border-none bg-teal-600 text-white shadow-none hover:bg-teal-700 dark:bg-teal dark:hover:bg-teal/90"
@@ -145,6 +142,8 @@ export default function Index({ variant = 'resmi', hydrants, filters, tenant_loc
 					</Link>
 				</Button>
 			</div>
+
+			<HydrantTabs active={variant} counts={counts} />
 
 			<div className="flex w-full flex-col items-start gap-5 lg:flex-row lg:gap-6">
 				<div className="flex w-full shrink-0 flex-col gap-4 lg:w-5/12 xl:w-1/3">

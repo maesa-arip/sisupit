@@ -47,6 +47,12 @@ class HydrantWargaController extends Controller
             // warna, dan route tujuan tombol — sehingga bagi pengguna keduanya terasa satu
             // kesatuan dengan dua tab.
             'variant' => 'warga',
+            // Lihat catatan di HydrantController::index — angka di tab yang membuat pengguna
+            // langsung paham ini dua daftar terpisah.
+            'counts' => [
+                'resmi' => Hydrant::count(),
+                'warga' => HydrantWarga::count(),
+            ],
             'hydrants' => $hydrants,
             'filters' => $request->only(['search', 'status']),
             'tenant_location' => $this->getTenantDefaultLocation(),

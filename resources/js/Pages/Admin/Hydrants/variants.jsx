@@ -16,6 +16,8 @@ import { Link } from '@inertiajs/react';
 export const HYDRANT_VARIANTS = {
 	resmi: {
 		tab: 'Hydrant Resmi',
+		shortBlurb: 'Milik instansi',
+		blurb: 'Hydrant milik instansi/PDAM. Tampil di halaman publik Lokasi Hydrant.',
 		head: 'Manajemen Hydrant',
 		title: 'Manajemen Jaringan Hydrant',
 		subtitle: 'Kelola hydrant milik instansi/PDAM di wilayah Anda.',
@@ -39,6 +41,8 @@ export const HYDRANT_VARIANTS = {
 	},
 	warga: {
 		tab: 'Hydrant Warga',
+		shortBlurb: 'Swadaya warga',
+		blurb: 'Hydrant swadaya banjar/desa. Dibaca di menu SKKL dan ikut dihitung sebagai debit air desa — bukan di halaman Lokasi Hydrant.',
 		head: 'Manajemen Hydrant Warga',
 		title: 'Manajemen Hydrant Warga',
 		subtitle: 'Hydrant swadaya banjar/desa — ikut dihitung sebagai debit air SKKL.',
@@ -65,23 +69,64 @@ export const HYDRANT_VARIANTS = {
 
 export const hydrantVariant = (variant) => HYDRANT_VARIANTS[variant] ?? HYDRANT_VARIANTS.resmi;
 
-/** Tab pemisah dua jenis hydrant: pindah halaman & route, tapi dibaca sebagai satu menu. */
-export function HydrantTabs({ active }) {
+/**
+ * Tab pemisah dua jenis hydrant.
+ *
+ * Bentuknya sengaja SELEBAR konten dengan dua kolom sama besar (meniru `/syarat-ketentuan`,
+ * satu-satunya pola "dua isi dalam satu halaman" yang sudah ada di repo). Versi pertama dibuat
+ * kecil seperti chip dan gagal: pengguna membacanya sebagai filter status, bukan sebagai dua
+ * daftar terpisah — laporan user 2026-08-19.
+ *
+ * `counts` yang membuat perbedaannya tak terbantahkan: dua angka berbeda di dua sisi langsung
+ * menyatakan "ini dua kumpulan data", jauh sebelum ada yang membaca labelnya.
+ */
+export function HydrantTabs({ active, counts = {}, target = 'index' }) {
 	return (
-		<div className="inline-flex rounded-lg border border-input bg-background p-1">
-			{Object.entries(HYDRANT_VARIANTS).map(([key, config]) => (
-				<Link
-					key={key}
-					href={route(config.routes.index)}
-					className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
-						active === key
-							? 'bg-teal-600 text-white dark:bg-teal'
-							: 'text-muted-foreground hover:bg-accent hover:text-foreground'
-					}`}
-				>
-					{config.tab}
-				</Link>
-			))}
+		<div className="w-full">
+			<div className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-muted p-1">
+				{Object.entries(HYDRANT_VARIANTS).map(([key, config]) => {
+					const isActive = active === key;
+					const count = counts?.[key];
+
+					return (
+						<Link
+							key={key}
+							href={route(config.routes[target])}
+							aria-current={isActive ? 'page' : undefined}
+							className={`flex flex-col items-center justify-center gap-0.5 rounded-lg px-3 py-2.5 text-center transition-colors ${
+								isActive
+									? 'bg-teal-600 text-white shadow-sm dark:bg-teal'
+									: 'text-muted-foreground hover:bg-background hover:text-foreground'
+							}`}
+						>
+							<span className="text-sm font-semibold">{config.tab}</span>
+							<span className={`text-[11px] font-medium ${isActive ? 'text-white/80' : 'opacity-70'}`}>
+								{count === undefined ? config.shortBlurb : `${count} titik`}
+							</span>
+						</Link>
+					);
+				})}
+			</div>
+			{/* Penjelas untuk sisi yang sedang dibuka — menjawab "bedanya apa" tanpa membuat
+			    pengguna menebak dari nama menunya saja. */}
+			<p className="mt-1.5 px-1 text-[11px] leading-relaxed text-muted-foreground">
+				{hydrantVariant(active).blurb}
+			</p>
 		</div>
+	);
+}
+
+/**
+ * Penanda jenis untuk halaman Edit. SENGAJA bukan tab: di sana pengguna sedang menyunting satu
+ * baris tertentu, jadi "pindah jenis" tak punya arti dan satu klik tak sengaja akan membuang
+ * perubahan yang belum disimpan. Yang dibutuhkan hanya kepastian sedang menyunting yang mana.
+ */
+export function HydrantVariantBadge({ variant }) {
+	const config = hydrantVariant(variant);
+
+	return (
+		<span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700 dark:border-teal/30 dark:bg-teal/10 dark:text-teal">
+			{config.tab}
+		</span>
 	);
 }

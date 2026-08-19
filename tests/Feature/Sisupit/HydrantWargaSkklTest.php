@@ -79,6 +79,11 @@ it('keeps the two hydrant lists apart', function () {
     $warga = $this->actingAs($this->admin)->get('/admin/hydrant-warga')->viewData('page')['props'];
     expect($warga['variant'])->toBe('warga');
     expect(collect($warga['hydrants']['data'])->pluck('name')->all())->toBe(['Hydrant Banjar Sanur']);
+
+    // Jumlah KEDUA daftar ikut dikirim ke tab. Angka inilah yang membuat pengguna langsung
+    // paham ini dua kumpulan data, bukan filter — perbaikan atas keluhan user 2026-08-19.
+    expect($resmi['counts'])->toBe(['resmi' => 1, 'warga' => 1]);
+    expect($warga['counts'])->toBe(['resmi' => 1, 'warga' => 1]);
 });
 
 it('shows citizen hydrants in the SKKL list alongside pumps, tagged with their source', function () {

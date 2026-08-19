@@ -411,7 +411,7 @@ export default function Create({
 			<div className="mb-2 flex flex-col items-start justify-between gap-y-4 lg:flex-row lg:items-center">
 				<div className="flex flex-col gap-3">
 					<HeaderTitle title={v.createTitle} subtitle={v.createSubtitle} icon={IconDroplet} />
-					<HydrantTabs active={variant} />
+					<HydrantTabs active={variant} target="create" />
 				</div>
 				<Button variant="secondary" size="sm" asChild>
 					<Link href={route(v.routes.index)}>
