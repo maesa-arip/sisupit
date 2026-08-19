@@ -16,7 +16,6 @@ import { Link } from '@inertiajs/react';
 export const HYDRANT_VARIANTS = {
 	resmi: {
 		tab: 'Hydrant Resmi',
-		shortBlurb: 'Milik instansi',
 		blurb: 'Hydrant milik instansi/PDAM. Tampil di halaman publik Lokasi Hydrant.',
 		head: 'Manajemen Hydrant',
 		title: 'Manajemen Jaringan Hydrant',
@@ -41,7 +40,6 @@ export const HYDRANT_VARIANTS = {
 	},
 	warga: {
 		tab: 'Hydrant Warga',
-		shortBlurb: 'Swadaya warga',
 		blurb: 'Hydrant swadaya banjar/desa. Dibaca di menu SKKL dan ikut dihitung sebagai debit air desa — bukan di halaman Lokasi Hydrant.',
 		head: 'Manajemen Hydrant Warga',
 		title: 'Manajemen Hydrant Warga',
@@ -70,20 +68,22 @@ export const HYDRANT_VARIANTS = {
 export const hydrantVariant = (variant) => HYDRANT_VARIANTS[variant] ?? HYDRANT_VARIANTS.resmi;
 
 /**
- * Tab pemisah dua jenis hydrant.
+ * Dua pill pemilih jenis hydrant. Bentuk final setelah dua kali revisi (user, 2026-08-19):
  *
- * Bentuknya sengaja SELEBAR konten dengan dua kolom sama besar (meniru `/syarat-ketentuan`,
- * satu-satunya pola "dua isi dalam satu halaman" yang sudah ada di repo). Versi pertama dibuat
- * kecil seperti chip dan gagal: pengguna membacanya sebagai filter status, bukan sebagai dua
- * daftar terpisah — laporan user 2026-08-19.
+ *   v1 kecil & yang non-aktif TRANSPARAN → gagal: yang non-aktif terbaca sebagai teks biasa,
+ *      jadi pengguna tak sadar ada tombol kedua sama sekali.
+ *   v2 tab selebar konten dua baris → gagal ke arah sebaliknya: terlalu besar.
+ *   v3 (ini) dua pill ringkas yang KEDUANYA TERISI warna — hijau = sedang dibuka, abu = bisa
+ *      diklik. Kuncinya bukan ukuran, melainkan kontras: pill abu yang terisi langsung terbaca
+ *      sebagai tombol, sedangkan latar transparan tidak.
  *
- * `counts` yang membuat perbedaannya tak terbantahkan: dua angka berbeda di dua sisi langsung
- * menyatakan "ini dua kumpulan data", jauh sebelum ada yang membaca labelnya.
+ * `counts` ditempel inline dalam kurung, bukan sebagai baris kedua — menambah informasi
+ * "ini dua kumpulan data" tanpa menambah tinggi.
  */
 export function HydrantTabs({ active, counts = {}, target = 'index' }) {
 	return (
-		<div className="w-full">
-			<div className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-muted p-1">
+		<div>
+			<div className="flex flex-wrap items-center gap-2">
 				{Object.entries(HYDRANT_VARIANTS).map(([key, config]) => {
 					const isActive = active === key;
 					const count = counts?.[key];
@@ -93,25 +93,21 @@ export function HydrantTabs({ active, counts = {}, target = 'index' }) {
 							key={key}
 							href={route(config.routes[target])}
 							aria-current={isActive ? 'page' : undefined}
-							className={`flex flex-col items-center justify-center gap-0.5 rounded-lg px-3 py-2.5 text-center transition-colors ${
+							className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
 								isActive
-									? 'bg-teal-600 text-white shadow-sm dark:bg-teal'
-									: 'text-muted-foreground hover:bg-background hover:text-foreground'
+									? 'bg-teal-600 text-white shadow-sm hover:bg-teal-700 dark:bg-teal dark:hover:bg-teal/90'
+									: 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
 							}`}
 						>
-							<span className="text-sm font-semibold">{config.tab}</span>
-							<span className={`text-[11px] font-medium ${isActive ? 'text-white/80' : 'opacity-70'}`}>
-								{count === undefined ? config.shortBlurb : `${count} titik`}
-							</span>
+							{config.tab}
+							{count !== undefined && ` (${count})`}
 						</Link>
 					);
 				})}
 			</div>
-			{/* Penjelas untuk sisi yang sedang dibuka — menjawab "bedanya apa" tanpa membuat
-			    pengguna menebak dari nama menunya saja. */}
-			<p className="mt-1.5 px-1 text-[11px] leading-relaxed text-muted-foreground">
-				{hydrantVariant(active).blurb}
-			</p>
+			{/* Satu baris penjelas untuk sisi yang sedang dibuka — menjawab "bedanya apa" tanpa
+			    membuat pengguna menebak dari nama tombolnya saja. */}
+			<p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">{hydrantVariant(active).blurb}</p>
 		</div>
 	);
 }
