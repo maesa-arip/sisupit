@@ -6,7 +6,7 @@
 | Severity | P2 (kosakata data + UX) — dengan satu konsekuensi P1 yang dicegah, lihat §5 |
 | Tipe | perubahan skema + UI atas permintaan user |
 | Sumber | permintaan user 2026-08-21 (satu pesan, empat permintaan) |
-| Status | DONE (kode) 2026-08-21 — sisa verifikasi visual manual + `php artisan migrate` di staging/produksi |
+| Status | **TERDEPLOY** 2026-08-21 @1acb0e20 (prod/staging/dev) — sisa verifikasi visual manual |
 
 ---
 
@@ -174,10 +174,14 @@ gabungan empat status dan wadahnya `flex-wrap`.
 8. Edit satu baris hydrant warga **lama** (kalau ada di staging): Sumber Air kosong menunggu
    dipilih, status "Terdaftar Belum Dimodifikasi", Kapasitas kosong.
 
-### SISA: deploy
+### Deploy — SELESAI 2026-08-21
 
-`php artisan migrate` **wajib** dijalankan di staging/produksi sebelum frontend baru dipakai —
-`capacity_liter` belum ada di sana dan `water_pressure`/`debit_lpm` masih ada.
+Ketiga env @`1acb0e20`, urutan dev → staging → prod. **Sebelum menyentuh apa pun**, isi
+`hydrant_wargas` dihitung dulu di ketiga env karena migrasinya MENGHAPUS kolom: **0 baris di
+semua env** (`hydrants` 51 baris, tak disentuh), jadi tak ada data yang musnah. DB di-backup per
+env ke `/root/db-backup/` (dev/staging 17 MB, prod 18 MB). Data prod utuh pasca-migrasi:
+71 users / 145 reports / 51 hydrants / 6 pompas, sama persis pra-migrasi. 0 migrasi pending,
+bundel baru tersaji (lama 404) di ketiga host, 0 ERROR baru, 0 berkas root-owned.
 
 ## 7. Rollback
 
@@ -194,4 +198,4 @@ dibuang di `up()` sesuai keputusan user. Sisi kode: `git revert` commit ini.
 - [x] Hydrant resmi tidak berubah sedikit pun
 - [x] Test hijau (251) + build lulus
 - [ ] Verifikasi visual manual (§6)
-- [ ] `php artisan migrate` di staging & produksi
+- [x] `php artisan migrate` di staging & produksi (2026-08-21, data prod terbukti utuh)

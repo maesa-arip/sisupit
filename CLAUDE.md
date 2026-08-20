@@ -56,8 +56,11 @@ Task aktif   : TASK_33 (prompt/tasks/TASK_33_hydrant_warga_sumber_air.md) — SE
                 memuat KEEMPAT status — filternya berjalan di level query atas dua tabel, jadi
                 chip yang tak lengkap membuang separuh daftar tanpa gejala apa pun.
                 Test 250 → 251 passed (984 assertions), npm run build lulus.
-                SISA: verifikasi visual manual (§6 file task) + `php artisan migrate` di
-                staging/produksi SEBELUM frontend baru dipakai.
+                TERDEPLOY 2026-08-21 @1acb0e20 ke prod/staging/dev berikut migrasinya. Karena
+                migrasi ini MENGHAPUS kolom, isi `hydrant_wargas` dihitung dulu di ketiga env
+                (0 baris di semua) sebelum dijalankan — lakukan hal yang sama tiap kali sebuah
+                migrasi drop kolom. Data prod utuh: 71 users/145 reports/51 hydrants/6 pompas.
+                SISA: verifikasi visual manual (§6 file task).
                TASK_32 (prompt/tasks/TASK_32_form_fasilitas_yurisdiksi.md) — SELESAI (kode)
                 2026-08-20. Satu pesan user, enam permintaan di form fasilitas admin.
                 (1) Tab "Hydrant Resmi" → "Hydrant"; (2) dua pill `rounded-full` diganti
