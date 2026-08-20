@@ -40,7 +40,7 @@ export default function Create(props) {
 					subtitle={props.page_settings.subtitle}
 					icon={IconRoute}
 				/>
-				<Button variant="orange" size="sm" asChild>
+				<Button variant="orange" size="sm" className="w-full lg:w-auto" asChild>
 					<Link href={route('admin.route-accesses.index')}>
 						<IconArrowLeft className="size-4" />
 						Kembali
@@ -79,12 +79,24 @@ export default function Create(props) {
 							{errors.permission && <InputError message={errors.permission} />}
 						</div>
 
-						<div className="flex justify-end gap-x-2">
-							<Button type="button" variant="secondary" size="sm" onClick={onHandleReset}>
+						<div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+							<Button
+								type="button"
+								variant="secondary"
+								size="sm"
+								className="w-full sm:w-auto"
+								onClick={onHandleReset}
+							>
 								Reset
 							</Button>
-							<Button type="submit" variant="orange" size="sm" disabled={processing}>
-								Save
+							<Button
+								type="submit"
+								variant="orange"
+								size="sm"
+								className="w-full sm:w-auto"
+								disabled={processing}
+							>
+								Simpan
 							</Button>
 						</div>
 					</form>

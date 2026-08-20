@@ -67,8 +67,9 @@ class Pompa extends Model
      * jadi keduanya WAJIB memancarkan kunci yang sama; kalau tidak, kartu yang satu kehilangan
      * badge/debit yang dipunyai kartu lainnya.
      *
-     * `capacity_lpm` dipetakan ke `debit_lpm` karena satuannya memang sama (liter per menit) —
-     * itulah yang membuat rekap debit per desa bisa menjumlahkan keduanya.
+     * `capacity_lpm` dipetakan ke `debit_lpm` karena satuannya memang sama (liter per menit).
+     * Sejak 2026-08-21 hydrant warga TIDAK lagi ikut dijumlahkan ke sana: satuannya berubah
+     * jadi liter (simpanan tandon), jadi rekap desa memisahkannya lewat `water_metric`.
      */
     public function toSkklRow(): array
     {
@@ -82,6 +83,8 @@ class Pompa extends Model
             'lng' => $this->lng,
             'debit_lpm' => $this->capacity_lpm,
             'water_pressure' => null,
+            'capacity_liter' => null,
+            'water_metric' => 'debit',
             'village_code' => $this->village_code,
             'created_at' => $this->created_at,
             'category' => 'pompa',

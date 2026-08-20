@@ -3,7 +3,14 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
-import { debitLabel, facilityStatusLabel, MAP_TILE_URL, waterPressureLabel } from '@/lib/utils';
+import {
+	capacityLabel,
+	debitLabel,
+	facilityStatusIsFaulty,
+	facilityStatusLabel,
+	MAP_TILE_URL,
+	waterPressureLabel,
+} from '@/lib/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
 	IconAlertTriangle,
@@ -28,6 +35,14 @@ import { useEffect, useRef, useState } from 'react';
  * kunci gabungan `source-id`, bukan id telanjang.
  */
 const rowKey = (row) => `${row.source}-${row.id}`;
+
+/**
+ * Chip filter status. Isinya GABUNGAN dua kosakata karena daftarnya pun gabungan dua sumber:
+ * aset pompa memakai Aktif/Perbaikan, hydrant warga memakai Belum/Sudah Modifikasi sejak
+ * 2026-08-21. Menghilangkan salah satu pasangan membuat separuh daftar tak bisa disaring dan —
+ * lebih buruk — membuat filter yang ada membuang separuh isi daftar tanpa gejala.
+ */
+const STATUS_FILTERS = ['Semua', 'Aktif', 'Perbaikan', 'Belum Modifikasi', 'Sudah Modifikasi'];
 
 export default function Index({ pumps, summary = [], filters, tenant_location }) {
 	const [pumpToDelete, setPumpToDelete] = useState(null);
@@ -64,7 +79,7 @@ export default function Index({ pumps, summary = [], filters, tenant_location })
 				const lat = parseFloat(pump.lat),
 					lng = parseFloat(pump.lng);
 				if (!isNaN(lat) && !isNaN(lng)) {
-					const iconColor = pump.status === 'Aktif' ? 'text-info' : 'text-destructive';
+					const iconColor = facilityStatusIsFaulty(pump.status) ? 'text-destructive' : 'text-info';
 					const customIcon = window.L.divIcon({
 						html: `<div class="${iconColor} drop-shadow-md hover:scale-110 transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
 						className: 'bg-transparent border-none',
@@ -185,8 +200,13 @@ export default function Index({ pumps, summary = [], filters, tenant_location })
 								onChange={(e) => setData('search', e.target.value)}
 							/>
 						</form>
-						<div className="flex gap-2">
-							{['Semua', 'Aktif', 'Perbaikan'].map((status) => (
+						{/* Dua kosakata status hidup berdampingan di daftar gabungan ini: aset pompa
+						    memakai Berfungsi/Tidak Berfungsi, hydrant warga memakai Terdaftar Belum/
+						    Sudah Dimodifikasi (2026-08-21). Keempatnya WAJIB tersedia sebagai chip —
+						    tanpa itu memilih "Berfungsi" membuang seluruh hydrant warga dari daftar
+						    tanpa gejala apa pun, karena filter status berjalan di level query. */}
+						<div className="flex flex-wrap gap-2">
+							{STATUS_FILTERS.map((status) => (
 								<button
 									key={status}
 									type="button"
@@ -202,38 +222,54 @@ export default function Index({ pumps, summary = [], filters, tenant_location })
 							))}
 						</div>
 
-						{/* Rekap debit air per desa (TASK_30) — menjawab "berapa total debit air
-						    di desa ini". Ikut filter & pencarian aktif, sesuai daftar di bawahnya. */}
+						{/* Rekap air per desa (TASK_30, dipecah jadi dua angka 2026-08-21).
+						    Pompa MENGALIRKAN air (liter/menit), tandon warga MENYIMPANNYA (liter);
+						    dua satuan itu tak boleh dijumlahkan, jadi masing-masing berdiri sendiri
+						    lengkap dengan satuannya. Ikut filter & pencarian aktif. */}
 						{summary.length > 0 && (
 							<Card className="border-info/20 bg-info/5 shadow-none">
 								<CardContent className="p-3 sm:p-4">
 									<div className="mb-2 flex items-center gap-1.5">
 										<IconDroplet className="h-4 w-4 text-info" />
 										<h3 className="text-xs font-bold uppercase tracking-wide text-info">
-											Ringkasan Debit Air
+											Ringkasan Air Desa
 										</h3>
 									</div>
-									<div className="flex flex-col gap-1.5">
+									<div className="flex flex-col gap-2.5">
 										{summary.map((row) => (
 											<div
 												key={row.village_code ?? 'tanpa-desa'}
-												className="flex items-baseline justify-between gap-2 text-xs"
+												className="flex flex-col gap-0.5"
 											>
-												<span className="min-w-0 flex-1 truncate text-foreground">
+												<span className="truncate text-xs font-medium text-foreground">
 													{row.village}
-													<span className="ml-1 text-muted-foreground">
+													<span className="ml-1 font-normal text-muted-foreground">
 														({row.points} titik)
 													</span>
 												</span>
-												<span className="shrink-0 font-semibold text-foreground">
-													{debitLabel(row.debit_lpm)}
+												{/* Baris tetap ditampilkan walau desanya tak punya titik jenis itu:
+												    "—" menjawab "belum ada" secara eksplisit, sedangkan baris yang
+												    hilang membuat pembacanya mengira angkanya lupa dihitung. */}
+												<span className="flex items-baseline justify-between gap-2 pl-2 text-[11px]">
+													<span className="text-muted-foreground">Debit pompa</span>
+													<span className="shrink-0 font-semibold text-foreground">
+														{row.debit_points > 0 ? debitLabel(row.debit_lpm) : '—'}
+													</span>
+												</span>
+												<span className="flex items-baseline justify-between gap-2 pl-2 text-[11px]">
+													<span className="text-muted-foreground">Kapasitas warga</span>
+													<span className="shrink-0 font-semibold text-foreground">
+														{row.capacity_points > 0
+															? capacityLabel(row.capacity_liter)
+															: '—'}
+													</span>
 												</span>
 											</div>
 										))}
 									</div>
-									{summary.some((row) => row.unknown_debit > 0) && (
+									{summary.some((row) => row.unknown_debit > 0 || row.unknown_capacity > 0) && (
 										<p className="mt-2 border-t border-info/20 pt-2 text-[11px] leading-relaxed text-muted-foreground">
-											Sebagian titik belum mengisi debit air, jadi angka di atas adalah batas
+											Sebagian titik belum mengisi angka airnya, jadi angka di atas adalah batas
 											bawah — bukan total sebenarnya.
 										</p>
 									)}
@@ -254,7 +290,7 @@ export default function Index({ pumps, summary = [], filters, tenant_location })
 										<CardContent className="flex flex-col gap-3 p-3 sm:p-4">
 											<div className="flex flex-row items-center gap-3">
 												<div
-													className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${pump.status === 'Aktif' ? 'bg-info/10 text-info' : 'bg-destructive/10 text-destructive'}`}
+													className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${facilityStatusIsFaulty(pump.status) ? 'bg-destructive/10 text-destructive' : 'bg-info/10 text-info'}`}
 												>
 													{pump.source === 'hydrant_warga' ? (
 														<IconFireHydrant className="h-5 w-5" />
@@ -282,8 +318,12 @@ export default function Index({ pumps, summary = [], filters, tenant_location })
 													<p className="mt-0.5 truncate text-[11px] text-muted-foreground">
 														{[
 															facilityStatusLabel(pump.status),
+															// Satu dari dua angka air, tergantung sumber barisnya:
+															// pompa membawa debit (lpm), hydrant warga membawa
+															// kapasitas (liter). Yang tak berlaku bernilai null.
 															waterPressureLabel(pump.water_pressure),
 															debitLabel(pump.debit_lpm),
+															capacityLabel(pump.capacity_liter),
 														]
 															.filter(Boolean)
 															.join(' · ')}

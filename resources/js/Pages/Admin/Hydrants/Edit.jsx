@@ -9,9 +9,10 @@ import { Textarea } from '@/Components/ui/textarea';
 // PERBAIKAN: Hanya mengimport Combobox tunggal sesuai komponen baru kita
 import { Combobox } from '@/Components/ui/combobox';
 import AppLayout from '@/Layouts/AppLayout';
-import { facilityStatusLabel, MAP_TILE_URL } from '@/lib/utils';
+import { facilityStatusLabel, jurisdictionMismatch, MAP_TILE_URL } from '@/lib/utils';
 import { Head, Link, useForm } from '@inertiajs/react';
 import {
+	IconAlertTriangle,
 	IconArrowLeft,
 	IconArrowsMove,
 	IconCurrentLocation,
@@ -83,12 +84,15 @@ export default function Edit({
 	const { data, setData, put, processing, errors } = useForm({
 		name: hydrant.name || '',
 		address: hydrant.address || '',
-		status: hydrant.status || 'Aktif',
-		type: hydrant.type || 'Stick',
+		status: hydrant.status || v.statusDefault,
+		type: hydrant.type || v.typeDefault,
 		// Kolomnya nullable untuk data lama, jadi jatuhkan ke string kosong agar Select &
-		// Input tetap terkendali (controlled).
+		// Input tetap terkendali (controlled). Ketiga kolom air didaftarkan untuk KEDUA varian
+		// walau masing-masing hanya memakai sebagian (lihat ./variants.jsx); yang tak dipakai
+		// tidak divalidasi controller-nya, jadi tak pernah tersimpan.
 		water_pressure: hydrant.water_pressure || '',
 		debit_lpm: hydrant.debit_lpm ?? '',
+		capacity_liter: hydrant.capacity_liter ?? '',
 		description: hydrant.description || '',
 		lat: parseFloat(hydrant.lat) || defaultLat,
 		lng: parseFloat(hydrant.lng) || defaultLng,
@@ -104,6 +108,10 @@ export default function Edit({
 	const [searchQuery, setSearchQuery] = useState('');
 	const [searchResults, setSearchResults] = useState([]);
 	const [isSearching, setIsSearching] = useState(false);
+	// Reverse-geocode butuh >1 detik (Nominatim di-rate-limit). Tanpa penanda ini, menggeser
+	// pin terasa seolah tidak terjadi apa-apa sampai Area Yurisdiksi tiba-tiba berubah.
+	const [isDetecting, setIsDetecting] = useState(false);
+	const [jurisdictionWarning, setJurisdictionWarning] = useState(null);
 
 	const [dynamicCities, setDynamicCities] = useState(cities || []);
 	const [dynamicDistricts, setDynamicDistricts] = useState(districts || []);
@@ -175,6 +183,8 @@ export default function Edit({
 
 	// FUNGSI AUTO-FILL DATA WILAYAH
 	const updateLocationData = async (lat, lng, customSearchText = null) => {
+		setIsDetecting(true);
+		setJurisdictionWarning(null);
 		try {
 			const response = await fetch(route('api.geocode.reverse', { lat, lng }));
 			const result = await response.json();
@@ -228,6 +238,16 @@ export default function Edit({
 				];
 
 				const osmNames = rawOsmNames.filter((n) => n && !n.toLowerCase().includes('no name'));
+
+				// Level yang sudah jadi wewenang admin TIDAK ikut berpindah saat pin digeser
+				// (nilainya diambil dari akun, bukan dari peta) — jadi tanpa pemeriksaan ini
+				// pin bisa melewati batas kota tanpa satu pun tanda. Lihat jurisdictionMismatch().
+				const mismatch = jurisdictionMismatch(osmNames, admin_level, admin_region_names);
+				setJurisdictionWarning(mismatch);
+				if (mismatch) {
+					toast.warning(`Titik ini terdeteksi di luar ${mismatch.level} ${mismatch.name}.`);
+				}
+
 				const removeWords = [
 					'provinsi',
 					'prov',
@@ -284,7 +304,13 @@ export default function Edit({
 				village_code: vCode,
 			}));
 		} catch (error) {
+			// Dulu kegagalan ini ditelan diam-diam: koordinat berpindah, Area Yurisdiksi diam,
+			// dan tak ada yang tahu kenapa. Sekarang dikatakan apa adanya.
+			console.error('Gagal reverse geocoding:', error);
+			toast.error('Gagal mendeteksi wilayah dari titik ini. Isi Area Yurisdiksi secara manual.');
 			setData((current) => ({ ...current, lat: lat.toFixed(6), lng: lng.toFixed(6) }));
+		} finally {
+			setIsDetecting(false);
 		}
 	};
 
@@ -455,10 +481,28 @@ export default function Edit({
 								<div className="flex flex-col gap-4 rounded-lg border border-border bg-accent/30 p-4">
 									<h4 className="flex items-center justify-between text-xs font-bold uppercase text-muted-foreground">
 										Area Yurisdiksi{' '}
-										<span className="rounded-full bg-teal-100 px-2 py-0.5 text-[10px] text-teal-700 dark:bg-teal/10 dark:text-teal">
-											Auto-detected
-										</span>
+										{isDetecting ? (
+											<span className="flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold normal-case text-muted-foreground">
+												<IconLoader2 className="h-3 w-3 animate-spin" /> Mendeteksi wilayah...
+											</span>
+										) : (
+											<span className="rounded-full bg-teal-100 px-2 py-0.5 text-[10px] text-teal-700 dark:bg-teal/10 dark:text-teal">
+												Auto-detected
+											</span>
+										)}
 									</h4>
+
+									{jurisdictionWarning && (
+										<div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-2.5 text-destructive">
+											<IconAlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+											<p className="text-[11px] font-medium leading-relaxed">
+												Titik pin terdeteksi di luar {jurisdictionWarning.level} wilayah tugas
+												Anda ({jurisdictionWarning.name}). Data tetap akan tersimpan atas nama
+												wilayah Anda — geser pin kembali ke dalam wilayah tugas, atau abaikan
+												pesan ini bila lokasinya memang sudah benar.
+											</p>
+										</div>
+									)}
 
 									<div className="grid gap-1.5">
 										{admin_level?.province_code ? (
@@ -579,81 +623,89 @@ export default function Edit({
 
 								<div className="grid grid-cols-2 gap-4">
 									<div className="grid gap-1.5">
-										<Label>Jenis Konstruksi</Label>
-										<Select
-											defaultValue={data.type}
-											onValueChange={(value) => setData('type', value)}
-										>
+										<Label>{v.typeLabel}</Label>
+										{/* Terkendali (`value`), bukan `defaultValue`. Baris hydrant warga
+										    lama punya `type` KOSONG (migrasi 2026-08-21 mengosongkannya agar
+										    Sumber Air didata ulang); dengan defaultValue, Select yang sudah
+										    ter-mount tak pernah menyusul perubahan `data` dan placeholder
+										    "Pilih Sumber Air" bisa tak pernah muncul kembali. */}
+										<Select value={data.type} onValueChange={(value) => setData('type', value)}>
 											<SelectTrigger className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal">
-												<SelectValue placeholder="Pilih Jenis" />
+												<SelectValue placeholder={v.typePlaceholder} />
 											</SelectTrigger>
 											<SelectContent>
-												<SelectItem value="Stick">Stick</SelectItem>
-												<SelectItem value="Jongkok">Jongkok</SelectItem>
+												{v.typeOptions.map((option) => (
+													<SelectItem key={option} value={option}>
+														{option}
+													</SelectItem>
+												))}
 											</SelectContent>
 										</Select>
 										{errors.type && <InputError message={errors.type} />}
 									</div>
 									<div className="grid gap-1.5">
 										<Label>Status Operasional</Label>
-										<Select
-											defaultValue={data.status}
-											onValueChange={(value) => setData('status', value)}
-										>
+										<Select value={data.status} onValueChange={(value) => setData('status', value)}>
 											<SelectTrigger className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal">
 												<SelectValue placeholder="Pilih Status" />
 											</SelectTrigger>
 											<SelectContent>
-												<SelectItem value="Aktif">{facilityStatusLabel('Aktif')}</SelectItem>
-												<SelectItem value="Perbaikan">
-													{facilityStatusLabel('Perbaikan')}
-												</SelectItem>
+												{v.statusOptions.map((option) => (
+													<SelectItem key={option} value={option}>
+														{facilityStatusLabel(option)}
+													</SelectItem>
+												))}
 											</SelectContent>
 										</Select>
 										{errors.status && <InputError message={errors.status} />}
 									</div>
 								</div>
 
-								<div className="grid grid-cols-2 gap-4">
+								{/* Kolom air. Hydrant resmi: tekanan (kualitatif) + debit (liter/menit).
+								    Hydrant warga: hanya kapasitas volume (liter) — tandon berisi air diam,
+								    tak ada tekanan yang bisa dinilai. Lihat ./variants.jsx. */}
+								<div className={`grid gap-4 ${v.showWaterPressure ? 'grid-cols-2' : 'grid-cols-1'}`}>
+									{v.showWaterPressure && (
+										<div className="grid gap-1.5">
+											<Label>Kondisi Air</Label>
+											<Select
+												value={data.water_pressure || 'BELUM'}
+												onValueChange={(value) =>
+													setData('water_pressure', value === 'BELUM' ? '' : value)
+												}
+											>
+												<SelectTrigger className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal">
+													<SelectValue placeholder="Pilih Kondisi" />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="BELUM">Belum disurvei</SelectItem>
+													<SelectItem value="Keras">Tekanan Keras</SelectItem>
+													<SelectItem value="Sedang">Tekanan Sedang</SelectItem>
+													<SelectItem value="Kecil">Tekanan Kecil</SelectItem>
+												</SelectContent>
+											</Select>
+											{errors.water_pressure && <InputError message={errors.water_pressure} />}
+										</div>
+									)}
 									<div className="grid gap-1.5">
-										<Label>Kondisi Air</Label>
-										<Select
-											value={data.water_pressure || 'BELUM'}
-											onValueChange={(value) =>
-												setData('water_pressure', value === 'BELUM' ? '' : value)
-											}
-										>
-											<SelectTrigger className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal">
-												<SelectValue placeholder="Pilih Kondisi" />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value="BELUM">Belum disurvei</SelectItem>
-												<SelectItem value="Keras">Tekanan Keras</SelectItem>
-												<SelectItem value="Sedang">Tekanan Sedang</SelectItem>
-												<SelectItem value="Kecil">Tekanan Kecil</SelectItem>
-											</SelectContent>
-										</Select>
-										{errors.water_pressure && <InputError message={errors.water_pressure} />}
-									</div>
-									<div className="grid gap-1.5">
-										<Label htmlFor="debit_lpm">
-											Debit Air
+										<Label htmlFor={v.waterField}>
+											{v.waterLabel}
 											<span className="ml-1 text-[11px] font-normal text-muted-foreground">
-												(liter/menit)
+												{v.waterUnit}
 											</span>
-											{v.debitRequired && <span className="ml-1 text-destructive">*</span>}
+											{v.waterRequired && <span className="ml-1 text-destructive">*</span>}
 										</Label>
 										<Input
 											type="number"
 											min="0"
-											name="debit_lpm"
-											id="debit_lpm"
-											value={data.debit_lpm}
+											name={v.waterField}
+											id={v.waterField}
+											value={data[v.waterField]}
 											onChange={onHandleChange}
 											className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
-											placeholder="Misal: 500"
+											placeholder={v.waterPlaceholder}
 										/>
-										{errors.debit_lpm && <InputError message={errors.debit_lpm} />}
+										{errors[v.waterField] && <InputError message={errors[v.waterField]} />}
 									</div>
 								</div>
 
@@ -709,7 +761,10 @@ export default function Edit({
 				</div>
 
 				<div className="relative flex h-[500px] w-full flex-col overflow-hidden rounded-2xl border bg-accent lg:h-[calc(100vh-140px)] lg:flex-1">
-					<div className="pointer-events-none absolute left-1/2 top-4 z-[400] -translate-x-1/2">
+					{/* z-10 (bukan z-[400]): peta di bawahnya sudah ber-`z-0` sehingga selisih ini
+					    cukup. Nilai 400 dulu menembus SEMUA lapisan halaman — header sticky
+					    (z-40) dan dialog Radix (z-50) ikut tertimpa chip ini. */}
+					<div className="pointer-events-none absolute left-1/2 top-4 z-10 -translate-x-1/2">
 						<div className="flex items-center gap-2 rounded-full border border-border bg-background/80 px-4 py-2 shadow-sm backdrop-blur-md">
 							<IconArrowsMove className="h-4 w-4 text-teal-600 dark:text-teal" />
 							<span className="text-xs font-medium text-foreground">

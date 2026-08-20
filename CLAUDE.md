@@ -24,7 +24,112 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : TASK_30 (prompt/tasks/TASK_30_hydrant_warga_skkl.md) — SELESAI (kode) 2026-08-18.
+Task aktif   : TASK_33 (prompt/tasks/TASK_33_hydrant_warga_sumber_air.md) — SELESAI (kode)
+                2026-08-21. Satu pesan user, empat permintaan, SEMUANYA hanya di hydrant warga
+                (`hydrant_wargas`) — tabel `hydrants` tidak disentuh sedikit pun.
+                (1) "Konstruksi" (Stick/Jongkok) → "Sumber Air" (Tandon/Groundtank; user menulis
+                "Grountank", ejaan baku dipilih atas persetujuannya). (2) Status Aktif/Perbaikan
+                → "Terdaftar Belum/Sudah Dimodifikasi" (nilai DB: `Belum Modifikasi`/`Sudah
+                Modifikasi`) — yang ditanya di tandon warga bukan "rusak atau tidak" melainkan
+                apakah mulutnya sudah bisa dihisap mobil pemadam. (3) Kolom `water_pressure`
+                DIBUANG dari hydrant warga (tandon berisi air diam). (4) `debit_lpm` DIBUANG,
+                diganti `capacity_liter` — BUKAN ganti nama: satuannya berubah dari aliran
+                (liter/menit) jadi simpanan (liter). Karena itu rekap desa di /admin/pumps
+                TIDAK bisa lagi menjumlahkan keduanya (TASK_30 sengaja menyamakan satuannya
+                justru supaya bisa) → `debitSummary()` jadi `waterSummary()` yang mengirim DUA
+                pasang angka per desa, dipisahkan kunci BARU `water_metric` dari toSkklRow()
+                (BUKAN `source` — yang menentukan boleh-tidaknya dijumlahkan adalah satuannya,
+                dan nama tabel di logika perhitungan akan pecah begitu ada sumber SKKL ketiga);
+                kartunya jadi "Ringkasan Air Desa" berbaris "Debit pompa" + "Kapasitas warga".
+                Ketiga keputusan di atas (satuan, ejaan, nasib data lama) DITANYAKAN ke user
+                lebih dulu; data lama dikosongkan, angka lama TIDAK dibawa.
+                Konsekuensi: PENGECUALIAN #1 diperbarui — kedua tabel hydrant TIDAK LAGI KEMBAR
+                dan itu disengaja; pertanyaan saat menambah kolom berubah dari "salin ke
+                sebelah" jadi "apakah konsepnya berlaku di kedua sisi?". Beda kosakata hidup
+                sebagai DATA di Admin/Hydrants/variants.jsx (typeLabel/typeOptions/statusOptions/
+                showWaterPressure/waterField...), BUKAN percabangan `if (variant === 'warga')`
+                di dua form. Temuan #76 (dicegah sebelum tayang): enam tempat menulis hukum
+                warna sebagai `status === 'Aktif' ? biru : merah`, yang dengan status ketiga &
+                keempat memerahkan SELURUH hydrant warga padahal tak ada yang rusak → helper
+                tunggal `facilityStatusIsFaulty()`; JANGAN menulis `status === 'Aktif'` lagi.
+                Ikutannya: chip filter status di daftar SKKL (/admin/pumps & /pumps) WAJIB
+                memuat KEEMPAT status — filternya berjalan di level query atas dua tabel, jadi
+                chip yang tak lengkap membuang separuh daftar tanpa gejala apa pun.
+                Test 250 → 251 passed (984 assertions), npm run build lulus.
+                SISA: verifikasi visual manual (§6 file task) + `php artisan migrate` di
+                staging/produksi SEBELUM frontend baru dipakai.
+               TASK_32 (prompt/tasks/TASK_32_form_fasilitas_yurisdiksi.md) — SELESAI (kode)
+                2026-08-20. Satu pesan user, enam permintaan di form fasilitas admin.
+                (1) Tab "Hydrant Resmi" → "Hydrant"; (2) dua pill `rounded-full` diganti
+                <Button size="sm"> yang sebentuk dengan tombol /admin/pumps — riwayat v1–v4
+                ada di komentar Admin/Hydrants/variants.jsx, JANGAN hidupkan lagi bentuk yang
+                sudah ditolak. (3) Temuan #73: chip "1. Klik Area Peta"/"2. Geser Pin" ber-
+                `z-[400]` (angka dari skala z-index INTERNAL Leaflet, padahal chip-nya elemen
+                halaman biasa) menembus dialog "Pakai Lokasi Saat Ini" (z-50) & header sticky
+                (z-40) → jadi z-10 di enam berkas. Aturan turunan: overlay di atas peta hanya
+                boleh z-index satu/dua digit. (4) Temuan #74: menggeser pin terasa "tidak
+                mengisi apa-apa" karena reverse-geocode ber-rate-limit ~1 req/dtk tanpa satu
+                pun indikator, dan kegagalannya cuma masuk console → kini badge "Mendeteksi
+                wilayah...", toast.error saat gagal, plus jurisdictionMismatch() (lib/utils.js)
+                yang MEMPERINGATKAN (bukan memblokir — nama OSM tak selalu selengkap tabel
+                wilayah) bila pin keluar dari wilayah tugas. (5) Temuan #75 (P1, senyap):
+                keempat controller fasilitas hanya menjaga level yang DIKUNCI akun; level
+                terbuka diterima apa adanya sehingga admin kota bisa menyimpan aset ber-desa
+                milik kabupaten lain dan barisnya tetap terlihat olehnya (Tenantable menyaring
+                per kota) → trait BARU app/Traits/ResolvesFacilityJurisdiction.php: rantai kode
+                diperiksa lewat AWALAN kode BPS (51→5171→5171012→5171012006), TANPA query
+                indonesia_* karena tabel itu kosong di test; tidak cocok = ValidationException;
+                level atas yang kosong diturunkan dari kode desa. Jangan lagi menulis
+                `$user->x_code ?? $request->x_code` per controller. Penjaga:
+                tests/Feature/Sisupit/FacilityJurisdictionTest.php (11 test).
+                Test 239 → 250 passed (972 assertions), npm run build lulus.
+                SISA: verifikasi visual/interaktif manual di browser (§6 file task).
+               TASK_31 (prompt/tasks/TASK_31_menu_mobile_lengkap.md) — SELESAI (kode) 2026-08-19.
+                Permintaan user: "pastikan semua menu di desktop muncul di mobile". Audit
+                membuktikan SEMBILAN menu desktop tak pernah muncul di ponsel (Manajemen SKKL,
+                Pos Pemadam, OPD Terkait, Instansi/Kabupaten, 4 tautan Bantuan & Legal, Daftar
+                Baru) — buah dari pengecualian "dua daftar menu" 2026-08-13. Pengecualian itu
+                DICABUT atas persetujuan user: isi kedua popover MobileBottomNav kini dibangun
+                dari buildNavSections() (navItems.js), sumber yang sama dengan sidebar. BENTUK
+                popover melayang TETAP (keputusan user 2026-08-13 tidak dibatalkan) — yang
+                berubah hanya dari mana isinya diambil. Bilah memegang empat jangkar tetap
+                lewat daftar KUNCI (BAR_ITEM_KEYS/FASILITAS_ITEM_KEYS), slot ke-5 "Menu" kini
+                untuk SEMUA peran (dulu admin saja) dan memuat seksi sisanya — sehingga menu
+                baru otomatis mendarat di sana tanpa menyentuh berkas bottom-nav. Harga yang
+                disetujui user: bagi non-admin "Profil" jadi satu ketukan lebih dalam. Temuan
+                #71 dicatat & FIXED; #53/#54 FIXED lagi. Penjaga baru:
+                tests/Feature/Sisupit/MobileNavParityTest.php. Test 236 → 239 passed.
+                ADENDUM (§8 file task, permintaan user "tombol mobile tidak menyatu dengan
+                sistem" → didiskusikan dulu, 3 arah berpratinjau): temuan #72. Bilah bawah
+                berhenti punya bahasa visual sendiri — ikon 20px (dulu 28px), stroke TETAP
+                saat aktif, label 12px (dulu 10px). Ikon diselaraskan: Beranda IconHome→
+                IconDashboard, Fasilitas IconFiretruck→IconMapPin (IconFiretruck kembali
+                berarti Pos Pemadam saja). Popover: panah rotate-45 dibuang, token disamakan
+                dengan DropdownMenuContent, baris min-h-[48px].
+                REVISI (dua putaran, hari yang sama): (a) penanda aktif FINAL = kotak
+                rounded-xl bg-destructive berikon putih (dialek NavLink sidebar) — varian
+                "garis tipis" sempat dicoba lalu ditolak user, jangan dihidupkan lagi;
+                (b) slot "Lapor" FINAL memakai ikon brand /icon.png yang MENGGANTIKAN kotak
+                ikon slot (32px), bukan ditaruh di dalamnya — penumpukan itulah yang tadi
+                memunculkan dua nuansa merah; karena itu slot ini TAK BOLEH diberi latar
+                merah saat aktif, penandanya cincin. Prop imageSrc ditambahkan ke NavItem/
+                SlotContent supaya slot ini tetap satu komponen dengan slot lain;
+                (c) ATURAN BARU yang mengikat halaman lain: MERAH = LOKASI saja. Tombol
+                pembuka popover dulu ikut memerah saat panelnya terbuka sehingga dua slot
+                tampak aktif — kini keadaan "terbuka" memakai bg-accent netral +
+                aria-expanded, hover ikut netral, tautan aktif dapat aria-current="page".
+                REVISI 2026-08-20 (permintaan user, membatalkan sebagian (a)): blok merah
+                solid ternyata hanya dikehendaki di SLOT BILAH. Baris aktif di DALAM popover
+                Fasilitas & Menu kembali ke bentuk production — tint 10% + teks/ikon sewarna
+                jenisnya (bg-teal/10 text-teal dst.; bg-destructive/10 untuk item tanpa warna
+                jenis) + font-semibold + aria-current. Alasan user: di dalam panel, blok merah
+                terbaca seperti tombol darurat, bukan "kamu di sini". Ukuran ikon 20px/label
+                12px hasil #72 SENGAJA tidak dikembalikan ke 28px (ditanyakan & ditolak user).
+                Dua bentuk penanda aktif dalam satu berkas = PENGECUALIAN ATURAN #2
+                (prompt/docs/PENGECUALIAN_ATURAN.md) — jangan "seragamkan" lagi diam-diam.
+                Test tetap 250 passed, npm run build lulus.
+                SISA: verifikasi visual/interaktif manual per peran (§6 + §8 file task).
+               TASK_30 (prompt/tasks/TASK_30_hydrant_warga_skkl.md) — SELESAI (kode) 2026-08-18.
                 Enam permintaan user sekaligus. (1) Status fasilitas kini berbunyi "Berfungsi/
                 Tidak Berfungsi" di SEMUA modul fasilitas — LABEL saja lewat `facilityStatusLabel()`
                 di lib/utils.js, nilai DB tetap 'Aktif'/'Perbaikan' (hukum warna peta & filter tak
@@ -214,7 +319,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-08-19: 236 passed, 924 assertions —
+Test      : php artisan test            (baseline 2026-08-21: 251 passed, 984 assertions —
             angka lama "65 passed, 164 assertions" per 2026-06-25 sudah jauh tertinggal)
 Run (dev) : composer dev
 Lint      : vendor/bin/pint  /  npm run format (auto-fix, BUKAN check-only — tidak ada di CI)

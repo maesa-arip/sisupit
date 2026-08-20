@@ -9,9 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/Components/ui/textarea';
 import UseCurrentLocationDialog from '@/Components/UseCurrentLocationDialog';
 import AppLayout from '@/Layouts/AppLayout';
-import { facilityStatusLabel, MAP_TILE_URL } from '@/lib/utils';
+import { facilityStatusLabel, jurisdictionMismatch, MAP_TILE_URL } from '@/lib/utils';
 import { Head, Link, useForm } from '@inertiajs/react';
 import {
+	IconAlertTriangle,
 	IconArrowLeft,
 	IconArrowsMove,
 	IconClick,
@@ -87,10 +88,15 @@ export default function Create({
 	const { data, setData, reset, post, processing, errors } = useForm({
 		name: '',
 		address: '',
-		status: 'Aktif',
-		type: 'Stick',
+		status: v.statusDefault,
+		type: v.typeDefault,
+		// Ketiga kolom air didaftarkan untuk KEDUA varian walau masing-masing hanya memakai
+		// sebagian (lihat ./variants.jsx) — supaya bentuk `useForm` tetap dan input yang aktif
+		// tetap terkendali (controlled). Kolom yang tak dipakai memang ikut terkirim; controller
+		// varian bersangkutan tidak memvalidasinya sehingga ia tak pernah tersimpan.
 		water_pressure: '',
 		debit_lpm: '',
+		capacity_liter: '',
 		description: '',
 		lat: defaultLat,
 		lng: defaultLng,
@@ -106,6 +112,12 @@ export default function Create({
 	const [searchResults, setSearchResults] = useState([]);
 	const [isSearching, setIsSearching] = useState(false);
 	const [currentStep, setCurrentStep] = useState(1);
+
+	// Deteksi wilayah lewat reverse-geocode butuh >1 detik (antrean Nominatim). Tanpa tanda
+	// apa pun, menggeser pin terasa seperti tidak terjadi apa-apa dan petugas menyimpulkan
+	// auto-isi yurisdiksi memang tidak jalan.
+	const [isDetecting, setIsDetecting] = useState(false);
+	const [jurisdictionWarning, setJurisdictionWarning] = useState(null);
 
 	// TAMBAHKAN INI: Kunci pintar untuk membedakan ketikan vs auto-fill sistem
 	const skipSearchRef = useRef(false);
@@ -178,6 +190,8 @@ export default function Create({
 	// FUNGSI AUTO-FILL KEAJAIBAN UX (VERSI FINAL - ANTI NO-NAME & ANTI GAGAL)
 	// Tambahkan parameter ke-3: customSearchText = null
 	const updateLocationData = async (lat, lng, customSearchText = null) => {
+		setIsDetecting(true);
+		setJurisdictionWarning(null);
 		try {
 			const response = await fetch(route('api.geocode.reverse', { lat, lng }));
 			const result = await response.json();
@@ -237,6 +251,16 @@ export default function Create({
 				];
 
 				const osmNames = rawOsmNames.filter((n) => n && !n.toLowerCase().includes('no name'));
+
+				// Level yang sudah jadi wewenang admin TIDAK ikut berpindah saat pin digeser
+				// (nilainya diambil dari akun, bukan dari peta) — jadi tanpa pemeriksaan ini
+				// pin bisa melewati batas kota tanpa satu pun tanda. Lihat jurisdictionMismatch().
+				const mismatch = jurisdictionMismatch(osmNames, admin_level, admin_region_names);
+				setJurisdictionWarning(mismatch);
+				if (mismatch) {
+					toast.warning(`Titik ini terdeteksi di luar ${mismatch.level} ${mismatch.name}.`);
+				}
+
 				const removeWords = [
 					'provinsi',
 					'prov',
@@ -291,8 +315,13 @@ export default function Create({
 				village_code: vCode,
 			}));
 		} catch (error) {
+			// Dulu kegagalan ini hanya masuk console: koordinat berpindah, Area Yurisdiksi
+			// diam, dan tak ada yang tahu kenapa. Sekarang dikatakan apa adanya.
 			console.error('Gagal reverse geocoding:', error);
+			toast.error('Gagal mendeteksi wilayah dari titik ini. Isi Area Yurisdiksi secara manual.');
 			setData((current) => ({ ...current, lat: lat.toFixed(6), lng: lng.toFixed(6) }));
+		} finally {
+			setIsDetecting(false);
 		}
 	};
 
@@ -490,12 +519,30 @@ export default function Create({
 								<div className="flex flex-col gap-4 rounded-lg border border-border bg-accent/30 p-4">
 									<h4 className="flex items-center justify-between text-xs font-bold uppercase text-muted-foreground">
 										Area Yurisdiksi{' '}
-										{currentStep === 2 && (
-											<span className="rounded-full bg-teal-100 px-2 py-0.5 text-[10px] text-teal-700 dark:bg-teal/10 dark:text-teal">
-												Auto-detected
+										{isDetecting ? (
+											<span className="flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold normal-case text-muted-foreground">
+												<IconLoader2 className="h-3 w-3 animate-spin" /> Mendeteksi wilayah...
 											</span>
+										) : (
+											currentStep === 2 && (
+												<span className="rounded-full bg-teal-100 px-2 py-0.5 text-[10px] text-teal-700 dark:bg-teal/10 dark:text-teal">
+													Auto-detected
+												</span>
+											)
 										)}
 									</h4>
+
+									{jurisdictionWarning && (
+										<div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-2.5 text-destructive">
+											<IconAlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+											<p className="text-[11px] font-medium leading-relaxed">
+												Titik pin terdeteksi di luar {jurisdictionWarning.level} wilayah tugas
+												Anda ({jurisdictionWarning.name}). Data tetap akan tersimpan atas nama
+												wilayah Anda — geser pin kembali ke dalam wilayah tugas, atau abaikan
+												pesan ini bila lokasinya memang sudah benar.
+											</p>
+										</div>
+									)}
 
 									<div className="grid gap-1.5">
 										{admin_level?.province_code ? (
@@ -617,81 +664,88 @@ export default function Create({
 
 								<div className="grid grid-cols-2 gap-4">
 									<div className="grid gap-1.5">
-										<Label>Konstruksi</Label>
-										<Select
-											defaultValue={data.type}
-											onValueChange={(value) => setData('type', value)}
-										>
+										<Label>{v.typeLabel}</Label>
+										{/* Terkendali (`value`), bukan `defaultValue`: tombol Reset memanggil
+										    reset() dan dengan defaultValue pilihan LAMA tetap terlihat
+										    sementara datanya sudah kosong — form lalu terkirim tanpa isi
+										    yang dilihat petugas. */}
+										<Select value={data.type} onValueChange={(value) => setData('type', value)}>
 											<SelectTrigger className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal">
-												<SelectValue placeholder="Pilih Jenis" />
+												<SelectValue placeholder={v.typePlaceholder} />
 											</SelectTrigger>
 											<SelectContent>
-												<SelectItem value="Stick">Stick</SelectItem>
-												<SelectItem value="Jongkok">Jongkok</SelectItem>
+												{v.typeOptions.map((option) => (
+													<SelectItem key={option} value={option}>
+														{option}
+													</SelectItem>
+												))}
 											</SelectContent>
 										</Select>
 										{errors.type && <InputError message={errors.type} />}
 									</div>
 									<div className="grid gap-1.5">
 										<Label>Status</Label>
-										<Select
-											defaultValue={data.status}
-											onValueChange={(value) => setData('status', value)}
-										>
+										<Select value={data.status} onValueChange={(value) => setData('status', value)}>
 											<SelectTrigger className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal">
 												<SelectValue placeholder="Pilih Status" />
 											</SelectTrigger>
 											<SelectContent>
-												<SelectItem value="Aktif">{facilityStatusLabel('Aktif')}</SelectItem>
-												<SelectItem value="Perbaikan">
-													{facilityStatusLabel('Perbaikan')}
-												</SelectItem>
+												{v.statusOptions.map((option) => (
+													<SelectItem key={option} value={option}>
+														{facilityStatusLabel(option)}
+													</SelectItem>
+												))}
 											</SelectContent>
 										</Select>
 										{errors.status && <InputError message={errors.status} />}
 									</div>
 								</div>
 
-								<div className="grid grid-cols-2 gap-4">
+								{/* Kolom air. Hydrant resmi: tekanan (kualitatif) + debit (liter/menit).
+								    Hydrant warga: hanya kapasitas volume (liter) — tandon berisi air diam,
+								    tak ada tekanan yang bisa dinilai. Lihat ./variants.jsx. */}
+								<div className={`grid gap-4 ${v.showWaterPressure ? 'grid-cols-2' : 'grid-cols-1'}`}>
+									{v.showWaterPressure && (
+										<div className="grid gap-1.5">
+											<Label>Kondisi Air</Label>
+											<Select
+												value={data.water_pressure || 'BELUM'}
+												onValueChange={(value) =>
+													setData('water_pressure', value === 'BELUM' ? '' : value)
+												}
+											>
+												<SelectTrigger className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal">
+													<SelectValue placeholder="Pilih Kondisi" />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="BELUM">Belum disurvei</SelectItem>
+													<SelectItem value="Keras">Tekanan Keras</SelectItem>
+													<SelectItem value="Sedang">Tekanan Sedang</SelectItem>
+													<SelectItem value="Kecil">Tekanan Kecil</SelectItem>
+												</SelectContent>
+											</Select>
+											{errors.water_pressure && <InputError message={errors.water_pressure} />}
+										</div>
+									)}
 									<div className="grid gap-1.5">
-										<Label>Kondisi Air</Label>
-										<Select
-											value={data.water_pressure || 'BELUM'}
-											onValueChange={(value) =>
-												setData('water_pressure', value === 'BELUM' ? '' : value)
-											}
-										>
-											<SelectTrigger className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal">
-												<SelectValue placeholder="Pilih Kondisi" />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value="BELUM">Belum disurvei</SelectItem>
-												<SelectItem value="Keras">Tekanan Keras</SelectItem>
-												<SelectItem value="Sedang">Tekanan Sedang</SelectItem>
-												<SelectItem value="Kecil">Tekanan Kecil</SelectItem>
-											</SelectContent>
-										</Select>
-										{errors.water_pressure && <InputError message={errors.water_pressure} />}
-									</div>
-									<div className="grid gap-1.5">
-										<Label htmlFor="debit_lpm">
-											Debit Air
+										<Label htmlFor={v.waterField}>
+											{v.waterLabel}
 											<span className="ml-1 text-[11px] font-normal text-muted-foreground">
-												(liter/menit)
+												{v.waterUnit}
 											</span>
-											{v.debitRequired && <span className="ml-1 text-destructive">*</span>}
+											{v.waterRequired && <span className="ml-1 text-destructive">*</span>}
 										</Label>
 										<Input
 											type="number"
 											min="0"
-											name="debit_lpm"
-											id="debit_lpm"
-											value={data.debit_lpm}
+											name={v.waterField}
+											id={v.waterField}
+											value={data[v.waterField]}
 											onChange={onHandleChange}
 											className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
-											placeholder="Misal: 500"
+											placeholder={v.waterPlaceholder}
 										/>
-										{errors.debit_lpm && <InputError message={errors.debit_lpm} />}
+										{errors[v.waterField] && <InputError message={errors[v.waterField]} />}
 									</div>
 								</div>
 								<div className="grid gap-1.5">
@@ -753,7 +807,10 @@ export default function Create({
 				</div>
 
 				<div className="relative flex h-[500px] w-full flex-col overflow-hidden rounded-2xl border bg-accent lg:h-[calc(100vh-140px)] lg:flex-1">
-					<div className="pointer-events-none absolute left-4 top-4 z-[400]">
+					{/* z-10 (bukan z-[400]): peta di bawahnya sudah ber-`z-0` sehingga selisih ini
+					    cukup. Nilai 400 dulu menembus SEMUA lapisan halaman — header sticky
+					    (z-40) dan dialog "Pakai Lokasi Saat Ini" (z-50) ikut tertimpa chip ini. */}
+					<div className="pointer-events-none absolute left-4 top-4 z-10">
 						<div className="flex w-full flex-wrap gap-2">
 							<div
 								className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm transition-all ${currentStep === 1 ? 'animate-pulse bg-teal-600 text-white dark:bg-teal' : 'border bg-background text-muted-foreground'}`}

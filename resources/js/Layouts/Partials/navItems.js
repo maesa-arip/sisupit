@@ -30,21 +30,20 @@ import {
  *
  * Aturan yang lahir dari FINDINGS #53: JANGAN pernah membuat daftar menu kedua. Menu baru
  * cukup ditulis di sini dan otomatis muncul di semua permukaan yang memakainya:
- *   - <Sidebar/>          → sidebar penuh (≥lg) & rail ikon (md) — kini satu-satunya pemakai
+ *   - <Sidebar/>          → sidebar penuh (≥lg) & rail ikon (md)
+ *   - <MobileBottomNav/>  → popover "Fasilitas" & "Menu" di bawah md
  *
  * Yang dipisah di sini hanyalah DATA-nya. Presentasi sengaja berbeda per permukaan —
  * menuang sidebar desktop apa adanya ke ponsel adalah persis keluhan yang memicu perubahan
  * ini (daftar 25 baris tanpa hierarki). Selama daftarnya satu, presentasi boleh beda.
  *
- * PENGECUALIAN SEJAK 2026-08-13 (permintaan user, catatan pembalikan #53/#54 di
- * FINDINGS_LOG): <MobileBottomNav/> dikembalikan ke bentuk pra-TASK_20 dan kini
- * memelihara daftar menunya SENDIRI, jadi aturan "satu daftar" hanya berlaku untuk
- * desktop/tablet. Menu baru yang juga harus tampil di ponsel wajib ditulis DUA KALI:
- * di sini dan di MobileBottomNav.jsx.
+ * Pengecualian "dua daftar" yang berlaku 2026-08-13 s/d 2026-08-19 sudah DICABUT (TASK_31,
+ * persetujuan user): selama pengecualian itu berlaku, sembilan menu desktop hilang tanpa
+ * gejala di ponsel — lihat FINDINGS_LOG #71. Bentuk popover bottom-nav yang diminta user
+ * saat itu tetap dipertahankan; yang berubah hanya dari mana isinya diambil.
  *
- * Sisa dari pembalikan itu: `buildQuickActions`, `flattenNavItems`, dan `findNavItem`
- * tak lagi punya pemakai (dulu hanya dipanggil panel mobile yang sudah dihapus). Sengaja
- * dibiarkan — pembersihannya di luar scope permintaan user, dicatat di FINDINGS_LOG.
+ * `buildQuickActions` masih tanpa pemakai sejak panel mobile TASK_21 dihapus. Sengaja
+ * dibiarkan — pembersihannya di luar scope, dicatat di FINDINGS_LOG.
  */
 
 /**
@@ -92,7 +91,8 @@ export function resolveAbilities(auth) {
  *   - 'collapsible' → terlipat, default tertutup (seksi admin yang jarang disentuh)
  *   - 'legal'       → tautan teks kecil di kaki panel
  *   - 'account'     → baris aksi akun di kaki panel
- * <Sidebar/> mengabaikan `mobile` dan merender semua seksi secara seragam.
+ * <Sidebar/> dan <MobileBottomNav/> sama-sama mengabaikan `mobile`: keduanya merender
+ * seksi secara seragam (bottom-nav membagi berdasarkan KUNCI item, bukan metadata ini).
  */
 export function buildNavSections({ auth, url = '' }) {
 	const { isSuperadmin, isAdminOrSuperadmin, isStaff, isCommandCenter, isLoggedIn } = resolveAbilities(auth);
@@ -148,7 +148,18 @@ export function buildNavSections({ auth, url = '' }) {
 			key: 'fasilitas',
 			title: 'Fasilitas Publik',
 			mobile: 'list',
+			// Urutan fasilitas SENGAJA sama dengan seksi Administrasi di bawah
+			// (Hydrant → SKKL → Pos Pemadam) atas permintaan user 2026-08-19: satu jenis
+			// fasilitas menempati posisi yang sama di kedua daftar, jadi mata tak perlu
+			// mencari ulang saat berpindah antara menu publik dan menu kelola.
 			items: [
+				{
+					key: 'hydrants',
+					title: 'Lokasi Hydrant',
+					icon: IconFireHydrant,
+					url: route('front.hydrants.index'),
+					active: startsWith('/hydrants'),
+				},
 				{
 					key: 'pumps',
 					title: 'Lokasi SKKL',
@@ -162,13 +173,6 @@ export function buildNavSections({ auth, url = '' }) {
 					icon: IconFiretruck,
 					url: route('front.fire_stations.index'),
 					active: startsWith('/fire-stations'),
-				},
-				{
-					key: 'hydrants',
-					title: 'Lokasi Hydrant',
-					icon: IconFireHydrant,
-					url: route('front.hydrants.index'),
-					active: startsWith('/hydrants'),
 				},
 				isStaff && {
 					key: 'volunteers',

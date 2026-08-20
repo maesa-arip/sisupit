@@ -6,7 +6,7 @@ import { Input } from '@/Components/ui/input';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
 import PublicLayout from '@/Layouts/PublicLayout';
-import { debitLabel, facilityStatusLabel, GEO_OPTIONS } from '@/lib/utils';
+import { capacityLabel, debitLabel, facilityStatusIsFaulty, facilityStatusLabel, GEO_OPTIONS } from '@/lib/utils';
 import { router, useForm, usePage } from '@inertiajs/react';
 import {
 	IconDroplet,
@@ -18,6 +18,14 @@ import {
 	IconSearch,
 } from '@tabler/icons-react';
 import { useState } from 'react';
+
+/**
+ * Chip filter status halaman publik SKKL. Isinya GABUNGAN dua kosakata karena daftarnya pun
+ * gabungan dua sumber: aset pompa memakai Aktif/Perbaikan, hydrant warga memakai Belum/Sudah
+ * Modifikasi sejak 2026-08-21. Tanpa pasangan kedua, memilih "Berfungsi" membuang seluruh
+ * hydrant warga dari daftar tanpa gejala apa pun. Kembarannya di Admin/Pumps/Index.jsx.
+ */
+const STATUS_FILTERS = ['Semua', 'Aktif', 'Perbaikan', 'Belum Modifikasi', 'Sudah Modifikasi'];
 
 export default function Index({ pumps, filters, ...props }) {
 	// Tampilan berbeda per status: tamu = chrome landing (hero + navbar publik), sudah
@@ -153,39 +161,20 @@ export default function Index({ pumps, filters, ...props }) {
 								</div>
 
 								<div className="scrollbar-hide flex gap-2 overflow-x-auto pb-1">
-									<button
-										type="button"
-										onClick={() => applyFilter('status', 'Semua')}
-										className={`whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
-											activeStatus === 'Semua'
-												? 'border-transparent bg-foreground text-background'
-												: 'border-border bg-card text-foreground/80 hover:bg-muted'
-										}`}
-									>
-										Semua
-									</button>
-									<button
-										type="button"
-										onClick={() => applyFilter('status', 'Aktif')}
-										className={`whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
-											activeStatus === 'Aktif'
-												? 'border-transparent bg-foreground text-background'
-												: 'border-border bg-card text-foreground/80 hover:bg-muted'
-										}`}
-									>
-										{facilityStatusLabel('Aktif')}
-									</button>
-									<button
-										type="button"
-										onClick={() => applyFilter('status', 'Perbaikan')}
-										className={`whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
-											activeStatus === 'Perbaikan'
-												? 'border-transparent bg-foreground text-background'
-												: 'border-border bg-card text-foreground/80 hover:bg-muted'
-										}`}
-									>
-										{facilityStatusLabel('Perbaikan')}
-									</button>
+									{STATUS_FILTERS.map((status) => (
+										<button
+											key={status}
+											type="button"
+											onClick={() => applyFilter('status', status)}
+											className={`whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
+												activeStatus === status
+													? 'border-transparent bg-foreground text-background'
+													: 'border-border bg-card text-foreground/80 hover:bg-muted'
+											}`}
+										>
+											{status === 'Semua' ? 'Semua' : facilityStatusLabel(status)}
+										</button>
+									))}
 								</div>
 							</form>
 						</CardContent>
@@ -203,9 +192,9 @@ export default function Index({ pumps, filters, ...props }) {
 										{/* KIRI: Ikon */}
 										<div
 											className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md border ${
-												pump.status === 'Aktif'
-													? 'border-info/20 bg-info/10 text-info'
-													: 'border-destructive/30 bg-destructive/10 text-destructive'
+												facilityStatusIsFaulty(pump.status)
+													? 'border-destructive/30 bg-destructive/10 text-destructive'
+													: 'border-info/20 bg-info/10 text-info'
 											}`}
 										>
 											{pump.source === 'hydrant_warga' ? (
@@ -226,9 +215,9 @@ export default function Index({ pumps, filters, ...props }) {
 											<div className="mt-1.5 flex flex-wrap items-center gap-1.5">
 												<span
 													className={`whitespace-nowrap rounded border px-2 py-0.5 text-xs font-semibold ${
-														pump.status === 'Aktif'
-															? 'border-info/30 bg-info/10 text-info'
-															: 'border-destructive/30 bg-destructive/10 text-destructive'
+														facilityStatusIsFaulty(pump.status)
+															? 'border-destructive/30 bg-destructive/10 text-destructive'
+															: 'border-info/30 bg-info/10 text-info'
 													}`}
 												>
 													{facilityStatusLabel(pump.status)}
@@ -236,9 +225,13 @@ export default function Index({ pumps, filters, ...props }) {
 												<span className="max-w-[80px] truncate border-l border-border pl-1.5 text-[10px] font-medium text-muted-foreground sm:max-w-none sm:pl-2">
 													{pump.type}
 												</span>
-												{debitLabel(pump.debit_lpm) && (
+												{/* Satu dari dua angka air: pompa membawa debit (aliran, lpm),
+												    hydrant warga membawa kapasitas (simpanan, liter). Yang tak
+												    berlaku pada baris ini bernilai null sehingga badge-nya absen. */}
+												{(debitLabel(pump.debit_lpm) || capacityLabel(pump.capacity_liter)) && (
 													<span className="whitespace-nowrap rounded border border-border bg-muted px-2 py-0.5 text-[10px] font-semibold text-foreground/80">
-														{debitLabel(pump.debit_lpm)}
+														{debitLabel(pump.debit_lpm) ||
+															capacityLabel(pump.capacity_liter)}
 													</span>
 												)}
 											</div>

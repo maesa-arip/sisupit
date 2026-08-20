@@ -1,7 +1,10 @@
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Checkbox } from '@/Components/ui/checkbox';
 import { Dialog, DialogContent } from '@/Components/ui/dialog';
+import { Label } from '@/Components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
 import { cn, GEO_OPTIONS, MAP_TILE_URL, reportNumber } from '@/lib/utils';
@@ -130,6 +133,11 @@ export default function ReportShow(props) {
 	const canManageAgencies = props.canManageAgencies || false;
 	const myAgencyId = props.myAgencyId || null;
 	const involvedAgencyIds = reportAgencies.map((a) => a.agency_id);
+	// OPD yang masih bisa diminta = master dikurangi yang sudah tercatat. Dipisahkan dari
+	// kondisi "master OPD memang belum diisi" karena keduanya menuntut tindakan berbeda dari
+	// operator — dan karena dropdown tanpa isi hanya membuka kotak kosong yang terbaca sebagai
+	// fitur rusak (dulu tak kentara: `<select>` bawaan selalu memperlihatkan baris placeholder).
+	const addableAgencies = agencyOptions.filter((a) => !involvedAgencyIds.includes(a.id));
 	const [selectedAgencyIds, setSelectedAgencyIds] = useState([]);
 	const [agencyToAdd, setAgencyToAdd] = useState('');
 	const [isAgencyProcessing, setIsAgencyProcessing] = useState(false);
@@ -165,6 +173,9 @@ export default function ReportShow(props) {
 
 	const userRoles = Array.isArray(auth.user?.role) ? auth.user.role : auth.user?.role ? [auth.user.role] : [];
 	const isStaffOrAdmin = userRoles.some((r) => ['admin', 'superadmin', 'petugas'].includes(r));
+	// Menu master OPD (/admin/agencies) hanya untuk admin — petugas juga boleh melibatkan OPD,
+	// tapi tidak boleh mengelola daftarnya, jadi tautan pintasnya tidak ditawarkan ke mereka.
+	const isAdminOrSuperadmin = userRoles.some((r) => ['admin', 'superadmin'].includes(r));
 	const isRelawan = userRoles.includes('relawan');
 	const isOwner = auth.user?.id === report.user_id;
 
@@ -1326,22 +1337,24 @@ export default function ReportShow(props) {
 								{canManageAgencies &&
 									reportStatus !== 'TERLAPOR' &&
 									reportStatus !== 'ditolak' &&
-									reportStatus !== 'resolved' && (
+									reportStatus !== 'resolved' &&
+									(addableAgencies.length > 0 ? (
 										<div className="flex flex-col gap-2 border-t border-border pt-2 sm:flex-row">
-											<select
-												value={agencyToAdd}
-												onChange={(e) => setAgencyToAdd(e.target.value)}
-												className="h-10 flex-1 rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-											>
-												<option value="">Libatkan OPD lain...</option>
-												{agencyOptions
-													.filter((a) => !involvedAgencyIds.includes(a.id))
-													.map((a) => (
-														<option key={a.id} value={a.id}>
+											<Select value={agencyToAdd} onValueChange={setAgencyToAdd}>
+												<SelectTrigger
+													aria-label="Libatkan OPD lain"
+													className="h-10 flex-1 rounded-lg border-border bg-card px-3 text-xs font-medium text-foreground shadow-none data-[placeholder]:text-muted-foreground"
+												>
+													<SelectValue placeholder="Libatkan OPD lain..." />
+												</SelectTrigger>
+												<SelectContent>
+													{addableAgencies.map((a) => (
+														<SelectItem key={a.id} value={String(a.id)} className="text-xs">
 															{a.name}
-														</option>
+														</SelectItem>
 													))}
-											</select>
+												</SelectContent>
+											</Select>
 											<Button
 												onClick={handleAddAgency}
 												disabled={isAgencyProcessing || !agencyToAdd}
@@ -1356,7 +1369,31 @@ export default function ReportShow(props) {
 												)}
 											</Button>
 										</div>
-									)}
+									) : (
+										<div className="flex items-start gap-2 rounded-lg border border-dashed border-border bg-muted/40 p-3">
+											<IconAlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+											<div className="space-y-1">
+												<p className="text-xs font-medium text-foreground">
+													{agencyOptions.length === 0
+														? 'Belum ada master OPD di wilayah ini'
+														: 'Semua OPD sudah dilibatkan'}
+												</p>
+												<p className="text-[11px] leading-relaxed text-muted-foreground">
+													{agencyOptions.length === 0
+														? 'Daftar instansi (BPBD, PLN, PMI, dst.) diisi lebih dulu lewat Manajemen OPD agar bisa diminta ke insiden.'
+														: 'Seluruh instansi yang terdaftar sudah tercatat di insiden ini.'}
+												</p>
+												{agencyOptions.length === 0 && isAdminOrSuperadmin && (
+													<Link
+														href={route('admin.agencies.index')}
+														className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-primary hover:underline"
+													>
+														<IconBuildingCommunity className="h-3.5 w-3.5" /> Kelola OPD
+													</Link>
+												)}
+											</div>
+										</div>
+									))}
 							</CardContent>
 						</Card>
 					)}
@@ -1656,11 +1693,11 @@ export default function ReportShow(props) {
 														: 'border-border bg-card hover:bg-muted/50',
 												)}
 											>
-												<input
-													type="checkbox"
+												<Checkbox
 													checked={checked}
-													onChange={() => toggleAgencySelection(agency.id)}
-													className="mt-0.5 h-4 w-4 shrink-0 rounded border-border text-info focus:ring-1 focus:ring-info"
+													onCheckedChange={() => toggleAgencySelection(agency.id)}
+													aria-label={agency.name}
+													className="mt-0.5 shrink-0 border-border shadow-none focus-visible:ring-info data-[state=checked]:border-info data-[state=checked]:bg-info data-[state=checked]:text-info-foreground"
 												/>
 												<span className="min-w-0 flex-1">
 													<span className="flex flex-wrap items-center gap-1.5">
@@ -1816,10 +1853,14 @@ export default function ReportShow(props) {
 								: ''}
 						</p>
 						<div className="w-full text-left">
-							<label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+							<Label
+								htmlFor="agency-confirmation-note"
+								className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground"
+							>
 								Catatan <span className="font-normal normal-case">(opsional)</span>
-							</label>
+							</Label>
 							<Textarea
+								id="agency-confirmation-note"
 								value={confirmationNote}
 								onChange={(e) => setConfirmationNote(e.target.value)}
 								placeholder="Contoh: jaringan dipadamkan pukul 14.10, petugas PLN di lokasi."

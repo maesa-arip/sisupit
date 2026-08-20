@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\HydrantWarga;
 use App\Models\Pompa;
+use App\Traits\ResolvesFacilityJurisdiction;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -13,6 +14,8 @@ use Inertia\Inertia;
 
 class PompaController extends Controller
 {
+    use ResolvesFacilityJurisdiction;
+
     /**
      * Daftar SKKL (Sistem Ketahanan Kebakaran Lingkungan) = DUA sumber dalam satu halaman
      * sejak TASK_30: aset pompa (tabel `pompas`) + hydrant swadaya warga (tabel
@@ -34,7 +37,7 @@ class PompaController extends Controller
 
         return Inertia::render('Admin/Pumps/Index', [
             'pumps' => $this->paginateRows($rows, $request),
-            'summary' => $this->debitSummary($rows),
+            'summary' => $this->waterSummary($rows),
             'filters' => $request->only(['search', 'status']),
             'tenant_location' => $this->getTenantDefaultLocation(),
         ]);
@@ -76,14 +79,25 @@ class PompaController extends Controller
     }
 
     /**
-     * Rekap debit air per desa — inti kegunaan kolom `debit_lpm` (TASK_30): menjawab "berapa
-     * total debit air di desa ini" saat menyusun kesiapsiagaan wilayah.
+     * Rekap air per desa — menjawab "berapa banyak air yang bisa diandalkan di desa ini" saat
+     * menyusun kesiapsiagaan wilayah (TASK_30).
      *
-     * `unknown_debit` sengaja ikut dikirim: total yang menyembunyikan berapa titik yang
-     * debitnya BELUM didata akan dibaca sebagai angka pasti, padahal ia batas bawah. Aset
-     * pompa lama umumnya belum mengisi `capacity_lpm`, jadi kasus ini normal, bukan langka.
+     * DUA angka, bukan satu (permintaan user 2026-08-21). Sampai 2026-08-20 hydrant warga
+     * memakai `debit_lpm` dengan satuan yang sengaja disamakan dengan `pompas.capacity_lpm`
+     * supaya bisa dijumlahkan. Sejak hydrant warga jadi tandon/groundtank, angkanya adalah
+     * KAPASITAS dalam liter — simpanan, bukan aliran. Menjumlahkan 800 lpm dengan 5.000 liter
+     * menghasilkan bilangan yang tidak punya arti fisik apa pun namun akan terbaca sebagai
+     * debit, jadi keduanya dipisah dan masing-masing membawa satuannya sendiri.
+     *
+     * Pemisahnya `water_metric` dari `toSkklRow()`, BUKAN `source`: yang menentukan sebuah
+     * angka boleh dijumlahkan adalah satuannya, dan menuliskan nama tabel di sini akan pecah
+     * begitu ada sumber SKKL ketiga.
+     *
+     * `unknown_*` sengaja ikut dikirim: total yang menyembunyikan berapa titik yang BELUM
+     * didata akan dibaca sebagai angka pasti, padahal ia batas bawah. Aset pompa lama umumnya
+     * belum mengisi `capacity_lpm`, jadi kasus ini normal, bukan langka.
      */
-    private function debitSummary(Collection $rows): array
+    private function waterSummary(Collection $rows): array
     {
         $names = DB::table('indonesia_villages')
             ->whereIn('code', $rows->pluck('village_code')->filter()->unique()->all())
@@ -91,14 +105,28 @@ class PompaController extends Controller
 
         return $rows
             ->groupBy(fn ($row) => $row['village_code'] ?: '')
-            ->map(fn (Collection $group, $code) => [
-                'village_code' => $code ?: null,
-                'village' => $code ? ($names[$code] ?? $code) : 'Tanpa data desa',
-                'points' => $group->count(),
-                'debit_lpm' => $group->sum(fn ($row) => (int) ($row['debit_lpm'] ?? 0)),
-                'unknown_debit' => $group->whereNull('debit_lpm')->count(),
-            ])
-            ->sortByDesc('debit_lpm')
+            ->map(function (Collection $group, $code) use ($names) {
+                $flowing = $group->where('water_metric', 'debit');
+                $stored = $group->where('water_metric', 'capacity');
+
+                return [
+                    'village_code' => $code ?: null,
+                    'village' => $code ? ($names[$code] ?? $code) : 'Tanpa data desa',
+                    'points' => $group->count(),
+                    // Aliran: pompa & aset air bertekanan, liter per menit.
+                    'debit_points' => $flowing->count(),
+                    'debit_lpm' => $flowing->sum(fn ($row) => (int) ($row['debit_lpm'] ?? 0)),
+                    'unknown_debit' => $flowing->whereNull('debit_lpm')->count(),
+                    // Simpanan: tandon/groundtank warga, liter.
+                    'capacity_points' => $stored->count(),
+                    'capacity_liter' => $stored->sum(fn ($row) => (int) ($row['capacity_liter'] ?? 0)),
+                    'unknown_capacity' => $stored->whereNull('capacity_liter')->count(),
+                ];
+            })
+            // Desa berair paling banyak di atas. Debit dinilai lebih dulu karena ia yang
+            // menentukan kesanggupan memadamkan; kapasitas jadi penentu bila debitnya seri
+            // (termasuk seri di angka nol — desa yang hanya punya tandon warga).
+            ->sortByDesc(fn (array $row) => [$row['debit_lpm'], $row['capacity_liter']])
             ->values()
             ->all();
     }
@@ -220,16 +248,11 @@ class PompaController extends Controller
     }
 
     // Yurisdiksi admin selalu menang atas input form: admin wilayah tidak bisa menyimpan
-    // aset di luar wewenangnya. Untuk level yang belum dikunci, pakai pilihan dari form.
+    // aset di luar wewenangnya. Untuk level yang belum dikunci, pakai pilihan dari form —
+    // tapi pilihan itu wajib masih berada di dalam level di atasnya (lihat trait).
     private function withTenantCodes(array $validated, Request $request): array
     {
-        $user = auth()->user();
-        $validated['province_code'] = $user->province_code ?? $request->province_code;
-        $validated['city_code'] = $user->city_code ?? $request->city_code;
-        $validated['district_code'] = $user->district_code ?? $request->district_code;
-        $validated['village_code'] = $user->village_code ?? $request->village_code;
-
-        return $validated;
+        return $this->withJurisdictionCodes($validated, $request);
     }
 
     private function getTenantDefaultLocation()

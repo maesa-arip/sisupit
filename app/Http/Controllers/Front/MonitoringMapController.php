@@ -68,7 +68,10 @@ class MonitoringMapController extends Controller
                         'id' => $h->id,
                         'name' => $h->name,
                         'address' => $h->address ?? 'Alamat tidak tersedia',
-                        'status' => $h->status ?? 'Aktif',
+                        // Hydrant warga punya kosakata statusnya sendiri sejak 2026-08-21
+                        // (Belum/Sudah Modifikasi) — 'Aktif' di sini akan jadi nilai asing
+                        // yang tak dikenali legenda peta.
+                        'status' => $h->status ?? HydrantWarga::STATUSES[0],
                         'type' => $h->type ? 'Hydrant Warga · '.$h->type : 'Hydrant Warga',
                         'lat' => (float) $h->lat,
                         'lng' => (float) $h->lng,

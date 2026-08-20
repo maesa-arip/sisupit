@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PosPemadam;
+use App\Traits\ResolvesFacilityJurisdiction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class PosPemadamController extends Controller
 {
+    use ResolvesFacilityJurisdiction;
+
     public function index(Request $request)
     {
         $query = PosPemadam::query();
@@ -150,15 +153,11 @@ class PosPemadamController extends Controller
         ]);
     }
 
+    // Yurisdiksi admin menang atas isi form; level yang masih terbuka wajib berada di dalam
+    // level di atasnya — pemeriksaannya di ResolvesFacilityJurisdiction.
     private function withTenantCodes(array $validated, Request $request): array
     {
-        $user = auth()->user();
-        $validated['province_code'] = $user->province_code ?? $request->province_code;
-        $validated['city_code'] = $user->city_code ?? $request->city_code;
-        $validated['district_code'] = $user->district_code ?? $request->district_code;
-        $validated['village_code'] = $user->village_code ?? $request->village_code;
-
-        return $validated;
+        return $this->withJurisdictionCodes($validated, $request);
     }
 
     private function getTenantDefaultLocation()

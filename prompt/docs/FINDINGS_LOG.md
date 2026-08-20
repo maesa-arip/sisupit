@@ -827,7 +827,7 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **Fix (2026-08-07):** `Sidebar` dijadikan SATU sumber kebenaran untuk semua ukuran layar — dipakai sebagai sidebar desktop, rail tablet (prop `compact`; label & judul seksi disembunyikan lewat arbitrary variant Tailwind, bukan cabang render terpisah), dan isi Sheet "Menu" pada bottom-nav. Slot ke-5 bottom-nav kini tombol "Menu" untuk SEMUA peran; popover admin 13 item dihapus. Breakpoint sidebar turun ke `md` (rail 80px) dan penuh di `lg`. Footer `AppLayout` mendapat baris tautan legal sebagai jaring pengaman lintas-ukuran, dan nama penyedia di footer ditarik dari `config/legal.php` lewat shared prop `penyedia_nama` — sebelumnya hardcoded "PT. Tawarin Dimana Saja", ejaan yang berbeda dari dokumen legal.
 - **Verifikasi:** `php artisan test` 182 passed (726 assertions), `npm run build` lulus (client + SSR), Pint & Prettier bersih. Markup diperiksa lewat render SSR sungguhan (login superadmin → `/dashboard`): kelas `md:block`/`lg:w-64` pada sidebar, `md:hidden` pada bar bawah, tombol `aria-label="Buka menu"`, seksi "Bantuan & Legal", dan keempat tautan legal di footer — semuanya ter-render, dan kelas responsifnya terbukti ada di CSS terkompilasi. **Sisa yang belum diverifikasi = perilaku interaktif & rupa visual** (Sheet membuka/menutup, keterbacaan rail) — daftar periksa manual di `prompt/tasks/TASK_20_navigasi_mobile_tablet.md`.
 - **Sumber:** laporan user 2026-08-07.
-- **Status:** REOPEN (2026-08-13) — lihat catatan pembalikan di #54.
+- **Status:** SELESAI (FIXED) lagi 2026-08-19 lewat TASK_31 — slot ke-5 bottom-nav kembali jadi "Menu" untuk SEMUA peran (tautan legal & Keluar terjangkau di ponsel), kali ini tanpa mencabut bentuk popover yang diminta user. Sempat REOPEN 2026-08-13 (lihat catatan pembalikan di #54).
 
 ### #54 — Panel menu mobile "terlalu primitif": sidebar desktop dituang apa adanya ke Sheet
 - **Severity:** P2 (UX; bukan keamanan)
@@ -841,7 +841,7 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **Fix (2026-08-08):** daftar menu dipindah ke `resources/js/Layouts/Partials/navItems.js` sebagai satu-satunya sumber data (`buildNavSections`, `buildQuickActions`, `resolveAbilities`), lalu tiap permukaan merendernya dengan idiom yang pantas. Panel mobile jadi `MobileMenuPanel.jsx`: drawer vaul dari bawah, titik henti `[0.62, 1]`, kepala identitas (avatar/nama/peran/instansi) + tombol ✕, petak aksi cepat 2 kolom, seksi Administrasi/Kontrol Akses/Sistem terlipat (default tertutup, otomatis terbuka kalau halaman aktif ada di dalamnya), pencarian saat tujuan >12, legal turun jadi teks kecil di kaki panel. Popover Fasilitas ikut memakai drawer yang sama. `hooks/use-sheet-history.js` membuat Back perangkat menutup panel. `viewport-fit=cover` + `env(safe-area-inset-bottom)` di bar bawah, kaki drawer, dan padding konten `AppLayout`.
 - **Verifikasi:** `php artisan test` 182 passed (726 assertions, sama dengan baseline), `npm run build` lulus (client + SSR), Prettier bersih. Markup diperiksa lewat render SSR sungguhan (login superadmin → `/dashboard`): `aria-label="Buka menu"` & `"Buka daftar fasilitas publik"`, slot Beranda/Riwayat, `env(safe-area-inset-bottom)`, `viewport-fit=cover`, serta ke-7 judul seksi + 26 NavLink sidebar desktop semuanya ter-render tanpa error SSR. **Sisa yang belum diverifikasi = perilaku interaktif & rupa visual** (seretan antar titik henti, Back di APK, keterbacaan gelap/terang) — daftar periksa manual di `prompt/tasks/TASK_21_panel_menu_mobile.md`.
 - **Sumber:** laporan user 2026-08-08.
-- **Status:** DIBALIKKAN atas permintaan user (2026-08-13).
+- **Status:** DIBALIKKAN atas permintaan user (2026-08-13). Bagian **sumber data**-nya dipulihkan 2026-08-19 (TASK_31/#71): bottom-nav membaca `navItems.js` lagi. Bagian **penyajian**-nya (drawer vaul, titik henti, kepala identitas, pencarian) tetap dibalikkan sesuai keputusan user — popover melayang yang bertahan.
 
 #### Catatan pembalikan #53/#54 (2026-08-13)
 - **Permintaan:** "untuk menu di mobile bottomnav kembalikan ke sebelumnya". Ditanyakan
@@ -1040,3 +1040,185 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **SISA (belum dikerjakan, di luar scope TASK_30):** `Front\HydrantController` masih memakai `selectRaw` haversine yang sama. Halaman `/hydrants` dengan tombol "Cari Terdekat" karena itu masih rawan galat di environment ber-SQLite. Perbaikannya: pindahkan ke pola `haversineKm()` yang sama.
 - **Sumber:** pengerjaan TASK_30.
 - **Status:** OPEN (sebagian) — sisi SKKL sudah, sisi Hydrant belum
+
+### #65 — Empat halaman RBAC (Peran/Izin/Tetapkan Izin/Rute Akses) masih desktop-only: tabel menjulur keluar kartu di ponsel
+- **Severity:** P3 (kosmetik/keterpakaian; tidak ada data bocor atau aksi yang salah — hanya tak bisa dipakai dari ponsel)
+- **Ditemukan 2026-08-19** dari laporan user ("masih tampilan lama dan hanya tampilan desktop").
+- **Akar:** keempat `Index.jsx` (`Admin/Roles`, `Admin/Permissions`, `Admin/AssignPermissions`, `Admin/RouteAccesses`) merender `<Table>` langsung di dalam `CardContent className="px-0 py-0"` **tanpa pembungkus `overflow-x-auto` dan tanpa tampilan alternatif**. Tabel 4–6 kolom karena itu menjulur melewati tepi kartu di layar sempit. Pola mobile-first-nya sudah lama ada di repo — `Admin/Users/Index.jsx` memakai tabel `hidden md:block` + daftar kartu `md:hidden` — keempat halaman ini saja yang tertinggal saat pola itu diterapkan.
+- **Fix (2026-08-19):** pola `Admin/Users/Index.jsx` disalin apa adanya ke keempatnya (tabel dibungkus `hidden overflow-x-auto md:block`, daftar kartu `md:hidden` dengan kepala kartu + baris info berikon + kaki aksi `flex-1`). AlertDialog hapus diangkat jadi komponen lokal (`DeleteRoleDialog`, dst.) supaya tidak kembar antara tabel dan kartu. Kolom "Dibuat pada" disembunyikan sampai `lg` seperti Users. Baris filter dibuat kolom penuh di ponsel (`w-full lg:w-1/4` / `lg:w-24` / `lg:w-auto`) — sebelumnya `sm:w-1/4` menyempit di 640px padahal barisnya baru jadi baris di `lg`. Tombol form (Reset/Simpan) jadi `flex-col-reverse ... sm:flex-row` full-width di ponsel.
+- **Empty state:** ditambahkan "Data tidak ditemukan." — sebelumnya daftar kosong berarti layar benar-benar kosong tanpa keterangan (paling terasa di ponsel, yang tak punya kepala tabel sebagai petunjuk).
+- **Bug tampilan yang ikut ditemukan & diperbaiki di berkas yang sama:**
+  1. `Badge variant="aoutline"` di `AssignPermissions/Index.jsx` — varian itu tidak ada di `Components/ui/badge.jsx`, jadi cva jatuh ke `default` dan seluruh badge izin ter-render **solid primary**, bukan outline. → `outline`.
+  2. `<Select defaultValue="data.guard_name">` di keempat form Roles/Permissions Create+Edit — string harfiah, bukan nilai `data.guard_name`. Select-nya jadi tak terkendali dan **tidak ada item yang tercentang** saat dropdown dibuka (teks yang tampak benar hanya karena `<SelectValue>` diberi children manual). → `value={data.guard_name}`.
+  3. Kelas typo `fles-wrap` di `PaginationContent` keempat halaman — tidak ada di Tailwind, jadi tautan halaman tak pernah membungkus dan meluber di ponsel. → `flex flex-wrap`.
+  4. `console.log(props)` tertinggal di `Roles/Edit.jsx`, `Permissions/Edit.jsx`, `AssignPermissions/Edit.jsx` — membocorkan seluruh props (termasuk daftar izin) ke konsol browser.
+  5. Label salin-tempel: judul kolom "Rote" (→ "Rute"), footer halaman Izin berbunyi "… Peran" (→ "Izin"), judul kolom "Permission" (→ "Izin").
+- **Verifikasi:** `php artisan test` 236 passed (926 assertions) sebelum & sesudah — tak ada test untuk lapisan presentasi ini; `npm run build` lulus (client + SSR). **Verifikasi visual manual masih perlu** di lebar 375px/768px/1280px untuk keempat halaman (repo tak punya browser automation).
+- **Sumber:** permintaan user 2026-08-19.
+- **REVISI 2026-08-20 (permintaan user, membatalkan satu baris "Tidak berubah" di atas):** "untuk fasilitas dan menu di mobile saat active jangan pakai merah seperti di desktop tapi pakai seperti sebelumnya yang ada di production". Yang dimaksud adalah **isi popover**, bukan tombol slotnya (dipertegas lewat pilihan; ukuran ikon/label #72 juga sengaja TIDAK dikembalikan ke 28px). Jadi keputusan "baris popover tetap dialek `NavLink` (blok solid merah)" **dicabut**: baris aktif di popover Fasilitas & Menu kembali ke bentuk production, yaitu **tint 10% + teks/ikon sewarna** (`bg-teal/10 text-teal` dst.; `bg-destructive/10 text-destructive` untuk item tanpa warna jenis), plus `font-semibold` & `aria-current="page"` sebagai ganti kontras yang hilang. Alasan user: di dalam panel, blok merah solid terbaca seperti tombol aksi darurat — idiom yang di aplikasi ini dipegang tombol "Lapor" — bukan seperti "kamu di sini"; blok solid itu pun baru berumur sehari dan belum pernah sampai produksi. **Kotak ikon slot BILAH tidak ikut berubah** (tetap `rounded-xl bg-destructive`), sehingga kini ada dua bentuk penanda aktif dalam satu berkas — itu diterima dan dicatat di `prompt/docs/PENGECUALIAN_ATURAN.md` **#2**. Hidup di `MobileBottomNav.jsx`: `FASILITAS_ITEM_TONE` (menggantikan `FASILITAS_ICON_COLOR`), `MENU_ACTIVE_TONE`, `FloatingLink`.
+- **Status:** SELESAI (FIXED) 2026-08-19 — sisa verifikasi visual manual
+
+### #66 — Typo "Menamplikan" di footer SEMUA daftar admin
+- **Severity:** P4 (kosmetik murni)
+- **Ditemukan 2026-08-19** saat mengerjakan #65.
+- **Akar:** teks `Menamplikan {from} dari {total} …` disalin-tempel ke setiap `Admin/*/Index.jsx` (Users, Roles, Permissions, AssignPermissions, RouteAccesses, Units, Announcements, dst.), termasuk `page_settings.subtitle` di sisi controller ("menamplikan semua data …"). Seharusnya "Menampilkan".
+- **Sengaja TIDAK diperbaiki di #65:** memperbaiki hanya 4 halaman yang sedang disentuh justru membuat aplikasi tidak konsisten — separuh daftar berbunyi "Menampilkan", separuh "Menamplikan". Perbaikannya harus sekali jalan untuk seluruh repo (frontend + string subtitle di controller), jadi layak jadi task kecil tersendiri.
+- **Status:** OPEN
+
+### #67 — Panel "OPD Terkait" di detail laporan masih memakai kontrol HTML bawaan (`<select>`/`<input type="checkbox">`)
+- **Severity:** P3 (kosmetik/konsistensi; fungsinya jalan, tapi tampilannya beda sendiri dari seluruh app)
+- **Ditemukan 2026-08-19** dari permintaan user ("di reports/show jangan pakai form bawaan pada libatkan OPD lain").
+- **Akar:** `resources/js/Pages/Front/Reports/Show.jsx` memakai elemen form asli browser di dua tempat pada alur OPD (TASK_27):
+  1. dropdown "Libatkan OPD lain…" = `<select>` + `<option>` polos yang hanya di-Tailwind-kan agar mirip. Karena `<option>` tidak bisa di-style, daftarnya tetap dirender oleh OS — di Windows/Android tampil putih kotak dengan font sistem, **tidak ikut tema gelap**, dan tingginya tak sama dengan tombol di sebelahnya.
+  2. daftar centang OPD di dialog Broadcast = `<input type="checkbox">` mengandalkan `@tailwindcss/forms`; warna centangnya datang dari `text-info` (properti `accent`/`color` bawaan), bukan token `data-[state=checked]` seperti komponen shadcn lain.
+  Padahal `Components/ui/{select,checkbox,label}.jsx` sudah ada dan dipakai di seluruh form admin (`Admin/Agencies/Create.jsx` sebagai patokan).
+- **Fix (2026-08-19):** ketiga kontrol di alur OPD diganti ke komponen shadcn yang sudah ada — `Select/SelectTrigger/SelectValue/SelectContent/SelectItem` (placeholder pindah dari `<option value="">` ke `<SelectValue placeholder>`, nilai item jadi `String(a.id)` karena Radix hanya menerima string), `Checkbox` dengan `onCheckedChange` + `data-[state=checked]:bg-info` (rona `info` panel dipertahankan), dan `Label` untuk "Catatan (opsional)" di dialog Catat Konfirmasi (dipasangkan ke `Textarea` lewat `htmlFor`/`id` — sebelumnya `<label>` polos tanpa kaitan, klik label tak memfokus kolom).
+- **Yang TIDAK berubah:** `handleAddAgency` tetap mengirim `Number(agencyToAdd)`; state, route, dan validasi server tak tersentuh. Baris OPD di dialog Broadcast tetap dibungkus `<label>` sehingga seluruh kartu tetap bisa diklik (`<button>` milik Radix Checkbox adalah elemen labelable, jadi klik pada label diteruskan ke sana).
+- **Verifikasi:** `php artisan test` 236 passed (926 assertions) sebelum & sesudah — tak ada test untuk lapisan presentasi ini; `npm run build` lulus (client + SSR). **Verifikasi visual manual masih perlu**: buka detail laporan sebagai Pusat Komando → dropdown "Libatkan OPD lain" (terang & gelap, ponsel & desktop), dialog Broadcast (centang/lepas centang, "N dipilih" ikut berubah), dialog Catat Konfirmasi.
+- **Sumber:** permintaan user 2026-08-19.
+- **Status:** SELESAI (FIXED) 2026-08-19 — sisa verifikasi visual manual
+
+### #68 — Sisa kontrol bawaan di `Front/Reports/Show.jsx`: dropdown "Pilih unit tersedia" (panel Armada) & label dialog Tolak
+- **Severity:** P4 (kosmetik; salah satunya bahkan belum terlihat pengguna)
+- **Ditemukan 2026-08-19** saat mengerjakan #67, **sengaja tidak dikerjakan** (di luar scope permintaan user yang menyebut panel OPD).
+- **Akar:** di berkas yang sama masih ada (a) `<select>`/`<option>` "Pilih unit tersedia…" pada panel "Pengerahan Armada" — panel itu sedang disembunyikan oleh sakelar `SHOW_ARMADA_PANEL = false` (keputusan user 2026-06-29), jadi bug tampilannya baru muncul kalau panel dihidupkan lagi; dan (b) `<label>` polos untuk "Alasan penolakan (opsional)" di dialog Tolak, tanpa `htmlFor` ke `Textarea`-nya.
+- **Perbaikannya:** salin pola dari #67 (`Select` + `SelectValue placeholder`, `Label htmlFor`). Layak dikerjakan sekalian bila panel Armada dihidupkan kembali.
+- **Status:** OPEN
+
+### #69 — `Components/ui/select.jsx`: daftar opsi dipaksa setinggi trigger, jadi dropdown terlihat kosong (SEMUA halaman)
+- **Severity:** P2 (fitur terlihat rusak: dropdown apa pun di app ini hanya memperlihatkan ±1 opsi, tanpa petunjuk bahwa daftarnya bisa di-scroll)
+- **Ditemukan 2026-08-19** dari laporan user "data OPD-nya malah tidak muncul saat saya pilih Libatkan OPD lain", setelah `<select>` bawaan diganti komponen shadcn (#67).
+- **Akar (dua lapis, keduanya di berkas yang sama):**
+  1. `SelectPrimitive.Viewport` diberi kelas `h-[var(--radix-select-trigger-height)]` saat `position === 'popper'` (default komponen ini). Var itu = tinggi TRIGGER, jadi area daftar ikut jadi ±36–40px — hanya muat satu opsi. Radix pula yang menyuntik `[data-radix-select-viewport]{scrollbar-width:none}` + menyembunyikan scrollbar webkit, sehingga tak ada satu pun isyarat visual bahwa masih ada isi di bawahnya. Diverifikasi bukan teori: aturan `.h-\[var\(--radix-select-trigger-height\)\]{height:var(--radix-select-trigger-height)}` benar-benar ter-emit di `public/build/assets/app-*.css`.
+  2. Radix memberi Viewport `flex: 1` + `overflow: hidden auto` (`node_modules/@radix-ui/react-select/dist/index.mjs:733-745`) dengan asumsi induknya flex column, **tapi `SelectContent` di repo ini tidak punya `flex flex-col`** (dan `SelectPopperPosition` Radix juga tidak menyetelnya, baris 690-702). Jadi `flex: 1` mati total: menghapus butir 1 saja akan membuat daftar tumbuh melewati `max-h-96` lalu terpotong `overflow-hidden` **tanpa bisa di-scroll** — bug lain, bukan perbaikan.
+- **Fix (2026-08-19):** `SelectContent` diberi `flex … flex-col` (menghidupkan `flex: 1` Radix seperti yang dirancang) dan kelas tinggi di Viewport dibuang, menyisakan `w-full min-w-[var(--radix-select-trigger-width)]`. Tinggi kini dibatasi `max-h-96` milik Content dan Viewport-lah yang meng-scroll — perilaku shadcn sebagaimana mestinya.
+- **Blast radius (disengaja):** berkas ini dipakai ~28 halaman (semua form Admin, Auth/Register, Tenants, Units, dst.). Semua dropdown ikut berubah — semuanya ke arah benar: daftar tampil penuh sampai 384px lalu bisa di-scroll. Tidak ada perubahan API komponen, tidak ada halaman yang perlu ikut disesuaikan.
+- **Kenapa tak pernah ketahuan sebelumnya:** sebelum #67, satu-satunya dropdown di jalur kerja harian (lapor/verifikasi) adalah `<select>` bawaan browser yang popup-nya digambar OS. Dropdown shadcn hanya dipakai di form master admin yang jarang dibuka, dan pilihannya sedikit (2–3 item) sehingga "hanya satu terlihat" terbaca sebagai daftar yang memang pendek.
+- **Verifikasi:** `npm run build` lulus; bundel `select-*.js` hasil build sudah berisi `flex max-h-96 min-w-[8rem] flex-col` dan tak lagi memuat `h-[var(--radix-select-trigger-height)]`. **Verifikasi visual manual masih perlu** — buka salah satu dropdown panjang (mis. Kategori di `/admin/agencies/create`, atau "Libatkan OPD lain") dan pastikan daftar tampil penuh & bisa di-scroll.
+- **Sumber:** laporan user 2026-08-19.
+- **Status:** SELESAI (FIXED) 2026-08-19 — sisa verifikasi visual manual
+
+### #70 — Master OPD kosong di lingkungan dev: panel "OPD Terkait" tak punya penjelasan apa pun
+- **Severity:** P3 (bukan kerusakan data; operator hanya tidak diberi tahu kenapa pilihannya kosong)
+- **Ditemukan 2026-08-19** saat menelusuri laporan user pada #69. Terbukti dari data: `sisupit_dev` punya `reports=140`, `users=29`, tapi **`agencies=0`** — `AgencySeeder` (sudah terdaftar di `DatabaseSeeder`) belum pernah dijalankan di DB itu.
+- **Akar:** `ReportController::show` mengirim `agencyOptions = []` bila master OPD kosong, dan panel di `Front/Reports/Show.jsx` tetap merender pemilihnya. Dengan `<select>` bawaan hal itu tak kentara (baris placeholder `<option>` tetap terlihat); dengan dropdown shadcn yang terbuka adalah kotak kosong — tak terbedakan dari fitur rusak.
+- **Fix (2026-08-19):** pemilih hanya dirender bila ada OPD yang masih bisa diminta (`addableAgencies`). Selain itu tampil kotak status bergaya sama dengan panel Armada, membedakan dua sebab: "Belum ada master OPD di wilayah ini" (+ pintasan **Kelola OPD** ke `admin.agencies.index`, hanya untuk admin/superadmin karena route-nya `role:admin|superadmin` — `petugas` boleh melibatkan OPD tapi tidak mengelola masternya) vs "Semua OPD sudah dilibatkan".
+- **Catatan lingkungan:** `php artisan db:seed --class=AgencySeeder` dijalankan di `sisupit_dev` 2026-08-19 (idempoten, `firstOrCreate` per nama) → 3 contoh OPD Denpasar (BPBD/PLN/PMI, `city_code` 5171) supaya fiturnya bisa diverifikasi di lokal. Produksi/staging tidak disentuh.
+- **Sumber:** penelusuran laporan user 2026-08-19.
+- **Status:** SELESAI (FIXED) 2026-08-19
+
+### #71 — Sembilan menu desktop tidak pernah muncul di ponsel (buah dari pengecualian "dua daftar")
+- **Severity:** P2 (UX + kepatuhan distribusi; bukan keamanan). Ini bukan temuan baru secara konsep melainkan **biaya yang benar-benar tertagih** dari pengecualian 2026-08-13 — dan bukti bahwa peringatan di komentar `navItems.js` tidak cukup sebagai penjaga.
+- **Ditemukan 2026-08-19** atas permintaan user ("cek menu di mobile, pastikan semua menu di desktop muncul di mobile"), dengan membandingkan `navItems.js` (sumber `Sidebar.jsx`) terhadap JSX statis di `MobileBottomNav.jsx`.
+- **Akar:** `MobileBottomNav.jsx` menuliskan ulang seluruh daftar menu sebagai `<FloatingLink href={route(...)} label="..."/>` (baris 122–372 versi lama) plus menyalin detektor peran dari `navItems.js`. Tidak ada satu pun mekanisme yang memaksa kedua daftar sinkron, sehingga menu yang lupa ditulis hilang **tanpa gejala**: tak ada galat, tak ada test merah, hanya menu yang tidak ada.
+- **Yang hilang di ponsel:**
+  1. `admin.pumps` "Manajemen SKKL" (TASK_30) — admin/superadmin
+  2. `admin.fire-stations` "Manajemen Pos Pemadam" — admin/superadmin
+  3. `admin.agencies` "Manajemen OPD Terkait" (TASK_27) — admin/superadmin
+  4. `admin.tenants` "Instansi / Kabupaten" — superadmin
+  5–8. `info.help`, `info.terms`, `info.privacy`, `info.about` — semua peran (ini dampak #53 poin 1 yang memang sudah diterima saat pembalikan; satu-satunya jalur tersisa = footer `AppLayout`, harus menggulir ke dasar halaman)
+  9. `register` "Daftar Baru" — tamu
+- **Temuan sampingan:** popover "Menu" hanya dirender untuk admin/superadmin, jadi **petugas, pejabat, relawan, dan warga tidak punya pintu menu apa pun** di ponsel — satu-satunya jalan ke Keluar bagi mereka adalah tombol di dalam `Profile/Edit.jsx:125`. Label pun menyimpang ("Kelola Fasilitas" vs "Manajemen Hydrant", "Kelola Pengguna" vs "Manajemen Pengguna") — dua kosakata untuk satu menu.
+- **Fix (2026-08-19, TASK_31, disetujui user lewat dua pertanyaan berpilihan):** isi kedua popover `MobileBottomNav.jsx` dibangun dari `buildNavSections()`. **Bentuk visualnya tidak disentuh** — tetap popover melayang buatan tangan sesuai keputusan user 2026-08-13; yang berubah hanya dari mana isinya diambil, sehingga pembalikan itu tidak dibatalkan diam-diam. Bilah memegang empat jangkar tetap (Beranda, Fasilitas, SOS, Riwayat) yang didaftar sebagai **kunci** (`BAR_ITEM_KEYS`/`FASILITAS_ITEM_KEYS`), dan slot ke-5 "Menu" — kini untuk **semua peran** — memuat semua seksi yang tersisa. Karena pembagiannya memakai daftar kunci dan bukan daftar menu, item baru di `navItems.js` otomatis mendarat di popover "Menu" tanpa perubahan apa pun di bottom-nav.
+- **Penjaga:** `tests/Feature/Sisupit/MobileNavParityTest.php` — bottom-nav wajib mengimpor `buildNavSections`, dilarang memaku tujuan `route('admin.`/`route('info.`/`route('profile.`/`route('logout'`, dan setiap kunci jangkar wajib masih ada di `navItems.js`.
+- **Verifikasi:** `php artisan test` 236 → **239 passed (943 assertions)**, `npm run build` lulus (client + SSR). **Verifikasi visual/interaktif manual belum dilakukan** — daftar periksa per peran ada di `prompt/tasks/TASK_31_menu_mobile_lengkap.md` §6.
+- **Harga yang disetujui user:** bagi peran non-admin, "Profil" berpindah dari tautan langsung di bilah menjadi satu ketukan di dalam popover "Menu".
+- **Sumber:** permintaan user 2026-08-19.
+- **Status:** SELESAI (FIXED) 2026-08-19 — sisa verifikasi visual manual
+
+### #72 — Bilah bawah ponsel memakai bahasa visualnya sendiri: "tidak menyatu dengan keseluruhan sistem"
+- **Severity:** P3 (UX/konsistensi; tak ada fungsi yang rusak)
+- **Dilaporkan user 2026-08-19** persis setelah #71 diperbaiki: "tombol-tombol di mobile-nya tidak menyatu terlihat dengan keseluruhan sistem". Diaudit terhadap token & komponen yang ada, delapan penyimpangan terukur:
+  1. **Ukuran ikon melompat** — bilah `h-7 w-7` (28px), sedangkan sistem memakai 16px di dalam `Button` (`[&_svg]:size-4`), 18px di baris popover, 20px di `NavLink` sidebar. Elemen paling permanen di layar justru yang paling besar.
+  2. **Bentuk asing** — `rounded-full` (pil lonjong) satu-satunya di aplikasi; `card.jsx` & `NavLink` `rounded-xl`, `button.jsx` & `badge.jsx` `rounded-md`.
+  3. **Dua dialek "aktif" untuk menu yang sama** — sidebar `bg-destructive text-destructive-foreground` (blok solid), bilah "teks merah + `bg-destructive/10`". Beranda yang sama tampak berbeda tergantung lebar layar.
+  4. **Ikon tak sinkron antar permukaan** — Beranda `IconDashboard` (sidebar) vs `IconHome` (bilah).
+  5. **Satu ikon dua makna** — slot "Fasilitas" memakai `IconFiretruck`, padahal di seluruh sistem ikon itu berarti **Pos Pemadam** (`fire_stations`).
+  6. **Ketebalan garis berubah saat aktif** (`stroke` 1.5 → 2) — tak ada padanannya di komponen lain; ikon seolah bergetar tiap pindah halaman.
+  7. **SOS berupa raster** `/icon.png` 44px di antara empat ikon garis — tak mengikuti token tema (merahnya beku, tak berubah di mode gelap).
+  8. **Panel melayang beridiom sendiri** — panah segitiga `rotate-45` + `shadow-lg`, sedangkan satu-satunya panel lain (lonceng notifikasi, `AppLayout`) memakai `DropdownMenuContent`: `rounded-xl`, `shadow-md`, tanpa panah. Baris menu 40px (< target sentuh 48px) dan label bilah 10px — padahal #37 kluster H baru saja menaikkan label status 9px → 12px karena tak terbaca.
+- **Fix (2026-08-19, arah dipilih user dari tiga opsi berpratinjau):**
+  - **Bilah "sebahasa sidebar"** — penanda aktif jadi kotak `rounded-xl bg-destructive` berikon putih (dialek `NavLink`), ikon 20px, `stroke` TETAP 1.75, label 12px. `SlotContent` dipakai bersama oleh tautan & pembuka popover supaya keduanya mustahil berbeda rupa.
+  - **Ikonografi diselaraskan** — Beranda → `IconDashboard` (sama dengan sidebar); Fasilitas → `IconMapPin` sehingga `IconFiretruck` kembali berarti Pos Pemadam saja.
+  - **SOS = lingkaran solid `bg-destructive` berisi petir putih vektor** (`IconBoltFilled`). User memilih "ikon brand di dalam lingkaran solid merah"; ternyata `/icon.png` **sendiri** sudah berupa kotak merah berpetir putih, sehingga menaruhnya di atas lingkaran merah = dua nuansa merah bertumpuk. Bentuk brand-nya digambar ulang sebagai vektor: rupanya sama, tapi merahnya memakai token `--destructive` (ikut mode gelap) dan tajam di semua kerapatan piksel. `/icon.png` tetap dipakai sebagai favicon, logo header, dan ikon launcher APK — tidak disentuh.
+  - **Popover disamakan dengan dropdown sistem** — panah dibuang, wadah `rounded-xl border bg-popover shadow-md`, baris `min-h-[48px]`, judul seksi 11px. Baris aktif ikut solid merah; warna per jenis fasilitas (info/teal/volunteer) dipertahankan sebagai warna ikon saat TIDAK aktif, dan `volunteers` dikoreksi dari `text-info` ke `text-volunteer` agar seragam dengan warna relawan di peta.
+- **Revisi 2026-08-19 setelah user melihat hasilnya** (tiga koreksi sekaligus):
+  1. ~~**Penanda aktif jadi GARIS minimalis**~~ — dicoba lalu **ditolak user pada iterasi berikutnya** ("ternyata garis tipis tidak bagus, gunakan seperti sebelumnya yang rekomendasi seperti desktop"). Penanda aktif **kembali & final: kotak `rounded-xl bg-destructive` berikon putih**, dialek `NavLink` sidebar. Jangan hidupkan lagi varian garis.
+  2. **SOS**: `/icon.png` dicoba dua ukuran (40px lalu 24px) dan tetap "belum mau menyatu". **Akar masalahnya bukan ukuran melainkan jenis aset** — `/icon.png` adalah *lockup* (petir + wadah merah menyatu dalam satu gambar), sedangkan slot navigasi lain diisi *glyph* monokrom yang mewarisi warna. Akibatnya tiga hal yang mustahil hilang dengan mengatur ukuran: (a) SOS selalu berupa blok merah padahal blok merah kini berarti "halaman aktif", jadi ia tampak aktif terus; (b) saat benar-benar aktif, kotak merah token menimpa kotak merah PNG → dua nuansa merah + dua sudut membulat; (c) tak ikut mode gelap, tak setajam vektor. Glyph monokrom (`IconBoltFilled`) sempat dipakai, lalu **user mengoreksi cara pasangnya, bukan asetnya**: "gunakan icon.png, ikonnya sebenarnya petir putih dalam kotaknya". **Keputusan final: `/icon.png` dipakai dan MENGGANTIKAN kotak ikon slot** — bukan diletakkan di dalamnya. Justru penumpukan itulah sumber "dua merah" tadi; begitu tile brand-nya diperlakukan SEBAGAI kotak slot (32px, sama tinggi dengan kotak slot lain), masalahnya hilang tanpa mengorbankan brand. Aturan turunan yang wajib dijaga: **slot itu tak boleh diberi latar merah lagi** — saat halaman `/reports/create` aktif penandanya **cincin** (`ring-2 ring-destructive/50 ring-offset-2`), bukan bidang. Slot tetap memakai komponen `NavItem` yang sama dengan slot lain (prop `imageSrc`, `ariaLabel`, `className` ditambahkan) sehingga iramanya mustahil menyimpang.
+  3. **"Seolah ada 2 yang sedang aktif"** — laporan user, dan memang cacat bahasa visual: tombol pembuka popover memakai `active={isFasilitasActive || showFasilitas}`, jadi membuka panel memerahkan tombolnya dengan warna yang sama dengan penanda halaman aktif. **Best practice yang diterapkan: pisahkan "di mana saya" dari "panel ini terbuka".** Warna aksen hanya untuk lokasi (satu slot saja); panel terbuka = keadaan sesaat tombol, dinyatakan netral dengan `bg-accent` + `aria-expanded`/`aria-haspopup`. Keduanya boleh muncul bersamaan pada satu slot (sedang di `/pumps` lalu membuka panel Fasilitas) dan tetap terbaca beda. Konsekuensi turunan: hover ikut netral (`hover:text-foreground`, dulu memerah) agar merah punya satu makna, dan tautan aktif mendapat `aria-current="page"`.
+- **Tidak berubah:** bentuk popover melayang (keputusan user 2026-08-13), baris popover tetap dialek `NavLink` (blok solid merah — di dalam daftar, penanda "halaman saat ini" yang lazim memang baris terisi, bukan garis), pembagian slot & sumber daftar dari #71, serta seluruh logika peran.
+- **Catatan kecil (tidak dikerjakan):** kelas `no-scrollbar` yang dipakai panel ini **tidak didefinisikan di mana pun** (`resources/css/app.css` maupun `tailwind.config.js`) — sudah begitu sejak sebelum perubahan ini, jadi scrollbar bawaan tetap tampil saat panel panjang. Sengaja dibiarkan agar diff tetap fokus.
+- **Verifikasi:** `php artisan test` **239 passed**, `npm run build` lulus (client + SSR), Prettier bersih. **Verifikasi visual manual belum dilakukan.**
+- **Sumber:** laporan user 2026-08-19.
+- **Status:** SELESAI (FIXED) 2026-08-19 — sisa verifikasi visual manual
+
+### #73 — Chip langkah peta ber-`z-[400]` menembus SEMUA lapisan halaman (dialog "Pakai Lokasi Saat Ini" & header sticky tertimpa)
+- **Severity:** P2 (UX; dialog tetap bisa ditekan, tapi tampak rusak dan teksnya tertutup)
+- **Dilaporkan user 2026-08-20:** "saat klik tambah hydrant, pop up gunakan lokasi saat ini bertabrakan dengan klik area peta, geser pin pada peta".
+- **Akar:** enam halaman form fasilitas (`Admin/{Hydrants,Pumps,FireStations}/{Create,Edit}.jsx`) menaruh chip "1. Klik Area Peta"/"2. Geser Pin"/"Geser pin pada peta…" di `absolute … z-[400]`. Angka 400 disalin dari **konvensi z-index internal Leaflet** (pane popup Leaflet = 700, marker = 600, dst.) — tapi chip ini bukan anak peta, melainkan saudara `div` peta di dalam wadah halaman biasa. Tak ada satu pun leluhur yang membuat *stacking context* baru, jadi 400 diadu langsung dengan lapisan aplikasi: header sticky `z-40` dan `AlertDialog` Radix (overlay + content `z-50`). Chip menang telak atas keduanya.
+- **Fix (2026-08-20):** `z-[400]` → `z-10` di keenam berkas. Peta sendiri sudah `z-0`, jadi selisih 10 sudah cukup untuk menaruh chip di atas peta tanpa ikut naik ke atas dialog. Diberi komentar di tiap berkas agar angka 400 tidak kembali disalin.
+- **Aturan turunan:** overlay di atas peta hanya boleh memakai z-index satu digit/puluhan; skala z-index Leaflet (400–700) berlaku **di dalam** kontainer peta, bukan untuk elemen HTML biasa yang menumpuk di atasnya.
+- **Sumber:** laporan user 2026-08-20.
+- **Status:** SELESAI (FIXED) 2026-08-20 — sisa verifikasi visual manual
+
+### #74 — Geser pin: deteksi wilayah tanpa umpan balik apa pun, dan tak pernah diperiksa apakah titiknya masih di wilayah tugas
+- **Severity:** P2 (UX + kualitas data)
+- **Dilaporkan user 2026-08-20:** "saat pin geser area yuridiksi tidak terisi otomatis, dan tidak cek apakah sudah sesuai dengan yuridiksinya".
+- **Akar (dua hal berbeda yang bergejala sama):**
+  1. **Terasa tidak terisi.** `updateLocationData()` memang mengisi Area Yurisdiksi, tapi lewat reverse-geocode ke Nominatim yang di-rate-limit ~1 req/detik (`GeocodeController` memakai `Cache::lock`) lalu 1–3 `fetch` lanjutan ke `/api/regions/*`. Selama itu **tidak ada satu pun indikator**; badge tetap berbunyi "Auto-detected" seolah sudah selesai. Lebih buruk, `catch` hanya menulis ke `console.error` (di halaman Edit bahkan tak ada `console` sama sekali) — kalau Nominatim gagal/502, koordinat berpindah dan wilayah diam **tanpa pesan apa pun**.
+  2. **Tidak ada pemeriksaan kecocokan.** Level yang sudah jadi wewenang admin sengaja **tidak** ikut berubah saat pin digeser (nilainya dari akun, bukan dari peta) — perilaku ini benar dan dipertahankan. Tapi karena begitu, pin bisa digeser melewati batas kabupaten dan formnya tetap terlihat wajar: kolom kunci masih menunjukkan wilayah sendiri, padahal koordinatnya sudah di kabupaten tetangga.
+- **Fix (2026-08-20):**
+  - Penanda `isDetecting` → badge "Mendeteksi wilayah…" berikon `IconLoader2` menggantikan badge "Auto-detected" selama proses berjalan; `finally { setIsDetecting(false) }` agar tak pernah tergantung.
+  - `catch` kini juga `toast.error('Gagal mendeteksi wilayah dari titik ini. Isi Area Yurisdiksi secara manual.')` — kegagalan dikatakan apa adanya, bukan ditelan.
+  - `jurisdictionMismatch()` **baru** di `resources/js/lib/utils.js`: membandingkan nama wilayah hasil reverse-geocode (yang memang sudah diambil, jadi **tanpa panggilan jaringan tambahan**) dengan nama wilayah akun untuk tiap level yang dikunci; level TERLUAR yang tak cocok yang dilaporkan (salah kabupaten lebih penting daripada salah desa tetangga). Hasilnya = `toast.warning` + kotak merah permanen di atas Area Yurisdiksi.
+  - Sengaja **peringatan, bukan pemblokir**: nama OSM tidak selalu selengkap tabel `indonesia_*` (kerap hanya nama banjar yang keluar), jadi memblokir akan menghalangi pendataan yang sah. Penjaga kerasnya di server → #75.
+- **Cakupan:** keenam berkas (Create + Edit) di `Admin/{Hydrants,Pumps,FireStations}`. `Admin/Hydrants/*` melayani hydrant resmi **dan** hydrant warga lewat prop `variant`, jadi keempat modul yang diminta user ikut tercakup.
+- **Sumber:** laporan user 2026-08-20.
+- **Status:** SELESAI (FIXED) 2026-08-20 — sisa verifikasi visual manual
+
+### #75 — Kode wilayah anak tak pernah diadu dengan induknya di server: aset bisa tersimpan dengan kecamatan/desa milik kabupaten lain
+- **Severity:** P1 (integritas data; senyap total)
+- **Ditemukan 2026-08-20** saat mengerjakan #74 (permintaan user "dan tidak cek apakah sudah sesuai dengan yuridiksinya").
+- **Akar:** keempat controller fasilitas (`HydrantController`, `HydrantWargaController`, `PompaController`, `PosPemadamController`) menyalin pola yang sama:
+  ```php
+  $validated['district_code'] = $user->district_code ?? $request->district_code;
+  ```
+  Aturannya ("yurisdiksi admin menang atas isi form") benar, tapi ia **hanya menjaga level yang dikunci**. Level yang masih terbuka diterima apa adanya, tanpa memeriksa apakah pilihannya masih berada di dalam level di atasnya. Admin kota Denpasar (`city_code=5171`, kecamatan/desa NULL) karena itu bisa menyimpan aset ber-`city_code` 5171 tapi `village_code` milik Badung — misalnya karena pin digeser melewati batas kota lalu auto-fill peta ikut berpindah (persis skenario #74). Barisnya tetap terlihat oleh admin itu (`Tenantable` menyaring per kota), jadi **datanya rusak tanpa gejala**: tak ada galat, tak ada test merah, dan rekap per desa/kecamatan diam-diam salah.
+- **Fix (2026-08-20):** trait baru `app/Traits/ResolvesFacilityJurisdiction.php`, dipakai keempat controller (store & update):
+  - Rantai kode diperiksa memakai bentuk **kode BPS** yang dipakai laravolt/indonesia — kode tiap level selalu diawali kode induknya (51 → 5171 → 5171012 → 5171012006). Jadi konsistensinya bisa dipastikan **tanpa query ke tabel `indonesia_*`** sama sekali; penting karena tabel referensi itu tidak selalu terisi di semua environment (mis. test).
+  - Ketidakcocokan → `ValidationException` berbahasa Indonesia pada kolom yang bersangkutan (form Inertia menampilkannya di tempat), **bukan** diam-diam ditimpa.
+  - Level atas yang kosong **diturunkan** dari level bawah yang sudah terbukti konsisten. Form fasilitas hanya mengirim desa (provinsi tidak ada di formnya), sehingga sebelum ini `province_code`/`district_code` tersimpan kosong padahal informasinya sudah ada di dalam kode desa — rekap per kecamatan jadi bolong tanpa sebab.
+  - Kolom wilayah user yang berisi string kosong diperlakukan sama dengan NULL (= tidak mengunci), selaras dengan makna NULL yang sudah dipakai `Tenantable` & `User::scopeNotifiableForReport` (lihat #56, TASK_29).
+- **Penjaga:** `tests/Feature/Sisupit/FacilityJurisdictionTest.php` (11 test) — desa/kecamatan/kota di luar induk ditolak di keempat modul dan tak ada baris yang tersimpan; yurisdiksi akun tetap menang atas nilai form yang dipalsukan; level atas diturunkan dari kode desa; jalur `update` ikut dijaga.
+- **Tidak berubah:** `Tenantable` (visibilitas baris) dan aturan "yurisdiksi akun menang" — yang ditambahkan hanya pemeriksaan konsistensi + penurunan level atas.
+- **Verifikasi:** `php artisan test` 239 → **250 passed (972 assertions)**, `npm run build` lulus (client + SSR), Pint & Prettier bersih.
+- **Sumber:** turunan permintaan user 2026-08-20.
+- **Status:** SELESAI (FIXED) 2026-08-20
+
+### #76 — "status === 'Aktif'" sebagai penentu warna: begitu ada status ketiga, semua yang bukan 'Aktif' jadi merah
+- **Severity:** P2 (salah baca visual; menyesatkan di layar operasional)
+- **Ditemukan 2026-08-21** saat mengerjakan TASK_33, **sebelum** sempat tayang.
+- **Akar:** hukum warna fasilitas ("Perbaikan = merah") ditulis di enam tempat sebagai
+  kebalikannya — `status === 'Aktif' ? biru : merah` — di `Admin/Hydrants/Index.jsx` (ikon
+  kartu + marker peta), `Admin/Pumps/Index.jsx` (idem), `Pages/Pumps/Index.jsx` (ikon + badge),
+  dan `Components/UserLeafletMap.jsx` (marker + judul popup). Selama kosakata status hanya
+  berisi dua nilai, kedua bentuk itu setara. Begitu hydrant warga mendapat status ketiga &
+  keempat (`Belum Modifikasi`/`Sudah Modifikasi`, TASK_33), bentuk "bukan Aktif" langsung
+  memerahkan **seluruh** hydrant warga di kartu daftar, marker peta admin, marker
+  `UserLeafletMap`, dan badge halaman publik — padahal tak satu pun rusak. Di layar operasional
+  merah berarti "tidak bisa dipakai", jadi keliru ini bukan sekadar kosmetik.
+  `Pages/Monitoring/Map.jsx` sudah menulisnya sebagai `=== 'Perbaikan'` sejak awal dan aman —
+  bukti bahwa dua bentuk yang setara hidup berdampingan tanpa ada yang menyadarinya.
+- **Fix (2026-08-21):** `facilityStatusIsFaulty(status)` di `resources/js/lib/utils.js` jadi
+  sumber kebenaran tunggal (`status === 'Perbaikan'`), dipakai keenam tempat.
+- **Ikutan yang ditemukan bersamaan:** popup marker `UserLeafletMap` mencetak nilai status
+  MENTAH (`marker.status`), sehingga satu aset berbunyi "Aktif" di peta dan "Berfungsi" di
+  kartu di sebelahnya — persis keluhan yang melahirkan `facilityStatusLabel()` di TASK_30.
+  Kini popup ikut memakai helper itu.
+- **Aturan turunan:** warna fasilitas ditentukan dengan menanyakan **"apakah rusak?"**, tidak
+  pernah dengan **"apakah nilainya 'Aktif'?"**. Menambah status baru tidak boleh mengubah warna
+  status yang sudah ada.
+- **Penjaga:** tidak ada test (warna murni presentasi) — dijaga oleh helper tunggal + catatan
+  ini. Kalau menemukan `status === 'Aktif'` baru di kode fasilitas, itu regresi.
+- **Sumber:** turunan permintaan user 2026-08-21 (TASK_33).
+- **Status:** SELESAI (FIXED) 2026-08-21

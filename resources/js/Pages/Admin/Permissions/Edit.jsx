@@ -12,7 +12,6 @@ import { IconArrowLeft, IconCircleKey } from '@tabler/icons-react';
 import { toast } from 'sonner';
 
 export default function Edit(props) {
-	console.log(props);
 	const { data, setData, reset, post, processing, errors } = useForm({
 		name: props.permission.name ?? '',
 		guard_name: props.permission.guard_name ?? 'web',
@@ -42,7 +41,7 @@ export default function Edit(props) {
 					subtitle={props.page_settings.subtitle}
 					icon={IconCircleKey}
 				/>
-				<Button variant="orange" size="sm" asChild>
+				<Button variant="orange" size="sm" className="w-full lg:w-auto" asChild>
 					<Link href={route('admin.permissions.index')}>
 						<IconArrowLeft className="size-4" />
 						Kembali
@@ -66,10 +65,7 @@ export default function Edit(props) {
 						</div>
 						<div className="grid w-full items-center gap-1.5">
 							<Label htmlFor="guard_name">Guard</Label>
-							<Select
-								defaultValue="data.guard_name"
-								onValueChange={(value) => setData('guard_name', value)}
-							>
+							<Select value={data.guard_name} onValueChange={(value) => setData('guard_name', value)}>
 								<SelectTrigger>
 									<SelectValue>
 										{['web', 'api'].find((guard) => guard === data.guard_name) ?? 'Pilih Guard'}
@@ -86,12 +82,24 @@ export default function Edit(props) {
 							{errors.guard_name && <InputError message={errors.guard_name} />}
 						</div>
 
-						<div className="flex justify-end gap-x-2">
-							<Button type="button" variant="secondary" size="sm" onClick={onHandleReset}>
+						<div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+							<Button
+								type="button"
+								variant="secondary"
+								size="sm"
+								className="w-full sm:w-auto"
+								onClick={onHandleReset}
+							>
 								Reset
 							</Button>
-							<Button type="submit" variant="orange" size="sm" disabled={processing}>
-								Save
+							<Button
+								type="submit"
+								variant="orange"
+								size="sm"
+								className="w-full sm:w-auto"
+								disabled={processing}
+							>
+								Simpan
 							</Button>
 						</div>
 					</form>

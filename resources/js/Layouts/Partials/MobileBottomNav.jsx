@@ -1,42 +1,58 @@
 import { cn } from '@/lib/utils';
 import { Link, usePage } from '@inertiajs/react';
-import {
-	IconBuilding,
-	IconClipboardPlus,
-	IconDashboard,
-	IconDroplet,
-	IconFireHydrant,
-	IconFiretruck,
-	IconHeartHandshake,
-	IconHistory,
-	IconHome,
-	IconKey,
-	IconLockAccess,
-	IconLogin2,
-	IconLogout,
-	IconMapSearch,
-	IconMenu2,
-	IconRoute,
-	IconSettings,
-	IconShieldLock,
-	IconSpeakerphone,
-	IconUser,
-	IconUsersGroup,
-} from '@tabler/icons-react';
-import { useEffect, useRef, useState } from 'react';
+import { IconDashboard, IconHistory, IconMapPin, IconMenu2 } from '@tabler/icons-react';
+import { Fragment, useEffect, useRef, useState } from 'react';
+import { buildNavSections, flattenNavItems } from './navItems';
 
 /**
  * Navigasi bawah untuk layar kecil.
  *
- * DIKEMBALIKAN ke bentuk pra-TASK_20 atas permintaan user (2026-08-13): dua panelnya
- * (Fasilitas & slot ke-5) kembali berupa popover melayang buatan tangan di atas tombol
- * pemicunya — bukan Sheet dari kanan (TASK_20) maupun drawer-dari-bawah (TASK_21).
- * Slot ke-5 pun kembali bercabang: popover "Menu" untuk admin/superadmin, tautan
- * "Profil"/"Masuk" untuk peran lain.
+ * BENTUK (keputusan user 2026-08-13, membalikkan TASK_20/21): dua popover melayang buatan
+ * tangan tepat di atas tombol pemicunya — bukan Sheet dari kanan maupun drawer-dari-bawah.
+ * Jangan hidupkan lagi pola drawer tanpa menanyakan user.
  *
- * Konsekuensi yang disadari & diterima: Pusat Bantuan / S&K / Kebijakan Privasi TIDAK
- * lagi terjangkau dari bilah ini (temuan #53 terbuka kembali) — jalur yang tersisa untuk
- * pengguna ponsel adalah tautan legal di footer AppLayout. Dicatat di FINDINGS_LOG.
+ * ISI (keputusan user 2026-08-19, TASK_31): daftar menunya TIDAK lagi ditulis di sini.
+ * Kedua popover dibangun dari `buildNavSections()` — sumber yang sama dengan sidebar
+ * desktop. Pengecualian "dua daftar" yang berlaku sejak 2026-08-13 dengan demikian
+ * DICABUT: sembilan menu desktop (Manajemen SKKL, Pos Pemadam, OPD Terkait,
+ * Instansi/Kabupaten, empat tautan Bantuan & Legal, dan Daftar Baru) sempat hilang tanpa
+ * gejala di ponsel karena aturan "tulis dua kali" itu — lihat FINDINGS_LOG #71.
+ *
+ * Pembagiannya: bilah memegang empat jangkar tetap (Beranda, Fasilitas, SOS, Riwayat),
+ * dan slot ke-5 "Menu" memuat SEMUA seksi yang belum terwakili di bilah. Karena
+ * pembagian itu memakai daftar KUNCI (bukan daftar menu), item baru di navItems.js
+ * otomatis mendarat di popover "Menu" tanpa perubahan apa pun di berkas ini.
+ *
+ * Slot ke-5 tampil untuk SEMUA peran (dulu popover admin saja, peran lain hanya dapat
+ * tautan Profil) — itulah yang membuat Pusat Bantuan/S&K/Privasi dan tombol Keluar
+ * akhirnya terjangkau pengguna ponsel non-admin (temuan #53).
+ *
+ * RUPA (FINDINGS #72): bilah ini dulu memakai bahasa visualnya sendiri — ikon 28px
+ * (sistem: 16–20px), pil `rounded-full` (satu-satunya di aplikasi), dan ketebalan garis
+ * yang berubah saat aktif sehingga ikon seolah bergetar tiap pindah halaman. Sekarang
+ * ikon 20px, `stroke` tetap 1.75, label 12px.
+ *
+ * DUA KEADAAN YANG TIDAK BOLEH TERTUKAR (koreksi user 2026-08-19 — "seolah ada 2 yang
+ * sedang aktif"): sebelumnya tombol pembuka popover ikut memerah saat panelnya dibuka,
+ * warna yang sama dengan penanda halaman aktif, jadi dua slot tampak aktif bersamaan.
+ * Aturannya sekarang:
+ *   - **Halaman aktif** (di mana saya berada) = kotak `rounded-xl bg-destructive` berikon
+ *     putih, dialek <NavLink/> yang sama dengan sidebar. Hanya satu slot boleh punya ini.
+ *     (Percobaan "garis tipis" 2026-08-19 ditolak user; jangan dihidupkan lagi.)
+ *     BERLAKU UNTUK SLOT BILAH SAJA — di DALAM popover, baris aktif memakai tint 10%
+ *     seperti production, bukan blok solid (keputusan user 2026-08-20, lihat
+ *     <FloatingLink/> & prompt/docs/PENGECUALIAN_ATURAN.md).
+ *   - **Panel terbuka** (keadaan sesaat tombol) = latar netral `bg-accent` pada kotak
+ *     ikonnya + `aria-expanded`. TIDAK memakai merah sama sekali.
+ * Karena merah kini berarti "lokasi", hover pun netral (`hover:text-foreground`), bukan
+ * merah seperti dulu. Satu-satunya pengecualian: slot "Lapor" merah permanen karena ia
+ * aksi darurat, bukan sekadar tujuan.
+ *
+ * Empat slot memakai glyph monokrom yang mewarisi warna kotaknya. Slot "Lapor" memakai
+ * ikon brand `/icon.png` (keputusan user 2026-08-19) — dan karena berkas itu sudah berupa
+ * petir putih DI DALAM kotak merah, ia MENGGANTIKAN kotak ikon, tidak ditaruh di dalamnya.
+ * Aturan turunannya: jangan pernah memberi slot itu latar merah lagi (dua nuansa merah &
+ * dua sudut membulat akan bertumpuk) — penanda aktifnya cincin, bukan bidang.
  *
  * Dua hal dari TASK_20/21 sengaja DIPERTAHANKAN karena bukan bagian dari panel menu dan
  * mencabutnya akan merusak tata letak lain:
@@ -46,55 +62,89 @@ import { useEffect, useRef, useState } from 'react';
  *   - padding `env(safe-area-inset-bottom)` — di ponsel berponi/gesture-bar (mayoritas
  *     perangkat APK) tanpa ini baris ikon tertimpa indikator sistem.
  */
+
+/** Kunci item yang sudah punya tombolnya sendiri di bilah — dikeluarkan dari popover "Menu". */
+const BAR_ITEM_KEYS = ['dashboard', 'report.create', 'reports.mine'];
+
+/**
+ * Kunci item yang masuk popover "Fasilitas", berikut urutannya di panel. Tiga fasilitas
+ * pertama HARUS seurutan dengan seksi "Fasilitas Publik" di navItems.js (yang pada
+ * gilirannya mengikuti urutan fasilitas di seksi Administrasi) — kalau berbeda, satu jenis
+ * fasilitas menempati posisi berlainan di ponsel dan desktop. Peta Pemantauan sengaja
+ * ditaruh terakhir meski di navItems.js ia ada di seksi "Menu Utama".
+ */
+const FASILITAS_ITEM_KEYS = ['hydrants', 'pumps', 'fire_stations', 'volunteers', 'monitoring.map'];
+
+/**
+ * Warna per item panel Fasilitas — gemanya legenda peta, jadi satu warna per jenis
+ * fasilitas. `icon` dipakai saat baris TIDAK aktif, `active` saat baris itu halaman yang
+ * sedang dibuka (tint 10% + teks sewarna, bentuk yang dipakai production; lihat catatan
+ * di <FloatingLink/>). Kunci yang tak terdaftar — termasuk semua isi popover "Menu" dan
+ * menu baru mana pun — jatuh ke netral/`MENU_ACTIVE_TONE`, jadi tak ada yang rusak.
+ *
+ * Kelasnya sengaja ditulis UTUH, bukan dirakit dari nama warna: Tailwind memindai teks
+ * sumber, kelas hasil template string tak akan pernah ikut ter-generate.
+ */
+const FASILITAS_ITEM_TONE = {
+	pumps: { icon: 'text-info', active: 'bg-info/10 text-info' },
+	fire_stations: { icon: 'text-destructive', active: 'bg-destructive/10 text-destructive' },
+	hydrants: { icon: 'text-teal', active: 'bg-teal/10 text-teal' },
+	volunteers: { icon: 'text-volunteer', active: 'bg-volunteer/10 text-volunteer' },
+	'monitoring.map': { icon: 'text-teal', active: 'bg-teal/10 text-teal' },
+};
+
+/** Tint baris aktif untuk item tanpa warna jenis (popover "Menu") — sama dengan production. */
+const MENU_ACTIVE_TONE = 'bg-destructive/10 text-destructive';
+
 export default function MobileBottomNav({ auth }) {
 	const { url } = usePage();
 
-	// 🛠️ Detektor Role Sapu Jagat (Sinkronisasi dengan Sidebar)
-	const rawRoles = auth?.roles || auth?.role || auth?.user?.roles || auth?.user?.role || [];
-	const rolesArray = Array.isArray(rawRoles) ? rawRoles : [rawRoles];
-	const userRoles = rolesArray.map((r) => (typeof r === 'object' && r !== null ? r.name : r));
+	// Peran & gating tidak dihitung di sini lagi (dulu detektor role disalin dari
+	// navItems.js) — buildNavSections sudah menyaring item sesuai peran.
+	const sections = buildNavSections({ auth, url });
+	const allItems = flattenNavItems(sections);
+	const itemByKey = (key) => allItems.find((item) => item.key === key) ?? null;
 
-	const isAdmin = userRoles.includes('admin') || userRoles.includes('superadmin');
-	const isSuperadmin = userRoles.includes('superadmin');
-	// Daftar relawan = Pusat Komando saja (petugas/admin/superadmin), selaras gating route.
-	const isStaff = userRoles.includes('petugas') || isAdmin;
-	// Peta Pemantauan = Pusat Komando + pejabat pemantau (selaras gating route front.monitoring.map).
-	const isCommandCenter = isStaff || userRoles.includes('pejabat');
+	const fasilitasItems = FASILITAS_ITEM_KEYS.map(itemByKey).filter(Boolean);
+
+	// Sisa seksi = apa pun yang tidak dipegang bilah/panel Fasilitas. Inilah yang membuat
+	// menu baru mustahil hilang: ia jatuh ke sini secara otomatis.
+	const handledKeys = new Set([...BAR_ITEM_KEYS, ...FASILITAS_ITEM_KEYS]);
+	const menuSections = sections
+		.map((section) => ({ ...section, items: section.items.filter((item) => !handledKeys.has(item.key)) }))
+		.filter((section) => section.items.length > 0);
 
 	const [showFasilitas, setShowFasilitas] = useState(false);
 	const fasilitasRef = useRef(null);
 
-	const [showAdminMenu, setShowAdminMenu] = useState(false);
-	const adminMenuRef = useRef(null);
+	const [showMenu, setShowMenu] = useState(false);
+	const menuRef = useRef(null);
 
-	const isActive = (path) => url.startsWith(path);
-	const isFasilitasActive =
-		isActive('/fire-stations') ||
-		isActive('/pumps') ||
-		isActive('/hydrants') ||
-		(isStaff && isActive('/relawan')) ||
-		(isCommandCenter && isActive('/peta-pemantauan'));
-	const isAdminActive = isActive('/admin');
+	// "Aktif" di bilah HANYA berarti halaman yang sedang dibuka — terbukanya popover
+	// dilacak terpisah (showFasilitas/showMenu) supaya tak ada dua slot yang tampak aktif.
+	const isFasilitasActive = fasilitasItems.some((item) => item.active);
+	const isMenuActive = menuSections.some((section) => section.items.some((item) => item.active));
+	const isReportActive = url.startsWith('/reports/create');
 
 	useEffect(() => {
 		function handleClickOutside(event) {
 			if (fasilitasRef.current && !fasilitasRef.current.contains(event.target)) setShowFasilitas(false);
-			if (adminMenuRef.current && !adminMenuRef.current.contains(event.target)) setShowAdminMenu(false);
+			if (menuRef.current && !menuRef.current.contains(event.target)) setShowMenu(false);
 		}
-		if (showFasilitas || showAdminMenu) {
+		if (showFasilitas || showMenu) {
 			document.addEventListener('mousedown', handleClickOutside);
 		}
 		return () => document.removeEventListener('mousedown', handleClickOutside);
-	}, [showFasilitas, showAdminMenu]);
+	}, [showFasilitas, showMenu]);
 
 	return (
 		<>
-			{(showFasilitas || showAdminMenu) && (
+			{(showFasilitas || showMenu) && (
 				<div
 					className="fixed inset-0 z-40 bg-black/5 dark:bg-black/20"
 					onClick={() => {
 						setShowFasilitas(false);
-						setShowAdminMenu(false);
+						setShowMenu(false);
 					}}
 				></div>
 			)}
@@ -104,358 +154,252 @@ export default function MobileBottomNav({ auth }) {
 				style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
 			>
 				<div className="mx-auto grid h-16 max-w-md grid-cols-5 px-1">
-					{/* 1. Beranda */}
+					{/* 1. Beranda — ikon disamakan dengan sidebar (dulu IconHome di sini saja) */}
 					<NavItem
-						href={route('dashboard')}
-						icon={IconHome}
+						href={itemByKey('dashboard')?.url ?? route('dashboard')}
+						icon={IconDashboard}
 						label="Beranda"
 						active={url === '/dashboard' || url === '/'}
 					/>
 
-					{/* 2. Fasilitas Publik */}
+					{/* 2. Fasilitas Publik — IconMapPin, bukan IconFiretruck: ikon truk di seluruh
+					    sistem berarti "Pos Pemadam", satu ikon tak boleh punya dua makna. */}
 					<div
 						className="relative flex h-full w-full flex-col items-center justify-center"
 						ref={fasilitasRef}
 					>
 						{showFasilitas && (
-							<div className="absolute bottom-[72px] left-1/2 z-50 flex w-44 -translate-x-1/2 flex-col rounded-xl border border-border bg-card p-1.5 shadow-lg duration-200 animate-in fade-in-20 slide-in-from-bottom-2">
-								<FloatingLink
-									href={route('front.pumps.index')}
-									active={isActive('/pumps')}
-									icon={IconDroplet}
-									label="SKKL"
-									colorClass="text-info"
-									bgClass="bg-info/10 text-info"
-									onClick={() => setShowFasilitas(false)}
-								/>
-								<FloatingLink
-									href={route('front.fire_stations.index')}
-									active={isActive('/fire-stations')}
-									icon={IconFiretruck}
-									label="Pos Damkar"
-									colorClass="text-destructive"
-									bgClass="bg-destructive/10 text-destructive"
-									onClick={() => setShowFasilitas(false)}
-								/>
-								<FloatingLink
-									href={route('front.hydrants.index')}
-									active={isActive('/hydrants')}
-									icon={IconFireHydrant}
-									label="Lokasi Hydrant"
-									colorClass="text-teal"
-									bgClass="bg-teal/10 text-teal"
-									onClick={() => setShowFasilitas(false)}
-								/>
-								{isStaff && (
+							<FloatingPanel className="left-1/2 w-56 -translate-x-1/2">
+								{fasilitasItems.map((item) => (
 									<FloatingLink
-										href={route('front.volunteers.index')}
-										active={isActive('/relawan')}
-										icon={IconHeartHandshake}
-										label="Daftar Relawan"
-										colorClass="text-info"
-										bgClass="bg-info/10 text-info"
+										key={item.key}
+										item={item}
+										tone={FASILITAS_ITEM_TONE[item.key]}
 										onClick={() => setShowFasilitas(false)}
 									/>
-								)}
-								{isCommandCenter && (
-									<FloatingLink
-										href={route('front.monitoring.map')}
-										active={isActive('/peta-pemantauan')}
-										icon={IconMapSearch}
-										label="Peta Pemantauan"
-										colorClass="text-teal"
-										bgClass="bg-teal/10 text-teal"
-										onClick={() => setShowFasilitas(false)}
-									/>
-								)}
-								<div className="absolute -bottom-[6px] left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 transform border-b border-r border-border bg-card"></div>
-							</div>
+								))}
+							</FloatingPanel>
 						)}
-						<button
+						<PanelTrigger
+							icon={IconMapPin}
+							label="Fasilitas"
+							active={isFasilitasActive}
+							open={showFasilitas}
 							onClick={() => {
 								setShowFasilitas(!showFasilitas);
-								setShowAdminMenu(false);
+								setShowMenu(false);
 							}}
-							className={cn(
-								'group z-50 flex h-full w-full flex-col items-center justify-center gap-1 outline-none transition-colors',
-								isFasilitasActive || showFasilitas
-									? 'text-destructive'
-									: 'text-muted-foreground hover:text-destructive',
-							)}
-						>
-							<div
-								className={cn(
-									'flex items-center justify-center rounded-full px-4 py-1.5 transition-colors group-focus-visible:ring-2 group-focus-visible:ring-destructive',
-									isFasilitasActive || showFasilitas
-										? 'bg-destructive/10'
-										: 'bg-transparent group-hover:bg-destructive/10',
-								)}
-							>
-								<IconFiretruck
-									className="h-7 w-7"
-									stroke={isFasilitasActive || showFasilitas ? 2 : 1.5}
-								/>
-							</div>
-							<span className="text-[10px] font-semibold tracking-wide">Fasilitas</span>
-						</button>
+						/>
 					</div>
 
-					{/* 3. SOS Spotlight */}
-					<Link
-						href={route('front.reports.create')}
-						className={cn(
-							'group z-50 flex h-full w-full items-center justify-center outline-none transition-all',
-							url.startsWith('/reports/create') ? 'scale-105' : 'hover:scale-105 active:scale-95',
-						)}
-					>
-						<img
-							src="/icon.png"
-							alt="SOS"
-							className={cn(
-								'relative z-10 h-11 w-11 rounded-xl object-contain shadow-sm transition-all group-focus-visible:ring-2 group-focus-visible:ring-destructive group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-card',
-								url.startsWith('/reports/create') ? 'ring-2 ring-destructive/50' : '',
-							)}
-						/>
-					</Link>
+					{/* 3. Lapor — memakai ikon brand `/icon.png` (keputusan user 2026-08-19):
+					    berkas itu petir PUTIH di dalam kotak merah, jadi ia menggantikan kotak
+					    ikon slot alih-alih ditaruh di dalamnya. Ukurannya disamakan dengan
+					    kotak slot lain (32px) sehingga barisnya satu irama, dan ia satu-satunya
+					    bidang berwarna penuh saat tak ada halaman aktif — hierarki yang memang
+					    diinginkan untuk tombol darurat. */}
+					<NavItem
+						href={itemByKey('report.create')?.url ?? route('front.reports.create')}
+						imageSrc="/icon.png"
+						label="Lapor"
+						active={isReportActive}
+						ariaLabel="Lapor Darurat"
+						// Satu-satunya slot yang labelnya merah permanen: ini aksi darurat,
+						// bukan sekadar tujuan.
+						className="text-destructive hover:text-destructive"
+					/>
 
 					{/* 4. Riwayat */}
 					<NavItem
-						href={route('front.reports.index', { filter: 'mine' })}
+						href={itemByKey('reports.mine')?.url ?? route('front.reports.index', { filter: 'mine' })}
 						icon={IconHistory}
 						label="Riwayat"
-						active={isActive('/reports') && !isActive('/reports/create')}
+						active={url.startsWith('/reports') && !url.startsWith('/reports/create')}
 					/>
 
-					{/* 5. Profil / Hub Kendali Admin Terpadu */}
-					{isAdmin ? (
-						<div
-							className="relative flex h-full w-full flex-col items-center justify-center"
-							ref={adminMenuRef}
-						>
-							{showAdminMenu && (
-								<div className="no-scrollbar absolute bottom-[72px] right-2 z-50 flex max-h-[70vh] w-52 flex-col overflow-y-auto rounded-xl border border-border bg-card p-1.5 shadow-lg duration-200 animate-in fade-in-20 slide-in-from-bottom-2">
-									<div className="mb-1 px-2.5 py-1.5 text-[10px] font-bold uppercase text-muted-foreground">
-										Administrasi
-									</div>
-
-									{/* MENGARAHKAN HAK AKSES DRIVER KE RUTENAMA BACKEND YANG VALID */}
-									<FloatingLink
-										href={route('dashboard')}
-										active={url === '/dashboard'}
-										icon={IconDashboard}
-										label="Dashboard Admin"
-										colorClass="text-muted-foreground"
-										bgClass="bg-destructive/10 text-destructive"
-										onClick={() => setShowAdminMenu(false)}
-									/>
-									<FloatingLink
-										href={route('admin.users.index')}
-										active={url.startsWith('/admin/users')}
-										icon={IconUsersGroup}
-										label="Kelola Pengguna"
-										colorClass="text-muted-foreground"
-										bgClass="bg-destructive/10 text-destructive"
-										onClick={() => setShowAdminMenu(false)}
-									/>
-									<FloatingLink
-										href={route('admin.hydrants.index')}
-										active={
-											url.startsWith('/admin/facilities') || url.startsWith('/admin/hydrants')
-										}
-										icon={IconBuilding}
-										label="Kelola Fasilitas"
-										colorClass="text-muted-foreground"
-										bgClass="bg-destructive/10 text-destructive"
-										onClick={() => setShowAdminMenu(false)}
-									/>
-									<FloatingLink
-										href={route('admin.reports.index')}
-										active={url.startsWith('/admin/reports')}
-										icon={IconClipboardPlus}
-										label="Verifikasi Laporan"
-										colorClass="text-muted-foreground"
-										bgClass="bg-destructive/10 text-destructive"
-										onClick={() => setShowAdminMenu(false)}
-									/>
-									{/* SEMENTARA DISEMBUNYIKAN (keputusan user 2026-06-29): menu "Kelola Armada"
-										disembunyikan dari bottom-nav selaras dengan panel Pengerahan Armada di Show.jsx.
-										Backend & route admin.units.* tetap utuh — buka kembali blok ini untuk menampilkan.
-									Catatan: import `IconTruck` sudah dibuang oleh organize-imports Prettier karena
-									hanya dipakai di blok terkomentari ini — tambahkan lagi saat mengaktifkannya. */}
-									{/* <FloatingLink
-										href={route('admin.units.index')}
-										active={url.startsWith('/admin/units')}
-										icon={IconTruck}
-										label="Kelola Armada"
-										colorClass="text-muted-foreground"
-										bgClass="bg-destructive/10 text-destructive"
-										onClick={() => setShowAdminMenu(false)}
-									/> */}
-
-									{/* Pengumuman global + RBAC + Sistem = lintas-tenant, superadmin saja
-										(sesuai gating route admin.php). Admin wilayah tak melihat menu ini. */}
-									{isSuperadmin && (
-										<>
+					{/* 5. Menu — semua seksi yang tak terwakili di bilah, untuk SEMUA peran */}
+					<div className="relative flex h-full w-full flex-col items-center justify-center" ref={menuRef}>
+						{showMenu && (
+							<FloatingPanel className="right-2 w-64">
+								{menuSections.map((section, index) => (
+									<Fragment key={section.key}>
+										<div
+											className={cn(
+												'px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground',
+												index === 0 ? 'mt-0' : 'mt-2',
+											)}
+										>
+											{section.title}
+										</div>
+										{section.items.map((item) => (
 											<FloatingLink
-												href={route('admin.announcements.index')}
-												active={url.startsWith('/admin/announcements')}
-												icon={IconSpeakerphone}
-												label="Pengumuman Sistem"
-												colorClass="text-muted-foreground"
-												bgClass="bg-destructive/10 text-destructive"
-												onClick={() => setShowAdminMenu(false)}
+												key={item.key}
+												item={item}
+												onClick={() => setShowMenu(false)}
 											/>
-											<div className="mb-1 mt-2 px-2.5 py-1.5 text-[10px] font-bold uppercase text-muted-foreground">
-												Kontrol Akses
-											</div>
-											<FloatingLink
-												href={route('admin.roles.index')}
-												active={url.startsWith('/admin/roles')}
-												icon={IconShieldLock}
-												label="Manajemen Role"
-												colorClass="text-muted-foreground"
-												bgClass="bg-destructive/10 text-destructive"
-												onClick={() => setShowAdminMenu(false)}
-											/>
-											<FloatingLink
-												href={route('admin.permissions.index')}
-												active={url.startsWith('/admin/permissions')}
-												icon={IconKey}
-												label="Hak Akses"
-												colorClass="text-muted-foreground"
-												bgClass="bg-destructive/10 text-destructive"
-												onClick={() => setShowAdminMenu(false)}
-											/>
-											<FloatingLink
-												href={route('admin.assign-permissions.index')}
-												active={url.startsWith('/admin/assign-permissions')}
-												icon={IconLockAccess}
-												label="Assign Hak Akses"
-												colorClass="text-muted-foreground"
-												bgClass="bg-destructive/10 text-destructive"
-												onClick={() => setShowAdminMenu(false)}
-											/>
-											<FloatingLink
-												href={route('admin.route-accesses.index')}
-												active={url.startsWith('/admin/route-accesses')}
-												icon={IconRoute}
-												label="Akses Route"
-												colorClass="text-muted-foreground"
-												bgClass="bg-destructive/10 text-destructive"
-												onClick={() => setShowAdminMenu(false)}
-											/>
-
-											<div className="mb-1 mt-2 px-2.5 py-1.5 text-[10px] font-bold uppercase text-muted-foreground">
-												Sistem
-											</div>
-											<FloatingLink
-												href={route('admin.settings.edit')}
-												active={url.startsWith('/admin/settings')}
-												icon={IconSettings}
-												label="Pengaturan Notifikasi"
-												colorClass="text-muted-foreground"
-												bgClass="bg-destructive/10 text-destructive"
-												onClick={() => setShowAdminMenu(false)}
-											/>
-										</>
-									)}
-
-									<div className="my-1.5 h-px w-full bg-border"></div>
-									<FloatingLink
-										href={route('profile.edit')}
-										active={isActive('/profile')}
-										icon={IconUser}
-										label="Profil Saya"
-										colorClass="text-muted-foreground"
-										bgClass="bg-destructive/10 text-destructive"
-										onClick={() => setShowAdminMenu(false)}
-									/>
-
-									<Link
-										href={route('logout')}
-										method="post"
-										as="button"
-										data={{ fcm_token: globalThis.__sisupitFcmToken }}
-										className="mt-1 flex w-full items-center gap-2.5 rounded-lg p-2.5 text-left text-sm font-medium text-destructive outline-none transition-colors hover:bg-destructive/10 focus-visible:ring-2 focus-visible:ring-destructive"
-									>
-										<IconLogout size={18} /> Keluar
-									</Link>
-									<div className="absolute -bottom-[6px] right-[22px] h-3 w-3 rotate-45 transform border-b border-r border-border bg-card"></div>
-								</div>
-							)}
-							<button
-								onClick={() => {
-									setShowAdminMenu(!showAdminMenu);
-									setShowFasilitas(false);
-								}}
-								className={cn(
-									'group z-50 flex h-full w-full flex-col items-center justify-center gap-1 outline-none transition-colors',
-									isAdminActive || showAdminMenu
-										? 'text-destructive'
-										: 'text-muted-foreground hover:text-destructive',
-								)}
-							>
-								<div
-									className={cn(
-										'flex items-center justify-center rounded-full px-4 py-1.5 transition-colors group-focus-visible:ring-2 group-focus-visible:ring-destructive',
-										isAdminActive || showAdminMenu
-											? 'bg-destructive/10'
-											: 'bg-transparent group-hover:bg-destructive/10',
-									)}
-								>
-									<IconMenu2 className="h-7 w-7" stroke={isAdminActive || showAdminMenu ? 2 : 1.5} />
-								</div>
-								<span className="text-[10px] font-semibold tracking-wide">Menu</span>
-							</button>
-						</div>
-					) : (
-						<NavItem
-							icon={auth?.name || auth?.user?.name ? IconUser : IconLogin2}
-							label={auth?.name || auth?.user?.name ? 'Profil' : 'Masuk'}
-							active={isActive('/profile')}
-							href={auth?.name || auth?.user?.name ? route('profile.edit') : route('login')}
+										))}
+									</Fragment>
+								))}
+							</FloatingPanel>
+						)}
+						<PanelTrigger
+							icon={IconMenu2}
+							label="Menu"
+							active={isMenuActive}
+							open={showMenu}
+							onClick={() => {
+								setShowMenu(!showMenu);
+								setShowFasilitas(false);
+							}}
 						/>
-					)}
+					</div>
 				</div>
 			</div>
 		</>
 	);
 }
 
-function NavItem({ href, icon: Icon, label, active }) {
+/**
+ * Isi satu slot bilah. Dipakai <NavItem/> (tautan) & <PanelTrigger/> (pembuka popover)
+ * supaya keduanya mustahil berbeda rupa. Penanda aktif = kotak solid merah `rounded-xl`,
+ * dialek yang sama dengan <NavLink/> di sidebar.
+ */
+function SlotContent({ icon: Icon, imageSrc, label, active, open = false }) {
+	return (
+		<>
+			{imageSrc ? (
+				/* Slot "Lapor": ikon brand SUDAH berupa petir putih di dalam kotak merah,
+				   jadi berkas itu MENGGANTIKAN kotak ikon — bukan diletakkan di dalamnya.
+				   Kalau ditumpuk, dua kotak merah (nuansa PNG vs token) dan dua sudut
+				   membulat bertabrakan. Tingginya 32px, sama dengan kotak slot lain, supaya
+				   barisnya tetap satu irama. Saat aktif ia tak diberi latar merah lagi —
+				   penandanya cincin, karena bidangnya memang sudah merah. */
+				<img
+					src={imageSrc}
+					alt=""
+					className={cn(
+						'h-8 w-8 rounded-xl object-contain shadow-sm transition-shadow',
+						active && 'ring-2 ring-destructive/50 ring-offset-2 ring-offset-card',
+					)}
+				/>
+			) : (
+				/* Penanda HALAMAN AKTIF: kotak solid merah — dialek yang sama dengan
+				   <NavLink/> di sidebar, jadi satu menu tampak sama di ponsel maupun
+				   desktop. (Percobaan "garis tipis" 2026-08-19 ditolak user.) Keadaan PANEL
+				   TERBUKA memakai latar netral `bg-accent`, bukan merah, supaya dua keadaan
+				   itu tak tertukar. */
+				<span
+					className={cn(
+						'flex h-8 w-12 items-center justify-center rounded-xl transition-colors',
+						active
+							? 'bg-destructive text-destructive-foreground shadow-sm'
+							: open
+								? 'bg-accent'
+								: 'group-hover:bg-accent',
+					)}
+				>
+					<Icon className="h-5 w-5" stroke={1.75} />
+				</span>
+			)}
+			<span className={cn('text-xs', active ? 'font-semibold' : 'font-medium')}>{label}</span>
+		</>
+	);
+}
+
+const slotClass = (active, open = false) =>
+	cn(
+		'group relative flex h-full w-full flex-col items-center justify-center gap-1 rounded-xl outline-none transition-colors focus-visible:ring-2 focus-visible:ring-destructive',
+		// Merah = lokasi. Hover & keadaan terbuka sengaja netral agar merah tetap satu makna.
+		active ? 'text-destructive' : open ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+	);
+
+function NavItem({ href, icon, imageSrc, label, active, ariaLabel, className }) {
 	return (
 		<Link
 			href={href}
-			className={cn(
-				'group z-50 flex h-full w-full flex-col items-center justify-center gap-1 outline-none transition-colors',
-				active ? 'text-destructive' : 'text-muted-foreground hover:text-destructive',
-			)}
+			aria-label={ariaLabel}
+			aria-current={active ? 'page' : undefined}
+			className={cn(slotClass(active), className)}
 		>
-			<div
-				className={cn(
-					'flex items-center justify-center rounded-full px-4 py-1.5 transition-colors group-focus-visible:ring-2 group-focus-visible:ring-destructive',
-					active ? 'bg-destructive/10' : 'bg-transparent group-hover:bg-destructive/10',
-				)}
-			>
-				<Icon className="h-7 w-7" stroke={active ? 2 : 1.5} />
-			</div>
-			<span className="text-[10px] font-semibold tracking-wide">{label}</span>
+			<SlotContent icon={icon} imageSrc={imageSrc} label={label} active={active} />
 		</Link>
 	);
 }
 
-function FloatingLink({ href, active, icon: Icon, label, colorClass, bgClass, onClick }) {
+function PanelTrigger({ icon, label, active, open, onClick }) {
 	return (
-		<Link
-			href={href}
+		<button
+			type="button"
 			onClick={onClick}
+			aria-haspopup="menu"
+			aria-expanded={open}
+			className={slotClass(active, open)}
+		>
+			<SlotContent icon={icon} label={label} active={active} open={open} />
+		</button>
+	);
+}
+
+/**
+ * Wadah popover. Tokennya sengaja sama dengan <DropdownMenuContent/> (satu-satunya panel
+ * melayang lain di aplikasi, yaitu lonceng notifikasi di AppLayout): `rounded-xl`,
+ * `bg-popover`, `shadow-md`. Panah segitiga versi lama dibuang — idiom itu tak ada di
+ * mana pun lagi dan justru membuat panel ini terlihat tertempel.
+ */
+function FloatingPanel({ className, children }) {
+	return (
+		<div
 			className={cn(
-				'mt-1 flex items-center gap-2.5 rounded-lg p-2.5 text-sm font-medium outline-none transition-colors first:mt-0 focus-visible:ring-2 focus-visible:ring-destructive',
-				active ? bgClass : 'text-foreground hover:bg-accent',
+				'no-scrollbar absolute bottom-[72px] z-50 flex max-h-[70vh] flex-col overflow-y-auto rounded-xl border border-border bg-popover p-1.5 text-popover-foreground shadow-md duration-200 animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2',
+				className,
 			)}
 		>
-			<Icon size={18} className={active ? '' : colorClass} />
-			<span className="truncate">{label}</span>
+			{children}
+		</div>
+	);
+}
+
+/**
+ * Satu baris di dalam popover. Menerima item apa adanya dari navItems.js — termasuk
+ * `variant: 'danger'` (Keluar) dan `linkProps` (logout = POST + token FCM ikut dilepas).
+ * Tinggi minimum 48px = target sentuh yang dipakai tombol utama di aplikasi ini.
+ *
+ * PENANDA AKTIF DI SINI SENGAJA BERBEDA DARI SIDEBAR (keputusan user 2026-08-20): baris
+ * yang sedang dibuka memakai TINT 10% + teks sewarna — bentuk yang selama ini berjalan di
+ * production — bukan blok solid `bg-destructive` ala <NavLink/>. Blok solid sempat dipakai
+ * sehari (TASK_31) demi "satu dialek di semua permukaan", lalu ditolak user: di dalam
+ * popover ia terbaca seperti tombol darurat, bukan seperti "kamu di sini". Warnanya
+ * mengikuti jenis fasilitas (FASILITAS_ITEM_TONE) supaya baris aktif seirama dengan
+ * legenda peta; item tanpa warna jenis memakai MENU_ACTIVE_TONE.
+ * Pengecualian ini tercatat di prompt/docs/PENGECUALIAN_ATURAN.md — jangan "seragamkan"
+ * lagi dengan sidebar tanpa menanyakan user. Kotak ikon di BILAH bawah TIDAK ikut berubah:
+ * di sana blok solid merah tetap berlaku (keputusan user 2026-08-19).
+ */
+function FloatingLink({ item, tone, onClick }) {
+	const Icon = item.icon;
+	const linkProps = item.linkProps ?? {};
+	const isDanger = item.variant === 'danger';
+
+	return (
+		<Link
+			href={item.url}
+			onClick={onClick}
+			aria-current={item.active ? 'page' : undefined}
+			{...linkProps}
+			className={cn(
+				'mt-0.5 flex min-h-[48px] w-full items-center gap-3 rounded-lg px-3 text-left text-sm font-medium outline-none transition-colors first:mt-0 focus-visible:ring-2 focus-visible:ring-destructive',
+				item.active
+					? cn('font-semibold', tone?.active ?? MENU_ACTIVE_TONE)
+					: isDanger
+						? 'text-destructive hover:bg-destructive/10'
+						: 'text-foreground hover:bg-accent',
+			)}
+		>
+			<Icon
+				size={18}
+				className={cn('shrink-0', !item.active && !isDanger && (tone?.icon ?? 'text-muted-foreground'))}
+			/>
+			<span className="truncate">{item.title}</span>
 		</Link>
 	);
 }

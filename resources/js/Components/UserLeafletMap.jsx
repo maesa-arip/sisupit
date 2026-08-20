@@ -1,4 +1,4 @@
-import { GEO_OPTIONS, MAP_TILE_URL } from '@/lib/utils';
+import { facilityStatusIsFaulty, facilityStatusLabel, GEO_OPTIONS, MAP_TILE_URL } from '@/lib/utils';
 import { useEffect, useRef } from 'react';
 
 const UserLeafletMap = ({
@@ -156,13 +156,18 @@ const UserLeafletMap = ({
 
 		const createCustomIcon = (status, category) => {
 			const isPosPemadam = category === 'pos_pemadam';
-			const isAktif = status === 'Aktif';
+			// Bukan lagi `status === 'Aktif'`: sejak hydrant warga punya kosakata sendiri
+			// (Belum/Sudah Modifikasi, 2026-08-21) bentuk lama menggambar SEMUA tandon warga
+			// merah hanya karena statusnya bukan 'Aktif' — padahal tak ada yang rusak.
+			const isFaulty = facilityStatusIsFaulty(status);
 
-			// Warna per status (samakan Peta Pemantauan): Aktif biru, Perbaikan merah.
-			const bgColor = isAktif ? 'bg-info' : 'bg-destructive';
-			const borderColor = isAktif ? 'border-info/20' : 'border-destructive/20';
-			const arrowColor = isAktif ? 'border-t-blue-600 dark:border-t-info' : 'border-t-destructive';
-			const fgColor = isAktif ? 'text-white dark:text-info-foreground' : 'text-white dark:text-destructive-foreground';
+			// Warna per status (samakan Peta Pemantauan): tidak berfungsi merah, sisanya biru.
+			const bgColor = isFaulty ? 'bg-destructive' : 'bg-info';
+			const borderColor = isFaulty ? 'border-destructive/20' : 'border-info/20';
+			const arrowColor = isFaulty ? 'border-t-destructive' : 'border-t-blue-600 dark:border-t-info';
+			const fgColor = isFaulty
+				? 'text-white dark:text-destructive-foreground'
+				: 'text-white dark:text-info-foreground';
 			// Glyph per jenis (samakan Peta Pemantauan): pos pemadam = truk,
 			// hydrant = fire-hydrant, pompa/lainnya = tetes.
 			const svgIcon = isPosPemadam
@@ -193,11 +198,14 @@ const UserLeafletMap = ({
 				if (!isNaN(lat) && !isNaN(lng)) {
 					const customIcon = createCustomIcon(marker.status, marker.category);
 					const isPosPemadam = marker.category === 'pos_pemadam';
-					const titleColorClass =
-						marker.status === 'Aktif' ? 'text-info' : 'text-destructive';
+					const titleColorClass = facilityStatusIsFaulty(marker.status) ? 'text-destructive' : 'text-info';
+					// Popup dulu mencetak nilai mentah ('Aktif'), sehingga satu aset berbunyi
+					// "Aktif" di peta dan "Berfungsi" di kartu di sebelahnya — persis keluhan
+					// yang melahirkan facilityStatusLabel (TASK_30).
+					const statusText = facilityStatusLabel(marker.status);
 					const labelText = isPosPemadam
-						? `${marker.status} &bull; ${marker.vehicle_count} Armada`
-						: `${marker.status} &bull; ${marker.type || 'Pompa'}`;
+						? `${statusText} &bull; ${marker.vehicle_count} Armada`
+						: `${statusText} &bull; ${marker.type || 'Pompa'}`;
 
 					window.L.marker([lat, lng], { icon: customIcon }).addTo(markersLayerRef.current).bindPopup(`
                             <div style="font-family: sans-serif; min-width: 180px;">

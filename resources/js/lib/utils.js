@@ -45,6 +45,75 @@ export const GEO_ACCURACY_THRESHOLD = 1000;
 // digeser saat deteksi lokasi gagal total. Selaras dengan setView UserLeafletMap.
 export const DEFAULT_MAP_CENTER = { lat: -8.65, lng: 115.22 };
 
+// Kata jenis wilayah yang dibuang sebelum membandingkan nama: OSM menulis "Kota Denpasar"
+// / "Kecamatan Denpasar Utara", tabel indonesia_* menulis "DENPASAR" / "DENPASAR UTARA".
+const REGION_NOISE_WORDS = [
+	'provinsi',
+	'prov',
+	'kota',
+	'kabupaten',
+	'kab',
+	'administrasi',
+	'kecamatan',
+	'kec',
+	'kelurahan',
+	'desa',
+];
+
+export const normalizeRegionName = (name) => {
+	if (!name) return '';
+	let clean = String(name).toLowerCase();
+	REGION_NOISE_WORDS.forEach((word) => {
+		clean = clean.replace(new RegExp(`\\b${word}\\b`, 'gi'), '');
+	});
+
+	return clean
+		.replace(/[^\w\s]/gi, ' ')
+		.replace(/\s+/g, ' ')
+		.trim();
+};
+
+// Level wilayah dari yang terluas — urutannya menentukan level TERLUAR yang dilaporkan saat
+// pin meleset, karena itulah yang paling penting diberitahukan (salah kabupaten jauh lebih
+// berbahaya daripada salah desa tetangga).
+const JURISDICTION_LEVELS = [
+	['city_code', 'city', 'Kabupaten/Kota'],
+	['district_code', 'district', 'Kecamatan'],
+	['village_code', 'village', 'Desa/Kelurahan'],
+];
+
+/**
+ * Apakah titik yang baru saja dipilih di peta berada di luar wilayah tugas admin?
+ *
+ * Form pendataan fasilitas mengunci level wilayah yang sudah jadi wewenang admin dan
+ * mengisinya dari akun, BUKAN dari pin — jadi sebelum ini pin bisa digeser melewati batas
+ * kota tanpa satu pun tanda, dan asetnya tersimpan seolah masih di wilayah sendiri.
+ * Perbandingannya memakai nama wilayah dari reverse-geocode (yang memang sudah diambil untuk
+ * auto-isi alamat), jadi tidak ada panggilan jaringan tambahan.
+ *
+ * Sengaja PERINGATAN, bukan pemblokir: nama OSM tidak selalu selengkap tabel wilayah
+ * (kadang hanya nama banjar yang keluar), jadi keputusan akhir tetap di tangan petugas yang
+ * berdiri di lokasi. Penjaga kerasnya ada di server (ResolvesFacilityJurisdiction).
+ *
+ * @returns {{level: string, name: string}|null} level & nama wilayah yang tidak cocok
+ */
+export function jurisdictionMismatch(osmNames = [], adminLevel = {}, adminRegionNames = {}) {
+	const detected = (osmNames || []).map(normalizeRegionName).filter(Boolean);
+	if (detected.length === 0) return null;
+
+	for (const [codeKey, nameKey, label] of JURISDICTION_LEVELS) {
+		if (!adminLevel?.[codeKey]) continue;
+
+		const own = normalizeRegionName(adminRegionNames?.[nameKey]);
+		if (!own) continue;
+
+		const matched = detected.some((name) => name === own || name.includes(own) || own.includes(name));
+		if (!matched) return { level: label, name: adminRegionNames[nameKey] };
+	}
+
+	return null;
+}
+
 // Kosakata status FASILITAS (hydrant, SKKL/pompa, pos pemadam) — TASK_30.
 //
 // Nilai yang tersimpan di database tetap 'Aktif'/'Perbaikan'; yang diseragamkan hanya kata
@@ -57,18 +126,39 @@ export const DEFAULT_MAP_CENTER = { lat: -8.65, lng: 115.22 };
 export const FACILITY_STATUS_LABELS = {
 	Aktif: 'Berfungsi',
 	Perbaikan: 'Tidak Berfungsi',
+	// Hydrant warga (tandon/groundtank swadaya) punya kosakata sendiri sejak 2026-08-21 —
+	// permintaan user. Yang ditanya di sana bukan "rusak atau tidak" (tandon berisi air tidak
+	// rusak) melainkan apakah mulutnya sudah dimodifikasi agar bisa dihisap mobil pemadam.
+	// Kata "Terdaftar" hidup HANYA di label ini; nilai simpanannya tetap dua kata.
+	'Belum Modifikasi': 'Terdaftar Belum Dimodifikasi',
+	'Sudah Modifikasi': 'Terdaftar Sudah Dimodifikasi',
 };
 
 export const facilityStatusLabel = (status) => FACILITY_STATUS_LABELS[status] ?? status ?? '-';
 
+// Merah atau tidak. Sumber kebenaran tunggal untuk hukum warna fasilitas ("Perbaikan = merah"),
+// menggantikan pemeriksaan `status === 'Aktif'` yang tersebar di kartu & marker. Perbedaannya
+// baru terasa sejak ada status keempat & kelima: dengan bentuk lama, hydrant warga yang
+// 'Sudah Modifikasi' akan digambar MERAH di mana-mana hanya karena bukan 'Aktif' — padahal
+// tak ada yang rusak. Yang merah hanya fasilitas yang benar-benar tidak berfungsi.
+export const facilityStatusIsFaulty = (status) => status === 'Perbaikan';
+
 // Kondisi tekanan air hydrant (TASK_30). Nilai tersimpan cuma 'Keras'/'Sedang'/'Kecil' —
 // kata "Tekanan" ditambahkan saat tampil supaya berdiri sendiri tanpa label kolom.
+// Hanya hydrant RESMI yang punya kolom ini; hydrant warga tak lagi memakainya sejak 2026-08-21.
 export const waterPressureLabel = (pressure) => (pressure ? `Tekanan ${pressure}` : null);
 
 // Debit air dalam liter per menit. Satuannya selalu ikut: angka telanjang di kartu aset
 // gampang dikira volume tangki.
 export const debitLabel = (lpm) =>
 	lpm === null || lpm === undefined || lpm === '' ? null : `${Number(lpm).toLocaleString('id-ID')} lpm`;
+
+// Kapasitas tampungan dalam liter (tandon/groundtank warga). SENGAJA fungsi terpisah dari
+// debitLabel walau bentuknya mirip: liter adalah simpanan dan lpm adalah aliran, dan satu
+// helper bersama akan mengundang kedua angka itu dijumlahkan — persis kekeliruan yang
+// membuat rekap air per desa harus dipecah jadi dua angka pada 2026-08-21.
+export const capacityLabel = (liter) =>
+	liter === null || liter === undefined || liter === '' ? null : `${Number(liter).toLocaleString('id-ID')} liter`;
 
 // Waktu relatif singkat berbahasa Indonesia ("3 menit lalu") untuk kartu triase admin —
 // menonjolkan umur laporan agar operator cepat menilai urgensi.

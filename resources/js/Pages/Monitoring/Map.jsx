@@ -11,10 +11,10 @@ import {
 	IconFireHydrant,
 	IconFiretruck,
 	IconFlame,
-	IconHeartHandshake,
 	IconMapPin,
 	IconMaximize,
 	IconMinimize,
+	IconUser,
 	IconX,
 } from '@tabler/icons-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -24,48 +24,55 @@ const REPORT_STATUS = [
 	{
 		key: 'TERLAPOR',
 		label: 'Laporan Masuk',
-		pin: 'text-destructive animate-pulse',
+		marker: 'bg-destructive animate-pulse',
 		dot: 'bg-destructive',
 		badge: 'bg-destructive/10 text-destructive border-destructive/30',
 	},
 	{
 		key: 'pending',
 		label: 'Laporan Terverifikasi',
-		pin: 'text-warning',
+		marker: 'bg-warning',
 		dot: 'bg-warning',
 		badge: 'bg-warning/10 text-warning border-warning/30',
 	},
 	{
 		key: 'handling',
 		label: 'Penanganan',
-		pin: 'text-success',
+		marker: 'bg-success',
 		dot: 'bg-success',
 		badge: 'bg-success/10 text-success border-success/30',
 	},
 	{
 		key: 'resolved',
 		label: 'Selesai',
-		pin: 'text-info',
+		marker: 'bg-info',
 		dot: 'bg-info',
 		badge: 'bg-info/10 text-info border-info/30',
 	},
 ];
 const REPORT_META = Object.fromEntries(REPORT_STATUS.map((s) => [s.key, s]));
 
-// Glyph di dalam lingkaran marker. Fasilitas memakai path ikon Tabler asli (stroke,
-// samakan dgn ikon di app: fire-hydrant / firetruck / droplet). Relawan tetap ikon
-// sosok orang (fill). Warna lingkaran fasilitas ditentukan status (lihat facilityColor).
+// Glyph di dalam lingkaran marker. SEMUA layer memakai bentuk marker yang sama
+// (lingkaran + ikon Tabler stroke, lihat glyphIcon) — kejadian, fasilitas, dan relawan.
+// Yang membedakan hanya ikon & warna lingkarannya:
+//   kejadian  → api,   warna = status kejadian  (REPORT_STATUS[].marker)
+//   fasilitas → hydrant/pompa/pos, warna = status fasilitas (facilityColor)
+//   relawan   → sosok orang, warna = keaktifan  (volunteerColor)
 const GLYPH = {
+	flame: '<path d="M12 12c2 -2.96 0 -7 -1 -8c0 3.038 -1.773 4.741 -3 6c-1.226 1.26 -2 3.24 -2 5a6 6 0 1 0 12 0c0 -1.532 -1.056 -3.94 -2 -5c-1.786 3 -2.791 3 -4 2z"/>',
 	hydrant:
 		'<path d="M5 21h14"/><path d="M17 21v-5h1a1 1 0 0 0 1 -1v-2a1 1 0 0 0 -1 -1h-1v-4a5 5 0 0 0 -10 0v4h-1a1 1 0 0 0 -1 1v2a1 1 0 0 0 1 1h1v5"/><path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M6 8h12"/>',
 	pump: '<path d="M7.502 19.423c2.602 2.105 6.395 2.105 8.996 0c2.602 -2.105 3.262 -5.708 1.566 -8.546l-4.89 -7.26c-.42 -.625 -1.287 -.803 -1.936 -.397a1.376 1.376 0 0 0 -.41 .397l-4.893 7.26c-1.695 2.838 -1.035 6.441 1.567 8.546z"/>',
 	station:
 		'<path d="M5 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M17 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M7 18h8m4 0h2v-6a5 5 0 0 0 -5 -5h-1l1.5 5h4.5"/><path d="M12 18v-11h3"/><path d="M3 17l0 -5l9 0"/><path d="M3 9l18 -6"/><path d="M6 12l0 -4"/>',
-	volunteer: '<path d="M12 4a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM6 20a6 6 0 0 1 12 0z"/>',
+	volunteer: '<path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/>',
 };
 
 // Warna lingkaran marker fasilitas berdasarkan status: Aktif = biru, Perbaikan = merah.
 const facilityColor = (status) => (status === 'Perbaikan' ? 'bg-destructive' : 'bg-info');
+
+// Warna lingkaran marker relawan: Siaga = ungu (token volunteer), selain itu abu.
+const volunteerColor = (status) => (status === 'Siaga' ? 'bg-volunteer' : 'bg-muted-foreground');
 
 const LAYERS = [
 	{ key: 'reports', label: 'Kejadian', icon: IconFlame, color: 'text-destructive', chip: 'status' },
@@ -78,7 +85,8 @@ const LAYERS = [
 	},
 	{ key: 'stations', label: 'Pos Pemadam', icon: IconFiretruck, color: 'text-destructive', chip: 'facility' },
 	{ key: 'pumps', label: 'SKKL / Pompa', icon: IconDroplet, color: 'text-info', chip: 'facility' },
-	{ key: 'volunteers', label: 'Relawan', icon: IconHeartHandshake, color: 'text-volunteer', chip: 'volunteer' },
+	// Ikon tiap baris layer = ikon yang sama dengan glyph di dalam marker peta (GLYPH).
+	{ key: 'volunteers', label: 'Relawan', icon: IconUser, color: 'text-volunteer', chip: 'volunteer' },
 ];
 
 export default function MonitoringMap({ layers }) {
@@ -96,14 +104,19 @@ export default function MonitoringMap({ layers }) {
 	const volunteers = layers?.volunteers ?? [];
 
 	// Visibilitas layer & sub-filter (Set berisi status yang DISEMBUNYIKAN).
+	// Bawaan saat halaman dibuka: HANYA layer Kejadian yang menyala — layer fasilitas &
+	// relawan mulai dari mata tertutup supaya peta tidak ramai sebelum operator memilih.
 	const [visible, setVisible] = useState({
 		reports: true,
-		hydrants: true,
-		stations: true,
-		pumps: true,
-		volunteers: true,
+		hydrants: false,
+		stations: false,
+		pumps: false,
+		volunteers: false,
 	});
-	const [reportHidden, setReportHidden] = useState(() => new Set(['ditolak']));
+	// Kejadian yang tampil pertama kali = yang masih berjalan (Laporan Masuk,
+	// Laporan Terverifikasi, Penanganan). 'Selesai' & 'ditolak' disembunyikan,
+	// tetap bisa dinyalakan lewat chip status.
+	const [reportHidden, setReportHidden] = useState(() => new Set(['ditolak', 'resolved']));
 	const [hydrantHidden, setHydrantHidden] = useState(() => new Set());
 	const [stationHidden, setStationHidden] = useState(() => new Set());
 	const [pumpHidden, setPumpHidden] = useState(() => new Set());
@@ -151,25 +164,14 @@ export default function MonitoringMap({ layers }) {
 		const groups = groupsRef.current;
 		if (!map || !groups.reports || !window.L) return;
 
-		const reportPin = (status) =>
+		// Satu bentuk marker untuk SEMUA layer: lingkaran berwarna + ikon Tabler putih.
+		const glyphIcon = (bgClass, glyph) =>
 			window.L.divIcon({
-				html: `<div class="${(REPORT_META[status] || REPORT_META.pending).pin}"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7.58 2 4 5.58 4 10c0 4.42 8 12 8 12s8-7.58 8-12c0-4.42-3.58-8-8-8zm0 11c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/></svg></div>`,
-				className: 'bg-transparent border-none filter drop-shadow-md',
-				iconSize: [30, 30],
-				iconAnchor: [15, 30],
-			});
-
-		const glyphIcon = (bgClass, glyph, { dashed = false, stroke = true } = {}) => {
-			const svgAttrs = stroke
-				? 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"'
-				: 'fill="currentColor"';
-			return window.L.divIcon({
-				html: `<div class="flex h-8 w-8 items-center justify-center rounded-full border-2 ${dashed ? 'border-dashed border-white/90' : 'border-white'} text-white shadow-md ${bgClass}"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" ${svgAttrs}>${glyph}</svg></div>`,
+				html: `<div class="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-white shadow-md ${bgClass}"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${glyph}</svg></div>`,
 				className: 'bg-transparent border-none',
 				iconSize: [32, 32],
 				iconAnchor: [16, 16],
 			});
-		};
 
 		const popupShell = (inner) => `<div class="font-sans w-[210px] space-y-1.5">${inner}</div>`;
 		const facilityPopup = (title, address, status, extra = '') =>
@@ -197,7 +199,9 @@ export default function MonitoringMap({ layers }) {
 						<div class="flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>${r.time || ''}</span></div>
 					</div>
 					<span class="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-bold ${meta.badge}">${meta.label}</span>`);
-				const m = window.L.marker([r.lat, r.lng], { icon: reportPin(r.status) }).bindPopup(html);
+				const m = window.L.marker([r.lat, r.lng], {
+					icon: glyphIcon(meta.marker, GLYPH.flame),
+				}).bindPopup(html);
 				groups.reports.addLayer(m);
 				allMarkers.push(m);
 			});
@@ -242,7 +246,7 @@ export default function MonitoringMap({ layers }) {
 			),
 		);
 
-		// --- Relawan (ikon sosok orang tetap, lingkaran ungu, garis putus = posisi perkiraan) ---
+		// --- Relawan (ikon sosok orang, lingkaran ungu bila Siaga / abu bila tidak) ---
 		groups.volunteers.clearLayers();
 		if (visible.volunteers) {
 			volunteers.forEach((d) => {
@@ -252,9 +256,9 @@ export default function MonitoringMap({ layers }) {
 					<div class="flex items-start gap-1.5 text-[11px] font-medium text-muted-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mt-px shrink-0"><path d="M12 21s-6-5.686-6-10a6 6 0 1 1 12 0c0 4.314-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg><span>${d.area || '-'}</span></div>
 					${d.skills?.length ? `<div class="text-[11px] font-medium text-muted-foreground">Keahlian: ${d.skills.join(', ')}</div>` : ''}
 					<div class="text-[10px] italic text-muted-foreground/80">Posisi perkiraan (pusat wilayah)</div>
-					<span class="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-bold ${d.status === 'Siaga' ? 'bg-success/10 text-success border-success/30' : 'bg-muted text-muted-foreground border-border'}">${d.status}</span>`);
+					<span class="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-bold ${d.status === 'Siaga' ? 'bg-volunteer/10 text-volunteer border-volunteer/30' : 'bg-muted text-muted-foreground border-border'}">${d.status}</span>`);
 				const m = window.L.marker([d.lat, d.lng], {
-					icon: glyphIcon('bg-volunteer', GLYPH.volunteer, { dashed: true, stroke: false }),
+					icon: glyphIcon(volunteerColor(d.status), GLYPH.volunteer),
 				}).bindPopup(html);
 				groups.volunteers.addLayer(m);
 				allMarkers.push(m);
@@ -306,12 +310,8 @@ export default function MonitoringMap({ layers }) {
 		volunteers: volunteers.length,
 	};
 
-	// Penanda status di legend. Kejadian pakai pin (meniru marker peta); fasilitas/relawan titik berwarna.
-	const MiniPin = ({ className }) => (
-		<svg viewBox="0 0 24 24" fill="currentColor" className={cn('h-3.5 w-3.5 shrink-0', className)}>
-			<path d="M12 2C7.58 2 4 5.58 4 10c0 4.42 8 12 8 12s8-7.58 8-12c0-4.42-3.58-8-8-8zm0 11c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z" />
-		</svg>
-	);
+	// Penanda status di legend: titik berwarna untuk semua layer — sewarna dengan
+	// lingkaran markernya di peta (kejadian, fasilitas, dan relawan kini sebentuk).
 	const Dot = ({ className }) => <span className={cn('h-2 w-2 shrink-0 rounded-full', className)} />;
 
 	const StatusChip = ({ active, label, glyph, onClick }) => (
@@ -366,15 +366,7 @@ export default function MonitoringMap({ layers }) {
 								key={s.key}
 								label={s.label}
 								active={!reportHidden.has(s.key)}
-								glyph={
-									<MiniPin
-										className={
-											!reportHidden.has(s.key)
-												? s.dot.replace('bg-', 'text-')
-												: 'text-muted-foreground/40'
-										}
-									/>
-								}
+								glyph={<Dot className={!reportHidden.has(s.key) ? s.dot : 'bg-muted-foreground/40'} />}
 								onClick={() => toggleHidden(setReportHidden)(s.key)}
 							/>
 						))}
@@ -426,11 +418,7 @@ export default function MonitoringMap({ layers }) {
 								glyph={
 									<Dot
 										className={
-											!volunteerHidden.has(s)
-												? s === 'Siaga'
-													? 'bg-success'
-													: 'bg-muted-foreground'
-												: 'bg-muted-foreground/40'
+											!volunteerHidden.has(s) ? volunteerColor(s) : 'bg-muted-foreground/40'
 										}
 									/>
 								}

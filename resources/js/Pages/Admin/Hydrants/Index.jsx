@@ -3,7 +3,14 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
-import { debitLabel, facilityStatusLabel, MAP_TILE_URL, waterPressureLabel } from '@/lib/utils';
+import {
+	capacityLabel,
+	debitLabel,
+	facilityStatusIsFaulty,
+	facilityStatusLabel,
+	MAP_TILE_URL,
+	waterPressureLabel,
+} from '@/lib/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
 	IconAlertTriangle,
@@ -55,7 +62,7 @@ export default function Index({ variant = 'resmi', counts = {}, hydrants, filter
 				const lat = parseFloat(hydrant.lat),
 					lng = parseFloat(hydrant.lng);
 				if (!isNaN(lat) && !isNaN(lng)) {
-					const iconColor = hydrant.status === 'Aktif' ? 'text-info' : 'text-destructive';
+					const iconColor = facilityStatusIsFaulty(hydrant.status) ? 'text-destructive' : 'text-info';
 					const customIcon = window.L.divIcon({
 						html: `<div class="${iconColor} drop-shadow-md hover:scale-110 transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
 						className: 'bg-transparent border-none',
@@ -159,7 +166,9 @@ export default function Index({ variant = 'resmi', counts = {}, hydrants, filter
 							/>
 						</form>
 						<div className="flex gap-2">
-							{['Semua', 'Aktif', 'Perbaikan'].map((status) => (
+							{/* Kosakata statusnya beda per jenis hydrant (lihat ./variants.jsx): resmi
+							    Berfungsi/Tidak Berfungsi, warga Terdaftar Belum/Sudah Dimodifikasi. */}
+							{['Semua', ...v.statusOptions].map((status) => (
 								<button
 									key={status}
 									type="button"
@@ -189,13 +198,9 @@ export default function Index({ variant = 'resmi', counts = {}, hydrants, filter
 										<CardContent className="flex flex-col gap-3 p-3 sm:p-4">
 											<div className="flex flex-row items-center gap-3">
 												<div
-													className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${hydrant.status === 'Aktif' ? 'bg-info/10 text-info' : 'bg-destructive/10 text-destructive'}`}
+													className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${facilityStatusIsFaulty(hydrant.status) ? 'bg-destructive/10 text-destructive' : 'bg-info/10 text-info'}`}
 												>
-													{hydrant.status === 'Aktif' ? (
-														<IconFireHydrant className="h-5 w-5" />
-													) : (
-														<IconFireHydrant className="h-5 w-5" />
-													)}
+													<IconFireHydrant className="h-5 w-5" />
 												</div>
 												<div className="w-full min-w-0 flex-1">
 													<h3
@@ -209,8 +214,12 @@ export default function Index({ variant = 'resmi', counts = {}, hydrants, filter
 													<p className="mt-0.5 truncate text-[11px] text-muted-foreground">
 														{[
 															facilityStatusLabel(hydrant.status),
+															// Kolom air berbeda per jenis: hydrant resmi punya tekanan
+															// & debit, hydrant warga punya kapasitas volume. Yang tak
+															// ada pada baris ini bernilai undefined → tersaring sendiri.
 															waterPressureLabel(hydrant.water_pressure),
 															debitLabel(hydrant.debit_lpm),
+															capacityLabel(hydrant.capacity_liter),
 														]
 															.filter(Boolean)
 															.join(' · ')}

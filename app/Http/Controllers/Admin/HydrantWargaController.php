@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Hydrant;
 use App\Models\HydrantWarga;
+use App\Traits\ResolvesFacilityJurisdiction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -19,12 +20,17 @@ use Inertia\Inertia;
  * kelas induk — mengikuti pola CRUD fasilitas yang sudah ada di repo ini. Yang TIDAK
  * diduplikasi: komponen React-nya (satu form, dua route, dibedakan prop `variant`).
  *
- * Beda nyata dari kembarannya hanya SATU: di sini `debit_lpm` WAJIB diisi, karena rekap
- * "berapa total debit air di desa ini" (`Admin\PompaController::debitSummary`) berdiri di atas
- * kelengkapan data ini. Untuk hydrant resmi angkanya dipegang PDAM, jadi di sana opsional.
+ * Sejak 2026-08-21 (permintaan user) kosakata formnya BEDA dari hydrant resmi, bukan sekadar
+ * beda wajib/opsional: `type` = Sumber Air (Tandon/Groundtank, bukan konstruksi Stick/Jongkok),
+ * `status` = sudah/belum dimodifikasi (bukan Aktif/Perbaikan), `water_pressure` tidak ada, dan
+ * angka airnya `capacity_liter` (simpanan, liter) bukan `debit_lpm` (aliran, liter/menit).
+ * Alasan tiap perubahan ada di migrasi 2026_08_21_100000. `capacity_liter` WAJIB karena rekap
+ * air per desa (`Admin\PompaController::waterSummary`) berdiri di atas kelengkapan data ini.
  */
 class HydrantWargaController extends Controller
 {
+    use ResolvesFacilityJurisdiction;
+
     public function index(Request $request)
     {
         $query = HydrantWarga::query();
@@ -95,12 +101,7 @@ class HydrantWargaController extends Controller
     {
         $validated = $this->validateData($request);
 
-        $user = auth()->user();
-        $validated['city_code'] = $user->city_code ?? $request->city_code;
-        $validated['district_code'] = $user->district_code ?? $request->district_code;
-        $validated['village_code'] = $user->village_code ?? $request->village_code;
-
-        HydrantWarga::create($validated);
+        HydrantWarga::create($this->withJurisdictionCodes($validated, $request));
 
         return redirect()->route('admin.hydrant-warga.index')->with('success', 'Hydrant warga berhasil ditambahkan.');
     }
@@ -152,12 +153,7 @@ class HydrantWargaController extends Controller
     {
         $validated = $this->validateData($request);
 
-        $user = auth()->user();
-        $validated['city_code'] = $user->city_code ?? $request->city_code;
-        $validated['district_code'] = $user->district_code ?? $request->district_code;
-        $validated['village_code'] = $user->village_code ?? $request->village_code;
-
-        $hydrant_warga->update($validated);
+        $hydrant_warga->update($this->withJurisdictionCodes($validated, $request));
 
         return redirect()->route('admin.hydrant-warga.index')->with('success', 'Data hydrant warga berhasil diperbarui.');
     }
@@ -174,12 +170,9 @@ class HydrantWargaController extends Controller
         return $request->validate([
             'name' => 'required|string|max:255',
             'address' => 'required|string',
-            'status' => 'required|in:Aktif,Perbaikan',
-            'type' => 'required|in:Stick,Jongkok',
-            // Daftar nilainya sengaja dirujuk dari Hydrant, bukan disalin — dua tabel boleh
-            // terpisah, tapi kosakata kondisi airnya harus tetap satu.
-            'water_pressure' => ['nullable', Rule::in(Hydrant::WATER_PRESSURES)],
-            'debit_lpm' => 'required|integer|min:0',
+            'status' => ['required', Rule::in(HydrantWarga::STATUSES)],
+            'type' => ['required', Rule::in(HydrantWarga::WATER_SOURCES)],
+            'capacity_liter' => 'required|integer|min:0',
             'description' => 'nullable|string',
             'lat' => 'required|numeric',
             'lng' => 'required|numeric',
@@ -187,7 +180,8 @@ class HydrantWargaController extends Controller
             'district_code' => 'nullable|string',
             'village_code' => 'nullable|string',
         ], [
-            'debit_lpm.required' => 'Debit air wajib diisi — angka ini dipakai menghitung total debit air per desa.',
+            'type.required' => 'Sumber air wajib dipilih.',
+            'capacity_liter.required' => 'Kapasitas volume wajib diisi — angka ini dipakai menghitung total simpanan air per desa.',
         ]);
     }
 

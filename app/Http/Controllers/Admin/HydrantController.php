@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Hydrant;
 use App\Models\HydrantWarga;
+use App\Traits\ResolvesFacilityJurisdiction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -12,6 +13,8 @@ use Inertia\Inertia;
 
 class HydrantController extends Controller
 {
+    use ResolvesFacilityJurisdiction;
+
     public function index(Request $request)
     {
         $query = Hydrant::query();
@@ -82,12 +85,7 @@ class HydrantController extends Controller
     {
         $validated = $this->validateData($request);
 
-        $user = auth()->user();
-        $validated['city_code'] = $user->city_code ?? $request->city_code;
-        $validated['district_code'] = $user->district_code ?? $request->district_code;
-        $validated['village_code'] = $user->village_code ?? $request->village_code;
-
-        Hydrant::create($validated);
+        Hydrant::create($this->withJurisdictionCodes($validated, $request));
 
         return redirect()->route('admin.hydrants.index')->with('success', 'Hydrant berhasil ditambahkan.');
     }
@@ -139,12 +137,7 @@ class HydrantController extends Controller
     {
         $validated = $this->validateData($request);
 
-        $user = auth()->user();
-        $validated['city_code'] = $user->city_code ?? $request->city_code;
-        $validated['district_code'] = $user->district_code ?? $request->district_code;
-        $validated['village_code'] = $user->village_code ?? $request->village_code;
-
-        $hydrant->update($validated);
+        $hydrant->update($this->withJurisdictionCodes($validated, $request));
 
         return redirect()->route('admin.hydrants.index')->with('success', 'Data Hydrant berhasil diperbarui.');
     }

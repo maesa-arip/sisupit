@@ -71,7 +71,10 @@ const SelectContent = React.forwardRef(({ className, children, position = 'poppe
 		<SelectPrimitive.Content
 			ref={ref}
 			className={cn(
-				'relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+				// `flex flex-col` WAJIB: Radix memberi Viewport `flex: 1` + `overflow: hidden auto`.
+				// Tanpa induk flex, properti itu mati — daftar tumbuh melewati `max-h-96` lalu
+				// terpotong `overflow-hidden` tanpa bisa di-scroll.
+				'relative z-50 flex max-h-96 min-w-[8rem] flex-col overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
 				position === 'popper' &&
 					'data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1',
 				className,
@@ -83,8 +86,11 @@ const SelectContent = React.forwardRef(({ className, children, position = 'poppe
 			<SelectPrimitive.Viewport
 				className={cn(
 					'p-1',
-					position === 'popper' &&
-						'h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]',
+					// TANPA `h-[var(--radix-select-trigger-height)]`: itu memaksa area daftar setinggi
+					// TRIGGER (mis. 40px) — hanya ~1 opsi yang terlihat, dan Radix menyembunyikan
+					// scrollbar-nya sehingga daftar terbaca "kosong". Tinggi cukup dibatasi
+					// `max-h-96` milik Content.
+					position === 'popper' && 'w-full min-w-[var(--radix-select-trigger-width)]',
 				)}
 			>
 				{children}

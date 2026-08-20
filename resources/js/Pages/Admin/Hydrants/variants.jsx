@@ -1,3 +1,4 @@
+import { Button } from '@/Components/ui/button';
 import { Link } from '@inertiajs/react';
 
 /**
@@ -15,7 +16,9 @@ import { Link } from '@inertiajs/react';
  */
 export const HYDRANT_VARIANTS = {
 	resmi: {
-		tab: 'Hydrant Resmi',
+		// "Hydrant" saja, bukan "Hydrant Resmi" (permintaan user 2026-08-20): kata "Resmi"
+		// hanya punya arti sebagai lawan kata "Warga", dan itu sudah dibawa tombol di sebelahnya.
+		tab: 'Hydrant',
 		blurb: 'Hydrant milik instansi/PDAM. Tampil di halaman publik Lokasi Hydrant.',
 		head: 'Manajemen Hydrant',
 		title: 'Manajemen Jaringan Hydrant',
@@ -27,8 +30,20 @@ export const HYDRANT_VARIANTS = {
 		editHead: 'Edit Hydrant',
 		editTitle: 'Perbarui Data Hydrant',
 		editSubtitle: 'Koreksi data teknis & titik koordinat hydrant.',
-		// Debit air opsional: hydrant resmi milik PDAM/instansi, angkanya dipegang mereka.
-		debitRequired: false,
+		typeLabel: 'Konstruksi',
+		typePlaceholder: 'Pilih Jenis',
+		typeOptions: ['Stick', 'Jongkok'],
+		typeDefault: 'Stick',
+		statusOptions: ['Aktif', 'Perbaikan'],
+		statusDefault: 'Aktif',
+		// Tekanan air = sifat jaringan pipa bertekanan, jadi hanya relevan di sini.
+		showWaterPressure: true,
+		waterField: 'debit_lpm',
+		waterLabel: 'Debit Air',
+		waterUnit: '(liter/menit)',
+		waterPlaceholder: 'Misal: 500',
+		// Opsional: hydrant resmi milik PDAM/instansi, angkanya dipegang mereka.
+		waterRequired: false,
 		routes: {
 			index: 'admin.hydrants.index',
 			create: 'admin.hydrants.create',
@@ -40,10 +55,10 @@ export const HYDRANT_VARIANTS = {
 	},
 	warga: {
 		tab: 'Hydrant Warga',
-		blurb: 'Hydrant swadaya banjar/desa. Dibaca di menu SKKL dan ikut dihitung sebagai debit air desa — bukan di halaman Lokasi Hydrant.',
+		blurb: 'Tandon/groundtank swadaya banjar/desa. Dibaca di menu SKKL dan ikut dihitung sebagai simpanan air desa — bukan di halaman Lokasi Hydrant.',
 		head: 'Manajemen Hydrant Warga',
 		title: 'Manajemen Hydrant Warga',
-		subtitle: 'Hydrant swadaya banjar/desa — ikut dihitung sebagai debit air SKKL.',
+		subtitle: 'Tandon/groundtank swadaya banjar/desa — ikut dihitung sebagai simpanan air SKKL.',
 		addLabel: 'Tambah Hydrant Warga',
 		createHead: 'Registrasi Hydrant Warga',
 		createTitle: 'Registrasi Hydrant Warga',
@@ -51,9 +66,27 @@ export const HYDRANT_VARIANTS = {
 		editHead: 'Edit Hydrant Warga',
 		editTitle: 'Perbarui Data Hydrant Warga',
 		editSubtitle: 'Koreksi data teknis & titik koordinat hydrant warga.',
-		// Debit air WAJIB: rekap "berapa total debit air di desa ini" berdiri di atas
-		// kelengkapan data ini, dan satu baris kosong sudah cukup membuat totalnya menyesatkan.
-		debitRequired: true,
+		// Kosakata hydrant warga BEDA dari hydrant resmi sejak 2026-08-21 (permintaan user),
+		// bukan cuma beda wajib/opsional — alasan tiap perubahan ada di migrasi
+		// `2026_08_21_100000_reshape_hydrant_warga_water_fields.php`. Ringkasnya: yang didata
+		// di sini bukan hydrant jalanan bertekanan, melainkan tandon/groundtank swadaya.
+		typeLabel: 'Sumber Air',
+		typePlaceholder: 'Pilih Sumber Air',
+		typeOptions: ['Tandon', 'Groundtank'],
+		// Tanpa nilai awal: bentuk tandon tidak bisa ditebak, dan default yang diam-diam
+		// tersimpan menghasilkan data yang tak pernah dilihat petugas.
+		typeDefault: '',
+		statusOptions: ['Belum Modifikasi', 'Sudah Modifikasi'],
+		statusDefault: 'Belum Modifikasi',
+		// Tandon berisi air diam — tak ada tekanan yang bisa dinilai.
+		showWaterPressure: false,
+		waterField: 'capacity_liter',
+		waterLabel: 'Kapasitas Volume',
+		waterUnit: '(liter)',
+		waterPlaceholder: 'Misal: 5000',
+		// WAJIB: rekap "berapa simpanan air di desa ini" berdiri di atas kelengkapan data ini,
+		// dan satu baris kosong sudah cukup membuat totalnya menyesatkan.
+		waterRequired: true,
 		routes: {
 			index: 'admin.hydrant-warga.index',
 			create: 'admin.hydrant-warga.create',
@@ -68,14 +101,17 @@ export const HYDRANT_VARIANTS = {
 export const hydrantVariant = (variant) => HYDRANT_VARIANTS[variant] ?? HYDRANT_VARIANTS.resmi;
 
 /**
- * Dua pill pemilih jenis hydrant. Bentuk final setelah dua kali revisi (user, 2026-08-19):
+ * Dua tombol pemilih jenis hydrant. Bentuk final setelah tiga kali revisi:
  *
  *   v1 kecil & yang non-aktif TRANSPARAN → gagal: yang non-aktif terbaca sebagai teks biasa,
  *      jadi pengguna tak sadar ada tombol kedua sama sekali.
  *   v2 tab selebar konten dua baris → gagal ke arah sebaliknya: terlalu besar.
- *   v3 (ini) dua pill ringkas yang KEDUANYA TERISI warna — hijau = sedang dibuka, abu = bisa
- *      diklik. Kuncinya bukan ukuran, melainkan kontras: pill abu yang terisi langsung terbaca
- *      sebagai tombol, sedangkan latar transparan tidak.
+ *   v3 dua pill `rounded-full` yang keduanya terisi warna — kontrasnya benar, bentuknya yang
+ *      tidak: pill bundar itu satu-satunya di halaman admin dan jadi terbaca sebagai chip
+ *      filter, bukan perpindahan halaman.
+ *   v4 (ini, permintaan user 2026-08-20) memakai <Button> yang sama persis dengan tombol
+ *      "Hydrant Warga" & "Tambah Aset SKKL" di /admin/pumps — sudut `rounded-md`, tinggi `sm`.
+ *      Halaman ini dan SKKL saling merujuk terus-menerus, jadi tombolnya wajib sebentuk.
  *
  * `counts` ditempel inline dalam kurung, bukan sebagai baris kedua — menambah informasi
  * "ini dua kumpulan data" tanpa menambah tinggi.
@@ -89,19 +125,22 @@ export function HydrantTabs({ active, counts = {}, target = 'index' }) {
 					const count = counts?.[key];
 
 					return (
-						<Link
+						<Button
 							key={key}
-							href={route(config.routes[target])}
-							aria-current={isActive ? 'page' : undefined}
-							className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
+							size="sm"
+							variant={isActive ? 'default' : 'secondary'}
+							className={
 								isActive
-									? 'bg-teal-600 text-white shadow-sm hover:bg-teal-700 dark:bg-teal dark:hover:bg-teal/90'
-									: 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
-							}`}
+									? 'border-none bg-teal-600 text-white shadow-none hover:bg-teal-700 dark:bg-teal dark:hover:bg-teal/90'
+									: undefined
+							}
+							asChild
 						>
-							{config.tab}
-							{count !== undefined && ` (${count})`}
-						</Link>
+							<Link href={route(config.routes[target])} aria-current={isActive ? 'page' : undefined}>
+								{config.tab}
+								{count !== undefined && ` (${count})`}
+							</Link>
+						</Button>
 					);
 				})}
 			</div>

@@ -8,9 +8,10 @@ import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
-import { facilityStatusLabel, MAP_TILE_URL } from '@/lib/utils';
+import { facilityStatusLabel, jurisdictionMismatch, MAP_TILE_URL } from '@/lib/utils';
 import { Head, Link, useForm } from '@inertiajs/react';
 import {
+	IconAlertTriangle,
 	IconArrowLeft,
 	IconArrowsMove,
 	IconCurrentLocation,
@@ -94,6 +95,10 @@ export default function Edit({
 	const [searchQuery, setSearchQuery] = useState('');
 	const [searchResults, setSearchResults] = useState([]);
 	const [isSearching, setIsSearching] = useState(false);
+	// Reverse-geocode butuh >1 detik (Nominatim di-rate-limit). Tanpa penanda ini, menggeser
+	// pin terasa seolah tidak terjadi apa-apa sampai Area Yurisdiksi tiba-tiba berubah.
+	const [isDetecting, setIsDetecting] = useState(false);
+	const [jurisdictionWarning, setJurisdictionWarning] = useState(null);
 
 	const [dynamicCities, setDynamicCities] = useState(cities || []);
 	const [dynamicDistricts, setDynamicDistricts] = useState(districts || []);
@@ -160,6 +165,8 @@ export default function Edit({
 	}, []);
 
 	const updateLocationData = async (lat, lng, customSearchText = null) => {
+		setIsDetecting(true);
+		setJurisdictionWarning(null);
 		try {
 			const response = await fetch(route('api.geocode.reverse', { lat, lng }));
 			const result = await response.json();
@@ -211,6 +218,16 @@ export default function Edit({
 				];
 
 				const osmNames = rawOsmNames.filter((n) => n && !n.toLowerCase().includes('no name'));
+
+				// Level yang sudah jadi wewenang admin TIDAK ikut berpindah saat pin digeser
+				// (nilainya diambil dari akun, bukan dari peta) — jadi tanpa pemeriksaan ini
+				// pin bisa melewati batas kota tanpa satu pun tanda. Lihat jurisdictionMismatch().
+				const mismatch = jurisdictionMismatch(osmNames, admin_level, admin_region_names);
+				setJurisdictionWarning(mismatch);
+				if (mismatch) {
+					toast.warning(`Titik ini terdeteksi di luar ${mismatch.level} ${mismatch.name}.`);
+				}
+
 				const removeWords = [
 					'provinsi',
 					'prov',
@@ -261,7 +278,13 @@ export default function Edit({
 				village_code: vCode,
 			}));
 		} catch (error) {
+			// Dulu kegagalan ini ditelan diam-diam: koordinat berpindah, Area Yurisdiksi diam,
+			// dan tak ada yang tahu kenapa. Sekarang dikatakan apa adanya.
+			console.error('Gagal reverse geocoding:', error);
+			toast.error('Gagal mendeteksi wilayah dari titik ini. Isi Area Yurisdiksi secara manual.');
 			setData((current) => ({ ...current, lat: lat.toFixed(6), lng: lng.toFixed(6) }));
+		} finally {
+			setIsDetecting(false);
 		}
 	};
 
@@ -427,10 +450,28 @@ export default function Edit({
 								<div className="flex flex-col gap-4 rounded-lg border border-border bg-accent/30 p-4">
 									<h4 className="flex items-center justify-between text-xs font-bold uppercase text-muted-foreground">
 										Area Yurisdiksi{' '}
-										<span className="rounded-full bg-teal-100 px-2 py-0.5 text-[10px] text-teal-700 dark:bg-teal/10 dark:text-teal">
-											Auto-detected
-										</span>
+										{isDetecting ? (
+											<span className="flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold normal-case text-muted-foreground">
+												<IconLoader2 className="h-3 w-3 animate-spin" /> Mendeteksi wilayah...
+											</span>
+										) : (
+											<span className="rounded-full bg-teal-100 px-2 py-0.5 text-[10px] text-teal-700 dark:bg-teal/10 dark:text-teal">
+												Auto-detected
+											</span>
+										)}
 									</h4>
+
+									{jurisdictionWarning && (
+										<div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-2.5 text-destructive">
+											<IconAlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+											<p className="text-[11px] font-medium leading-relaxed">
+												Titik pin terdeteksi di luar {jurisdictionWarning.level} wilayah tugas
+												Anda ({jurisdictionWarning.name}). Data tetap akan tersimpan atas nama
+												wilayah Anda — geser pin kembali ke dalam wilayah tugas, atau abaikan
+												pesan ini bila lokasinya memang sudah benar.
+											</p>
+										</div>
+									)}
 
 									<div className="grid gap-1.5">
 										{admin_level?.province_code ? (
@@ -652,7 +693,10 @@ export default function Edit({
 				</div>
 
 				<div className="relative flex h-[500px] w-full flex-col overflow-hidden rounded-2xl border bg-accent lg:h-[calc(100vh-140px)] lg:flex-1">
-					<div className="pointer-events-none absolute left-1/2 top-4 z-[400] -translate-x-1/2">
+					{/* z-10 (bukan z-[400]): peta di bawahnya sudah ber-`z-0` sehingga selisih ini
+					    cukup. Nilai 400 dulu menembus SEMUA lapisan halaman — header sticky
+					    (z-40) dan dialog Radix (z-50) ikut tertimpa chip ini. */}
+					<div className="pointer-events-none absolute left-1/2 top-4 z-10 -translate-x-1/2">
 						<div className="flex items-center gap-2 rounded-full border border-border bg-background/80 px-4 py-2 shadow-sm backdrop-blur-md">
 							<IconArrowsMove className="h-4 w-4 text-teal-600 dark:text-teal" />
 							<span className="text-xs font-medium text-foreground">
