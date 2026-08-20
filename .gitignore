@@ -25,3 +25,8 @@ yarn-error.log
 # Dokumen bisnis draft (kontrak PKS) — jangan masuk repo/riwayat git
 /Kontrak_Sisupit_Damkar_Denpasar*.docx
 /Kontrak_Sisupit_Damkar_Denpasar*.pdf
+
+# Rekaman video panduan alur (61 MB, dibuat lokal 2026-07-31). SENGAJA di luar git:
+# deploy ketiga environment memakai `git pull`, jadi berkas sebesar ini akan ikut
+# terunduh ke server tanpa pernah dipakai di sana. Simpan/bagikan lewat Drive.
+/docs/video/
