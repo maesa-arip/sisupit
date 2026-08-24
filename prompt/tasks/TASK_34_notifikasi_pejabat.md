@@ -7,7 +7,7 @@
 | Severity | P2 |
 | Tipe | fitur kecil + bugfix |
 | Sumber | permintaan user 2026-08-25 ("cek notifikasi broadcast pada pejabat" → "buat agar pejabat juga dapat notif saat admin broadcast, dan buat seperti relawan ada mode stand by untuk mendapat notif serta perbaiki channel real-time nya") |
-| Status | DONE (kode) — sisa verifikasi manual §6 |
+| Status | DONE (kode) — TERDEPLOY 2026-08-25 @66d4cbca ke prod/staging/dev; sisa verifikasi manual §6 |
 
 ---
 
@@ -98,6 +98,12 @@ detail insiden — tapi **tidak pernah diberi tahu apa pun**. Tiga hal yang dimi
       (3 — pejabat & relawan boleh menoggle siaga, admin 403)
 - [x] Test sesudah: **260 passed (1004 assertions)**
 - [x] `npm run build` lulus (client + SSR); Pint & Prettier bersih
+- [x] Deploy 2026-08-25 @`66d4cbca` ke prod/staging/dev (`git pull --ff-only`, tanpa migrasi
+      karena `users.is_standby` sudah ada). `bootstrap/cache/` ketiga env TIDAK memuat
+      `routes-*.php`, jadi route baru `profile.standby` langsung terpakai tanpa `route:cache`
+      ulang — **periksa ini tiap kali sebuah deploy mengubah `routes/`**. Ketiga domain 200,
+      `reverb.service` aktif, 4 proses `queue:work` jalan (wajib: notifikasinya `ShouldQueue`).
+      Produksi punya **3 akun pejabat, ketiganya siaga aktif** → mulai menerima siaran.
 - [ ] **Verifikasi manual (SISA):**
   1. Login pejabat kota → dashboard menampilkan kartu "Mode Kesiapan" (merah = siaga aktif);
      admin/superadmin TIDAK melihat kartu ini.

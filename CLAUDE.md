@@ -51,6 +51,11 @@ Task aktif   : TASK_34 (prompt/tasks/TASK_34_notifikasi_pejabat.md) — SELESAI 
                 Notifikasinya PERSIS milik petugas (EmergencyAlertNotification, sirine ikut),
                 pembedanya cuma `user_role: 'pejabat'` di payload FCM — keputusan user.
                 Test 251 → 260 passed (1004 assertions), npm run build lulus.
+                TERDEPLOY 2026-08-25 @66d4cbca ke prod/staging/dev. TANPA migrasi (kolom
+                is_standby sudah ada); route cache TIDAK aktif di server jadi route baru
+                langsung terpakai — tetap periksa bootstrap/cache/routes-*.php tiap kali
+                sebuah deploy mengubah routes/. Produksi punya 3 akun pejabat, ketiganya
+                siaga aktif → mulai menerima siaran.
                 SISA: verifikasi manual per peran (§6 file task), termasuk memastikan wrapper
                 Android/iOS tidak tersandung nilai user_role baru.
                TASK_33 (prompt/tasks/TASK_33_hydrant_warga_sumber_air.md) — SELESAI (kode)
