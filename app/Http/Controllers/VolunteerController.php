@@ -31,21 +31,6 @@ class VolunteerController extends Controller
     }
 
     /**
-     * Toggle status siaga relawan. Saat nonaktif, relawan tidak disiarkan
-     * notifikasi insiden (lihat ReportActionController::approve).
-     */
-    public function toggleStandby(Request $request): RedirectResponse
-    {
-        $user = $request->user();
-
-        abort_unless($user->hasRole('relawan'), 403);
-
-        $user->update(['is_standby' => ! $user->is_standby]);
-
-        return back();
-    }
-
-    /**
      * Perbarui daftar keahlian relawan. Hanya menerima nilai dari master
      * keahlian (Skill::options()) agar badge di daftar relawan tetap konsisten.
      */
@@ -65,7 +50,7 @@ class VolunteerController extends Controller
         // values() agar tersimpan sebagai array terindeks (bukan object) di JSON.
         $user->update(['skills' => array_values(array_unique($validated['skills']))]);
 
-        // Konsisten dengan register()/toggleStandby(): toast ditangani frontend.
+        // Konsisten dengan register()/ProfileController::toggleStandby(): toast ditangani frontend.
         return back();
     }
 }

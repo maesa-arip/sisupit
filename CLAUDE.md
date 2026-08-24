@@ -24,7 +24,36 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : TASK_33 (prompt/tasks/TASK_33_hydrant_warga_sumber_air.md) — SELESAI (kode)
+Task aktif   : TASK_34 (prompt/tasks/TASK_34_notifikasi_pejabat.md) — SELESAI (kode)
+                2026-08-25. Temuan #77: peran `pejabat` TIDAK PERNAH menerima notifikasi apa
+                pun — keempat jalur notif (laporan masuk, broadcast, konfirmasi OPD, notif
+                pelapor) tak satu pun menyebutnya, jadi lonceng webnya selalu kosong tanpa
+                gejala. Penyaringan peran ada di PEMANGGIL (`User::role('petugas'|'relawan')`),
+                bukan di scopeNotifiableForReport — scope-nya sendiri sudah siap melayani
+                pejabat lewat User::STAFF_ROLES. Akar kedua: routes/channels.php masih
+                `['admin','superadmin','petugas']` padahal #41 sudah membuka halaman detail
+                insiden untuk pejabat → halamannya terbuka tapi badge status & marker responder
+                DIAM (satu-satunya jejak: /broadcasting/auth 403). Ini kekambuhan bentuk #41;
+                saat menambah peran ke sebuah kemampuan, telusuri SEMUA gerbangnya (halaman,
+                channel, notifikasi, navigasi). Fix: blok penerima ketiga di approve() dengan
+                kunci setting SENDIRI `Setting::KEY_NOTIFY_LEVEL_PEJABAT` (default KABUPATEN —
+                sengaja terpisah supaya menurunkan jangkauan petugas tak diam-diam memutus
+                pejabat; dropdown ketiga di /admin/settings), `pejabat` masuk $isStaff di
+                channels.php (tetap dikunci withinReportJurisdiction → #31 utuh), dan mode
+                siaga dibuka untuk pejabat lewat konstanta BARU `User::STANDBY_ROLES`
+                (['relawan','pejabat']) — TANPA migrasi, kolom `users.is_standby` sudah ada di
+                semua baris dengan default true. `toggleStandby` PINDAH dari VolunteerController
+                ke ProfileController, route `volunteer.standby` → `profile.standby` (pejabat
+                mem-POST ke endpoint bernama "volunteer" akan terbaca sebagai bug); jangan buat
+                alias nama lama. Admin & petugas SENGAJA tidak diberi saklar siaga — mematikan
+                notifikasi Pusat Komando berarti laporan warga menganggur tanpa ada yang tahu.
+                Kartu "Mode Kesiapan" di Admin/Dashboard.jsx meniru persis kartu relawan.
+                Notifikasinya PERSIS milik petugas (EmergencyAlertNotification, sirine ikut),
+                pembedanya cuma `user_role: 'pejabat'` di payload FCM — keputusan user.
+                Test 251 → 260 passed (1004 assertions), npm run build lulus.
+                SISA: verifikasi manual per peran (§6 file task), termasuk memastikan wrapper
+                Android/iOS tidak tersandung nilai user_role baru.
+               TASK_33 (prompt/tasks/TASK_33_hydrant_warga_sumber_air.md) — SELESAI (kode)
                 2026-08-21. Satu pesan user, empat permintaan, SEMUANYA hanya di hydrant warga
                 (`hydrant_wargas`) — tabel `hydrants` tidak disentuh sedikit pun.
                 (1) "Konstruksi" (Stick/Jongkok) → "Sumber Air" (Tandon/Groundtank; user menulis
@@ -322,7 +351,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-08-21: 251 passed, 984 assertions —
+Test      : php artisan test            (baseline 2026-08-25: 260 passed, 1004 assertions —
             angka lama "65 passed, 164 assertions" per 2026-06-25 sudah jauh tertinggal)
 Run (dev) : composer dev
 Lint      : vendor/bin/pint  /  npm run format (auto-fix, BUKAN check-only — tidak ada di CI)

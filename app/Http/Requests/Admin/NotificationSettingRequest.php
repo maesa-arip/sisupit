@@ -26,6 +26,7 @@ class NotificationSettingRequest extends FormRequest
         return [
             'notify_level_petugas' => ['required', Rule::enum(TenantLevel::class)],
             'notify_level_relawan' => ['required', Rule::enum(TenantLevel::class)],
+            'notify_level_pejabat' => ['required', Rule::enum(TenantLevel::class)],
         ];
     }
 
@@ -34,6 +35,7 @@ class NotificationSettingRequest extends FormRequest
         return [
             'notify_level_petugas' => 'Tingkat Siaran Petugas',
             'notify_level_relawan' => 'Tingkat Siaran Relawan',
+            'notify_level_pejabat' => 'Tingkat Siaran Pejabat',
         ];
     }
 }

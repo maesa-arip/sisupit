@@ -224,7 +224,9 @@ Route::middleware(['auth'])->controller(ProfileController::class)->group(functio
     Route::get('/complete-profile', 'completeProfile')->name('profile.complete');
     Route::post('/complete-profile', 'storeCompleteProfile')->name('profile.complete.store');
     Route::post('/volunteer/register', [VolunteerController::class, 'register'])->name('volunteer.register');
-    Route::post('/volunteer/standby', [VolunteerController::class, 'toggleStandby'])->name('volunteer.standby');
+    // Siaga notifikasi dipakai relawan DAN pejabat (User::STANDBY_ROLES) — karena itu ada di
+    // ProfileController, bukan VolunteerController.
+    Route::post('profile/standby', 'toggleStandby')->name('profile.standby');
     Route::post('/volunteer/skills', [VolunteerController::class, 'updateSkills'])->name('volunteer.skills');
 });
 

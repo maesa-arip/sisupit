@@ -26,6 +26,7 @@ class SettingController extends Controller
             'settings' => [
                 'notify_level_petugas' => Setting::getValue(Setting::KEY_NOTIFY_LEVEL_PETUGAS, TenantLevel::KABUPATEN->value),
                 'notify_level_relawan' => Setting::getValue(Setting::KEY_NOTIFY_LEVEL_RELAWAN, TenantLevel::DESA->value),
+                'notify_level_pejabat' => Setting::getValue(Setting::KEY_NOTIFY_LEVEL_PEJABAT, TenantLevel::KABUPATEN->value),
             ],
         ]);
     }
@@ -35,6 +36,7 @@ class SettingController extends Controller
         try {
             Setting::setValue(Setting::KEY_NOTIFY_LEVEL_PETUGAS, $request->notify_level_petugas);
             Setting::setValue(Setting::KEY_NOTIFY_LEVEL_RELAWAN, $request->notify_level_relawan);
+            Setting::setValue(Setting::KEY_NOTIFY_LEVEL_PEJABAT, $request->notify_level_pejabat);
             flashMessage(MessageType::UPDATED->message('Pengaturan notifikasi'));
         } catch (Throwable $e) {
             flashMessage(MessageType::ERROR->message(error: $e->getMessage()), 'error');

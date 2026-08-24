@@ -14,6 +14,7 @@ export default function Edit(props) {
 	const { data, setData, put, processing, errors } = useForm({
 		notify_level_petugas: props.settings.notify_level_petugas,
 		notify_level_relawan: props.settings.notify_level_relawan,
+		notify_level_pejabat: props.settings.notify_level_pejabat,
 	});
 
 	const onHandleSubmit = (e) => {
@@ -63,8 +64,8 @@ export default function Edit(props) {
 					<form className="space-y-6" onSubmit={onHandleSubmit}>
 						<p className="text-sm text-muted-foreground">
 							Notifikasi laporan selalu dimulai dari desa lokasi laporan, lalu disiarkan naik ke tingkat
-							di atasnya sampai batas yang dipilih di sini. Petugas dan relawan bisa diatur dengan batas
-							yang berbeda.
+							di atasnya sampai batas yang dipilih di sini. Petugas, relawan, dan pejabat bisa diatur
+							dengan batas yang berbeda.
 						</p>
 						{renderLevelSelect(
 							'notify_level_petugas',
@@ -75,6 +76,11 @@ export default function Edit(props) {
 							'notify_level_relawan',
 							'Tingkat Siaran Relawan',
 							errors.notify_level_relawan,
+						)}
+						{renderLevelSelect(
+							'notify_level_pejabat',
+							'Tingkat Siaran Pejabat',
+							errors.notify_level_pejabat,
 						)}
 						<div className="flex justify-end gap-x-2">
 							<Button type="submit" variant="orange" size="sm" disabled={processing}>

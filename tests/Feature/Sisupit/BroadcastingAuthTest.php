@@ -116,3 +116,30 @@ it('authorizes a volunteer registered on the report', function () {
         ])
         ->assertOk();
 });
+
+// Pejabat sudah boleh MEMBUKA halaman detail insiden di wilayahnya sejak #41, tapi tak pernah
+// diizinkan masuk channel-nya — halamannya terbuka sementara badge status & marker responder
+// diam, tanpa gejala lain. Gerbangnya kini persis sama dengan gerbang halaman: peran + wilayah.
+it('authorizes a pejabat in the report region on the tracking channel', function () {
+    $pejabat = User::factory()->create(['city_code' => '5171']);
+    $pejabat->assignRole('pejabat');
+
+    $this->actingAs($pejabat)
+        ->post('/broadcasting/auth', [
+            'socket_id' => '1234.5678',
+            'channel_name' => 'private-report-tracking.'.$this->report->id,
+        ])
+        ->assertOk();
+});
+
+it('rejects a pejabat from another region on the tracking channel', function () {
+    $pejabatLuar = User::factory()->create(['city_code' => '3171']);
+    $pejabatLuar->assignRole('pejabat');
+
+    $this->actingAs($pejabatLuar)
+        ->post('/broadcasting/auth', [
+            'socket_id' => '1234.5678',
+            'channel_name' => 'private-report-tracking.'.$this->report->id,
+        ])
+        ->assertForbidden();
+});

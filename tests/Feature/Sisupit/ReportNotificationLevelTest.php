@@ -159,3 +159,73 @@ it('restricts the notification settings page to superadmin, not regional admin',
     $this->actingAs($admin)->get('/admin/settings')->assertForbidden();
     $this->actingAs($this->approver)->get('/admin/settings')->assertOk();
 });
+
+// Pejabat dulu TIDAK PERNAH diberi tahu apa pun: approve() hanya menyiarkan ke petugas &
+// relawan, sehingga lonceng web pejabat selalu kosong walau halaman detail insiden sudah
+// dibuka untuknya sejak #41. Empat test di bawah menjaga ketiga sisi perbaikannya:
+// ikut disiarkan, punya saklar siaga sendiri, dan punya tingkat siaran TERPISAH dari petugas.
+it('includes pejabat in the broadcast at their own kabupaten ceiling', function () {
+    Notification::fake();
+
+    $kota = User::factory()->create(['city_code' => '5171']);
+    $kota->assignRole('pejabat');
+
+    $kotaLain = User::factory()->create(['city_code' => '5172']);
+    $kotaLain->assignRole('pejabat');
+
+    $this->actingAs($this->approver)->post("/reports/{$this->report->id}/approve")->assertRedirect();
+
+    Notification::assertSentTo($kota, \App\Notifications\EmergencyAlertNotification::class);
+    Notification::assertNotSentTo($kotaLain, \App\Notifications\EmergencyAlertNotification::class);
+});
+
+it('excludes pejabat who turned off siaga from the notification broadcast', function () {
+    Notification::fake();
+
+    $siaga = User::factory()->create(['city_code' => '5171']);
+    $siaga->assignRole('pejabat');
+
+    $nonaktif = User::factory()->create(['city_code' => '5171', 'is_standby' => false]);
+    $nonaktif->assignRole('pejabat');
+
+    $this->actingAs($this->approver)->post("/reports/{$this->report->id}/approve")->assertRedirect();
+
+    Notification::assertSentTo($siaga, \App\Notifications\EmergencyAlertNotification::class);
+    Notification::assertNotSentTo($nonaktif, \App\Notifications\EmergencyAlertNotification::class);
+});
+
+// Tingkat siaran pejabat SENGAJA punya kuncinya sendiri: menurunkan jangkauan petugas
+// tidak boleh diam-diam ikut memutus notifikasi pejabat, dan sebaliknya.
+it('keeps the pejabat broadcast ceiling independent from the petugas ceiling', function () {
+    Setting::setValue(Setting::KEY_NOTIFY_LEVEL_PETUGAS, TenantLevel::DESA->value);
+
+    Notification::fake();
+
+    $pejabatKota = User::factory()->create(['city_code' => '5171']);
+    $pejabatKota->assignRole('pejabat');
+
+    $petugasKota = User::factory()->create(['city_code' => '5171']);
+    $petugasKota->assignRole('petugas');
+
+    $this->actingAs($this->approver)->post("/reports/{$this->report->id}/approve")->assertRedirect();
+
+    Notification::assertSentTo($pejabatKota, \App\Notifications\EmergencyAlertNotification::class);
+    Notification::assertNotSentTo($petugasKota, \App\Notifications\EmergencyAlertNotification::class);
+});
+
+it('lets an admin lower the pejabat broadcast ceiling to desa via Setting', function () {
+    Setting::setValue(Setting::KEY_NOTIFY_LEVEL_PEJABAT, TenantLevel::DESA->value);
+
+    Notification::fake();
+
+    $pejabatKota = User::factory()->create(['city_code' => '5171']);
+    $pejabatKota->assignRole('pejabat');
+
+    $pejabatDesa = User::factory()->create(['village_code' => '5171012006']);
+    $pejabatDesa->assignRole('pejabat');
+
+    $this->actingAs($this->approver)->post("/reports/{$this->report->id}/approve")->assertRedirect();
+
+    Notification::assertSentTo($pejabatDesa, \App\Notifications\EmergencyAlertNotification::class);
+    Notification::assertNotSentTo($pejabatKota, \App\Notifications\EmergencyAlertNotification::class);
+});

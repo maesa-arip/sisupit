@@ -54,6 +54,20 @@ class User extends Authenticatable implements MustVerifyEmail
     public const CENTRALLY_MANAGED_ROLES = [...self::STAFF_ROLES, 'opd'];
 
     /**
+     * Peran yang boleh mematikan/menghidupkan siaganya sendiri lewat `users.is_standby`,
+     * sehingga siaran insiden (ReportActionController::approve) melewatinya saat nonaktif.
+     *
+     * SENGAJA hanya dua: relawan (yang memang tak bertugas 24 jam) dan pejabat (pemantau,
+     * bukan responder — dia tak boleh dibangunkan sirine kalau tak mau). Petugas & admin
+     * TIDAK di sini: mematikan notifikasi Pusat Komando berarti laporan warga bisa menganggur
+     * tanpa ada yang tahu. Kolom `is_standby` ada di semua baris users (default true), jadi
+     * peran di luar daftar ini tetap punya nilainya — daftar inilah yang membuatnya berarti.
+     *
+     * @var list<string>
+     */
+    public const STANDBY_ROLES = ['relawan', 'pejabat'];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>

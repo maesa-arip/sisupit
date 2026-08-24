@@ -56,24 +56,36 @@ class ReportActionController extends Controller
         DB::transaction(function () use ($report) {
             $report->update(['status' => 'pending']);
 
-            // Siaran ke petugas & relawan disiarkan terpisah, masing-masing pakai tingkat
-            // wilayah sendiri (Setting::KEY_NOTIFY_LEVEL_PETUGAS / _RELAWAN), cascade naik dari desa laporan.
+            // Siaran ke petugas, relawan, & pejabat disiarkan terpisah, masing-masing pakai tingkat
+            // wilayah sendiri (Setting::KEY_NOTIFY_LEVEL_PETUGAS / _RELAWAN / _PEJABAT), cascade naik dari desa laporan.
             $petugasCeiling = TenantLevel::from(
                 Setting::getValue(Setting::KEY_NOTIFY_LEVEL_PETUGAS, TenantLevel::KABUPATEN->value)
             );
             $relawanCeiling = TenantLevel::from(
                 Setting::getValue(Setting::KEY_NOTIFY_LEVEL_RELAWAN, TenantLevel::DESA->value)
             );
+            $pejabatCeiling = TenantLevel::from(
+                Setting::getValue(Setting::KEY_NOTIFY_LEVEL_PEJABAT, TenantLevel::KABUPATEN->value)
+            );
 
             $petugasResponders = User::role('petugas')->notifiableForReport($report, $petugasCeiling)->whereNot('id', auth()->id())->get();
             // Relawan yang menonaktifkan siaga tidak ikut disiarkan notifikasi insiden.
             $relawanResponders = User::role('relawan')->where('is_standby', true)->notifiableForReport($report, $relawanCeiling)->whereNot('id', auth()->id())->get();
+            // Pejabat MEMANTAU, tidak merespons — tapi dulu ia satu-satunya peran yang tak pernah
+            // diberi tahu apa pun (bahkan lonceng webnya selalu kosong) walau halaman detail insiden
+            // sudah dibuka untuknya sejak #41. Saklar siaganya sama dengan relawan (User::STANDBY_ROLES).
+            $pejabatWatchers = User::role('pejabat')->where('is_standby', true)->notifiableForReport($report, $pejabatCeiling)->whereNot('id', auth()->id())->get();
 
             if ($petugasResponders->isNotEmpty()) {
                 Notification::send($petugasResponders, new EmergencyAlertNotification($report, 'petugas'));
             }
             if ($relawanResponders->isNotEmpty()) {
                 Notification::send($relawanResponders, new EmergencyAlertNotification($report, 'relawan'));
+            }
+            if ($pejabatWatchers->isNotEmpty()) {
+                // `user_role` di payload FCM sengaja 'pejabat' agar wrapper Android/iOS bisa
+                // membedakan perlakuannya tanpa perubahan server lagi (mis. tak memutar sirine).
+                Notification::send($pejabatWatchers, new EmergencyAlertNotification($report, 'pejabat'));
             }
         });
 

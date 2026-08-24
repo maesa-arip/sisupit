@@ -47,8 +47,9 @@ app/
     InfoController.php          Halaman informasi publik (TASK_19): Syarat & Ketentuan,
                                 Kebijakan Privasi, Pusat Bantuan, Tentang, Paket & Lisensi —
                                 isi statis di React, PIHAK-nya dari tenant + tenants.edition
-    ProfileController.php       Profil user (Breeze + complete-profile + KTP)
-    VolunteerController.php     Self-register relawan + toggle standby
+    ProfileController.php       Profil user (Breeze + complete-profile + KTP) + toggleStandby
+                                 (siaga notifikasi, dipakai relawan & pejabat — User::STANDBY_ROLES)
+    VolunteerController.php     Self-register relawan + keahlian
     ReportHelperController.php  (terpisah dari ReportActionController — lihat catatan risiko)
   Models/        Agency (OPD/instansi terkait — Tenantable+SoftDeletes, TASK_27),
                  ReportAgency (pivot pelibatan OPD↔laporan, TASK_27),
@@ -142,9 +143,12 @@ POST /reports/{id}/approve
   → hasAnyRole(['petugas','admin','superadmin']) check
   → Report::withoutGlobalScopes()->findOrFail($id)   (bypass Tenantable — lihat catatan)
   → DB::transaction: update status 'pending' + hitung cascade wilayah via
-    Setting::KEY_NOTIFY_LEVEL_PETUGAS / _RELAWAN (TenantLevel enum)
-  → User::role('petugas'|'relawan')->notifiableForReport(...)
+    Setting::KEY_NOTIFY_LEVEL_PETUGAS / _RELAWAN / _PEJABAT (TenantLevel enum, tiga kunci
+    TERPISAH — menurunkan jangkauan satu peran tak boleh diam-diam memutus peran lain)
+  → User::role('petugas'|'relawan'|'pejabat')->notifiableForReport(...)
+    relawan & pejabat disaring lagi `where('is_standby', true)` (User::STANDBY_ROLES)
   → Notification::send(..., EmergencyAlertNotification)  (FCM+DB+broadcast; WebPush off)
+    userRole 'petugas'|'relawan'|'pejabat' ikut sebagai `user_role` di payload FCM
 ```
 
 **2. Tracking lokasi real-time**
@@ -163,9 +167,12 @@ POST /broadcasting/auth   (middleware web; didaftarkan lewat `channels:` di boot
   → Illuminate\Broadcasting\BroadcastController@authenticate
   → callback di routes/channels.php:
       private-App.Models.User.{id}      → id cocok dengan user login
-      private-report-tracking.{report}  → pelapor  ATAU  staf (petugas/admin/superadmin)
-                                          yang withinReportJurisdiction()  ATAU  anggota
-                                          report_helpers (relawan yang mengambil tugas)
+      private-report-tracking.{report}  → pelapor  ATAU  staf (petugas/admin/superadmin/
+                                          pejabat) yang withinReportJurisdiction()  ATAU
+                                          anggota report_helpers (relawan yang mengambil
+                                          tugas). `pejabat` ikut sejak 2026-08-25 agar
+                                          gerbang channel sama persis dengan gerbang
+                                          halaman detail (#41)
 ```
 Argumen `channels:` pada `withRouting()` **wajib** — tanpa itu `routes/channels.php` tak
 pernah dimuat, `/broadcasting/auth` 404, dan seluruh `Echo.private(...)` gagal diam-diam
@@ -277,7 +284,8 @@ auth+verified           : /dashboard, /reports/* (CRUD milik sendiri + approve/r
                            otorisasi dicek di controller)/arrive/resolve/update-location/
                            correct-location/resolution[create,store,destroy]/victims/{v}/ktp
                            — 4 terakhir = Berita Acara FINDINGS #39, staf+yurisdiksi), /profile/*,
-                           /complete-profile, /volunteer/register, /volunteer/standby,
+                           /complete-profile, /volunteer/register, /profile/standby
+                           (siaga notifikasi relawan & pejabat — User::STANDBY_ROLES),
                            /helpers/create, /users/relawan/{user}, /users/detail/{user}
                            (2 terakhir TANPA role check — FINDINGS_LOG #1, P0)
 auth (login saja)       : /api/geocode/{reverse,search}, /api/route/directions (proxy OSRM)

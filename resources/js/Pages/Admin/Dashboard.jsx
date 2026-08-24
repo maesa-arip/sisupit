@@ -4,7 +4,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import AppLayout from '@/Layouts/AppLayout';
 import { cn } from '@/lib/utils';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
 	IconAlertCircle,
 	IconBolt,
@@ -15,15 +15,46 @@ import {
 	IconDroplet,
 	IconFiretruck,
 	IconFlame,
+	IconLoader2,
 	IconMapPin,
 	IconMapSearch,
+	IconPower,
+	IconRadar,
 	IconShieldCheck,
 	IconTree,
 	IconUsersGroup,
 } from '@tabler/icons-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 export default function AdminDashboard({ auth, stats, recentReports, isPejabat = false }) {
 	const isTopLevelAdmin = !auth?.user?.city_code;
+
+	// Siaga notifikasi pejabat — kembaran kartu "Mode Kesiapan" relawan di Pages/Dashboard.jsx,
+	// endpoint & kolom yang sama (profile.standby / users.is_standby). Hanya pejabat & relawan
+	// yang punya saklar ini; admin/petugas Pusat Komando sengaja tidak (User::STANDBY_ROLES).
+	const isStandby = auth?.user?.is_standby ?? true;
+	const [isTogglingStandby, setIsTogglingStandby] = useState(false);
+
+	const handleToggleStandby = () => {
+		setIsTogglingStandby(true);
+		router.post(
+			route('profile.standby'),
+			{},
+			{
+				preserveScroll: true,
+				onSuccess: () => {
+					toast.success(
+						isStandby
+							? 'Siaga dinonaktifkan. Anda tidak akan menerima notifikasi insiden.'
+							: 'Siaga diaktifkan. Anda akan menerima notifikasi insiden.',
+					);
+				},
+				onError: () => toast.error('Gagal mengubah status siaga. Silakan coba lagi.'),
+				onFinish: () => setIsTogglingStandby(false),
+			},
+		);
+	};
 
 	const getAdminLevelName = () => {
 		if (auth?.user?.village_code) return `Desa/Kelurahan`;
@@ -161,6 +192,69 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 					)}
 				</div>
 			</div>
+
+			{/* MODE KESIAPAN PEJABAT — pejabat memantau, jadi ia boleh memilih tidak dibangunkan */}
+			{isPejabat && (
+				<Card
+					className={cn(
+						'overflow-hidden rounded-xl border shadow-none transition-colors',
+						isStandby ? 'border-destructive bg-destructive/10' : 'border-border bg-card',
+					)}
+				>
+					<CardContent className="flex flex-col justify-between gap-3 p-4 sm:flex-row sm:items-center">
+						<div className="flex items-center gap-3">
+							<div
+								className={cn(
+									'flex h-10 w-10 shrink-0 items-center justify-center rounded-md border',
+									isStandby
+										? 'border-destructive/30 bg-card text-destructive'
+										: 'border-border bg-muted text-muted-foreground',
+								)}
+							>
+								<IconRadar className="h-5 w-5" stroke={1.5} />
+							</div>
+							<div>
+								<h3
+									className={cn(
+										'text-sm font-bold',
+										isStandby ? 'text-destructive' : 'text-foreground',
+									)}
+								>
+									Mode Kesiapan
+								</h3>
+								<p
+									className={cn(
+										'mt-0.5 text-xs font-medium',
+										isStandby ? 'text-destructive/80' : 'text-muted-foreground',
+									)}
+								>
+									{isStandby
+										? 'Anda menerima notifikasi insiden sesuai wilayah & aturan siaran.'
+										: 'Anda tidak menerima notifikasi insiden sampai siaga diaktifkan kembali.'}
+								</p>
+							</div>
+						</div>
+						<Button
+							variant={isStandby ? 'default' : 'outline'}
+							disabled={isTogglingStandby}
+							className={cn(
+								'h-8 w-full shrink-0 rounded-md px-4 text-[10px] font-bold uppercase tracking-wider shadow-none transition-colors sm:w-auto',
+								isStandby
+									? 'border border-destructive bg-destructive text-destructive-foreground hover:bg-destructive/90'
+									: 'border-border bg-card text-foreground/80 hover:bg-muted',
+							)}
+							onClick={handleToggleStandby}
+						>
+							{isTogglingStandby ? (
+								<IconLoader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+							) : (
+								<IconPower className="mr-1.5 h-3.5 w-3.5" />
+							)}
+							{isStandby ? 'Siaga Aktif' : 'Mulai Siaga'}
+						</Button>
+					</CardContent>
+				</Card>
+			)}
 
 			{/* KARTU STATISTIK */}
 			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -345,16 +439,10 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 									>
 										Hydrant
 									</Badge>
-									<Badge
-										variant="secondary"
-										className="rounded-md border-none bg-info/10 text-info"
-									>
+									<Badge variant="secondary" className="rounded-md border-none bg-info/10 text-info">
 										Pos & Pompa
 									</Badge>
-									<Badge
-										variant="secondary"
-										className="rounded-md border-none bg-info/10 text-info"
-									>
+									<Badge variant="secondary" className="rounded-md border-none bg-info/10 text-info">
 										Relawan
 									</Badge>
 								</div>

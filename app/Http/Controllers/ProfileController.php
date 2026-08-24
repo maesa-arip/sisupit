@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Traits\HasFile;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
@@ -133,6 +134,27 @@ class ProfileController extends Controller
         $request->user()->update($data);
 
         return Redirect::route('dashboard');
+    }
+
+    /**
+     * Nyalakan/matikan siaga notifikasi milik user yang sedang login.
+     *
+     * Dipakai DUA peran (User::STANDBY_ROLES): relawan di `Pages/Dashboard.jsx` dan pejabat di
+     * `Pages/Admin/Dashboard.jsx`. Dulu method ini tinggal di VolunteerController dengan nama
+     * route `volunteer.standby` — dipindah ke sini saat pejabat ikut memakainya (2026-08-25),
+     * karena pejabat mem-POST ke endpoint bernama "volunteer" akan terbaca sebagai bug.
+     * Saat nonaktif, ReportActionController::approve melewatinya.
+     */
+    public function toggleStandby(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        abort_unless($user->hasAnyRole(User::STANDBY_ROLES), 403);
+
+        $user->update(['is_standby' => ! $user->is_standby]);
+
+        // Konsisten dengan register()/updateSkills(): toast ditangani frontend.
+        return back();
     }
 
     /**

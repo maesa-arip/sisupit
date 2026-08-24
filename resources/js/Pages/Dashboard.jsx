@@ -64,7 +64,7 @@ export default function Dashboard(props) {
 	const handleToggleStandby = () => {
 		setIsTogglingStandby(true);
 		router.post(
-			route('volunteer.standby'),
+			route('profile.standby'),
 			{},
 			{
 				preserveScroll: true,

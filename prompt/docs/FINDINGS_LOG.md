@@ -1222,3 +1222,39 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
   ini. Kalau menemukan `status === 'Aktif'` baru di kode fasilitas, itu regresi.
 - **Sumber:** turunan permintaan user 2026-08-21 (TASK_33).
 - **Status:** SELESAI (FIXED) 2026-08-21
+
+### #77 — Pejabat tidak pernah menerima notifikasi apa pun, dan channel real-time-nya tertutup
+- **Severity:** P2 (peran fungsional separuh mati; senyap total)
+- **Ditemukan 2026-08-25** dari pertanyaan user ("apakah pejabat dapat notif jika admin broadcast?").
+- **Akar (dua, berdiri sendiri):**
+  1. `ReportActionController::approve()` menyaring penerima di **pemanggil**
+     (`User::role('petugas')` / `User::role('relawan')`), bukan di
+     `scopeNotifiableForReport`. Scope-nya sendiri sebenarnya sudah siap melayani pejabat —
+     `User::STAFF_ROLES` memuatnya untuk cabang "wilayah kosong = nasional" (#56) — tapi
+     cabang itu tak pernah tercapai karena perannya sudah disaring keluar lebih dulu.
+     Ketiga jalur notifikasi lain (`ReportController::store`,
+     `notifyCommandCenterOfConfirmation`, `notifyReporter`) sama: tak satu pun menyebut
+     `pejabat`. Karena lonceng web membaca `$user->notifications()`, kotak notifikasi
+     pejabat **selalu kosong** — tak ada galat, tak ada gejala.
+  2. `routes/channels.php` menetapkan `$isStaff = hasAnyRole(['admin','superadmin','petugas'])`.
+     Saat #41 memperluas gerbang HALAMAN detail insiden ke `pejabat`, gerbang CHANNEL tidak
+     ikut diperluas. Akibatnya halaman terbuka tapi badge status & marker responder diam;
+     satu-satunya jejaknya `POST /broadcasting/auth` → 403 di DevTools.
+- **Pola yang berulang:** ini kekambuhan bentuk #41 — "peran baru ditambahkan di satu gerbang,
+  gerbang sebelahnya tertinggal". Saat menambah peran ke sebuah kemampuan, telusuri SEMUA
+  gerbang kemampuan itu: halaman, channel, notifikasi, dan navigasi.
+- **Fix (2026-08-25, TASK_34):** blok penerima ketiga di `approve()` (dengan kunci setting
+  sendiri `Setting::KEY_NOTIFY_LEVEL_PEJABAT`, default KABUPATEN, agar jangkauan pejabat tak
+  ikut berubah saat admin menurunkan jangkauan petugas); `pejabat` masuk `$isStaff` di
+  `routes/channels.php` — tetap dikunci `withinReportJurisdiction()` sehingga #31 utuh; dan
+  saklar siaga `users.is_standby` dibuka untuk pejabat lewat konstanta baru
+  `User::STANDBY_ROLES` (`toggleStandby` pindah dari `VolunteerController` ke
+  `ProfileController`, route `volunteer.standby` → `profile.standby`).
+- **Yang SENGAJA tidak dilakukan:** admin & petugas tidak diberi saklar siaga — mematikan
+  notifikasi Pusat Komando berarti laporan warga bisa menganggur tanpa ada yang tahu.
+- **Penjaga:** 9 test baru — `ReportNotificationLevelTest` (4), `BroadcastingAuthTest` (2),
+  `UserSelfServiceAuthorizationTest` (3).
+- **Verifikasi:** `php artisan test` 251 → **260 passed (1004 assertions)**, `npm run build`
+  lulus (client + SSR), Pint & Prettier bersih. Verifikasi manual per peran: §6 TASK_34.
+- **Sumber:** permintaan user 2026-08-25.
+- **Status:** SELESAI (FIXED) 2026-08-25

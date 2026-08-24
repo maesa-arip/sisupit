@@ -11,6 +11,12 @@ class Setting extends Model
 
     public const KEY_NOTIFY_LEVEL_RELAWAN = 'notify_level_relawan';
 
+    // Pejabat = pemantau, bukan responder, jadi jangkauannya diatur TERPISAH dari petugas:
+    // menurunkan tingkat siaran petugas ke kecamatan tidak boleh diam-diam ikut memutus
+    // notifikasi pejabat kota. Default KABUPATEN (sama dengan petugas) karena pejabat di
+    // repo ini praktis selalu berjurisdiksi kota/kabupaten.
+    public const KEY_NOTIFY_LEVEL_PEJABAT = 'notify_level_pejabat';
+
     protected $fillable = ['key', 'value'];
 
     public static function getValue(string $key, ?string $default = null): ?string
