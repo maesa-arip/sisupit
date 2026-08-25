@@ -24,7 +24,26 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : TASK_35 (prompt/tasks/TASK_35_bottomnav_tombol_masuk_tamu.md) — SELESAI (kode)
+Task aktif   : TASK_36 (prompt/tasks/TASK_36_keterangan_hidran.md) — SELESAI (kode)
+                2026-08-25. Permintaan user: ganti keterangan dua jenis hidran di menu admin.
+                Hidran = "dimiliki pemerintah <wilayah>, dikelola PDAM & Damkar"; Hidran Warga =
+                "potensi sumber air ... perorangan/swasta". Yang PENTING: nama kota TIDAK
+                dipaku — variants.jsx satu berkas untuk SEMUA tenant, jadi "Kota Denpasar"
+                yang ditulis mati akan terbaca juga oleh admin Badung tanpa gejala apa pun.
+                Ditanyakan ke user → pilih "ikut nama instansi tenant". Tabel tenants tak punya
+                kolom nama wilayah, jadi helper BARU tenantWilayah() mengambil EKOR
+                `nama_instansi` ("...Kota Denpasar" → "Kota Denpasar"); nama instansi bisa
+                disunting admin lewat /admin/tenants sehingga kegagalan pencocokan jatuh ke
+                "daerah setempat" — kalimatnya tetap utuh, tak pernah rusak. `subtitle` kedua
+                varian jadi FUNGSI (bukan string) supaya pemanggil tak perlu tahu varian mana
+                yang dinamis — mencegah lahirnya `if (variant === 'warga')` yang memang
+                dihindari berkas itu. `blurb` dirampingkan jadi "di mana datanya muncul" saja
+                agar tak ada dua kalimat yang mengatakan hal sama di satu halaman. Subtitle
+                halaman publik /hydrants SENGAJA tak disentuh (kalimat pencarian warga, bukan
+                definisi kepemilikan). Penjaga: test di TenantBrandingTest.
+                Test 262 → 263 passed (1012 assertions), npm run build lulus.
+                SISA: verifikasi visual §5.
+               TASK_35 (prompt/tasks/TASK_35_bottomnav_tombol_masuk_tamu.md) — SELESAI (kode)
                 2026-08-25. Permintaan user: "saat belum login menu jadi tombol login, jika
                 sudah login baru jadi menu". Slot ke-5 MobileBottomNav kini dua wujud —
                 tombol "Masuk" bagi tamu, popover "Menu" bagi yang sudah login. Bagi pengguna
@@ -393,7 +412,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-08-25: 262 passed, 1010 assertions —
+Test      : php artisan test            (baseline 2026-08-25: 263 passed, 1012 assertions —
             angka lama "65 passed, 164 assertions" per 2026-06-25 sudah jauh tertinggal)
 Run (dev) : composer dev
 Lint      : vendor/bin/pint  /  npm run format (auto-fix, BUKAN check-only — tidak ada di CI)

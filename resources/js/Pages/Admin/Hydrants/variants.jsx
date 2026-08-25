@@ -2,6 +2,24 @@ import { Button } from '@/Components/ui/button';
 import { Link } from '@inertiajs/react';
 
 /**
+ * Nama wilayah pemerintah, diambil dari nama instansi tenant yang sedang dibuka
+ * ("Dinas Pemadam Kebakaran dan Penyelamatan Kota Denpasar" → "Kota Denpasar").
+ *
+ * Ada karena keterangan hydrant resmi menyebut PEMILIKNYA (permintaan user 2026-08-25) dan
+ * berkas ini melayani SEMUA tenant: menulis "Kota Denpasar" apa adanya akan terbaca juga oleh
+ * admin Badung. Nama wilayah tidak punya kolomnya sendiri di tabel `tenants` — yang ada hanya
+ * `nama_instansi` (dan `city_code`, yang butuh query ke `indonesia_cities`), jadi diambil dari
+ * ekornya. Nama instansi bisa disunting admin lewat /admin/tenants, karena itu kegagalan
+ * pencocokan TIDAK boleh menghasilkan kalimat rusak: `subtitle` di bawah memakai
+ * "daerah setempat" sebagai gantinya.
+ */
+export function tenantWilayah(namaInstansi) {
+	const match = /(Kota|Kabupaten)\s+\S.*$/.exec(namaInstansi ?? '');
+
+	return match ? match[0].trim() : 'daerah setempat';
+}
+
+/**
  * Dua jenis hydrant, satu set halaman.
  *
  * Hydrant resmi (`hydrants`) dan hydrant swadaya warga (`hydrant_wargas`) punya TABEL dan
@@ -13,16 +31,23 @@ import { Link } from '@inertiajs/react';
  *
  * Nama route hidup HANYA di berkas ini. Kalau menambah jenis hydrant ketiga (semoga tidak),
  * cukup tambah satu entri di sini.
+ *
+ * `subtitle` adalah FUNGSI, bukan string, karena keterangan hydrant resmi menyebut nama
+ * wilayah pemiliknya sehingga isinya bergantung tenant yang sedang dibuka. Sengaja fungsi di
+ * KEDUA varian meski warga tak memakai argumennya: bentuk yang seragam membuat pemanggilnya
+ * tak perlu tahu varian mana yang dinamis — dan itu mencegah lahirnya `if (variant === ...)`
+ * yang justru dihindari berkas ini.
  */
 export const HYDRANT_VARIANTS = {
 	resmi: {
 		// "Hydrant" saja, bukan "Hydrant Resmi" (permintaan user 2026-08-20): kata "Resmi"
 		// hanya punya arti sebagai lawan kata "Warga", dan itu sudah dibawa tombol di sebelahnya.
 		tab: 'Hydrant',
-		blurb: 'Hydrant milik instansi/PDAM. Tampil di halaman publik Lokasi Hydrant.',
+		blurb: 'Tampil di halaman publik Lokasi Hydrant.',
 		head: 'Manajemen Hydrant',
 		title: 'Manajemen Jaringan Hydrant',
-		subtitle: 'Kelola hydrant milik instansi/PDAM di wilayah Anda.',
+		subtitle: ({ wilayah }) =>
+			`Hidran yang dimiliki oleh pemerintah ${wilayah} di bawah pengelolaan PDAM dan Damkar.`,
 		addLabel: 'Tambah Hydrant',
 		createHead: 'Registrasi Hydrant Baru',
 		createTitle: 'Registrasi Hydrant Baru',
@@ -55,10 +80,10 @@ export const HYDRANT_VARIANTS = {
 	},
 	warga: {
 		tab: 'Hydrant Warga',
-		blurb: 'Tandon/groundtank swadaya banjar/desa. Dibaca di menu SKKL dan ikut dihitung sebagai simpanan air desa — bukan di halaman Lokasi Hydrant.',
+		blurb: 'Dibaca di menu SKKL dan ikut dihitung sebagai simpanan air desa — bukan di halaman Lokasi Hydrant.',
 		head: 'Manajemen Hydrant Warga',
 		title: 'Manajemen Hydrant Warga',
-		subtitle: 'Tandon/groundtank swadaya banjar/desa — ikut dihitung sebagai simpanan air SKKL.',
+		subtitle: () => 'Potensi sumber air yang terdata di suatu wilayah, bersumber dari perorangan/swasta.',
 		addLabel: 'Tambah Hydrant Warga',
 		createHead: 'Registrasi Hydrant Warga',
 		createTitle: 'Registrasi Hydrant Warga',

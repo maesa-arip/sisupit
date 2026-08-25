@@ -11,7 +11,7 @@ import {
 	MAP_TILE_URL,
 	waterPressureLabel,
 } from '@/lib/utils';
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
 	IconAlertTriangle,
 	IconArrowDown,
@@ -23,10 +23,13 @@ import {
 	IconTrash,
 } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
-import { HydrantTabs, hydrantVariant } from './variants';
+import { HydrantTabs, hydrantVariant, tenantWilayah } from './variants';
 
 export default function Index({ variant = 'resmi', counts = {}, hydrants, filters, tenant_location }) {
 	const v = hydrantVariant(variant);
+	// Keterangan hydrant resmi menyebut pemiliknya, jadi nama wilayahnya ikut tenant yang
+	// sedang dibuka — bukan dipaku "Kota Denpasar" yang akan terbaca juga oleh admin Badung.
+	const wilayah = tenantWilayah(usePage().props.tenant?.nama_instansi);
 	const [hydrantToDelete, setHydrantToDelete] = useState(null);
 	const [activeHydrantId, setActiveHydrantId] = useState(null);
 
@@ -138,7 +141,7 @@ export default function Index({ variant = 'resmi', counts = {}, hydrants, filter
 			)}
 
 			<div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
-				<HeaderTitle title={v.title} subtitle={v.subtitle} icon={IconFireHydrant} />
+				<HeaderTitle title={v.title} subtitle={v.subtitle({ wilayah })} icon={IconFireHydrant} />
 				<Button
 					size="sm"
 					className="border-none bg-teal-600 text-white shadow-none hover:bg-teal-700 dark:bg-teal dark:hover:bg-teal/90"

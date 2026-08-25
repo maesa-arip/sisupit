@@ -58,3 +58,16 @@ it('falls back to 112 and no pejabat for a non-partner city on the thanks page',
             ->where('teleponDarurat', '112')
             ->where('pejabat', null));
 });
+
+// Keterangan hydrant resmi menyebut PEMILIKNYA (permintaan user 2026-08-25). Berkas
+// `Admin/Hydrants/variants.jsx` melayani SEMUA tenant, jadi nama kota yang dipaku di sana akan
+// terbaca juga oleh admin kabupaten lain — jenis kekeliruan yang tidak pernah melempar galat.
+// Namanya diambil dari `tenant.nama_instansi` yang sudah dibagikan HandleInertiaRequests.
+it('never hardcodes a city name in the hydrant page copy', function () {
+    $source = file_get_contents(resource_path('js/Pages/Admin/Hydrants/variants.jsx'));
+
+    expect($source)
+        ->toContain('tenantWilayah')
+        ->and(preg_match('/(Kota|Kabupaten)\s+[A-Z][a-z]+/', $source, $m, 0, strpos($source, 'HYDRANT_VARIANTS')))
+        ->toBe(0);
+});
