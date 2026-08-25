@@ -16,10 +16,15 @@ import {
 } from '@tabler/icons-react';
 
 /**
- * Chrome publik bersama untuk landing page + halaman publik lain (Hidran/SKKL/Pos
- * Pemadam): navbar + footer ala landing, TANPA sidebar AppLayout. Konten halaman
- * mengatur lebarnya sendiri (main tidak memberi container) agar section full-bleed
- * landing tetap utuh; halaman biasa membungkus kontennya dengan container sendiri.
+ * Chrome landing: navbar + footer ala landing, TANPA sidebar AppLayout. Konten halaman
+ * mengatur lebarnya sendiri (main tidak memberi container) agar section full-bleed landing
+ * tetap utuh.
+ *
+ * PEMAKAI TUNGGAL sejak 2026-08-25: `Pages/Landing.jsx` (route `/landing`). Halaman fasilitas
+ * publik (Hidran/SKKL/Pos Pemadam) dan kelima halaman info/legal dulu memakainya untuk tamu,
+ * lalu dikembalikan ke AppLayout atas permintaan user — chrome ini membuang bilah navigasi
+ * bawah, sehingga tamu yang mengetuk "Fasilitas" dari bilah itu kehilangan jalan pulang.
+ * Jangan pakai ulang untuk halaman yang bisa dicapai dari bilah bawah.
  */
 export default function PublicLayout({ children, title }) {
 	const { auth } = usePage().props;

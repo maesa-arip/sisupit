@@ -58,3 +58,23 @@ it('takes the guest login slot from the nav source instead of a hardcoded route'
         ->toContain("itemByKey('login')")
         ->not->toContain("route('login'");
 });
+
+// Bilah bawah hanya ikut dirender oleh AppLayout. Selama halaman fasilitas & info/legal
+// memakai `PublicLayout` untuk tamu (chrome landing), tamu yang mengetuk "Fasilitas" dari
+// bilah justru mendarat di halaman TANPA bilah — kehilangan jalan pulang tanpa gejala apa
+// pun. Dikembalikan ke AppLayout atas permintaan user 2026-08-25; landing page yang
+// melahirkan chrome itu tidak jadi dipakai. `Pages/Landing.jsx` SENGAJA tidak ikut diperiksa:
+// ia satu-satunya pemakai sah PublicLayout yang tersisa.
+it('keeps guest-reachable pages on the layout that renders the bottom nav', function () {
+    $pages = [
+        'js/Pages/Hydrants/Index.jsx',
+        'js/Pages/Pumps/Index.jsx',
+        'js/Pages/FireStations/Index.jsx',
+        'js/Pages/Info/Partials/InfoShell.jsx',
+    ];
+
+    foreach ($pages as $page) {
+        expect(file_get_contents(resource_path($page)))
+            ->not->toContain("from '@/Layouts/PublicLayout'");
+    }
+});

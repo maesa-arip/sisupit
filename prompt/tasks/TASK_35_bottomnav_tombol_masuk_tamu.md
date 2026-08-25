@@ -91,3 +91,39 @@ Satu commit fokus → `git revert`.
 - [x] Tujuan tombol dibaca dari `navItems.js`, dijaga test
 - [x] Tidak ada regresi (260 → 261 passed)
 - [x] Dokumen terkait diupdate
+
+---
+
+## 8. ADENDUM 2026-08-25 — halaman publik dikembalikan ke AppLayout
+
+**Permintaan user (lanjutan, hari yang sama):** "saat belum login ketika klik fasilitas agar
+mobile nav nya tetap seperti default, karena sebelumnya sempat buat landing page sehingga
+tidak pakai mobile nav tetapi landing page itu tidak jadi dipakai".
+
+**Gejalanya:** tamu mengetuk "Fasilitas" di bilah bawah → mendarat di `/hydrants` → **bilah
+bawahnya hilang**. Penyebabnya bukan bilah itu, melainkan LAYOUT halaman tujuannya: tiga
+halaman fasilitas memakai layout adaptif `tamu → PublicLayout, login → AppLayout`, dan
+`PublicLayout` (chrome navbar+footer milik landing page) memang tidak merender
+`MobileBottomNav`. Jadi bilah mengantar tamu ke tempat yang membuang bilah itu sendiri.
+
+**Cakupan (ditanyakan lebih dulu, user memilih yang luas):** pola adaptif yang sama ternyata
+hidup di DUA tempat, bukan satu — tiga halaman fasilitas **dan** `Info/Partials/InfoShell.jsx`
+yang melayani kelima halaman info/legal. Membiarkan yang kedua akan menyisakan lubang yang
+persis sama, dan justru di jalur yang baru saja jadi satu-satunya jalan tamu ke halaman legal
+(§4 di atas): footer AppLayout → Pusat Bantuan → bilah hilang.
+
+**Perubahan:** percabangan dihapus di keempat berkas — `Pages/{Hydrants,Pumps,FireStations}/Index.jsx`
+dan `Pages/Info/Partials/InfoShell.jsx` kini selalu `AppLayout`. Konten halamannya tidak
+disentuh sama sekali; bagi pengguna yang sudah login tak ada yang berubah karena mereka memang
+sudah mendapat AppLayout.
+
+**`PublicLayout` TIDAK dihapus** — pemakainya tinggal `Pages/Landing.jsx` (route `/landing`).
+Docblock-nya diperbarui agar menyebut dirinya "pemakai tunggal" berikut alasannya, supaya tak
+ada yang memakainya ulang untuk halaman yang bisa dicapai dari bilah bawah.
+
+**Penjaga:** test kelima di `MobileNavParityTest` — keempat berkas di atas tidak boleh
+mengimpor `@/Layouts/PublicLayout` lagi. `Landing.jsx` sengaja tidak diperiksa.
+
+**Verifikasi tambahan:** `php artisan test` → **262 passed (1010 assertions)**, `npm run build`
+lulus, Prettier bersih. Visual (SISA): sebagai tamu, ketuk Fasilitas → Hidran/SKKL/Pos Pemadam
+dan footer → Pusat Bantuan/S&K/Privasi/Tentang — bilah bawah harus tetap ada di semuanya.

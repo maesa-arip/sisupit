@@ -41,6 +41,19 @@ Task aktif   : TASK_35 (prompt/tasks/TASK_35_bottomnav_tombol_masuk_tamu.md) —
                 Test 260 → 261 passed, npm run build lulus.
                 TERDEPLOY 2026-08-25 @208c0e26 ke prod/staging/dev (frontend saja, tanpa
                 migrasi/route). SISA: verifikasi visual §6.
+                ADENDUM (§8 file task, permintaan user hari yang sama): tamu yang mengetuk
+                "Fasilitas" KEHILANGAN bilah bawah — bukan salah bilahnya, tapi LAYOUT halaman
+                tujuannya. Tiga halaman fasilitas + Info/Partials/InfoShell.jsx (5 halaman
+                info/legal) memakai layout adaptif `tamu → PublicLayout, login → AppLayout`,
+                dan PublicLayout (chrome landing) memang tak merender MobileBottomNav. Jadi
+                bilah mengantar tamu ke tempat yang membuang bilah itu sendiri — dan sejak
+                TASK_35 jalur footer → halaman legal justru satu-satunya jalan tamu ke sana.
+                Keempat berkas kini SELALU AppLayout; konten halaman tidak disentuh, pengguna
+                yang sudah login tak merasakan apa pun. PublicLayout TIDAK dihapus: pemakainya
+                tinggal Pages/Landing.jsx (/landing) dan docblock-nya kini menyebut dirinya
+                pemakai tunggal — JANGAN pakai ulang untuk halaman yang bisa dicapai dari
+                bilah bawah. Penjaga: test kelima di MobileNavParityTest.
+                Test 261 → 262 passed (1010 assertions).
                TASK_34 (prompt/tasks/TASK_34_notifikasi_pejabat.md) — SELESAI (kode)
                 2026-08-25. Temuan #77: peran `pejabat` TIDAK PERNAH menerima notifikasi apa
                 pun — keempat jalur notif (laporan masuk, broadcast, konfirmasi OPD, notif
@@ -373,7 +386,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-08-25: 261 passed, 1006 assertions —
+Test      : php artisan test            (baseline 2026-08-25: 262 passed, 1010 assertions —
             angka lama "65 passed, 164 assertions" per 2026-06-25 sudah jauh tertinggal)
 Run (dev) : composer dev
 Lint      : vendor/bin/pint  /  npm run format (auto-fix, BUKAN check-only — tidak ada di CI)

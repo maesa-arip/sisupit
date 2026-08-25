@@ -1,7 +1,6 @@
 import PublicPageHeader from '@/Components/PublicPageHeader';
 import { Card, CardContent } from '@/Components/ui/card';
 import AppLayout from '@/Layouts/AppLayout';
-import PublicLayout from '@/Layouts/PublicLayout';
 import { Link } from '@inertiajs/react';
 
 /**
@@ -114,15 +113,13 @@ function InfoNav() {
 }
 
 /**
- * Layout adaptif yang dipakai kelima halaman: tamu → chrome publik (navbar+footer landing),
- * sudah login → AppLayout bersidebar. Pola sama dengan halaman fasilitas publik
- * (`Pages/Hydrants/Index.jsx`).
+ * Layout kelima halaman info/legal — AppLayout untuk SEMUA pengunjung, termasuk tamu
+ * (permintaan user 2026-08-25). Dulu tamu diberi PublicLayout (chrome navbar+footer milik
+ * landing page) sehingga bilah bawah hilang di tengah jalan; sejak TASK_35 justru footer
+ * AppLayout-lah satu-satunya jalan tamu ke halaman-halaman ini, jadi kehilangan bilahnya
+ * tepat setelah sampai terasa seperti buntu. Landing page yang melahirkan chrome itu tidak
+ * jadi dipakai. Pola sama dengan halaman fasilitas publik (`Pages/Hydrants/Index.jsx`).
  */
 export function infoLayout(title) {
-	return (page) =>
-		page.props?.auth?.user ? (
-			<AppLayout children={page} title={title} />
-		) : (
-			<PublicLayout children={page} title={title} />
-		);
+	return (page) => <AppLayout children={page} title={title} />;
 }

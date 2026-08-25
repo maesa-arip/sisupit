@@ -19,9 +19,10 @@ import {
 } from '@tabler/icons-react';
 import { useEffect } from 'react';
 
-/* Konten landing publik. Navbar + footer disediakan PublicLayout (dipakai bersama halaman
- * publik lain). WebView di-redirect di HomeController::landing sebelum halaman ini termuat;
- * useEffect di bawah hanya jaring pengaman untuk masa deploy. */
+/* Konten landing publik. Navbar + footer disediakan PublicLayout — sejak 2026-08-25 halaman
+ * INILAH satu-satunya pemakainya (halaman fasilitas & info/legal dikembalikan ke AppLayout
+ * agar bilah bawah tak hilang bagi tamu). WebView di-redirect di HomeController::landing
+ * sebelum halaman ini termuat; useEffect di bawah hanya jaring pengaman untuk masa deploy. */
 export default function Landing({ page_data }) {
 	const { auth } = usePage().props;
 	const isAuthenticated = Boolean(auth?.user?.name || auth?.name);

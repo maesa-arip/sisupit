@@ -5,7 +5,6 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
-import PublicLayout from '@/Layouts/PublicLayout';
 import { facilityStatusLabel, GEO_OPTIONS } from '@/lib/utils';
 import { Link, router, useForm, usePage } from '@inertiajs/react';
 import { IconFireHydrant, IconLoader2, IconMapPinFilled, IconRadar, IconRoute, IconSearch } from '@tabler/icons-react';
@@ -308,12 +307,9 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 	);
 }
 
-// Layout adaptif: tamu → chrome landing (PublicLayout), sudah login → AppLayout (sidebar).
-Index.layout = (page) => {
-	const title = 'Jaringan Hidran';
-	return page.props?.auth?.user ? (
-		<AppLayout children={page} title={title} />
-	) : (
-		<PublicLayout children={page} title={title} />
-	);
-};
+// AppLayout untuk SEMUA pengunjung, termasuk tamu (permintaan user 2026-08-25). Dulu tamu
+// diberi PublicLayout — chrome navbar+footer milik landing page — dan konsekuensinya bilah
+// bawah HILANG begitu tamu mengetuk "Fasilitas" dari bilah itu sendiri: ia berpindah ke
+// halaman ini lalu kehilangan jalan pulang. Landing page yang melahirkan chrome tersebut
+// akhirnya tidak jadi dipakai, jadi percabangannya ikut dibuang di sini.
+Index.layout = (page) => <AppLayout children={page} title="Jaringan Hidran" />;
