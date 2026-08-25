@@ -1258,3 +1258,84 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
   lulus (client + SSR), Pint & Prettier bersih. Verifikasi manual per peran: §6 TASK_34.
 - **Sumber:** permintaan user 2026-08-25.
 - **Status:** SELESAI (FIXED) 2026-08-25
+
+### #78 — Kode desa karangan di seeder fasilitas: rekap air per desa berjudul angka
+- **Severity:** P2 (data wilayah rusak diam-diam; gejalanya cuma satu judul aneh di layar)
+- **Ditemukan 2026-08-25** dari laporan user: di /admin/pumps kartu "Ringkasan Air Desa"
+  memuat baris berjudul `5171012001` alih-alih nama desa.
+- **Akar (dua lapis, lapis kedua yang sebenarnya):**
+  1. `Admin\PompaController::waterSummary()` menerjemahkan `village_code` → nama lewat
+     `indonesia_villages` dan jatuh ke `?? $code` bila kodenya tak ketemu. Kode 10 digit itu
+     tak berarti apa pun bagi operator, dan yang lebih buruk: ia menyamar sebagai nama desa,
+     sehingga tak ada yang menyimpulkan datanya rusak.
+  2. Kodenya memang tidak pernah ada. `HydrantSeeder::getWilayahCodes()` menebak desa dari
+     KATA di alamat lalu mengembalikan kode yang ditulis tangan; `PompaSeeder` &
+     `PosPemadamSeeder` menuliskannya langsung di tiap entri. Di DB dev: **33 dari 51**
+     hydrant, 2 dari 6 pompa, dan 3 dari 7 pos memakai kode desa yang tak ada satu pun
+     barisnya di `indonesia_villages`. Dari 25 baris sisanya, hampir semuanya berkode SAH
+     tapi menunjuk desa yang salah (Pos "Kuta" tersimpan di TUBAN, "Mengwi" di MUNGGU, pompa
+     ITDC Nusa Dua di PECATU). Bandingkan `ReportSeeder::denpasarAnchors()` yang kodenya
+     benar karena diambil langsung dari `indonesia_villages` berikut centroidnya.
+- **Kenapa gejalanya cuma satu baris:** kode desa yang salah tidak pernah menghentikan apa
+  pun — daftar tetap tampil, peta tetap menggambar (marker pakai lat/lng), `Tenantable`
+  menyaring per kota. Yang meleset senyap: rekap per desa, penyaringan per kecamatan, dan
+  visibilitas bagi staf ber-kecamatan/desa (kodenya tak akan pernah cocok).
+- **Fix (2026-08-25, TASK_37):**
+  - layar: `waterSummary()` tidak pernah lagi menampilkan kode. Desa tak dikenal berjudul
+    "Desa tidak dikenal · Kec. <nama>", kecamatannya diturunkan dari awalan kode desa;
+  - data: perintah baru `php artisan sisupit:fix-facility-village-codes` (default TINJAU,
+    menulis hanya dengan `--apply`) menentukan ulang desa dari TITIK fasilitas —
+    reverse-geocode lewat `Api\GeocodeController` (jalur Nominatim satu-satunya, cache &
+    rate-limit-nya ikut terpakai), centroid desa terdekat hanya sebagai cadangan `--offline`.
+    Kode yang SAH tidak pernah ditimpa kecuali operator meminta `--include-mismatch`;
+  - seeder: `HydrantSeeder::getWilayahCodes()` DIHAPUS, diganti `hydrantRegions()` — kode
+    kecamatan+desa per hydrant, pasangan tetap dari `hydrantCoordinates()`, ditentukan sekali
+    lewat reverse-geocode lalu di-hardcode (pola yang sama dengan koordinatnya). `PompaSeeder`
+    & `PosPemadamSeeder` kodenya dibetulkan satu per satu dengan cara yang sama.
+- **Aturan turunan:** kode wilayah tidak pernah ditulis dari ingatan/tebakan kata. Sumbernya
+  cuma dua: dropdown wilayah (yang membaca `indonesia_*`) atau titik koordinat lewat
+  geocoder. Dan tidak ada kode wilayah yang boleh sampai ke layar sebagai identitas tempat.
+- **Penjaga:** `tests/Feature/Sisupit/FacilityVillageCodeRepairTest.php` (7 test).
+- **Verifikasi:** `php artisan test` 263 → **270 passed**; DB dev dibersihkan (64 baris,
+  0 kode tak dikenal tersisa). Staging & produksi menunggu perintah yang sama dijalankan.
+- **Sumber:** laporan user 2026-08-25.
+- **Status:** SELESAI (FIXED) 2026-08-25
+
+### #79 — `CODE_LENGTHS['district'] = 7` padahal kode kecamatan di database 6 digit
+- **Severity:** P2 (menghasilkan kode kecamatan yang tak pernah cocok — belum terbukti
+  menimbulkan baris rusak di data yang ada)
+- **Ditemukan 2026-08-25** sambil mengerjakan #78, saat menurunkan nama kecamatan dari kode desa.
+- **Akar:** `App\Traits\ResolvesFacilityJurisdiction::CODE_LENGTHS` menyatakan kecamatan
+  sepanjang 7 karakter, dan komentarnya mencontohkan `5171012`. Isi database tidak begitu:
+  **seluruh 7.285** baris `indonesia_districts` berkode **6** digit (`517101`), desa 10 digit
+  (`5171012008`) — dan semua kolom `district_code` di data nyata (hydrants, pompas,
+  pos_pemadams, reports, users) pun 6 digit. Pemeriksaan `str_starts_with()` tetap benar
+  karena awalannya memang cocok, tapi `parentCode($village, 'district')` — yang dipakai
+  mengisi `district_code` bila form hanya mengirim desa — menghasilkan `5171012`, kode yang
+  tidak dimiliki kecamatan mana pun.
+- **Akibat yang mungkin:** baris fasilitas ber-`district_code` 7 digit tak akan pernah cocok
+  dengan `district_code` staf (6 digit), jadi ia hilang dari pandangan staf tingkat kecamatan
+  tanpa gejala — bentuk yang sama dengan #60. Belum ada baris seperti itu di dev karena
+  keempat form fasilitas selalu mengirim `district_code` dari dropdown.
+- **Ikutan:** `tests/Feature/Sisupit/FacilityJurisdictionTest.php` mematok asumsi yang sama
+  (`expect($hydrant->district_code)->toBe('5171012')`), jadi test-nya ikut hijau di atas
+  angka yang salah — perbaikannya harus menyentuh test itu juga.
+- **Asal angka 7:** tampaknya dari LEBAR KOLOM — `char('district_code', 7)` di migrasi
+  `add_hierarchical_tenant_columns_to_sisupit_tables`, dan `char('code', 7)` milik paket
+  laravolt sendiri. Kolom yang longgar bukan berarti kodenya sepanjang itu; panjang kode
+  wilayah harus dibaca dari ISI tabel `indonesia_*`.
+- **Fix (2026-08-25, TASK_38):** `CODE_LENGTHS['district']` jadi 6 + docblock diperbaiki;
+  helper baru `districtCodeFromVillage()` supaya panjang kode wilayah hanya ditulis di satu
+  tempat (konstanta `DISTRICT_CODE_LENGTH` sementara di `Admin\PompaController` — dibuat di
+  TASK_37 saat trait belum bisa dipercaya — ikut dihapus). Kolom `char(7)` DIBIARKAN: 7 ≥ 6,
+  menyempitkannya cuma ALTER banyak tabel tanpa manfaat.
+- **Penjaga:** test baru di `FacilityJurisdictionTest` — *"it derives a district code that a
+  real kecamatan actually has"* — mengadu kode turunan dengan tabel `indonesia_districts`,
+  BUKAN dengan angka lain. Inilah bentuk test yang absen selama ini: seluruh test lama di
+  berkas itu hanya membandingkan kode dengan kode, jadi mereka hijau selama semua pihak salah
+  bersama-sama. Sudah dibuktikan bolak-balik: dengan konstanta 7 test ini merah, dengan 6 hijau.
+- **Data:** tidak ada satu pun baris ber-`district_code` panjang ≠ 6 di dev (8 tabel diperiksa)
+  — jalur turunan ini jarang tersentuh karena keempat form fasilitas selalu mengirim
+  `district_code` dari dropdown. Query pemeriksaan untuk staging/produksi ada di §6 TASK_38.
+- **Verifikasi:** `php artisan test` 270 → **271 passed**.
+- **Status:** SELESAI (FIXED) 2026-08-25

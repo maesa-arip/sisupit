@@ -21,15 +21,22 @@ use Illuminate\Validation\ValidationException;
  * datanya rusak diam-diam, tanpa gejala.
  *
  * Pemeriksaannya memakai bentuk kode wilayah BPS yang dipakai laravolt/indonesia: kode tiap
- * level selalu diawali kode induknya (provinsi 51 → kota 5171 → kecamatan 5171012 → desa
- * 5171012006; lihat panjang kolom di migrasi `add_hierarchical_tenant_columns_to_sisupit_tables`).
- * Jadi konsistensinya bisa dipastikan TANPA query ke tabel `indonesia_*` sama sekali — penting
- * karena tabel referensi itu tidak selalu terisi di semua environment (mis. test).
+ * level selalu diawali kode induknya (provinsi 51 → kota 5171 → kecamatan 517101 → desa
+ * 5171012008). Jadi konsistensinya bisa dipastikan TANPA query ke tabel `indonesia_*` sama
+ * sekali — penting karena tabel referensi itu tidak selalu terisi di semua environment (mis. test).
+ *
+ * PANJANG kodenya diambil dari isi tabel wilayah, bukan dari lebar kolom: seluruh 7.285 baris
+ * `indonesia_districts` berkode 6 digit dan 83.762 desa 10 digit, sedangkan kolom `char(7)` di
+ * migrasi (baik milik repo ini maupun milik paket laravolt) sekadar lebih longgar. Sampai
+ * 2026-08-25 konstanta di bawah menyebut kecamatan 7 digit, sehingga `parentCode()` memotong
+ * desa `5171012008` menjadi `5171012` alih-alih `517101` — kode yang tak dimiliki kecamatan mana
+ * pun, tak akan pernah cocok dengan `district_code` staf, dan karena itu barisnya hilang
+ * diam-diam dari pandangan staf tingkat kecamatan (FINDINGS #79).
  */
 trait ResolvesFacilityJurisdiction
 {
-    /** Panjang kode wilayah per level (BPS/laravolt). */
-    private const CODE_LENGTHS = ['province' => 2, 'city' => 4, 'district' => 7, 'village' => 10];
+    /** Panjang kode wilayah per level, sesuai isi tabel `indonesia_*` (lihat catatan di atas). */
+    private const CODE_LENGTHS = ['province' => 2, 'city' => 4, 'district' => 6, 'village' => 10];
 
     /**
      * Gabungkan yurisdiksi admin (yang mengunci) dengan pilihan form (untuk level yang masih
@@ -101,6 +108,16 @@ trait ResolvesFacilityJurisdiction
         }
 
         return array_merge($validated, $codes);
+    }
+
+    /**
+     * Kode kecamatan dari kode desa (5171012008 → 517101). Dipakai juga di luar jalur simpan —
+     * mis. rekap air per desa yang perlu menyebut kecamatannya saat desanya tak dikenal —
+     * supaya panjang kode wilayah hanya ditulis di SATU tempat.
+     */
+    protected function districtCodeFromVillage(?string $villageCode): ?string
+    {
+        return $this->parentCode($villageCode, 'district');
     }
 
     private function jurisdictionCode($value): ?string

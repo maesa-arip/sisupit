@@ -5,6 +5,7 @@ use App\Models\HydrantWarga;
 use App\Models\Pompa;
 use App\Models\PosPemadam;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Kode wilayah aset fasilitas (hydrant, hydrant warga, SKKL/pompa, pos pemadam).
@@ -15,7 +16,9 @@ use App\Models\User;
  * tanpa gejala. Sejak 2026-08-20 rantainya diperiksa di `App\Traits\ResolvesFacilityJurisdiction`.
  *
  * Kode wilayah di sini memakai bentuk BPS asli: 51 Bali → 5171 Denpasar (5103 Badung) →
- * 5171012 Denpasar Selatan → 5171012006 sebuah kelurahan di dalamnya.
+ * 517101 Denpasar Selatan (6 digit) → 5171012006 sebuah kelurahan di dalamnya (10 digit).
+ * Sampai 2026-08-25 berkas ini menulis kecamatan 7 digit dan karena itu ikut menghijaukan
+ * asumsi yang salah di `ResolvesFacilityJurisdiction` (FINDINGS #79).
  */
 beforeEach(function () {
     $this->payload = [
@@ -85,7 +88,7 @@ it('rejects a district outside the admin city', function () {
     $admin = facilityAdmin(['city_code' => '5171']);
 
     $this->actingAs($admin)
-        ->post('/admin/pumps', [...$this->payload, 'district_code' => '5103010'])
+        ->post('/admin/pumps', [...$this->payload, 'district_code' => '510301'])
         ->assertSessionHasErrors('district_code');
 });
 
@@ -120,25 +123,48 @@ it('derives the missing upper levels from the village code', function () {
     $hydrant = Hydrant::withoutGlobalScopes()->first();
     expect($hydrant->province_code)->toBe('51');
     expect($hydrant->city_code)->toBe('5171');
-    expect($hydrant->district_code)->toBe('5171012');
+    expect($hydrant->district_code)->toBe('517101');
     expect($hydrant->village_code)->toBe('5171012006');
+});
+
+it('derives a district code that a real kecamatan actually has', function () {
+    // Penjaga #79. Test-test di atas cuma mengadu kode dengan kode, jadi angka panjang yang
+    // salah tetap hijau selama semua pihak salah bersama-sama. Di sini kode turunan itu
+    // diadu dengan TABEL WILAYAH: kecamatan yang diturunkan dari kode desa harus benar-benar
+    // ada. Dengan asumsi lama (7 digit) baris ini menghasilkan 5171012 — tak dimiliki siapa
+    // pun — dan fasilitasnya lenyap dari pandangan staf tingkat kecamatan tanpa gejala.
+    DB::table('indonesia_provinces')->insert(['code' => '51', 'name' => 'Bali']);
+    DB::table('indonesia_cities')->insert(['code' => '5171', 'province_code' => '51', 'name' => 'Kota Denpasar']);
+    DB::table('indonesia_districts')->insert(['code' => '517101', 'city_code' => '5171', 'name' => 'Denpasar Selatan']);
+    DB::table('indonesia_villages')->insert(['code' => '5171012008', 'district_code' => '517101', 'name' => 'Pemogan']);
+
+    $admin = facilityAdmin(['city_code' => '5171']);
+
+    $this->actingAs($admin)
+        ->post('/admin/hydrants', [...$this->payload, 'village_code' => '5171012008'])
+        ->assertSessionHasNoErrors();
+
+    $hydrant = Hydrant::withoutGlobalScopes()->first();
+
+    expect(DB::table('indonesia_districts')->where('code', $hydrant->district_code)->exists())->toBeTrue();
+    expect($hydrant->district_code)->toBe('517101');
 });
 
 it('keeps the admin jurisdiction winning over a forged form value', function () {
     // Aturan lama yang TIDAK boleh hilang: level yang dikunci akun tidak bisa ditimpa form.
-    $admin = facilityAdmin(['city_code' => '5171', 'district_code' => '5171012']);
+    $admin = facilityAdmin(['city_code' => '5171', 'district_code' => '517101']);
 
     $this->actingAs($admin)
         ->post('/admin/fire-stations', [
             ...$this->payload,
             'city_code' => '5103',
-            'district_code' => '5103010',
+            'district_code' => '510301',
         ])
         ->assertSessionHasNoErrors();
 
     $pos = PosPemadam::withoutGlobalScopes()->first();
     expect($pos->city_code)->toBe('5171');
-    expect($pos->district_code)->toBe('5171012');
+    expect($pos->district_code)->toBe('517101');
 });
 
 it('guards the update path too, not just create', function () {

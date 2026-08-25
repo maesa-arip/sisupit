@@ -24,7 +24,61 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : TASK_36 (prompt/tasks/TASK_36_keterangan_hidran.md) — SELESAI (kode)
+Task aktif   : TASK_38 (prompt/tasks/TASK_38_panjang_kode_kecamatan.md) — SELESAI (kode)
+                2026-08-25, permintaan user setelah membaca temuan #79 di TASK_37.
+                ResolvesFacilityJurisdiction::CODE_LENGTHS memakai kecamatan 7 DIGIT padahal
+                SELURUH 7.285 baris indonesia_districts 6 digit (517101), desa 10 digit.
+                Angka 7 itu rupanya diambil dari LEBAR KOLOM char(district_code, 7) di migrasi
+                (dan char(code,7) milik paket laravolt) — kolom longgar BUKAN berarti kodenya
+                sepanjang itu; panjang kode wilayah dibaca dari ISI tabel indonesia_*.
+                Akibatnya parentCode() menurunkan district_code = 5171012, kode yang tak
+                dimiliki kecamatan mana pun, sehingga baris itu tak akan pernah cocok dengan
+                district_code staf (6 digit) dan lenyap dari pandangan staf tingkat kecamatan
+                tanpa gejala (bentuk yang sama dengan #60). str_starts_with() tetap benar apa
+                pun angkanya, jadi tak ada yang menolak apa pun — bug ini hanya terlihat saat
+                kode turunannya diadu dengan indonesia_districts. Fix: konstanta jadi 6, helper
+                BARU districtCodeFromVillage() supaya panjang kode wilayah cuma ditulis SATU
+                tempat (konstanta sementara DISTRICT_CODE_LENGTH di PompaController dihapus),
+                dan FacilityJurisdictionTest dibetulkan — berkas itu ikut mematok 5171012
+                sehingga menghijaukan asumsi yang salah. PELAJARAN: test yang cuma mengadu KODE
+                dengan KODE tidak menjaga apa pun; penjaga barunya mengadu kode turunan dengan
+                TABEL WILAYAH (dibuktikan merah dengan konstanta lama). Kolom char(7) SENGAJA
+                dibiarkan (7 ≥ 6). Temuan #79 FIXED. Test 270 → 271 passed. Tanpa migrasi,
+                tanpa perubahan frontend. Data dev bersih (0 baris berkode 7 digit di 8 tabel).
+                SISA: jalankan query pemeriksaan §6 di staging & produksi.
+               TASK_37 (prompt/tasks/TASK_37_kode_desa_ringkasan_skkl.md) — SELESAI (kode)
+                2026-08-25. Laporan user: di /admin/pumps kartu "Ringkasan Air Desa" ada baris
+                berjudul ANGKA (5171012001), bukan nama desa. Gejalanya satu baris, akarnya
+                data: seeder fasilitas MENGARANG kode desa — HydrantSeeder menebaknya dari KATA
+                di alamat (33 dari 51 hydrant berkode yang tak pernah ada di indonesia_villages),
+                Pompa/PosPemadamSeeder menulis kode + komentar yang tak cocok (5171012001 diberi
+                komentar "Sanur Kaja", padahal Sanur Kaja = 5171012009). Yang kodenya kebetulan
+                SAH pun banyak menunjuk desa keliru (Pos "Kuta" tersimpan di TUBAN, "Mengwi" di
+                MUNGGU). Kode desa salah tak pernah menghentikan apa pun — daftar tampil, peta
+                menggambar dari lat/lng, Tenantable menyaring per kota — yang meleset senyap:
+                rekap per desa, filter per kecamatan, dan visibilitas bagi staf ber-kecamatan.
+                Fix dua lapis. (1) Layar: waterSummary() TAK PERNAH lagi menampilkan kode; desa
+                tak dikenal berjudul "Desa tidak dikenal · Kec. <nama>". ATURAN: kode wilayah
+                bukan identitas tempat, jangan pernah dijadikan judul cadangan. (2) Data:
+                perintah BARU `php artisan sisupit:fix-facility-village-codes` — default TINJAU,
+                menulis hanya dengan --apply. Desa ditentukan ulang dari TITIK fasilitas lewat
+                reverse-geocode via Api\GeocodeController (JANGAN panggil Nominatim langsung;
+                lewat controller itu supaya cache 24 jam & kunci ~1 req/detik tetap satu pintu),
+                centroid desa terdekat hanya cadangan (--offline). Kode yang SAH tak pernah
+                ditimpa, cuma dilaporkan, kecuali diminta --include-mismatch. Seeder: 
+                HydrantSeeder::getWilayahCodes() DIHAPUS → hydrantRegions() (kode per hydrant,
+                pasangan tetap hydrantCoordinates(), hasil reverse-geocode yang di-hardcode);
+                Pompa & PosPemadam dibetulkan satu per satu. Untuk data contoh, TITIK yang
+                menentukan desa — bukan teks alamat — karena pin itulah yang dipakai peta,
+                yurisdiksi, dan rekap ("Pos Sektor Juanda (Renon)" jadi SUMERTA KELOD, pin tidak
+                digeser). Temuan #78 FIXED; temuan BARU #79 OPEN (sengaja tidak dikerjakan):
+                ResolvesFacilityJurisdiction::CODE_LENGTHS bilang kecamatan 7 digit padahal
+                SELURUH indonesia_districts 6 digit, jadi parentCode() bisa menulis district_code
+                yang tak cocok dengan siapa pun — FacilityJurisdictionTest ikut mematok asumsi
+                salah itu. Test 263 → 270 passed. TANPA perubahan frontend (npm run build tidak
+                perlu). DB dev sudah dibersihkan (64 baris). SISA: jalankan perintahnya di
+                staging & produksi (tinjau dulu, lalu --apply) + verifikasi visual §6.
+               TASK_36 (prompt/tasks/TASK_36_keterangan_hidran.md) — SELESAI (kode)
                 2026-08-25. Permintaan user: ganti keterangan dua jenis hidran di menu admin.
                 Hidran = "dimiliki pemerintah <wilayah>, dikelola PDAM & Damkar"; Hidran Warga =
                 "potensi sumber air ... perorangan/swasta". Yang PENTING: nama kota TIDAK
