@@ -135,8 +135,14 @@ dan `Pages/Info/Help.jsx` kini mengimpor chunk AppLayout dan TIDAK lagi PublicLa
 chunk Landing karena kini pemakainya tinggal satu, jadi ia hilang dari daftar `imports`
 manifest; itu normal, bukan tanda ia ikut terhapus.
 
+Penyeragaman itu **TERDEPLOY 2026-08-25 @`020c4021`** ke prod/staging/dev. Dibuktikan di
+manifest yang disajikan produksi: ketiga chunk fasilitas kini mengimpor `HeaderTitle` dan
+TIDAK lagi `PublicPageHeader`. Test tetap **262 passed (1010 assertions)** — penyeragaman ini
+murni presentasi, tak ada test yang menyentuhnya.
+
 **Visual (SISA):** sebagai tamu, ketuk Fasilitas → Hidran/SKKL/Pos Pemadam dan footer → Pusat
-Bantuan/S&K/Privasi/Tentang — bilah bawah harus tetap ada di semuanya.
+Bantuan/S&K/Privasi/Tentang — bilah bawah harus tetap ada di semuanya, dan ketiga halaman
+fasilitas harus tampak sama persis dengan tampilan setelah login.
 
 **Lanjutan yang diminta user setelah melihat hasilnya** ("samakan tampilannya seperti sudah
 login supaya tidak 2 tampilan fasilitas"): percabangan `isGuest` di BADAN ketiga halaman

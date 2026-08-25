@@ -60,6 +60,7 @@ Task aktif   : TASK_35 (prompt/tasks/TASK_35_bottomnav_tombol_masuk_tamu.md) —
                 yang login dapat HeaderTitle + lebar penuh; kini satu wajah untuk semua, yaitu
                 wajah yang sudah login. PublicPageHeader TETAP dipakai kelima halaman
                 info/legal lewat InfoShell — jangan dihapus.
+                Penyeragaman ini TERDEPLOY 2026-08-25 @020c4021 ke prod/staging/dev.
                TASK_34 (prompt/tasks/TASK_34_notifikasi_pejabat.md) — SELESAI (kode)
                 2026-08-25. Temuan #77: peran `pejabat` TIDAK PERNAH menerima notifikasi apa
                 pun — keempat jalur notif (laporan masuk, broadcast, konfirmasi OPD, notif
