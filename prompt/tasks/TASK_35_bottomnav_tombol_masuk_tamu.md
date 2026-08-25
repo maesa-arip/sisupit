@@ -7,7 +7,7 @@
 | Severity | P3 |
 | Tipe | fitur kecil (UI) |
 | Sumber | permintaan user 2026-08-25 ("perbaiki mobile nav, saat belum login menu jadi tombol login, jika sudah login baru jadi menu") |
-| Status | DONE (kode) — sisa verifikasi visual §6 |
+| Status | DONE (kode) — TERDEPLOY 2026-08-25 @208c0e26 ke prod/staging/dev; sisa verifikasi visual §6 |
 
 ---
 
@@ -70,6 +70,10 @@ tersentuh — di sana "Masuk Akun"/"Daftar Baru" tetap sebagai baris seksi Akun.
 - [x] `MobileNavParityTest` 3 → **4 passed**
 - [x] `php artisan test` → **261 passed (1006 assertions)**
 - [x] `npm run build` lulus (client + SSR), Prettier & Pint bersih
+- [x] Deploy 2026-08-25 @`208c0e26` ke prod/staging/dev (`git pull --ff-only`). Frontend-only,
+      tanpa migrasi & tanpa perubahan route. Dipastikan bundel yang DISAJIKAN produksi memang
+      hasil build baru: `curl https://sisupit.com/` menunjuk `AppLayout-DwoxbydR.js`, berkas
+      yang sama yang ada di disk dan memuat label "Masuk". Ketiga domain 200.
 - [ ] **Verifikasi visual (SISA):**
   1. Logout, buka `/` di lebar < md → slot ke-5 berbunyi "Masuk" berikon login, bukan "Menu".
   2. Ketuk → mendarat di halaman login; saat di `/login` slot itu tampil aktif (kotak merah).

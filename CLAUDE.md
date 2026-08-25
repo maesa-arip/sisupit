@@ -38,7 +38,9 @@ Task aktif   : TASK_35 (prompt/tasks/TASK_35_bottomnav_tombol_masuk_tamu.md) —
                 di halaman login. KEDUANYA satu-satunya jalan tersisa — kalau footer legal atau
                 tautan daftar itu dihapus/dipindah, menu-menu itu hilang dari ponsel tanpa
                 gejala apa pun (mekanisme #71). Tabelnya ada di §4 file task.
-                Test 260 → 261 passed, npm run build lulus. SISA: verifikasi visual §6.
+                Test 260 → 261 passed, npm run build lulus.
+                TERDEPLOY 2026-08-25 @208c0e26 ke prod/staging/dev (frontend saja, tanpa
+                migrasi/route). SISA: verifikasi visual §6.
                TASK_34 (prompt/tasks/TASK_34_notifikasi_pejabat.md) — SELESAI (kode)
                 2026-08-25. Temuan #77: peran `pejabat` TIDAK PERNAH menerima notifikasi apa
                 pun — keempat jalur notif (laporan masuk, broadcast, konfirmasi OPD, notif
