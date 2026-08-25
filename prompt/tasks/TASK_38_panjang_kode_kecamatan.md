@@ -6,7 +6,7 @@
 | Severity | P2 |
 | Tipe | bugfix |
 | Sumber | FINDINGS_LOG #79 (ditemukan saat TASK_37), diminta user 2026-08-25 |
-| Status | DONE (kode) — sisa: jalankan query pemeriksaan di staging & produksi |
+| Status | DONE — terdeploy @76cfccd8; pemeriksaan produksi bersih (0 baris) |
 
 ---
 
@@ -84,7 +84,8 @@ terlihat saat kode turunannya dicocokkan ke `indonesia_districts`.
 - [x] Test baru gagal dengan konstanta lama, hijau dengan yang baru (dibuktikan bolak-balik)
 - [x] Test sesudah: **271 passed** (270 + 1 penjaga baru)
 - [x] Pint bersih
-- [ ] **Staging & produksi** — jalankan pemeriksaan ini; hasil yang diharapkan 0 di semua tabel:
+- [x] **Produksi (2026-08-25)** — pemeriksaan di bawah dijalankan: **0 di kedelapan tabel**,
+      jadi tidak ada data yang perlu dibetulkan; fix ini murni mencegah. Query yang dipakai:
 
 ```sql
 SELECT 'hydrants' t, COUNT(*) n FROM hydrants WHERE district_code IS NOT NULL AND LENGTH(district_code) <> 6

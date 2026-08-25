@@ -6,7 +6,7 @@
 | Severity | P2 |
 | Tipe | bugfix (tampilan + data) |
 | Sumber | laporan user 2026-08-25 → FINDINGS_LOG #78 (temuan ikutan: #79) |
-| Status | DONE (kode) — sisa: jalankan perintah perbaikan di staging & produksi |
+| Status | DONE — terdeploy @76cfccd8, data ketiga env sudah dibersihkan 2026-08-25 |
 
 ---
 
@@ -89,8 +89,11 @@ yurisdiksi, dan rekap adalah titik itu, jadi kodenya harus mengikuti pin, bukan 
 - [ ] **Verifikasi manual**: buka `/admin/pumps`, pastikan tiap baris Ringkasan Air Desa
       berjudul nama desa (dev sekarang: PEMECUTAN, SANUR KAJA, TEGAL KERTHA, SESETAN, BENOA,
       PETANG)
-- [ ] **Staging & produksi**: jalankan `php artisan sisupit:fix-facility-village-codes` (tinjau
-      dulu), lalu ulangi dengan `--apply`. Tambahkan `--include-mismatch` hanya bila daftar
+- [x] **Staging & produksi** (2026-08-25): tinjauan dijalankan lebih dulu, user menyetujui
+      termasuk daftar "salah desa", lalu `--include-mismatch --apply` → **64 baris per env** di
+      prod/staging/dev. Cadangan `mysqldump` keempat tabel fasilitas:
+      `/root/backup-kodedesa-20260825-100727` di VPS. Sesudahnya: 0 kode tak dikenal, rantai
+      desa↔kecamatan konsisten, jumlah baris tak berubah. Catatan asli: Tambahkan `--include-mismatch` hanya bila daftar
       "kode terdaftar tapi titiknya menunjuk desa lain" memang ingin diserahkan ke peta.
       Prasyarat: Nominatim di server (`/opt/geo`, port 8088) hidup — kalau tidak, perintah
       jatuh ke centroid dan usulannya bertanda `centroid` (periksa dulu sebelum `--apply`).

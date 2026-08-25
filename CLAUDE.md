@@ -45,7 +45,9 @@ Task aktif   : TASK_38 (prompt/tasks/TASK_38_panjang_kode_kecamatan.md) — SELE
                 TABEL WILAYAH (dibuktikan merah dengan konstanta lama). Kolom char(7) SENGAJA
                 dibiarkan (7 ≥ 6). Temuan #79 FIXED. Test 270 → 271 passed. Tanpa migrasi,
                 tanpa perubahan frontend. Data dev bersih (0 baris berkode 7 digit di 8 tabel).
-                SISA: jalankan query pemeriksaan §6 di staging & produksi.
+                TERDEPLOY 2026-08-25 @76cfccd8 ke prod/staging/dev. Query pemeriksaan §6 sudah
+                dijalankan di produksi: 0 baris berkode kecamatan ≠ 6 digit di kedelapan tabel,
+                jadi fix ini murni pencegahan — tak ada data yang perlu dibetulkan.
                TASK_37 (prompt/tasks/TASK_37_kode_desa_ringkasan_skkl.md) — SELESAI (kode)
                 2026-08-25. Laporan user: di /admin/pumps kartu "Ringkasan Air Desa" ada baris
                 berjudul ANGKA (5171012001), bukan nama desa. Gejalanya satu baris, akarnya
@@ -76,8 +78,14 @@ Task aktif   : TASK_38 (prompt/tasks/TASK_38_panjang_kode_kecamatan.md) — SELE
                 SELURUH indonesia_districts 6 digit, jadi parentCode() bisa menulis district_code
                 yang tak cocok dengan siapa pun — FacilityJurisdictionTest ikut mematok asumsi
                 salah itu. Test 263 → 270 passed. TANPA perubahan frontend (npm run build tidak
-                perlu). DB dev sudah dibersihkan (64 baris). SISA: jalankan perintahnya di
-                staging & produksi (tinjau dulu, lalu --apply) + verifikasi visual §6.
+                perlu). TERDEPLOY 2026-08-25 @76cfccd8 ke prod/staging/dev.
+                DATA SUDAH DIBERSIHKAN di keempat DB (dev lokal + prod/staging/dev VPS):
+                `--include-mismatch --apply`, 64 baris per env, atas persetujuan user setelah
+                membaca tinjauannya; cadangan mysqldump keempat tabel fasilitas ada di VPS
+                `/root/backup-kodedesa-20260825-100727`. Verifikasi sesudahnya: 0 kode desa tak
+                dikenal, rantai kode desa↔kecamatan konsisten, jumlah baris tak berubah
+                (51 hydrant/0 warga/6 pompa/7 pos), rekap produksi kini berbunyi PEMECUTAN,
+                SANUR KAJA, TEGAL KERTHA, SESETAN, BENOA, PETANG. SISA: verifikasi visual §6.
                TASK_36 (prompt/tasks/TASK_36_keterangan_hidran.md) — SELESAI (kode)
                 2026-08-25. Permintaan user: ganti keterangan dua jenis hidran di menu admin.
                 Hidran = "dimiliki pemerintah <wilayah>, dikelola PDAM & Damkar"; Hidran Warga =

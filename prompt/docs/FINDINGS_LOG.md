@@ -1296,8 +1296,10 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
   cuma dua: dropdown wilayah (yang membaca `indonesia_*`) atau titik koordinat lewat
   geocoder. Dan tidak ada kode wilayah yang boleh sampai ke layar sebagai identitas tempat.
 - **Penjaga:** `tests/Feature/Sisupit/FacilityVillageCodeRepairTest.php` (7 test).
-- **Verifikasi:** `php artisan test` 263 → **270 passed**; DB dev dibersihkan (64 baris,
-  0 kode tak dikenal tersisa). Staging & produksi menunggu perintah yang sama dijalankan.
+- **Verifikasi:** `php artisan test` 263 → **270 passed**; keempat DB (dev lokal +
+  prod/staging/dev VPS) dibersihkan dengan `--include-mismatch --apply` — 64 baris per env,
+  cadangan mysqldump di `/root/backup-kodedesa-20260825-100727`. Sesudahnya: 0 kode desa tak
+  dikenal, rantai desa↔kecamatan konsisten, jumlah baris tak berubah.
 - **Sumber:** laporan user 2026-08-25.
 - **Status:** SELESAI (FIXED) 2026-08-25
 
