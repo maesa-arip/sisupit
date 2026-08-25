@@ -25,8 +25,8 @@ class PosPemadamSeeder extends Seeder
                 'lng' => 115.202284,
                 'province_code' => '51',
                 'city_code' => '5171',
-                'district_code' => '517102', // Denpasar Barat
-                'village_code' => '5171022002', // Pemecutan Klod
+                'district_code' => '517103', // Denpasar Barat
+                'village_code' => '5171032002', // Pemecutan Kelod
             ],
             [
                 'name' => 'Pos Pemadam Sektor Juanda (Renon)',
@@ -39,8 +39,8 @@ class PosPemadamSeeder extends Seeder
                 'lng' => 115.234123,
                 'province_code' => '51',
                 'city_code' => '5171',
-                'district_code' => '517101', // Denpasar Selatan
-                'village_code' => '5171012002', // Renon
+                'district_code' => '517102', // Denpasar Timur
+                'village_code' => '5171022002', // Sumerta Kelod (titik pos ada di sisi utara kawasan Renon)
             ],
             [
                 'name' => 'Pos Pemadam Sektor Mahendradatta',
@@ -53,8 +53,8 @@ class PosPemadamSeeder extends Seeder
                 'lng' => 115.185234,
                 'province_code' => '51',
                 'city_code' => '5171',
-                'district_code' => '517102', // Denpasar Barat
-                'village_code' => '5171022003', // Padangsambian
+                'district_code' => '517103', // Denpasar Barat
+                'village_code' => '5171031010', // Padangsambian
             ],
             [
                 'name' => 'Pos Pemadam Sektor Ubung',
@@ -67,8 +67,8 @@ class PosPemadamSeeder extends Seeder
                 'lng' => 115.201456,
                 'province_code' => '51',
                 'city_code' => '5171',
-                'district_code' => '517103', // Denpasar Utara
-                'village_code' => '5171032001', // Ubung
+                'district_code' => '517104', // Denpasar Utara
+                'village_code' => '5171041007', // Ubung
             ],
             [
                 'name' => 'Posko Relawan Damkar Sanur',
@@ -82,7 +82,7 @@ class PosPemadamSeeder extends Seeder
                 'province_code' => '51',
                 'city_code' => '5171',
                 'district_code' => '517101', // Denpasar Selatan
-                'village_code' => '5171012001', // Sanur Kaja
+                'village_code' => '5171011006', // Sanur
             ],
 
             // ==========================================
@@ -100,7 +100,7 @@ class PosPemadamSeeder extends Seeder
                 'province_code' => '51',
                 'city_code' => '5103',
                 'district_code' => '510301', // Kuta
-                'village_code' => '5103011001', // Kuta
+                'village_code' => '5103011002', // Kuta
             ],
             [
                 'name' => 'Pos Damkar Mengwi',
@@ -114,7 +114,7 @@ class PosPemadamSeeder extends Seeder
                 'province_code' => '51',
                 'city_code' => '5103',
                 'district_code' => '510302', // Mengwi
-                'village_code' => '5103022001', // Mengwi
+                'village_code' => '5103022009', // Mengwi
             ],
         ];
 

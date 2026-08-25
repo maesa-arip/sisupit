@@ -75,13 +75,16 @@ class HydrantSeeder extends Seeder
         // (-8.65, 115.22) tanpa peduli alamat, sehingga marker tidak pernah cocok lokasi.
         $coords = $this->hydrantCoordinates();
 
+        // Kode wilayah per hydrant, dipasangkan ke titik di atas (lihat hydrantRegions()).
+        $regions = $this->hydrantRegions();
+
         foreach ($hydrants as $hydrant) {
 
-            // 1. Ekstrak kode wilayah yang akurat dan SAH berdasarkan alamat
-            $wilayah = $this->getWilayahCodes($hydrant['address'], $hydrant['name']);
-
-            // 2. Ambil titik asli sesuai nama; fallback ke pusat Denpasar bila tak terpetakan.
+            // 1. Ambil titik asli sesuai nama; fallback ke pusat Denpasar bila tak terpetakan.
             [$lat, $lng] = $coords[$hydrant['name']] ?? [-8.650000, 115.220000];
+
+            // 2. Kode wilayah mengikuti TITIK itu, bukan tebakan dari kata di alamat.
+            [$districtCode, $villageCode] = $regions[$hydrant['name']] ?? [null, null];
 
             DB::table('hydrants')->insert([
                 'name' => $hydrant['name'],
@@ -94,9 +97,9 @@ class HydrantSeeder extends Seeder
 
                 // 3. Suntikkan kode asli Laravolt Indonesia
                 'province_code' => '51', // Bali
-                'city_code' => $wilayah['city_code'],
-                'district_code' => $wilayah['district_code'],
-                'village_code' => $wilayah['village_code'],
+                'city_code' => '5171', // Kota Denpasar
+                'district_code' => $districtCode,
+                'village_code' => $villageCode,
 
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -105,79 +108,76 @@ class HydrantSeeder extends Seeder
     }
 
     /**
-     * FUNGSI AUTO-MAPPER KODE WILAYAH KEMENDAGRI (LARAVOLT)
-     * Mengubah teks alamat menjadi kode 10 digit yang valid di database.
+     * Kode kecamatan & desa tiap hydrant, dipetakan dari nama — pasangan tetap dari titik di
+     * hydrantCoordinates(). Ditentukan sekali lewat reverse-geocode Nominatim lokal atas titik
+     * itu, lalu di-hardcode di sini persis seperti koordinatnya, supaya seeder tidak bergantung
+     * layanan geocoding saat dijalankan.
+     *
+     * Sampai 2026-08-25 kode ini ditebak dari KATA di alamat (`getWilayahCodes()`): satu
+     * kelurahan untuk tiap kelompok kata kunci, kodenya ditulis tangan. Dua-duanya salah — 33
+     * dari 51 kode itu tidak pernah ada di `indonesia_villages`, sehingga rekap air per desa
+     * memberi judul berupa angka (FINDINGS #78) — dan pengelompokannya pun terlalu kasar:
+     * hydrant di Jl. Surapati, Kaliasem, dan Melati bertetangga di teks tapi berada di tiga desa
+     * berbeda. Titik fasilitas jauh lebih tahu tempatnya daripada nama jalan.
+     *
+     * Menambah hydrant baru = tambahkan barisnya di SINI dan di hydrantCoordinates(); nama yang
+     * tidak terdaftar tersimpan tanpa kode wilayah, bukan dipaksa ke desa asal-asalan.
      */
-    private function getWilayahCodes($address, $name)
+    private function hydrantRegions(): array
     {
-        $text = strtolower($address.' '.$name);
-
-        // ==========================================
-        // KOTA DENPASAR (5171)
-        // ==========================================
-
-        // DENPASAR SELATAN (517101)
-        if (str_contains($text, 'pemogan') || str_contains($text, 'kepaon')) {
-            return ['city_code' => '5171', 'district_code' => '517101', 'village_code' => '5171012003'];
-        } // Desa Pemogan
-        if (str_contains($text, 'sesetan') || str_contains($text, 'saelus') || str_contains($text, 'singkep')) {
-            return ['city_code' => '5171', 'district_code' => '517101', 'village_code' => '5171011004'];
-        } // Kelurahan Sesetan
-        if (str_contains($text, 'pedungan') || str_contains($text, 'pesanggaran') || str_contains($text, 'moyo')) {
-            return ['city_code' => '5171', 'district_code' => '517101', 'village_code' => '5171011005'];
-        } // Kelurahan Pedungan
-        if (str_contains($text, 'panjer') || str_contains($text, 'waturenggong') || str_contains($text, 'pakerisan') || str_contains($text, 'nyangglan') || str_contains($text, 'penet')) {
-            return ['city_code' => '5171', 'district_code' => '517101', 'village_code' => '5171011006'];
-        } // Kelurahan Panjer
-        if (str_contains($text, 'renon') || str_contains($text, 'cok agung tresna') || str_contains($text, 'niti mandala')) {
-            return ['city_code' => '5171', 'district_code' => '517101', 'village_code' => '5171011007'];
-        } // Kelurahan Renon
-        if (str_contains($text, 'serangan')) {
-            return ['city_code' => '5171', 'district_code' => '517101', 'village_code' => '5171011010'];
-        } // Kelurahan Serangan
-        if (str_contains($text, 'sanur') || str_contains($text, 'by pass kfc')) {
-            return ['city_code' => '5171', 'district_code' => '517101', 'village_code' => '5171011008'];
-        } // Kelurahan Sanur
-
-        // DENPASAR TIMUR (517102)
-        if (str_contains($text, 'kesiman') || str_contains($text, 'sulatri') || str_contains($text, 'kenyeri') || str_contains($text, 'wr supratman') || str_contains($text, 'polda')) {
-            return ['city_code' => '5171', 'district_code' => '517102', 'village_code' => '5171021003'];
-        } // Kelurahan Kesiman
-        if (str_contains($text, 'sumerta') || str_contains($text, 'nusa indah') || str_contains($text, 'hayam wuruk') || str_contains($text, 'kecubung') || str_contains($text, 'badak agung')) {
-            return ['city_code' => '5171', 'district_code' => '517102', 'village_code' => '5171021006'];
-        } // Kelurahan Sumerta
-        if (str_contains($text, 'dangin puri') || str_contains($text, 'surapati') || str_contains($text, 'kaliasem') || str_contains($text, 'patimura') || str_contains($text, 'banteng') || str_contains($text, 'satria') || str_contains($text, 'abimanyu') || str_contains($text, 'melati') || str_contains($text, 'kepundung') || str_contains($text, 'kamboja')) {
-            return ['city_code' => '5171', 'district_code' => '517102', 'village_code' => '5171021008'];
-        } // Kelurahan Dangin Puri
-        if (str_contains($text, 'penatih') || str_contains($text, 'trenggana') || str_contains($text, 'waringin')) {
-            return ['city_code' => '5171', 'district_code' => '517102', 'village_code' => '5171021010'];
-        } // Kelurahan Penatih
-
-        // DENPASAR BARAT (517103)
-        if (str_contains($text, 'pemecutan') || str_contains($text, 'gajah mada') || str_contains($text, 'sulawesi') || str_contains($text, 'hasanudin') || str_contains($text, 'imam bonjol') || str_contains($text, 'kartini') || str_contains($text, 'wangaya')) {
-            return ['city_code' => '5171', 'district_code' => '517103', 'village_code' => '5171031003'];
-        } // Kelurahan Pemecutan
-        if (str_contains($text, 'dauh puri') || str_contains($text, 'pura') || str_contains($text, 'suci') || str_contains($text, 'diponogoro') || str_contains($text, 'sanglah') || str_contains($text, 'pulau nias') || str_contains($text, 'teuku umar') || str_contains($text, 'arjuna') || str_contains($text, 'sumatra') || str_contains($text, 'kalimantan') || str_contains($text, 'udayana')) {
-            return ['city_code' => '5171', 'district_code' => '517103', 'village_code' => '5171031006'];
-        } // Kelurahan Dauh Puri
-        if (str_contains($text, 'padangsambian') || str_contains($text, 'gn agung') || str_contains($text, 'mahendradata') || str_contains($text, 'kebo iwa') || str_contains($text, 'gn sanghyang')) {
-            return ['city_code' => '5171', 'district_code' => '517103', 'village_code' => '5171031009'];
-        } // Kelurahan Padangsambian
-
-        // DENPASAR UTARA (517104)
-        if (str_contains($text, 'peguyangan') || str_contains($text, 'antasura') || str_contains($text, 'peninjoan') || str_contains($text, 'padma')) {
-            return ['city_code' => '5171', 'district_code' => '517104', 'village_code' => '5171041003'];
-        } // Kelurahan Peguyangan
-        if (str_contains($text, 'ubung') || str_contains($text, 'poh gading') || str_contains($text, 'maruti') || str_contains($text, 'a yani')) {
-            return ['city_code' => '5171', 'district_code' => '517104', 'village_code' => '5171041006'];
-        } // Kelurahan Ubung
-        if (str_contains($text, 'tonja') || str_contains($text, 'gatsu') || str_contains($text, 'gatot subroto') || str_contains($text, 'nangka') || str_contains($text, 'jayakarta') || str_contains($text, 'durian')) {
-            return ['city_code' => '5171', 'district_code' => '517104', 'village_code' => '5171041009'];
-        } // Kelurahan Tonja
-
-        // DEFAULT FALLBACK JIKA ALAMAT TIDAK DIKENALI
-        // Dipusatkan di Kelurahan Dauh Puri (Pusat Kota Denpasar)
-        return ['city_code' => '5171', 'district_code' => '517103', 'village_code' => '5171031006'];
+        return [
+            'Hydrant Stick Maruti' => ['517104', '5171042005'], // Pemecutan Kaja, Denpasar Utara
+            'Hydrant Stick Pura' => ['517102', '5171022001'], // Dangin Puri Kelod, Denpasar Timur
+            'Hydrant Stick Suci' => ['517101', '5171011003'], // Sesetan, Denpasar Selatan
+            'Hydrant Jongkok Gatsu' => ['517104', '5171041004'], // Tonja, Denpasar Utara
+            'Hydrant Stick Kaliasem' => ['517102', '5171021010'], // Dangin Puri, Denpasar Timur
+            'Hydrant Stick Sulatri' => ['517102', '5171021014'], // Penatih, Denpasar Timur
+            'Hydrant Stick Kenyeri' => ['517102', '5171022007'], // Sumerta Kaja, Denpasar Timur
+            'Hydrant Stick Nusa Indah' => ['517102', '5171021006'], // Sumerta, Denpasar Timur
+            'Hydrant Stick Hayam Wuruk 1' => ['517102', '5171022002'], // Sumerta Kelod, Denpasar Timur
+            'Hydrant Stick Gn Agung' => ['517103', '5171032008'], // Tegal Harum, Denpasar Barat
+            'Hydrant Stick Waringin' => ['517102', '5171022004'], // Kesiman Petilan, Denpasar Timur
+            'Hydrant Stick By Pass KFC' => ['517101', '5171011003'], // Sesetan, Denpasar Selatan
+            'Hydrant Stick Pemogan 1' => ['517101', '5171012008'], // Pemogan, Denpasar Selatan
+            'Hydrant Stick Pemogan 2' => ['517101', '5171012008'], // Pemogan, Denpasar Selatan
+            'Hydrant Stick Sanglah' => ['517103', '5171032004'], // Dauh Puri Kelod, Denpasar Barat
+            'Hydrant Stick Patimura' => ['517104', '5171042003'], // Dangin Puri Kaja, Denpasar Utara
+            'Hydrant Stick Waturenggong' => ['517101', '5171011004'], // Panjer, Denpasar Selatan
+            'Hydrant Stick Nyangglan' => ['517101', '5171011003'], // Sesetan, Denpasar Selatan
+            'Hydrant Stick Pesanggaran' => ['517101', '5171011002'], // Pedungan, Denpasar Selatan
+            'Hydrant Stick Poh Gading' => ['517104', '5171041009'], // Peguyangan, Denpasar Utara
+            'Hydrant Stick Gajah Mada' => ['517104', '5171042006'], // Dauh Puri Kaja, Denpasar Utara
+            'Hydrant Stick Sesetan' => ['517103', '5171032004'], // Dauh Puri Kelod, Denpasar Barat
+            'Hydrant Stick Hasanudin' => ['517103', '5171032006'], // Dauh Puri Kangin, Denpasar Barat
+            'Hydrant Stick Kebo Iwa' => ['517103', '5171032011'], // Padang Sambian Kaja, Denpasar Barat
+            'Hydrant Stick Peninjoan' => ['517104', '5171042011'], // Peguyangan Kangin, Denpasar Utara
+            'Hydrant Stick Badak Agung' => ['517102', '5171022002'], // Sumerta Kelod, Denpasar Timur
+            'Hydrant Stick Penet' => ['517101', '5171011005'], // Renon, Denpasar Selatan
+            'Hydrant Stick Arjuna' => ['517103', '5171031010'], // Padangsambian, Denpasar Barat
+            'Hydrant Stick Hayam Wuruk 2' => ['517102', '5171022002'], // Sumerta Kelod, Denpasar Timur
+            'Hydrant Stick Saelus' => ['517101', '5171011002'], // Pedungan, Denpasar Selatan
+            'Hydrant Stick Antasura' => ['517104', '5171042011'], // Peguyangan Kangin, Denpasar Utara
+            'Hydrant Stick Cok Agung Tresna' => ['517102', '5171022001'], // Dangin Puri Kelod, Denpasar Timur
+            'Hydrant Stick Satria' => ['517104', '5171042002'], // Dangin Puri Kauh, Denpasar Utara
+            'Hydrant Stick Polda Bali' => ['517102', '5171021006'], // Sumerta, Denpasar Timur
+            'Hydrant Stick Imam Bonjol' => ['517103', '5171032002'], // Pemecutan Kelod, Denpasar Barat
+            'Hydrant Stick Pemogan 3' => ['517101', '5171012008'], // Pemogan, Denpasar Selatan
+            'Hydrant Stick Wangaya' => ['517104', '5171042006'], // Dauh Puri Kaja, Denpasar Utara
+            'Hydrant Stick Sumatra' => ['517103', '5171032008'], // Tegal Harum, Denpasar Barat
+            'Hydrant Stick Maruti 2' => ['517104', '5171042006'], // Dauh Puri Kaja, Denpasar Utara
+            'Hydrant Stick Pemogan 4' => ['517101', '5171012008'], // Pemogan, Denpasar Selatan
+            'Hydrant Jongkok Jayakarta' => ['517104', '5171042006'], // Dauh Puri Kaja, Denpasar Utara
+            'Hydrant Jongkok Durian' => ['517104', '5171042008'], // Ubung Kaja, Denpasar Utara
+            'Hydrant Stick Teuku Umar' => ['517103', '5171032003'], // Dauh Puri Kauh, Denpasar Barat
+            'Hydrant Stick Surapati' => ['517102', '5171021010'], // Dangin Puri, Denpasar Timur
+            'Hydrant Stick Udayana' => ['517102', '5171022001'], // Dangin Puri Kelod, Denpasar Timur
+            'Hydrant Stick Melati' => ['517104', '5171042001'], // Dangin Puri Kangin, Denpasar Utara
+            'Hydrant Stick Serangan' => ['517101', '5171011001'], // Serangan, Denpasar Selatan
+            'Hydrant Jongkok Kepundung' => ['517102', '5171021010'], // Dangin Puri, Denpasar Timur
+            'Hydrant Jongkok Kalimantan' => ['517103', '5171032006'], // Dauh Puri Kangin, Denpasar Barat
+            'Hydrant Stick Kamboja' => ['517104', '5171042001'], // Dangin Puri Kangin, Denpasar Utara
+            'Hydrant Jongkok Gatsu Tengah' => ['517104', '5171042003'], // Dangin Puri Kaja, Denpasar Utara
+        ];
     }
 
     /**

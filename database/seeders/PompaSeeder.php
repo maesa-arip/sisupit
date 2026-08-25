@@ -22,8 +22,8 @@ class PompaSeeder extends Seeder
                 'lng' => 115.212003,
                 'province_code' => '51',
                 'city_code' => '5171',
-                'district_code' => '517102', // Denpasar Barat
-                'village_code' => '5171022001', // Dauh Puri Kangin
+                'district_code' => '517103', // Denpasar Barat
+                'village_code' => '5171031007', // Pemecutan
                 'description' => 'Pompa utama untuk area pusat perbelanjaan Pasar Badung. Debit air tinggi.',
             ],
             [
@@ -36,7 +36,7 @@ class PompaSeeder extends Seeder
                 'province_code' => '51',
                 'city_code' => '5171',
                 'district_code' => '517101', // Denpasar Selatan
-                'village_code' => '5171012001', // Sanur Kaja
+                'village_code' => '5171012009', // Sanur Kaja
                 'description' => 'Pompa portabel di atas mobil bak terbuka, siap dikerahkan ke titik evakuasi sempit.',
             ],
             [
@@ -48,8 +48,8 @@ class PompaSeeder extends Seeder
                 'lng' => 115.195023,
                 'province_code' => '51',
                 'city_code' => '5171',
-                'district_code' => '517102', // Denpasar Barat
-                'village_code' => '5171022002', // Pemecutan Klod
+                'district_code' => '517103', // Denpasar Barat
+                'village_code' => '5171032009', // Tegal Kertha
                 'description' => 'Pompa cadangan bertenaga solar, cocok untuk pemadaman atau penyedotan banjir lokal.',
             ],
             [
@@ -62,7 +62,7 @@ class PompaSeeder extends Seeder
                 'province_code' => '51',
                 'city_code' => '5171',
                 'district_code' => '517101', // Denpasar Selatan
-                'village_code' => '5171012003', // Suwung/Sesetan
+                'village_code' => '5171011003', // Sesetan
                 'description' => 'Dapat mengapung di atas permukaan air. Digunakan untuk mengatasi genangan air/banjir.',
             ],
 
@@ -79,7 +79,7 @@ class PompaSeeder extends Seeder
                 'province_code' => '51',
                 'city_code' => '5103',
                 'district_code' => '510305', // Kuta Selatan
-                'village_code' => '5103052001', // Benoa
+                'village_code' => '5103051004', // Benoa
                 'description' => 'Pompa taktis untuk area pariwisata elit.',
             ],
             [
@@ -92,7 +92,7 @@ class PompaSeeder extends Seeder
                 'province_code' => '51',
                 'city_code' => '5103',
                 'district_code' => '510304', // Petang
-                'village_code' => '5103042001', // Petang
+                'village_code' => '5103042002', // Petang
                 'description' => 'Klep hisap sedang diganti. Selesai minggu depan.',
             ],
         ];

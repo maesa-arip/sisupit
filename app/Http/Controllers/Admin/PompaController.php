@@ -99,19 +99,28 @@ class PompaController extends Controller
      */
     private function waterSummary(Collection $rows): array
     {
-        $names = DB::table('indonesia_villages')
-            ->whereIn('code', $rows->pluck('village_code')->filter()->unique()->all())
-            ->pluck('name', 'code');
+        $codes = $rows->pluck('village_code')->filter()->unique()->values()->all();
+
+        $names = DB::table('indonesia_villages')->whereIn('code', $codes)->pluck('name', 'code');
+
+        // Nama kecamatan hanya diperlukan untuk kode desa yang TIDAK dikenal — lihat villageLabel().
+        $unknown = array_values(array_diff($codes, $names->keys()->all()));
+
+        $districts = $unknown === []
+            ? collect()
+            : DB::table('indonesia_districts')
+                ->whereIn('code', array_map(fn ($code) => $this->districtCodeFromVillage((string) $code), $unknown))
+                ->pluck('name', 'code');
 
         return $rows
             ->groupBy(fn ($row) => $row['village_code'] ?: '')
-            ->map(function (Collection $group, $code) use ($names) {
+            ->map(function (Collection $group, $code) use ($names, $districts) {
                 $flowing = $group->where('water_metric', 'debit');
                 $stored = $group->where('water_metric', 'capacity');
 
                 return [
                     'village_code' => $code ?: null,
-                    'village' => $code ? ($names[$code] ?? $code) : 'Tanpa data desa',
+                    'village' => $this->villageLabel($code, $names, $districts),
                     'points' => $group->count(),
                     // Aliran: pompa & aset air bertekanan, liter per menit.
                     'debit_points' => $flowing->count(),
@@ -129,6 +138,34 @@ class PompaController extends Controller
             ->sortByDesc(fn (array $row) => [$row['debit_lpm'], $row['capacity_liter']])
             ->values()
             ->all();
+    }
+
+    /**
+     * Judul baris rekap. Kode wilayah TIDAK PERNAH sampai ke layar: sampai 2026-08-25
+     * fallback-nya `?? $code`, sehingga sebuah baris berjudul "5171012001" begitu kode desa
+     * yang tersimpan tidak ada di `indonesia_villages` — dan itu bukan kasus langka, seeder
+     * fasilitas mengarang kode desa (FINDINGS #78). Angka 10 digit tak berarti apa pun bagi
+     * operator; nama kecamatannya masih bisa diturunkan dari AWALAN kode BPS (aturan yang
+     * sama dipakai `ResolvesFacilityJurisdiction`), jadi barisnya tetap punya tempat yang
+     * dikenali sekaligus mengaku datanya belum beres. Perbaikan datanya sendiri lewat
+     * `php artisan sisupit:fix-facility-village-codes`.
+     *
+     * Kecamatannya diturunkan lewat `districtCodeFromVillage()` (trait yurisdiksi fasilitas),
+     * bukan `substr(..., 0, 6)` di sini — panjang kode wilayah cuma boleh ditulis satu tempat.
+     */
+    private function villageLabel(?string $code, Collection $names, Collection $districts): string
+    {
+        if (! $code) {
+            return 'Tanpa data desa';
+        }
+
+        if (isset($names[$code])) {
+            return $names[$code];
+        }
+
+        $district = $districts[$this->districtCodeFromVillage($code)] ?? null;
+
+        return $district ? 'Desa tidak dikenal · Kec. '.$district : 'Desa tidak dikenal';
     }
 
     public function create()
