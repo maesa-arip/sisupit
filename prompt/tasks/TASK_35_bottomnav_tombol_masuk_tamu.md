@@ -125,5 +125,22 @@ ada yang memakainya ulang untuk halaman yang bisa dicapai dari bilah bawah.
 mengimpor `@/Layouts/PublicLayout` lagi. `Landing.jsx` sengaja tidak diperiksa.
 
 **Verifikasi tambahan:** `php artisan test` → **262 passed (1010 assertions)**, `npm run build`
-lulus, Prettier bersih. Visual (SISA): sebagai tamu, ketuk Fasilitas → Hidran/SKKL/Pos Pemadam
-dan footer → Pusat Bantuan/S&K/Privasi/Tentang — bilah bawah harus tetap ada di semuanya.
+lulus, Prettier bersih.
+
+**TERDEPLOY 2026-08-25 @`6e75dd4e`** ke prod/staging/dev. Dibuktikan di level manifest yang
+BENAR-BENAR disajikan produksi (bukan sekadar "sudah ter-commit"): `Pages/Hydrants/Index.jsx`
+dan `Pages/Info/Help.jsx` kini mengimpor chunk AppLayout dan TIDAK lagi PublicLayout.
+`/hydrants`, `/pumps`, `/fire-stations`, `/pusat-bantuan` → 200 sebagai tamu. `/landing` tetap
+200 dan chunk-nya masih memuat navbar PublicLayout — Rollup meleburkan layout itu ke dalam
+chunk Landing karena kini pemakainya tinggal satu, jadi ia hilang dari daftar `imports`
+manifest; itu normal, bukan tanda ia ikut terhapus.
+
+**Visual (SISA):** sebagai tamu, ketuk Fasilitas → Hidran/SKKL/Pos Pemadam dan footer → Pusat
+Bantuan/S&K/Privasi/Tentang — bilah bawah harus tetap ada di semuanya.
+
+**Belum dikerjakan (di luar permintaan, sudah disampaikan ke user):** percabangan `isGuest` di
+BADAN ketiga halaman fasilitas masih ada — tamu memakai `PublicPageHeader` + pembungkus
+`max-w-6xl px-4 py-8`, yang sudah login memakai `HeaderTitle` + lebar penuh. Akibatnya di
+halaman yang sama tamu melihat padding sedikit lebih tebal & lebar sedikit lebih sempit. Tidak
+rusak (halaman info/legal memang memakai hero yang sama di dalam AppLayout untuk semua orang),
+tapi kalau mau diseragamkan, cukup hapus percabangan itu di tiga berkas.

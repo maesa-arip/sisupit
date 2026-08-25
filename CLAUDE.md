@@ -53,7 +53,10 @@ Task aktif   : TASK_35 (prompt/tasks/TASK_35_bottomnav_tombol_masuk_tamu.md) —
                 tinggal Pages/Landing.jsx (/landing) dan docblock-nya kini menyebut dirinya
                 pemakai tunggal — JANGAN pakai ulang untuk halaman yang bisa dicapai dari
                 bilah bawah. Penjaga: test kelima di MobileNavParityTest.
-                Test 261 → 262 passed (1010 assertions).
+                Test 261 → 262 passed (1010 assertions). TERDEPLOY 2026-08-25 @6e75dd4e ke
+                prod/staging/dev. SISA (di luar permintaan, sudah disampaikan): percabangan
+                `isGuest` di BADAN tiga halaman fasilitas masih ada — tamu pakai
+                PublicPageHeader + max-w-6xl, yang login pakai HeaderTitle + lebar penuh.
                TASK_34 (prompt/tasks/TASK_34_notifikasi_pejabat.md) — SELESAI (kode)
                 2026-08-25. Temuan #77: peran `pejabat` TIDAK PERNAH menerima notifikasi apa
                 pun — keempat jalur notif (laporan masuk, broadcast, konfirmasi OPD, notif
