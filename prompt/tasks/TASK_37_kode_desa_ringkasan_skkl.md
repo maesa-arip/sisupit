@@ -43,8 +43,9 @@ Dua lapis — lapis kedua yang sebenarnya (uraian lengkap di FINDINGS_LOG #78):
 
 - `app/Http/Controllers/Admin/PompaController.php` — `waterSummary()` tidak pernah lagi
   menampilkan kode; desa tak dikenal berjudul `Desa tidak dikenal · Kec. <nama>` lewat helper
-  baru `villageLabel()`. Nama kecamatan diturunkan dari awalan kode desa (konstanta
-  `DISTRICT_CODE_LENGTH = 6`, lihat #79).
+  baru `villageLabel()`. Nama kecamatan diturunkan dari awalan kode desa — awalnya lewat
+  konstanta lokal `DISTRICT_CODE_LENGTH = 6` karena panjang di trait masih salah; konstanta itu
+  dihapus di TASK_38 begitu #79 diperbaiki, digantikan `districtCodeFromVillage()`.
 - `app/Console/Commands/FixFacilityVillageCodes.php` (BARU) —
   `php artisan sisupit:fix-facility-village-codes`. Default **tinjau saja**; menulis hanya
   dengan `--apply`. Menentukan ulang desa dari TITIK fasilitas:
@@ -93,10 +94,10 @@ yurisdiksi, dan rekap adalah titik itu, jadi kodenya harus mengikuti pin, bukan 
       termasuk daftar "salah desa", lalu `--include-mismatch --apply` → **64 baris per env** di
       prod/staging/dev. Cadangan `mysqldump` keempat tabel fasilitas:
       `/root/backup-kodedesa-20260825-100727` di VPS. Sesudahnya: 0 kode tak dikenal, rantai
-      desa↔kecamatan konsisten, jumlah baris tak berubah. Catatan asli: Tambahkan `--include-mismatch` hanya bila daftar
-      "kode terdaftar tapi titiknya menunjuk desa lain" memang ingin diserahkan ke peta.
-      Prasyarat: Nominatim di server (`/opt/geo`, port 8088) hidup — kalau tidak, perintah
-      jatuh ke centroid dan usulannya bertanda `centroid` (periksa dulu sebelum `--apply`).
+      desa↔kecamatan konsisten, jumlah baris tak berubah.
+      Prasyarat yang terbukti terpenuhi saat itu: Nominatim di server (`/opt/geo`, port 8088)
+      hidup, sehingga SELURUH usulan bersumber `peta` — kalau ia mati, perintah jatuh ke
+      centroid dan usulannya bertanda `centroid`, dan itu wajib diperiksa dulu sebelum `--apply`.
 
 ## 7. Rollback
 
