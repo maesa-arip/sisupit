@@ -24,7 +24,22 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : TASK_34 (prompt/tasks/TASK_34_notifikasi_pejabat.md) — SELESAI (kode)
+Task aktif   : TASK_35 (prompt/tasks/TASK_35_bottomnav_tombol_masuk_tamu.md) — SELESAI (kode)
+                2026-08-25. Permintaan user: "saat belum login menu jadi tombol login, jika
+                sudah login baru jadi menu". Slot ke-5 MobileBottomNav kini dua wujud —
+                tombol "Masuk" bagi tamu, popover "Menu" bagi yang sudah login. Bagi pengguna
+                yang sudah login TIDAK ADA yang berubah. Tujuan tombol TIDAK dipaku: diambil
+                dari item `login` navItems.js (aturan #71) dan kalau item itu hilang slotnya
+                jatuh kembali jadi popover, bukan tombol mati; `login` sengaja TIDAK masuk
+                BAR_ITEM_KEYS (daftar itu cuma menyaring isi popover, dan MobileNavParityTest
+                mematok jumlah kuncinya = 8). HARGA yang disetujui user lewat pratinjau dua
+                bentuk (alternatifnya: geser Menu ke slot Riwayat — DITOLAK): bagi tamu empat
+                tautan legal hanya lewat footer AppLayout dan "Daftar Baru" hanya lewat tautan
+                di halaman login. KEDUANYA satu-satunya jalan tersisa — kalau footer legal atau
+                tautan daftar itu dihapus/dipindah, menu-menu itu hilang dari ponsel tanpa
+                gejala apa pun (mekanisme #71). Tabelnya ada di §4 file task.
+                Test 260 → 261 passed, npm run build lulus. SISA: verifikasi visual §6.
+               TASK_34 (prompt/tasks/TASK_34_notifikasi_pejabat.md) — SELESAI (kode)
                 2026-08-25. Temuan #77: peran `pejabat` TIDAK PERNAH menerima notifikasi apa
                 pun — keempat jalur notif (laporan masuk, broadcast, konfirmasi OPD, notif
                 pelapor) tak satu pun menyebutnya, jadi lonceng webnya selalu kosong tanpa
@@ -356,7 +371,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-08-25: 260 passed, 1004 assertions —
+Test      : php artisan test            (baseline 2026-08-25: 261 passed, 1006 assertions —
             angka lama "65 passed, 164 assertions" per 2026-06-25 sudah jauh tertinggal)
 Run (dev) : composer dev
 Lint      : vendor/bin/pint  /  npm run format (auto-fix, BUKAN check-only — tidak ada di CI)

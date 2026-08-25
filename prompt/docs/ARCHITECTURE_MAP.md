@@ -88,7 +88,9 @@ resources/js/
                      melayang buatan tangan — bentuk pra-TASK_20 yang diminta user
                      2026-08-13 dan TETAP dipertahankan. Empat jangkar tetap (Beranda,
                      Fasilitas, SOS, Riwayat) didaftar sebagai KUNCI di BAR_ITEM_KEYS /
-                     FASILITAS_ITEM_KEYS; slot ke-5 "Menu" (kini untuk SEMUA peran) memuat
+                     FASILITAS_ITEM_KEYS; slot ke-5 = tombol "Masuk" bagi TAMU (2026-08-25,
+                     tujuannya diambil dari item `login` navItems.js, bukan dipaku) dan
+                     popover "Menu" bagi yang sudah login, yang memuat
                      semua seksi sisanya. Menu baru cukup ditulis di navItems.js — ia
                      otomatis mendarat di popover "Menu".
                   Pengecualian "dua daftar" 2026-08-13 DICABUT 2026-08-19 (TASK_31) setelah

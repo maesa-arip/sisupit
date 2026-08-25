@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils';
 import { Link, usePage } from '@inertiajs/react';
 import { IconDashboard, IconHistory, IconMapPin, IconMenu2 } from '@tabler/icons-react';
 import { Fragment, useEffect, useRef, useState } from 'react';
-import { buildNavSections, flattenNavItems } from './navItems';
+import { buildNavSections, flattenNavItems, resolveAbilities } from './navItems';
 
 /**
  * Navigasi bawah untuk layar kecil.
@@ -23,9 +23,22 @@ import { buildNavSections, flattenNavItems } from './navItems';
  * pembagian itu memakai daftar KUNCI (bukan daftar menu), item baru di navItems.js
  * otomatis mendarat di popover "Menu" tanpa perubahan apa pun di berkas ini.
  *
- * Slot ke-5 tampil untuk SEMUA peran (dulu popover admin saja, peran lain hanya dapat
- * tautan Profil) — itulah yang membuat Pusat Bantuan/S&K/Privasi dan tombol Keluar
- * akhirnya terjangkau pengguna ponsel non-admin (temuan #53).
+ * Slot ke-5 tampil untuk SEMUA PERAN yang sudah login (dulu popover admin saja, peran lain
+ * hanya dapat tautan Profil) — itulah yang membuat Pusat Bantuan/S&K/Privasi dan tombol
+ * Keluar akhirnya terjangkau pengguna ponsel non-admin (temuan #53).
+ *
+ * TAMU (keputusan user 2026-08-25): slot ke-5 BUKAN popover "Menu" melainkan tombol
+ * **Masuk**. Alasannya, isi menu bagi tamu nyaris seluruhnya bukan tujuan yang ia cari
+ * (empat tautan legal + dua tautan akun), sementara satu-satunya hal yang ingin ia lakukan
+ * — masuk — terkubur satu ketukan di dalam panel. Harga yang DISETUJUI user: bagi tamu,
+ * Bantuan/S&K/Privasi/Tentang hanya lewat footer AppLayout dan "Daftar Baru" hanya lewat
+ * tautan di halaman login. Keduanya sudah ada dan sudah dipakai, jadi tak ada tujuan yang
+ * benar-benar buntu — tapi ingat #71 sebelum memindahkan salah satunya: begitu footer atau
+ * tautan daftar itu hilang, menu-menu tadi ikut hilang dari ponsel tanpa gejala apa pun.
+ *
+ * Tujuan tombolnya TIDAK dipaku di sini: ia diambil dari item `login` milik navItems.js,
+ * sumber yang sama dengan sidebar (aturan #71). Kalau item itu suatu saat tak ada, slotnya
+ * jatuh kembali ke popover "Menu" — bukan menjadi tombol mati.
  *
  * RUPA (FINDINGS #72): bilah ini dulu memakai bahasa visualnya sendiri — ikon 28px
  * (sistem: 16–20px), pil `rounded-full` (satu-satunya di aplikasi), dan ketebalan garis
@@ -106,6 +119,13 @@ export default function MobileBottomNav({ auth }) {
 	const itemByKey = (key) => allItems.find((item) => item.key === key) ?? null;
 
 	const fasilitasItems = FASILITAS_ITEM_KEYS.map(itemByKey).filter(Boolean);
+
+	// Slot ke-5 punya dua wujud: tombol "Masuk" bagi tamu, popover "Menu" bagi yang sudah
+	// login. `login` SENGAJA tidak dimasukkan ke BAR_ITEM_KEYS — daftar itu menyaring isi
+	// popover, dan bagi tamu popovernya memang tidak dirender sama sekali.
+	const { isLoggedIn } = resolveAbilities(auth);
+	const loginItem = itemByKey('login');
+	const showLoginSlot = !isLoggedIn && Boolean(loginItem);
 
 	// Sisa seksi = apa pun yang tidak dipegang bilah/panel Fasilitas. Inilah yang membuat
 	// menu baru mustahil hilang: ia jatuh ke sini secara otomatis.
@@ -217,42 +237,56 @@ export default function MobileBottomNav({ auth }) {
 						active={url.startsWith('/reports') && !url.startsWith('/reports/create')}
 					/>
 
-					{/* 5. Menu — semua seksi yang tak terwakili di bilah, untuk SEMUA peran */}
-					<div className="relative flex h-full w-full flex-col items-center justify-center" ref={menuRef}>
-						{showMenu && (
-							<FloatingPanel className="right-2 w-64">
-								{menuSections.map((section, index) => (
-									<Fragment key={section.key}>
-										<div
-											className={cn(
-												'px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground',
-												index === 0 ? 'mt-0' : 'mt-2',
-											)}
-										>
-											{section.title}
-										</div>
-										{section.items.map((item) => (
-											<FloatingLink
-												key={item.key}
-												item={item}
-												onClick={() => setShowMenu(false)}
-											/>
-										))}
-									</Fragment>
-								))}
-							</FloatingPanel>
-						)}
-						<PanelTrigger
-							icon={IconMenu2}
-							label="Menu"
-							active={isMenuActive}
-							open={showMenu}
-							onClick={() => {
-								setShowMenu(!showMenu);
-								setShowFasilitas(false);
-							}}
+					{/* 5a. Masuk — wujud slot ke-5 bagi TAMU (keputusan user 2026-08-25). Label
+					    dipendekkan jadi satu kata seperti slot lain; judul panjangnya
+					    ("Masuk Akun") tetap hidup di sidebar & di aria-label. */}
+					{showLoginSlot ? (
+						<NavItem
+							href={loginItem.url}
+							icon={loginItem.icon}
+							label="Masuk"
+							active={url.startsWith('/login')}
+							ariaLabel={loginItem.title}
 						/>
-					</div>
+					) : (
+						/* 5b. Menu — semua seksi yang tak terwakili di bilah, untuk semua
+						   peran yang sudah login */
+						<div className="relative flex h-full w-full flex-col items-center justify-center" ref={menuRef}>
+							{showMenu && (
+								<FloatingPanel className="right-2 w-64">
+									{menuSections.map((section, index) => (
+										<Fragment key={section.key}>
+											<div
+												className={cn(
+													'px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground',
+													index === 0 ? 'mt-0' : 'mt-2',
+												)}
+											>
+												{section.title}
+											</div>
+											{section.items.map((item) => (
+												<FloatingLink
+													key={item.key}
+													item={item}
+													onClick={() => setShowMenu(false)}
+												/>
+											))}
+										</Fragment>
+									))}
+								</FloatingPanel>
+							)}
+							<PanelTrigger
+								icon={IconMenu2}
+								label="Menu"
+								active={isMenuActive}
+								open={showMenu}
+								onClick={() => {
+									setShowMenu(!showMenu);
+									setShowFasilitas(false);
+								}}
+							/>
+						</div>
+					)}
 				</div>
 			</div>
 		</>

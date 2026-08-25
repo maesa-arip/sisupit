@@ -47,3 +47,14 @@ it('anchors the bottom bar on keys that still exist in navItems', function () us
         expect($nav)->toContain("key: '{$key}'");
     }
 });
+
+// Slot ke-5 berganti wujud jadi tombol "Masuk" bagi tamu (keputusan user 2026-08-25). Godaan
+// yang paling mudah di situ adalah memaku `route('login')` — dan itu persis bentuk "daftar
+// kedua" yang melahirkan #71. Tujuannya harus tetap diambil dari navItems.js.
+it('takes the guest login slot from the nav source instead of a hardcoded route', function () use ($bottomNav) {
+    $source = $bottomNav();
+
+    expect($source)
+        ->toContain("itemByKey('login')")
+        ->not->toContain("route('login'");
+});
