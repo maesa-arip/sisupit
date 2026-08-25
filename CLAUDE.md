@@ -42,6 +42,8 @@ Task aktif   : TASK_36 (prompt/tasks/TASK_36_keterangan_hidran.md) — SELESAI (
                 halaman publik /hydrants SENGAJA tak disentuh (kalimat pencarian warga, bukan
                 definisi kepemilikan). Penjaga: test di TenantBrandingTest.
                 Test 262 → 263 passed (1012 assertions), npm run build lulus.
+                TERDEPLOY 2026-08-25 @410697e2 ke prod/staging/dev; chunk produksi diperiksa
+                dan NOL memuat "Kota Denpasar" (bukti nama dirangkai runtime, bukan ter-bake).
                 SISA: verifikasi visual §5.
                TASK_35 (prompt/tasks/TASK_35_bottomnav_tombol_masuk_tamu.md) — SELESAI (kode)
                 2026-08-25. Permintaan user: "saat belum login menu jadi tombol login, jika

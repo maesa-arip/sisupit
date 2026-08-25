@@ -7,7 +7,7 @@
 | Severity | P3 |
 | Tipe | fitur kecil (copy UI) |
 | Sumber | permintaan user 2026-08-25 |
-| Status | DONE (kode) — sisa verifikasi visual §5 |
+| Status | DONE (kode) — TERDEPLOY 2026-08-25 @410697e2 ke prod/staging/dev; sisa verifikasi visual §5 |
 
 ---
 
@@ -68,6 +68,10 @@ teks mati di dalam `HYDRANT_VARIANTS`.
 
 - [x] `php artisan test` → **263 passed (1012 assertions)**
 - [x] `npm run build` lulus, Prettier & Pint bersih
+- [x] Deploy 2026-08-25 @`410697e2` ke prod/staging/dev. Dibuktikan di chunk yang disajikan
+      produksi (`assets/variants-DKwqc7nK.js`): memuat "dimiliki oleh pemerintah" dan "Potensi
+      sumber air yang terdata", dan **nol** kemunculan "Kota Denpasar" — bukti namanya memang
+      dirangkai runtime dari tenant, bukan ikut ter-bake saat build. Ketiga domain 200.
 - [ ] **Visual (SISA):** buka `/admin/hydrants` → keterangan berbunyi "Hidran yang dimiliki oleh
       pemerintah Kota Denpasar di bawah pengelolaan PDAM dan Damkar."; tab "Hydrant Warga" →
       "Potensi sumber air yang terdata di suatu wilayah, bersumber dari perorangan/swasta.".
