@@ -1,12 +1,11 @@
 import HeaderTitle from '@/Components/HeaderTitle';
-import PublicPageHeader from '@/Components/PublicPageHeader';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
 import { capacityLabel, debitLabel, facilityStatusIsFaulty, facilityStatusLabel, GEO_OPTIONS } from '@/lib/utils';
-import { router, useForm, usePage } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import {
 	IconDroplet,
 	IconFireHydrant,
@@ -27,11 +26,6 @@ import { useState } from 'react';
 const STATUS_FILTERS = ['Semua', 'Aktif', 'Perbaikan', 'Belum Modifikasi', 'Sudah Modifikasi'];
 
 export default function Index({ pumps, filters, ...props }) {
-	// Tampilan berbeda per status: tamu = chrome landing (hero + navbar publik), sudah
-	// login = tampilan lama ber-sidebar (AppLayout + HeaderTitle). Lihat Index.layout.
-	const { auth } = usePage().props;
-	const isGuest = !auth?.user;
-
 	const [isLocating, setIsLocating] = useState(false);
 
 	// Sorot tombol berdasarkan filter yang BENAR-BENAR diterapkan server (prop `filters`),
@@ -101,29 +95,14 @@ export default function Index({ pumps, filters, ...props }) {
 	};
 
 	return (
-		<div
-			className={
-				isGuest
-					? 'mx-auto flex w-full max-w-6xl flex-col space-y-6 px-4 py-8 pb-24 sm:px-6'
-					: 'relative flex w-full flex-col space-y-6 pb-32'
-			}
-		>
-			{isGuest ? (
-				<PublicPageHeader
-					icon={IconDroplet}
-					eyebrow="Jelajahi"
+		<div className="relative flex w-full flex-col space-y-6 pb-32">
+			<div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
+				<HeaderTitle
 					title="Lokasi SKKL"
-					subtitle="Temukan Sistem Ketahanan Kebakaran Lingkungan (SKKL) terdekat dari lokasi Anda."
+					subtitle="Sistem Ketahanan Kebakaran Lingkungan (SKKL) terdekat."
+					icon={IconDroplet}
 				/>
-			) : (
-				<div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
-					<HeaderTitle
-						title="Lokasi SKKL"
-						subtitle="Sistem Ketahanan Kebakaran Lingkungan (SKKL) terdekat."
-						icon={IconDroplet}
-					/>
-				</div>
-			)}
+			</div>
 
 			<div className="flex w-full flex-col items-start gap-5 lg:flex-row lg:gap-6">
 				{/* KOLOM KIRI */}
@@ -298,4 +277,10 @@ export default function Index({ pumps, filters, ...props }) {
 // bawah HILANG begitu tamu mengetuk "Fasilitas" dari bilah itu sendiri: ia berpindah ke
 // halaman ini lalu kehilangan jalan pulang. Landing page yang melahirkan chrome tersebut
 // akhirnya tidak jadi dipakai, jadi percabangannya ikut dibuang di sini.
+//
+// Percabangan `isGuest` di BADAN halaman ikut dibuang (permintaan user, hari yang sama):
+// dulu tamu mendapat hero `PublicPageHeader` + pembungkus `max-w-6xl px-4 py-8` sementara
+// yang sudah login mendapat `HeaderTitle` + lebar penuh, sehingga satu halaman punya dua
+// wajah tergantung status login. Sekarang satu wajah untuk semua — wajah yang sudah login.
+// (`PublicPageHeader` tetap hidup: kelima halaman info/legal memakainya untuk SEMUA peran.)
 Index.layout = (page) => <AppLayout children={page} title="Lokasi SKKL" />;

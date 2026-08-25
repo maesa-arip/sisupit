@@ -138,9 +138,16 @@ manifest; itu normal, bukan tanda ia ikut terhapus.
 **Visual (SISA):** sebagai tamu, ketuk Fasilitas → Hidran/SKKL/Pos Pemadam dan footer → Pusat
 Bantuan/S&K/Privasi/Tentang — bilah bawah harus tetap ada di semuanya.
 
-**Belum dikerjakan (di luar permintaan, sudah disampaikan ke user):** percabangan `isGuest` di
-BADAN ketiga halaman fasilitas masih ada — tamu memakai `PublicPageHeader` + pembungkus
-`max-w-6xl px-4 py-8`, yang sudah login memakai `HeaderTitle` + lebar penuh. Akibatnya di
-halaman yang sama tamu melihat padding sedikit lebih tebal & lebar sedikit lebih sempit. Tidak
-rusak (halaman info/legal memang memakai hero yang sama di dalam AppLayout untuk semua orang),
-tapi kalau mau diseragamkan, cukup hapus percabangan itu di tiga berkas.
+**Lanjutan yang diminta user setelah melihat hasilnya** ("samakan tampilannya seperti sudah
+login supaya tidak 2 tampilan fasilitas"): percabangan `isGuest` di BADAN ketiga halaman
+fasilitas ikut dibuang. Dulu tamu mendapat hero `PublicPageHeader` + pembungkus
+`max-w-6xl px-4 py-8 pb-24`, yang sudah login mendapat `HeaderTitle` + `w-full pb-32` —
+satu halaman dengan dua wajah tergantung status login, dan sejak layoutnya disatukan
+pembungkus tamu itu bahkan bertumpuk dengan container `max-w-7xl p-4 lg:p-8` milik AppLayout.
+Sekarang **satu wajah untuk semua**, yaitu wajah yang sudah login.
+
+Ikutannya di ketiga berkas: `PublicPageHeader`, `usePage`, `auth`, dan `isGuest` tak lagi
+dipakai sehingga importnya ikut dibuang. `PublicPageHeader` **tetap hidup** — kelima halaman
+info/legal memakainya untuk SEMUA peran lewat `InfoShell`, jadi jangan dihapus. Subjudul SKKL
+yang dulu berbeda antara tamu ("Temukan Sistem Ketahanan…") dan yang login ("Sistem Ketahanan…
+terdekat.") kini memakai versi yang sudah login.
