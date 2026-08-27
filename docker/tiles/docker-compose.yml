@@ -1,0 +1,37 @@
+services:
+  tiles:
+    image: maptiler/tileserver-gl:latest
+    container_name: sisupit-tiles
+    restart: unless-stopped
+    ports:
+      # Container selalu listen di 8080. Diikat ke LOOPBACK saja — sepola sisupit-nominatim
+      # (127.0.0.1:8088) & sisupit-osrm (127.0.0.1:5000); yang menyajikannya ke publik adalah
+      # Nginx di /tiles/ (lihat README) supaya bisa di-cache & dibatasi ke GET.
+      # CATATAN PORT: di VPS 8080/8081/8082 SUDAH DIPAKAI tiga instance Reverb
+      # (prod/staging/dev), jadi di sana TILES_HOST_PORT=8083.
+      - "127.0.0.1:${TILES_HOST_PORT:-8081}:8080"
+    # Isi /data (mbtiles + fonts/ + styles/) dibangun lebih dulu oleh prepare-bali.ps1;
+    # config.json sengaja di LUAR data/ karena data/ diabaikan git (lihat data/.gitignore),
+    # sedangkan config-nya adalah kode yang harus ikut repo.
+    command: >
+      -c /data/config.json
+      --public_url ${TILES_PUBLIC_URL:-http://localhost:8081/}
+    volumes:
+      - ./data:/data
+      - ./config.json:/data/config.json:ro
+      # Style peta "Sisupit Light" ikut REPO (bukan hasil unduhan seperti font & mbtiles),
+      # dengan alasan yang sama seperti config.json di atas: ia keputusan rupa, bukan data.
+      # Dipasang ke DALAM data/styles/ supaya path-nya tetap relatif terhadap
+      # options.paths.styles di config.json. Baca docker/tiles/style/sisupit-light/README.md
+      # sebelum menggantinya — id style-nya ("sisupit") ada di MAP_TILE_URL ketiga environment.
+      - ./style/sisupit-light:/data/styles/sisupit-light:ro
+    healthcheck:
+      # Image tileserver-gl TIDAK membawa wget maupun curl — healthcheck yang memakai
+      # keduanya gagal selamanya sehingga container berlabel "unhealthy" padahal melayani
+      # dengan benar (status palsu yang menyesatkan pemeriksaan berikutnya). Yang tersedia
+      # di image itu node, dan fetch() bawaannya sudah cukup.
+      test: ["CMD", "node", "-e", "fetch('http://localhost:8080/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s

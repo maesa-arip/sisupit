@@ -24,7 +24,204 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : TASK_45 (prompt/tasks/TASK_45_berita_acara_otomatis_dan_akun_opd.md) — SELESAI
+Task aktif   : TASK_49 (prompt/tasks/TASK_49_alamat_detail_yurisdiksi_berita_acara.md) — SELESAI
+                (kode) 2026-08-28. Satu pesan user, TUJUH butir; DUA di antaranya ternyata SUDAH
+                selesai sejak TASK_45 dan hanya diverifikasi ulang, tidak dikerjakan lagi:
+                "sumber informasi otomatis" & "OPD masuk tim atensi" (keduanya sudah dikunci
+                ReportResolutionTest). Kalau di layar belum terlihat, itu soal DEPLOY, bukan kode.
+                Empat keputusan ditanyakan lebih dulu & dijawab user: alamat DISIMPAN sebagai kolom
+                baru (bukan di-geocode ulang tiap buka halaman); penerima notif konfirmasi OPD
+                mengikuti aturan siaran yang SUDAH ADA; antrian petugas jadi "belum ada entri sama
+                sekali"; dan patokan tetap bernama "Patokan Lokasi" di kedua layar.
+                (A) ALAMAT DI DETAIL LAPORAN (temuan #95). Panel "Alamat Presisi" adalah KLAIM tanpa
+                penjamin, sebab `reports.address` memikul DUA makna: ReportController::store()
+                menulis patokan yang DIKETIK warga, lalu correctLocation() MENIMPA kolom yang sama
+                dengan `display_name` Nominatim. Akibatnya panel itu bisa kosong (laporan kebakaran
+                sah tanpa patokan — darurat-first), bisa berisi kalimat yang menunjuk tempat lain
+                dari pin tepat di atasnya, dan bisa berubah sendiri setelah responder mengoreksi pin
+                — ketiganya tanpa galat. Tak bisa diperbaiki di layar saja: alamat hasil geocode
+                TAK PERNAH sampai ke server (form sudah lama menghitungnya sebagai state
+                `fullAddress` sejak TASK_28, tapi useForm tak pernah mengirimnya). Kini kolom BARU
+                `reports.geo_address` — mesin menulis ke sana, manusia tetap memegang `address`;
+                detail jadi dua baris (Alamat / Patokan Lokasi). Laporan LAMA di-reverse-geocode
+                SEKALI saat halaman dibuka sebagai cadangan TAMPILAN, tidak ditulis balik ke DB.
+                TIGA hal yang mengikat: (1) payload IncidentLocationCorrected berganti nama
+                `address` → `geoAddress` — nama lama akan mendarat di tempat patokan di layar
+                penerima, persis bug ini; (2) SEMBILAN layar meringkas laporan jadi satu baris
+                "di mana" dengan membaca `address` langsung, dan begitu kolom itu berhenti ditimpa
+                alamat mesin sebagian akan menampilkan baris KOSONG tanpa ada yang sadar — aturannya
+                kini satu tempat, `Report::alamatTampil()` + `alamatLaporan()` di lib/utils.js;
+                (3) `fullAddress` BUKAN lagi state terpisah melainkan field form `geo_address`.
+                (B) YURISDIKSI PETUGAS OTOMATIS KABUPATEN. `defaultLevelFor()` di Users/Index.jsx
+                selalu memilih tingkat TERDALAM milik pengguna, sama untuk semua peran — akun warga
+                berdesa lengkap yang diangkat jadi petugas lahir ber-yurisdiksi SATU DESA, dan
+                yurisdiksi yang terlalu sempit tak pernah bergalat, ia cuma membuat daftar &
+                notifikasi petugas itu sepi tanpa alasan yang terlihat. Kini kamus
+                ROLE_DEFAULT_LEVEL (DATA, bukan cabang `if`). Ia USULAN, bukan kunci: dua penjaga
+                lama tetap berlaku lebih dulu (admin tak boleh memberi lebih luas dari dirinya;
+                pengguna harus punya kode wilayah sampai tingkat itu), dan bila kabupaten tak
+                tersedia ia jatuh ke perilaku lama. Nilainya diadu dengan enum TenantLevel di
+                server — bukan kamus lawan kamus (pelajaran #79).
+                (C) KONFIRMASI OPD (PLN) DIKABARKAN LEBIH LUAS. Dulu hanya admin+petugas sewilayah
+                + `report_officers`. Kini + relawan siaga dengan ceiling-nya SENDIRI
+                (KEY_NOTIFY_LEVEL_RELAWAN + is_standby, persis aturan approve() — menyalin ceiling
+                petugas ke sini diam-diam melebarkan jangkauan relawan di luar setelan admin),
+                + `report_helpers` (tabel ini TIDAK PERNAH dibaca di sini, sehingga relawan yang
+                sudah TIBA di TKP justru satu-satunya yang tak tahu listrik sudah padam), + PELAPOR.
+                Yang mencatat konfirmasi tetap tak dikabari tindakannya sendiri.
+                (D) BERITA ACARA: `volume_air` + `report_victims.kondisi` (Kondisi Korban).
+                `volume_air` sengaja TEKS BEBAS mengikuti preseden `kerugian` ("±1jt") — yang
+                ditulis petugas di lapangan "±3 tangki", bukan bilangan bersatuan tetap. `kondisi`
+                IKUT dihitung sebagai isi baris korban, kalau tidak korban yang baru diketahui
+                kondisinya (belum teridentifikasi namanya) dilewati diam-diam sebagai baris kosong.
+                (E) FINAL = ADMIN. Digerbangi di SERVER (`canFinalize()`), bukan cukup tombol yang
+                disembunyikan. IKUTAN WAJIB: antrian "Menunggu Berita Acara" di dashboard petugas
+                kini menyaring "belum ada entri SAMA SEKALI" — bentuk lama ("belum final") membuat
+                insiden yang sudah petugas isi menggantung selamanya menunggu admin, dan antrian
+                yang tak bisa dibereskan sendiri terbaca sebagai bug (pelajaran TASK_45/#94).
+                Prop `has_draft` ikut DIHAPUS: isi antrian kini selalu satu keadaan, dan flag yang
+                cuma punya satu nilai adalah klaim yang menunggu keliru.
+                Penjaga: ReportAddressPatokanTest BARU (6 test) + AssignRoleDefaultLevelTest BARU
+                (3) + 2 di ReportAgencyTest + 4 di ReportResolutionTest; SEBELAS dari lima belas
+                dibuktikan MERAH dulu. Dua test lama disesuaikan (bukan dilemahkan): aktor entri
+                final di append-only test jadi admin, dan antrian petugas menuntut item HILANG
+                setelah entri sementara.
+                Test 348 → 363 passed (1415 assertions), Pint PASS, npm run build lulus.
+                DUA MIGRASI aditif & nullable, TANPA backfill — sudah dijalankan di DB dev LOKAL
+                (laragon), BELUM di prod/staging/dev VPS. TANPA perubahan route/channel.
+                SISA: verifikasi manual §6 file task + deploy & migrasi ketiga env.
+               TASK_48 (prompt/tasks/TASK_48_status_ditolak_verifikasi_laporan.md) — SELESAI
+                (kode) 2026-08-27. Laporan user: laporan yang DITOLAK muncul dengan nama status
+                yang salah di Verifikasi Laporan, plus permintaan chip filter "Ditolak".
+                AKAR (#94): Admin/Reports/Index.jsx memelihara kamus status SENDIRI
+                (`STATUS_META`) — ia ada karena butuh warna pin/titik/legenda yang tak
+                disediakan Components/StatusBadge.jsx — dan kamus itu berhenti di EMPAT status;
+                `ditolak` lahir di #24 tapi tak pernah menyusul ke sini. Karena markerStyle()
+                dan StatusBadge lokal sama-sama bercadangan `|| STATUS_META.pending`, status tak
+                dikenal TIDAK tampil apa adanya melainkan MENGAKU JADI STATUS LAIN: laporan yang
+                sudah ditolak berlencana KUNING "Laporan Terverifikasi" berpin kuning, tanpa
+                galat, tanpa gejala lain. Bentuk yang sama dengan #90 — cadangan sebuah kamus
+                adalah KLAIM, bukan "tidak dikenal".
+                LAYAR KEDUA berakar sama, ikut diperbaiki atas persetujuan user (dipilih dari
+                dua opsi): Monitoring/Map.jsx `REPORT_STATUS` juga berhenti di empat status,
+                padahal MonitoringMapController MEMANG mengirim laporan `ditolak` dan
+                `reportHidden` menyembunyikannya sejak awal. Chip status dirender DARI daftar
+                itu → tak ada saklar untuk menyalakannya, sehingga kejadian yang ditolak TAK
+                PERNAH bisa ditampilkan di Peta Pemantauan meski datanya sampai ke browser;
+                komentar di berkas itu yang berbunyi "tetap bisa dinyalakan lewat chip status"
+                sudah lama tidak benar.
+                SISI SERVER NOL PERUBAHAN: Admin\ReportController::index sudah
+                `where('status', $status)` generik dan ReportsExport::STATUS_LABELS sudah punya
+                'ditolak' => 'Ditolak' sejak TASK_39 — filter DAN Export Excel langsung benar
+                begitu chipnya ada.
+                YANG MENGIKAT: chip "Ditolak" TIDAK ditampilkan ke pemantau (pejabat/relawan,
+                canVerify=false). Mereka memakai halaman yang SAMA lewat front.reports.index,
+                dan ReportController::index menyaring whereNotIn('status',['TERLAPOR','ditolak'])
+                — chip yang selalu memulangkan daftar kosong terbaca sebagai bug (pelajaran
+                TASK_45). Keduanya kini didaftar SEKALI di `MONITOR_HIDDEN_STATUSES` yang dipakai
+                pill MAUPUN legenda; jangan dipecah lagi jadi dua saringan.
+                Penjaga: ReportStatusDictionaryTest BARU (4 test, TIGA dibuktikan merah dulu).
+                Yang pertama sengaja TIDAK mengadu kamus dengan kamus (pelajaran #79): ia
+                MENOLAK laporan lewat endpoint sungguhan, membaca status yang benar-benar
+                tertulis di kolomnya, lalu menuntut kedua kamus layar mengenal string itu. Kamus
+                ekspor dibaca lewat refleksi — konstantanya private dan visibilitas produksi
+                TIDAK dilonggarkan demi test.
+                Daftar "SEMUA peta status" di CONVENTIONS.md ikut dilengkapi: kedua kamus ini
+                dulu tak tercantum di sana, dan itulah sebabnya keduanya menyimpang tanpa ada
+                yang sadar.
+                Test 344 → 348 passed (1350 assertions), Pint PASS, npm run build lulus. TANPA
+                migrasi/route/perubahan skema/sentuhan server.
+                SISA: verifikasi visual §6 file task + deploy (frontend saja).
+               TASK_47 (prompt/tasks/TASK_47_tab_jenis_kejadian_lapor.md) — SELESAI (kode)
+                2026-08-27. Permintaan user: pemilih jenis kejadian di /reports/create dipecah
+                DUA TAB berikon — Kebakaran (aktif otomatis, tombol pilihan seperti sekarang +
+                tombol "Lainnya" yang membuka isian teks) dan Non Kebakaran (langsung isian
+                teks). Ikon IconFiretruck & IconAmbulance; bentuk tab & kelas trigger disalin
+                dari Pages/Info/Terms.jsx — satu-satunya pemakai Tabs yang sudah ada, supaya
+                tab di sini tidak jadi dialek kedua.
+                YANG MENENTUKAN BENTUK PEKERJAANNYA (ditanyakan & disetujui user lebih dulu):
+                tombol "Lainnya" DI DALAM tab kebakaran TIDAK BISA memakai nilai `lainnya`
+                yang sudah ada, sebab satu nilai itu mengikat TIGA perilaku — ReportRequest
+                mewajibkan foto+deskripsi+patokan untuknya, ReportsExport mencetak labelnya
+                "Bukan Kebakaran" di rekap pimpinan, dan Agency::recommendedIdsFor() sengaja
+                tak merekomendasikan OPD untuknya. Memakai ulang nilai itu = kebakaran gudang
+                tercetak "Bukan Kebakaran" di dokumen resmi DAN warganya diwajibkan memotret
+                api. Karena itu jenis BARU `kebakaran_lainnya` (Report::INCIDENT_TYPES), plus
+                konstanta BARU Report::FIRE_INCIDENT_TYPES supaya "jenis kebakaran mana saja"
+                ditulis satu tempat (AgencySeeder dulu menyalinnya tangan).
+                DUA hal yang mengikat: (1) aturan validasi di ReportRequest SENGAJA tidak
+                diubah — pembandingnya tetap SATU nilai (`=== 'lainnya'`), bukan "bukan salah
+                satu jenis kebakaran", karena incident_type nullable dan kosong tak boleh
+                mendadak berarti "wajib foto" bagi laporan lama/klien lama; `kebakaran_lainnya`
+                otomatis jatuh ke aturan kebakaran. (2) Isian judul bebas ditulis SEKALI di
+                luar TabsContent (placeholder-nya saja yang beda per tab) supaya kedua tab tak
+                memelihara isian kembar.
+                Penjaga: ReportIncidentTypeTabTest BARU (4 test, KEEMPATNYA dibuktikan merah
+                dulu), termasuk parity daftar jenis di form vs Rule::in server dan parity label
+                (jenis tanpa label tercetak mentah di Excel — pelajaran #39).
+                Test 340 → 344 passed (1306 assertions), Pint PASS, prettier PASS, npm run
+                build lulus. TANPA migrasi/route/perubahan skema.
+                SISA: verifikasi visual §6 file task + LANGKAH PASCA-DEPLOY §7 — kolom
+                agencies.default_incident_types itu DATA, jadi OPD yang sudah ada di
+                prod/staging/dev TIDAK akan tercentang otomatis untuk "Kebakaran Lainnya"
+                sampai dicentang ulang lewat /admin/agencies, satu kali per environment.
+                SENGAJA tidak ditambal cabang kode yang mengenali nama jenis (aturan TASK_27).
+               TASK_46 (prompt/tasks/TASK_46_basemap_self_host_tileserver.md) — SELESAI &
+                TERPASANG 2026-08-27. Laporan user: "di maps muncul api key required carto.com".
+                BUKAN galat aplikasi — CARTO mulai MENCAP setiap tile-nya ("API KEY REQUIRED /
+                carto.com/basemaps/apikey"); tile tetap dikirim HTTP 200 berisi peta yang benar,
+                cuma bertulisan melintang. Karena itu nol gejala teknis: tak ada galat, tak ada
+                tile gagal muat, tak ada baris log. AKAR: `MAP_TILE_URL` TIDAK PERNAH diisi di
+                environment mana pun, jadi ke-14 peta jatuh ke cadangan CARTO di
+                config/services.php (kembarannya CARTO_VOYAGER di lib/utils.js) — dan ketiga
+                domain live terbukti menyajikan URL itu. PELAJARAN YANG LEBIH BESAR DARI BUG-NYA:
+                nilai cadangan yang menunjuk LAYANAN PIHAK KETIGA TANPA AKUN bukan jaring
+                pengaman, melainkan ketergantungan tak tercatat — selama env tak diisi,
+                "sementara" itu jadi konfigurasi produksi yang sesungguhnya, dan perubahan
+                kebijakan pihak lain mengubah semua peta bersamaan. Mekanisme runtime-inject
+                (TASK_25) sendiri bekerja BENAR; yang keliru isi cadangannya.
+                FIX (keputusan user dari 4 pilihan): basemap DI-SELF-HOST. `docker/tiles/` BARU
+                (TileServer-GL + vector tiles hasil tilemaker dari bali.osm.pbf MILIK NOMINATIM,
+                bbox SAMA dengan extract-bali.ps1 supaya cakupan peta/geocoding/rute tak
+                berbeda-beda; style OSM Bright + font Noto Sans), sepola docker/nominatim &
+                docker/osrm. Cadangan di config & utils.js dipindah ke tile OSM resmi — BUKAN
+                sumber produksi, hanya supaya env yang lupa diisi menampilkan peta terbaca, bukan
+                peta bercap atau layar kosong.
+                EMPAT hal yang mengikat: (1) tile ditarik BROWSER, bukan server — jadi beda dari
+                Nominatim/OSRM yang cukup loopback, tile server WAJIB publik; di VPS disajikan
+                Nginx di /tiles/ dengan proxy_cache + limit_except GET HEAD. (2) TANPA
+                `data/fonts/`, tile TETAP tergambar rapi TAPI TANPA satu pun nama jalan/desa, dan
+                tileserver TIDAK melaporkan galat apa pun — "peta polos" = periksa FONT, bukan
+                style; style bawaan image (basic-preview) juga begitu. (3) tilemaker TANPA --bbox
+                berhenti gagal TAPI ber-EXIT CODE 0, jadi skrip memeriksa keberadaan berkas
+                hasilnya, bukan status keluarnya. (4) Data vektor sampai z14; zoom lebih jauh
+                dioverzoom dan tetap tajam (diuji s/d z19) — jangan naikkan maxzoom "supaya lebih
+                tajam", ukuran mbtiles meledak tanpa perbaikan yang terlihat.
+                DUA KEJUTAN DI SERVER: port 8080/8081/8082 SUDAH DIPAKAI tiga instance Reverb →
+                tile server memakai 8083 dan diikat 127.0.0.1 saja; dan image tileserver-gl tak
+                membawa wget MAUPUN curl sehingga healthcheck-nya gagal selamanya (container
+                "unhealthy" padahal melayani — status palsu yang menyesatkan) → diganti
+                `node -e "fetch(...)"`.
+                Ikutan yang ikut dibetulkan: dari 14 pemanggilan L.tileLayer hanya 5 yang
+                memasang `attribution`; kesembilan sisanya kini memakai string yang PERSIS sama
+                (data tile turunan OSM/ODbL mewajibkan atribusi).
+                Test tetap 340 passed (1284 assertions), Pint PASS, npm run build lulus. TANPA
+                migrasi/route/perubahan skema/sentuhan DB.
+                TERPASANG di prod/staging/dev 2026-08-27: /opt/geo/tiles, location /tiles/ di
+                ketiga situs (cadangan *.bak-tiles-*), proxy_cache_path sebagai berkas BARU
+                /etc/nginx/conf.d/sisupit-tiles-cache.conf (nginx.conf TIDAK disunting — ia sudah
+                meng-include conf.d di dalam http{}), MAP_TILE_URL di ketiga .env menunjuk
+                DOMAINNYA SENDIRI. TANPA deploy kode, TANPA rebuild — persis yang dijanjikan
+                desain runtime-inject TASK_25. Verifikasi: ketiga domain 0 rujukan cartocdn,
+                tile 200 (36.715 B), @2x 200, POST /tiles/ 403, x-tile-cache HIT, kelima service
+                active, 0 ERROR baru. PERUBAHAN KODE BELUM DI-COMMIT & belum dideploy (sengaja —
+                perbaikan petanya murni env var); ikutkan rilis berikutnya.
+                TEMUAN BARU #93 OPEN (sengaja tidak dikerjakan): resources/js/lib/utils.js memuat
+                BYTE NUL MENTAH di dalam regex AKSARA_TAK_TERBACA (TASK_43) — itu sebabnya grep
+                memperlakukannya sebagai berkas biner. Kalau ada tool yang membuang byte itu,
+                regexnya tetap SAH tapi berubah makna dan alamatTerbaca() menyaring alamat secara
+                keliru tanpa gejala. Fix satu baris + test; menunggu keputusan user.
+               TASK_45 (prompt/tasks/TASK_45_berita_acara_otomatis_dan_akun_opd.md) — SELESAI
                 (kode) 2026-08-27. Satu pesan user, LIMA permintaan; dua keputusan ditanyakan
                 lebih dulu (laporan yang diketik operator: kolom sumber DIKOSONGKAN, bukan diisi
                 kalimat umum; OPD di tim atensi DITANDAI "(OPD)").

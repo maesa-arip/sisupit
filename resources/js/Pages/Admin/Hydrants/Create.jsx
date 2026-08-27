@@ -160,7 +160,7 @@ export default function Create({
 	useEffect(() => {
 		if (!window.L || mapInstanceRef.current) return;
 		mapInstanceRef.current = window.L.map(mapRef.current, { zoomControl: false }).setView([data.lat, data.lng], 13);
-		window.L.tileLayer(MAP_TILE_URL).addTo(mapInstanceRef.current);
+		window.L.tileLayer(MAP_TILE_URL, { attribution: '&copy; OpenStreetMap' }).addTo(mapInstanceRef.current);
 		window.L.control.zoom({ position: 'bottomright' }).addTo(mapInstanceRef.current);
 
 		const customIcon = window.L.divIcon({

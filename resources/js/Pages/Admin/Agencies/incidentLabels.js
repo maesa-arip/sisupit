@@ -9,5 +9,6 @@ export const INCIDENT_LABELS = {
 	toko: 'Toko',
 	kendaraan: 'Kendaraan',
 	lahan: 'Lahan',
+	kebakaran_lainnya: 'Kebakaran Lainnya',
 	lainnya: 'Bukan Kebakaran',
 };

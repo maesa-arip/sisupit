@@ -79,7 +79,7 @@ export default function PetugasDashboard({ auth, activeMissions = [], pendingRes
 			tap: !window.L.Browser.mobile,
 		}).setView([-8.65, 115.216667], 12);
 
-		window.L.tileLayer(MAP_TILE_URL).addTo(map);
+		window.L.tileLayer(MAP_TILE_URL, { attribution: '&copy; OpenStreetMap' }).addTo(map);
 		mapInstanceRef.current = map;
 
 		const markers = [];
@@ -294,8 +294,8 @@ export default function PetugasDashboard({ auth, activeMissions = [], pendingRes
 						</span>
 					</h2>
 					<p className="-mt-2 px-1 text-sm text-muted-foreground">
-						Insiden sudah selesai ditangani, tetapi Laporan Kegiatan Penyelamatan belum final. Lengkapi
-						dokumentasinya di sini.
+						Insiden sudah selesai ditangani, tetapi Laporan Kegiatan Penyelamatan belum dibuat. Isi entri
+						sementaranya di sini; entri final ditutup admin.
 					</p>
 
 					<Card className="overflow-hidden rounded-xl border border-warning/30 bg-card shadow-sm">
@@ -329,18 +329,14 @@ export default function PetugasDashboard({ auth, activeMissions = [], pendingRes
 										</div>
 
 										<div className="mt-4 flex w-full items-center justify-between gap-4 border-t border-border pt-3 sm:mt-0 sm:w-auto sm:justify-end sm:border-t-0 sm:pt-0">
-											<span
-												className={cn(
-													'rounded-md border px-2 py-0.5 text-xs font-semibold',
-													item.has_draft
-														? 'border-warning/30 bg-warning/10 text-warning'
-														: 'border-border bg-muted text-muted-foreground',
-												)}
-											>
-												{item.has_draft ? 'Draft tersimpan' : 'Belum dibuat'}
+											{/* Antrian ini hanya berisi insiden yang BELUM punya entri berita acara
+											    sama sekali (TASK_49), jadi tak ada lagi dua keadaan yang perlu
+											    dibedakan — `has_draft` ikut dihapus di server. */}
+											<span className="rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
+												Belum dibuat
 											</span>
 											<div className="flex h-10 items-center justify-center gap-1.5 rounded-lg bg-warning px-4 text-xs font-bold uppercase tracking-wider text-warning-foreground transition-all group-hover:bg-warning/90">
-												{item.has_draft ? 'Lengkapi' : 'Buat Laporan'}
+												Buat Laporan
 												<IconChevronRight className="h-4 w-4" />
 											</div>
 										</div>

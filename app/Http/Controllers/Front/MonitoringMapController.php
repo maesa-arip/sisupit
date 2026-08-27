@@ -31,7 +31,7 @@ class MonitoringMapController extends Controller
             ->map(fn (Report $report) => [
                 'id' => $report->id,
                 'title' => $report->title,
-                'location' => $report->address,
+                'location' => $report->alamatTampil(),
                 'time' => $report->created_at->diffForHumans(),
                 'status' => $report->status,
                 'lat' => (float) $report->lat,

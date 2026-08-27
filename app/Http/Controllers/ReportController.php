@@ -318,6 +318,7 @@ class ReportController extends Controller
                     'pemilik_nama' => $r->pemilik_nama,
                     'pemilik_umur' => $r->pemilik_umur,
                     'kerugian' => $r->kerugian,
+                    'volume_air' => $r->volume_air,
                     'tim_atensi' => $r->tim_atensi,
                     'kronologi' => $r->kronologi,
                     'created_at' => $r->created_at,
@@ -327,6 +328,7 @@ class ReportController extends Controller
                         'nama' => $v->nama,
                         'tanggal_lahir' => $v->tanggal_lahir,
                         'alamat' => $v->alamat,
+                        'kondisi' => $v->kondisi,
                         'ktp_url' => $v->ktp_path ? route('reports.resolution.ktp', [$report->id, $v->id]) : null,
                     ])->values(),
                     'photos' => $r->photos->map(fn ($p) => [
@@ -418,7 +420,13 @@ class ReportController extends Controller
                 'city_code' => $request->city_code,
                 'district_code' => $request->district_code,
                 'village_code' => $request->village_code,
+                // DUA kolom alamat, dua penulis (TASK_49): `address` = patokan yang DIKETIK
+                // warga (boleh kosong — darurat-first), `geo_address` = alamat hasil
+                // reverse-geocode dari pin yang sudah lama dihitung form tapi belum pernah
+                // dikirim ke server. Jangan pernah menyalin yang satu ke yang lain: kalimat
+                // manusia yang menyamar jadi alamat mesin persis bug yang diperbaiki di sini.
                 'address' => $request->address,
+                'geo_address' => $request->geo_address,
                 'status' => 'TERLAPOR', // Masih Mentah
                 'photo' => $photoPaths[0] ?? null,
             ]);

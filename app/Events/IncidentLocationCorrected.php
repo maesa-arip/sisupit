@@ -18,14 +18,20 @@ class IncidentLocationCorrected implements ShouldBroadcastNow
 
     public $lng;
 
-    public $address;
+    /**
+     * Alamat hasil reverse-geocode dari titik BARU. Dulu bernama `address` dan memang
+     * menimpa kolom `reports.address` di seberang sana — yaitu patokan yang diketik warga
+     * (TASK_49). Namanya diperjelas supaya penerimanya tak lagi bisa keliru menaruhnya di
+     * tempat patokan; koreksi pin TIDAK mengubah patokan.
+     */
+    public $geoAddress;
 
-    public function __construct($reportId, $lat, $lng, $address)
+    public function __construct($reportId, $lat, $lng, $geoAddress)
     {
         $this->reportId = $reportId;
         $this->lat = $lat;
         $this->lng = $lng;
-        $this->address = $address;
+        $this->geoAddress = $geoAddress;
     }
 
     public function broadcastOn()

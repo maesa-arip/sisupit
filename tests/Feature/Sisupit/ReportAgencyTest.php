@@ -210,6 +210,82 @@ it('tells the command center and the officers on scene when an agency confirms',
     Notification::assertNotSentTo($petugasLuar, AgencyConfirmationNotification::class);
 });
 
+it('also tells the volunteers on standby and the reporter when an agency confirms', function () {
+    // TASK_49 (C), permintaan user: "pln mematikan listrik notif ke admin, petugas, relawan
+    // semua dan pelapor". Sebelumnya kabar ini berhenti di admin+petugas — relawan tak pernah
+    // disebut sama sekali (termasuk yang SEDANG di lokasi), dan pelapor yang menunggu di TKP
+    // juga tidak, padahal "listrik sudah padam" menentukan aman/tidaknya tindakan mereka.
+    $plnAccount = User::factory()->create(['village_code' => '5171012006', 'agency_id' => $this->pln->id]);
+    $plnAccount->assignRole('opd');
+
+    $admin = User::factory()->create(['village_code' => '5171012006']);
+    $admin->assignRole('admin');
+
+    $relawanSiaga = User::factory()->create(['village_code' => '5171012006']);
+    $relawanSiaga->assignRole('relawan');
+
+    // Saklar siaga (TASK_34) tetap berlaku: relawan yang mematikannya sengaja tidak dibanjiri.
+    $relawanNonSiaga = User::factory()->create(['village_code' => '5171012006', 'is_standby' => false]);
+    $relawanNonSiaga->assignRole('relawan');
+
+    // Relawan dari desa lain yang JUSTRU sedang meluncur — keanggotaan mengalahkan wilayah
+    // (pola yang sama dengan petugas di lokasi, FINDINGS #42). Dulu tabel report_helpers
+    // tidak pernah dibaca di sini sama sekali.
+    $relawanDiLokasi = User::factory()->create(['village_code' => '5103010002', 'is_standby' => false]);
+    $relawanDiLokasi->assignRole('relawan');
+
+    $this->actingAs($this->petugas)
+        ->post("/reports/{$this->report->id}/approve", ['agency_ids' => [$this->pln->id]]);
+
+    DB::table('report_helpers')->insert([
+        'report_id' => $this->report->id,
+        'user_id' => $relawanDiLokasi->id,
+        'status' => 'en_route',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $this->actingAs($plnAccount)
+        ->post("/reports/{$this->report->id}/agencies/confirm", [
+            'agency_id' => $this->pln->id,
+            'note' => 'Jaringan dipadamkan pukul 14.10',
+        ])->assertRedirect();
+
+    Notification::assertSentTo($admin, AgencyConfirmationNotification::class);
+    Notification::assertSentTo($relawanSiaga, AgencyConfirmationNotification::class);
+    Notification::assertSentTo($relawanDiLokasi, AgencyConfirmationNotification::class);
+    Notification::assertSentTo($this->report->user, AgencyConfirmationNotification::class);
+
+    Notification::assertNotSentTo($relawanNonSiaga, AgencyConfirmationNotification::class);
+});
+
+it('does not tell the reporter twice when the reporter is the one recording the confirmation', function () {
+    // Operator boleh mencatatkan konfirmasi atas nama OPD. Kalau kebetulan dialah pelapornya
+    // (petugas yang melapor lalu memproses sendiri — alur telepon TASK_28), ia tidak perlu
+    // dikabari tindakannya sendiri lewat jalur "pelapor" yang baru.
+    $petugasPelapor = User::factory()->create(['village_code' => '5171012006']);
+    $petugasPelapor->assignRole('petugas');
+
+    $report = Report::create([
+        'user_id' => $petugasPelapor->id,
+        'title' => 'Kebakaran lapak dilaporkan lewat telepon',
+        'incident_type' => 'rumah',
+        'address' => 'Jl. Pemogan No. 9',
+        'lat' => '-8.6500',
+        'lng' => '115.2200',
+        'status' => 'TERLAPOR',
+        'village_code' => '5171012006',
+    ]);
+
+    $this->actingAs($petugasPelapor)->post("/reports/{$report->id}/approve", ['agency_ids' => [$this->pln->id]]);
+
+    $this->actingAs($petugasPelapor)
+        ->post("/reports/{$report->id}/agencies/confirm", ['agency_id' => $this->pln->id])
+        ->assertRedirect();
+
+    Notification::assertNotSentTo($petugasPelapor, AgencyConfirmationNotification::class);
+});
+
 it('blocks an agency account from confirming on behalf of a different agency', function () {
     $bpbdAccount = User::factory()->create(['village_code' => '5171012006', 'agency_id' => $this->bpbd->id]);
     $bpbdAccount->assignRole('opd');

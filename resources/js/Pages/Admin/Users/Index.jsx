@@ -140,11 +140,24 @@ export default function Index(props) {
 	const jurisdictionalRoles = props.jurisdictional_roles ?? [];
 	const isJurisdictional = (role) => jurisdictionalRoles.includes(role);
 	const rankToLevel = { 4: 'desa', 3: 'kecamatan', 2: 'kabupaten', 1: 'provinsi' };
+	// Tingkat yurisdiksi yang DIUSULKAN saat sebuah peran dipilih (permintaan user 2026-08-28:
+	// "jika memberikan role Petugas, yurisdiksi auto ke kota"). Sengaja DATA, bukan cabang `if`
+	// di dalam defaultLevelFor: menambah peran berikutnya cukup satu baris di sini.
+	//
+	// Ini USULAN, bukan kunci — admin tetap bisa menggantinya, dan dua penjaga yang sudah ada
+	// tetap berlaku lebih dulu: levelOptionsFor() menyaring tingkat yang tak dimiliki pengguna,
+	// dan `assignable_levels` dari server menolak tingkat yang lebih luas dari yurisdiksi admin
+	// itu sendiri. Kalau usulannya tidak tersedia, jatuh ke perilaku lama (tingkat terdalam).
+	// Nilainya WAJIB salah satu value enum TenantLevel — dijaga AssignRoleDefaultLevelTest,
+	// sebab tingkat yang tak dikenal tidak menimbulkan galat, dropdown-nya sekadar kosong.
+	const ROLE_DEFAULT_LEVEL = { petugas: 'kabupaten' };
 	const levelOptionsFor = (user) =>
 		(props.assignable_levels ?? []).filter((level) => level.rank <= (user?.region_level ?? 0));
-	const defaultLevelFor = (user) => {
+	const defaultLevelFor = (user, role) => {
 		const options = levelOptionsFor(user);
 		if (options.length === 0) return '';
+		const preferred = ROLE_DEFAULT_LEVEL[role];
+		if (preferred && options.some((option) => option.value === preferred)) return preferred;
 		const current = rankToLevel[user?.region_level];
 		if (options.some((option) => option.value === current)) return current;
 		return options.reduce((a, b) => (a.rank >= b.rank ? a : b)).value;
@@ -166,14 +179,14 @@ export default function Index(props) {
 	const openRoleDialog = (user) => {
 		const role = user.roles?.[0] ?? '';
 		setData('role', role);
-		setData('level', isJurisdictional(role) ? defaultLevelFor(user) : '');
+		setData('level', isJurisdictional(role) ? defaultLevelFor(user, role) : '');
 		setData('agency_id', user.agency_id ? String(user.agency_id) : '');
 		setRoleUser(user);
 	};
 
 	const onRoleChange = (value) => {
 		setData('role', value);
-		setData('level', isJurisdictional(value) ? defaultLevelFor(roleUser) : '');
+		setData('level', isJurisdictional(value) ? defaultLevelFor(roleUser, value) : '');
 		if (value !== 'opd') setData('agency_id', '');
 	};
 
@@ -409,9 +422,8 @@ export default function Index(props) {
 				</CardContent>
 				<CardFooter className="flex w-full flex-col items-center justify-between border-t py-2 lg:flex-row">
 					<p className="mb-2 text-sm text-muted-foreground">
-						Menamplikan{' '}
-						<span className="font-medium text-warning">{meta.from ?? 0}</span> dari{' '}
-						{meta.total} Pengguna
+						Menamplikan <span className="font-medium text-warning">{meta.from ?? 0}</span> dari {meta.total}{' '}
+						Pengguna
 					</p>
 					<div className="overflow-x-auto">
 						{meta.has_pages && (

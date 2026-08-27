@@ -58,7 +58,7 @@ class DashboardController extends Controller
                 ->map(fn ($report) => [
                     'id' => $report->id,
                     'title' => $report->title,
-                    'location' => $report->address,
+                    'location' => $report->alamatTampil(),
                     'time' => $report->created_at->diffForHumans(),
                     'status' => $report->status,
                 ]);
@@ -90,7 +90,7 @@ class DashboardController extends Controller
             $activeMissions = $queryMissions->orderBy('created_at', 'desc')->get()->map(fn ($report) => [
                 'id' => $report->id,
                 'title' => $report->title,
-                'location' => $report->address,
+                'location' => $report->alamatTampil(),
                 'lat' => $report->lat,
                 'lng' => $report->lng,
                 'time' => $report->created_at->diffForHumans(),
@@ -99,13 +99,18 @@ class DashboardController extends Controller
             ]);
 
             // Antrian pasca-insiden: laporan yang SUDAH selesai ditangani tapi berita acara
-            // (Laporan Kegiatan Penyelamatan) belum FINAL. Setelah resolve(), laporan hilang
-            // dari daftar misi aktif — tanpa antrian ini petugas kesulitan menemukannya lagi
-            // untuk melengkapi dokumentasi. Ter-scope wilayah sama dgn misi (selaras
-            // authorizeStaff di ReportResolutionController: staf dalam yurisdiksi laporan).
+            // (Laporan Kegiatan Penyelamatan) BELUM DIBUAT SAMA SEKALI. Setelah resolve(),
+            // laporan hilang dari daftar misi aktif — tanpa antrian ini petugas kesulitan
+            // menemukannya lagi untuk melengkapi dokumentasi. Ter-scope wilayah sama dgn misi
+            // (selaras authorizeStaff di ReportResolutionController: staf dalam yurisdiksi).
+            //
+            // Dulu saringannya "belum ada entri FINAL". Sejak TASK_49 entri final ditutup
+            // ADMIN, jadi bentuk lama membuat insiden yang sudah petugas isi menggantung
+            // selamanya di kartunya menunggu orang lain — antrian yang tak bisa dibereskan
+            // sendiri terbaca sebagai bug (pelajaran TASK_45/#94). Yang dituntut dari petugas
+            // adalah entri sementaranya; begitu itu ada, tugasnya di sini selesai.
             $queryPending = Report::where('status', 'resolved')
-                ->whereDoesntHave('resolutions', fn ($r) => $r->where('status', 'final'))
-                ->withCount('resolutions');
+                ->whereDoesntHave('resolutions');
             if ($levelCode) {
                 $queryPending->where($column, $levelCode);
             }
@@ -114,10 +119,11 @@ class DashboardController extends Controller
                 ->map(fn ($report) => [
                     'id' => $report->id,
                     'title' => $report->title,
-                    'location' => $report->address,
+                    'location' => $report->alamatTampil(),
                     'time' => $report->updated_at->diffForHumans(),
-                    // Ada entri 'sementara' → tinggal dilengkapi jadi final; jika 0 → belum mulai.
-                    'has_draft' => $report->resolutions_count > 0,
+                    // `has_draft` DIHAPUS bersama saringan lama: isi antrian ini kini selalu
+                    // "belum ada entri sama sekali", jadi flag itu hanya bisa bernilai satu —
+                    // dan flag yang cuma punya satu nilai adalah klaim yang menunggu keliru.
                     'created_at' => $report->created_at,
                 ]);
 
@@ -152,7 +158,7 @@ class DashboardController extends Controller
                         return [
                             'id' => $report->id,
                             'title' => $report->title,
-                            'location' => $report->address,
+                            'location' => $report->alamatTampil(),
                             'time' => $report->created_at->diffForHumans(),
                             'status' => $report->status,
                             'requires_confirmation' => (bool) $pivot?->requires_confirmation,
@@ -204,7 +210,7 @@ class DashboardController extends Controller
             $nearbyEmergencies = $queryEmergencies->orderBy('created_at', 'desc')->get()->map(fn ($report) => [
                 'id' => $report->id,
                 'title' => $report->title,
-                'location' => $report->address,
+                'location' => $report->alamatTampil(),
                 'time' => $report->created_at->diffForHumans(),
                 'status' => $report->status,
             ]);

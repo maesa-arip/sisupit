@@ -33,18 +33,21 @@ function makeResolvedReport(array $overrides = []): Report
     ], $overrides));
 }
 
-it('surfaces resolved reports without a final berita acara in the petugas queue', function () {
+it('surfaces resolved reports without any berita acara in the petugas queue', function () {
     makeResolvedReport();
 
     $this->actingAs($this->petugas)
         ->get(route('dashboard'))
         ->assertInertia(fn (Assert $page) => $page
             ->component('Petugas/Dashboard')
-            ->has('pendingResolutions', 1)
-            ->where('pendingResolutions.0.has_draft', false));
+            ->has('pendingResolutions', 1));
 });
 
-it('marks a queue item as draft when only a sementara resolution exists', function () {
+it('clears the item from the petugas queue once a sementara entry exists', function () {
+    // TASK_49: entri FINAL kini ditutup admin, jadi antrian ini menuntut dari petugas hanya
+    // entri sementaranya. Bentuk lama ("belum ada entri final") akan membuat insiden yang
+    // sudah ia isi menggantung selamanya di kartunya menunggu orang lain — antrian yang tak
+    // bisa dibereskan sendiri terbaca sebagai bug.
     $report = makeResolvedReport();
     ReportResolution::create([
         'report_id' => $report->id,
@@ -54,9 +57,7 @@ it('marks a queue item as draft when only a sementara resolution exists', functi
 
     $this->actingAs($this->petugas)
         ->get(route('dashboard'))
-        ->assertInertia(fn (Assert $page) => $page
-            ->has('pendingResolutions', 1)
-            ->where('pendingResolutions.0.has_draft', true));
+        ->assertInertia(fn (Assert $page) => $page->has('pendingResolutions', 0));
 });
 
 it('excludes reports that already have a final berita acara', function () {

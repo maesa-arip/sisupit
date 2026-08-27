@@ -12,6 +12,8 @@ class ReportVictim extends Model
         'nama',
         'tanggal_lahir',
         'alamat',
+        // Kondisi Korban (TASK_49): luka bakar ringan / sesak napas / meninggal di lokasi.
+        'kondisi',
         'ktp_path',
     ];
 

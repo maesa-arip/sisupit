@@ -29,6 +29,10 @@ export default function Create(props) {
 	const report = props.report;
 	const p = props.prefill || {};
 	const timAtensiSuggestion = props.timAtensiSuggestion || '';
+	// Entri FINAL ditutup admin (permintaan user 2026-08-28); petugas mengisi yang sementara.
+	// Server yang memutuskan — prop ini hanya supaya petugas tahu SEBELUM mengisi, bukan lewat
+	// 403 sesudah seluruh berita acara diketik.
+	const canFinalize = props.canFinalize ?? false;
 
 	const { data, setData, post, processing, errors, transform } = useForm({
 		status: 'sementara',
@@ -41,12 +45,14 @@ export default function Create(props) {
 		pemilik_nama: p.pemilik_nama ?? '',
 		pemilik_umur: p.pemilik_umur ?? '',
 		kerugian: p.kerugian ?? '',
+		volume_air: p.volume_air ?? '',
 		tim_atensi: p.tim_atensi ?? '',
 		kronologi: p.kronologi ?? '',
 		victims: (p.victims || []).map((v) => ({
 			nama: v.nama ?? '',
 			tanggal_lahir: v.tanggal_lahir ?? '',
 			alamat: v.alamat ?? '',
+			kondisi: v.kondisi ?? '',
 			ktp: null,
 		})),
 		photos: [],
@@ -61,7 +67,7 @@ export default function Create(props) {
 	// --- Korban (dinamis) ---
 	const hasReporterData = Boolean(report.reporter_name || report.reporter_address);
 	const addVictim = () =>
-		setData('victims', [...data.victims, { nama: '', tanggal_lahir: '', alamat: '', ktp: null }]);
+		setData('victims', [...data.victims, { nama: '', tanggal_lahir: '', alamat: '', kondisi: '', ktp: null }]);
 	// Tambah korban terisi data pelapor (nama & alamat dari laporan).
 	const addVictimFromReporter = () =>
 		setData('victims', [
@@ -70,6 +76,7 @@ export default function Create(props) {
 				nama: report.reporter_name || '',
 				tanggal_lahir: '',
 				alamat: report.reporter_address || '',
+				kondisi: '',
 				ktp: null,
 			},
 		]);
@@ -165,8 +172,8 @@ export default function Create(props) {
 						</CardTitle>
 						<CardDescription className="mt-1 text-sm text-muted-foreground">
 							{report.title ? `${report.title} — ` : ''}
-							Isi data kejadian. Simpan sebagai <b>sementara</b> dulu; entri <b>final</b> dibuat
-							terpisah setelah investigasi.
+							Isi data kejadian. Simpan sebagai <b>sementara</b> dulu; entri <b>final</b> dibuat terpisah
+							setelah investigasi{canFinalize ? '' : ' dan hanya bisa ditutup admin'}.
 						</CardDescription>
 					</CardHeader>
 
@@ -192,7 +199,10 @@ export default function Create(props) {
 								</div>
 
 								<div>
-									<Label htmlFor="sumber_informasi" className="text-sm font-medium text-foreground/80">
+									<Label
+										htmlFor="sumber_informasi"
+										className="text-sm font-medium text-foreground/80"
+									>
 										Sumber Informasi
 									</Label>
 									<Input
@@ -243,6 +253,21 @@ export default function Create(props) {
 										className="mt-1.5 h-10 rounded-md border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 									/>
 									<InputError message={errors.kerugian} className="mt-1" />
+								</div>
+
+								<div>
+									<Label htmlFor="volume_air" className="text-sm font-medium text-foreground/80">
+										Volume Air Digunakan
+									</Label>
+									<Input
+										name="volume_air"
+										id="volume_air"
+										value={data.volume_air}
+										onChange={onHandleChange}
+										placeholder="Contoh: ±3 tangki (12.000 liter)"
+										className="mt-1.5 h-10 rounded-md border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+									/>
+									<InputError message={errors.volume_air} className="mt-1" />
 								</div>
 							</div>
 
@@ -347,8 +372,8 @@ export default function Create(props) {
 									className="mt-1.5 min-h-[72px] resize-y rounded-md border-border bg-card p-3 text-sm focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 								/>
 								<p className="mt-1 text-[12px] text-muted-foreground">
-									Terisi otomatis dari data sistem (armada, petugas, dan relawan yang tercatat menangani
-									insiden). Bisa diedit.
+									Terisi otomatis dari data sistem (armada, petugas, dan relawan yang tercatat
+									menangani insiden). Bisa diedit.
 								</p>
 								<InputError message={errors.tim_atensi} className="mt-1" />
 							</div>
@@ -404,7 +429,9 @@ export default function Create(props) {
 									{data.victims.map((v, i) => (
 										<div key={i} className="rounded-lg border border-border bg-muted/40 p-3">
 											<div className="flex items-center justify-between">
-												<span className="text-xs font-bold text-muted-foreground">Korban {i + 1}</span>
+												<span className="text-xs font-bold text-muted-foreground">
+													Korban {i + 1}
+												</span>
 												<button
 													type="button"
 													onClick={() => removeVictim(i)}
@@ -431,6 +458,12 @@ export default function Create(props) {
 													value={v.alamat}
 													onChange={(e) => updateVictim(i, 'alamat', e.target.value)}
 													placeholder="Alamat korban"
+													className="h-10 rounded-md border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive sm:col-span-2"
+												/>
+												<Input
+													value={v.kondisi}
+													onChange={(e) => updateVictim(i, 'kondisi', e.target.value)}
+													placeholder="Kondisi korban (mis. luka bakar ringan, dirujuk ke RSUD)"
 													className="h-10 rounded-md border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive sm:col-span-2"
 												/>
 											</div>
@@ -462,7 +495,9 @@ export default function Create(props) {
 															<input
 																type="file"
 																accept="image/*"
-																onChange={(e) => setVictimKtp(i, e.target.files?.[0] || null)}
+																onChange={(e) =>
+																	setVictimKtp(i, e.target.files?.[0] || null)
+																}
 																className="sr-only"
 															/>
 														</label>
@@ -494,7 +529,11 @@ export default function Create(props) {
 											key={`ph-${i}`}
 											className="group relative h-32 w-full overflow-hidden rounded-md border border-border shadow-sm"
 										>
-											<img src={pv.url} alt={`Foto ${i + 1}`} className="h-full w-full object-cover" />
+											<img
+												src={pv.url}
+												alt={`Foto ${i + 1}`}
+												className="h-full w-full object-cover"
+											/>
 											<button
 												type="button"
 												onClick={() => removePhoto(i)}
@@ -534,19 +573,26 @@ export default function Create(props) {
 									)}
 									Simpan sebagai Sementara
 								</Button>
-								<Button
-									type="button"
-									onClick={() => submitWith('final')}
-									disabled={processing}
-									className="flex h-11 flex-1 items-center justify-center gap-2 rounded-md bg-success px-6 text-sm font-semibold text-success-foreground transition-colors hover:bg-success/90 disabled:opacity-70"
-								>
-									{processing ? (
-										<IconLoader2 className="h-5 w-5 animate-spin" />
-									) : (
-										<IconShieldCheck className="h-5 w-5" />
-									)}
-									Simpan sebagai Final
-								</Button>
+								{canFinalize ? (
+									<Button
+										type="button"
+										onClick={() => submitWith('final')}
+										disabled={processing}
+										className="flex h-11 flex-1 items-center justify-center gap-2 rounded-md bg-success px-6 text-sm font-semibold text-success-foreground transition-colors hover:bg-success/90 disabled:opacity-70"
+									>
+										{processing ? (
+											<IconLoader2 className="h-5 w-5 animate-spin" />
+										) : (
+											<IconShieldCheck className="h-5 w-5" />
+										)}
+										Simpan sebagai Final
+									</Button>
+								) : (
+									<p className="flex flex-1 items-center justify-center gap-2 rounded-md border border-dashed border-border bg-muted/40 px-6 text-center text-[13px] text-muted-foreground">
+										<IconShieldCheck className="h-4 w-4 shrink-0" />
+										Entri final ditutup admin.
+									</p>
+								)}
 							</div>
 						</form>
 					</CardContent>

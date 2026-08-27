@@ -49,6 +49,17 @@ const REPORT_STATUS = [
 		dot: 'bg-info',
 		badge: 'bg-info/10 text-info border-info/30',
 	},
+	// `ditolak` (FINDINGS #24) diarsipkan, bukan dihapus, dan MonitoringMapController memang
+	// mengirimkannya ke peta. Tanpa entri ini tak ada chip untuk menyalakannya, jadi kejadian
+	// yang ditolak TAK PERNAH bisa ditampilkan walau datanya ada (FINDINGS #94). Abu-abu
+	// netral, sewarna Components/StatusBadge.jsx — arsip, bukan tahap alur.
+	{
+		key: 'ditolak',
+		label: 'Ditolak',
+		marker: 'bg-muted-foreground',
+		dot: 'bg-muted-foreground',
+		badge: 'bg-muted text-muted-foreground border-border',
+	},
 ];
 const REPORT_META = Object.fromEntries(REPORT_STATUS.map((s) => [s.key, s]));
 
@@ -140,7 +151,7 @@ export default function MonitoringMap({ layers }) {
 		if (!mapRef.current || !window.L) return;
 
 		const map = window.L.map(mapRef.current, { zoomControl: false }).setView([-8.65, 115.216667], 11);
-		window.L.tileLayer(MAP_TILE_URL).addTo(map);
+		window.L.tileLayer(MAP_TILE_URL, { attribution: '&copy; OpenStreetMap' }).addTo(map);
 		window.L.control.zoom({ position: 'bottomright' }).addTo(map);
 
 		groupsRef.current = {

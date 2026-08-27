@@ -1674,3 +1674,202 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **Penjaga:** tiga test di `OpdDashboardTest.php`, termasuk satu yang memastikan
   `?filter=mine` tidak jadi celah kembali ke jalur lama.
 - **Status:** FIXED
+
+### #92 — Seluruh peta di ketiga environment tercoret "API KEY REQUIRED" milik CARTO
+- **Severity:** P1 (semua peta di prod, staging, dan dev sekaligus)
+- **Dilaporkan user 2026-08-27:** "di maps muncul api key required carto.com".
+- **Akar:** `MAP_TILE_URL` **tidak pernah diisi di environment mana pun** — `.env` lokal
+  masih mengomentarinya dan ketiga `.env` VPS pun tak memuatnya — sehingga semua peta jatuh
+  ke nilai cadangan CARTO Voyager di `config/services.php` (dan kembarannya `CARTO_VOYAGER`
+  di `resources/js/lib/utils.js`). Ketika CARTO mulai mewajibkan API key, tile-nya tetap
+  dikirim HTTP 200 berisi peta yang benar, hanya saja **dicap tulisan miring "API KEY
+  REQUIRED — carto.com/basemaps/apikey"**. Karena itu tak ada satu pun gejala teknis: tak ada
+  galat, tak ada tile gagal muat, tak ada baris log. Dibuktikan dengan menarik tile Denpasar
+  z13/6717/4293 langsung dari CARTO.
+- **Pelajaran yang lebih besar dari bug-nya:** nilai cadangan yang menunjuk **layanan pihak
+  ketiga tanpa akun** bukanlah jaring pengaman, melainkan ketergantungan yang tak tercatat.
+  Selama env tak diisi, "sementara" itu jadi konfigurasi produksi yang sesungguhnya, dan
+  perubahan kebijakan pihak lain mengubah ke-14 peta bersamaan. Mekanisme runtime-inject
+  (TASK_25) sendiri bekerja benar — yang keliru isi cadangannya.
+- **Fix (2026-08-27, TASK_46):** basemap **di-self-host** — `docker/tiles/` (TileServer-GL +
+  vector tiles hasil tilemaker dari `bali.osm.pbf` milik Nominatim, style OSM Bright),
+  sepola dengan `docker/nominatim/` & `docker/osrm/`. Keputusan user setelah disodori empat
+  pilihan. Cadangan di `config/services.php` & `utils.js` dipindah ke tile OSM resmi — bukan
+  sebagai sumber produksi, melainkan supaya environment yang lupa diisi tetap menampilkan
+  peta yang terbaca, bukan peta bercap atau layar kosong.
+- **Ikutan yang ikut dibetulkan:** dari 14 pemanggilan `L.tileLayer`, hanya 5 yang memasang
+  `attribution` — sembilan peta lain tak menyebut OpenStreetMap sama sekali, padahal data
+  tile turunan OSM mewajibkannya. Kesembilannya kini memakai string yang PERSIS sama dengan
+  kelima yang sudah ada, supaya tak lahir dua kalimat atribusi berbeda di satu aplikasi.
+- **Jebakan yang ditemukan saat mengerjakan (dicatat di `docker/tiles/README.md`):** tanpa
+  berkas font (glyph), TileServer-GL tetap menggambar tile dengan benar — jalan, sungai,
+  blok bangunan — **tapi tanpa satu pun nama jalan atau desa**, dan tak melaporkan galat
+  apa pun. Style bawaan image (`basic-preview`) juga begitu. Jadi "peta polos" = periksa
+  `data/fonts/`, bukan style-nya.
+- **Status:** FIXED & TERPASANG 2026-08-27 di prod/staging/dev. Tile server di `/opt/geo/tiles`
+  (port **8083** — 8080/8081/8082 di VPS sudah dipakai tiga instance Reverb), disajikan Nginx
+  di `/tiles/` dengan `proxy_cache`. `MAP_TILE_URL` diisi di ketiga `.env`, tiap environment
+  menunjuk domainnya sendiri. TANPA deploy kode, TANPA rebuild, TANPA migrasi — persis yang
+  dijanjikan desain runtime-inject TASK_25. Ketiga domain: 0 rujukan `cartocdn`, tile 200.
+- **Lanjutan rupa (2026-08-28, permintaan user "gunakan sisupit light"):** style peta diganti
+  dari OSM Bright ke **Sisupit Light** — turunan Positron v1.9 (BSD-3) yang disetel sendiri.
+  Alasannya bukan selera: di aplikasi ini **warna adalah data** (merah = kejadian, teal =
+  fasilitas, ungu = relawan, biru = selesai), sedangkan OSM Bright menggambar jalan
+  kuning-oranye, label cokelat-merah, dan nama POI sampai tingkat warung — basemap ikut
+  berebut warna dengan marker yang harus dibaca lebih dulu. Empat kelompok perubahan dari
+  Positron didokumentasikan di `docker/tiles/style/sisupit-light/README.md`.
+- **Temuan ikutan yang ikut tertutup:** 16 layer OSM Bright (dan 10 layer Positron asli)
+  memakai `{name:latin}
+{name:nonlatin}`, jadi **nama POI beraksara Jepang/Rusia/Korea ikut
+  TERGAMBAR DI DALAM GAMBAR TILE** — bentuk lain dari #83, dan di sini tak bisa disaring dari
+  sisi aplikasi sama sekali karena aksaranya sudah jadi piksel sebelum sampai ke browser.
+  Sisupit Light memakai `{name:latin}` saja.
+- **Yang mengikat sesudah ini:** (1) **id style tetap `sisupit`** — id itu ada di dalam
+  `MAP_TILE_URL` ketiga environment, jadi mengganti NAMA style berarti menyunting tiga
+  `.env` di VPS, sementara mengganti ISI style tidak menyentuh apa pun; (2) style ikut REPO
+  (`docker/tiles/style/`, bind mount) dengan alasan yang sama seperti `config.json` — ia
+  keputusan rupa, bukan data, dan `data/` diabaikan git; (3) fontstack di style DIKUNCI ke
+  Noto Sans, tidak lagi menumpang fallback dari Metropolis yang tidak kita punya, karena
+  peta tanpa nama jalan adalah kegagalan yang tak melaporkan dirinya sendiri; (4) sesudah
+  dipasang di server, **cache Nginx `/var/cache/nginx/tiles` wajib dikosongkan** — kalau
+  tidak, tile lama masih disajikan sampai kedaluwarsa dan perubahannya terlihat
+  setengah-setengah, yang mudah disalahartikan sebagai style gagal dipasang.
+- **Lanjutan (2026-08-28, laporan user "tampilan full pulau balinya sangat jelek, terlalu
+  rame, dan apa maksud angka2 tersebut di maps?"):** tiga sebab terpisah, dan yang terbesar
+  BUKAN style. (a) angka = `{ref}` nomor rute nasional pada layer `highway_name_motorway`,
+  tergambar telanjang karena style ini tak punya sprite perisai — layernya dibuang;
+  (b) Positron tak memberi `minzoom` pada `place_village/suburb/other` sehingga ratusan nama
+  desa berdesakan sejak z9 — kini berbatas zoom; (c) **`bali.mbtiles` dibangun TANPA
+  poligon laut**, jadi laut sewarna daratan dan pulau Bali tak berbentuk sama sekali.
+- **Akar (c) ada di fix #92 sendiri:** `--bbox` dipakai sebagai jalan pintas supaya tilemaker
+  mau jalan tanpa shapefile pantai yang tidak diunduh. Yang tercatat waktu itu hanya "tanpa
+  bbox tilemaker menolak jalan"; yang tidak tercatat adalah APA YANG HILANG karena
+  shapefilenya absen — skema OpenMapTiles tidak pernah mengambil laut dari PBF.
+  **Aturan turunan: sebuah flag yang dipakai untuk MELEWATI prasyarat wajib mencatat apa yang
+  hilang karenanya**, kalau tidak jalan pintasnya berumur panjang tanpa gejala.
+- **Jebakan kedua saat memperbaikinya:** shapefile pantai tersedia dalam 3857 & 4326.
+  Tilemaker membaca koordinatnya sebagai lintang/bujur apa adanya, jadi versi **3857** (meter)
+  menghasilkan poligon laut sebesar dunia yang MENUTUPI daratan — seluruh Denpasar
+  berwarna laut. Kebalikan persis dari gejala semula, sama-sama HTTP 200. Pakai **4326**.
+- **Pola yang layak diingat:** ketiga kegagalan basemap sejauh ini sekeluarga — font hilang
+  (peta tanpa nama), pantai hilang (pulau tanpa bentuk), pantai salah proyeksi (darat tertutup
+  laut). Ketiganya menjawab 200 dan tak menulis satu baris log. **Pemeriksaan yang berguna
+  bukan "apakah tile-nya 200?" melainkan melihat gambarnya di zoom kota DAN zoom pulau.**
+- **Latar sedunia (2026-08-28, permintaan user):** zoom keluar dari Bali dulu menampilkan
+  bidang kosong. Kini ada tileset KEDUA `world.mbtiles` (z0-8, ~30 MB) berisi hanya siluet
+  daratan/laut — nol data OSM, dibangun dengan `process-coastline.lua` yang memang
+  mengabaikan PBF. Style membacanya sebagai sumber kedua, digambar tepat setelah `background`
+  dengan `maxzoom: 13`. **Batas itu jangan dinaikkan:** garis pantai latar beresolusi z8, dan
+  dipaksa ke zoom rinci ia merembes ke daratan sehingga laut menutupi tanah tepi pantai, dan
+  tak ada layer apa pun yang mengecatnya kembali jadi darat.
+- **Kegagalan KEEMPAT sekeluarga (2026-08-28):** sesudah style baru terpasang & terverifikasi
+  di server, pengguna tetap melihat peta lama. Bukan salah pemasangan — `style.json` dan enam
+  tile prod terbukti md5-identik dengan lokal. Akarnya `expires 30d` di blok Nginx `/tiles/`:
+  **URL yang sama dengan isi berbeda tak akan pernah terlihat** sampai cache browser tiap
+  pengguna kedaluwarsa. Mengosongkan `proxy_cache` tidak menolong (itu cache SERVER), dan
+  Ctrl+Shift+R cuma menyegarkan tile yang dimuat saat itu — begitu peta digeser, tetangganya
+  tetap dari cache lama. Di APK & browser HP tak ada gerakan setara sama sekali.
+- **Fix & aturan tetap:** penanda versi di URL (`.../{y}{r}.png?v=20260828`) di `.env` tiap
+  environment + `config:clear`. **Naikkan angkanya setiap kali style atau mbtiles berubah.**
+  Bekerja tanpa deploy kode/rebuild/update APK karena halaman HTML ber-`no-cache`, jadi URL
+  barunya sampai ke pengguna pada pemuatan berikutnya, termasuk di dalam WebView.
+- **Pelajaran ukur-mengukur:** ukuran berkas PNG BUKAN bukti dua tile sama. Tile yang sama
+  bisa keluar 27.345 B atau 28.541 B tergantung apakah ia render segar atau hasil kemasan
+  ulang; diperiksa dengan `ImageChops.difference` dan **identik piksel demi piksel**. Yang sah:
+  md5 pada URL yang sama, atau perbandingan piksel.
+
+### #93 — `resources/js/lib/utils.js` memuat byte NUL mentah di dalam regex
+- **Severity:** P3 (belum menimbulkan gejala; rapuh, bukan rusak)
+- **Ditemukan 2026-08-27** saat mengerjakan TASK_46 — bukan bagian dari task itu, jadi
+  SENGAJA tidak diperbaiki (ATURAN EMAS #6).
+- **Gejalanya sekarang:** `grep` menolak membaca berkas itu sebagai teks ("Binary file
+  matches"), sehingga pencarian biasa melewatinya diam-diam.
+- **Akar:** konstanta `AKSARA_TAK_TERBACA` (helper `alamatTerbaca()`, TASK_43) menulis awal
+  rentang kelas karakternya sebagai **byte NUL literal**, bukan escape `\0` / `\x00`.
+- **Kenapa ini layak dicatat:** kalau ada tool yang membuang byte itu — prettier, editor,
+  proses salin-tempel, konversi encoding — kelas karakternya berubah bentuk dan MASIH jadi
+  regex yang sah, tapi bermakna lain. `alamatTerbaca()` akan mulai membuang atau meloloskan
+  segmen alamat yang salah **tanpa galat apa pun**, dan gejalanya baru terlihat sebagai
+  alamat aneh di form lapor & enam form fasilitas.
+- **Usul fix (satu baris):** ganti byte itu dengan escape `\x00`, lalu kunci dengan test yang
+  memastikan `alamatTerbaca()` membuang segmen beraksara Korea/Kana/Kiril tapi mempertahankan
+  "Café Romano" (kasus yang sudah disebut TASK_43).
+- **Status:** OPEN
+
+---
+
+### #94 — Laporan yang sudah DITOLAK berbunyi "Laporan Terverifikasi" di Verifikasi Laporan
+- **Severity:** P2 (salah menyebut keadaan laporan di layar kerja operator; tanpa galat)
+- **Dilaporkan user 2026-08-27**, dikerjakan sebagai TASK_48.
+- **Gejala:** di `/admin/reports` (chip "Semua"), laporan berstatus `ditolak` memakai lencana
+  **kuning bertuliskan "Laporan Terverifikasi"** dan pinnya kuning di peta sebaran — nama
+  status lain, bukan namanya sendiri. Tak ada chip filter "Ditolak" sama sekali, jadi satu-
+  satunya cara melihatnya adalah menyisir chip "Semua".
+- **Akar:** `resources/js/Pages/Admin/Reports/Index.jsx:48` — halaman itu memelihara kamus
+  status **sendiri** (`STATUS_META`) karena butuh warna pin/titik/legenda yang tidak
+  disediakan `Components/StatusBadge.jsx`, dan kamus itu berhenti di EMPAT status. `ditolak`
+  lahir di #24 tapi tak pernah menyusul ke sini. Karena `markerStyle()` dan `StatusBadge`
+  lokal sama-sama bercadangan `STATUS_META[status] || STATUS_META.pending`, status yang tak
+  dikenal **tidak tampil apa adanya melainkan MENGAKU jadi status lain** — bentuk yang sama
+  dengan #90 (cabang terakhir sebuah tangga adalah KLAIM, bukan "tidak dikenal").
+- **Layar kedua dengan akar yang sama** (ditemukan saat menelusuri, ikut diperbaiki atas
+  persetujuan user): `resources/js/Pages/Monitoring/Map.jsx:23` — `REPORT_STATUS` juga
+  berhenti di empat status, padahal `MonitoringMapController:26` memang mengirim laporan
+  `ditolak` ke browser dan `reportHidden` menyembunyikannya sejak awal. Karena chip status
+  dirender DARI daftar itu, tak ada chip untuk menyalakannya: **kejadian yang ditolak tak
+  pernah bisa ditampilkan di Peta Pemantauan meski datanya sampai ke klien**, dan komentar di
+  baris 117 yang berbunyi "tetap bisa dinyalakan lewat chip status" sudah lama tidak benar.
+- **Fix:** entri `ditolak` (label "Ditolak", abu-abu netral sewarna `Components/StatusBadge`)
+  ditambahkan ke KEDUA kamus; chip filter "Ditolak" masuk ke `STATUS_OPTIONS` + legenda peta.
+  Sisi server TIDAK berubah — `Admin\ReportController::index` sudah `where('status', $status)`
+  generik dan `ReportsExport::STATUS_LABELS` sudah punya `'ditolak' => 'Ditolak'` sejak
+  TASK_39, jadi filter & Export Excel langsung benar.
+- **Yang mengikat:** chip "Ditolak" **tidak** ditampilkan ke pemantau (pejabat/relawan,
+  `canVerify=false`). Mereka memakai halaman yang sama lewat `front.reports.index`, dan
+  `ReportController::index:104` menyaring `whereNotIn('status', ['TERLAPOR','ditolak'])` —
+  chip yang selalu memulangkan daftar kosong terbaca sebagai bug. Keduanya kini didaftar di
+  satu tempat, `MONITOR_HIDDEN_STATUSES`, yang dipakai pill maupun legenda.
+- **Penjaga:** `tests/Feature/Sisupit/ReportStatusDictionaryTest.php` (4 test, TIGA
+  dibuktikan merah dulu). Yang pertama sengaja **tidak** mengadu kamus dengan kamus (pelajaran
+  #79): ia MENOLAK laporan lewat endpoint sungguhan, membaca status yang benar-benar tertulis
+  di kolomnya, lalu menuntut kedua kamus layar mengenal string itu.
+- **Status:** FIXED (TASK_48, 2026-08-27)
+
+---
+
+### #95 — Kolom `reports.address` memikul dua makna; "Alamat Presisi" adalah klaim tanpa penjamin
+- **Severity:** P2 (menyesatkan responder soal LOKASI, dan menghapus keterangan warga tanpa jejak)
+- **Dilaporkan user 2026-08-28** ("di report/show alamat presisi itu bisa jadi bug"), dikerjakan
+  sebagai TASK_49.
+- **Gejala:** panel **"Alamat Presisi"** di halaman detail insiden bisa (a) KOSONG padahal titik
+  kejadian diketahui persis — laporan kebakaran sah tanpa patokan, sebab `ReportRequest`
+  membuatnya opsional demi darurat-first; (b) berisi kalimat manusia yang menunjuk tempat lain
+  dari pin di peta tepat di atasnya; atau (c) berubah sendiri jadi alamat mesin setelah
+  responder mengoreksi pin. Ketiganya tanpa galat.
+- **Akar:** SATU kolom, DUA penulis dengan dua makna. `ReportController::store()` menulis
+  **patokan yang diketik warga** ke `reports.address`; `ReportActionController::correctLocation()`
+  **menimpa kolom yang sama** dengan `display_name` Nominatim yang dikirim `Show.jsx`. Judul
+  "Alamat Presisi" karena itu tidak dijamin siapa pun — bentuk yang sama dengan #90 dan #94:
+  sebuah nilai mengaku jadi sesuatu yang bukan dirinya.
+- **Kenapa tak bisa diperbaiki di layar saja:** alamat hasil geocode TIDAK PERNAH sampai ke
+  server. `Front/Reports/Create.jsx` sudah lama menghitungnya (state `fullAddress`, tampil di
+  panel "Alamat Lengkap (otomatis)" sejak TASK_28, disaring `alamatTerbaca()` sejak TASK_43)
+  tapi `useForm` tak pernah mengirimkannya dan tak ada kolom yang menampungnya. Jadi
+  satu-satunya alamat yang tersimpan adalah kalimat manusia — atau tidak ada sama sekali.
+- **Fix:** kolom BARU `reports.geo_address` (aditif, nullable, tanpa backfill). Mesin menulis ke
+  sana (form lapor & `correctLocation`), manusia tetap memegang `address`. Halaman detail jadi
+  dua baris: **Alamat** (dari titik) di atas, **Patokan Lokasi** (ketikan warga) di bawah; nama
+  "Patokan Lokasi" sengaja sama dengan label di form lapor (keputusan user — satu konsep, satu
+  nama). Laporan lama di-reverse-geocode SEKALI saat halaman dibuka sebagai cadangan tampilan,
+  tidak ditulis balik ke DB.
+- **Ikutan yang wajib ikut:** SEMBILAN layar meringkas laporan jadi satu baris "di mana" dengan
+  membaca `address` langsung (5× `DashboardController`, `MonitoringMapController`, prefill
+  berita acara, `Admin/Reports/Index`, `ReportCard`, `Front/Reports/Index`). Begitu kolom itu
+  berhenti ditimpa alamat mesin, sebagian di antaranya akan menampilkan baris KOSONG tanpa ada
+  yang sadar. Aturannya kini satu tempat: `Report::alamatTampil()` (server) + `alamatLaporan()`
+  (`lib/utils.js`), alamat mesin dulu & patokan sebagai cadangan.
+- **Yang mengikat:** payload `IncidentLocationCorrected` ikut berganti nama `address` →
+  `geoAddress`. Nama lama akan mendarat di tempat patokan di layar penerima — persis bug ini.
+- **Penjaga:** `tests/Feature/Sisupit/ReportAddressPatokanTest.php` (6 test, EMPAT dibuktikan
+  merah dulu), termasuk parity aturan tampil antara server & klien.
+- **Status:** FIXED (TASK_49, 2026-08-28)

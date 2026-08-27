@@ -1,0 +1,32 @@
+{
+  "options": {
+    "paths": {
+      "root": "/data",
+      "fonts": "fonts",
+      "styles": "styles",
+      "mbtiles": ""
+    },
+    "serveAllStyles": false,
+    "formatOptions": {
+      "png": {
+        "quality": 90
+      }
+    }
+  },
+  "styles": {
+    "sisupit": {
+      "style": "sisupit-light/style.json",
+      "tilejson": {
+        "attribution": "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a>"
+      }
+    }
+  },
+  "data": {
+    "v3": {
+      "mbtiles": "bali.mbtiles"
+    },
+    "world": {
+      "mbtiles": "world.mbtiles"
+    }
+  }
+}

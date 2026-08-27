@@ -1,0 +1,56 @@
+{
+  "_catatan": [
+    "Config untuk tileset LATAR: siluet daratan/laut sedunia, z0-8 saja.",
+    "Gunanya cuma satu: saat peta di-zoom keluar dari Bali, layar tidak kosong melompong.",
+    "Ia BUKAN peta yang bisa dipakai bekerja - tanpa jalan, tanpa nama tempat, tanpa POI,",
+    "dan tak ada satu pun data OSM di dalamnya (process-coastline.lua mengabaikan PBF).",
+    "",
+    "Diturunkan dari resources/config-coastline.json bawaan image tilemaker, dengan DUA",
+    "perubahan yang disengaja:",
+    "  1. maxzoom 14 -> 8. Sedunia sampai z14 berukuran giga-byte dan tak ada gunanya:",
+    "     mulai z9 yang berlaku adalah bali.mbtiles yang jauh lebih rinci.",
+    "  2. Layer 'ice_shelf' & 'glacier' dibuang - shapefile-nya tidak kita unduh dan Indonesia",
+    "     tak punya keduanya. Kalau dibiarkan, tilemaker cuma mencetak 'Unable to open ...',",
+    "     tapi pesan itu menyamar sebagai kesalahan pemasangan bagi yang membaca log nanti.",
+    "",
+    "Berkas ini SENGAJA ikut repo (bukan disalin dari image saat build) karena isinya memang",
+    "keputusan kita, bukan bawaan. Bandingkan config-openmaptiles.json yang TIDAK disalin:",
+    "yang itu 100 KB dan dipakai apa adanya, jadi salinannya akan basi diam-diam."
+  ],
+  "layers": {
+    "water": { "minzoom": 6, "maxzoom": 8, "simplify_below": 12, "simplify_level": 0.0003, "simplify_ratio": 2 },
+    "ocean": {
+      "minzoom": 0, "maxzoom": 8,
+      "source": "coastline/water_polygons.shp",
+      "filter_below": 12, "filter_area": 0.5,
+      "simplify_below": 13, "simplify_level": 0.0001, "simplify_ratio": 2,
+      "write_to": "water"
+    },
+    "landuse": { "minzoom": 4, "maxzoom": 8, "simplify_below": 13, "simplify_level": 0.0003, "simplify_ratio": 2 },
+    "urban_areas": {
+      "minzoom": 4, "maxzoom": 8,
+      "source": "landcover/ne_10m_urban_areas/ne_10m_urban_areas.shp",
+      "source_columns": ["featurecla"],
+      "simplify_below": 7, "simplify_level": 0.0003, "simplify_ratio": 2,
+      "write_to": "landuse"
+    },
+    "landcover": { "minzoom": 0, "maxzoom": 8, "simplify_below": 13, "simplify_level": 0.0003, "simplify_ratio": 2 }
+  },
+  "settings": {
+    "minzoom": 0,
+    "maxzoom": 8,
+    "basezoom": 8,
+    "include_ids": false,
+    "combine_below": 8,
+    "name": "Sisupit World Backdrop",
+    "version": "1.0",
+    "description": "Siluet daratan & laut sedunia z0-8 sebagai latar saat zoom keluar dari Bali",
+    "compress": "gzip",
+    "filemetadata": {
+      "tilejson": "2.0.0",
+      "scheme": "xyz",
+      "type": "baselayer",
+      "format": "pbf"
+    }
+  }
+}

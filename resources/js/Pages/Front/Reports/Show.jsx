@@ -7,7 +7,7 @@ import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
-import { cn, GEO_OPTIONS, MAP_TILE_URL, reportNumber } from '@/lib/utils';
+import { alamatTerbaca, cn, GEO_OPTIONS, MAP_TILE_URL, reportNumber } from '@/lib/utils';
 import { Head, Link, router } from '@inertiajs/react';
 import {
 	IconAlertCircle,
@@ -168,11 +168,16 @@ export default function ReportShow(props) {
 	const [isProcessing, setIsProcessing] = useState(false);
 	const [isActionLoading, setIsActionLoading] = useState(false);
 
-	// Titik insiden bisa dikoreksi oleh responder yang sudah tiba (lihat handleConfirmCorrection)
+	// Titik insiden bisa dikoreksi oleh responder yang sudah tiba (lihat handleConfirmCorrection).
+	// DUA alamat, dua penulis (TASK_49): `geoAddress` dihitung mesin dari titik ini dan ikut
+	// berubah saat pin dikoreksi; `address` adalah patokan yang DIKETIK pelapor dan tidak
+	// pernah disentuh koreksi pin. Dulu keduanya satu kolom, sehingga panel berjudul "Alamat
+	// Presisi" bisa berisi kalimat manusia yang menunjuk tempat lain dari pinnya.
 	const [incidentLocation, setIncidentLocation] = useState({
 		lat: report.lat,
 		lng: report.lng,
 		address: report.address,
+		geoAddress: report.geo_address,
 	});
 	const [isCorrectingMode, setIsCorrectingMode] = useState(false);
 	const [pendingPosition, setPendingPosition] = useState(null);
@@ -510,21 +515,22 @@ export default function ReportShow(props) {
 		};
 		setIsSubmittingCorrection(true);
 
-		let address = incidentLocation.address;
+		let geoAddress = incidentLocation.geoAddress;
 		try {
 			const res = await axios.get(route('api.geocode.reverse'), { params: { lat: target.lat, lng: target.lng } });
-			address = res.data?.display_name || address;
+			geoAddress = alamatTerbaca(res.data?.display_name) || geoAddress;
 		} catch (e) {
 			// Tetap lanjutkan dengan alamat lama jika reverse geocode gagal
 		}
 
 		router.post(
 			route('reports.correct-location', report.id),
-			{ lat: target.lat, lng: target.lng, address },
+			{ lat: target.lat, lng: target.lng, geo_address: geoAddress },
 			{
 				preserveScroll: true,
 				onSuccess: () => {
-					setIncidentLocation({ lat: target.lat, lng: target.lng, address });
+					// Patokan pelapor dibawa apa adanya — koreksi pin tidak menyentuhnya.
+					setIncidentLocation((prev) => ({ ...prev, lat: target.lat, lng: target.lng, geoAddress }));
 					setIsCorrectingMode(false);
 					setPendingPosition(null);
 					toast.success('Lokasi insiden berhasil dikoreksi.');
@@ -534,6 +540,38 @@ export default function ReportShow(props) {
 			},
 		);
 	};
+
+	// CADANGAN TAMPILAN untuk laporan LAMA. `reports.geo_address` lahir di TASK_49 tanpa
+	// backfill, jadi laporan sebelum itu tak punya alamat mesin sama sekali — dan membiarkan
+	// baris "Alamat" kosong padahal titiknya diketahui persis adalah gejala yang sama dengan
+	// bug yang diperbaiki. Titik di-reverse-geocode SEKALI per pasangan koordinat (ref penjaga:
+	// geocode yang memulangkan kosong tak boleh memicu percobaan tanpa henti), dan hasilnya
+	// TIDAK ditulis balik ke DB — ini murni tampilan, bukan tulis-saat-baca.
+	const geoAddressProbedRef = useRef(null);
+	useEffect(() => {
+		const { lat, lng, geoAddress } = incidentLocation;
+		if (geoAddress || !lat || !lng) return;
+
+		const key = `${lat},${lng}`;
+		if (geoAddressProbedRef.current === key) return;
+		geoAddressProbedRef.current = key;
+
+		let batal = false;
+		axios
+			.get(route('api.geocode.reverse'), { params: { lat, lng } })
+			.then((res) => {
+				const terbaca = alamatTerbaca(res.data?.display_name);
+				if (!batal && terbaca) setIncidentLocation((prev) => ({ ...prev, geoAddress: terbaca }));
+			})
+			.catch(() => {
+				// Nominatim mati / rate-limit: baris "Alamat" jatuh ke wilayah administratif
+				// yang memang selalu tersimpan. Bukan kondisi galat bagi pengguna.
+			});
+
+		return () => {
+			batal = true;
+		};
+	}, [incidentLocation]);
 
 	useEffect(() => {
 		if (!isCurrentlyResponding || !navigator.geolocation) return;
@@ -565,7 +603,7 @@ export default function ReportShow(props) {
 				[parseFloat(incidentLocation.lat), parseFloat(incidentLocation.lng)],
 				15,
 			);
-			window.L.tileLayer(MAP_TILE_URL).addTo(map);
+			window.L.tileLayer(MAP_TILE_URL, { attribution: '&copy; OpenStreetMap' }).addTo(map);
 			window.L.control.zoom({ position: 'topright' }).addTo(map);
 			mapInstance.current = map;
 		}
@@ -800,7 +838,7 @@ export default function ReportShow(props) {
 				}
 			});
 			channel.listen('IncidentLocationCorrected', (e) => {
-				setIncidentLocation({ lat: e.lat, lng: e.lng, address: e.address });
+				setIncidentLocation((prev) => ({ ...prev, lat: e.lat, lng: e.lng, geoAddress: e.geoAddress }));
 			});
 			// Daftar responder berubah dari sisi lain (responder baru meluncur / batal /
 			// tiba) — muat ulang prop `report` agar manifes & marker peta ikut tampil tanpa
@@ -992,11 +1030,29 @@ export default function ReportShow(props) {
 									</div>
 								</div>
 
+								{/* DUA baris, dua penulis (TASK_49). Atas: alamat yang diturunkan dari TITIK
+								    insiden — dijamin cocok dengan pin di peta. Bawah: patokan yang diketik
+								    pelapor, satu-satunya keterangan yang tak bisa diturunkan dari koordinat
+								    ("gang buntu sebelah warung Bu Made"). Dulu keduanya satu baris berjudul
+								    "Alamat Presisi" yang isinya bisa mana saja di antara keduanya. */}
 								<div className="space-y-1 rounded-lg border border-border bg-muted p-3 sm:col-span-2">
-									<div className="font-medium text-muted-foreground">Alamat Presisi</div>
+									<div className="font-medium text-muted-foreground">Alamat</div>
 									<div className="mt-1 flex items-start gap-1.5 font-bold text-foreground">
 										<IconMapPin className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
-										<span className="leading-relaxed">{incidentLocation.address}</span>
+										<span className="leading-relaxed">
+											{incidentLocation.geoAddress || 'Alamat titik belum terbaca'}
+										</span>
+									</div>
+
+									<div className="mt-3 border-t border-border pt-2">
+										<div className="font-medium text-muted-foreground">Patokan Lokasi</div>
+										<div className="mt-1 leading-relaxed text-foreground">
+											{incidentLocation.address || (
+												<span className="italic text-muted-foreground">
+													Tidak diisi pelapor
+												</span>
+											)}
+										</div>
 									</div>
 									{incidentLocation.lat && incidentLocation.lng && (
 										<a
@@ -1563,8 +1619,8 @@ export default function ReportShow(props) {
 
 								{canManageResolution && (
 									<p className="text-[11px] leading-relaxed text-muted-foreground">
-										Data awal diisi sebagai <b>sementara</b>; setelah investigasi, buat entri <b>final</b>{' '}
-										baru (tidak menimpa yang lama) agar bisa dibandingkan.
+										Data awal diisi sebagai <b>sementara</b>; setelah investigasi, buat entri{' '}
+										<b>final</b> baru (tidak menimpa yang lama) agar bisa dibandingkan.
 									</p>
 								)}
 
@@ -1609,32 +1665,46 @@ export default function ReportShow(props) {
 												<dl className="mt-2 space-y-1 text-xs">
 													{r.jenis_kejadian && (
 														<div className="flex gap-1.5">
-															<dt className="shrink-0 font-semibold text-muted-foreground">Jenis:</dt>
+															<dt className="shrink-0 font-semibold text-muted-foreground">
+																Jenis:
+															</dt>
 															<dd className="text-foreground">{r.jenis_kejadian}</dd>
 														</div>
 													)}
 													{r.sumber_informasi && (
 														<div className="flex gap-1.5">
-															<dt className="shrink-0 font-semibold text-muted-foreground">Sumber:</dt>
+															<dt className="shrink-0 font-semibold text-muted-foreground">
+																Sumber:
+															</dt>
 															<dd className="text-foreground">{r.sumber_informasi}</dd>
 														</div>
 													)}
 													{r.occurred_at && (
 														<div className="flex gap-1.5">
-															<dt className="shrink-0 font-semibold text-muted-foreground">Waktu:</dt>
-															<dd className="text-foreground">{fmtDateTime(r.occurred_at)}</dd>
+															<dt className="shrink-0 font-semibold text-muted-foreground">
+																Waktu:
+															</dt>
+															<dd className="text-foreground">
+																{fmtDateTime(r.occurred_at)}
+															</dd>
 														</div>
 													)}
 													{(r.lokasi_alamat || r.kelurahan || r.kecamatan) && (
 														<div>
-															<dt className="font-semibold text-muted-foreground">Lokasi:</dt>
+															<dt className="font-semibold text-muted-foreground">
+																Lokasi:
+															</dt>
 															<dd className="mt-0.5 leading-relaxed text-foreground">
 																{r.lokasi_alamat && (
-																	<div className="whitespace-pre-line">{r.lokasi_alamat}</div>
+																	<div className="whitespace-pre-line">
+																		{r.lokasi_alamat}
+																	</div>
 																)}
 																{(r.kelurahan || r.kecamatan) && (
 																	<div className="text-muted-foreground">
-																		{[r.kelurahan, r.kecamatan].filter(Boolean).join(', ')}
+																		{[r.kelurahan, r.kecamatan]
+																			.filter(Boolean)
+																			.join(', ')}
 																	</div>
 																)}
 															</dd>
@@ -1642,7 +1712,9 @@ export default function ReportShow(props) {
 													)}
 													{(r.pemilik_nama || r.pemilik_umur) && (
 														<div className="flex gap-1.5">
-															<dt className="shrink-0 font-semibold text-muted-foreground">Pemilik:</dt>
+															<dt className="shrink-0 font-semibold text-muted-foreground">
+																Pemilik:
+															</dt>
 															<dd className="text-foreground">
 																{r.pemilik_nama || '-'}
 																{r.pemilik_umur ? ` (${r.pemilik_umur} th)` : ''}
@@ -1651,20 +1723,36 @@ export default function ReportShow(props) {
 													)}
 													{r.kerugian && (
 														<div className="flex gap-1.5">
-															<dt className="shrink-0 font-semibold text-muted-foreground">Kerugian:</dt>
+															<dt className="shrink-0 font-semibold text-muted-foreground">
+																Kerugian:
+															</dt>
 															<dd className="text-foreground">{r.kerugian}</dd>
+														</div>
+													)}
+													{r.volume_air && (
+														<div className="flex gap-1.5">
+															<dt className="shrink-0 font-semibold text-muted-foreground">
+																Volume air:
+															</dt>
+															<dd className="text-foreground">{r.volume_air}</dd>
 														</div>
 													)}
 													{r.tim_atensi && (
 														<div className="flex gap-1.5">
-															<dt className="shrink-0 font-semibold text-muted-foreground">Tim:</dt>
+															<dt className="shrink-0 font-semibold text-muted-foreground">
+																Tim:
+															</dt>
 															<dd className="text-foreground">{r.tim_atensi}</dd>
 														</div>
 													)}
 													{r.kronologi && (
 														<div className="flex gap-1.5">
-															<dt className="shrink-0 font-semibold text-muted-foreground">Kronologi:</dt>
-															<dd className="whitespace-pre-line text-foreground">{r.kronologi}</dd>
+															<dt className="shrink-0 font-semibold text-muted-foreground">
+																Kronologi:
+															</dt>
+															<dd className="whitespace-pre-line text-foreground">
+																{r.kronologi}
+															</dd>
 														</div>
 													)}
 												</dl>
@@ -1676,23 +1764,29 @@ export default function ReportShow(props) {
 														</div>
 														<div className="mt-1 space-y-1.5">
 															{r.victims.map((v) => (
-																<div
-																	key={v.id}
-																	className="flex items-center justify-between gap-2 text-xs"
-																>
-																	<span className="min-w-0 truncate text-foreground">
-																		{v.nama || '-'}
-																		{v.tanggal_lahir ? ` · ${fmtDate(v.tanggal_lahir)}` : ''}
-																	</span>
-																	{v.ktp_url && (
-																		<a
-																			href={v.ktp_url}
-																			target="_blank"
-																			rel="noopener noreferrer"
-																			className="shrink-0 font-semibold text-info hover:underline"
-																		>
-																			Lihat KTP
-																		</a>
+																<div key={v.id} className="text-xs">
+																	<div className="flex items-center justify-between gap-2">
+																		<span className="min-w-0 truncate text-foreground">
+																			{v.nama || '-'}
+																			{v.tanggal_lahir
+																				? ` · ${fmtDate(v.tanggal_lahir)}`
+																				: ''}
+																		</span>
+																		{v.ktp_url && (
+																			<a
+																				href={v.ktp_url}
+																				target="_blank"
+																				rel="noopener noreferrer"
+																				className="shrink-0 font-semibold text-info hover:underline"
+																			>
+																				Lihat KTP
+																			</a>
+																		)}
+																	</div>
+																	{v.kondisi && (
+																		<div className="mt-0.5 text-muted-foreground">
+																			{v.kondisi}
+																		</div>
 																	)}
 																</div>
 															))}
@@ -1975,8 +2069,8 @@ export default function ReportShow(props) {
 						</div>
 						<h2 className="text-lg font-bold text-foreground">Lepas OPD dari Insiden?</h2>
 						<p className="text-sm leading-relaxed text-muted-foreground">
-							<b>{agencyToRemove?.agency_name}</b> tidak lagi tercatat dilibatkan di insiden ini.
-							Instansi yang sama bisa diminta lagi kapan saja.
+							<b>{agencyToRemove?.agency_name}</b> tidak lagi tercatat dilibatkan di insiden ini. Instansi
+							yang sama bisa diminta lagi kapan saja.
 						</p>
 						<div className="mt-2 flex w-full gap-3 border-t border-border pt-4">
 							<Button

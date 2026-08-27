@@ -419,38 +419,60 @@ class ReportActionController extends Controller
         // message di layar orang yang menekannya — sehingga saat PLN sendiri yang mengonfirmasi
         // dari akunnya, operator & petugas di lokasi tidak pernah tahu listrik sudah padam,
         // padahal merekalah yang menunggu kabar itu untuk boleh menyemprot air.
-        $this->notifyCommandCenterOfConfirmation($report, $pivot, $user);
+        $this->notifyConfirmation($report, $pivot, $user);
 
         return back()->with('success', 'Konfirmasi dicatat: '.$pivot->confirmation_label);
     }
 
     /**
-     * Siapa yang perlu tahu bahwa OPD sudah memenuhi tindakan berkondisinya (TASK_30):
+     * Siapa yang perlu tahu bahwa OPD sudah memenuhi tindakan berkondisinya (TASK_30, diperluas
+     * TASK_49 atas permintaan user):
      *
      *  1. Pusat Komando yang menaungi laporan — dipilih dengan scope & tingkat siaran yang
      *     SAMA dengan siaran petugas saat approve() (Setting::KEY_NOTIFY_LEVEL_PETUGAS),
      *     supaya "seberapa luas Pusat Komando sebuah laporan" tetap satu jawaban di seluruh
      *     aplikasi, bukan angka baru yang dipaku di sini.
-     *  2. Petugas yang SEDANG menangani insiden ini — mereka orang di lokasi yang keselamatan
-     *     kerjanya bergantung pada kabar ini, dan keanggotaan pada insiden bisa saja berasal
-     *     dari luar wilayah siaran (pola yang sama dipakai arrive(), FINDINGS #42).
+     *  2. Relawan siaga di wilayah laporan — memakai tingkatnya SENDIRI
+     *     (Setting::KEY_NOTIFY_LEVEL_RELAWAN) dan saklar `is_standby`, persis seperti siaran
+     *     approve(). Menyalin ceiling petugas ke sini akan diam-diam melebarkan jangkauan
+     *     relawan di luar apa yang disetel admin.
+     *  3. Responder yang SEDANG menangani insiden ini — dari KEDUA tabel, petugas maupun
+     *     relawan. Merekalah orang di lokasi yang keselamatan kerjanya bergantung pada kabar
+     *     ini, dan keanggotaan pada insiden bisa saja berasal dari luar wilayah siaran (pola
+     *     yang sama dipakai arrive(), FINDINGS #42). Tabel `report_helpers` dulu tidak pernah
+     *     dibaca di sini, sehingga relawan yang sudah tiba di TKP justru satu-satunya yang
+     *     tidak diberi tahu listrik sudah padam.
+     *  4. PELAPOR — ia menunggu di TKP dan ikut menanggung akibat kalau kabar ini tak sampai.
      *
-     * Yang mencatat konfirmasi tak perlu diberi tahu tentang tindakannya sendiri.
+     * Yang mencatat konfirmasi tak perlu diberi tahu tentang tindakannya sendiri (termasuk
+     * bila ia kebetulan juga pelapornya — alur telepon TASK_28).
      */
-    private function notifyCommandCenterOfConfirmation(Report $report, ReportAgency $pivot, User $actor): void
+    private function notifyConfirmation(Report $report, ReportAgency $pivot, User $actor): void
     {
-        $ceiling = TenantLevel::from(
+        $petugasCeiling = TenantLevel::from(
             Setting::getValue(Setting::KEY_NOTIFY_LEVEL_PETUGAS, TenantLevel::KABUPATEN->value)
         );
+        $relawanCeiling = TenantLevel::from(
+            Setting::getValue(Setting::KEY_NOTIFY_LEVEL_RELAWAN, TenantLevel::DESA->value)
+        );
 
-        $commandCenter = User::role(['admin', 'petugas'])->notifiableForReport($report, $ceiling)->get();
+        $commandCenter = User::role(['admin', 'petugas'])->notifiableForReport($report, $petugasCeiling)->get();
+        $relawan = User::role('relawan')->where('is_standby', true)
+            ->notifiableForReport($report, $relawanCeiling)->get();
 
         $onScene = User::whereIn(
             'id',
             DB::table('report_officers')->where('report_id', $report->id)->pluck('user_id')
+                ->merge(DB::table('report_helpers')->where('report_id', $report->id)->pluck('user_id'))
         )->get();
 
-        $recipients = $commandCenter->concat($onScene)
+        $recipients = $commandCenter->concat($relawan)->concat($onScene);
+
+        if ($report->user) {
+            $recipients = $recipients->push($report->user);
+        }
+
+        $recipients = $recipients
             ->unique('id')
             ->reject(fn (User $u) => $u->id === $actor->id)
             ->values();
@@ -683,7 +705,7 @@ class ReportActionController extends Controller
         $request->validate([
             'lat' => 'required|numeric|between:-90,90',
             'lng' => 'required|numeric|between:-180,180',
-            'address' => 'nullable|string|max:500',
+            'geo_address' => 'nullable|string|max:500',
         ]);
 
         $report = Report::withoutGlobalScopes()->findOrFail($id);
@@ -700,10 +722,15 @@ class ReportActionController extends Controller
         }
 
         DB::transaction(function () use ($request, $report, $user) {
+            // Kolom `address` SENGAJA tidak disentuh (TASK_49). Dulu baris ini menimpanya
+            // dengan `display_name` Nominatim, sehingga patokan yang diketik warga —
+            // satu-satunya keterangan yang tak bisa diturunkan dari koordinat, mis. "gang
+            // buntu sebelah warung Bu Made" — hilang tanpa jejak justru saat responder
+            // menyempurnakan titiknya. Yang mesin hitung sekarang punya kolomnya sendiri.
             $report->update([
                 'lat' => $request->lat,
                 'lng' => $request->lng,
-                'address' => $request->address ?? $report->address,
+                'geo_address' => $request->geo_address ?? $report->geo_address,
             ]);
 
             TrackingLog::create([
@@ -716,7 +743,7 @@ class ReportActionController extends Controller
             ]);
         });
 
-        broadcast(new IncidentLocationCorrected($report->id, $request->lat, $request->lng, $report->address));
+        broadcast(new IncidentLocationCorrected($report->id, $request->lat, $request->lng, $report->geo_address));
 
         return back()->with('success', 'Titik lokasi insiden berhasil dikoreksi.');
     }

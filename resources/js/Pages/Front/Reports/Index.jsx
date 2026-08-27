@@ -2,7 +2,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
-import { cn } from '@/lib/utils';
+import { alamatLaporan, cn } from '@/lib/utils';
 import { Head, Link, router } from '@inertiajs/react';
 import {
 	IconChevronRight,
@@ -138,7 +138,7 @@ export default function ReportIndex(props) {
 								<div className="mt-1 flex flex-col gap-1.5 text-xs font-medium text-muted-foreground sm:flex-row sm:items-center sm:gap-3">
 									<span className="flex items-center gap-1.5 truncate">
 										<IconMapPin className="h-3.5 w-3.5 shrink-0" />
-										<span className="truncate">{report.address}</span>
+										<span className="truncate">{alamatLaporan(report)}</span>
 									</span>
 									<span className="hidden text-muted-foreground/50 sm:inline">•</span>
 									<span className="flex shrink-0 items-center gap-1.5">

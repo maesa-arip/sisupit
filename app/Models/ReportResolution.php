@@ -32,6 +32,8 @@ class ReportResolution extends Model
         'pemilik_nama',
         'pemilik_umur',
         'kerugian',
+        // Volume air yang dipakai memadamkan. TEKS BEBAS seperti `kerugian` — "±3 tangki".
+        'volume_air',
         'tim_atensi',
         'kronologi',
     ];

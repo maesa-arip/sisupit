@@ -81,7 +81,12 @@ it('is append-only: a final entry is added alongside the sementara one', functio
         'status' => 'sementara', 'jenis_kejadian' => 'data awal',
     ])->assertRedirect();
 
-    $this->actingAs($petugas)->post("/reports/{$this->report->id}/resolution", [
+    // Entri final ditutup ADMIN sejak TASK_49 — yang dijaga test ini tetap sifat
+    // append-only-nya (entri lama tidak ditimpa), bukan siapa yang menekan tombolnya.
+    $admin = User::factory()->create(['village_code' => '5171012006']);
+    $admin->assignRole('admin');
+
+    $this->actingAs($admin)->post("/reports/{$this->report->id}/resolution", [
         'status' => 'final', 'jenis_kejadian' => 'data valid',
     ])->assertRedirect();
 
@@ -215,4 +220,91 @@ it('lists the involved agencies in the attending-team suggestion, marked as OPD'
     expect($props['timAtensiSuggestion'])->toContain('PLN ULP Denpasar (OPD)');
     expect($props['timAtensiSuggestion'])->not->toContain('PLN UP3 Bali Selatan');
     expect($props['prefill']['tim_atensi'])->toContain('PLN ULP Denpasar (OPD)');
+});
+
+it('stores the water volume used and the condition of each victim', function () {
+    // TASK_49 (D), permintaan user. `volume_air` sengaja TEKS BEBAS, mengikuti preseden
+    // `kerugian` ("±1jt"): yang ditulis petugas di lapangan biasanya "±3 tangki", bukan
+    // bilangan bersatuan tetap — memaksanya jadi angka membuat isian itu dikosongkan.
+    $petugas = User::factory()->create(['village_code' => '5171012006']);
+    $petugas->assignRole('petugas');
+
+    $this->actingAs($petugas)
+        ->post("/reports/{$this->report->id}/resolution", [
+            'status' => 'sementara',
+            'volume_air' => '±3 tangki (12.000 liter)',
+            'victims' => [
+                ['nama' => 'Wayan Sari', 'kondisi' => 'Luka bakar ringan, dirujuk ke RSUD'],
+            ],
+        ])->assertRedirect(route('reports.show', $this->report->id));
+
+    $resolution = ReportResolution::where('report_id', $this->report->id)->first();
+
+    expect($resolution->volume_air)->toBe('±3 tangki (12.000 liter)');
+    expect($resolution->victims->first()->kondisi)->toBe('Luka bakar ringan, dirujuk ke RSUD');
+});
+
+it('keeps a victim row that carries only a condition', function () {
+    // Baris korban yang benar-benar kosong dilewati (aturan lama). "Kondisi Korban" harus
+    // ikut dihitung sebagai isi — kalau tidak, korban yang hanya diketahui kondisinya
+    // (belum teridentifikasi namanya) hilang tanpa galat saat disimpan.
+    $petugas = User::factory()->create(['village_code' => '5171012006']);
+    $petugas->assignRole('petugas');
+
+    $this->actingAs($petugas)
+        ->post("/reports/{$this->report->id}/resolution", [
+            'status' => 'sementara',
+            'victims' => [
+                ['kondisi' => 'Belum teridentifikasi, luka bakar berat'],
+                ['nama' => '', 'alamat' => ''],
+            ],
+        ])->assertRedirect();
+
+    $resolution = ReportResolution::where('report_id', $this->report->id)->first();
+
+    expect($resolution->victims)->toHaveCount(1);
+    expect($resolution->victims->first()->kondisi)->toBe('Belum teridentifikasi, luka bakar berat');
+});
+
+it('lets petugas save a sementara entry but reserves the final one for admins', function () {
+    // TASK_49 (E), permintaan user: "laporan sementara boleh diisi petugas dan admin,
+    // laporan final wajib admin". Gerbangnya di SERVER, bukan sekadar tombol yang
+    // disembunyikan — tombol yang hilang tidak menghentikan request buatan tangan.
+    $petugas = User::factory()->create(['village_code' => '5171012006']);
+    $petugas->assignRole('petugas');
+
+    $this->actingAs($petugas)
+        ->post("/reports/{$this->report->id}/resolution", ['status' => 'sementara'])
+        ->assertRedirect();
+
+    $this->actingAs($petugas)
+        ->post("/reports/{$this->report->id}/resolution", ['status' => 'final'])
+        ->assertForbidden();
+
+    $admin = User::factory()->create(['village_code' => '5171012006']);
+    $admin->assignRole('admin');
+
+    $this->actingAs($admin)
+        ->post("/reports/{$this->report->id}/resolution", ['status' => 'final'])
+        ->assertRedirect();
+
+    expect(ReportResolution::where('report_id', $this->report->id)->where('status', 'final')->count())->toBe(1);
+});
+
+it('tells the form who is allowed to finalise', function () {
+    // Tanpa prop ini form tak punya cara tahu, dan satu-satunya petunjuk bahwa petugas tak
+    // boleh memfinalkan adalah 403 SETELAH ia mengisi seluruh berita acara.
+    $petugas = User::factory()->create(['village_code' => '5171012006']);
+    $petugas->assignRole('petugas');
+
+    $this->actingAs($petugas)
+        ->get("/reports/{$this->report->id}/resolution/create")
+        ->assertInertia(fn ($page) => $page->where('canFinalize', false));
+
+    $admin = User::factory()->create(['village_code' => '5171012006']);
+    $admin->assignRole('admin');
+
+    $this->actingAs($admin)
+        ->get("/reports/{$this->report->id}/resolution/create")
+        ->assertInertia(fn ($page) => $page->where('canFinalize', true));
 });

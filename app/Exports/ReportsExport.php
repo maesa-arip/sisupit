@@ -75,6 +75,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
         'toko' => 'Kebakaran Toko/Bangunan',
         'kendaraan' => 'Kebakaran Kendaraan',
         'lahan' => 'Kebakaran Lahan',
+        'kebakaran_lainnya' => 'Kebakaran Lainnya',
         'lainnya' => 'Bukan Kebakaran',
     ];
 

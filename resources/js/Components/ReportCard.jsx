@@ -1,5 +1,5 @@
 import { Dialog, DialogContent } from '@/Components/ui/dialog';
-import { cn, timeAgo } from '@/lib/utils';
+import { alamatLaporan, cn, timeAgo } from '@/lib/utils';
 import { Link } from '@inertiajs/react';
 import { CheckCircle2, Clock, Flame, MapPin, Navigation, ShieldAlert, User, Users, X, ZoomIn } from 'lucide-react';
 import { useState } from 'react';
@@ -121,7 +121,7 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 
 				<div className="mb-1.5 flex items-start gap-2 text-xs font-bold text-muted-foreground">
 					<MapPin size={14} className="mt-0.5 shrink-0 text-destructive" />
-					<span className="line-clamp-2 leading-snug">{report.address}</span>
+					<span className="line-clamp-2 leading-snug">{alamatLaporan(report)}</span>
 				</div>
 				<p className="line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">
 					{report.description || 'Tidak ada deskripsi rinci.'}

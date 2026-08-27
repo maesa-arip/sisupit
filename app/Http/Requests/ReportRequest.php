@@ -27,10 +27,15 @@ class ReportRequest extends FormRequest
         // tidak diubah (lihat keputusan #30: edit konten + foto saja), jadi dibuat opsional.
         $isCreate = $this->isMethod('POST');
 
-        // Aturan darurat-first (Kluster A): untuk KEBAKARAN (rumah/toko/kendaraan/lahan)
-        // foto, deskripsi, dan patokan bersifat OPSIONAL agar warga bisa melapor cepat.
-        // Untuk darurat NON-kebakaran (incident_type = 'lainnya') ketiganya WAJIB karena
-        // petugas butuh konteks lebih. Di luar POST (edit/PUT) ketiganya tetap opsional.
+        // Aturan darurat-first (Kluster A): untuk KEBAKARAN foto, deskripsi, dan patokan
+        // bersifat OPSIONAL agar warga bisa melapor cepat. Untuk darurat NON-kebakaran
+        // ketiganya WAJIB karena petugas butuh konteks lebih. Di luar POST (edit/PUT)
+        // ketiganya tetap opsional.
+        //
+        // Pembandingnya SATU nilai ('lainnya'), bukan "bukan salah satu jenis kebakaran":
+        // `incident_type` boleh kosong (nullable, laporan lama & klien lama), dan kosong
+        // TIDAK boleh mendadak berarti "wajib foto". `kebakaran_lainnya` (2026-08-27) jenis
+        // kebakaran yang diketik sendiri warga, jadi ia ikut aturan kebakaran.
         $isOtherEmergency = $isCreate && $this->input('incident_type') === 'lainnya';
         $detailRule = $isOtherEmergency ? 'required' : 'nullable';
 
@@ -96,6 +101,16 @@ class ReportRequest extends FormRequest
                 'max:255',
                 'string',
             ],
+            // Alamat hasil reverse-geocode dari titik pin (TASK_49). SELALU opsional, apa pun
+            // jenis kejadiannya: ia dihitung mesin, jadi gagalnya geocode (Nominatim mati,
+            // rate-limit, titik di tengah laut) tidak boleh menghalangi warga melapor.
+            // Panjangnya mengikuti batas yang sudah dipakai correctLocation() untuk
+            // `display_name` Nominatim, BUKAN 255 seperti patokan yang diketik manusia.
+            'geo_address' => [
+                'nullable',
+                'max:500',
+                'string',
+            ],
             // Galeri foto (FINDINGS #17). Darurat-first (Kluster A): opsional untuk kebakaran
             // (jangan paksa warga mendekati api), WAJIB hanya untuk darurat non-kebakaran
             // ('lainnya') saat membuat. Pada update (PUT) opsional. Kolom `photo` lama = sampul.
@@ -138,7 +153,8 @@ class ReportRequest extends FormRequest
             'village_code' => 'Desa',
             'lat' => 'Lattitude',
             'lng' => 'Longitude',
-            'address' => 'Alamat',
+            'address' => 'Patokan Lokasi',
+            'geo_address' => 'Alamat',
             'photo' => 'Photo',
             'photos' => 'Foto',
             'photos.*' => 'Foto',

@@ -11,7 +11,7 @@ import {
 import { Input } from '@/Components/ui/input';
 import UseFilter from '@/hooks/UseFilter';
 import AppLayout from '@/Layouts/AppLayout';
-import { cn, MAP_TILE_URL, reportNumber, timeAgo } from '@/lib/utils';
+import { alamatLaporan, cn, MAP_TILE_URL, reportNumber, timeAgo } from '@/lib/utils';
 import { Link } from '@inertiajs/react';
 import {
 	IconAlertTriangle,
@@ -32,7 +32,12 @@ import {
 import { useEffect, useRef, useState } from 'react';
 
 // 'aktif' dulu & jadi default triase (laporan yang masih perlu tindakan). 'Semua' tetap ada.
-const STATUS_OPTIONS = ['aktif', 'Semua', 'TERLAPOR', 'pending', 'handling', 'resolved'];
+const STATUS_OPTIONS = ['aktif', 'Semua', 'TERLAPOR', 'pending', 'handling', 'resolved', 'ditolak'];
+
+// Status yang TIDAK PERNAH sampai ke pemantau (pejabat/relawan): ReportController::index
+// menyaringnya di server (whereNotIn TERLAPOR/ditolak). Chip yang selalu memulangkan daftar
+// kosong terbaca sebagai bug, jadi keduanya dibuang dari pill DAN legenda bagi pemantau.
+const MONITOR_HIDDEN_STATUSES = ['TERLAPOR', 'ditolak'];
 
 // Metadata status kejadian (badge + pin peta + titik legenda). Warna selaras Peta Pemantauan,
 // KECUALI "Penanganan" yang memakai teal (permintaan produk). Gaya kartu/pill/paginasi
@@ -74,6 +79,17 @@ const STATUS_META = {
 		dot: 'bg-info',
 		ring: 'bg-info/10 text-info',
 	},
+	// `ditolak` (FINDINGS #24) = arsip, bukan kemajuan alur — karena itu netral/abu-abu,
+	// sewarna dengan Components/StatusBadge.jsx yang jadi kamus kanoniknya. Selama entri ini
+	// tidak ada, cadangan di markerStyle/StatusBadge menyebut laporan yang ditolak
+	// "Laporan Terverifikasi" (FINDINGS #94).
+	ditolak: {
+		label: 'Ditolak',
+		badge: 'bg-muted text-muted-foreground border-border',
+		pin: 'text-muted-foreground',
+		dot: 'bg-muted-foreground',
+		ring: 'bg-muted text-muted-foreground',
+	},
 };
 
 // 'aktif' = filter gabungan (TERLAPOR+pending+handling), bukan status nyata — tidak lagi
@@ -86,7 +102,11 @@ const FILTER_LABEL = {
 	pending: STATUS_META.pending.label,
 	handling: STATUS_META.handling.label,
 	resolved: STATUS_META.resolved.label,
+	ditolak: STATUS_META.ditolak.label,
 };
+
+// Urutan legenda peta = urutan alur insiden, ditutup 'ditolak' (jalan buntu, bukan tahap).
+const LEGEND_STATUSES = ['TERLAPOR', 'pending', 'handling', 'resolved', 'ditolak'];
 
 const markerStyle = (status) => STATUS_META[status] || STATUS_META.pending;
 
@@ -144,11 +164,14 @@ export default function Index(props) {
 	const canVerify = props.canVerify ?? true;
 	const canExport = props.canExport ?? true;
 	const indexRouteName = props.indexRouteName || 'admin.reports.index';
-	// Pemantau tak melihat antrean laporan mentah (TERLAPOR) — buang dari pill & legenda.
-	const statusOptions = canVerify ? STATUS_OPTIONS : STATUS_OPTIONS.filter((s) => s !== 'TERLAPOR');
+	// Pemantau tak melihat laporan mentah (TERLAPOR) maupun yang ditolak — server memang
+	// tak mengirimkannya (lihat MONITOR_HIDDEN_STATUSES), jadi buang dari pill & legenda.
+	const statusOptions = canVerify
+		? STATUS_OPTIONS
+		: STATUS_OPTIONS.filter((s) => !MONITOR_HIDDEN_STATUSES.includes(s));
 	const legendStatuses = canVerify
-		? ['TERLAPOR', 'pending', 'handling', 'resolved']
-		: ['pending', 'handling', 'resolved'];
+		? LEGEND_STATUSES
+		: LEGEND_STATUSES.filter((s) => !MONITOR_HIDDEN_STATUSES.includes(s));
 	const [params, setParams] = useState(props.state);
 	const [activeReportId, setActiveReportId] = useState(null);
 
@@ -194,7 +217,7 @@ export default function Index(props) {
 					});
 					const marker = window.L.marker([lat, lng], { icon: customIcon }).addTo(markersLayerRef.current);
 					marker.bindPopup(
-						`<b>${report.title ?? 'Laporan'}</b><br><span class="text-xs text-muted-foreground">${report.address ?? '-'}</span>`,
+						`<b>${report.title ?? 'Laporan'}</b><br><span class="text-xs text-muted-foreground">${alamatLaporan(report) || '-'}</span>`,
 					);
 					bounds.push([lat, lng]);
 				}
@@ -361,7 +384,7 @@ export default function Index(props) {
 														<p className="mt-1 flex items-start gap-1 text-xs text-muted-foreground">
 															<IconMapPin className="mt-0.5 h-3 w-3 shrink-0" />
 															<span className="line-clamp-2">
-																{report.address ?? '-'}
+																{alamatLaporan(report) || '-'}
 															</span>
 														</p>
 													</div>

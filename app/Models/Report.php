@@ -17,14 +17,25 @@ class Report extends Model
     use SoftDeletes, Tenantable;
 
     /**
-     * Jenis kejadian dari tombol pilihan cepat form Lapor Darurat. SUMBER TUNGGAL —
-     * dipakai `ReportRequest` (validasi), `Admin\AgencyController` (aturan auto-centang OPD),
-     * dan kolom `reports.incident_type`. Empat yang pertama = kebakaran, `lainnya` = darurat
-     * non-kebakaran (detail wajib, lihat ReportRequest).
+     * Jenis kejadian dari form Lapor Darurat. SUMBER TUNGGAL — dipakai `ReportRequest`
+     * (validasi), `Admin\AgencyController` (aturan auto-centang OPD), dan kolom
+     * `reports.incident_type`. Sejak form dipecah dua tab (2026-08-27) daftar ini memuat
+     * `kebakaran_lainnya` = kebakaran yang jenisnya diketik sendiri warga; ia KEBAKARAN,
+     * jadi aturan darurat-first berlaku (foto/detail opsional). Hanya `lainnya` yang berarti
+     * darurat NON-kebakaran (detail wajib, lihat ReportRequest).
      *
      * @var list<string>
      */
-    public const INCIDENT_TYPES = ['rumah', 'toko', 'kendaraan', 'lahan', 'lainnya'];
+    public const INCIDENT_TYPES = ['rumah', 'toko', 'kendaraan', 'lahan', 'kebakaran_lainnya', 'lainnya'];
+
+    /**
+     * Bagian dari INCIDENT_TYPES yang berarti KEBAKARAN. Ditulis di sini supaya penambahan
+     * jenis kebakaran berikutnya tidak perlu diingat-ingat di tempat lain — `AgencySeeder`
+     * membacanya untuk menentukan OPD mana yang tercentang otomatis.
+     *
+     * @var list<string>
+     */
+    public const FIRE_INCIDENT_TYPES = ['rumah', 'toko', 'kendaraan', 'lahan', 'kebakaran_lainnya'];
 
     protected $fillable = [
         'user_id',
@@ -34,6 +45,9 @@ class Report extends Model
         'incident_type',
         'description',
         'address',
+        // Alamat hasil reverse-geocode dari TITIK laporan (TASK_49) — pasangan `address`
+        // yang berisi patokan ketikan manusia. Mesin menulis ke sini, manusia ke sana.
+        'geo_address',
         'lat',
         'lng',
         'status',
@@ -136,6 +150,23 @@ class Report extends Model
     public function village()
     {
         return $this->belongsTo(Village::class, 'village_code', 'code');
+    }
+
+    /**
+     * Alamat yang ditampilkan saat sebuah laporan diringkas jadi SATU baris "di mana"
+     * (daftar, kartu, popup peta, dashboard). Alamat mesin lebih dulu karena ia dijamin
+     * cocok dengan pin; patokan ketikan warga jadi cadangan — ia bisa kosong (kebakaran =
+     * darurat-first, ReportRequest membuatnya opsional) dan bisa menerangkan tempat tanpa
+     * menyebut alamatnya sama sekali.
+     *
+     * SATU aturan, SATU tempat: sebelum TASK_49 kesembilan layar itu membaca `address`
+     * langsung, dan begitu kolom itu berhenti ditimpa alamat mesin, sebagian di antaranya
+     * akan menampilkan baris kosong tanpa ada yang sadar. Kembarannya di sisi klien adalah
+     * `alamatLaporan()` di `resources/js/lib/utils.js` — ubah keduanya bersamaan.
+     */
+    public function alamatTampil(): ?string
+    {
+        return $this->geo_address ?: $this->address;
     }
 
     public function scopeFilter($query, array $filters)

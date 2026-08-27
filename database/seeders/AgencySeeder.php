@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Agency;
+use App\Models\Report;
 use Illuminate\Database\Seeder;
 
 /**
@@ -17,8 +18,10 @@ class AgencySeeder extends Seeder
 {
     public function run(): void
     {
-        // Semua jenis kejadian kebakaran (Report::INCIDENT_TYPES tanpa 'lainnya').
-        $kebakaran = ['rumah', 'toko', 'kendaraan', 'lahan'];
+        // Semua jenis kejadian kebakaran - dibaca dari model supaya jenis kebakaran yang
+        // ditambahkan kemudian (mis. 'kebakaran_lainnya', 2026-08-27) ikut tercentang otomatis
+        // tanpa harus diingat di sini.
+        $kebakaran = Report::FIRE_INCIDENT_TYPES;
 
         $agencies = [
             [

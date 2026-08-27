@@ -79,17 +79,19 @@ class ReportResolutionController extends Controller
             'pemilik_nama' => $latest->pemilik_nama,
             'pemilik_umur' => $latest->pemilik_umur,
             'kerugian' => $latest->kerugian,
+            'volume_air' => $latest->volume_air,
             'tim_atensi' => $latest->tim_atensi ?: $timAtensi,
             'kronologi' => $latest->kronologi,
             'victims' => $latest->victims->map(fn ($v) => [
                 'nama' => $v->nama,
                 'tanggal_lahir' => optional($v->tanggal_lahir)->format('Y-m-d'),
                 'alamat' => $v->alamat,
+                'kondisi' => $v->kondisi,
             ])->values(),
         ] : [
             'jenis_kejadian' => $report->title,
             'sumber_informasi' => $sumberInformasi,
-            'lokasi_alamat' => $report->address,
+            'lokasi_alamat' => $report->alamatTampil(),
             'kelurahan' => optional($report->village)->name,
             'kecamatan' => optional($report->district)->name,
             'occurred_at' => optional($report->created_at)->format('Y-m-d\TH:i'),
@@ -109,6 +111,9 @@ class ReportResolutionController extends Controller
             'prefill' => $prefill,
             'hasPrevious' => (bool) $latest,
             'timAtensiSuggestion' => $timAtensi,
+            // Tanpa prop ini, satu-satunya petunjuk bahwa petugas tak boleh memfinalkan
+            // adalah 403 SETELAH seluruh berita acara diisi.
+            'canFinalize' => $this->canFinalize(),
         ]);
     }
 
@@ -131,16 +136,24 @@ class ReportResolutionController extends Controller
             'pemilik_nama' => 'nullable|string|max:255',
             'pemilik_umur' => 'nullable|integer|min:0|max:200',
             'kerugian' => 'nullable|string|max:255',
+            // Teks bebas, bukan numeric — lihat catatan di migrasinya.
+            'volume_air' => 'nullable|string|max:255',
             'tim_atensi' => 'nullable|string|max:2000',
             'kronologi' => 'nullable|string|max:5000',
             'victims' => 'nullable|array',
             'victims.*.nama' => 'nullable|string|max:255',
             'victims.*.tanggal_lahir' => 'nullable|date',
             'victims.*.alamat' => 'nullable|string|max:255',
+            'victims.*.kondisi' => 'nullable|string|max:255',
             'victims.*.ktp' => 'nullable|image|max:5120',
             'photos' => 'nullable|array',
             'photos.*' => 'image|max:5120',
         ]);
+
+        // Entri FINAL adalah dokumen yang dipertanggungjawabkan keluar, jadi penutupnya admin
+        // (permintaan user 2026-08-28). Dicek di SERVER, bukan cukup dengan menyembunyikan
+        // tombolnya: tombol yang hilang tidak menghentikan request yang dibuat tangan.
+        abort_if($validated['status'] === 'final' && ! $this->canFinalize(), 403, 'Berita acara final hanya boleh ditutup admin.');
 
         DB::transaction(function () use ($request, $report, $validated) {
             $resolution = ReportResolution::create([
@@ -156,6 +169,7 @@ class ReportResolutionController extends Controller
                 'pemilik_nama' => $validated['pemilik_nama'] ?? null,
                 'pemilik_umur' => $validated['pemilik_umur'] ?? null,
                 'kerugian' => $validated['kerugian'] ?? null,
+                'volume_air' => $validated['volume_air'] ?? null,
                 'tim_atensi' => $validated['tim_atensi'] ?? null,
                 'kronologi' => $validated['kronologi'] ?? null,
             ]);
@@ -163,8 +177,11 @@ class ReportResolutionController extends Controller
             foreach ((array) $request->input('victims', []) as $i => $victim) {
                 // Lewati baris korban yang benar-benar kosong (tanpa data & tanpa KTP).
                 $ktpFile = $request->file("victims.$i.ktp");
+                // `kondisi` ikut dihitung sebagai isi (TASK_49): korban yang baru diketahui
+                // kondisinya tapi belum teridentifikasi namanya tetap harus tersimpan, bukan
+                // dilewati diam-diam sebagai baris kosong.
                 $isEmpty = empty($victim['nama']) && empty($victim['tanggal_lahir'])
-                    && empty($victim['alamat']) && ! $ktpFile;
+                    && empty($victim['alamat']) && empty($victim['kondisi']) && ! $ktpFile;
                 if ($isEmpty) {
                     continue;
                 }
@@ -173,6 +190,7 @@ class ReportResolutionController extends Controller
                     'nama' => $victim['nama'] ?? null,
                     'tanggal_lahir' => $victim['tanggal_lahir'] ?? null,
                     'alamat' => $victim['alamat'] ?? null,
+                    'kondisi' => $victim['kondisi'] ?? null,
                     'ktp_path' => $ktpFile ? $ktpFile->store('ktp', self::KTP_DISK) : null,
                 ]);
             }
@@ -232,6 +250,17 @@ class ReportResolutionController extends Controller
         abort_if(! $victim->ktp_path || ! Storage::disk(self::KTP_DISK)->exists($victim->ktp_path), 404);
 
         return Storage::disk(self::KTP_DISK)->response($victim->ktp_path);
+    }
+
+    /**
+     * Siapa yang boleh MENUTUP berita acara sebagai `final` (permintaan user 2026-08-28).
+     * Petugas tetap boleh mengisi entri `sementara` — dialah yang ada di lokasi — tapi versi
+     * yang dianggap sah keluar ditutup admin. Yurisdiksinya sudah dijamin authorizeStaff()
+     * yang dipanggil lebih dulu; fungsi ini hanya menjawab soal PERAN.
+     */
+    private function canFinalize(): bool
+    {
+        return auth()->user()->hasAnyRole(['admin', 'superadmin']);
     }
 
     /**

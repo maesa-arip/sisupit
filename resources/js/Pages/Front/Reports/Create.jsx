@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Com
 import { Combobox } from '@/Components/ui/combobox';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import { Textarea } from '@/Components/ui/textarea';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
@@ -19,6 +20,7 @@ import {
 import { Link, useForm } from '@inertiajs/react';
 import {
 	IconAlertTriangle,
+	IconAmbulance,
 	IconArrowLeft,
 	IconBuildingStore,
 	IconCar,
@@ -26,6 +28,7 @@ import {
 	IconCloudUpload,
 	IconCurrentLocation,
 	IconDotsCircleHorizontal,
+	IconFiretruck,
 	IconFlame,
 	IconHome,
 	IconLoader2,
@@ -75,16 +78,32 @@ const matchRegionName = (dbList, osmNamesArray, removeWords = []) => {
 	return matched;
 };
 
-// Pilihan cepat jenis kejadian (darurat-first). Empat pertama = KEBAKARAN → detail
-// (foto/deskripsi/patokan) opsional agar warga bisa melapor cepat. 'lainnya' = darurat
-// non-kebakaran → judul diketik bebas & detail wajib (server memvalidasi via incident_type).
-const INCIDENT_TYPES = [
+// Jenis kejadian dipisah DUA TAB (permintaan user 2026-08-27). Nilai-nilainya WAJIB sama
+// dengan Report::INCIDENT_TYPES — server memvalidasinya lewat Rule::in, jadi nama jenis baru
+// harus ditambahkan di kedua tempat.
+//
+// Tab KEBAKARAN: tombol pilihan cepat (darurat-first) → foto/deskripsi/patokan OPSIONAL agar
+// warga bisa melapor cepat. 'kebakaran_lainnya' tetap kebakaran, hanya judulnya yang diketik
+// sendiri karena jenisnya tak terdaftar.
+const FIRE_INCIDENT_TYPES = [
 	{ value: 'rumah', label: 'Rumah', title: 'Kebakaran Rumah', icon: IconHome },
 	{ value: 'toko', label: 'Toko', title: 'Kebakaran Toko/Bangunan', icon: IconBuildingStore },
 	{ value: 'kendaraan', label: 'Kendaraan', title: 'Kebakaran Kendaraan', icon: IconCar },
 	{ value: 'lahan', label: 'Lahan', title: 'Kebakaran Lahan', icon: IconFlame },
-	{ value: 'lainnya', label: 'Bukan Kebakaran', title: '', icon: IconDotsCircleHorizontal },
+	{ value: 'kebakaran_lainnya', label: 'Lainnya', title: '', icon: IconDotsCircleHorizontal },
 ];
+
+// Tab NON KEBAKARAN hanya punya SATU jenis, jadi tak ada tombol pilihan: membuka tabnya
+// sudah menentukan jenisnya dan warga langsung mengetik kejadiannya. Di sinilah server
+// mewajibkan foto/deskripsi/patokan (ReportRequest) karena petugas butuh konteks lebih.
+const NON_FIRE_INCIDENT_TYPE = { value: 'lainnya', title: '' };
+
+const INCIDENT_TAB = { fire: 'kebakaran', nonFire: 'non_kebakaran' };
+
+// Sebentuk dengan tab di halaman Syarat & Ketentuan (Pages/Info/Terms.jsx) — satu-satunya
+// pemakai Tabs yang sudah ada, supaya tab di sini tidak jadi dialek kedua.
+const incidentTabClass =
+	'flex items-center justify-center gap-2 rounded-md py-2 text-sm font-medium text-muted-foreground transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm';
 
 // Kedekatan peta saat operator memilih wilayah (TASK_28): makin dalam tingkatnya makin
 // rapat, supaya pin tinggal digeser sedikit dari titik tengah wilayah terpilih.
@@ -128,12 +147,6 @@ export default function Create(props) {
 	const [userLocation, setUserLocation] = useState(null);
 	const [locationLoading, setLocationLoading] = useState(true);
 	const [friendlyAddress, setFriendlyAddress] = useState('');
-	// Alamat lengkap dari reverse-geocode (`display_name`), disaring alamatTerbaca() — segmen
-	// beraksara non-Latin dibuang karena nama POI di OSM ditulis dalam aksara apa pun dan
-	// pernah tampil sebagai huruf Korea di panel ini (FINDINGS #83). Dipisah dari
-	// `friendlyAddress` (versi pendek untuk badge) dan dari `data.address` (patokan yang
-	// DIKETIK user) — mesin tidak boleh menimpa apa yang diketik manusia.
-	const [fullAddress, setFullAddress] = useState('');
 
 	// 'manual' = wilayah pilihan operator yang jadi sumber kebenaran (geser pin hanya
 	// mengoreksi titik, tidak menimpa kode wilayah); 'pin' = perilaku lama, wilayah
@@ -177,6 +190,15 @@ export default function Create(props) {
 		name: auth?.name || '',
 		incident_type: '',
 		address: '',
+		// Alamat lengkap dari reverse-geocode (`display_name`), disaring alamatTerbaca() —
+		// segmen beraksara non-Latin dibuang karena nama POI di OSM ditulis dalam aksara apa
+		// pun dan pernah tampil sebagai huruf Korea di panel ini (FINDINGS #83). Dipisah dari
+		// `friendlyAddress` (versi pendek untuk badge) dan dari `address` (patokan yang DIKETIK
+		// user) — mesin tidak boleh menimpa apa yang diketik manusia. Sejak TASK_49 ia bukan
+		// lagi state terpisah melainkan FIELD FORM: nilainya sudah lama dihitung di sini tapi
+		// tak pernah dikirim, sehingga halaman detail tak punya alamat yang dijamin cocok
+		// dengan pinnya dan terpaksa memakai patokan sebagai "Alamat Presisi".
+		geo_address: '',
 		title: '',
 		description: '',
 		lat: '',
@@ -193,13 +215,19 @@ export default function Create(props) {
 		_method: props.page_settings.method,
 	});
 
+	// Tab jenis kejadian. Diturunkan dari data supaya tab yang terbuka selalu mencerminkan
+	// jenis yang benar-benar akan terkirim - bukan dua sumber kebenaran yang bisa berselisih.
+	const [incidentTab, setIncidentTab] = useState(
+		data.incident_type === NON_FIRE_INCIDENT_TYPE.value ? INCIDENT_TAB.nonFire : INCIDENT_TAB.fire,
+	);
+
 	const fallbackLocation = (latitude, longitude) => {
 		setFriendlyAddress('Titik GPS terdeteksi (Mode Darurat)');
-		setFullAddress('');
 		setData((prevData) => ({
 			...prevData,
 			lat: latitude,
 			lng: longitude,
+			geo_address: '',
 		}));
 	};
 
@@ -211,12 +239,12 @@ export default function Create(props) {
 		const keepRegion = regionModeRef.current === 'manual';
 
 		setFriendlyAddress(message);
-		// Titik ini tidak di-reverse-geocode: jangan tinggalkan alamat lama yang sudah basi.
-		setFullAddress('');
 		setData((prevData) => ({
 			...prevData,
 			lat: latitude,
 			lng: longitude,
+			// Titik ini tidak di-reverse-geocode: jangan tinggalkan alamat lama yang sudah basi.
+			geo_address: '',
 			// Kosongkan yurisdiksi: jangan percaya wilayah dari fix yang tidak akurat.
 			...(keepRegion
 				? {}
@@ -259,7 +287,7 @@ export default function Create(props) {
 				// Selalu disimpan & selalu ditampilkan, di KEDUA mode: dulu alamat hasil geser
 				// pin dihitung lalu dibuang saat mode manual (locSubtitle memilih label wilayah),
 				// sehingga menggeser pin terasa "tidak terjadi apa-apa".
-				setFullAddress(alamatTerbaca(response.data.display_name));
+				const geoAddress = alamatTerbaca(response.data.display_name);
 
 				// TASK_28: wilayah sedang dipegang operator (mode manual) — titik & nama jalan
 				// saja yang diperbarui, pencocokan nama OSM ke tabel wilayah dilewati agar
@@ -269,6 +297,7 @@ export default function Create(props) {
 						...prevData,
 						lat: latitude,
 						lng: longitude,
+						geo_address: geoAddress,
 						road: roadName,
 					}));
 
@@ -341,6 +370,7 @@ export default function Create(props) {
 					...prevData,
 					lat: latitude,
 					lng: longitude,
+					geo_address: geoAddress,
 					province_code: pCode,
 					city_code: cCode,
 					district_code: dCode,
@@ -505,7 +535,7 @@ export default function Create(props) {
 			// Pin melompat ke centroid TANPA reverse-geocode (sengaja: alamat centroid bukan
 			// alamat kejadian, menampilkannya justru menyesatkan) — jadi alamat lama yang
 			// menggambarkan pin sebelumnya harus dibuang, bukan dibiarkan basi.
-			setFullAddress('');
+			setData('geo_address', '');
 			// Titik sudah pasti dari wilayah terpilih: jangan biarkan tombol Kirim terkunci
 			// menunggu GPS yang masih memindai (tombol disable-nya membaca locationLoading).
 			setLocationLoading(false);
@@ -624,17 +654,37 @@ export default function Create(props) {
 
 	const onHandleChange = (e) => setData(e.target.name, e.target.value);
 
-	// Darurat non-kebakaran → judul diketik bebas + detail wajib.
-	const isOther = data.incident_type === 'lainnya';
+	// Darurat non-kebakaran → detail (foto/deskripsi/patokan) wajib. 'kebakaran_lainnya'
+	// SENGAJA tidak ikut: ia kebakaran, jadi tetap darurat-first — yang membedakannya cuma
+	// judul yang diketik sendiri. Aturan yang sama dipegang server di ReportRequest.
+	const isOther = data.incident_type === NON_FIRE_INCIDENT_TYPE.value;
+	// Judul teks bebas dipakai dua keadaan: darurat non-kebakaran & kebakaran "Lainnya".
+	const needsFreeTitle = isOther || data.incident_type === 'kebakaran_lainnya';
 	// Foto wajib untuk 'lainnya' (paksa buka); kebakaran collapsible; buka bila sudah ada foto.
 	const photoExpanded = isOther || showPhotoSection || data.photos.length > 0;
 
 	const selectIncidentType = (type) => {
+		// Menekan tombol yang SEDANG aktif tidak boleh menghapus apa pun - di tombol
+		// "Lainnya" itu berarti judul yang sudah diketik warga ikut terhapus.
+		if (type.value === data.incident_type) return;
+
 		setData((prev) => ({
 			...prev,
 			incident_type: type.value,
 			// Judul terisi otomatis dari tombol; 'Lainnya' dikosongkan agar diketik warga.
-			title: type.value === 'lainnya' ? '' : type.title,
+			title: type.title,
+		}));
+	};
+
+	// Berpindah tab MENGGANTI jenis kejadian: tab non-kebakaran hanya punya satu jenis
+	// sehingga langsung terpilih, sedangkan tab kebakaran menunggu warga menekan tombol.
+	// Judul ikut dikosongkan agar judul dari tab sebelumnya tidak terkirim bersama jenis baru.
+	const selectIncidentTab = (tab) => {
+		setIncidentTab(tab);
+		setData((prev) => ({
+			...prev,
+			incident_type: tab === INCIDENT_TAB.nonFire ? NON_FIRE_INCIDENT_TYPE.value : '',
+			title: '',
 		}));
 	};
 
@@ -674,7 +724,7 @@ export default function Create(props) {
 			return;
 		}
 
-		if (isOther && !data.title.trim()) {
+		if (needsFreeTitle && !data.title.trim()) {
 			toast.warning('Tulis dulu jenis kejadian yang terjadi.');
 			return;
 		}
@@ -1052,19 +1102,19 @@ export default function Create(props) {
 												<p className="mt-0.5 break-words text-[13px] text-muted-foreground">
 													{locationLoading
 														? 'Mencari alamat titik ini...'
-														: fullAddress ||
+														: data.geo_address ||
 															'Belum ada - klik peta atau geser pin ke titik kejadian.'}
 												</p>
 											</div>
 
-											{fullAddress && !locationLoading && (
+											{data.geo_address && !locationLoading && (
 												<Button
 													type="button"
 													variant="outline"
 													size="sm"
 													className="h-8 shrink-0 text-xs"
 													onClick={() => {
-														setData('address', fullAddress);
+														setData('address', data.geo_address);
 														toast.success('Alamat disalin ke Patokan Lokasi.');
 													}}
 												>
@@ -1111,42 +1161,73 @@ export default function Create(props) {
 
 							{/* --- BAGIAN FORM INFORMASI --- */}
 							<div className="space-y-4 pt-2">
-								{/* Jenis kejadian: pilihan cepat (tombol besar) agar warga tak perlu mengetik */}
+								{/* Jenis kejadian: dua tab (kebakaran / non kebakaran), masing-masing berikon
+								    kendaraan yang diberangkatkan — permintaan user 2026-08-27. */}
 								<div>
-									<h3 className="border-b border-border pb-2 text-xs font-semibold uppercase tracking-wider text-foreground">
-										Apa yang terbakar?
-									</h3>
-									<div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
-										{INCIDENT_TYPES.map((type) => {
-											const Icon = type.icon;
-											const active = data.incident_type === type.value;
-											return (
-												<button
-													key={type.value}
-													type="button"
-													onClick={() => selectIncidentType(type)}
-													aria-pressed={active}
-													className={cn(
-														'flex min-h-[72px] flex-col items-center justify-center gap-1.5 rounded-md border p-2 text-center transition-colors',
-														active
-															? 'border-destructive bg-destructive/10 text-destructive'
-															: 'border-border bg-card text-foreground hover:bg-accent',
-													)}
-												>
-													<Icon className="h-6 w-6" stroke={1.5} />
-													<span className="text-xs font-semibold leading-tight">
-														{type.label}
-													</span>
-												</button>
-											);
-										})}
-									</div>
+									<Tabs value={incidentTab} onValueChange={selectIncidentTab} className="w-full">
+										<TabsList className="grid h-fit w-full grid-cols-2 rounded-lg border border-border bg-muted p-1">
+											<TabsTrigger value={INCIDENT_TAB.fire} className={incidentTabClass}>
+												<IconFiretruck size={18} stroke={1.5} /> Kebakaran
+											</TabsTrigger>
+											<TabsTrigger value={INCIDENT_TAB.nonFire} className={incidentTabClass}>
+												<IconAmbulance size={18} stroke={1.5} /> Non Kebakaran
+											</TabsTrigger>
+										</TabsList>
+
+										{/* TAB A: KEBAKARAN — pilihan cepat (tombol besar) agar warga tak mengetik */}
+										<TabsContent
+											value={INCIDENT_TAB.fire}
+											className="mt-4 outline-none focus-visible:ring-0"
+										>
+											<h3 className="border-b border-border pb-2 text-xs font-semibold uppercase tracking-wider text-foreground">
+												Apa yang terbakar?
+											</h3>
+											<div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
+												{FIRE_INCIDENT_TYPES.map((type) => {
+													const Icon = type.icon;
+													const active = data.incident_type === type.value;
+													return (
+														<button
+															key={type.value}
+															type="button"
+															onClick={() => selectIncidentType(type)}
+															aria-pressed={active}
+															className={cn(
+																'flex min-h-[72px] flex-col items-center justify-center gap-1.5 rounded-md border p-2 text-center transition-colors',
+																active
+																	? 'border-destructive bg-destructive/10 text-destructive'
+																	: 'border-border bg-card text-foreground hover:bg-accent',
+															)}
+														>
+															<Icon className="h-6 w-6" stroke={1.5} />
+															<span className="text-xs font-semibold leading-tight">
+																{type.label}
+															</span>
+														</button>
+													);
+												})}
+											</div>
+										</TabsContent>
+
+										{/* TAB B: NON KEBAKARAN — jenisnya sudah ditentukan oleh tabnya sendiri,
+										    jadi tak ada tombol pilihan; langsung diketik di isian bawah. */}
+										<TabsContent
+											value={INCIDENT_TAB.nonFire}
+											className="mt-4 outline-none focus-visible:ring-0"
+										>
+											<h3 className="border-b border-border pb-2 text-xs font-semibold uppercase tracking-wider text-foreground">
+												Darurat apa yang terjadi?
+											</h3>
+										</TabsContent>
+									</Tabs>
+
 									{errors.incident_type && (
 										<InputError message={errors.incident_type} className="mt-1" />
 									)}
 
-									{/* Judul teks bebas HANYA untuk darurat non-kebakaran ('Lainnya') */}
-									{isOther && (
+									{/* Judul teks bebas: darurat non-kebakaran & kebakaran "Lainnya". Ditulis
+									    SEKALI di luar tab supaya kedua tab tidak memelihara isian kembar. */}
+									{needsFreeTitle && (
 										<div className="mt-3">
 											<Label htmlFor="title" className="text-sm font-medium text-foreground/80">
 												Jelaskan jenis kejadian
@@ -1156,7 +1237,11 @@ export default function Create(props) {
 												id="title"
 												value={data.title}
 												type="text"
-												placeholder="Contoh: Pohon tumbang, evakuasi, kabel putus..."
+												placeholder={
+													isOther
+														? 'Contoh: Pohon tumbang, evakuasi, kabel putus...'
+														: 'Contoh: Kebakaran gudang, tumpukan sampah, tiang listrik...'
+												}
 												onChange={onHandleChange}
 												className="mt-1.5 h-11 rounded-md border-border bg-card focus-visible:ring-1 focus-visible:ring-destructive"
 											/>
