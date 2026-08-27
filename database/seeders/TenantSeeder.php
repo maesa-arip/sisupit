@@ -39,7 +39,7 @@ class TenantSeeder extends Seeder
                 'pejabat_nama' => 'Nama Pejabat Badung',
                 'pejabat_jabatan' => 'Kepala Dinas Pemadam Kebakaran dan Penyelamatan Kabupaten Badung',
                 'pejabat_foto' => null,
-                'telepon_darurat' => '112',
+                'telepon_darurat' => '113',
                 'is_active' => true,
                 'edition' => TenantEdition::BELI->value,
             ],

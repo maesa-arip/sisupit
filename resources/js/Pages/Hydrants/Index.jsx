@@ -296,5 +296,6 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 // dulu tamu mendapat hero `PublicPageHeader` + pembungkus `max-w-6xl px-4 py-8` sementara
 // yang sudah login mendapat `HeaderTitle` + lebar penuh, sehingga satu halaman punya dua
 // wajah tergantung status login. Sekarang satu wajah untuk semua — wajah yang sudah login.
-// (`PublicPageHeader` tetap hidup: kelima halaman info/legal memakainya untuk SEMUA peran.)
+// (`PublicPageHeader` sejak 2026-08-26 TIDAK punya pemakai lagi: kelima halaman info/legal
+// ikut memakai `HeaderTitle` seperti halaman ini — lihat FINDINGS #81, nasibnya menunggu user.)
 Index.layout = (page) => <AppLayout children={page} title="Jaringan Hidran" />;

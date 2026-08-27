@@ -1,6 +1,6 @@
 import { Button } from '@/Components/ui/button';
 import AppLayout from '@/Layouts/AppLayout';
-import { cn, facilityStatusLabel, MAP_TILE_URL } from '@/lib/utils';
+import { cn, facilityStatusLabel, MAP_TILE_URL, NOMOR_DARURAT_NASIONAL } from '@/lib/utils';
 import { Head } from '@inertiajs/react';
 import {
 	IconAdjustmentsHorizontal,
@@ -234,7 +234,7 @@ export default function MonitoringMap({ layers }) {
 				d.name,
 				d.address,
 				d.status,
-				`<div class="text-[11px] font-medium text-muted-foreground">${d.type || 'Pos'} • Telp: ${d.phone || '112'}</div>`,
+				`<div class="text-[11px] font-medium text-muted-foreground">${d.type || 'Pos'} • Telp: ${d.phone || NOMOR_DARURAT_NASIONAL}</div>`,
 			),
 		);
 		facilityLayer('pumps', pumps, pumpHidden, GLYPH.pump, (d) =>

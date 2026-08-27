@@ -48,7 +48,7 @@ class PosPemadamController extends Controller
                 'id' => $station->id,
                 'name' => $station->name,
                 'address' => $station->address ?? 'Alamat tidak tersedia',
-                'phone' => $station->phone ?? '112',
+                'phone' => $station->phone ?? '113',
                 'vehicle_count' => $station->vehicle_count,
                 'status' => $station->status ?? 'Aktif',
                 'type' => $station->type ?? 'Pos Induk',

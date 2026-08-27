@@ -43,7 +43,7 @@ it('brands the thanks page from the report city tenant, not the subdomain', func
             ->where('pejabat.nama', 'I Ketut Contoh'));
 });
 
-it('falls back to 112 and no pejabat for a non-partner city on the thanks page', function () {
+it('falls back to 113 and no pejabat for a non-partner city on the thanks page', function () {
     $reporter = User::factory()->create(['village_code' => '5171012006']);
     $reporter->assignRole('masyarakat');
     $report = Report::create([
@@ -55,7 +55,7 @@ it('falls back to 112 and no pejabat for a non-partner city on the thanks page',
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('isPartner', false)
-            ->where('teleponDarurat', '112')
+            ->where('teleponDarurat', '113')
             ->where('pejabat', null));
 });
 

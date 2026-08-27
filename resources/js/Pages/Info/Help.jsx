@@ -1,3 +1,4 @@
+import { NOMOR_DARURAT_NASIONAL } from '@/lib/utils';
 import { Bullets, Callout, InfoShell, Section, infoLayout } from '@/Pages/Info/Partials/InfoShell';
 import { Link } from '@inertiajs/react';
 import {
@@ -90,7 +91,10 @@ const FAQ_PETUGAS = [
 ];
 
 export default function Help({ instansi, legal }) {
-	const telepon = instansi?.telepon_darurat || '112';
+	// 113 = nomor pemadam kebakaran nasional; dipakai sebagai cadangan saat tenant belum
+	// mengisi nomornya sendiri. Karena cadangannya bernilai sama, kalimat di bawah menyebut
+	// nomor nasional HANYA bila nomor instansi memang berbeda — kalau tidak berbunyi '113 atau 113'.
+	const telepon = instansi?.telepon_darurat || NOMOR_DARURAT_NASIONAL;
 	const kontakInstansi = instansi?.email_kontak;
 	const emailDukungan = legal?.penyedia?.email;
 
@@ -106,10 +110,19 @@ export default function Help({ instansi, legal }) {
 				<a href={`tel:${telepon}`} className="font-bold text-destructive hover:underline">
 					{telepon}
 				</a>{' '}
-				({instansi?.nama_instansi || 'Damkar wilayah Anda'}) atau{' '}
-				<a href="tel:112" className="font-bold text-destructive hover:underline">
-					112
-				</a>
+				({instansi?.nama_instansi || 'Damkar wilayah Anda'})
+				{telepon !== NOMOR_DARURAT_NASIONAL && (
+					<>
+						{' '}
+						atau{' '}
+						<a
+							href={`tel:${NOMOR_DARURAT_NASIONAL}`}
+							className="font-bold text-destructive hover:underline"
+						>
+							{NOMOR_DARURAT_NASIONAL}
+						</a>
+					</>
+				)}
 				, lalu kirim laporan lewat aplikasi setelah keadaan aman.
 			</Callout>
 
@@ -132,7 +145,7 @@ export default function Help({ instansi, legal }) {
 				<div className="pt-1">
 					<Link
 						href={route('front.reports.create')}
-						className="inline-flex h-11 items-center gap-2 rounded-lg bg-destructive px-5 text-sm font-bold text-destructive-foreground transition-colors hover:bg-destructive/90"
+						className="inline-flex h-10 items-center gap-2 rounded-md bg-destructive px-4 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90"
 					>
 						<IconFlame className="size-4" stroke={2.4} />
 						Buka Formulir Lapor
@@ -165,12 +178,13 @@ export default function Help({ instansi, legal }) {
 						</div>
 						<a
 							href={`tel:${telepon}`}
-							className="mt-1.5 block text-lg font-black text-destructive hover:underline"
+							className="mt-1.5 block text-base font-bold text-destructive hover:underline"
 						>
 							{telepon}
 						</a>
 						<p className="mt-1 text-xs text-muted-foreground">
-							Kanal 24 jam {instansi?.nama_instansi || 'Damkar wilayah'}. Alternatif nasional: 112.
+							Kanal 24 jam {instansi?.nama_instansi || 'Damkar wilayah'}. Nomor pemadam kebakaran
+							nasional: {NOMOR_DARURAT_NASIONAL}.
 						</p>
 					</div>
 					<div className="rounded-lg border border-border bg-card p-4">

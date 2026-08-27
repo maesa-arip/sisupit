@@ -38,16 +38,16 @@ export default function Pricing({ instansi, legal, editions }) {
 				{(editions ?? []).map((edition) => (
 					<div
 						key={edition.value}
-						className={`rounded-xl border p-5 ${
+						className={`rounded-xl border p-5 shadow-sm ${
 							instansi?.edition === edition.value
 								? 'border-destructive/50 bg-destructive/5'
 								: 'border-border bg-card'
 						}`}
 					>
 						<div className="flex items-start justify-between gap-2">
-							<h2 className="text-lg font-black tracking-tight text-foreground">{edition.label}</h2>
+							<h2 className="text-sm font-bold text-foreground">{edition.label}</h2>
 							{instansi?.edition === edition.value && (
-								<span className="rounded-full bg-destructive px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-destructive-foreground">
+								<span className="whitespace-nowrap rounded-md border border-destructive/30 bg-destructive/10 px-2 py-0.5 text-xs font-semibold text-destructive">
 									Paket wilayah ini
 								</span>
 							)}

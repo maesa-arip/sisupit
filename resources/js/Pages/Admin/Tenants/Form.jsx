@@ -8,7 +8,7 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import AppLayout from '@/Layouts/AppLayout';
-import { flashMessage } from '@/lib/utils';
+import { flashMessage, NOMOR_DARURAT_NASIONAL } from '@/lib/utils';
 import { Link, useForm } from '@inertiajs/react';
 import { IconArrowLeft, IconBuildingCommunity, IconInfoCircle } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
@@ -163,7 +163,7 @@ export default function Form(props) {
 									id="telepon_darurat"
 									value={data.telepon_darurat}
 									onChange={onHandleChange}
-									placeholder="0361-223333 atau 112"
+									placeholder={`0361-223333 atau ${NOMOR_DARURAT_NASIONAL}`}
 								/>
 								<p className="text-xs text-muted-foreground">
 									Ditampilkan di halaman "Laporan Diterima". Pastikan nomor aktif.

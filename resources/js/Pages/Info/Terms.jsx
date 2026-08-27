@@ -1,4 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs';
+import { NOMOR_DARURAT_NASIONAL } from '@/lib/utils';
 import { Bullets, Callout, InfoShell, Section, infoLayout } from '@/Pages/Info/Partials/InfoShell';
 import { Link } from '@inertiajs/react';
 import { IconBuildingBank, IconGavel, IconUser } from '@tabler/icons-react';
@@ -22,7 +23,10 @@ const tabTriggerClass =
 export default function Terms({ instansi, legal }) {
 	const penyelenggara = instansi?.nama_instansi || 'Dinas Pemadam Kebakaran dan Penyelamatan';
 	const penyedia = legal?.penyedia?.nama || 'PT Tawarin Dimana Aja';
-	const telepon = instansi?.telepon_darurat || '112';
+	// Cadangan = nomor pemadam kebakaran nasional. Karena cadangannya bernilai sama,
+	// kalimat penafian di bawah menyebut nomor nasional HANYA bila nomor instansi
+	// memang berbeda — kalau tidak ia berbunyi "113 atau 113".
+	const telepon = instansi?.telepon_darurat || NOMOR_DARURAT_NASIONAL;
 	const kontak = instansi?.email_kontak || legal?.penyedia?.email;
 	const emailLegal = legal?.penyedia?.email_legal;
 	const alamatPenyedia = legal?.penyedia?.alamat;
@@ -41,8 +45,14 @@ export default function Terms({ instansi, legal }) {
 				bermasalah, aplikasi tidak terbuka, atau keadaan mengancam jiwa, segera telepon{' '}
 				<a href={`tel:${telepon}`} className="font-bold text-destructive hover:underline">
 					{telepon}
-				</a>{' '}
-				atau <b>112</b>.
+				</a>
+				{telepon !== NOMOR_DARURAT_NASIONAL && (
+					<>
+						{' '}
+						atau <b>{NOMOR_DARURAT_NASIONAL}</b>
+					</>
+				)}
+				.
 			</Callout>
 
 			<Tabs defaultValue="umum" className="w-full">
@@ -100,7 +110,14 @@ export default function Terms({ instansi, legal }) {
 						/>
 						<p className="text-xs">
 							Batas usia ini tidak menghalangi siapa pun melaporkan keadaan darurat lewat telepon{' '}
-							<b>{telepon}</b> atau <b>112</b>.
+							<b>{telepon}</b>
+							{telepon !== NOMOR_DARURAT_NASIONAL && (
+								<>
+									{' '}
+									atau <b>{NOMOR_DARURAT_NASIONAL}</b>
+								</>
+							)}
+							.
 						</p>
 					</Section>
 

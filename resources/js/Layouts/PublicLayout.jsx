@@ -1,4 +1,5 @@
 import { Button } from '@/Components/ui/button';
+import { NOMOR_DARURAT_NASIONAL } from '@/lib/utils';
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
 	IconBuildingCommunity,
@@ -170,11 +171,11 @@ export default function PublicLayout({ children, title }) {
 								</li>
 								<li>
 									<a
-										href="tel:112"
+										href={`tel:${NOMOR_DARURAT_NASIONAL}`}
 										className="inline-flex items-center gap-2 text-muted-foreground hover:text-destructive"
 									>
 										<IconPhoneCall className="h-4 w-4" stroke={2} />
-										112 — Panggilan Darurat
+										{NOMOR_DARURAT_NASIONAL} — Panggilan Darurat
 									</a>
 								</li>
 							</ul>

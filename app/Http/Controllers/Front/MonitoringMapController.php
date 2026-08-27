@@ -84,7 +84,7 @@ class MonitoringMapController extends Controller
                 'id' => $s->id,
                 'name' => $s->name,
                 'address' => $s->address ?? 'Alamat tidak tersedia',
-                'phone' => $s->phone ?? '112',
+                'phone' => $s->phone ?? '113',
                 'status' => $s->status ?? 'Aktif',
                 'type' => $s->type ?? 'Pos Induk',
                 'lat' => (float) $s->lat,

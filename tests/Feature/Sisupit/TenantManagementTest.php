@@ -38,7 +38,7 @@ it('lets a superadmin create a tenant via the form', function () {
         'nama_instansi' => 'Damkar Kabupaten Badung',
         'pejabat_nama' => 'Pejabat Badung',
         'pejabat_jabatan' => 'Kepala Dinas',
-        'telepon_darurat' => '112',
+        'telepon_darurat' => '113',
         'is_active' => true,
     ])->assertRedirect(route('admin.tenants.index'));
 
