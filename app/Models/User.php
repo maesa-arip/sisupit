@@ -92,6 +92,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_standby',
         'skills',
         'agency_id',
+        'banjar_id',
     ];
 
     /**
@@ -141,16 +142,35 @@ class User extends Authenticatable implements MustVerifyEmail
      * mana pun (#44 — jangan beri akses nasional). Untuk staf wilayah, level paling spesifik
      * user dicocokkan dengan kolom laporan yang sederajat.
      */
+    /**
+     * Kolom wilayah TERSEMPIT yang terisi ('village_code' … 'province_code'), atau null bila
+     * keempatnya kosong — maknanya bergantung peran, lihat STAFF_ROLES.
+     *
+     * Rumus ini dulu ditulis ulang di empat tempat (withinReportJurisdiction + tiga cabang
+     * DashboardController). Disatukan saat feed realtime dibuat karena rumus yang sama harus
+     * menentukan DUA hal sekaligus: apa yang tersaring ke dashboard, DAN channel mana yang
+     * membangunkannya. Begitu keduanya diturunkan dari rumus berbeda, dashboard bisa diam
+     * saat ada kejadian yang sebenarnya masuk daftarnya — tanpa galat, tanpa gejala
+     * (bentuk yang sama dengan #60/#78).
+     */
+    public function narrowestJurisdictionColumn(): ?string
+    {
+        foreach (['village_code', 'district_code', 'city_code', 'province_code'] as $column) {
+            if ($this->{$column}) {
+                return $column;
+            }
+        }
+
+        return null;
+    }
+
     public function withinReportJurisdiction(Report $report): bool
     {
         if ($this->hasRole('superadmin')) {
             return true;
         }
 
-        $column = $this->village_code ? 'village_code'
-            : ($this->district_code ? 'district_code'
-            : ($this->city_code ? 'city_code'
-            : ($this->province_code ? 'province_code' : null)));
+        $column = $this->narrowestJurisdictionColumn();
 
         if ($column === null) {
             // Non-superadmin tanpa kode wilayah → bukan wewenang atas laporan apa pun.
@@ -173,6 +193,41 @@ class User extends Authenticatable implements MustVerifyEmail
             $this->district_code,
             $this->village_code,
         );
+    }
+
+    /**
+     * Nama channel realtime tempat akun ini mendengar perubahan feed laporan, atau null bila
+     * tak ada yang perlu didengar. PASANGAN dari penyaringan di DashboardController — lihat
+     * narrowestJurisdictionColumn(). routes/channels.php mengotorisasi dengan MEMBANDINGKAN
+     * permintaan ke nilai fungsi ini, jadi sebuah akun hanya boleh masuk ke channel yang
+     * memang jatahnya; tak ada aturan kedua yang bisa menyimpang.
+     *
+     * Urutan pemeriksaannya mengikat:
+     * 1. superadmin — dashboardnya TIDAK disaring wilayah sama sekali, jadi ia harus dapat
+     *    'reports.all' sekalipun kolom wilayahnya kebetulan terisi.
+     * 2. opd — relevansinya KEANGGOTAAN (report_agencies), bukan wilayah; akun OPD memang
+     *    sengaja tanpa kode wilayah (#44), sehingga cabang wilayah di bawah tak akan pernah
+     *    cocok untuknya.
+     * 3. staf tanpa kode wilayah = wewenang nasional (TASK_23); non-staf tanpa kode wilayah
+     *    tidak berwenang atas apa pun (#44) → null, bukan 'reports.all'.
+     */
+    public function reportFeedChannel(): ?string
+    {
+        if ($this->hasRole('superadmin')) {
+            return 'reports.all';
+        }
+
+        if ($this->hasRole('opd')) {
+            return $this->agency_id ? 'reports.agency.'.$this->agency_id : null;
+        }
+
+        $column = $this->narrowestJurisdictionColumn();
+
+        if ($column === null) {
+            return $this->hasAnyRole(self::STAFF_ROLES) ? 'reports.all' : null;
+        }
+
+        return 'reports.'.str_replace('_code', '', $column).'.'.$this->{$column};
     }
 
     public function socialAccounts()

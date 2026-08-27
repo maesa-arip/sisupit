@@ -3,6 +3,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
+import useReportFeed from '@/hooks/use-report-feed';
 import AppLayout from '@/Layouts/AppLayout';
 import { cn, GEO_OPTIONS } from '@/lib/utils';
 import { Link, router } from '@inertiajs/react';
@@ -39,6 +40,43 @@ export default function Dashboard(props) {
 	const [reports, setReports] = useState(initialReports);
 	const [nextPageUrl, setNextPageUrl] = useState(initialNextPageUrl);
 	const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+	// Kejadian baru / status berubah di wilayah ini. Feed halaman ini punya state LOKAL karena
+	// gulir-tak-berujung menambahkan halaman berikutnya ke dalamnya, jadi memuat ulang prop saja
+	// tidak cukup — sementara mengganti seluruh daftar akan merenggut halaman-halaman yang sudah
+	// digulir pengguna. Karena itu halaman PERTAMA yang segar digabungkan: baris yang sudah ada
+	// diperbarui di tempatnya, yang benar-benar baru masuk di puncak (server mengurutkan
+	// created_at menurun, jadi yang baru memang milik puncak).
+	const mergeFreshPage = (incoming) => {
+		if (!Array.isArray(incoming)) return;
+
+		setReports((prev) => {
+			const fresh = new Map(incoming.map((report) => [report.id, report]));
+			const known = new Set(prev.map((report) => report.id));
+
+			return [
+				...incoming.filter((report) => !known.has(report.id)),
+				...prev.map((report) => fresh.get(report.id) ?? report),
+			];
+		});
+	};
+
+	// Sengaja menembak route('dashboard'), bukan router.reload(): setelah "muat lebih banyak"
+	// URL halaman ini sudah berpindah ke ?page=N, dan memuat ulang URL ITU akan mengambil
+	// halaman N — padahal kejadian baru selalu ada di halaman pertama.
+	useReportFeed(props.feed_channel, () =>
+		router.get(
+			route('dashboard'),
+			{},
+			{
+				only: ['page_data', 'myReports', 'myTasks'],
+				preserveState: true,
+				preserveScroll: true,
+				replace: true,
+				onSuccess: (page) => mergeFreshPage(page.props.page_data?.reports?.data),
+			},
+		),
+	);
 
 	// State Loading untuk Pendaftaran Relawan
 	const [isRegistering, setIsRegistering] = useState(false);
@@ -415,7 +453,11 @@ export default function Dashboard(props) {
 								) : (
 									<IconPower className="mr-1.5 h-3.5 w-3.5" />
 								)}
-								{isStandby ? 'Siaga Aktif' : 'Mulai Siaga'}
+								{/* Label = KEADAAN, bukan ajakan (permintaan user 2026-08-26). Dulu berbunyi
+							    'Siaga Aktif' saat menyala tapi 'Mulai Siaga' saat mati — satu keadaan
+							    dibaca sebagai status, satunya sebagai perintah, sehingga tak jelas mana
+							    yang sedang berlaku. Kini keduanya simetris. */}
+								{isStandby ? 'Siaga' : 'Non Aktif'}
 							</Button>
 						</CardContent>
 					</Card>

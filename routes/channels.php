@@ -43,3 +43,20 @@ Broadcast::channel('report-tracking.{reportId}', function ($user, $reportId) {
 
     return $isReporter || $isStaff || $isHelper;
 });
+
+// Feed laporan per wilayah (dashboard realtime). Aturannya tidak ditulis ulang di sini:
+// sebuah akun hanya boleh masuk ke channel yang MEMANG jatahnya menurut
+// User::reportFeedChannel(), fungsi yang sama yang dipakai DashboardController untuk
+// memberi tahu frontend channel mana yang harus didengar. Menuliskan syaratnya lagi di
+// sini berarti dua aturan yang bisa menyimpang — dan penyimpangannya tak bergejala:
+// dashboard cuma diam saat ada kejadian.
+//
+// Isi siarannya sendiri hanya id + status (lihat ReportFeedChanged::broadcastWith), dan
+// yang menampilkan datanya tetap server lewat router.reload() — jadi scope Tenantable &
+// otorisasi halaman dihitung ulang di sana, bukan dipercayakan ke channel ini.
+Broadcast::channel('reports.all', fn ($user) => $user->reportFeedChannel() === 'reports.all');
+
+Broadcast::channel(
+    'reports.{level}.{code}',
+    fn ($user, $level, $code) => $user->reportFeedChannel() === "reports.{$level}.{$code}"
+);

@@ -1,9 +1,10 @@
 import HeaderTitle from '@/Components/HeaderTitle';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
+import useReportFeed from '@/hooks/use-report-feed';
 import AppLayout from '@/Layouts/AppLayout';
 import { cn } from '@/lib/utils';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { IconAlertCircle, IconBuildingCommunity, IconCheck, IconChevronRight, IconMapPin } from '@tabler/icons-react';
 
 /**
@@ -14,8 +15,13 @@ import { IconAlertCircle, IconBuildingCommunity, IconCheck, IconChevronRight, Ic
  * juga cuma satu (mengonfirmasi tindakan yang dijanjikan), dan itu dilakukan di halaman detail
  * insiden supaya konteks lokasinya ikut terbaca.
  */
-export default function OpdDashboard({ agencyName, requests = [] }) {
+export default function OpdDashboard({ agencyName, requests = [], feed_channel = null }) {
 	const awaiting = requests.filter((r) => r.requires_confirmation && !r.confirmed_at);
+
+	// Channel OPD bukan channel wilayah melainkan `reports.agency.{id}`: yang relevan bagi mitra
+	// luar adalah insiden yang instansinya diminta membantu, bukan seluruh laporan wilayah —
+	// akun OPD memang sengaja tanpa kode wilayah (lihat User::reportFeedChannel).
+	useReportFeed(feed_channel, () => router.reload({ only: ['requests'] }));
 
 	return (
 		<div className="flex h-full w-full flex-col space-y-6">

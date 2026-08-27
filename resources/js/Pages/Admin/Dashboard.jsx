@@ -2,6 +2,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
+import useReportFeed from '@/hooks/use-report-feed';
 import AppLayout from '@/Layouts/AppLayout';
 import { cn } from '@/lib/utils';
 import { Head, Link, router } from '@inertiajs/react';
@@ -27,8 +28,12 @@ import {
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-export default function AdminDashboard({ auth, stats, recentReports, isPejabat = false }) {
+export default function AdminDashboard({ auth, stats, recentReports, isPejabat = false, feed_channel = null }) {
 	const isTopLevelAdmin = !auth?.user?.city_code;
+
+	// Kejadian baru masuk / status berubah di wilayah ini — segarkan kartu statistik & daftar
+	// laporan terbaru tanpa perlu me-reload halaman.
+	useReportFeed(feed_channel, () => router.reload({ only: ['stats', 'recentReports'] }));
 
 	// Siaga notifikasi pejabat — kembaran kartu "Mode Kesiapan" relawan di Pages/Dashboard.jsx,
 	// endpoint & kolom yang sama (profile.standby / users.is_standby). Hanya pejabat & relawan
@@ -250,7 +255,11 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 							) : (
 								<IconPower className="mr-1.5 h-3.5 w-3.5" />
 							)}
-							{isStandby ? 'Siaga Aktif' : 'Mulai Siaga'}
+							{/* Label = KEADAAN, bukan ajakan (permintaan user 2026-08-26). Dulu berbunyi
+						    'Siaga Aktif' saat menyala tapi 'Mulai Siaga' saat mati — satu keadaan
+						    dibaca sebagai status, satunya sebagai perintah, sehingga tak jelas mana
+						    yang sedang berlaku. Kini keduanya simetris. */}
+							{isStandby ? 'Siaga' : 'Non Aktif'}
 						</Button>
 					</CardContent>
 				</Card>

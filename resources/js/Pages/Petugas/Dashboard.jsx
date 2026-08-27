@@ -1,9 +1,10 @@
 import StatusBadge from '@/Components/StatusBadge';
 import { Badge } from '@/Components/ui/badge';
 import { Card, CardContent } from '@/Components/ui/card';
+import useReportFeed from '@/hooks/use-report-feed';
 import AppLayout from '@/Layouts/AppLayout';
 import { cn, GEO_OPTIONS, MAP_TILE_URL, reportNumber } from '@/lib/utils';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
 	IconAlertCircle,
 	IconCheck,
@@ -29,8 +30,12 @@ function distanceKm(lat1, lng1, lat2, lng2) {
 	return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-export default function PetugasDashboard({ auth, activeMissions = [], pendingResolutions = [] }) {
+export default function PetugasDashboard({ auth, activeMissions = [], pendingResolutions = [], feed_channel = null }) {
 	const user = auth.user;
+
+	// Misi baru muncul / selesai di wilayah penugasan — peta taktis & antrian berita acara
+	// ikut bergerak tanpa reload.
+	useReportFeed(feed_channel, () => router.reload({ only: ['activeMissions', 'pendingResolutions'] }));
 
 	// Ambil nama depan saja untuk sapaan
 	const firstName = user?.name ? user.name.split(' ')[0] : 'Komandan';

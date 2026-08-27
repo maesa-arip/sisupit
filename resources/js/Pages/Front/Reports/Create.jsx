@@ -7,7 +7,15 @@ import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
-import { cn, DEFAULT_MAP_CENTER, flashMessage, GEO_ACCURACY_THRESHOLD, getFreshPosition } from '@/lib/utils';
+import {
+	alamatTerbaca,
+	cn,
+	DEFAULT_MAP_CENTER,
+	flashMessage,
+	GEO_ACCURACY_THRESHOLD,
+	getFreshPosition,
+	NOMOR_DARURAT_NASIONAL,
+} from '@/lib/utils';
 import { Link, useForm } from '@inertiajs/react';
 import {
 	IconAlertTriangle,
@@ -120,7 +128,9 @@ export default function Create(props) {
 	const [userLocation, setUserLocation] = useState(null);
 	const [locationLoading, setLocationLoading] = useState(true);
 	const [friendlyAddress, setFriendlyAddress] = useState('');
-	// Alamat lengkap apa adanya dari reverse-geocode (`display_name`). Dipisah dari
+	// Alamat lengkap dari reverse-geocode (`display_name`), disaring alamatTerbaca() — segmen
+	// beraksara non-Latin dibuang karena nama POI di OSM ditulis dalam aksara apa pun dan
+	// pernah tampil sebagai huruf Korea di panel ini (FINDINGS #83). Dipisah dari
 	// `friendlyAddress` (versi pendek untuk badge) dan dari `data.address` (patokan yang
 	// DIKETIK user) — mesin tidak boleh menimpa apa yang diketik manusia.
 	const [fullAddress, setFullAddress] = useState('');
@@ -243,11 +253,13 @@ export default function Create(props) {
 				const districtName = addr.city_district || addr.district || '';
 				const displayAddr = [roadName, villageName, districtName].filter(Boolean).join(', ');
 
-				setFriendlyAddress(displayAddr || response.data.display_name?.split(',')[0] || 'Lokasi terdeteksi');
+				setFriendlyAddress(
+					displayAddr || alamatTerbaca(response.data.display_name).split(',')[0] || 'Lokasi terdeteksi',
+				);
 				// Selalu disimpan & selalu ditampilkan, di KEDUA mode: dulu alamat hasil geser
 				// pin dihitung lalu dibuang saat mode manual (locSubtitle memilih label wilayah),
 				// sehingga menggeser pin terasa "tidak terjadi apa-apa".
-				setFullAddress(response.data.display_name || '');
+				setFullAddress(alamatTerbaca(response.data.display_name));
 
 				// TASK_28: wilayah sedang dipegang operator (mode manual) — titik & nama jalan
 				// saja yang diperbarui, pencocokan nama OSM ke tabel wilayah dilewati agar
@@ -581,7 +593,7 @@ export default function Create(props) {
 		const longitude = parseFloat(result.lon);
 
 		skipSearchRef.current = true;
-		setSearchQuery(result.name || result.display_name?.split(',')[0] || '');
+		setSearchQuery(alamatTerbaca(result.name) || alamatTerbaca(result.display_name).split(',')[0] || '');
 		setSearchResults([]);
 		setSearchStatus('idle');
 		// Batalkan permintaan yang masih di jalan supaya balasannya tidak memunculkan lagi
@@ -744,7 +756,7 @@ export default function Create(props) {
 	const locSubtitle = regionMode === 'manual' ? manualRegionLabel : friendlyAddress;
 
 	// Notice arah laporan (TASK_17): begitu kota (city_code) ter-resolve dari pin, tampilkan
-	// tujuan. Kota tanpa tenant terdaftar → warga diarahkan ke 112 (jujur, tanpa jaminan palsu).
+	// tujuan. Kota tanpa tenant terdaftar → warga diarahkan ke 113 (jujur, tanpa jaminan palsu).
 	const matchedTenant = data.city_code ? registeredTenants.find((t) => t.city_code === data.city_code) : null;
 
 	const submitLabel = 'Kirim Laporan Darurat';
@@ -934,10 +946,11 @@ export default function Create(props) {
 															<IconCurrentLocation className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
 															<div className="min-w-0 flex-1">
 																<p className="truncate font-semibold">
-																	{res.name || res.display_name.split(',')[0]}
+																	{alamatTerbaca(res.name) ||
+																		alamatTerbaca(res.display_name).split(',')[0]}
 																</p>
 																<p className="mt-0.5 truncate text-muted-foreground">
-																	{res.display_name}
+																	{alamatTerbaca(res.display_name)}
 																</p>
 															</div>
 														</button>
@@ -1078,7 +1091,10 @@ export default function Create(props) {
 											<span>
 												Kabupatenmu belum terdaftar di layanan ini. Laporan tetap tercatat,
 												namun untuk darurat segera hubungi{' '}
-												<span className="font-bold text-destructive">112</span>.
+												<span className="font-bold text-destructive">
+													{NOMOR_DARURAT_NASIONAL}
+												</span>
+												.
 											</span>
 										</div>
 									))}

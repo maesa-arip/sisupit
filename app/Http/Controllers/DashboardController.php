@@ -31,8 +31,12 @@ class DashboardController extends Controller
 
             // ISOLASI YURISDIKSI
             if (! $user->hasRole('superadmin')) {
-                $levelCode = $user->village_code ?? $user->district_code ?? $user->city_code ?? $user->province_code;
-                $column = $user->village_code ? 'village_code' : ($user->district_code ? 'district_code' : ($user->city_code ? 'city_code' : 'province_code'));
+                // Rumus "tingkat tersempit yang menang" hidup di User (lihat
+                // narrowestJurisdictionColumn) karena ia juga menentukan channel realtime yang
+                // membangunkan dashboard ini — kalau saringan & channel diturunkan dari rumus
+                // berbeda, dashboard diam saat ada kejadian yang sebenarnya masuk daftarnya.
+                $column = $user->narrowestJurisdictionColumn();
+                $levelCode = $column ? $user->{$column} : null;
 
                 if ($levelCode) {
                     $queryHelpers->where($column, $levelCode);
@@ -66,6 +70,7 @@ class DashboardController extends Controller
                 'stats' => $stats,
                 'recentReports' => $recentReports->toArray(),
                 'isPejabat' => $isPejabat,
+                'feed_channel' => $user->reportFeedChannel(),
             ]);
         }
 
@@ -76,8 +81,8 @@ class DashboardController extends Controller
             $queryMissions = Report::whereIn('status', ['pending', 'handling', 'TERLAPOR']);
 
             // Isolasi Misi: Petugas hanya melihat misi di wilayah penugasannya
-            $levelCode = $user->village_code ?? $user->district_code ?? $user->city_code ?? $user->province_code;
-            $column = $user->village_code ? 'village_code' : ($user->district_code ? 'district_code' : ($user->city_code ? 'city_code' : 'province_code'));
+            $column = $user->narrowestJurisdictionColumn();
+            $levelCode = $column ? $user->{$column} : null;
             if ($levelCode) {
                 $queryMissions->where($column, $levelCode);
             }
@@ -119,6 +124,7 @@ class DashboardController extends Controller
             return Inertia::render('Petugas/Dashboard', [
                 'activeMissions' => $activeMissions->toArray(),
                 'pendingResolutions' => $pendingResolutions->toArray(),
+                'feed_channel' => $user->reportFeedChannel(),
             ]);
         }
 
@@ -168,6 +174,7 @@ class DashboardController extends Controller
                     ? Agency::withoutGlobalScopes()->whereKey($user->agency_id)->value('name')
                     : null,
                 'requests' => $requests,
+                'feed_channel' => $user->reportFeedChannel(),
             ]);
         }
 
@@ -187,8 +194,8 @@ class DashboardController extends Controller
         if ($user->hasRole('relawan')) {
             $queryEmergencies = Report::whereIn('status', ['pending', 'TERLAPOR']);
 
-            $levelCode = $user->village_code ?? $user->district_code ?? $user->city_code ?? $user->province_code;
-            $column = $user->village_code ? 'village_code' : ($user->district_code ? 'district_code' : ($user->city_code ? 'city_code' : 'province_code'));
+            $column = $user->narrowestJurisdictionColumn();
+            $levelCode = $column ? $user->{$column} : null;
 
             if ($levelCode) {
                 $queryEmergencies->where($column, $levelCode);
@@ -234,6 +241,7 @@ class DashboardController extends Controller
             'page_data' => [
                 'reports' => $reportsFeed,  // Sekarang page_data.reports terisi dengan sempurna!
             ],
+            'feed_channel' => $user->reportFeedChannel(),
         ]);
     }
 }

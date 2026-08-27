@@ -8,7 +8,7 @@ import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
-import { facilityStatusLabel, jurisdictionMismatch, MAP_TILE_URL } from '@/lib/utils';
+import { alamatTerbaca, facilityStatusLabel, jurisdictionMismatch, MAP_TILE_URL } from '@/lib/utils';
 import { Head, Link, useForm } from '@inertiajs/react';
 import {
 	IconAlertTriangle,
@@ -184,7 +184,7 @@ export default function Edit({
 				} else if (addr.village || addr.suburb || addr.town) {
 					searchBarText = addr.village || addr.suburb || addr.town;
 				} else {
-					const parts = (result?.display_name || '').split(',');
+					const parts = alamatTerbaca(result?.display_name).split(',');
 					const validPart = parts.find(
 						(p) => !p.toLowerCase().includes('no name') && !p.toLowerCase().includes('unnamed'),
 					);
@@ -271,7 +271,7 @@ export default function Edit({
 				...current,
 				lat: lat.toFixed(6),
 				lng: lng.toFixed(6),
-				address: result?.display_name || current.address,
+				address: alamatTerbaca(result?.display_name) || current.address,
 				province_code: pCode,
 				city_code: cCode,
 				district_code: dCode,
@@ -322,7 +322,7 @@ export default function Edit({
 			mapInstanceRef.current.flyTo([lat, lng], 17);
 			markerRef.current.setLatLng([lat, lng]);
 		}
-		const selectedName = result.name || result.display_name.split(',')[0];
+		const selectedName = alamatTerbaca(result.name) || alamatTerbaca(result.display_name).split(',')[0];
 		skipSearchRef.current = true;
 		updateLocationData(lat, lng, selectedName);
 		setSearchResults([]);
@@ -435,10 +435,11 @@ export default function Edit({
 													<IconCurrentLocation className="mt-0.5 h-4 w-4 shrink-0 text-teal-600 dark:text-teal" />
 													<div className="min-w-0 flex-1">
 														<p className="truncate font-semibold">
-															{res.name || res.display_name.split(',')[0]}
+															{alamatTerbaca(res.name) ||
+																alamatTerbaca(res.display_name).split(',')[0]}
 														</p>
 														<p className="mt-0.5 truncate text-muted-foreground">
-															{res.display_name}
+															{alamatTerbaca(res.display_name)}
 														</p>
 													</div>
 												</button>

@@ -1,14 +1,34 @@
+import StatusBadge from '@/Components/StatusBadge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
-import { cn, reportNumber } from '@/lib/utils';
 import AppLayout from '@/Layouts/AppLayout';
+import { cn, NOMOR_DARURAT_NASIONAL, reportNumber } from '@/lib/utils';
 import { Head, Link } from '@inertiajs/react';
-import { IconArrowRight, IconShieldCheckFilled, IconPhoneCall, IconInfoCircle } from '@tabler/icons-react';
-import { Fragment } from 'react';
+import { IconArrowRight, IconInfoCircle, IconPhoneCall, IconShieldCheckFilled } from '@tabler/icons-react';
+import { Fragment, useEffect, useState } from 'react';
 
-// Alur pasca-lapor, memakai label status kanonik (lihat StatusBadge). Tahap aktif
-// setelah submit selalu "Laporan Masuk" (status TERLAPOR).
+// Alur pasca-lapor, memakai label status kanonik (lihat StatusBadge). Kedua deret ini
+// SEJAJAR: STEP_STATUS[i] adalah status yang membuat STEPS[i] jadi tahap berjalan.
+//
+// Halaman ini ber-ID dan bisa dibuka ulang kapan saja, jadi tahap berjalannya harus dibaca
+// dari status laporan — dulu ia dipaku di indeks 0, sehingga laporan yang sudah ditangani
+// atau selesai pun tetap berhenti di "Laporan Masuk".
+const STEP_STATUS = ['TERLAPOR', 'pending', 'handling', 'resolved'];
 const STEPS = ['Laporan Masuk', 'Terverifikasi', 'Penanganan', 'Selesai'];
+
+// `ditolak` SENGAJA tidak punya tahap: ia bukan kemajuan di alur ini melainkan jalan buntu,
+// jadi ditampilkan sebagai keterangan tersendiri, bukan sebagai langkah kelima.
+const STATUS_DITOLAK = 'ditolak';
+
+// Warna per tahap mengikuti kamus status kanonik (StatusBadge): Laporan Masuk merah,
+// Terverifikasi kuning, Penanganan hijau, Selesai biru — jangan diseragamkan jadi satu warna,
+// itu memutus hubungan visual dengan badge & peta.
+const STEP_TONE = {
+	TERLAPOR: { solid: 'bg-destructive text-destructive-foreground', tint: 'bg-destructive/15 text-destructive' },
+	pending: { solid: 'bg-warning text-warning-foreground', tint: 'bg-warning/15 text-warning' },
+	handling: { solid: 'bg-success text-success-foreground', tint: 'bg-success/15 text-success' },
+	resolved: { solid: 'bg-info text-info-foreground', tint: 'bg-info/15 text-info' },
+};
 
 // Foto pejabat: path publik statis (/images/..) atau hasil upload di disk public (tenants/..).
 const fotoUrl = (path) => (!path || path.startsWith('http') || path.startsWith('/') ? path : `/storage/${path}`);
@@ -20,6 +40,27 @@ export default function ReportThanks({ report, pejabat, namaInstansi, teleponDar
 	}).format(new Date(report.created_at));
 
 	const telHref = teleponDarurat ? `tel:${teleponDarurat.replace(/[^0-9+]/g, '')}` : null;
+
+	const [status, setStatus] = useState(report.status || 'TERLAPOR');
+
+	// Prop bisa berganti tanpa remount (mis. halaman dibuka ulang lewat navigasi Inertia).
+	useEffect(() => setStatus(report.status || 'TERLAPOR'), [report.status]);
+
+	// Pelapor tetap di halaman ini sambil menunggu; tanpa ini ia harus me-reload untuk tahu
+	// laporannya sudah divalidasi atau sudah ada yang meluncur. Memakai channel & event yang
+	// SUDAH ADA (report-tracking.{id} + ReportStatusChanged, lihat Reports/Show.jsx) — pelapor
+	// memang sudah berhak di channel itu, jadi tak ada permukaan otorisasi baru.
+	useEffect(() => {
+		if (!window.Echo) return;
+
+		const name = `report-tracking.${report.id}`;
+		window.Echo.private(name).listen('ReportStatusChanged', (e) => setStatus(e.status));
+
+		return () => window.Echo.leave(name);
+	}, [report.id]);
+
+	const isDitolak = status === STATUS_DITOLAK;
+	const currentStep = STEP_STATUS.indexOf(status);
 
 	return (
 		<>
@@ -67,36 +108,57 @@ export default function ReportThanks({ report, pejabat, namaInstansi, teleponDar
 							</p>
 						</div>
 
-						{/* Mini-stepper: alur status setelah lapor */}
+						{/* Mini-stepper: tahap yang SEDANG berlaku, bergerak sendiri lewat WebSocket. */}
 						<div className="rounded-lg border border-border bg-card p-4">
-							<p className="mb-3 text-xs font-medium text-muted-foreground">Tahap berikutnya</p>
-							<ol className="flex items-start">
-								{STEPS.map((step, i) => (
-									<Fragment key={step}>
-										<li className="flex flex-col items-center gap-1.5">
-											<span
-												className={cn(
-													'flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold',
-													i === 0
-														? 'bg-destructive text-destructive-foreground'
-														: 'bg-muted text-muted-foreground',
+							<div className="mb-3 flex items-center justify-between gap-2">
+								<p className="text-xs font-medium text-muted-foreground">Status laporan</p>
+								<StatusBadge status={status} />
+							</div>
+
+							{isDitolak ? (
+								<p className="text-xs leading-relaxed text-muted-foreground">
+									Laporan ini ditandai tidak dapat ditindaklanjuti oleh Pusat Komando. Bila keadaan
+									daruratnya masih berlangsung, segera telepon Damkar.
+								</p>
+							) : (
+								<ol className="flex items-start">
+									{STEPS.map((step, i) => {
+										const tone = STEP_TONE[STEP_STATUS[i]];
+										const isCurrent = i === currentStep;
+										const isDone = i < currentStep;
+
+										return (
+											<Fragment key={step}>
+												<li className="flex flex-col items-center gap-1.5">
+													<span
+														className={cn(
+															'flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold',
+															isCurrent && tone.solid,
+															isDone && tone.tint,
+															!isCurrent && !isDone && 'bg-muted text-muted-foreground',
+														)}
+													>
+														{i + 1}
+													</span>
+													<span
+														className={cn(
+															'text-center text-[10px] font-medium leading-tight sm:text-[11px]',
+															isCurrent
+																? 'font-bold text-foreground'
+																: 'text-muted-foreground',
+														)}
+													>
+														{step}
+													</span>
+												</li>
+												{i < STEPS.length - 1 && (
+													<span className="mt-3 h-px flex-1 bg-border" />
 												)}
-											>
-												{i + 1}
-											</span>
-											<span
-												className={cn(
-													'text-center text-[10px] font-medium leading-tight sm:text-[11px]',
-													i === 0 ? 'text-destructive' : 'text-muted-foreground',
-												)}
-											>
-												{step}
-											</span>
-										</li>
-										{i < STEPS.length - 1 && <span className="mt-3 h-px flex-1 bg-border" />}
-									</Fragment>
-								))}
-							</ol>
+											</Fragment>
+										);
+									})}
+								</ol>
+							)}
 						</div>
 
 						<div className="space-y-2 pt-2">
@@ -158,7 +220,7 @@ export default function ReportThanks({ report, pejabat, namaInstansi, teleponDar
 						</div>
 					</div>
 
-					{/* Kanan: Otoritas Pejabat (dari tenant). Kabupaten non-partner: pesan 112, tanpa pejabat. */}
+					{/* Kanan: Otoritas Pejabat (dari tenant). Kabupaten non-partner: pesan 113, tanpa pejabat. */}
 					{isPartner && pejabat ? (
 						<div className="flex w-full items-center gap-3 border-t border-border pt-4 sm:w-auto sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
 							{pejabat.foto && (
@@ -179,7 +241,7 @@ export default function ReportThanks({ report, pejabat, namaInstansi, teleponDar
 							<IconInfoCircle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
 							<span>
 								Layanan langsung Damkar di wilayah ini belum aktif. Untuk darurat hubungi{' '}
-								<span className="font-bold text-destructive">112</span>.
+								<span className="font-bold text-destructive">{NOMOR_DARURAT_NASIONAL}</span>.
 							</span>
 						</div>
 					)}

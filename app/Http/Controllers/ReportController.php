@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\MessageType;
 use App\Enums\TenantLevel;
+use App\Events\ReportFeedChanged;
 use App\Http\Requests\ReportRequest;
 use App\Models\Agency;
 use App\Models\Report;
@@ -380,6 +381,12 @@ class ReportController extends Controller
                 Notification::send($commandCenterUsers, new EmergencyAlertNotification($report, 'petugas'));
             }
 
+            // Aba-aba ke dashboard yang sedang terbuka di wilayah kejadian: kejadian BARU
+            // masuk. Sebelum ini tak ada satu pun siaran saat laporan dibuat — ReportStatusChanged
+            // baru lahir pada transisi BERIKUTNYA (approve/tolak), sehingga laporan masuk hanya
+            // terlihat oleh yang kebetulan me-reload halamannya.
+            broadcast(ReportFeedChanged::for($report, 'TERLAPOR'));
+
             // Redirect-saat-save ke subdomain tenant (TASK_17) agar Thanks tampil dengan
             // branding kabupaten kejadian. HANYA saat TENANT_BASE_DOMAIN di-set (produksi
             // multi-tenant + SESSION_DOMAIN=.domain agar login/flash selamat lintas-subdomain);
@@ -407,7 +414,7 @@ class ReportController extends Controller
         // Bypass Tenantable agar bisa dicari via ID (withoutGlobalScopes — aturan
         // emas #7: wajib recheck otorisasi manual di bawah).
         $report = Report::withoutGlobalScopes()
-            ->select('id', 'user_id', 'title', 'created_at', 'city_code')
+            ->select('id', 'user_id', 'title', 'created_at', 'city_code', 'status')
             ->findOrFail($id);
 
         $user = auth()->user();
@@ -419,7 +426,7 @@ class ReportController extends Controller
 
         // Pejabat/nomor/instansi SELALU dari kota LAPORAN (pin), bukan subdomain yang dibuka
         // (TASK_17) — jadi selalu akurat wilayah kejadian. Kabupaten non-partner (belum punya
-        // tenant): nomor jatuh ke 112 nasional, pejabat kosong (jangan tampilkan nomor kota lain).
+        // tenant): nomor jatuh ke 113 nasional, pejabat kosong (jangan tampilkan nomor kota lain).
         $tenant = Tenant::forCity($report->city_code);
 
         return inertia('Front/Reports/Thanks', [
@@ -427,6 +434,12 @@ class ReportController extends Controller
                 'id' => $report->id,
                 'title' => $report->title,
                 'created_at' => $report->created_at,
+                // Halaman ini bisa dibuka ulang kapan saja (ber-ID, bukan flash sekali-pakai),
+                // jadi mini-steppernya harus menunjukkan keadaan SEKARANG — dulu tahap aktifnya
+                // dipaku di langkah pertama sehingga laporan yang sudah selesai pun tetap
+                // berbunyi "Laporan Masuk". Perubahan berikutnya masuk lewat channel
+                // report-tracking.{id} yang sudah ada (pelapor memang sudah berhak di sana).
+                'status' => $report->status,
             ],
             'pejabat' => $tenant && $tenant->pejabat_nama ? [
                 'nama' => $tenant->pejabat_nama,
@@ -434,7 +447,7 @@ class ReportController extends Controller
                 'foto' => $tenant->pejabat_foto,
             ] : null,
             'namaInstansi' => $tenant?->nama_instansi ?: 'Pemadam Kebakaran & Penyelamatan',
-            'teleponDarurat' => $tenant?->telepon_darurat ?: '112',
+            'teleponDarurat' => $tenant?->telepon_darurat ?: '113',
             'cityCode' => $report->city_code,
             'isPartner' => (bool) $tenant,
         ]);

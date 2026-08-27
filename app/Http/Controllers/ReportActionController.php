@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\TenantLevel;
 use App\Events\IncidentLocationCorrected;
+use App\Events\ReportFeedChanged;
 use App\Events\ReportStatusChanged;
 use App\Events\ResponderLocationUpdated;
 use App\Events\ResponderRosterChanged;
@@ -96,6 +97,7 @@ class ReportActionController extends Controller
         // Loop-balik ke pelapor: laporannya sudah divalidasi.
         $this->notifyReporter($report, 'approved');
         broadcast(new ReportStatusChanged($report->id, 'pending'));
+        broadcast(ReportFeedChanged::for($report, 'pending'));
 
         $message = 'Laporan berhasil divalidasi dan disiarkan ke lapangan!';
         if ($agencyCount > 0) {
@@ -133,6 +135,8 @@ class ReportActionController extends Controller
         ]);
 
         broadcast(new ReportStatusChanged($report->id, 'ditolak', $request->reason));
+        // Alasan penolakan SENGAJA tidak ikut: ReportFeedChanged didengar satu wilayah penuh.
+        broadcast(ReportFeedChanged::for($report, 'ditolak'));
 
         return back()->with('success', 'Laporan ditandai ditolak dan diarsipkan.');
     }
@@ -192,6 +196,7 @@ class ReportActionController extends Controller
         if ($becameHandling) {
             $this->notifyReporter($report, 'en_route');
             broadcast(new ReportStatusChanged($report->id, 'handling'));
+            broadcast(ReportFeedChanged::for($report, 'handling'));
         }
 
         // Beri tahu viewer lain bahwa ada responder baru di insiden ini.
@@ -239,6 +244,7 @@ class ReportActionController extends Controller
 
         if ($reverted) {
             broadcast(new ReportStatusChanged($report->id, 'pending'));
+            broadcast(ReportFeedChanged::for($report, 'pending'));
         }
 
         // Responder hilang dari manifes → viewer lain perlu menghapus marker/barisnya.
@@ -591,6 +597,7 @@ class ReportActionController extends Controller
         // Loop-balik ke pelapor: insiden ditutup.
         $this->notifyReporter($report, 'resolved');
         broadcast(new ReportStatusChanged($report->id, 'resolved'));
+        broadcast(ReportFeedChanged::for($report, 'resolved'));
         // Semua responder kini 'finished' → segarkan manifes di viewer lain.
         broadcast(new ResponderRosterChanged($report->id));
 
