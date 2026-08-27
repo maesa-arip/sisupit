@@ -29,7 +29,8 @@ app/
   Http/Controllers/
     Admin/        CRUD admin: User (incl. assignRole), Role, Permission, AssignPermission,
                   RouteAccess, Announcement, Hydrant, Report (index/export), Setting,
-                  Agency (master OPD/instansi terkait — TASK_27)
+                  Agency (master OPD/instansi terkait — TASK_27),
+                  Banjar (master banjar per desa — 2026-08-26)
     Front/        Controller publik: HydrantController, PompaController,
                   PosPemadamController, RelawanController,
                   MonitoringMapController (Peta Pemantauan terpadu — semua layer)
@@ -52,6 +53,8 @@ app/
     VolunteerController.php     Self-register relawan + keahlian
     ReportHelperController.php  (terpisah dari ReportActionController — lihat catatan risiko)
   Models/        Agency (OPD/instansi terkait — Tenantable+SoftDeletes, TASK_27),
+                 Banjar (satuan komunitas di BAWAH desa — Tenantable+SoftDeletes, 2026-08-26;
+                   BUKAN tingkat kelima Tenantable, sifatnya deskriptif),
                  ReportAgency (pivot pelibatan OPD↔laporan, TASK_27),
                  Announcement, Pompa, PosPemadam, ReportHelper, RouteAccess,
                  SocialAccount, Unit (armada/kendaraan — Tenantable+SoftDeletes, TASK_09),
@@ -68,7 +71,8 @@ app/
                      Dipakai HydrantController, HydrantWargaController, PompaController,
                      PosPemadamController — store & update
   Enums/         MessageType, UserGender, TenantLevel (desa/kecamatan/kabupaten/provinsi)
-  Events/        ResponderLocationUpdated, IncidentLocationCorrected, ReportStatusChanged (broadcast via Reverb)
+  Events/        ResponderLocationUpdated, IncidentLocationCorrected, ReportStatusChanged,
+                 ReportFeedChanged (broadcast via Reverb)
   Notifications/ EmergencyAlertNotification (FCM + database + broadcast; WebPush dimatikan, PWA dihapus)
   Helpers/helpers.php   flashMessage(), usernameGenerator()
   Http/Middleware/HandleInertiaRequests.php  shared props: auth, ziggy, flash_message, announcemet (typo, lihat anti-pola)
@@ -175,7 +179,28 @@ POST /broadcasting/auth   (middleware web; didaftarkan lewat `channels:` di boot
                                           tugas). `pejabat` ikut sejak 2026-08-25 agar
                                           gerbang channel sama persis dengan gerbang
                                           halaman detail (#41)
+      private-reports.all               → superadmin, ATAU staf tanpa kode wilayah sama
+                                          sekali (= wewenang nasional, TASK_23)
+      private-reports.{level}.{code}    → level ∈ province|city|district|agency|village.
+                                          Syaratnya SATU baris: channel yang diminta harus
+                                          SAMA PERSIS dengan User::reportFeedChannel() milik
+                                          akun itu — fungsi yang sama yang dipakai
+                                          DashboardController untuk memberi tahu frontend
+                                          channel mana yang harus didengar. Aturannya tidak
+                                          ditulis dua kali supaya tak bisa menyimpang
 ```
+
+**Feed laporan realtime (dashboard).** `ReportFeedChanged` disiarkan saat laporan DIBUAT
+(`ReportController::store`) dan pada tiap transisi status (lima titik di
+`ReportActionController`, berdampingan dengan `ReportStatusChanged`). Satu laporan
+membangunkan SEMUA tingkat wilayahnya sekaligus (`reports.province.51`, `reports.city.5171`,
+`reports.district.517101`, `reports.village.5171012006`, `reports.all`) plus tiap
+`reports.agency.{id}` yang diminta membantu; tiap akun mendengar di tingkatnya sendiri.
+Payloadnya SENGAJA hanya `reportId` + `status` (`broadcastWith`) karena penerimanya satu
+wilayah penuh — yang menampilkan datanya tetap server lewat `router.reload()` di
+`resources/js/hooks/use-report-feed.js`, sehingga scope Tenantable & otorisasi halaman
+dihitung ulang di sana. Karena itu ia TIDAK digabung dengan `ReportStatusChanged`, yang
+payloadnya memuat alasan penolakan dan hanya untuk channel satu laporan.
 Argumen `channels:` pada `withRouting()` **wajib** — tanpa itu `routes/channels.php` tak
 pernah dimuat, `/broadcasting/auth` 404, dan seluruh `Echo.private(...)` gagal diam-diam
 tanpa gejala yang terlihat pengguna (FINDINGS #55, diperbaiki 2026-08-11). Callback
@@ -291,12 +316,18 @@ auth+verified           : /dashboard, /reports/* (CRUD milik sendiri + approve/r
                            /helpers/create, /users/relawan/{user}, /users/detail/{user}
                            (2 terakhir TANPA role check — FINDINGS_LOG #1, P0)
 auth (login saja)       : /api/geocode/{reverse,search}, /api/route/directions (proxy OSRM)
+publik (tanpa auth)     : /api/regions/{cities,districts,villages}, /api/banjars/{villageCode}
+                           (dropdown banjar; SENGAJA dikecualikan dari EnsureProfileComplete —
+                           halaman lengkapi-profil sendiri yang memanggilnya)
 role:petugas|admin|superadmin|pejabat : /peta-pemantauan (front.monitoring.map — Peta Pemantauan terpadu)
 role:admin|superadmin   : /admin/users/*, /admin/facilities (dead, no view),
                            /admin/hydrants/* (resource), /admin/hydrant-warga/* (resource,
                            TASK_30 — hydrant swadaya warga, tabel terpisah), /admin/pumps/* (resource),
                            /admin/fire-stations/* (resource), /admin/units/* (resource, TASK_09),
                            /admin/agencies/* (resource, TASK_27 — master OPD terkait),
+                           /admin/banjars/* (resource, 2026-08-26 — master banjar) +
+                           POST /admin/banjars/require (saklar "warga wajib pilih banjar",
+                           ditolak server bila master masih kosong),
                            /admin/reports/*
 role:superadmin (admin.php): /admin/announcements/*, /admin/roles/*, /admin/permissions/*,
                            /admin/assign-permissions/*, /admin/route-accesses/* (FINDINGS #21)

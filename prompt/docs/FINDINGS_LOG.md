@@ -1341,3 +1341,190 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
   `district_code` dari dropdown. Query pemeriksaan untuk staging/produksi ada di §6 TASK_38.
 - **Verifikasi:** `php artisan test` 270 → **271 passed**.
 - **Status:** SELESAI (FIXED) 2026-08-25
+
+### #80 — Nomor darurat nasional ditulis mati di 14 tempat: satu yang terlewat = dua nomor darurat
+- **Severity:** P2 (tak merusak apa pun sampai nomornya berubah — lalu berubah jadi salah-informasi
+  keselamatan, bukan sekadar tampilan)
+- **Ditemukan 2026-08-26** saat mengerjakan permintaan user "nomor damkar 112 diganti jadi 113".
+- **Akar:** angka `'112'` dipaku di **empat belas** tempat tanpa satu pun sumber bersama —
+  sembilan berkas frontend (`Layouts/PublicLayout.jsx`, `Pages/Front/Reports/Create.jsx`,
+  `Pages/Front/Reports/Thanks.jsx`, `Pages/Info/Help.jsx` ×3, `Pages/Info/Terms.jsx` ×3,
+  `Pages/Monitoring/Map.jsx`, `Pages/Admin/Tenants/Form.jsx`), tiga controller
+  (`ReportController`, `Front\MonitoringMapController`, `Front\PosPemadamController`),
+  `database/seeders/TenantSeeder.php`, dan dua berkas test. Semuanya memakai angka itu untuk
+  peran yang sama: **cadangan** saat `tenants.telepon_darurat` kosong.
+- **Akibat:** mengganti nomornya adalah operasi yang harus tepat empat belas kali. Satu berkas
+  terlewat tidak menimbulkan galat, tidak memerahkan test, dan tidak terlihat di halaman yang
+  sedang dibuka — yang terjadi hanya aplikasi menyebut **dua nomor darurat berbeda** di dua
+  halaman. Bentuknya sama persis dengan #71 (dua daftar menu) dan #53/#54: duplikasi yang
+  membusuk tanpa gejala.
+- **Ikutan yang ikut ketahuan:** kalimat penafian di `Info/Help.jsx` & `Info/Terms.jsx` berbunyi
+  "telepon {nomor instansi} atau 112". Karena cadangan nomor instansi ADALAH nomor nasional,
+  tenant yang belum mengisi nomornya membaca "113 atau 113".
+- **Fix (2026-08-26):** konstanta tunggal `NOMOR_DARURAT_NASIONAL` di `resources/js/lib/utils.js`
+  (rumah yang sudah dipakai `MAP_TILE_URL`, `GEO_OPTIONS`, `FACILITY_STATUS_LABELS`) —
+  kesembilan berkas frontend membacanya dari sana. Kalimat "…atau …" kini hanya muncul bila
+  nomor instansi memang berbeda dari nomor nasional.
+- **SISA yang disengaja:** sisi server tetap memakai literal `'113'` di empat tempat
+  (tiga controller + seeder). Menyatukannya menuntut kunci config baru + pengiriman ke frontend
+  lewat `HandleInertiaRequests`, dan itu keputusan tersendiri — bukan bagian permintaan user.
+  Komentar di atas konstanta menyebut keempat berkas itu agar keduanya berubah bersamaan.
+- **Sumber:** permintaan user 2026-08-26.
+- **Status:** SEBAGIAN (frontend FIXED, sisi server masih empat literal)
+
+### #81 — `PublicPageHeader` kehilangan seluruh pemakainya setelah halaman info ikut wajah fasilitas
+- **Severity:** P3 (kode mati, tidak ada dampak perilaku)
+- **Ditemukan 2026-08-26** sebagai akibat langsung permintaan user "ganti semua tampilan pusat
+  bantuan dan lain-lain konsepnya seperti fasilitas".
+- **Akar:** `resources/js/Components/PublicPageHeader.jsx` (hero gradient merah + chip ikon +
+  judul `text-3xl font-black`) dibuat untuk halaman fasilitas publik. Ketiga halaman fasilitas
+  berhenti memakainya 2026-08-25 (TASK_35 lanjutan, penyeragaman tamu/login), sehingga
+  pemakainya tinggal kelima halaman info lewat `Info/Partials/InfoShell.jsx` — dan komentar di
+  ketiga berkas fasilitas serta `.claude/skills/sisupit-ui/SKILL.md` menuliskannya sebagai
+  alasan komponen itu tetap hidup. Sejak InfoShell memakai `HeaderTitle`, pemakainya **nol**.
+- **Kenapa TIDAK dihapus:** MASTER_PROMPT — "hapus kode hanya bila yakin mati dan jelaskan
+  kenapa", dan `CLAUDE.md` menyimpan instruksi eksplisit "PublicPageHeader TETAP dipakai kelima
+  halaman info/legal — jangan dihapus". Instruksi itu lahir dari konteks yang kini berubah, jadi
+  pencabutannya keputusan user, bukan efek samping perubahan rupa.
+- **Tindakan yang menunggu keputusan user:** hapus berkasnya, atau biarkan sebagai cadangan bila
+  hero itu masih diinginkan untuk halaman pemasaran kelak.
+- **Status:** OPEN (menunggu keputusan user)
+
+### #82 — Banjar bisa tersimpan di bawah desa yang bukan miliknya
+- **Severity:** P2 (data rusak diam-diam; tak ada gejala di layar)
+- **Ditemukan 2026-08-26** saat user meminta pemeriksaan hasil TASK_40, dan **dibuktikan dengan
+  test sementara sebelum diperbaiki**: sebuah tandon berkode desa `5171022009` tersimpan
+  menunjuk banjar milik desa `5171012001` — request lolos, redirect sukses, nol galat.
+- **Akar (dua lapis, keduanya perlu):**
+  1. **Server** — `Admin\HydrantWargaController::validateData()` dan
+     `ProfileController::storeCompleteProfile()` sama-sama hanya memakai `exists:banjars,id`.
+     Rule itu membuktikan barisnya ADA, bukan bahwa ia milik desa yang sedang disimpan.
+  2. **Form** — `Admin/Hydrants/{Create,Edit}.jsx`: `useEffect` yang mengikuti `village_code`
+     hanya me-*refetch* daftar pilihan, **tidak pernah mengosongkan `data.banjar_id`**.
+     (`Profile/CompleteProfile.jsx` justru sudah benar melakukannya sejak awal — ketiga layar
+     ini lahir bersamaan tapi hanya satu yang mengosongkannya.)
+- **Kenapa terjangkau tanpa request rekayasa:** menggeser pin memicu reverse-geocode yang
+  menimpa `village_code` (TASK_32) SESUDAH banjar dipilih. Admin memilih desa → memilih banjar →
+  menggeser pin sedikit → desanya berpindah, id banjar lamanya ikut terkirim. Ini bentuk yang
+  sama dengan #78: tak ada yang menolak apa pun, yang rusak hanya rekapnya.
+- **Fix (2026-08-26):**
+  - `Banjar::assertBelongsToVillage()` — SATU aturan, berdiri di samping `optionsForVillage()`
+    supaya "apa yang ditawarkan" dan "apa yang diterima" tak pernah berjalan sendiri-sendiri.
+    Tanpa Tenantable dengan alasan yang sama (#44), dan re-check pengganti yang disyaratkan
+    ATURAN EMAS #7 adalah kecocokan desa itu sendiri — syarat yang lebih sempit daripada scope
+    kabupaten. `is_active` SENGAJA tidak diperiksa: itu mengatur apa yang ditawarkan, bukan apa
+    yang sah, dan menonaktifkan sebuah banjar tak boleh membuat tandon lama gagal disunting.
+  - `HydrantWargaController::preparedData()` — **urutannya mengikat**: banjar diadu dengan
+    `village_code` HASIL `withJurisdictionCodes()`, bukan dengan isi request. Untuk admin yang
+    desanya terkunci, kode dari akunnya yang tersimpan; memeriksa isi request berarti memeriksa
+    kode yang bahkan tak jadi dipakai (dikunci test tersendiri).
+  - Kedua form: pengosongan `banjar_id` saat desa berganti, lewat **ref** — bukan pengosongan
+    tanpa syarat. Di layar Edit render pertama membawa desa DAN banjar yang sudah tersimpan,
+    jadi pengosongan tanpa syarat justru menghapus banjar yang sedang dibuka.
+- **Penjaga:** tiga test baru di `tests/Feature/Sisupit/BanjarMasterTest.php`, ketiganya
+  **dibuktikan merah** dengan mematikan `assertBelongsToVillage()` sebelum dinyatakan selesai.
+  Test 295 → 298 passed (1113 assertions).
+- **Status:** FIXED
+
+### #83 — Nama POI beraksara asing bocor ke kalimat konfirmasi **wilayah** di layar Lengkapi Profil
+- **Severity:** P2 (tak merusak data, tapi terbaca sebagai aplikasi rusak tepat di layar pertama
+  yang dilihat pengguna baru)
+- **Dilaporkan user 2026-08-26:** "saat pertama daftar ada tulisan korea di otomatis detect
+  lokasi saat akan mengisi yurisdiksi, contoh gunakan lokasi saat ini di pemogan".
+- **Akar:** `resources/js/Pages/Profile/CompleteProfile.jsx` menaruh `display_name` **mentah**
+  dari Nominatim ke dalam kalimat *"Lokasi terdeteksi di sekitar **X**. Wilayah di bawah sudah
+  terisi otomatis"*. `display_name` **selalu diawali objek terdekat**, dan nama objek itu adalah
+  tag `name` OSM apa adanya — ditulis kontributornya dalam aksara apa pun. Di koridor wisata
+  Kuta–Pemogan ini bukan kasus langka; instance Nominatim kita sendiri menjawab:
+  ```
+  -8.69842,115.17399 → "Рынок, Jalan Pandawa, Legian, Kuta, Badung, Bali…"
+  -8.70777,115.18378 → "エアアジア, Sunset Road, Kuta, Badung, Bali…"
+  -8.70892,115.17216 → "Длинная улица всякого, Jalan Raya Legian…"
+  ```
+- **Kenapa `accept-language=id` tidak menolong** (dan kenapa memperbaikinya di
+  `GeocodeController` akan salah sasaran): parameter itu hanya memilih di antara varian
+  `name:<lang>` sebuah objek. Kalau tag `name` utamanya sendiri beraksara Korea/Rusia/Jepang dan
+  tak ada `name:id`, string itulah yang sah dikembalikan. **Bukan bug geocoder — bug pemakai
+  datanya.**
+- **Akar kedua (ikut diperbaiki):** banner itu mengklaim "wilayah di bawah sudah terisi otomatis"
+  **tanpa pernah memeriksa apakah pencocokan berhasil**, sehingga saat `matchRegionName()` gagal
+  ia tetap tampil di atas dropdown yang kosong — dan alamat yang disebutnya memang tidak pernah
+  wajib nyambung dengan apa pun yang terisi.
+- **Fix (2026-08-26, TASK_42):** banner tidak lagi mengutip geocoder. Isinya dirangkai dari
+  **nama wilayah hasil pencocokan** (`matchedVill/matchedDist/matchedCity/matchedProv`) — nama
+  dari tabel `indonesia_*`, jadi dijamin berbahasa Indonesia **dan** dijamin sama dengan isi
+  dropdown di bawahnya. Tidak ada yang cocok = banner tidak muncul. Desa gagal dicocokkan =
+  satu baris tambahan yang menyuruh memilih sendiri (permintaan user).
+- **SENGAJA tidak diikutkan:** `Front/Reports/Create.jsx` (`fullAddress`) dan keempat form
+  fasilitas admin (`address: result?.display_name`) tetap memakai `display_name` utuh. Di sana
+  yang diminta memang **alamat**, dan nama landmark — beraksara apa pun — justru menolong
+  responder menemukan lokasi. Yang keliru di CompleteProfile bukan "ada nama POI", melainkan
+  "nama POI dipakai sebagai judul wilayah".
+- **Penjaga:** tidak ada — repo tak punya test frontend. Langkah verifikasi manual ada di
+  `prompt/tasks/TASK_42_aksara_asing_deteksi_lokasi.md` §5.
+- **ADENDUM 2026-08-27 (dilaporkan user, TASK_43):** kambuh di layar lain, dan penilaian awal
+  "layar lain tidak terdampak" TERNYATA KELIRU. `Front/Reports/Create.jsx` menaruh
+  `display_name` mentah ke panel **"Alamat Lengkap (otomatis)"** (mode input manual Pusat
+  Komando), ke tombol "Salin ke patokan", ke cadangan badge lokasi, dan ke dua baris dropdown
+  hasil pencarian. Lebih jauh, **enam form fasilitas admin** (`Hydrants`/`Pumps`/`FireStations`
+  × Create/Edit) menyimpannya ke kolom `address` — di sana aksaranya tidak cuma tampil, ia
+  MASUK KE DATA. Fix: helper tunggal `alamatTerbaca()` di `lib/utils.js` yang membuang SEGMEN
+  (dipisah koma) yang memuat aksara di luar rentang Latin; sisanya utuh, termasuk diakritik
+  seperti "Café Romano". Dipasang di ketujuh berkas itu. CompleteProfile TETAP memakai
+  penyelesaian aslinya (nama wilayah hasil pencocokan) — di sana yang benar bukan "alamat yang
+  disaring" melainkan "bukan alamat sama sekali".
+- **Status:** FIXED
+
+### #84 — Dashboard tidak pernah tahu ada kejadian sampai seseorang menekan reload
+- **Severity:** P2 (fungsional; pada aplikasi kesiapsiagaan, jeda = waktu tanggap)
+- **Dilaporkan user 2026-08-27:** "Dashboard auto update saat ada kejadian sekarang masih perlu
+  reload".
+- **Akar (dua lapis):**
+  1. **Tak ada siaran saat laporan DIBUAT.** `ReportStatusChanged` baru lahir pada transisi
+     BERIKUTNYA (approve/tolak/handling/resolve), jadi justru peristiwa paling penting —
+     laporan darurat masuk — tidak menyiarkan apa pun.
+  2. **Tak ada channel yang bisa didengar dashboard.** Satu-satunya channel yang ada,
+     `report-tracking.{id}`, adalah channel PER-LAPORAN: untuk mendengarnya kita harus sudah
+     tahu id laporannya, padahal yang ditunggu dashboard justru laporan yang belum ada.
+     Akibatnya realtime di aplikasi ini cuma terpasang di SATU berkas (`Reports/Show.jsx`)
+     sejak #28, dan keempat dashboard murni prop Inertia hasil render server.
+- **Fix (2026-08-27, TASK_43):** event `ReportFeedChanged` + channel per tingkat wilayah.
+  Yang MENGIKAT, dan jadi alasan bentuknya seperti ini:
+  - **Saringan & channel WAJIB satu rumus.** `DashboardController` menyaring dengan "tingkat
+    tersempit yang menang", rumus yang sebelumnya ditulis ulang di EMPAT tempat. Kini satu
+    `User::narrowestJurisdictionColumn()`, dan `User::reportFeedChannel()` diturunkan darinya.
+    Kalau saringan & channel diturunkan dari rumus berbeda, dashboard cuma DIAM saat ada
+    kejadian yang sebenarnya masuk daftarnya — tanpa galat, tanpa gejala (bentuk #60/#78).
+  - **Otorisasi channel tidak menulis aturannya lagi.** `routes/channels.php` membandingkan
+    permintaan ke `User::reportFeedChannel()`; sebuah akun hanya boleh masuk ke channel yang
+    memang jatahnya. Satu aturan, bukan dua yang bisa menyimpang.
+  - **Payloadnya aba-aba, bukan data** (`reportId` + `status` saja). Penerimanya SATU WILAYAH
+    PENUH, jauh lebih luas daripada channel per-laporan; yang menampilkan datanya tetap server
+    lewat `router.reload()`, sehingga scope Tenantable & otorisasi halaman dihitung ulang di
+    sana. Karena itu ia TIDAK digabung ke `ReportStatusChanged`, yang payloadnya memuat alasan
+    penolakan — satu payload berlaku untuk semua channel sebuah event, jadi menggabungkannya
+    berarti menyiarkan alasan penolakan ke seluruh wilayah.
+  - **OPD tidak ikut skema wilayah.** Akun OPD sengaja tanpa kode wilayah (#44); relevansinya
+    keanggotaan `report_agencies`. Ia mendengar di `reports.agency.{id}`.
+- **Penjaga:** `tests/Feature/Sisupit/ReportFeedRealtimeTest.php` (13 test), yang mengadu KEDUA
+  sisi — channel yang didengar akun vs channel yang dibangunkan laporan. Empat di antaranya
+  **dibuktikan merah** dengan merusak `reportFeedChannel()` dan `ReportFeedChanged::for()`
+  sebelum dinyatakan selesai.
+- **Status:** FIXED
+
+### #85 — Mini-stepper halaman "Laporan Diterima" berhenti selamanya di langkah pertama
+- **Severity:** P3 (kosmetik, tapi menyesatkan pelapor yang sedang menunggu)
+- **Dilaporkan user 2026-08-27:** "Di report/thanks auto update sesuai keadaan terkini".
+- **Akar:** `Front/Reports/Thanks.jsx` menandai tahap aktif dengan `i === 0` — dipaku, bukan
+  dibaca. Itu masuk akal ketika halaman ini masih layar sekali-pakai lewat flash, tapi sejak
+  #38 ia jadi halaman ber-ID yang bisa dibuka ulang kapan saja: laporan yang sudah ditangani
+  atau bahkan sudah selesai tetap berbunyi "Laporan Masuk". `ReportController::thanks()` bahkan
+  tidak mengirim kolom `status` sama sekali, jadi datanya memang tak pernah tersedia.
+- **Fix (2026-08-27, TASK_43):** `status` ikut dikirim; tahap aktif dibaca dari deret
+  `STEP_STATUS` yang sejajar dengan `STEPS`; `ditolak` ditampilkan sebagai keterangan
+  tersendiri karena ia jalan buntu, bukan langkah kelima. Perubahan berikutnya masuk lewat
+  channel `report-tracking.{id}` dan event `ReportStatusChanged` yang **sudah ada** — pelapor
+  memang sudah berhak di channel itu, jadi tak ada permukaan otorisasi baru.
+- **Penjaga:** satu test di `ReportFeedRealtimeTest.php` (prop `report.status` terkirim).
+  Rupa steppernya sendiri verifikasi visual.
+- **Status:** FIXED

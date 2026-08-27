@@ -24,7 +24,241 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : TASK_38 (prompt/tasks/TASK_38_panjang_kode_kecamatan.md) — SELESAI (kode)
+Task aktif   : TASK_43 (prompt/tasks/TASK_43_dashboard_realtime_alamat_thanks.md) — SELESAI
+                (kode) 2026-08-27. Satu pesan user, tiga permintaan; dua keputusan cakupan
+                ditanyakan dan dijawab "ya keduanya".
+                (A) DASHBOARD TAK PERNAH AUTO-UPDATE (temuan #84). Dua lapis: tak ada siaran
+                sama sekali saat laporan DIBUAT (ReportStatusChanged baru lahir pada transisi
+                BERIKUTNYA), dan tak ada channel yang bisa didengar dashboard —
+                report-tracking.{id} itu channel PER-LAPORAN, untuk mendengarnya harus sudah
+                tahu id-nya, padahal yang ditunggu dashboard justru laporan yang belum ada.
+                Kini ada event ReportFeedChanged + channel per tingkat wilayah
+                (reports.{province|city|district|village}.{kode}, reports.all,
+                reports.agency.{id}). EMPAT hal yang mengikat: (1) saringan dashboard dan nama
+                channel WAJIB satu rumus — rumus "tingkat tersempit menang" yang dulu ditulis
+                ulang di 4 tempat kini jadi User::narrowestJurisdictionColumn(), sebab kalau
+                keduanya diturunkan sendiri-sendiri dashboard DIAM saat ada kejadian yang
+                sebenarnya masuk daftarnya, tanpa gejala (bentuk #60/#78); (2) channels.php
+                TIDAK menulis aturannya lagi, ia membandingkan permintaan ke
+                User::reportFeedChannel(); (3) payloadnya ABA-ABA (reportId+status saja) karena
+                penerimanya satu wilayah penuh — yang menampilkan datanya tetap server lewat
+                router.reload(); (4) JANGAN digabung ke ReportStatusChanged: satu payload
+                berlaku untuk semua channel sebuah event, dan payload itu memuat ALASAN
+                PENOLAKAN — menggabungkannya = menyiarkan alasan penolakan ke seluruh wilayah.
+                Superadmin selalu reports.all meski kolom wilayahnya terisi (dashboardnya
+                memang tak disaring); kolom kosong tetap berarti DUA hal (#56): staf=nasional,
+                non-staf=null. OPD memakai channel instansi, bukan wilayah (#44). Halaman
+                warga/relawan MENGGABUNGKAN halaman pertama yang segar (bukan mengganti daftar)
+                dan menembak route('dashboard') alih-alih router.reload(), karena setelah "muat
+                lebih banyak" URL sudah pindah ke ?page=N. SISA RISIKO: dispatch ada di 6 titik
+                (mengikuti pola ReportStatusChanged yang memang 5 titik) — transisi status BARU
+                yang lupa menyiarkannya bikin dashboard diam untuk transisi itu.
+                (B) HURUF KOREA DI FORM LAPOR (adendum #83). Penilaian TASK_42 bahwa "layar lain
+                tidak terdampak" KELIRU: Front/Reports/Create.jsx menaruh display_name mentah di
+                panel "Alamat Lengkap (otomatis)" + tombol "Salin ke patokan" + dropdown, dan
+                ENAM form fasilitas admin menyimpannya ke kolom `address` sehingga aksaranya
+                MASUK KE DATA. Kini satu helper alamatTerbaca() di lib/utils.js membuang SEGMEN
+                (dipisah koma) beraksara di luar rentang Latin; "Café Romano" tetap utuh.
+                CompleteProfile SENGAJA tidak ikut disaring — di sana yang benar bukan "alamat
+                yang disaring" melainkan nama wilayah hasil pencocokan (TASK_42).
+                GeocodeController TETAP tak disentuh.
+                (C) THANKS BERHENTI DI LANGKAH PERTAMA (temuan #85): tahap aktifnya dipaku
+                `i === 0` dan controller bahkan tak mengirim kolom status, jadi laporan yang
+                sudah selesai pun berbunyi "Laporan Masuk". Kini status dikirim, stepper dibaca
+                dari STEP_STATUS yang sejajar dengan STEPS, `ditolak` jadi keterangan tersendiri
+                (jalan buntu, bukan langkah kelima), dan perubahannya masuk lewat channel &
+                event yang SUDAH ADA — tanpa permukaan otorisasi baru.
+                Test 310 → 323 passed (1234 assertions), 13 penjaga baru di
+                ReportFeedRealtimeTest, EMPAT di antaranya dibuktikan merah dulu. Pint PASS,
+                npm run build lulus. Tanpa migrasi/route/perubahan skema.
+                CATATAN: saat mengerjakan ini saya sempat menjalankan `git checkout` pada
+                Pages/Admin/Dashboard.jsx dan itu menghapus perubahan TASK_41 yang belum
+                ter-commit di sana (label "Siaga"/"Non Aktif"); sudah dipulihkan & diperiksa
+                simetris dengan kembarannya. JANGAN pakai git checkout di repo ini selama
+                masih banyak perubahan belum ter-commit.
+                SISA: verifikasi manual §6 file task (butuh dua browser + Reverb hidup).
+               TASK_42 (prompt/tasks/TASK_42_aksara_asing_deteksi_lokasi.md) — SELESAI (kode)
+                2026-08-26. Laporan user: "saat pertama daftar ada tulisan korea di otomatis
+                detect lokasi saat akan mengisi yurisdiksi". Layar Lengkapi Profil menaruh
+                `display_name` MENTAH dari Nominatim ke kalimat "Lokasi terdeteksi di sekitar
+                <X>. Wilayah di bawah sudah terisi otomatis" — dan `display_name` SELALU
+                diawali objek terdekat, yang namanya adalah tag `name` OSM apa adanya, ditulis
+                kontributornya dalam aksara apa pun. Nyata di data kita sendiri di koridor
+                Kuta–Pemogan: "Рынок, Jalan Pandawa…", "エアアジア, Sunset Road…",
+                "Длинная улица всякого, Jalan Raya Legian…". PENTING: `accept-language=id`
+                yang sudah dikirim GeocodeController TIDAK bisa menolong — parameter itu hanya
+                memilih di antara varian `name:<lang>`, tak pernah menyentuh tag `name` utama.
+                Jadi JANGAN "perbaiki" ini di GeocodeController: memfilter aksara di sisi server
+                merusak lima layar lain demi satu layar. Fix ada di pemakai datanya: banner kini
+                dirangkai dari NAMA WILAYAH HASIL PENCOCOKAN (matchedVill/Dist/City/Prov, dari
+                tabel indonesia_*), sehingga dijamin berbahasa Indonesia DAN dijamin sama dengan
+                isi dropdown di bawahnya — dulu tak ada yang menjamin keduanya nyambung. Nol
+                yang cocok = banner tidak muncul (dulu ia tetap mengklaim "sudah terisi otomatis"
+                di atas dropdown kosong). Desa gagal dicocokkan = satu baris tambahan yang
+                menyuruh memilih sendiri (permintaan user), dibaca dari `data.village_code`
+                supaya hilang sendiri begitu desanya dipilih. SENGAJA TIDAK diikutkan:
+                Front/Reports/Create.jsx (`fullAddress`) & keempat form fasilitas admin
+                (`address: display_name`) — di sana yang diminta memang ALAMAT, dan nama landmark
+                beraksara apa pun justru menolong responder; yang keliru di CompleteProfile bukan
+                "ada nama POI" melainkan "nama POI dipakai sebagai JUDUL WILAYAH". Satu berkas
+                kode, tanpa migrasi/route/perubahan sisi server. Test tetap 310 passed (1182
+                assertions), npm run build lulus, chunk CompleteProfile diperiksa 0 `display_name`.
+                Temuan #83 FIXED. SISA: verifikasi visual §5 file task.
+               TASK_41 (prompt/tasks/TASK_41_nomor_113_wajah_info_siaga.md) — SELESAI (kode)
+                2026-08-26. Satu pesan user, tiga permintaan. (1) NOMOR DARURAT 112 → 113 (113
+                = nomor pemadam kebakaran nasional; 112 = darurat umum). Angkanya ternyata
+                dipaku di EMPAT BELAS tempat tanpa sumber bersama (temuan #80), jadi mengganti
+                nomor darurat = operasi yang harus tepat 14 kali dan satu yang terlewat membuat
+                aplikasi menyebut DUA nomor darurat berbeda tanpa galat apa pun. Kini ada
+                konstanta tunggal `NOMOR_DARURAT_NASIONAL` di lib/utils.js yang dibaca kesembilan
+                berkas frontend; sisi server SENGAJA masih 4 literal (ReportController,
+                MonitoringMapController, PosPemadamController, TenantSeeder) — menyatukannya
+                menuntut kunci config + HandleInertiaRequests, keputusan tersendiri. Ikutan yang
+                ikut dibetulkan: kalimat "telepon {nomor instansi} atau {nasional}" berbunyi
+                "113 atau 113" bagi tenant yang belum mengisi nomornya, karena cadangannya sama
+                — bagian "atau …" kini muncul hanya bila kedua nomor berbeda.
+                (2) WAJAH LIMA HALAMAN INFO/LEGAL ikut halaman FASILITAS (font, jarak, bentuk
+                kartu). Akarnya di InfoShell.jsx: hero `PublicPageHeader` (judul text-3xl
+                font-black) + pembungkus `max-w-4xl px-4 py-6 sm:py-10` DI DALAM AppLayout yang
+                sudah ber-`max-w-7xl p-4 lg:p-8` — paddingnya bertumpuk. Kini `HeaderTitle` +
+                `flex w-full flex-col space-y-6 pb-32`, kartu `rounded-xl shadow-sm` + `p-5`,
+                judul seksi `text-sm font-bold`, chip InfoNav `rounded-md`. `eyebrow` PINDAH ke
+                slot KANAN baris kepala (tempat yang di halaman fasilitas memang disediakan untuk
+                aksi). DefinitionRow DIBALIK penekanannya: isi yang foreground, label yang muted.
+                ISI dokumen tidak disentuh sama sekali. AKIBAT: `PublicPageHeader` kini TANPA
+                PEMAKAI (temuan #81) — halaman fasilitas berhenti memakainya 2026-08-25; berkasnya
+                SENGAJA tidak dihapus karena CLAUDE.md sendiri menyimpan instruksi "jangan
+                dihapus" yang lahir dari konteks yang kini berubah, jadi pencabutannya keputusan
+                user. Komentar "PublicPageHeader tetap hidup" di tiga berkas fasilitas sudah
+                dibetulkan supaya tidak menyesatkan sesi berikutnya.
+                (3) Kartu "Mode Kesiapan" (dua kartu KEMBAR: Pages/Dashboard.jsx relawan &
+                Pages/Admin/Dashboard.jsx pejabat — selalu ubah keduanya): label jadi
+                "Siaga"/"Non Aktif" menggantikan "Siaga Aktif"/"Mulai Siaga". Bentuk lama tidak
+                simetris — satu keadaan, satu ajakan — sehingga tak jelas mana yang berlaku.
+                Judul kartu "Mode Kesiapan" TETAP.
+                Test tetap 295 passed (1104 assertions), npm run build lulus, Pint PASS. Tanpa
+                migrasi/route/perubahan kontrak API. SISA: verifikasi visual §5 file task.
+               TASK_40 (prompt/tasks/TASK_40_skkl_pompa_dan_master_banjar.md) — SELESAI (kode)
+                2026-08-26. Enam permintaan user sekaligus. (1-3) Hydrant warga KELUAR dari
+                daftar Manajemen SKKL admin — kolom kapasitas & chip "Belum/Sudah Modifikasi"
+                ikut hilang sebagai konsekuensi, dan "Ringkasan Air Desa" PINDAH ke menu Hydrant
+                Warga dengan satu satuan saja (liter). HANYA di menu admin: /pumps publik & layer
+                SKKL Peta Pemantauan TETAP menggabungkan dua sumber (keputusan user, dikunci
+                test) — karena itu chip status di Pages/Pumps/Index.jsx TETAP berisi empat, jangan
+                diseragamkan dengan halaman admin. Karena sumbernya tinggal satu, PompaController
+                kembali ke paginasi Eloquent biasa (paginator manual dibuang). Kartu rekap muncul
+                karena controller MENGIRIM prop `summary`, bukan karena komponen memeriksa
+                `variant === 'warga'`. (4) Bug sidebar: entri hydrant hanya menyorot
+                /admin/hydrants, jadi tab Hydrant Warga membuat sidebar tak menyorot apa pun.
+                (5-6) MASTER BANJAR baru: tabel `banjars` (+ `jenis` dinas/adat nullable, kolom
+                `code` untuk kode SLS bila kelak ada), `banjar_id` NULLABLE di hydrant_wargas &
+                users, CRUD /admin/banjars, GET /api/banjars/{villageCode}, dropdown di form
+                hydrant warga (lewat `showBanjar` di variants.jsx = DATA) & layar Lengkapi Profil,
+                serta perintah `sisupit:import-banjar berkas.csv [--apply]`.
+                EMPAT hal yang mengikat: (a) kolom nullable meski "wajib" — 71 akun prod & semua
+                staf/OPD tak berbanjar, NOT NULL memaksa migrasi mengarang nilai; (b) kewajiban =
+                SAKLAR (Setting::KEY_REQUIRE_BANJAR) default MATI, dan server MENOLAK
+                menyalakannya selama master kosong (dropdown kosong yang diwajibkan = pendaftaran
+                warga terkunci, gema #61); (c) banjar BUKAN tingkat kelima Tenantable — ia
+                deskriptif, bukan alat kontrol akses; (d) /api/banjars WAJIB dikecualikan dari
+                EnsureProfileComplete, kalau tidak halaman lengkapi-profil memantulkan
+                panggilannya sendiri dan dropdown kosong selamanya tanpa galat (ditemukan test).
+                DATA BANJAR: tidak ada unduhan resmi berisi NAMA se-Bali — yang publik hanya
+                rekap JUMLAH (PDF DPMA 2025 diperiksa: 4 halaman). OSM juga tak bisa dipakai
+                (query ke Nominatim kita: hanya 105 objek "Banjar ...", mayoritas balai banjar/
+                halte, cuma 6 batas administratif). Nama diminta ke BPS Kota (banjar = SLS,
+                bernama & BERKODE), Bagian Pemerintahan/Dinas PMD, atau MDA/DPMA untuk adat;
+                rekap publik dipakai sebagai PENGUJI KELENGKAPAN per kecamatan.
+                IMPORTIR: menerima .xlsx & .csv (Laravel Excel sudah jadi dependensi), judul
+                kolom berbahasa Indonesia (Nama Banjar/Kelurahan/Alamat), dan NAMA desa —
+                bukan cuma kode. Nama desa TIDAK unik se-Indonesia (KUTA ada di 8 kabupaten),
+                jadi kecocokan ganda DITOLAK; pakai --city. Beda ejaan hanya diterima dengan
+                --fuzzy dan HANYA bila rangka konsonannya sama persis (Klod=Kelod) — kriteria
+                "jarak huruf" sempat dicoba dan langsung mengusulkan CATUR→SANUR, dua desa yang
+                berbeda; JANGAN diganti levenshtein.
+                Berkas user docs/List Nama Banjar Denpasar.xlsx (138 baris) sudah diimpor ke DB
+                DEV: 123 banjar, tapi baru menutupi 18 DARI 43 desa Denpasar — 25 desa masih
+                kosong, jadi kewajiban banjar BELUM boleh dinyalakan. 11 baris di berkas itu
+                sebenarnya milik Badung (Catur/Blahkiuh/Kuta).
+                Penjaga: BanjarMasterTest (12), HydrantWargaSkklTest & FacilityVillageCodeRepairTest
+                disesuaikan. Test 282 → 295 passed (1104 assertions), npm run build lulus. SISA: verifikasi manual §7 + isi master banjar sebelum menyalakan
+                kewajiban.
+                ADENDUM 2026-08-26 (§9 file task, temuan #82 FIXED): banjar bisa tersimpan di
+                bawah desa yang BUKAN miliknya — `exists:banjars,id` cuma membuktikan barisnya
+                ada, dan effect di kedua form hydrant hanya me-refetch pilihan tanpa
+                mengosongkan `banjar_id`, sehingga menggeser pin (yang menimpa village_code)
+                membuat tandon desa A tercatat di banjar desa B tanpa galat. Kini satu aturan
+                `Banjar::assertBelongsToVillage()`. DUA hal yang mengikat: banjar diadu dengan
+                village_code HASIL withJurisdictionCodes (bukan isi request — akun yang desanya
+                terkunci menang), dan pengosongan di form WAJIB lewat ref (tanpa syarat = layar
+                Edit menghapus banjar yang sedang dibuka). Test 295 → 298 passed (1113
+                assertions). BELUM dikerjakan, menunggu keputusan user: T2 penjaga saklar wajib
+                masih global bukan per-desa (18 dari 43 desa Denpasar terisi → 25 desa akan
+                terkunci), T3 banjar tak bisa diubah setelah diisi, T4 banjar tak tampil di
+                daftar hydrant warga.
+                ADENDUM 2026-08-26 (§10 file task): WARGA BOLEH MENGUSULKAN BANJAR yang belum
+                terdaftar, lewat keadaan kosong dropdown. User sempat mengusulkan tabel usulan
+                TERPISAH; disodori konsekuensinya lalu memilih SATU TABEL + kolom `status`
+                (terverifikasi/usulan). Alasan yang mengikat: dua FK sudah menunjuk `banjars`,
+                jadi tabel terpisah menuntut FK kedua di dua tabel (bentuk #60/#71), dan
+                menyetujui usulan cukup MEMBALIK KOLOM sehingga id tetap & penunjuknya utuh —
+                bandingkan PENGECUALIAN #1 poin 4 (pindah = hapus+buat ulang, id hilang).
+                Baru: POST /api/banjars (wajib login, throttle, DIKECUALIKAN dari
+                EnsureProfileComplete), Banjar::normalkanNama() (semua jadi "Banjar <Nama>"),
+                rangkaNama()+cariSerupa() (vokal dibuang + th=t/dh=d/kh=k; JANGAN diganti
+                Levenshtein), admin verify() + penyaring status. Ketiga layar kini memakai
+                SATU komponen resources/js/Components/BanjarField.jsx — dibuat karena tiga
+                salinan sudah menyimpang dan itulah #82; jangan dipecah lagi. Usulan TETAP
+                muncul di dropdown (bertanda), nama mirip DITAWARKAN bukan digabung, `jenis`
+                tidak ditebak. Test 298 → 305 passed. Data: panen 42 situs desa menghasilkan
+                220 nama di 21 desa (docs/banjar_denpasar_hasil_panen.csv, BELUM di-apply —
+                ada 4 bentrokan ejaan di docs/banjar_denpasar_konflik_ejaan.csv).
+                LANJUTAN (§11 file task): master DEV TERISI — 216 baris diterapkan (123 → 319
+                banjar, 18 → 33 dari 43 desa, 0 duplikat); 4 bentrokan ejaan diselesaikan dengan
+                MEMBUANG salinan panen & mempertahankan ejaan DB. PROD/STAGING BELUM. T4 selesai
+                (banjar tampil di daftar hydrant warga, ikut array meta tersaring — bukan
+                percabangan varian). T3 selesai (PATCH /profile/banjar + kartu di Profile/Edit;
+                DESA TIDAK ikut dikirim, yang berlaku village_code akun). T2: rencana penjaga
+                per-desa DIBATALKAN — setelah ada usulan warga, dropdown kosong bukan jalan
+                buntu, dan menuntut kelengkapan 100% membuat kewajiban tak akan pernah bisa
+                dinyalakan; diganti cakupanDesa() yang menampilkan "33 dari 43 desa" di sebelah
+                saklarnya. Test 310 passed. SISA: verifikasi visual + deploy migrasi & master.
+                DATA CONTOH (§12 file task): HydrantWargaSeeder BARU — 12 tandon di 12 desa,
+                4 kecamatan. Tabel hydrant_wargas kosong sejak TASK_30, itu sebabnya kartu
+                "Ringkasan Air Desa" tak pernah muncul (bukan bug). Aturan seeder: TITIK
+                (centroid desa + geseran TETAP) yang menentukan desa, banjar dirujuk lewat NAMA
+                bukan id (id beda antar env), rantai kode diturunkan dari kode desa — ketiganya
+                buah #78. Satu baris sengaja berkapasitas NULL untuk menguji unknown_capacity.
+                Idempoten (name+village_code). Dev: 12 baris, /pumps publik jadi 18, integritas
+                nol pelanggaran di 5 pemeriksaan.
+               TASK_39 (prompt/tasks/TASK_39_export_excel_laporan.md) — SELESAI (kode)
+                2026-08-26. Permintaan user: isi Export Excel di Verifikasi Laporan sudah
+                tertinggal jauh dari data yang dikumpulkan aplikasi. Dua jenis masalah, yang
+                pertama LEBIH SERIUS dari kelihatannya: (a) SALAH NAMA — label status di berkas
+                masih kosakata lama ("Terlapor (Belum Divalidasi)"/"Menunggu Respons"/"Sedang
+                Ditangani") padahal layar sudah lama memakai kamus kanonik STATUS_META (Laporan
+                Masuk/Laporan Terverifikasi/Penanganan/Selesai), jadi satu laporan punya DUA
+                nama antara layar operator dan berkas yang dikirim ke pimpinan; dan status
+                `ditolak` (#24) tak punya label sama sekali sehingga tercetak mentah + alasan
+                penolakannya tak pernah ikut. (b) KOLOM HILANG — incident_type, OPD terkait +
+                konfirmasinya, armada, jumlah foto, ringkasan Berita Acara belum pernah ada
+                padahal datanya sudah lama terisi. Kini 22 → 32 kolom (LAST_COLUMN 'V' → 'AF';
+                jumlah heading, LAST_COLUMN, dan columnWidths harus SELALU sama — sudah dicek).
+                Catatan yang mengikat: "Taksiran Kerugian" itu TEKS BEBAS ("±1jt"), jangan
+                diformat sebagai angka; nama OPD dibaca dari kolom denormalisasi
+                `report_agencies.agency_name` supaya rekap lama tetap terbaca walau master OPD
+                berganti nama; armada di-withTrashed karena rekap ini dokumen historis;
+                "Konfirmasi OPD" hanya menghitung yang `requires_confirmation` = DATA, JANGAN
+                diganti `if (agency_name === 'PLN')`; jumlah foto punya cadangan ke kolom lama
+                `reports.photo` supaya laporan pra-#17 tak tercatat 0. SENGAJA TIDAK diekspor:
+                identitas korban & KTP (hanya JUMLAH korban — xlsx gampang berpindah tangan
+                sementara KTP dijaga gerbang baca tersendiri; dikunci test), kronologi & tim
+                atensi. Nomor laporan LP-YYYY-NNNNN memakai rumus yang SAMA dengan
+                reportNumber() di lib/utils.js — kalau satu diubah yang lain harus ikut.
+                Tenantable TIDAK disentuh (tak ada withoutGlobalScopes).
+                Test 279 → 282 passed (1072 assertions), ReportExportTest 6 → 9.
+                SISA: verifikasi manual buka berkasnya di Excel (§6 file task).
+               TASK_38 (prompt/tasks/TASK_38_panjang_kode_kecamatan.md) — SELESAI (kode)
                 2026-08-25, permintaan user setelah membaca temuan #79 di TASK_37.
                 ResolvesFacilityJurisdiction::CODE_LENGTHS memakai kecamatan 7 DIGIT padahal
                 SELURUH 7.285 baris indonesia_districts 6 digit (517101), desa 10 digit.
@@ -141,8 +375,10 @@ Task aktif   : TASK_38 (prompt/tasks/TASK_38_panjang_kode_kecamatan.md) — SELE
                 percabangan `isGuest` di BADAN tiga halaman fasilitas IKUT DIBUANG — dulu tamu
                 dapat hero PublicPageHeader + max-w-6xl (bertumpuk dengan container AppLayout),
                 yang login dapat HeaderTitle + lebar penuh; kini satu wajah untuk semua, yaitu
-                wajah yang sudah login. PublicPageHeader TETAP dipakai kelima halaman
-                info/legal lewat InfoShell — jangan dihapus.
+                wajah yang sudah login. PublicPageHeader dulu TETAP dipakai kelima
+                halaman info/legal lewat InfoShell; sejak TASK_41 (2026-08-26) halaman-halaman
+                itu ikut memakai HeaderTitle, jadi komponen itu kini TANPA PEMAKAI — lihat
+                temuan #81, nasibnya menunggu keputusan user.
                 Penyeragaman ini TERDEPLOY 2026-08-25 @020c4021 ke prod/staging/dev.
                TASK_34 (prompt/tasks/TASK_34_notifikasi_pejabat.md) — SELESAI (kode)
                 2026-08-25. Temuan #77: peran `pejabat` TIDAK PERNAH menerima notifikasi apa
@@ -476,7 +712,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-08-25: 263 passed, 1012 assertions —
+Test      : php artisan test            (baseline 2026-08-26: 295 passed, 1104 assertions —
             angka lama "65 passed, 164 assertions" per 2026-06-25 sudah jauh tertinggal)
 Run (dev) : composer dev
 Lint      : vendor/bin/pint  /  npm run format (auto-fix, BUKAN check-only — tidak ada di CI)

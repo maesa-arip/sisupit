@@ -51,6 +51,14 @@
   3. Daftar & peta SKKL membaca **tiga** sumber (pompa + hydrant warga + apa pun berikutnya).
   4. Memindahkan hydrant dari resmi ke warga (mis. salah input) = **hapus lalu buat ulang**;
      id dan riwayatnya tidak ikut.
+- **Batas pengecualian ini — kasus serupa yang DITOLAK (2026-08-26):** saat warga hendak
+  diberi kemampuan mengusulkan banjar, bentuk yang sama (tabel usulan terpisah) diusulkan lagi
+  dan **tidak** diambil. Pembedanya: hydrant resmi vs hydrant warga adalah DUA KONSEP dengan
+  pengelola & kosakata berbeda, sedangkan banjar usulan vs terverifikasi adalah KONSEP YANG
+  SAMA pada tingkat keyakinan berbeda — itu kolom, bukan tabel. Pertanyaan penyaringnya:
+  *apakah kedua sisi akan berkembang ke arah yang berbeda, atau cuma berbeda status?* Kalau
+  cuma status, poin 4 di atas (pindah = hapus+buat ulang, id & riwayat hilang) jadi biaya
+  murni tanpa imbalan. Rinciannya di TASK_40 §10.
 - **Yang TIDAK ikut diduplikasi (mitigasi yang disepakati):**
   - **Komponen React**: `Admin/Hydrants/{Index,Create,Edit}.jsx` melayani DUA route lewat prop
     `variant`; nama route, label, **dan konfigurasi kolom per varian** (label & pilihan Sumber
