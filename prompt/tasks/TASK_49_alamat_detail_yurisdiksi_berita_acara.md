@@ -7,7 +7,7 @@
 | Severity | P2 (satu kolom berdua makna + tiga permintaan fitur kecil) |
 | Tipe | bugfix + fitur kecil |
 | Sumber | permintaan user 2026-08-28 (satu pesan, tujuh butir) |
-| Status | DONE (kode) |
+| Status | DONE — terdeploy @09cbf9fd |
 
 ---
 
@@ -170,7 +170,12 @@ Empat keputusan ditanyakan ke user lebih dulu (2026-08-28) dan dijawab:
 - [x] `npm run build` lulus
 - [ ] Verifikasi manual (daftar di bawah)
 - [x] Migrasi dijalankan di DB dev LOKAL (laragon) — dua-duanya DONE
-- [ ] Jalankan migrasi di prod/staging/dev VPS (aditif & nullable, tanpa backfill)
+- [x] TERDEPLOY 2026-08-28 @09cbf9fd ke prod/staging/dev (ff dari ead12f76), urutan dev →
+      staging → prod. Dua commit: `ed47bebe` kode, `09cbf9fd` aset. Naik SEKALIGUS dengan
+      TASK_46/47/48 yang belum pernah ter-commit. Dua migrasi DONE di ketiga env, 0 pending;
+      cadangan mysqldump di `/root/backup-predeploy-20260827-232724`. Data prod utuh
+      (72 users / 22 reports / 51 hydrants / 320 banjars). `composer install` dilewati &
+      route cache TIDAK dibangun ulang (routes/ & composer.lock tak berubah di rentang ini)
 
 ### Daftar periksa manual
 

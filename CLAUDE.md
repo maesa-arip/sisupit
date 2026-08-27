@@ -89,7 +89,34 @@ Task aktif   : TASK_49 (prompt/tasks/TASK_49_alamat_detail_yurisdiksi_berita_aca
                 Test 348 → 363 passed (1415 assertions), Pint PASS, npm run build lulus.
                 DUA MIGRASI aditif & nullable, TANPA backfill — sudah dijalankan di DB dev LOKAL
                 (laragon), BELUM di prod/staging/dev VPS. TANPA perubahan route/channel.
-                SISA: verifikasi manual §6 file task + deploy & migrasi ketiga env.
+                TERDEPLOY 2026-08-28 @09cbf9fd ke prod/staging/dev, ff dari ead12f76, SEKALIGUS
+                dengan TASK_46, TASK_47, TASK_48 & penyetelan style basemap yang selama ini belum
+                pernah ter-commit. DUA commit: ed47bebe kode + 09cbf9fd aset build. Urutan
+                dev → staging → prod. DUA MIGRASI aditif (geo_address; volume_air + kondisi) DONE
+                di ketiga env, 0 pending. Cadangan mysqldump ketiga DB lebih dulu di VPS
+                `/root/backup-predeploy-20260827-232724` (17 MB per env, "Dump completed").
+                `composer install` DILEWATI & route cache TIDAK dibangun ulang — routes/ dan
+                composer.lock TIDAK berubah di rentang ini (diperiksa dengan git diff --stat).
+                docker/tiles/data/ (1,5 GB: mbtiles, pbf, shapefile pantai, font) TIDAK ikut —
+                dikecualikan .gitignore-nya sendiri; hanya 14 berkas skrip/style yang masuk repo.
+                Verifikasi: data prod UTUH (72 users / 22 reports / 51 hydrants / 320 banjars /
+                1 berita acara, sama persis pra-migrasi); ketiga domain `/` & `/hydrants` 200;
+                bundel BARU Show-CsTXjJ3Y.js 200 & LAMA Show-Dj9hYIh5.js 404 di ketiganya; tile
+                /tiles/styles/sisupit/… 200; POST /broadcasting/auth 403; nginx/php8.2-fpm/reverb/
+                reverb-staging/reverb-dev active + container tileserver healthy; 0 berkas
+                root-owned pasca-chown; 0 ERROR baru (ERROR terakhir ketiga env 2026-08-26 06:07 =
+                queue worker "Connection refused" lama). Ketiga kolom baru & Report::alamatTampil()
+                diperiksa HIDUP di prod lewat skrip bootstrap Laravel.
+                CATATAN DATA: 22 laporan prod semuanya ber-`geo_address` KOSONG (tanpa backfill,
+                memang begitu desainnya) dan 8 di antaranya juga tanpa patokan — kedelapan itu
+                akan mengandalkan cadangan reverse-geocode di layar saat detailnya dibuka, jadi
+                pastikan Nominatim (127.0.0.1:8088) hidup. Laporan BARU langsung terisi sendiri.
+                GOTCHA BARU: `php artisan tinker <berkas.php>` MENGGANTUNG menunggu stdin lewat
+                plink (bukan gagal — ia diam sampai timeout) dan `--execute` dengan nama kelas
+                ber-namespace hancur oleh kutipan berlapis plink→bash→PHP ("T_NS_SEPARATOR").
+                Yang berhasil: skrip PHP berdiri sendiri yang me-require vendor/autoload.php +
+                bootstrap/app.php, di-pscp lalu dijalankan `php` biasa.
+                SISA: verifikasi manual §6 file task (di browser).
                TASK_48 (prompt/tasks/TASK_48_status_ditolak_verifikasi_laporan.md) — SELESAI
                 (kode) 2026-08-27. Laporan user: laporan yang DITOLAK muncul dengan nama status
                 yang salah di Verifikasi Laporan, plus permintaan chip filter "Ditolak".
