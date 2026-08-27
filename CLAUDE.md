@@ -77,6 +77,22 @@ Task aktif   : TASK_43 (prompt/tasks/TASK_43_dashboard_realtime_alamat_thanks.md
                 simetris dengan kembarannya. JANGAN pakai git checkout di repo ini selama
                 masih banyak perubahan belum ter-commit.
                 SISA: verifikasi manual §6 file task (butuh dua browser + Reverb hidup).
+                TERDEPLOY 2026-08-27 @2f8a676e ke prod/staging/dev, SEKALIGUS dengan TASK_39,
+                TASK_40, TASK_41, dan TASK_42 yang selama ini belum pernah ter-commit — kelimanya
+                naik dalam satu rentang commit 3efe158d..2f8a676e (8 commit, dipecah per task).
+                Urutannya dev → staging → prod. TIGA MIGRASI baru (banjars, banjar_id, status)
+                dijalankan di ketiga env, semuanya ADITIF sehingga tak ada risiko kehilangan data;
+                cadangan mysqldump ketiga DB tetap diambil lebih dulu di VPS
+                `/root/backup-predeploy-20260827-010411`. `composer install` DILEWATI (composer.json
+                & .lock tak berubah di rentang ini). Verifikasi sesudahnya: data prod TIDAK berubah
+                (59 users / 8 reports / 51 hydrants / 6 pompas / 0 hydrant_wargas; banjars baru = 0
+                baris — MASTER BANJAR PROD & STAGING MASIH KOSONG, jadi saklar kewajiban banjar
+                belum boleh dinyalakan di sana), ketiga domain HTTP 200, POST /broadcasting/auth
+                403 di ketiganya (terdaftar & menolak yang tak berhak — BUKAN 404 seperti #55),
+                REVERB_APP_KEY terisi di ketiga .env, ketiga service reverb aktif, chunk
+                use-report-feed-*.js hadir di ketiga env, dan manifest produksi menunjuk 164 entri
+                tanpa satu pun berkas hilang. Route cache DIBANGUN ULANG di ketiga env — wajib,
+                karena rentang ini mengubah routes/web.php (rute banjar) dan routes/channels.php.
                TASK_42 (prompt/tasks/TASK_42_aksara_asing_deteksi_lokasi.md) — SELESAI (kode)
                 2026-08-26. Laporan user: "saat pertama daftar ada tulisan korea di otomatis
                 detect lokasi saat akan mengisi yurisdiksi". Layar Lengkapi Profil menaruh
