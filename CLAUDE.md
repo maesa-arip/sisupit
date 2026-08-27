@@ -231,7 +231,15 @@ Task aktif   : TASK_43 (prompt/tasks/TASK_43_dashboard_realtime_alamat_thanks.md
                 ada 4 bentrokan ejaan di docs/banjar_denpasar_konflik_ejaan.csv).
                 LANJUTAN (§11 file task): master DEV TERISI — 216 baris diterapkan (123 → 319
                 banjar, 18 → 33 dari 43 desa, 0 duplikat); 4 bentrokan ejaan diselesaikan dengan
-                MEMBUANG salinan panen & mempertahankan ejaan DB. PROD/STAGING BELUM. T4 selesai
+                MEMBUANG salinan panen & mempertahankan ejaan DB. PROD & STAGING TERISI 2026-08-27:
+                318 baris di 32 desa, diimpor dari snapshot docs/banjar_master_denpasar.csv
+                (ekspor 318 baris `terverifikasi` dari DB dev; baris `usulan` uji coba
+                SENGAJA tidak ikut). Ditinjau dulu tanpa --apply di kedua env: 318 baru,
+                0 ditolak. Integritas nol pelanggaran di keduanya (0 desa tak dikenal,
+                0 rantai kode tak konsisten, 0 duplikat). Denpasar punya 43 desa, jadi
+                cakupannya 32/43 dan SAKLAR KEWAJIBAN BANJAR TETAP MATI di ketiga env
+                (diperiksa: tak ada baris setting `require_banjar` di mana pun = default
+                mati). Dev tetap 319 karena desa ke-33 di sana hanya berisi baris usulan itu. T4 selesai
                 (banjar tampil di daftar hydrant warga, ikut array meta tersaring — bukan
                 percabangan varian). T3 selesai (PATCH /profile/banjar + kartu di Profile/Edit;
                 DESA TIDAK ikut dikirim, yang berlaku village_code akun). T2: rencana penjaga
