@@ -24,6 +24,24 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
  *
  * Tidak ada withoutGlobalScopes() di sini - query tetap lewat scope Tenantable milik
  * Report, jadi admin hanya mengekspor laporan di wilayah tenant-nya sendiri.
+ *
+ * ISI DISELARASKAN 2026-08-26 (permintaan user): berkas ini tertinggal jauh dari data yang
+ * sebenarnya dikumpulkan aplikasi. Yang diperbaiki:
+ *  - Label status memakai KAMUS KANONIK yang sama dengan layar (Laporan Masuk / Laporan
+ *    Terverifikasi / Penanganan / Selesai) - sebelumnya berbunyi "Terlapor (Belum
+ *    Divalidasi)"/"Menunggu Respons"/"Sedang Ditangani", sehingga satu laporan punya dua
+ *    nama antara layar dan berkas ekspor.
+ *  - Status `ditolak` (ada sejak FINDINGS #24) TIDAK punya label sama sekali di sini, jadi
+ *    selnya tercetak "ditolak" mentah. Alasan penolakannya pun tak pernah ikut terekspor.
+ *  - Kolom `incident_type` (TASK_27), OPD terkait + konfirmasinya (TASK_27), armada yang
+ *    dikerahkan (TASK_09), jumlah foto (FINDINGS #17), dan ringkasan Berita Acara
+ *    (FINDINGS #39) belum pernah ada di sini padahal semuanya sudah lama terisi.
+ *
+ * SENGAJA TIDAK diekspor: identitas korban & berkas KTP di berita acara (`report_victims`,
+ * disk privat) - yang ikut hanya JUMLAH korban. Berkas xlsx gampang berpindah tangan,
+ * sementara KTP di aplikasi ini dijaga gerbang baca tersendiri (ReportResolutionController::ktp).
+ * Kronologi & tim atensi juga tidak ikut: teks panjang bebas yang merusak lebar kolom dan
+ * memang tempatnya di dokumen berita acara, bukan di rekap.
  */
 class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell, WithEvents, WithHeadings, WithMapping, WithTitle
 {
@@ -31,15 +49,33 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
     private const HEADER_ROW = 6;
 
     /** Kolom terakhir yang dipakai tabel (disesuaikan dengan jumlah heading). */
-    private const LAST_COLUMN = 'V';
+    private const LAST_COLUMN = 'AF';
 
-    /** Label status agar konsisten dengan badge di halaman Verifikasi Laporan. */
+    /**
+     * Label status. WAJIB seiring dengan kamus kanonik di layar
+     * (`resources/js/Pages/Admin/Reports/Index.jsx` → STATUS_META): kalau berbeda, satu
+     * laporan punya dua nama - satu di halaman Verifikasi, satu di berkas yang dikirim ke
+     * pimpinan. 'aktif' bukan status baris, melainkan nilai filter; ia hanya dipakai di kop.
+     */
     private const STATUS_LABELS = [
         'aktif' => 'Darurat Aktif (Belum Selesai)',
-        'TERLAPOR' => 'Terlapor (Belum Divalidasi)',
-        'pending' => 'Menunggu Respons',
-        'handling' => 'Sedang Ditangani',
+        'TERLAPOR' => 'Laporan Masuk',
+        'pending' => 'Laporan Terverifikasi',
+        'handling' => 'Penanganan',
         'resolved' => 'Selesai',
+        'ditolak' => 'Ditolak',
+    ];
+
+    /**
+     * Label jenis kejadian, seiring dengan INCIDENT_TYPES di
+     * `resources/js/Pages/Front/Reports/Create.jsx` (tombol pilihan cepat warga).
+     */
+    private const INCIDENT_TYPE_LABELS = [
+        'rumah' => 'Kebakaran Rumah',
+        'toko' => 'Kebakaran Toko/Bangunan',
+        'kendaraan' => 'Kebakaran Kendaraan',
+        'lahan' => 'Kebakaran Lahan',
+        'lainnya' => 'Bukan Kebakaran',
     ];
 
     private int $rowNumber = 0;
@@ -59,6 +95,18 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
                 'city:code,name',
                 'district:code,name',
                 'village:code,name',
+                // Nama instansi diambil dari kolom `agency_name` di pivot (sengaja
+                // didenormalisasi saat pelibatan) supaya rekap lama tetap terbaca apa adanya
+                // walau master OPD-nya kemudian diganti nama atau dihapus.
+                'reportAgencies',
+                // withTrashed: armada yang kemudian dihapus dari master TIDAK boleh menghapus
+                // jejak bahwa ia pernah dikerahkan - rekap ini dokumen historis. (Scope
+                // Tenantable milik Unit sengaja dibiarkan: nama armada dibaca dengan
+                // wewenang yang sama seperti di layar.)
+                'reportUnits.unit' => fn ($query) => $query->withTrashed()->select('id', 'name'),
+                'resolutions:id,report_id,status,kerugian,created_at',
+                'resolutions.victims:id,report_resolution_id',
+                'photos:id,report_id',
             ])
             ->filter($this->filters)
             ->when($status && $status !== 'Semua', fn ($query) => $status === 'aktif'
@@ -82,11 +130,13 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
         return [
             'No',
             'ID',
+            'No. Laporan',
             'Tanggal & Jam Lapor',
-            'Nama Pelapor',
-            'No. Telepon',
+            'Jenis Kejadian',
             'Judul Kejadian',
             'Deskripsi',
+            'Nama Pelapor',
+            'No. Telepon',
             'Alamat Kejadian',
             'Kel./Desa',
             'Kecamatan',
@@ -95,6 +145,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             'Latitude',
             'Longitude',
             'Status',
+            'Alasan Ditolak',
             'Jam Direspons',
             'Jam Tiba di Lokasi',
             'Jam Selesai',
@@ -102,6 +153,13 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             'Durasi Penanganan',
             'Jml. Petugas',
             'Jml. Relawan',
+            'Armada Dikerahkan',
+            'OPD Terkait',
+            'Konfirmasi OPD',
+            'Jml. Foto',
+            'Berita Acara',
+            'Taksiran Kerugian',
+            'Jml. Korban',
         ];
     }
 
@@ -122,14 +180,22 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             $report->helpers->pluck('finished_at')->all(),
         ));
 
+        // Berita acara boleh berkali-kali disimpan sebagai 'sementara' sebelum 'final'
+        // (append-only, FINDINGS #39). Yang mewakili laporan adalah yang FINAL; kalau belum
+        // ada, ambil draf terbaru supaya angkanya tetap terlihat sebagai "sementara".
+        $resolution = $report->resolutions->firstWhere('status', 'final')
+            ?? $report->resolutions->sortByDesc('created_at')->first();
+
         return [
             $this->rowNumber,
             $report->id,
+            $this->reportNumber($report),
             optional($report->created_at)->format('d-m-Y H:i'),
-            $report->name ?: optional($report->user)->name ?: '-',
-            $report->phone ?: '-',
+            self::INCIDENT_TYPE_LABELS[$report->incident_type] ?? '-',
             $report->title,
             $report->description,
+            $report->name ?: optional($report->user)->name ?: '-',
+            $report->phone ?: '-',
             $report->address,
             optional($report->village)->name ?: '-',
             optional($report->district)->name ?: '-',
@@ -138,6 +204,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             $report->lat,
             $report->lng,
             self::STATUS_LABELS[$report->status] ?? $report->status,
+            $this->rejectionSummary($report),
             optional($respondedAt)->format('d-m-Y H:i') ?: '-',
             optional($arrivedAt)->format('d-m-Y H:i') ?: '-',
             optional($finishedAt)->format('d-m-Y H:i') ?: '-',
@@ -145,6 +212,16 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             $this->humanDuration($arrivedAt, $finishedAt),
             $report->officers->count(),
             $report->helpers->count(),
+            $report->reportUnits->map(fn ($row) => optional($row->unit)->name)->filter()->implode(', ') ?: '-',
+            $report->reportAgencies->pluck('agency_name')->filter()->implode(', ') ?: '-',
+            $this->agencyConfirmationSummary($report),
+            // Laporan lama menyimpan satu foto di kolom `reports.photo`; galeri
+            // `report_photos` baru ada sejak FINDINGS #17. Tanpa cadangan ini laporan lama
+            // tercatat 0 foto padahal fotonya ada.
+            $report->photos->count() ?: ($report->photo ? 1 : 0),
+            $this->resolutionLabel($report),
+            optional($resolution)->kerugian ?: '-',
+            $resolution ? $resolution->victims->count() : 0,
         ];
     }
 
@@ -153,26 +230,36 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
         return [
             'A' => 5,    // No
             'B' => 7,    // ID
-            'C' => 18,   // Tgl & Jam Lapor
-            'D' => 22,   // Nama Pelapor
-            'E' => 16,   // Telepon
+            'C' => 16,   // No. Laporan
+            'D' => 18,   // Tgl & Jam Lapor
+            'E' => 20,   // Jenis Kejadian
             'F' => 28,   // Judul
             'G' => 34,   // Deskripsi
-            'H' => 34,   // Alamat
-            'I' => 18,   // Desa
-            'J' => 18,   // Kecamatan
-            'K' => 18,   // Kab/Kota
-            'L' => 18,   // Provinsi
-            'M' => 12,   // Lat
-            'N' => 12,   // Lng
-            'O' => 22,   // Status
-            'P' => 18,   // Jam Direspons
-            'Q' => 18,   // Jam Tiba
-            'R' => 18,   // Jam Selesai
-            'S' => 18,   // Waktu Respons
-            'T' => 18,   // Durasi Penanganan
-            'U' => 11,   // Jml Petugas
-            'V' => 11,   // Jml Relawan
+            'H' => 22,   // Nama Pelapor
+            'I' => 16,   // Telepon
+            'J' => 34,   // Alamat
+            'K' => 18,   // Desa
+            'L' => 18,   // Kecamatan
+            'M' => 18,   // Kab/Kota
+            'N' => 18,   // Provinsi
+            'O' => 12,   // Lat
+            'P' => 12,   // Lng
+            'Q' => 22,   // Status
+            'R' => 30,   // Alasan Ditolak
+            'S' => 18,   // Jam Direspons
+            'T' => 18,   // Jam Tiba
+            'U' => 18,   // Jam Selesai
+            'V' => 18,   // Waktu Respons
+            'W' => 18,   // Durasi Penanganan
+            'X' => 11,   // Jml Petugas
+            'Y' => 11,   // Jml Relawan
+            'Z' => 26,   // Armada Dikerahkan
+            'AA' => 26,  // OPD Terkait
+            'AB' => 34,  // Konfirmasi OPD
+            'AC' => 9,   // Jml Foto
+            'AD' => 16,  // Berita Acara
+            'AE' => 18,  // Taksiran Kerugian
+            'AF' => 11,  // Jml Korban
         ];
     }
 
@@ -226,7 +313,8 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
                     $dataRange = "A{$firstDataRow}:{$last}{$lastDataRow}";
                     $sheet->getStyle($dataRange)->getAlignment()->setVertical(Alignment::VERTICAL_TOP);
                     // Kolom angka & waktu dibuat rata tengah agar rapi terbaca.
-                    foreach (['A', 'B', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V'] as $col) {
+                    $centered = ['A', 'B', 'C', 'D', 'O', 'P', 'Q', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'AC', 'AD', 'AE', 'AF'];
+                    foreach ($centered as $col) {
                         $sheet->getStyle("{$col}{$firstDataRow}:{$col}{$lastDataRow}")
                             ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
                     }
@@ -264,6 +352,76 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
         }
 
         return $summary;
+    }
+
+    /**
+     * Nomor laporan yang dilihat pengguna di layar (LP-2026-00042).
+     *
+     * Nomor ini TIDAK disimpan di database - ia turunan dari `id` + tahun `created_at`,
+     * rumus yang sama dengan `reportNumber()` di `resources/js/lib/utils.js`. Kalau salah
+     * satu diubah, yang lain harus ikut, kalau tidak nomor di kertas berbeda dengan nomor
+     * di layar untuk laporan yang sama. Kolom `ID` mentah tetap ada di sebelahnya karena
+     * itulah yang dipakai URL detail (/reports/show/{id}) saat ditelusuri kembali.
+     */
+    private function reportNumber($report): string
+    {
+        $year = optional($report->created_at)->format('Y') ?: Carbon::now()->format('Y');
+
+        return 'LP-'.$year.'-'.str_pad((string) $report->id, 5, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Alasan penolakan + kapan ditolak. Hanya terisi untuk status `ditolak`; laporan yang
+     * ditolak TANPA alasan tertulis (kolomnya memang nullable) tetap menyebut waktunya.
+     */
+    private function rejectionSummary($report): string
+    {
+        if ($report->status !== 'ditolak') {
+            return '-';
+        }
+
+        $reason = trim((string) $report->rejected_reason) ?: 'Tanpa alasan tertulis';
+        $at = $report->rejected_at ? Carbon::parse($report->rejected_at)->format('d-m-Y H:i') : null;
+
+        return $at ? $reason.' ('.$at.')' : $reason;
+    }
+
+    /**
+     * Ringkasan konfirmasi OPD (TASK_27), mis. "PLN: sudah - 26-08-2026 12:30".
+     *
+     * Hanya instansi yang MEMANG butuh konfirmasi yang dihitung: `requires_confirmation`
+     * adalah DATA di master OPD, bukan daftar nama instansi yang di-hardcode - jangan
+     * ganti dengan pengecekan semacam `agency_name === 'PLN'`.
+     */
+    private function agencyConfirmationSummary($report): string
+    {
+        $rows = $report->reportAgencies->filter(fn ($row) => (bool) $row->requires_confirmation);
+
+        if ($rows->isEmpty()) {
+            return '-';
+        }
+
+        return $rows->map(function ($row) {
+            $label = $row->agency_name ?: 'OPD';
+
+            if (! $row->confirmed_at) {
+                return $label.': menunggu';
+            }
+
+            return $label.': sudah - '.Carbon::parse($row->confirmed_at)->format('d-m-Y H:i');
+        })->implode('; ');
+    }
+
+    /**
+     * Status berita acara/Laporan Kegiatan Penyelamatan (FINDINGS #39) untuk satu laporan.
+     */
+    private function resolutionLabel($report): string
+    {
+        if ($report->resolutions->firstWhere('status', 'final')) {
+            return 'Final';
+        }
+
+        return $report->resolutions->isNotEmpty() ? 'Sementara' : 'Belum ada';
     }
 
     /**

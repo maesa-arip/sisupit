@@ -93,3 +93,100 @@ it('only includes reports from the admin own tenant in the exported file', funct
     expect($cells)->not->toContain('Kejadian di Jabar');
     expect($reportInBali->province_code)->toBe('51');
 });
+
+/** Semua sel non-kosong di sheet ekspor, diratakan - tata letak boleh berubah. */
+function exportedCells($response): array
+{
+    $path = $response->baseResponse->getFile()->getPathname();
+    $sheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($path)->getActiveSheet();
+
+    return collect($sheet->toArray())->flatten()->filter()->values()->all();
+}
+
+// Isi berkas ekspor tertinggal jauh dari data yang dikumpulkan aplikasi (permintaan user
+// 2026-08-26): jenis kejadian, OPD terkait + konfirmasinya, armada, jumlah foto, dan
+// ringkasan berita acara tak pernah ikut, padahal semuanya sudah lama terisi. Test ini
+// menjaga agar kolom-kolom itu tidak diam-diam hilang lagi saat berkas ekspor dirapikan.
+it('exports the incident data collected after the first version of the sheet', function () {
+    $admin = User::factory()->create(['province_code' => '51']);
+    $admin->assignRole('admin');
+
+    $report = makeReport([
+        'title' => 'Kebakaran gudang',
+        'province_code' => '51',
+        'status' => 'resolved',
+        'incident_type' => 'toko',
+    ]);
+
+    $unit = \App\Models\Unit::create([
+        'name' => 'Damkar 01', 'type' => 'truk', 'status' => 'available', 'province_code' => '51',
+    ]);
+    \App\Models\ReportUnit::create([
+        'report_id' => $report->id, 'unit_id' => $unit->id, 'status' => 'dispatched', 'dispatched_at' => now(),
+    ]);
+
+    $agency = \App\Models\Agency::create([
+        'name' => 'PLN ULP Denpasar', 'code' => 'pln', 'province_code' => '51',
+        'requires_confirmation' => true, 'confirmation_label' => 'Listrik sudah dipadamkan',
+    ]);
+    \App\Models\ReportAgency::create([
+        'report_id' => $report->id, 'agency_id' => $agency->id, 'agency_name' => 'PLN ULP Denpasar',
+        'requires_confirmation' => true, 'confirmation_label' => 'Listrik sudah dipadamkan',
+        'notified_at' => now(), 'confirmed_at' => now(), 'confirmed_source' => 'operator',
+    ]);
+
+    \App\Models\ReportPhoto::create(['report_id' => $report->id, 'path' => 'reports/a.jpg']);
+    \App\Models\ReportPhoto::create(['report_id' => $report->id, 'path' => 'reports/b.jpg']);
+
+    $resolution = \App\Models\ReportResolution::create([
+        'report_id' => $report->id, 'created_by' => $admin->id, 'status' => 'final', 'kerugian' => 'kurang lebih 50 juta',
+    ]);
+    \App\Models\ReportVictim::create(['report_resolution_id' => $resolution->id, 'nama' => 'Korban Satu']);
+
+    $cells = exportedCells($this->actingAs($admin)->get('/admin/reports/export'));
+
+    expect($cells)
+        ->toContain('LP-'.$report->created_at->format('Y').'-'.str_pad((string) $report->id, 5, '0', STR_PAD_LEFT))
+        ->toContain('Kebakaran Toko/Bangunan')
+        ->toContain('Damkar 01')
+        ->toContain('PLN ULP Denpasar')
+        ->toContain('Final')
+        ->toContain('kurang lebih 50 juta');
+
+    // Identitas korban SENGAJA tidak ikut - yang diekspor hanya jumlahnya.
+    expect($cells)->not->toContain('Korban Satu');
+});
+
+// Status `ditolak` ada sejak FINDINGS #24 tapi tak pernah punya label di berkas ekspor,
+// jadi selnya tercetak mentah dan alasan penolakannya hilang sama sekali.
+it('labels a rejected report and carries its reason into the sheet', function () {
+    $admin = User::factory()->create(['province_code' => '51']);
+    $admin->assignRole('admin');
+
+    makeReport([
+        'title' => 'Laporan hoax',
+        'province_code' => '51',
+        'status' => 'ditolak',
+        'rejected_reason' => 'Foto tidak sesuai lokasi',
+        'rejected_at' => now(),
+    ]);
+
+    $cells = exportedCells($this->actingAs($admin)->get('/admin/reports/export?status=ditolak'));
+
+    expect($cells)->toContain('Ditolak');
+    expect(collect($cells)->contains(fn ($cell) => str_contains((string) $cell, 'Foto tidak sesuai lokasi')))->toBeTrue();
+});
+
+// Kamus status kanonik: berkas ekspor tak boleh menyebut laporan dengan nama yang berbeda
+// dari layar Verifikasi Laporan (STATUS_META di Admin/Reports/Index.jsx).
+it('uses the same status wording as the verification screen', function () {
+    $admin = User::factory()->create(['province_code' => '51']);
+    $admin->assignRole('admin');
+
+    makeReport(['title' => 'Baru masuk', 'province_code' => '51', 'status' => 'TERLAPOR']);
+
+    $cells = exportedCells($this->actingAs($admin)->get('/admin/reports/export'));
+
+    expect($cells)->toContain('Laporan Masuk');
+    expect($cells)->not->toContain('Terlapor (Belum Divalidasi)');
+});
