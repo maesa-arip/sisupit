@@ -1,3 +1,4 @@
+import BanjarField from '@/Components/BanjarField';
 import InputError from '@/Components/InputError';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
@@ -48,20 +49,21 @@ const matchRegionName = (dbList, osmNamesArray, removeWords = []) => {
 	return matched;
 };
 
-export default function CompleteProfile({ provinces, user }) {
+export default function CompleteProfile({ provinces, user, banjar_required = false }) {
 	const { data, setData, post, processing, errors } = useForm({
 		phone: user?.phone || '',
 		province_code: '',
 		city_code: '',
 		district_code: '',
 		village_code: '',
+		banjar_id: '',
 	});
 
 	const [cities, setCities] = useState([]);
 	const [districts, setDistricts] = useState([]);
 	const [villages, setVillages] = useState([]);
 	const [isDetecting, setIsDetecting] = useState(true);
-	const [detectedAddress, setDetectedAddress] = useState('');
+	const [detectedRegion, setDetectedRegion] = useState('');
 
 	useEffect(() => {
 		if (data.province_code) {
@@ -95,7 +97,6 @@ export default function CompleteProfile({ provinces, user }) {
 						params: { lat: latitude, lng: longitude },
 					});
 					const addr = res.data?.address;
-					setDetectedAddress(res.data?.display_name || '');
 
 					if (addr) {
 						const osmNames = [
@@ -130,29 +131,46 @@ export default function CompleteProfile({ provinces, user }) {
 							dCode = '',
 							vCode = '';
 
+						let matchedCity = null,
+							matchedDist = null,
+							matchedVill = null;
+
 						const matchedProv = matchRegionName(provinces, osmNames, removeWords);
 						if (matchedProv) pCode = matchedProv.code;
 
 						if (pCode) {
 							const resCity = await axios.get(`/api/regions/cities/${pCode}`);
 							setCities(resCity.data);
-							const matchedCity = matchRegionName(resCity.data, osmNames, removeWords);
+							matchedCity = matchRegionName(resCity.data, osmNames, removeWords);
 							if (matchedCity) cCode = matchedCity.code;
 						}
 
 						if (cCode) {
 							const resDist = await axios.get(`/api/regions/districts/${cCode}`);
 							setDistricts(resDist.data);
-							const matchedDist = matchRegionName(resDist.data, osmNames, removeWords);
+							matchedDist = matchRegionName(resDist.data, osmNames, removeWords);
 							if (matchedDist) dCode = matchedDist.code;
 						}
 
 						if (dCode) {
 							const resVill = await axios.get(`/api/regions/villages/${dCode}`);
 							setVillages(resVill.data);
-							const matchedVill = matchRegionName(resVill.data, osmNames, removeWords);
+							matchedVill = matchRegionName(resVill.data, osmNames, removeWords);
 							if (matchedVill) vCode = matchedVill.code;
 						}
+
+						// Kalimat konfirmasi di bawah bicara soal WILAYAH, jadi isinya nama wilayah yang
+						// benar-benar cocok dengan tabel `indonesia_*` — BUKAN `display_name` mentah dari
+						// Nominatim. `display_name` selalu diawali POI terdekat apa adanya dari tag `name`
+						// OSM, yang di koridor wisata Kuta–Pemogan kerap beraksara non-Latin (Rusia, Jepang,
+						// Korea). `accept-language=id` tidak menolong: parameter itu hanya memilih di antara
+						// varian `name:<lang>`, tak pernah menyentuh tag `name` utama. Lihat FINDINGS #83.
+						// Efek sampingnya disengaja: yang disebut banner kini persis isi dropdown di bawahnya.
+						setDetectedRegion(
+							[matchedVill?.name, matchedDist?.name, matchedCity?.name, matchedProv?.name]
+								.filter(Boolean)
+								.join(', '),
+						);
 
 						setData((prev) => ({
 							...prev,
@@ -198,12 +216,18 @@ export default function CompleteProfile({ provinces, user }) {
 								<IconLoader2 className="h-4 w-4 animate-spin" /> Mendeteksi lokasi Anda...
 							</div>
 						)}
-						{!isDetecting && detectedAddress && (
+						{!isDetecting && detectedRegion && (
 							<div className="flex items-start gap-2 rounded-lg border border-border bg-muted p-3 text-xs leading-relaxed text-foreground/80">
 								<IconMapPin className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
 								<span>
-									Lokasi terdeteksi di sekitar <b>{detectedAddress}</b>. Wilayah di bawah sudah terisi
-									otomatis &mdash; periksa dan sesuaikan bila kurang tepat.
+									Lokasi terdeteksi di <b>{detectedRegion}</b>. Wilayah di bawah sudah terisi otomatis
+									&mdash; periksa dan sesuaikan bila kurang tepat.
+									{!data.village_code && (
+										<span className="mt-1 block font-medium text-foreground">
+											Kelurahan/Desa belum bisa ditentukan otomatis &mdash; silakan pilih sendiri
+											di bawah.
+										</span>
+									)}
 								</span>
 							</div>
 						)}
@@ -282,6 +306,22 @@ export default function CompleteProfile({ provinces, user }) {
 							/>
 							{errors.village_code && <InputError message={errors.village_code} />}
 						</div>
+
+						{/* Banjar — satuan komunitas di bawah desa. Ditanyakan di SINI, bukan di form
+						    daftar (keputusan user 2026-08-26): layar ini sudah menanyakan wilayah sampai desa
+						    sehingga pilihannya bisa langsung disaring, sementara menambahkannya ke form daftar
+						    berarti menanyakan wilayah dua kali dan memberatkan pendaftaran darurat.
+						    Selalu ditampilkan sejak 2026-08-26: warga kini bisa mengusulkan banjar yang belum
+						    terdaftar, jadi menyembunyikannya saat daftar kosong justru menutup satu-satunya
+						    jalan mengisi 11 desa yang masternya masih nihil. */}
+						<BanjarField
+							villageCode={data.village_code}
+							value={data.banjar_id}
+							onChange={(val) => setData('banjar_id', val)}
+							error={errors.banjar_id}
+							required={banjar_required}
+							className="space-y-1.5"
+						/>
 
 						<Button
 							type="submit"
