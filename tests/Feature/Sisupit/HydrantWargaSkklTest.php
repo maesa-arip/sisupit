@@ -121,7 +121,12 @@ it('keeps the two hydrant lists apart', function () {
     expect($warga['counts'])->toBe(['resmi' => 1, 'warga' => 1]);
 });
 
-it('shows citizen hydrants in the SKKL list alongside pumps, tagged with their source', function () {
+// Hydrant warga DIKELUARKAN dari daftar SKKL admin 2026-08-26 (permintaan user) — tapi HANYA
+// di menu admin. Halaman publik /pumps tetap menggabungkan keduanya, karena bagi warga &
+// operator lapangan "SKKL" berarti seluruh sumber air lingkungan. Test ini menjaga kedua sisi
+// sekaligus: kalau salah satunya ikut berubah diam-diam, satu daftar akan kehilangan separuh
+// isinya tanpa gejala apa pun.
+it('keeps citizen hydrants out of the admin SKKL list but inside the public one', function () {
     Pompa::create([
         'name' => 'Pompa Banjar Renon',
         'address' => 'Jl. Raya Puputan',
@@ -136,25 +141,32 @@ it('shows citizen hydrants in the SKKL list alongside pumps, tagged with their s
 
     $this->actingAs($this->admin)->post('/admin/hydrant-warga', $this->payload);
 
-    $rows = collect(
+    $adminRows = collect(
         $this->actingAs($this->admin)->get('/admin/pumps')->viewData('page')['props']['pumps']['data']
     );
 
-    expect($rows)->toHaveCount(2);
-    expect($rows->pluck('source')->sort()->values()->all())->toBe(['hydrant_warga', 'pompa']);
+    expect($adminRows)->toHaveCount(1);
+    expect($adminRows->pluck('source')->unique()->all())->toBe(['pompa']);
 
-    $citizen = $rows->firstWhere('source', 'hydrant_warga');
+    $publicRows = collect($this->get('/pumps')->viewData('page')['props']['pumps']['data']);
+
+    expect($publicRows)->toHaveCount(2);
+    expect($publicRows->pluck('source')->sort()->values()->all())->toBe(['hydrant_warga', 'pompa']);
+
+    $citizen = $publicRows->firstWhere('source', 'hydrant_warga');
     expect($citizen['name'])->toBe('Hydrant Banjar Sanur');
     expect($citizen['capacity_liter'])->toBe(5000);
-    // Angka simpanan TIDAK boleh menyamar sebagai debit: kartu & rekap membaca kunci ini
-    // sebagai liter/menit, jadi mengisinya berarti menampilkan 5.000 lpm yang tak pernah ada.
+    // Angka simpanan TIDAK boleh menyamar sebagai debit: kartu membaca kunci ini sebagai
+    // liter/menit, jadi mengisinya berarti menampilkan 5.000 lpm yang tak pernah ada.
     expect($citizen['debit_lpm'])->toBeNull();
     expect($citizen['water_metric'])->toBe('capacity');
-    // Tombol edit di daftar SKKL menunjuk ke resource hydrant warga, jadi id-nya harus id-nya.
     expect($citizen['id'])->toBe(HydrantWarga::first()->id);
 });
 
-it('keeps debit (lpm) and kapasitas (liter) apart in the per-village summary', function () {
+// Rekap air per desa PINDAH ke menu Hydrant Warga dan hanya menjumlahkan hydrant warga
+// (permintaan user 2026-08-26). Sebelumnya ia tinggal di /admin/pumps dan membawa DUA satuan
+// berdampingan karena halamannya memuat pompa sekaligus tandon warga.
+it('moves the per-village water summary to the citizen hydrant menu and counts only citizen hydrants', function () {
     Pompa::create([
         'name' => 'Pompa Banjar Renon',
         'address' => 'Jl. Raya Puputan',
@@ -167,38 +179,36 @@ it('keeps debit (lpm) and kapasitas (liter) apart in the per-village summary', f
         'village_code' => '5171012006',
     ]);
 
-    // Aset tanpa debit: ikut dihitung sebagai TITIK, tapi tidak menambah total — dan
-    // keberadaannya dilaporkan lewat unknown_debit supaya total tak dibaca sebagai angka pasti.
-    Pompa::create([
-        'name' => 'Tandon Lama',
+    $this->actingAs($this->admin)->post('/admin/hydrant-warga', $this->payload);
+
+    // Titik tanpa kapasitas: ikut dihitung sebagai TITIK, tidak menambah total, dan
+    // keberadaannya dilaporkan lewat unknown_capacity supaya total tak dibaca sebagai angka pasti.
+    HydrantWarga::create([
+        'name' => 'Tandon Belum Diukur',
         'address' => 'Jl. Sekar',
-        'status' => 'Aktif',
-        'type' => 'Statis (Hydrant)',
-        'capacity_lpm' => null,
+        'status' => 'Belum Modifikasi',
+        'type' => 'Tandon',
+        'capacity_liter' => null,
         'lat' => '-8.6800',
         'lng' => '115.2500',
+        'province_code' => '51',
         'city_code' => '5171',
+        'district_code' => '517101',
         'village_code' => '5171012006',
     ]);
 
-    $this->actingAs($this->admin)->post('/admin/hydrant-warga', $this->payload);
+    $adminProps = $this->actingAs($this->admin)->get('/admin/pumps')->viewData('page')['props'];
 
-    $summary = $this->actingAs($this->admin)->get('/admin/pumps')->viewData('page')['props']['summary'];
+    // Daftar SKKL tidak lagi membawa rekap sama sekali.
+    expect($adminProps)->not->toHaveKey('summary');
+
+    $summary = $this->actingAs($this->admin)->get('/admin/hydrant-warga')->viewData('page')['props']['summary'];
 
     expect($summary)->toHaveCount(1);
-    expect($summary[0]['points'])->toBe(3);
-
-    // Aliran: HANYA pompa. Sampai 2026-08-20 hydrant warga ikut dijumlahkan ke sini karena
-    // satuannya memang sama; sejak ia jadi tandon, menjumlahkannya berarti mengaku punya
-    // 5.800 lpm padahal yang ada 800 lpm + 5.000 liter air diam.
-    expect($summary[0]['debit_points'])->toBe(2);
-    expect($summary[0]['debit_lpm'])->toBe(800);
-    expect($summary[0]['unknown_debit'])->toBe(1);
-
-    // Simpanan: HANYA hydrant warga.
-    expect($summary[0]['capacity_points'])->toBe(1);
+    // Pompa di desa yang sama TIDAK ikut terhitung.
+    expect($summary[0]['points'])->toBe(2);
     expect($summary[0]['capacity_liter'])->toBe(5000);
-    expect($summary[0]['unknown_capacity'])->toBe(0);
+    expect($summary[0]['unknown_capacity'])->toBe(1);
 });
 
 it('keeps citizen hydrants off the public official-hydrant page and vice versa', function () {
@@ -210,4 +220,13 @@ it('keeps citizen hydrants off the public official-hydrant page and vice versa',
 
     $skkl = collect($this->get('/pumps')->viewData('page')['props']['pumps']['data'])->pluck('name');
     expect($skkl->all())->toBe(['Hydrant Banjar Sanur']);
+});
+
+// Kedua jenis hydrant tampil sebagai SATU menu bertab, jadi sidebar hanya punya satu entri
+// untuknya. Sampai 2026-08-26 entri itu hanya menyorot `/admin/hydrants`, sehingga membuka tab
+// Hydrant Warga membuat sidebar tak menyorot apa pun — pengguna seolah berada di luar menu mana
+// pun. Tak ada galat, tak ada test yang merah: karena itu penjaganya membaca berkas sumbernya.
+it('keeps the hydrant sidebar entry active while the citizen hydrant tab is open', function () {
+    expect(file_get_contents(resource_path('js/Layouts/Partials/navItems.js')))
+        ->toContain("startsWith('/admin/hydrant-warga')");
 });

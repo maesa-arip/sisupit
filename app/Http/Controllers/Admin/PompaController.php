@@ -3,12 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\HydrantWarga;
 use App\Models\Pompa;
 use App\Traits\ResolvesFacilityJurisdiction;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -17,33 +14,36 @@ class PompaController extends Controller
     use ResolvesFacilityJurisdiction;
 
     /**
-     * Daftar SKKL (Sistem Ketahanan Kebakaran Lingkungan) = DUA sumber dalam satu halaman
-     * sejak TASK_30: aset pompa (tabel `pompas`) + hydrant swadaya warga (tabel
-     * `hydrant_wargas`). Hydrant warga tetap DISUNTING di menu Hydrant Warga — di sini ia
-     * hanya dibaca, dan tombol editnya menunjuk balik ke form asalnya.
+     * Daftar SKKL admin = ASET POMPA saja.
      *
-     * Penggabungan dilakukan di PHP, bukan lewat UNION SQL, dengan alasan yang disengaja:
-     * query Eloquent biasa dijamin membawa global scope `Tenantable`, sedangkan sub-query
-     * union gampang lolos darinya — kebocoran data lintas wilayah persis jenis bug yang
-     * pernah terjadi di repo ini (FINDINGS #32). Jumlah fasilitas per kabupaten ada di
-     * kisaran puluhan, jadi biayanya tak berarti.
+     * Sampai 2026-08-26 halaman ini menggabungkan dua sumber (tabel `pompas` + `hydrant_wargas`,
+     * TASK_30). Atas permintaan user hydrant warga DIKELUARKAN dari menu admin ini dan
+     * sepenuhnya hidup di menu Hydrant Warga — berikut rekap airnya. Yang IKUT keluar sebagai
+     * konsekuensinya: kolom kapasitas (liter, hanya dimiliki hydrant warga) dan dua chip filter
+     * status "Belum/Sudah Modifikasi" (kosakata hydrant warga, lihat TASK_33).
+     *
+     * PENTING — pemisahan ini HANYA di menu admin (keputusan user): halaman publik `/pumps`
+     * (`Front\PompaController`) dan layer SKKL di Peta Pemantauan TETAP menggabungkan keduanya,
+     * karena bagi warga & operator lapangan "SKKL" berarti seluruh sumber air lingkungan.
+     * Jangan "seragamkan" salah satunya tanpa menanyakan user.
      */
     public function index(Request $request)
     {
-        $rows = $this->filtered(Pompa::query(), $request)->get()->map->toSkklRow()
-            ->concat($this->filtered(HydrantWarga::query(), $request)->get()->map->toSkklRow())
-            ->sortByDesc('created_at')
-            ->values();
-
         return Inertia::render('Admin/Pumps/Index', [
-            'pumps' => $this->paginateRows($rows, $request),
-            'summary' => $this->waterSummary($rows),
+            // toSkklRow() dipertahankan meski sumbernya tinggal satu: bentuk baris inilah yang
+            // dibaca kartu & peta halaman ini, dan ia tetap kembar dengan HydrantWarga agar
+            // /pumps publik (yang masih menggabungkan keduanya) tak perlu bentuk kedua.
+            'pumps' => $this->filtered(Pompa::query(), $request)
+                ->latest()
+                ->paginate(10)
+                ->withQueryString()
+                ->through(fn (Pompa $pompa) => $pompa->toSkklRow()),
             'filters' => $request->only(['search', 'status']),
             'tenant_location' => $this->getTenantDefaultLocation(),
         ]);
     }
 
-    /** Filter daftar yang berlaku sama untuk kedua sumber (kolom name/address/status identik). */
+    /** Filter daftar (pencarian nama/alamat + status). */
     private function filtered($query, Request $request)
     {
         if ($request->filled('search')) {
@@ -58,114 +58,6 @@ class PompaController extends Controller
         }
 
         return $query;
-    }
-
-    /**
-     * Paginator manual: dua sumber sudah terlanjur disatukan sebagai koleksi, jadi paginasi
-     * DB tak bisa dipakai lagi. `query()` disertakan supaya pencarian & filter tidak hilang
-     * saat pindah halaman (padanan ->withQueryString()).
-     */
-    private function paginateRows(Collection $rows, Request $request, int $perPage = 10): LengthAwarePaginator
-    {
-        $page = LengthAwarePaginator::resolveCurrentPage();
-
-        return new LengthAwarePaginator(
-            $rows->forPage($page, $perPage)->values(),
-            $rows->count(),
-            $perPage,
-            $page,
-            ['path' => $request->url(), 'query' => $request->query()]
-        );
-    }
-
-    /**
-     * Rekap air per desa — menjawab "berapa banyak air yang bisa diandalkan di desa ini" saat
-     * menyusun kesiapsiagaan wilayah (TASK_30).
-     *
-     * DUA angka, bukan satu (permintaan user 2026-08-21). Sampai 2026-08-20 hydrant warga
-     * memakai `debit_lpm` dengan satuan yang sengaja disamakan dengan `pompas.capacity_lpm`
-     * supaya bisa dijumlahkan. Sejak hydrant warga jadi tandon/groundtank, angkanya adalah
-     * KAPASITAS dalam liter — simpanan, bukan aliran. Menjumlahkan 800 lpm dengan 5.000 liter
-     * menghasilkan bilangan yang tidak punya arti fisik apa pun namun akan terbaca sebagai
-     * debit, jadi keduanya dipisah dan masing-masing membawa satuannya sendiri.
-     *
-     * Pemisahnya `water_metric` dari `toSkklRow()`, BUKAN `source`: yang menentukan sebuah
-     * angka boleh dijumlahkan adalah satuannya, dan menuliskan nama tabel di sini akan pecah
-     * begitu ada sumber SKKL ketiga.
-     *
-     * `unknown_*` sengaja ikut dikirim: total yang menyembunyikan berapa titik yang BELUM
-     * didata akan dibaca sebagai angka pasti, padahal ia batas bawah. Aset pompa lama umumnya
-     * belum mengisi `capacity_lpm`, jadi kasus ini normal, bukan langka.
-     */
-    private function waterSummary(Collection $rows): array
-    {
-        $codes = $rows->pluck('village_code')->filter()->unique()->values()->all();
-
-        $names = DB::table('indonesia_villages')->whereIn('code', $codes)->pluck('name', 'code');
-
-        // Nama kecamatan hanya diperlukan untuk kode desa yang TIDAK dikenal — lihat villageLabel().
-        $unknown = array_values(array_diff($codes, $names->keys()->all()));
-
-        $districts = $unknown === []
-            ? collect()
-            : DB::table('indonesia_districts')
-                ->whereIn('code', array_map(fn ($code) => $this->districtCodeFromVillage((string) $code), $unknown))
-                ->pluck('name', 'code');
-
-        return $rows
-            ->groupBy(fn ($row) => $row['village_code'] ?: '')
-            ->map(function (Collection $group, $code) use ($names, $districts) {
-                $flowing = $group->where('water_metric', 'debit');
-                $stored = $group->where('water_metric', 'capacity');
-
-                return [
-                    'village_code' => $code ?: null,
-                    'village' => $this->villageLabel($code, $names, $districts),
-                    'points' => $group->count(),
-                    // Aliran: pompa & aset air bertekanan, liter per menit.
-                    'debit_points' => $flowing->count(),
-                    'debit_lpm' => $flowing->sum(fn ($row) => (int) ($row['debit_lpm'] ?? 0)),
-                    'unknown_debit' => $flowing->whereNull('debit_lpm')->count(),
-                    // Simpanan: tandon/groundtank warga, liter.
-                    'capacity_points' => $stored->count(),
-                    'capacity_liter' => $stored->sum(fn ($row) => (int) ($row['capacity_liter'] ?? 0)),
-                    'unknown_capacity' => $stored->whereNull('capacity_liter')->count(),
-                ];
-            })
-            // Desa berair paling banyak di atas. Debit dinilai lebih dulu karena ia yang
-            // menentukan kesanggupan memadamkan; kapasitas jadi penentu bila debitnya seri
-            // (termasuk seri di angka nol — desa yang hanya punya tandon warga).
-            ->sortByDesc(fn (array $row) => [$row['debit_lpm'], $row['capacity_liter']])
-            ->values()
-            ->all();
-    }
-
-    /**
-     * Judul baris rekap. Kode wilayah TIDAK PERNAH sampai ke layar: sampai 2026-08-25
-     * fallback-nya `?? $code`, sehingga sebuah baris berjudul "5171012001" begitu kode desa
-     * yang tersimpan tidak ada di `indonesia_villages` — dan itu bukan kasus langka, seeder
-     * fasilitas mengarang kode desa (FINDINGS #78). Angka 10 digit tak berarti apa pun bagi
-     * operator; nama kecamatannya masih bisa diturunkan dari AWALAN kode BPS (aturan yang
-     * sama dipakai `ResolvesFacilityJurisdiction`), jadi barisnya tetap punya tempat yang
-     * dikenali sekaligus mengaku datanya belum beres. Perbaikan datanya sendiri lewat
-     * `php artisan sisupit:fix-facility-village-codes`.
-     *
-     * Kecamatannya diturunkan lewat `districtCodeFromVillage()` (trait yurisdiksi fasilitas),
-     * bukan `substr(..., 0, 6)` di sini — panjang kode wilayah cuma boleh ditulis satu tempat.
-     */
-    private function villageLabel(?string $code, Collection $names, Collection $districts): string
-    {
-        if (! $code) {
-            return 'Tanpa data desa';
-        }
-
-        if (isset($names[$code])) {
-            return $names[$code];
-        }
-
-        $district = $districts[$this->districtCodeFromVillage($code)] ?? null;
-
-        return $district ? 'Desa tidak dikenal · Kec. '.$district : 'Desa tidak dikenal';
     }
 
     public function create()

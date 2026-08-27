@@ -15,6 +15,7 @@ import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
 	IconAlertTriangle,
 	IconArrowDown,
+	IconDroplet,
 	IconEdit,
 	IconFireHydrant,
 	IconMapPinFilled,
@@ -25,7 +26,7 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { HydrantTabs, hydrantVariant, tenantWilayah } from './variants';
 
-export default function Index({ variant = 'resmi', counts = {}, hydrants, filters, tenant_location }) {
+export default function Index({ variant = 'resmi', counts = {}, hydrants, summary = [], filters, tenant_location }) {
 	const v = hydrantVariant(variant);
 	// Keterangan hydrant resmi menyebut pemiliknya, jadi nama wilayahnya ikut tenant yang
 	// sedang dibuka — bukan dipaku "Kota Denpasar" yang akan terbaca juga oleh admin Badung.
@@ -188,6 +189,50 @@ export default function Index({ variant = 'resmi', counts = {}, hydrants, filter
 						</div>
 					</div>
 
+					{/* Rekap kapasitas air per desa — PINDAH dari daftar SKKL 2026-08-26 (permintaan
+					    user) dan kini menjumlahkan hydrant warga SAJA. Kartunya muncul karena
+					    controller mengirim `summary`, BUKAN karena komponen ini memeriksa
+					    `variant === 'warga'` — hydrant resmi tak punya angka kapasitas, jadi
+					    halamannya cukup tidak mengirim propnya. Ikut filter & pencarian aktif. */}
+					{summary.length > 0 && (
+						<Card className="border-teal-200 bg-teal-50/60 shadow-none dark:border-teal/20 dark:bg-teal/5">
+							<CardContent className="p-3 sm:p-4">
+								<div className="mb-2 flex items-center gap-1.5">
+									<IconDroplet className="h-4 w-4 text-teal-700 dark:text-teal" />
+									<h3 className="text-xs font-bold uppercase tracking-wide text-teal-700 dark:text-teal">
+										Ringkasan Air Desa
+									</h3>
+								</div>
+								<div className="flex flex-col gap-1.5">
+									{summary.map((row) => (
+										<div
+											key={row.village_code ?? 'tanpa-desa'}
+											className="flex items-baseline justify-between gap-2 text-xs"
+										>
+											<span className="truncate font-medium text-foreground">
+												{row.village}
+												<span className="ml-1 font-normal text-muted-foreground">
+													({row.points} titik)
+												</span>
+											</span>
+											<span className="shrink-0 font-semibold text-foreground">
+												{/* "0 liter" akan terbaca sebagai fakta, padahal artinya
+												    belum ada satu pun titik yang mengisi angkanya. */}
+												{row.capacity_liter > 0 ? capacityLabel(row.capacity_liter) : '—'}
+											</span>
+										</div>
+									))}
+								</div>
+								{summary.some((row) => row.unknown_capacity > 0) && (
+									<p className="mt-2 border-t border-teal-200 pt-2 text-[11px] leading-relaxed text-muted-foreground dark:border-teal/20">
+										Sebagian titik belum mengisi kapasitasnya, jadi angka di atas adalah batas bawah
+										— bukan total sebenarnya.
+									</p>
+								)}
+							</CardContent>
+						</Card>
+					)}
+
 					{/* Area Scroll Daftar Hydrant */}
 					<div className="flex h-[500px] flex-col gap-3 overflow-y-auto pb-4 pr-1 lg:h-[calc(100vh-240px)] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar]:w-1.5">
 						{hydrants.data && hydrants.data.length > 0 ? (
@@ -223,6 +268,9 @@ export default function Index({ variant = 'resmi', counts = {}, hydrants, filter
 															waterPressureLabel(hydrant.water_pressure),
 															debitLabel(hydrant.debit_lpm),
 															capacityLabel(hydrant.capacity_liter),
+															// Hanya ada pada hydrant warga; pada hydrant resmi bernilai
+															// undefined dan tersaring sendiri seperti kolom air di atas.
+															hydrant.banjar?.name,
 														]
 															.filter(Boolean)
 															.join(' · ')}

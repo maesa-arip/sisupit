@@ -10,6 +10,7 @@ import {
 	IconGavel,
 	IconHeartHandshake,
 	IconHistory,
+	IconHomeCog,
 	IconInfoCircle,
 	IconKey,
 	IconLifebuoy,
@@ -208,7 +209,14 @@ export function buildNavSections({ auth, url = '' }) {
 							title: 'Manajemen Hydrant',
 							icon: IconFireHydrant,
 							url: route('admin.hydrants.index'),
-							active: startsWith('/admin/facilities') || startsWith('/admin/hydrants'),
+							// `/admin/hydrant-warga` WAJIB ikut: kedua jenis hydrant tampil sebagai
+							// satu menu bertab (lihat Admin/Hydrants/variants.jsx), jadi tanpa ini
+							// sidebar tak menyorot apa pun saat tab Hydrant Warga dibuka — seolah
+							// pengguna sedang berada di luar menu mana pun.
+							active:
+								startsWith('/admin/facilities') ||
+								startsWith('/admin/hydrants') ||
+								startsWith('/admin/hydrant-warga'),
 						},
 						{
 							key: 'admin.pumps',
@@ -230,6 +238,13 @@ export function buildNavSections({ auth, url = '' }) {
 							icon: IconBuildingCommunity,
 							url: route('admin.agencies.index'),
 							active: startsWith('/admin/agencies'),
+						},
+						{
+							key: 'admin.banjars',
+							title: 'Manajemen Banjar',
+							icon: IconHomeCog,
+							url: route('admin.banjars.index'),
+							active: startsWith('/admin/banjars'),
 						},
 						// SEMENTARA DISEMBUNYIKAN (keputusan user 2026-06-29): menu "Kelola Armada"
 						// disembunyikan selaras dengan panel Pengerahan Armada di Show.jsx.

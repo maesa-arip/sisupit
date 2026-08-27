@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\HydrantWarga;
 use App\Models\Pompa;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -62,10 +63,33 @@ function pompaBerkode(?string $villageCode, string $districtCode = '517101'): Po
     ]);
 }
 
-it('never puts a region code on screen when the village is unknown', function () {
-    pompaBerkode('5171012003'); // kode berbentuk sah, tapi tidak ada di indonesia_villages
+/**
+ * Tandon warga di desa tertentu. Rekap air per desa PINDAH dari /admin/pumps ke menu Hydrant
+ * Warga pada 2026-08-26 (permintaan user) dan kini hanya menjumlahkan hydrant warga — jadi
+ * kedua test judul baris rekap di bawah ikut pindah ke sumber itu. Yang DIUJI tidak berubah:
+ * kode wilayah tak pernah sampai ke layar.
+ */
+function hydrantWargaBerkode(?string $villageCode, string $districtCode = '517101'): HydrantWarga
+{
+    return HydrantWarga::create([
+        'name' => 'Tandon Uji',
+        'address' => 'Jl. Raya Pemogan',
+        'status' => 'Belum Modifikasi',
+        'type' => 'Tandon',
+        'capacity_liter' => 5000,
+        'lat' => '-8.7130',
+        'lng' => '115.1960',
+        'province_code' => '51',
+        'city_code' => '5171',
+        'district_code' => $districtCode,
+        'village_code' => $villageCode,
+    ]);
+}
 
-    $summary = $this->actingAs($this->admin)->get('/admin/pumps')->viewData('page')['props']['summary'];
+it('never puts a region code on screen when the village is unknown', function () {
+    hydrantWargaBerkode('5171012003'); // kode berbentuk sah, tapi tidak ada di indonesia_villages
+
+    $summary = $this->actingAs($this->admin)->get('/admin/hydrant-warga')->viewData('page')['props']['summary'];
 
     // Angka 10 digit tak berarti apa pun bagi operator; nama kecamatannya masih bisa
     // diturunkan dari awalan kodenya, jadi barisnya tetap punya tempat yang dikenali.
@@ -74,9 +98,9 @@ it('never puts a region code on screen when the village is unknown', function ()
 });
 
 it('still shows the real village name when the code is valid', function () {
-    pompaBerkode('5171012008');
+    hydrantWargaBerkode('5171012008');
 
-    $summary = $this->actingAs($this->admin)->get('/admin/pumps')->viewData('page')['props']['summary'];
+    $summary = $this->actingAs($this->admin)->get('/admin/hydrant-warga')->viewData('page')['props']['summary'];
 
     expect($summary[0]['village'])->toBe('Pemogan');
 });

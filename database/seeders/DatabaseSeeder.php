@@ -20,6 +20,12 @@ class DatabaseSeeder extends Seeder
             HydrantSeeder::class,
             PompaSeeder::class,
             PosPemadamSeeder::class,
+            // Tandon/groundtank swadaya warga. Dijalankan SESUDAH master banjar terisi bila ada:
+            // banjarnya dirujuk lewat NAMA, dan yang tak ketemu menghasilkan banjar_id NULL
+            // (dengan peringatan) — bukan tebakan. Master banjar diisi lewat
+            // `php artisan sisupit:import-banjar`, bukan lewat seeder, karena daftarnya harus
+            // diminta ke BPS/Pemkot dan berbeda per kabupaten.
+            HydrantWargaSeeder::class,
             UserTenantSeeder::class,
             ReportSeeder::class,
             ResolvedReportSeeder::class,

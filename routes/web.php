@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AgencyController as AdminAgencyController;
+use App\Http\Controllers\Admin\BanjarController as AdminBanjarController;
 use App\Http\Controllers\Admin\HydrantController as AdminHydrantController;
 use App\Http\Controllers\Admin\HydrantWargaController as AdminHydrantWargaController;
 use App\Http\Controllers\Admin\PompaController as AdminPompaController;
@@ -8,6 +9,7 @@ use App\Http\Controllers\Admin\PosPemadamController as AdminPosPemadamController
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\UnitController as AdminUnitController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Api\BanjarUsulanController;
 use App\Http\Controllers\Api\FcmController;
 use App\Http\Controllers\Api\GeocodeController;
 use App\Http\Controllers\Api\RouteController;
@@ -70,6 +72,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('units', AdminUnitController::class)->except(['show']);
         // Master OPD/instansi terkait (TASK_27) — ter-scope wilayah via Tenantable.
         Route::resource('agencies', AdminAgencyController::class)->except(['show']);
+        // Master banjar (2026-08-26) — satuan komunitas di BAWAH desa. Dipakai form hydrant
+        // warga & layar Lengkapi Profil; diisi lewat CRUD ini atau perintah
+        // `php artisan sisupit:import-banjar`.
+        // Didaftarkan SEBELUM resource: `banjars/require` harus dibaca sebagai path tetap,
+        // bukan sebagai {banjar} milik resource.
+        Route::post('banjars/require', [AdminBanjarController::class, 'toggleRequirement'])->name('banjars.require');
+        Route::post('banjars/{banjar}/verify', [AdminBanjarController::class, 'verify'])->name('banjars.verify');
+        Route::resource('banjars', AdminBanjarController::class)->except(['show']);
 
         Route::prefix('reports')->name('reports.')->controller(AdminReportController::class)->group(function () {
             Route::get('/', 'index')->name('index');
@@ -140,6 +150,23 @@ Route::get('/api/regions/districts/{cityCode}', function ($cityCode) {
 Route::get('/api/regions/villages/{districtCode}', function ($districtCode) {
     return DB::table('indonesia_villages')->where('district_code', $districtCode)->get();
 })->name('api.regions.villages');
+
+// Pilihan banjar untuk satu desa — sumber dropdown di form hydrant warga & layar Lengkapi
+// Profil. Sengaja setara /api/regions/*: dipakai juga oleh warga yang BELUM punya kode wilayah
+// (justru sedang mengisinya), jadi ia tak boleh berdiri di belakang scope wilayah. Isinya hanya
+// nama banjar di satu desa — tak ada data pribadi. Lihat Banjar::optionsForVillage().
+Route::get('/api/banjars/{villageCode}', function ($villageCode) {
+    return response()->json(App\Models\Banjar::optionsForVillage($villageCode));
+})->name('api.banjars');
+
+// Warga mengusulkan banjar yang belum ada di master. WAJIB login (usulan ikut mencatat
+// pengusulnya), tapi TIDAK di belakang EnsureProfileComplete — pemakainya justru orang yang
+// sedang melengkapi profil, dan memantulkannya balik membuat tombol 'Tambah Banjar' mati
+// tanpa gejala apa pun (jebakan yang sama sudah kena sekali di GET /api/banjars).
+// Dibatasi lajunya: satu akun tak perlu membuat puluhan banjar dalam semenit.
+Route::post('/api/banjars', [BanjarUsulanController::class, 'store'])
+    ->middleware(['auth', 'throttle:10,1'])
+    ->name('api.banjars.usul');
 
 // Proxy Nominatim (User-Agent, cache, & rate limit ditangani di server - lihat GeocodeController)
 Route::middleware(['auth'])->group(function () {
@@ -221,6 +248,10 @@ Route::middleware(['auth'])->controller(ProfileController::class)->group(functio
     Route::get('profile', 'edit')->name('profile.edit');
     Route::patch('profile', 'update')->name('profile.update');
     Route::delete('profile', 'destroy')->name('profile.destroy');
+    // Banjar bisa diubah SETELAH profil lengkap — warga pindah banjar, atau salah pilih saat
+    // mendaftar. Sebelum 2026-08-26 kolom ini hanya bisa diisi sekali di layar Lengkapi Profil
+    // dan tak ada satu pun jalan memperbaikinya, admin sekalipun.
+    Route::patch('profile/banjar', 'updateBanjar')->name('profile.banjar');
     Route::get('/complete-profile', 'completeProfile')->name('profile.complete');
     Route::post('/complete-profile', 'storeCompleteProfile')->name('profile.complete.store');
     Route::post('/volunteer/register', [VolunteerController::class, 'register'])->name('volunteer.register');

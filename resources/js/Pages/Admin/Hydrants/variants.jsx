@@ -65,6 +65,9 @@ export const HYDRANT_VARIANTS = {
 		showWaterPressure: true,
 		waterField: 'debit_lpm',
 		waterLabel: 'Debit Air',
+		// Banjar hanya relevan bagi tandon swadaya: hydrant resmi dimiliki instansi/PDAM,
+		// bukan komunitas. Sebagai DATA, bukan `if (variant === 'warga')` di dalam form.
+		showBanjar: false,
 		waterUnit: '(liter/menit)',
 		waterPlaceholder: 'Misal: 500',
 		// Opsional: hydrant resmi milik PDAM/instansi, angkanya dipegang mereka.
@@ -107,6 +110,7 @@ export const HYDRANT_VARIANTS = {
 		showWaterPressure: false,
 		waterField: 'capacity_liter',
 		waterLabel: 'Kapasitas Volume',
+		showBanjar: true,
 		waterUnit: '(liter)',
 		waterPlaceholder: 'Misal: 5000',
 		// WAJIB: rekap "berapa simpanan air di desa ini" berdiri di atas kelengkapan data ini,

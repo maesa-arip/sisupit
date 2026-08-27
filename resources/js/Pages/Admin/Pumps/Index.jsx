@@ -3,21 +3,13 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
-import {
-	capacityLabel,
-	debitLabel,
-	facilityStatusIsFaulty,
-	facilityStatusLabel,
-	MAP_TILE_URL,
-	waterPressureLabel,
-} from '@/lib/utils';
+import { debitLabel, facilityStatusIsFaulty, facilityStatusLabel, MAP_TILE_URL, waterPressureLabel } from '@/lib/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
 	IconAlertTriangle,
 	IconArrowDown,
 	IconDroplet,
 	IconEdit,
-	IconFireHydrant,
 	IconMapPinFilled,
 	IconPlus,
 	IconSearch,
@@ -26,25 +18,27 @@ import {
 import { useEffect, useRef, useState } from 'react';
 
 /**
- * Manajemen SKKL (Sistem Ketahanan Kebakaran Lingkungan).
+ * Manajemen SKKL (Sistem Ketahanan Kebakaran Lingkungan) — ASET POMPA saja.
  *
- * Daftarnya berisi DUA sumber (TASK_30): aset pompa dan hydrant milik warga. Tiap baris
- * membawa `source` yang menentukan ke form mana tombol edit/hapus menunjuk — hydrant warga
- * disunting di menu Hydrant, tempat ia diinput. Karena itu id baris TIDAK unik lintas sumber
- * (pompa #3 dan hydrant #3 bisa hidup berdampingan), jadi semua state per-baris memakai
- * kunci gabungan `source-id`, bukan id telanjang.
+ * Sampai 2026-08-26 daftar ini menggabungkan dua sumber (aset pompa + hydrant warga, TASK_30).
+ * Atas permintaan user hydrant warga dikeluarkan dari menu admin ini dan sepenuhnya hidup di
+ * menu Hydrant Warga, berikut rekap airnya. Ikut hilang sebagai konsekuensinya: kolom kapasitas
+ * (liter — hanya dimiliki hydrant warga) dan dua chip status "Belum/Sudah Modifikasi".
+ *
+ * Pemisahan ini HANYA di menu admin: halaman publik `/pumps` dan layer SKKL di Peta Pemantauan
+ * TETAP menggabungkan keduanya, karena bagi warga & operator lapangan "SKKL" berarti seluruh
+ * sumber air lingkungan. Karena itu `Pages/Pumps/Index.jsx` (publik) masih memuat keempat chip
+ * status — jangan "seragamkan" dengan berkas ini.
+ *
+ * `rowKey` tetap memakai `source-id` walau sumbernya tinggal satu: bentuk baris `toSkklRow()`
+ * masih kembar dengan hydrant warga demi halaman publik, dan kunci gabungan tetap benar.
  */
 const rowKey = (row) => `${row.source}-${row.id}`;
 
-/**
- * Chip filter status. Isinya GABUNGAN dua kosakata karena daftarnya pun gabungan dua sumber:
- * aset pompa memakai Aktif/Perbaikan, hydrant warga memakai Belum/Sudah Modifikasi sejak
- * 2026-08-21. Menghilangkan salah satu pasangan membuat separuh daftar tak bisa disaring dan —
- * lebih buruk — membuat filter yang ada membuang separuh isi daftar tanpa gejala.
- */
-const STATUS_FILTERS = ['Semua', 'Aktif', 'Perbaikan', 'Belum Modifikasi', 'Sudah Modifikasi'];
+/** Chip filter status aset pompa. Kosakata "Belum/Sudah Modifikasi" milik hydrant warga. */
+const STATUS_FILTERS = ['Semua', 'Aktif', 'Perbaikan'];
 
-export default function Index({ pumps, summary = [], filters, tenant_location }) {
+export default function Index({ pumps, filters, tenant_location }) {
 	const [pumpToDelete, setPumpToDelete] = useState(null);
 	const [activePumpId, setActivePumpId] = useState(null);
 
@@ -117,15 +111,10 @@ export default function Index({ pumps, summary = [], filters, tenant_location })
 		setData('status', val);
 		router.get(route('admin.pumps.index'), { ...data, status: val }, { preserveState: true, preserveScroll: true });
 	};
-	// Baris hydrant warga dihapus lewat resource-nya sendiri — daftar ini hanya membacanya.
 	const confirmDelete = () => {
 		if (!pumpToDelete) return;
-		const target =
-			pumpToDelete.source === 'hydrant_warga'
-				? route('admin.hydrant-warga.destroy', pumpToDelete.id)
-				: route('admin.pumps.destroy', pumpToDelete.id);
 
-		router.delete(target, {
+		router.delete(route('admin.pumps.destroy', pumpToDelete.id), {
 			preserveScroll: true,
 			onSuccess: () => setPumpToDelete(null),
 		});
@@ -221,61 +210,6 @@ export default function Index({ pumps, summary = [], filters, tenant_location })
 								</button>
 							))}
 						</div>
-
-						{/* Rekap air per desa (TASK_30, dipecah jadi dua angka 2026-08-21).
-						    Pompa MENGALIRKAN air (liter/menit), tandon warga MENYIMPANNYA (liter);
-						    dua satuan itu tak boleh dijumlahkan, jadi masing-masing berdiri sendiri
-						    lengkap dengan satuannya. Ikut filter & pencarian aktif. */}
-						{summary.length > 0 && (
-							<Card className="border-info/20 bg-info/5 shadow-none">
-								<CardContent className="p-3 sm:p-4">
-									<div className="mb-2 flex items-center gap-1.5">
-										<IconDroplet className="h-4 w-4 text-info" />
-										<h3 className="text-xs font-bold uppercase tracking-wide text-info">
-											Ringkasan Air Desa
-										</h3>
-									</div>
-									<div className="flex flex-col gap-2.5">
-										{summary.map((row) => (
-											<div
-												key={row.village_code ?? 'tanpa-desa'}
-												className="flex flex-col gap-0.5"
-											>
-												<span className="truncate text-xs font-medium text-foreground">
-													{row.village}
-													<span className="ml-1 font-normal text-muted-foreground">
-														({row.points} titik)
-													</span>
-												</span>
-												{/* Baris tetap ditampilkan walau desanya tak punya titik jenis itu:
-												    "—" menjawab "belum ada" secara eksplisit, sedangkan baris yang
-												    hilang membuat pembacanya mengira angkanya lupa dihitung. */}
-												<span className="flex items-baseline justify-between gap-2 pl-2 text-[11px]">
-													<span className="text-muted-foreground">Debit pompa</span>
-													<span className="shrink-0 font-semibold text-foreground">
-														{row.debit_points > 0 ? debitLabel(row.debit_lpm) : '—'}
-													</span>
-												</span>
-												<span className="flex items-baseline justify-between gap-2 pl-2 text-[11px]">
-													<span className="text-muted-foreground">Kapasitas warga</span>
-													<span className="shrink-0 font-semibold text-foreground">
-														{row.capacity_points > 0
-															? capacityLabel(row.capacity_liter)
-															: '—'}
-													</span>
-												</span>
-											</div>
-										))}
-									</div>
-									{summary.some((row) => row.unknown_debit > 0 || row.unknown_capacity > 0) && (
-										<p className="mt-2 border-t border-info/20 pt-2 text-[11px] leading-relaxed text-muted-foreground">
-											Sebagian titik belum mengisi angka airnya, jadi angka di atas adalah batas
-											bawah — bukan total sebenarnya.
-										</p>
-									)}
-								</CardContent>
-							</Card>
-						)}
 					</div>
 
 					<div className="flex h-[500px] flex-col gap-3 overflow-y-auto pb-4 pr-1 lg:h-[calc(100vh-240px)] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar]:w-1.5">
@@ -292,25 +226,14 @@ export default function Index({ pumps, summary = [], filters, tenant_location })
 												<div
 													className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${facilityStatusIsFaulty(pump.status) ? 'bg-destructive/10 text-destructive' : 'bg-info/10 text-info'}`}
 												>
-													{pump.source === 'hydrant_warga' ? (
-														<IconFireHydrant className="h-5 w-5" />
-													) : (
-														<IconDroplet className="h-5 w-5" />
-													)}
+													<IconDroplet className="h-5 w-5" />
 												</div>
 												<div className="w-full min-w-0 flex-1">
-													<div className="flex items-center gap-1.5">
-														<h3
-															className={`truncate text-sm font-semibold ${activePumpId === rowKey(pump) ? 'text-info' : 'text-foreground'}`}
-														>
-															{pump.name}
-														</h3>
-														{pump.source === 'hydrant_warga' && (
-															<span className="shrink-0 rounded-full bg-info/10 px-2 py-0.5 text-[10px] font-bold text-info">
-																Warga
-															</span>
-														)}
-													</div>
+													<h3
+														className={`truncate text-sm font-semibold ${activePumpId === rowKey(pump) ? 'text-info' : 'text-foreground'}`}
+													>
+														{pump.name}
+													</h3>
 													<p className="mt-0.5 truncate text-xs text-muted-foreground">
 														{pump.type ? `${pump.type} · ` : ''}
 														{pump.address}
@@ -318,12 +241,8 @@ export default function Index({ pumps, summary = [], filters, tenant_location })
 													<p className="mt-0.5 truncate text-[11px] text-muted-foreground">
 														{[
 															facilityStatusLabel(pump.status),
-															// Satu dari dua angka air, tergantung sumber barisnya:
-															// pompa membawa debit (lpm), hydrant warga membawa
-															// kapasitas (liter). Yang tak berlaku bernilai null.
 															waterPressureLabel(pump.water_pressure),
 															debitLabel(pump.debit_lpm),
-															capacityLabel(pump.capacity_liter),
 														]
 															.filter(Boolean)
 															.join(' · ')}
@@ -339,13 +258,7 @@ export default function Index({ pumps, summary = [], filters, tenant_location })
 														asChild
 														className="h-8 w-8 text-muted-foreground hover:text-info"
 													>
-														<Link
-															href={
-																pump.source === 'hydrant_warga'
-																	? route('admin.hydrant-warga.edit', pump.id)
-																	: route('admin.pumps.edit', pump.id)
-															}
-														>
+														<Link href={route('admin.pumps.edit', pump.id)}>
 															<IconEdit className="h-4 w-4" />
 														</Link>
 													</Button>

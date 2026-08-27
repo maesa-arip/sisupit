@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Banjar;
+use App\Models\Setting;
 use App\Models\User;
 use App\Traits\HasFile;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -30,6 +32,13 @@ class ProfileController extends Controller
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
             'jurisdiction' => $this->resolveJurisdiction($request->user()),
+            // Banjar hanya relevan bagi akun yang punya desa. Staf kabupaten/kecamatan sengaja
+            // tak berbanjar (#56), jadi kartunya tak perlu muncul sama sekali bagi mereka.
+            'banjar' => $request->user()->village_code ? [
+                'village_code' => $request->user()->village_code,
+                'banjar_id' => $request->user()->banjar_id ? (string) $request->user()->banjar_id : '',
+                'required' => $this->banjarRequired(),
+            ] : null,
             'skillOptions' => \App\Models\Skill::options(), // master keahlian untuk editor relawan di profil
         ]);
     }
@@ -115,7 +124,45 @@ class ProfileController extends Controller
             'user' => [
                 'phone' => $request->user()->phone,
             ],
+            // Saklar "banjar wajib" (2026-08-26). DEFAULT MATI dan hanya boleh dinyalakan
+            // SETELAH master banjar wilayah itu terisi — dropdown kosong yang diwajibkan akan
+            // memblokir seluruh pendaftaran warga (gema #61). Lihat Setting::KEY_REQUIRE_BANJAR.
+            'banjar_required' => $this->banjarRequired(),
         ]);
+    }
+
+    /** Apakah warga wajib memilih banjar saat melengkapi profil? */
+    private function banjarRequired(): bool
+    {
+        return filter_var(
+            Setting::getValue(Setting::KEY_REQUIRE_BANJAR, '0'),
+            FILTER_VALIDATE_BOOLEAN
+        );
+    }
+
+    /**
+     * Ubah banjar akun sendiri.
+     *
+     * Desanya TIDAK ikut dikirim: yang berlaku adalah `village_code` yang sudah tersimpan di
+     * akun. Menerima desa dari form di sini berarti membuka jalan memindahkan diri ke desa lain
+     * lewat layar yang niatnya cuma mengganti banjar — dan kolom wilayah akun menentukan apa
+     * yang dilihat serta notifikasi apa yang diterima.
+     */
+    public function updateBanjar(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        $data = $request->validate([
+            'banjar_id' => [$this->banjarRequired() ? 'required' : 'nullable', 'integer', 'exists:banjars,id'],
+        ], [
+            'banjar_id.required' => 'Pilih banjar tempat Anda tinggal.',
+        ]);
+
+        Banjar::assertBelongsToVillage($data['banjar_id'] ?? null, $user->village_code);
+
+        $user->update(['banjar_id' => $data['banjar_id'] ?? null]);
+
+        return Redirect::route('profile.edit')->with('success', 'Banjar berhasil diperbarui.');
     }
 
     /**
@@ -129,7 +176,19 @@ class ProfileController extends Controller
             'city_code' => 'required|exists:indonesia_cities,code',
             'district_code' => 'required|exists:indonesia_districts,code',
             'village_code' => 'required|exists:indonesia_villages,code',
+            // Kewajibannya SAKLAR, bukan aturan mati: master banjar diisi belakangan, dan
+            // mewajibkan kolom yang pilihannya belum ada berarti mengunci pendaftaran warga.
+            // Kolomnya sendiri tetap nullable di database — akun staf/OPD memang tak berbanjar.
+            'banjar_id' => [$this->banjarRequired() ? 'required' : 'nullable', 'integer', 'exists:banjars,id'],
+        ], [
+            'banjar_id.required' => 'Pilih banjar tempat Anda tinggal.',
         ]);
+
+        // `exists:banjars,id` hanya membuktikan barisnya ada, bukan bahwa ia milik desa yang
+        // baru saja dipilih. Layar ini memang mengosongkan pilihan banjar tiap kali desanya
+        // berganti, tapi aturan yang menjaga isi tabel tidak boleh bersandar pada urutan klik
+        // di satu layar — lihat Banjar::assertBelongsToVillage().
+        Banjar::assertBelongsToVillage($data['banjar_id'] ?? null, $data['village_code'] ?? null);
 
         $request->user()->update($data);
 

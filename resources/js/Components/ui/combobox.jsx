@@ -14,8 +14,15 @@ export function Combobox({
 	emptyText = 'Data tidak ditemukan.',
 	disabled = false,
 	className,
+	// Aksi opsional yang dirender DI DALAM keadaan kosong, menerima kata kunci yang sedang
+	// diketik — mis. "Tambah Banjar 'Tegal Sari'". Sengaja opsional & tanpa nilai bawaan:
+	// puluhan dropdown lain memakai komponen ini dan tak boleh berubah perilakunya.
+	emptyAction,
+	// Penanda per baris (mis. chip "usulan"). Mengembalikan node atau null.
+	itemBadge,
 }) {
 	const [open, setOpen] = React.useState(false);
+	const [query, setQuery] = React.useState('');
 
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
@@ -40,9 +47,21 @@ export function Combobox({
 			{/* w-[var(--radix-popover-trigger-width)] memastikan lebar dropdown sama persis dengan tombolnya */}
 			<PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
 				<Command>
-					<CommandInput placeholder="Cari..." className="border-none shadow-none focus:ring-0" />
+					<CommandInput
+						placeholder="Cari..."
+						value={query}
+						onValueChange={setQuery}
+						className="border-none shadow-none focus:ring-0"
+					/>
 					<CommandList>
-						<CommandEmpty>{emptyText}</CommandEmpty>
+						<CommandEmpty>
+							<div className="px-3 py-4 text-center">
+								<p className="text-sm text-muted-foreground">{emptyText}</p>
+								{emptyAction ? (
+									<div className="mt-3">{emptyAction(query, () => setOpen(false))}</div>
+								) : null}
+							</div>
+						</CommandEmpty>
 						<CommandGroup>
 							{items.map((item) => (
 								<CommandItem
@@ -59,7 +78,8 @@ export function Combobox({
 											value === item.code ? 'opacity-100' : 'opacity-0',
 										)}
 									/>
-									{item.name}
+									<span className="truncate">{item.name}</span>
+									{itemBadge ? itemBadge(item) : null}
 								</CommandItem>
 							))}
 						</CommandGroup>

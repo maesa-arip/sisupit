@@ -1,3 +1,4 @@
+import BanjarField from '@/Components/BanjarField';
 import { Button } from '@/Components/ui/button';
 import {
 	Dialog,
@@ -10,7 +11,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import AppLayout from '@/Layouts/AppLayout';
 import { cn, flashMessage } from '@/lib/utils';
-import { Link, router, usePage } from '@inertiajs/react';
+import { Link, router, useForm, usePage } from '@inertiajs/react';
 import {
 	IconAward,
 	IconBrandAndroid,
@@ -18,6 +19,7 @@ import {
 	IconDeviceFloppy,
 	IconDownload,
 	IconHistory,
+	IconHome2,
 	IconLoader2,
 	IconLock,
 	IconLogout,
@@ -171,6 +173,13 @@ export default function Edit(props) {
 						)}
 					</div>
 				)}
+
+				{/* --- BANJAR --- */}
+				{/* Terpisah dari kartu Yurisdiksi di atas yang murni tampilan: banjar BOLEH diubah
+				    (warga pindah banjar, atau salah pilih saat mendaftar), sedangkan kode wilayah akun
+				    tidak — ia menentukan apa yang dilihat & notifikasi apa yang diterima. Hanya muncul
+				    bagi akun yang punya desa; staf kabupaten/kecamatan sengaja tak berbanjar (#56). */}
+				{props.banjar && <BanjarCard banjar={props.banjar} />}
 
 				{/* --- KEAHLIAN RELAWAN --- */}
 				{isVolunteer && (
@@ -355,3 +364,45 @@ export default function Edit(props) {
 }
 
 Edit.layout = (page) => <AppLayout children={page} title={'Profil Pengguna'} />;
+
+/**
+ * Kartu ubah banjar. Memakai <BanjarField/> yang sama dengan layar Lengkapi Profil & form
+ * hydrant warga, jadi perilaku "usulkan yang belum terdaftar" dan pencegah duplikatnya ikut
+ * tanpa satu baris pun disalin.
+ */
+function BanjarCard({ banjar }) {
+	const { data, setData, patch, processing, errors, isDirty } = useForm({
+		banjar_id: banjar.banjar_id || '',
+	});
+
+	const simpan = (e) => {
+		e.preventDefault();
+		patch(route('profile.banjar'), { preserveScroll: true });
+	};
+
+	return (
+		<form onSubmit={simpan} className="rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6">
+			<h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-foreground">
+				<IconHome2 size={18} className="text-muted-foreground" /> Banjar
+			</h3>
+			<p className="mt-1 text-sm text-muted-foreground">
+				Banjar tempat Anda tinggal. Belum terdaftar? Ketik namanya lalu tambahkan sendiri.
+			</p>
+
+			<div className="mt-4">
+				<BanjarField
+					villageCode={banjar.village_code}
+					value={data.banjar_id}
+					onChange={(val) => setData('banjar_id', val)}
+					error={errors.banjar_id}
+					required={banjar.required}
+					label=""
+				/>
+			</div>
+
+			<Button type="submit" disabled={processing || !isDirty} className="mt-4">
+				Simpan
+			</Button>
+		</form>
+	);
+}

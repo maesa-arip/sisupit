@@ -1,3 +1,4 @@
+import BanjarField from '@/Components/BanjarField';
 import HeaderTitle from '@/Components/HeaderTitle';
 import InputError from '@/Components/InputError';
 import { Button } from '@/Components/ui/button';
@@ -9,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/Components/ui/textarea';
 import UseCurrentLocationDialog from '@/Components/UseCurrentLocationDialog';
 import AppLayout from '@/Layouts/AppLayout';
-import { facilityStatusLabel, jurisdictionMismatch, MAP_TILE_URL } from '@/lib/utils';
+import { alamatTerbaca, facilityStatusLabel, jurisdictionMismatch, MAP_TILE_URL } from '@/lib/utils';
 import { Head, Link, useForm } from '@inertiajs/react';
 import {
 	IconAlertTriangle,
@@ -97,6 +98,7 @@ export default function Create({
 		water_pressure: '',
 		debit_lpm: '',
 		capacity_liter: '',
+		banjar_id: '',
 		description: '',
 		lat: defaultLat,
 		lng: defaultLng,
@@ -213,7 +215,7 @@ export default function Create({
 				} else if (addr.village || addr.suburb || addr.town) {
 					searchBarText = addr.village || addr.suburb || addr.town;
 				} else {
-					const parts = (result?.display_name || '').split(',');
+					const parts = alamatTerbaca(result?.display_name).split(',');
 					const validPart = parts.find(
 						(p) => !p.toLowerCase().includes('no name') && !p.toLowerCase().includes('unnamed'),
 					);
@@ -308,7 +310,7 @@ export default function Create({
 				...current,
 				lat: lat.toFixed(6),
 				lng: lng.toFixed(6),
-				address: result?.display_name || current.address,
+				address: alamatTerbaca(result?.display_name) || current.address,
 				province_code: pCode,
 				city_code: cCode,
 				district_code: dCode,
@@ -364,7 +366,7 @@ export default function Create({
 			mapInstanceRef.current.flyTo([lat, lng], 17);
 			markerRef.current.setLatLng([lat, lng]);
 		}
-		const selectedName = result.name || result.display_name.split(',')[0];
+		const selectedName = alamatTerbaca(result.name) || alamatTerbaca(result.display_name).split(',')[0];
 
 		// KUNCI PENCARIAN: Beritahu useEffect bahwa ini bukan hasil ketikan manual
 		skipSearchRef.current = true;
@@ -503,10 +505,11 @@ export default function Create({
 													<IconCurrentLocation className="mt-0.5 h-4 w-4 shrink-0 text-teal-600 dark:text-teal" />
 													<div className="min-w-0 flex-1">
 														<p className="truncate font-semibold">
-															{res.name || res.display_name.split(',')[0]}
+															{alamatTerbaca(res.name) ||
+																alamatTerbaca(res.display_name).split(',')[0]}
 														</p>
 														<p className="mt-0.5 truncate text-muted-foreground">
-															{res.display_name}
+															{alamatTerbaca(res.display_name)}
 														</p>
 													</div>
 												</button>
@@ -748,6 +751,21 @@ export default function Create({
 										{errors[v.waterField] && <InputError message={errors[v.waterField]} />}
 									</div>
 								</div>
+
+								{/* Banjar — hanya untuk hydrant warga (v.showBanjar di ./variants.jsx): tandon
+								    swadaya dimiliki & dirawat komunitas, sedangkan hydrant resmi milik instansi/PDAM.
+								    SELURUH perilakunya — ikut desa terpilih, dikosongkan saat desa berganti, dan
+								    mengusulkan banjar yang belum terdaftar — ada di <BanjarField/>, satu tempat untuk
+								    ketiga layar yang memakainya. Tiga salinan terpisah sudah pernah menyimpang dan
+								    itulah FINDINGS #82; jangan dipecah lagi. */}
+								{v.showBanjar && (
+									<BanjarField
+										villageCode={data.village_code}
+										value={data.banjar_id}
+										onChange={(val) => setData('banjar_id', val)}
+										error={errors.banjar_id}
+									/>
+								)}
 								<div className="grid gap-1.5">
 									<Label htmlFor="description">Catatan (Opsional)</Label>
 									<Input

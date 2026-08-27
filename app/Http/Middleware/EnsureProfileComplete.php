@@ -21,6 +21,11 @@ class EnsureProfileComplete
         'password.*',
         'api.geocode.*',
         'api.regions.*',
+        // Dropdown banjar di halaman lengkapi-profil membaca endpoint ini. Tanpa pengecualian,
+        // middleware ini memantulkannya balik ke /complete-profile dan dropdown-nya kosong
+        // selamanya — tanpa galat apa pun di layar. Ditemukan oleh test, bukan oleh mata.
+        'api.banjars',
+        'api.banjars.usul',
     ];
 
     /**

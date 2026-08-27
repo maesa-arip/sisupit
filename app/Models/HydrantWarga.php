@@ -94,6 +94,12 @@ class HydrantWarga extends Model
     }
 
     // Relasi ke wilayah — bentuknya sama persis dengan Hydrant.
+    /** Banjar yang menaungi tandon ini (opsional — master banjar diisi belakangan). */
+    public function banjar()
+    {
+        return $this->belongsTo(Banjar::class);
+    }
+
     public function province()
     {
         return $this->belongsTo(Province::class, 'province_code', 'code');
