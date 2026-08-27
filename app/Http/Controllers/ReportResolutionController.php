@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Report;
 use App\Models\ReportResolution;
 use App\Models\ReportVictim;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -28,9 +29,14 @@ class ReportResolutionController extends Controller
         $this->authorizeStaff($report);
 
         $report->load([
-            'user:id,name', 'village', 'district',
+            'user:id,name', 'user.roles:id,name', 'village', 'district',
             'officers.user:id,name', 'helpers.user:id,name',
             'reportUnits.unit:id,name',
+            // OPD yang dilibatkan ikut jadi "tim yang atensi di TKP" (permintaan user
+            // 2026-08-27). Namanya dibaca dari kolom SNAPSHOT `agency_name` di pivot, bukan
+            // dari master `agencies` - berita acara adalah dokumen historis, isinya tak boleh
+            // ikut berubah saat master OPD di-rename (aturan yang sama dipakai ReportsExport).
+            'reportAgencies',
         ]);
 
         $latest = ReportResolution::with('victims')
@@ -39,18 +45,33 @@ class ReportResolutionController extends Controller
             ->first();
 
         // "Tim yg atensi di TKP" diambil dari DATA SISTEM: armada/unit yang dikerahkan +
-        // petugas + relawan yang tercatat menangani insiden ini.
+        // petugas + relawan yang tercatat menangani insiden ini + OPD yang diminta membantu.
+        // OPD diberi penanda "(OPD)" karena berita acara ini dokumen resmi yang dibaca pihak
+        // lain: tanpa penanda, mitra luar tak bisa dibedakan dari armada & personel Damkar
+        // sendiri (keputusan user 2026-08-27).
         $timAtensi = $report->reportUnits->pluck('unit.name')
             ->merge($report->officers->pluck('user.name'))
             ->merge($report->helpers->pluck('user.name'))
+            ->merge($report->reportAgencies->pluck('agency_name')->filter()->map(fn ($name) => $name.' (OPD)'))
             ->filter()
             ->unique()
             ->implode(', ');
 
+        // Sumber informasi terisi sendiri HANYA bila laporannya masuk lewat aplikasi. Yang
+        // membedakan: peran pemilik laporan. `ReportController::store()` selalu menulis
+        // `auth()->id()`, jadi laporan yang diketik operator (alur telepon TASK_28) ber-user_id
+        // operator itu sendiri - itulah satu-satunya jejak yang tersimpan. Untuk laporan
+        // seperti itu kolomnya sengaja DIBIARKAN KOSONG: sumber sebenarnya cuma operator yang
+        // tahu, dan kalimat umum yang terisi otomatis cenderung dibiarkan apa adanya sehingga
+        // sumber yang asli tak pernah tercatat (keputusan user 2026-08-27).
+        $sumberInformasi = $report->user && $report->user->hasAnyRole(User::STAFF_ROLES)
+            ? null
+            : ReportResolution::SUMBER_APLIKASI;
+
         // Jenis kejadian default diambil dari JUDUL insiden.
         $prefill = $latest ? [
             'jenis_kejadian' => $latest->jenis_kejadian ?: $report->title,
-            'sumber_informasi' => $latest->sumber_informasi,
+            'sumber_informasi' => $latest->sumber_informasi ?: $sumberInformasi,
             'occurred_at' => optional($latest->occurred_at)->format('Y-m-d\TH:i'),
             'lokasi_alamat' => $latest->lokasi_alamat,
             'kelurahan' => $latest->kelurahan,
@@ -67,6 +88,7 @@ class ReportResolutionController extends Controller
             ])->values(),
         ] : [
             'jenis_kejadian' => $report->title,
+            'sumber_informasi' => $sumberInformasi,
             'lokasi_alamat' => $report->address,
             'kelurahan' => optional($report->village)->name,
             'kecamatan' => optional($report->district)->name,

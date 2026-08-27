@@ -19,6 +19,11 @@ import { useState } from 'react';
 
 export default function ReportIndex(props) {
 	const { reports, page_settings, state, auth } = props;
+	// Akun OPD melihat daftar ber-cakupan instansi (FINDINGS #91): kedua tab di bawah tak
+	// berlaku baginya — "Semua Laporan" bukan haknya dan "Riwayat Saya" selalu kosong karena
+	// OPD tak pernah membuat laporan. Tab yang selalu memulangkan daftar kosong terbaca
+	// sebagai bug, jadi disembunyikan, bukan dinonaktifkan.
+	const isAgencyScope = props.scope === 'agency';
 
 	// State untuk Pencarian dan Tab
 	const [searchQuery, setSearchQuery] = useState(state?.search || '');
@@ -87,30 +92,32 @@ export default function ReportIndex(props) {
 			</div>
 
 			{/* --- TABS FILTER (Flat Design) --- */}
-			<div className="flex w-full space-x-1 rounded-lg border border-border bg-muted p-1 shadow-none sm:w-fit">
-				<button
-					onClick={() => handleFilterChange('all')}
-					className={cn(
-						'flex w-full items-center justify-center gap-2 rounded-md px-4 py-2 text-xs font-bold outline-none transition-colors sm:w-40',
-						activeTab === 'all'
-							? 'border border-border bg-card text-foreground shadow-none'
-							: 'border border-transparent text-muted-foreground hover:text-foreground',
-					)}
-				>
-					<IconList className="h-4 w-4" /> Semua Laporan
-				</button>
-				<button
-					onClick={() => handleFilterChange('mine')}
-					className={cn(
-						'flex w-full items-center justify-center gap-2 rounded-md px-4 py-2 text-xs font-bold outline-none transition-colors sm:w-40',
-						activeTab === 'mine'
-							? 'border border-border bg-card text-destructive shadow-none'
-							: 'border border-transparent text-muted-foreground hover:text-foreground',
-					)}
-				>
-					<IconHistory className="h-4 w-4" /> Riwayat Saya
-				</button>
-			</div>
+			{!isAgencyScope && (
+				<div className="flex w-full space-x-1 rounded-lg border border-border bg-muted p-1 shadow-none sm:w-fit">
+					<button
+						onClick={() => handleFilterChange('all')}
+						className={cn(
+							'flex w-full items-center justify-center gap-2 rounded-md px-4 py-2 text-xs font-bold outline-none transition-colors sm:w-40',
+							activeTab === 'all'
+								? 'border border-border bg-card text-foreground shadow-none'
+								: 'border border-transparent text-muted-foreground hover:text-foreground',
+						)}
+					>
+						<IconList className="h-4 w-4" /> Semua Laporan
+					</button>
+					<button
+						onClick={() => handleFilterChange('mine')}
+						className={cn(
+							'flex w-full items-center justify-center gap-2 rounded-md px-4 py-2 text-xs font-bold outline-none transition-colors sm:w-40',
+							activeTab === 'mine'
+								? 'border border-border bg-card text-destructive shadow-none'
+								: 'border border-transparent text-muted-foreground hover:text-foreground',
+						)}
+					>
+						<IconHistory className="h-4 w-4" /> Riwayat Saya
+					</button>
+				</div>
+			)}
 
 			{/* --- DAFTAR LAPORAN (List View) --- */}
 			<div className="flex flex-col space-y-3">

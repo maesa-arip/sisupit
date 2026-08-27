@@ -1,7 +1,7 @@
 import { Button } from '@/Components/ui/button';
 import AppLayout from '@/Layouts/AppLayout';
 import { cn, facilityStatusLabel, MAP_TILE_URL, NOMOR_DARURAT_NASIONAL } from '@/lib/utils';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import {
 	IconAdjustmentsHorizontal,
 	IconChevronDown,
@@ -192,16 +192,34 @@ export default function MonitoringMap({ layers }) {
 			reports.forEach((r) => {
 				if (reportHidden.has(r.status)) return;
 				const meta = REPORT_META[r.status] || REPORT_META.pending;
+				// Halaman ini bergerbang petugas|admin|superadmin|pejabat dan datanya sudah
+				// ter-scope yurisdiksi di server, sama seperti gerbang ReportController::show —
+				// jadi tautan ini tak membuka apa pun yang tak boleh dilihat pembukanya.
+				const detailUrl = route('reports.show', r.id);
 				const html = popupShell(`
 					<h4 class="m-0 text-[13px] font-bold leading-snug text-foreground">${r.title}</h4>
 					<div class="space-y-1 text-[11px] font-medium text-muted-foreground">
 						<div class="flex items-start gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mt-px shrink-0"><path d="M12 21s-6-5.686-6-10a6 6 0 1 1 12 0c0 4.314-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg><span>${r.location || 'Lokasi tidak tersedia'}</span></div>
 						<div class="flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>${r.time || ''}</span></div>
 					</div>
-					<span class="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-bold ${meta.badge}">${meta.label}</span>`);
+					<span class="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-bold ${meta.badge}">${meta.label}</span>
+					<a href="${detailUrl}" data-report-detail="${r.id}" class="flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-destructive text-[11px] font-bold uppercase tracking-wider text-destructive-foreground no-underline hover:bg-destructive/90">
+						Lihat Detail
+						<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+					</a>`);
 				const m = window.L.marker([r.lat, r.lng], {
 					icon: glyphIcon(meta.marker, GLYPH.flame),
 				}).bindPopup(html);
+				// Popup Leaflet itu HTML mentah, jadi <Link> Inertia tak bisa dipakai. Tautannya
+				// tetap <a href> asli supaya tetap berfungsi (muat ulang penuh) walau handler ini
+				// gagal terpasang; handler di bawah hanya menaikkannya jadi navigasi Inertia.
+				m.on('popupopen', (e) => {
+					const link = e.popup.getElement()?.querySelector('[data-report-detail]');
+					link?.addEventListener('click', (ev) => {
+						ev.preventDefault();
+						router.visit(detailUrl);
+					});
+				});
 				groups.reports.addLayer(m);
 				allMarkers.push(m);
 			});

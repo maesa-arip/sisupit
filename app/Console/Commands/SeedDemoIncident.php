@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Agency;
 use App\Models\Report;
 use App\Models\ReportAgency;
+use App\Models\ReportResolution;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -251,7 +252,7 @@ class SeedDemoIncident extends Command
             'created_by' => $author?->id,
             'status' => 'final',
             'jenis_kejadian' => $report->title,
-            'sumber_informasi' => 'Laporan warga melalui aplikasi Sisupit',
+            'sumber_informasi' => ReportResolution::SUMBER_APLIKASI,
             'occurred_at' => $report->created_at,
             'lokasi_alamat' => $report->address,
             'kelurahan' => DB::table('indonesia_villages')->where('code', $report->village_code)->value('name'),

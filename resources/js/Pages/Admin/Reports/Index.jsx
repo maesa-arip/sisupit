@@ -16,6 +16,7 @@ import { Link } from '@inertiajs/react';
 import {
 	IconAlertTriangle,
 	IconArrowDown,
+	IconCircleCheck,
 	IconClipboardPlus,
 	IconClock,
 	IconDotsVertical,
@@ -400,6 +401,15 @@ export default function Index(props) {
 														<IconClock className="h-3.5 w-3.5 shrink-0" />
 														{formatDate(report.created_at)}
 													</span>
+													{/* Penutup insiden (FINDINGS #88). Hanya untuk laporan yang sudah
+													    Selesai; laporan yang ditutup sebelum kolomnya ada memang tak
+													    punya jejak pelaku — dikatakan apa adanya, bukan disamarkan. */}
+													{report.status === 'resolved' && (
+														<span className="flex items-center gap-1.5 truncate sm:col-span-2">
+															<IconCircleCheck className="h-3.5 w-3.5 shrink-0" />
+															Ditutup oleh {report.resolver?.name ?? 'tidak tercatat'}
+														</span>
+													)}
 												</div>
 
 												<div

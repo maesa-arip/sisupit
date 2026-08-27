@@ -83,6 +83,13 @@ export default function ReportShow(props) {
 	const mapInstance = useRef(null);
 	const markersRef = useRef({});
 	const incidentMarkerRef = useRef(null);
+	// Pin TKP sedang dipegang responder? Redraw peta (yang jalan tiap tik GPS) tidak boleh
+	// memindahkan pin di tengah geseran — lihat FINDINGS #86.
+	const isDraggingIncidentRef = useRef(false);
+	// Ikon TKP hanya perlu diganti saat status insiden berpindah dari/ke 'resolved' (kelas
+	// animate-pulse). setIcon() membangun ulang elemen DOM markernya, jadi jangan dipanggil
+	// tiap redraw.
+	const incidentPulseRef = useRef(null);
 	// Garis rute jalan asli (mengikuti jalan via OSRM) dari posisi responder ke titik insiden
 	const routeLinesRef = useRef({});
 	// Cache rute per responder: { originLat, originLng, incLat, incLng, coords } agar tidak
@@ -178,6 +185,11 @@ export default function ReportShow(props) {
 	const isAdminOrSuperadmin = userRoles.some((r) => ['admin', 'superadmin'].includes(r));
 	const isRelawan = userRoles.includes('relawan');
 	const isOwner = auth.user?.id === report.user_id;
+	// Jejak "siapa yang menutup/menolak" (FINDINGS #88) ditujukan ke rekan kerja & pengawas,
+	// bukan ke pelapor: jejak penutupan memang sudah hanya tampil di dalam "Panel Tindakan
+	// Anda" yang bergerbang peran, jadi jejak penolakan mengikuti audiens yang SAMA. Kalau
+	// kelak pelapor memang harus tahu nama penolaknya, ubah di satu tempat ini.
+	const canSeeClosureActor = isStaffOrAdmin || isRelawan || userRoles.includes('pejabat');
 
 	useEffect(() => {
 		setOfficerList(props.report.officers || []);
@@ -418,6 +430,28 @@ export default function ReportShow(props) {
 		v ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v)) : '-';
 	const fmtDate = (v) => (v ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(new Date(v)) : '-');
 
+	/**
+	 * Baris jejak penutupan/penolakan insiden (FINDINGS #88): siapa yang menekan tombolnya
+	 * dan kapan. Laporan yang ditutup/ditolak SEBELUM kolom pelakunya ada memang tak punya
+	 * jejak itu — dikatakan apa adanya ("tidak tercatat"), jangan diganti nama karangan
+	 * atau disembunyikan seolah pertanyaannya tak pernah ada.
+	 */
+	const closureActorLine = (kind) => {
+		if (!canSeeClosureActor) return null;
+
+		const isResolved = kind === 'resolved';
+		const actor = isResolved ? report.resolver?.name : report.rejector?.name;
+		const at = isResolved ? report.resolved_at : report.rejected_at;
+
+		return (
+			<p className={`text-[11px] leading-relaxed text-muted-foreground ${isResolved ? 'text-center' : ''}`}>
+				{isResolved ? 'Ditutup' : 'Ditolak'} oleh{' '}
+				<span className="font-bold text-foreground">{actor ?? 'tidak tercatat'}</span>
+				{at ? ` · ${fmtDateTime(at)}` : ''}
+			</p>
+		);
+	};
+
 	const handleDeleteResolution = () => {
 		if (!resolutionToDelete) return;
 		setIsDeletingResolution(true);
@@ -546,18 +580,52 @@ export default function ReportShow(props) {
 			iconAnchor: [16, 36],
 		});
 
-		if (incidentMarkerRef.current) incidentMarkerRef.current.remove();
-		const incidentMarker = window.L.marker([parseFloat(incidentLocation.lat), parseFloat(incidentLocation.lng)], {
-			icon: dangerIcon,
-			draggable: isCorrectingMode,
-		}).addTo(map);
-		if (isCorrectingMode) {
+		// Pin TKP dipakai ULANG antar redraw, tidak dibongkar-pasang (FINDINGS #86). Effect ini
+		// jalan ulang tiap tik GPS responder — `officerList`/`helperList` ada di dependensinya —
+		// sehingga membangun markernya dari nol berarti pin yang BARU SAJA digeser melompat
+		// kembali ke titik asal, tepat di layar responder yang sedang mengoreksinya (dialah yang
+		// GPS-nya berjalan). Akar keduanya: posisi hasil geseran hanya hidup di `pendingPosition`,
+		// state yang dulu tak pernah ikut menentukan posisi marker.
+		const incidentTarget = (isCorrectingMode && pendingPosition) || {
+			lat: parseFloat(incidentLocation.lat),
+			lng: parseFloat(incidentLocation.lng),
+		};
+		const incidentPulsing = reportStatus !== 'resolved';
+
+		let incidentMarker = incidentMarkerRef.current;
+		if (!incidentMarker) {
+			incidentMarker = window.L.marker([incidentTarget.lat, incidentTarget.lng], {
+				icon: dangerIcon,
+				draggable: isCorrectingMode,
+			}).addTo(map);
+			// Handler dipasang SEKALI seumur marker; setter state React sudah stabil.
+			incidentMarker.on('dragstart', () => {
+				isDraggingIncidentRef.current = true;
+			});
 			incidentMarker.on('dragend', (e) => {
+				isDraggingIncidentRef.current = false;
 				const { lat, lng } = e.target.getLatLng();
 				setPendingPosition({ lat, lng });
 			});
+			incidentMarkerRef.current = incidentMarker;
+			incidentPulseRef.current = incidentPulsing;
+		} else {
+			if (incidentPulseRef.current !== incidentPulsing) {
+				incidentMarker.setIcon(dangerIcon);
+				incidentPulseRef.current = incidentPulsing;
+			}
+			// Jangan merenggut pin yang sedang dipegang.
+			if (!isDraggingIncidentRef.current) {
+				incidentMarker.setLatLng([incidentTarget.lat, incidentTarget.lng]);
+			}
 		}
-		incidentMarkerRef.current = incidentMarker;
+		if (incidentMarker.dragging) {
+			if (isCorrectingMode) {
+				incidentMarker.dragging.enable();
+			} else {
+				incidentMarker.dragging.disable();
+			}
+		}
 		boundsGroup.push(incidentMarker);
 
 		const renderMarker = (userId, name, type, latStr, lngStr) => {
@@ -750,6 +818,11 @@ export default function ReportShow(props) {
 		return () => {
 			if (channel) window.Echo.leave(`report-tracking.${report.id}`);
 		};
+		// `pendingPosition` SENGAJA tidak masuk daftar ini: effect ini melepas & menyambung ulang
+		// channel Echo serta menggambar ulang rute jalan, jadi menjalankannya tiap kali pin
+		// dilepas itu mahal — dan tak perlu, karena markernya sudah berada di posisi geserannya.
+		// Nilai terbarunya tetap terbaca saat effect jalan, sebab dependensi lain (tik GPS)
+		// memicu render ulang dengan closure yang segar (FINDINGS #86).
 	}, [
 		report.id,
 		incidentLocation.lat,
@@ -1000,6 +1073,9 @@ export default function ReportShow(props) {
 								<p className="text-xs leading-relaxed text-muted-foreground">
 									Laporan ini ditandai tidak valid/hoax oleh Pusat Komando dan diarsipkan.
 								</p>
+								{/* Pelaku & waktu penolakan (FINDINGS #88). Dibaca dari prop `report`, bukan
+								    state siaran: ReportStatusChanged hanya membawa status & alasan. */}
+								{closureActorLine('rejected')}
 								{rejectedReason && (
 									<div className="mt-1 rounded-lg border border-border bg-muted p-3 text-xs text-foreground/80">
 										<span className="font-bold">Alasan: </span>
@@ -1018,8 +1094,11 @@ export default function ReportShow(props) {
 								</h2>
 
 								{reportStatus === 'resolved' ? (
-									<div className="flex items-center justify-center gap-2 rounded-lg border border-info/20 bg-info/10 p-3 text-center text-xs font-bold text-info">
-										<IconCheck className="h-4 w-4" /> INSIDEN SELESAI DITANGANI
+									<div className="space-y-2">
+										<div className="flex items-center justify-center gap-2 rounded-lg border border-info/20 bg-info/10 p-3 text-center text-xs font-bold text-info">
+											<IconCheck className="h-4 w-4" /> INSIDEN SELESAI DITANGANI
+										</div>
+										{closureActorLine('resolved')}
 									</div>
 								) : (
 									<>

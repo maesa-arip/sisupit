@@ -49,7 +49,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
     private const HEADER_ROW = 6;
 
     /** Kolom terakhir yang dipakai tabel (disesuaikan dengan jumlah heading). */
-    private const LAST_COLUMN = 'AF';
+    private const LAST_COLUMN = 'AI';
 
     /**
      * Label status. WAJIB seiring dengan kamus kanonik di layar
@@ -89,6 +89,10 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
         return Report::query()
             ->with([
                 'user:id,name',
+                // Penutup & penolak insiden (FINDINGS #88) - hanya nama. Baris lama yang
+                // ditutup sebelum kolomnya ada mengirim null dan tercetak "-".
+                'resolver:id,name',
+                'rejector:id,name',
                 'officers:id,report_id,dispatched_at,arrived_at,finished_at',
                 'helpers:id,report_id,started_at,arrived_at,finished_at',
                 'province:code,name',
@@ -146,9 +150,12 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             'Longitude',
             'Status',
             'Alasan Ditolak',
+            'Ditolak Oleh',
             'Jam Direspons',
             'Jam Tiba di Lokasi',
             'Jam Selesai',
+            'Ditutup Oleh',
+            'Waktu Ditutup',
             'Waktu Respons',
             'Durasi Penanganan',
             'Jml. Petugas',
@@ -205,9 +212,15 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             $report->lng,
             self::STATUS_LABELS[$report->status] ?? $report->status,
             $this->rejectionSummary($report),
+            optional($report->rejector)->name ?: '-',
             optional($respondedAt)->format('d-m-Y H:i') ?: '-',
             optional($arrivedAt)->format('d-m-Y H:i') ?: '-',
             optional($finishedAt)->format('d-m-Y H:i') ?: '-',
+            // "Ditutup Oleh"/"Waktu Ditutup" BUKAN pengulangan "Jam Selesai" di sebelahnya:
+            // yang itu diturunkan dari finished_at responder terakhir, dua kolom ini adalah
+            // saat Pusat Komando menyatakan insiden ditutup - keduanya bisa berjarak jauh.
+            optional($report->resolver)->name ?: '-',
+            optional($report->resolved_at)->format('d-m-Y H:i') ?: '-',
             $this->humanDuration($report->created_at, $arrivedAt),
             $this->humanDuration($arrivedAt, $finishedAt),
             $report->officers->count(),
@@ -246,20 +259,23 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             'P' => 12,   // Lng
             'Q' => 22,   // Status
             'R' => 30,   // Alasan Ditolak
-            'S' => 18,   // Jam Direspons
-            'T' => 18,   // Jam Tiba
-            'U' => 18,   // Jam Selesai
-            'V' => 18,   // Waktu Respons
-            'W' => 18,   // Durasi Penanganan
-            'X' => 11,   // Jml Petugas
-            'Y' => 11,   // Jml Relawan
-            'Z' => 26,   // Armada Dikerahkan
-            'AA' => 26,  // OPD Terkait
-            'AB' => 34,  // Konfirmasi OPD
-            'AC' => 9,   // Jml Foto
-            'AD' => 16,  // Berita Acara
-            'AE' => 18,  // Taksiran Kerugian
-            'AF' => 11,  // Jml Korban
+            'S' => 22,   // Ditolak Oleh
+            'T' => 18,   // Jam Direspons
+            'U' => 18,   // Jam Tiba
+            'V' => 18,   // Jam Selesai
+            'W' => 22,   // Ditutup Oleh
+            'X' => 18,   // Waktu Ditutup
+            'Y' => 18,   // Waktu Respons
+            'Z' => 18,   // Durasi Penanganan
+            'AA' => 11,  // Jml Petugas
+            'AB' => 11,  // Jml Relawan
+            'AC' => 26,  // Armada Dikerahkan
+            'AD' => 26,  // OPD Terkait
+            'AE' => 34,  // Konfirmasi OPD
+            'AF' => 9,   // Jml Foto
+            'AG' => 16,  // Berita Acara
+            'AH' => 18,  // Taksiran Kerugian
+            'AI' => 11,  // Jml Korban
         ];
     }
 

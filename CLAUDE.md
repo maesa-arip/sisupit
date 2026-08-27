@@ -24,7 +24,117 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : TASK_43 (prompt/tasks/TASK_43_dashboard_realtime_alamat_thanks.md) — SELESAI
+Task aktif   : TASK_45 (prompt/tasks/TASK_45_berita_acara_otomatis_dan_akun_opd.md) — SELESAI
+                (kode) 2026-08-27. Satu pesan user, LIMA permintaan; dua keputusan ditanyakan
+                lebih dulu (laporan yang diketik operator: kolom sumber DIKOSONGKAN, bukan diisi
+                kalimat umum; OPD di tim atensi DITANDAI "(OPD)").
+                (A) SUMBER INFORMASI BERITA ACARA OTOMATIS. Cabang prefill untuk berita acara
+                PERTAMA tak pernah menyertakan sumber_informasi. Sinyal pembeda yang TERSIMPAN
+                cuma satu: PERAN pemilik reports.user_id — ReportController::store() selalu
+                menulis auth()->id(), jadi laporan yang diketik operator (alur telepon TASK_28)
+                ber-user_id operator itu sendiri. Warga lapor lewat aplikasi → terisi;
+                operator input manual → SENGAJA KOSONG (sumber sebenarnya cuma operator yang
+                tahu, dan kalimat umum yang terisi otomatis cenderung dibiarkan apa adanya).
+                Kalimatnya jadi ReportResolution::SUMBER_APLIKASI — dulu ditulis mati di
+                SeedDemoIncident saja, dan kalimat yang ditulis dua kali menyimpang tanpa
+                gejala (pelajaran #80).
+                (B) OPD MASUK TIM ATENSI, bertanda "(OPD)" supaya mitra luar bisa dibedakan dari
+                armada & personel Damkar di dokumen resmi. Namanya dibaca dari kolom SNAPSHOT
+                report_agencies.agency_name, BUKAN master agencies — berita acara dokumen
+                historis, isinya tak boleh berubah saat master OPD di-rename (aturan yang sama
+                sudah berlaku di ReportsExport). Dikunci test.
+                (C) PROFIL SALAH PERAN (temuan #90). Profile/Edit.jsx memakai tangga tiga
+                cabang relawan → admin/petugas → "Anggota Masyarakat". Datanya tak pernah
+                kurang (auth.user.role membawa SEMUA peran); yang salah bentuk kodenya —
+                cabang terakhir sebuah tangga bukan "tidak dikenal", melainkan sebuah KLAIM.
+                Karena itu BUKAN cuma opd yang salah: pejabat DAN superadmin pun berbunyi
+                "Anggota Masyarakat" sejak peran-peran itu lahir. Kini kamus ROLE_LABELS +
+                roleLabel()/roleTone() di lib/utils.js (pola facilityStatusLabel). TIGA hal
+                yang mengikat: urutan daftarnya BERARTI (akun bisa berperan ganda, yang tampil
+                yang paling menentukan wewenangnya); peran tak dikenal berbunyi "Peran belum
+                ditetapkan" — JANGAN dikembalikan jadi "Anggota Masyarakat", klaim itulah
+                bugnya; lencana perisai ikut "bukan warga biasa", bukan daftar dua peran.
+                (D) RIWAYAT OPD SELALU KOSONG (temuan #91). ReportController::index() cuma
+                punya dua jalur & keduanya mustahil berisi bagi OPD: tab "Riwayat Saya"
+                menyaring user_id (OPD tak pernah membuat laporan) dan tab "Semua Laporan"
+                ber-Tenantable sedangkan akun OPD sengaja TANPA kode wilayah (#44) →
+                whereRaw('1 = 0'). Kini ada agencyIndex(): insiden yang INSTANSINYA diminta
+                membantu, gerbang keanggotaan report_agencies — pola yang SAMA dengan show()
+                ($isAgencyPartner) & dashboard OPD. withoutGlobalScopes() wajib (permintaan
+                bisa datang dari kelurahan mana pun) sehingga re-check ownership-nya agency_id
+                akun itu (ATURAN EMAS #7); akun OPD TANPA instansi melihat KOSONG, bukan
+                semuanya. Kedua tab disembunyikan lewat prop scope:'agency' — tab yang selalu
+                memulangkan daftar kosong terbaca sebagai bug.
+                (E) UBAH PERAN JADI OPD (temuan #89). Frontend & assignRole() SUDAH lengkap
+                sejak TASK_27 (pemilih instansi, validasi agency_id wajib, pelepasan tautan
+                saat peran pindah); yang menghalangi satu nama di satu array —
+                assignableRoleNames() untuk admin non-superadmin tak memuat 'opd'. Janggal,
+                sebab admin kabupaten justru pemegang /admin/agencies: bisa MENDAFTARKAN
+                instansinya tapi tak bisa MEMBUATKAN akunnya. BUKAN eskalasi: opd di luar
+                User::STAFF_ROLES, dan penautan instansinya dijaga Agency::whereKey() yang
+                ber-Tenantable. JANGAN memasukkan admin/superadmin ke daftar itu.
+                Penjaga: RoleLabelParityTest BARU (mengadu ROLE_LABELS dengan peran yang NYATA
+                ada di tabel roles, lalu memastikan Profile/Edit tak menyusun namanya sendiri —
+                pola MobileNavParityTest), + 3 test di masing-masing ReportResolutionTest,
+                OpdDashboardTest, UserAssignRoleTest. SEPULUH dari sebelas dibuktikan merah
+                dulu; yang ke-11 penjaga regresi (kode lama pun memulangkan kosong untuk OPD
+                tanpa instansi, tapi karena alasan keliru).
+                Test 329 → 340 passed (1284 assertions), Pint PASS, npm run build lulus.
+                TANPA migrasi/route/perubahan skema. SISA: verifikasi manual §6 file task.
+               TASK_44 (prompt/tasks/TASK_44_koreksi_pin_peta_detail_jejak_penutup.md) — SELESAI
+                (kode) 2026-08-27. Satu pesan user, tiga permintaan; dua keputusan cakupan
+                ditanyakan lebih dulu (klik marker → popup + tombol, bukan langsung pindah;
+                penutup tampil di detail + ekspor + daftar, sekaligus catat penolaknya).
+                (A) PIN KOREKSI LOKASI MELOMPAT BALIK (temuan #86). Dua lapis di
+                Front/Reports/Show.jsx: effect peta MEMBONGKAR-PASANG marker TKP tiap redraw
+                (remove() lalu bangun ulang dari incidentLocation), dan posisi hasil geseran
+                cuma hidup di `pendingPosition` — state yang TAK PERNAH ikut menggambar
+                marker, ia baru dibaca saat tombol Konfirmasi ditekan. Pemicunya justru orang
+                yang sedang mengoreksi: responder ber-status `arrived` masih
+                isCurrentlyResponding, jadi watchPosition MILIKNYA memanggil setOfficerList
+                tiap tik GPS → officerList ada di dependensi effect → pin kembali ke titik
+                asal. Tanpa galat, tanpa gejala lain. Kini marker DIPAKAI ULANG antar redraw
+                (pola renderMarker yang memang sudah begitu untuk responder) dan posisinya
+                `pendingPosition ?? incidentLocation`. DUA hal yang mengikat: dragstart/dragend
+                menjaga isDraggingIncidentRef sehingga redraw TIDAK memanggil setLatLng selama
+                pin dipegang (tanpa ini pin direnggut persis saat jari masih menahannya), dan
+                `pendingPosition` SENGAJA di luar dependensi effect — effect itu melepas &
+                menyambung ulang channel Echo serta menggambar ulang rute OSRM. setIcon() juga
+                tak lagi dipanggil tiap redraw (ia membangun ulang elemen DOM marker).
+                (B) PETA PEMANTAUAN TAK PUNYA JALAN KE DETAIL (temuan #87): marker kejadian
+                cuma bindPopup. Bukan kekurangan data — MonitoringMapController sudah lama
+                mengirim `id`. Kini popup punya tombol "Lihat Detail". Bentuknya `<a href>`
+                ASLI, bukan hanya handler: popup Leaflet itu HTML mentah sehingga <Link>
+                Inertia tak bisa dipakai, dan bila handler popupopen gagal terpasang tautannya
+                tetap berfungsi (muat ulang penuh); handler hanya menaikkannya jadi
+                router.visit(). Tak ada permukaan otorisasi baru — halaman itu sudah bergerbang
+                petugas|admin|superadmin|pejabat dan ter-scope yurisdiksi, sama dengan
+                ReportController::show.
+                (C) PENUTUP INSIDEN TAK BERJEJAK (temuan #88): resolve() hanya menulis
+                status='resolved' — pertanyaan "siapa yang menutup insiden ini?" TAK BISA
+                dijawab dari data mana pun. reject() setengah jalan sejak #24: menyimpan KAPAN
+                & KENAPA, tidak SIAPA. Kini migrasi ADITIF resolved_by/resolved_at/rejected_by
+                (nullable, nullOnDelete), tampil di halaman detail + daftar /admin/reports +
+                Export Excel (32 → 35 kolom, LAST_COLUMN AF → AI). EMPAT hal yang mengikat:
+                (1) relasinya bernama resolver()/rejector(), BUKAN resolvedBy()/rejectedBy() —
+                model Report dikirim UTUH ke halaman detail dan relasi diserialisasi
+                ter-snake_case, jadi `resolvedBy` akan MENIMPA kolom `resolved_by` di JSON
+                (angka berubah jadi objek tanpa galat); pola yang diikuti
+                ReportResolution::creator(); (2) resolved_at BUKAN kembaran "Jam Selesai" di
+                rekap — yang itu dari finished_at responder terakhir, yang ini saat Pusat
+                Komando menutup, keduanya bisa berjarak jauh; (3) TANPA backfill, laporan lama
+                berbunyi "tidak tercatat"/"-" alih-alih mengarang nama; (4) audiens jejaknya
+                staf/pejabat/relawan lewat satu gerbang canSeeClosureActor — kartu "Laporan
+                Ditolak" sendiri terbuka untuk pelapor, jadi menampilkan nama petugas penolak
+                KE PELAPOR adalah keputusan tersendiri; ubah di satu tempat itu bila
+                dikehendaki. Penjaga: ReportClosureActorTest (6 test, KEENAMNYA dibuktikan
+                merah dulu), salah satunya mengunci panjang TIGA daftar berkas ekspor
+                (heading, nilai map(), columnWidths) supaya penambahan kolom berikutnya tak
+                bisa lolos setengah jalan & menggeser seluruh rekap tanpa galat.
+                Test 323 → 329 passed (1253 assertions), Pint PASS, npm run build lulus.
+                SISA: verifikasi manual §6 file task + jalankan migrasi di dev/staging/prod
+                (aditif; route & channel TIDAK berubah jadi route cache tak wajib dibangun).
+               TASK_43 (prompt/tasks/TASK_43_dashboard_realtime_alamat_thanks.md) — SELESAI
                 (kode) 2026-08-27. Satu pesan user, tiga permintaan; dua keputusan cakupan
                 ditanyakan dan dijawab "ya keduanya".
                 (A) DASHBOARD TAK PERNAH AUTO-UPDATE (temuan #84). Dua lapis: tak ada siaran

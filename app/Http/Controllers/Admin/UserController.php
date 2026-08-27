@@ -340,6 +340,13 @@ class UserController extends Controller
      * Superadmin tidak pernah bisa diberikan lewat panel (peran developer pusat). Hanya
      * superadmin yang boleh mengangkat admin; admin wilayah dibatasi sampai petugas untuk
      * mencegah eskalasi hak akses (keputusan 2026-06-27).
+     *
+     * `opd` ikut daftar admin wilayah (permintaan user 2026-08-27, FINDINGS #89): admin
+     * kabupaten sudah mengelola master OPD di /admin/agencies, jadi tak masuk akal ia bisa
+     * mendaftarkan instansinya tapi tidak bisa membuatkan akunnya. Ini BUKAN eskalasi —
+     * `opd` di luar `User::STAFF_ROLES`, dan penautan instansinya dijaga assignRole() lewat
+     * `Agency::whereKey()` yang ber-Tenantable, sehingga admin hanya bisa menunjuk instansi
+     * di wilayahnya sendiri.
      */
     private function assignableRoleNames(): array
     {
@@ -347,7 +354,7 @@ class UserController extends Controller
             return array_values(array_diff($this->allRoleNames(), ['superadmin']));
         }
 
-        return ['masyarakat', 'relawan', 'petugas', 'pejabat'];
+        return ['masyarakat', 'relawan', 'petugas', 'pejabat', 'opd'];
     }
 
     /**

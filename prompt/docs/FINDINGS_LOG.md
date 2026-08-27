@@ -1528,3 +1528,149 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **Penjaga:** satu test di `ReportFeedRealtimeTest.php` (prop `report.status` terkirim).
   Rupa steppernya sendiri verifikasi visual.
 - **Status:** FIXED
+### #86 — Pin koreksi lokasi melompat kembali ke titik asal setiap tik GPS
+- **Severity:** P2 (fungsional; koreksi titik TKP praktis tak bisa diselesaikan di lapangan)
+- **Dilaporkan user 2026-08-27:** "Saat tiba dilokasi dan perbaiki geser titik lokasi bug
+  kembali ke titik asli".
+- **Akar (dua lapis, keduanya di `resources/js/Pages/Front/Reports/Show.jsx`):**
+  1. **Marker TKP dibongkar-pasang tiap redraw.** Effect peta memulai kerjanya dengan
+     `incidentMarkerRef.current.remove()` lalu membangun marker BARU dari
+     `incidentLocation` — koordinat asal dari server.
+  2. **Posisi hasil geseran tak pernah ikut menggambar apa pun.** `dragend` hanya menulis
+     `pendingPosition`, state yang cuma dibaca saat tombol "Konfirmasi Lokasi" ditekan.
+  Pemicunya justru orang yang sedang mengoreksi: responder ber-status `arrived` masih
+  `isCurrentlyResponding`, jadi `watchPosition` miliknya memanggil `setOfficerList` tiap tik
+  GPS → `officerList` ada di dependensi effect → effect jalan ulang → pin kembali ke titik
+  asal. Tidak ada galat, tidak ada gejala lain: pin sekadar "menolak" digeser.
+- **Fix (2026-08-27, TASK_44):** marker TKP dipakai ULANG antar redraw (pola yang memang sudah
+  dipakai `renderMarker` untuk marker responder) dan posisinya diambil dari
+  `pendingPosition ?? incidentLocation`, sehingga geseran jadi bagian dari sumber kebenaran
+  gambar, bukan catatan di samping. Dua hal yang mengikat:
+  - **`dragstart`/`dragend` menjaga `isDraggingIncidentRef`**, dan redraw tidak memanggil
+    `setLatLng` selama pin sedang dipegang — tanpa ini pin direnggut kembali ke posisi lama
+    persis saat jari masih menahannya.
+  - **`pendingPosition` SENGAJA tidak dimasukkan ke dependensi effect**: effect itu melepas &
+    menyambung ulang channel Echo dan menggambar ulang rute OSRM. Nilai terbarunya tetap
+    terbaca karena dependensi lain sudah memicu render dengan closure segar.
+  `setIcon()` juga tak lagi dipanggil tiap redraw (ia membangun ulang elemen DOM marker) —
+  hanya saat status insiden berpindah dari/ke `resolved`.
+- **Penjaga:** tidak ada — repo tak punya browser automation dan ini murni perilaku Leaflet.
+  Verifikasi manual ada di file task §6.
+- **Status:** FIXED
+
+### #87 — Peta Pemantauan tak punya satu pun jalan ke detail insiden
+- **Severity:** P3 (alur kerja; bukan kesalahan data)
+- **Dilaporkan user 2026-08-27:** "Di peta pemantauan saat klik kejadian mengarah ke detail".
+- **Akar:** marker kejadian di `resources/js/Pages/Monitoring/Map.jsx` hanya `bindPopup()`
+  berisi judul/lokasi/waktu/status. Operator yang melihat titik merah di peta harus mengingat
+  judulnya, pindah ke Verifikasi Laporan, lalu mencarinya di sana. `id` laporan SUDAH lama
+  dikirim `MonitoringMapController` — tak ada yang kurang di sisi data.
+- **Fix (2026-08-27, TASK_44):** popup mendapat tombol "Lihat Detail". Bentuknya
+  **`<a href>` asli**, bukan hanya handler: popup Leaflet itu HTML mentah sehingga `<Link>`
+  Inertia tak bisa dipakai, dan bila handler `popupopen` gagal terpasang tautannya tetap
+  berfungsi (muat ulang penuh). Handler hanya menaikkannya jadi `router.visit()`.
+  Klik marker TETAP membuka popup (keputusan user, alternatif "langsung pindah halaman"
+  ditolak): info triase harus tetap terbaca tanpa meninggalkan peta, dan marker yang bertumpuk
+  membuat navigasi sekali-klik rawan salah sasaran.
+- **Tidak membuka apa pun yang baru:** halaman ini sudah bergerbang
+  `petugas|admin|superadmin|pejabat` dan datanya ter-scope yurisdiksi di server — gerbang yang
+  sama dengan `ReportController::show`.
+- **Status:** FIXED
+
+### #88 — Insiden bisa ditutup dan ditolak tanpa meninggalkan jejak siapa pelakunya
+- **Severity:** P2 (akuntabilitas; keputusan yang dipertanggungjawabkan ke pimpinan)
+- **Dilaporkan user 2026-08-27:** "Siapa yang klik selesai kejadian muncul dan tercatat".
+- **Akar:** `ReportActionController::resolve()` hanya menulis `status = 'resolved'`. Tidak ada
+  kolom pelakunya, jadi pertanyaan "siapa yang menutup insiden ini?" **tak bisa dijawab dari
+  data mana pun** — bukan tersembunyi di layar, memang tak pernah disimpan. `reject()` setengah
+  jalan: sejak #24 ia menyimpan `rejected_at` & `rejected_reason` (KAPAN & KENAPA) tapi tidak
+  SIAPA, ketimpangan yang akan terulang setiap kali ada aksi penutup baru.
+- **Fix (2026-08-27, TASK_44):** migrasi ADITIF `resolved_by`/`resolved_at`/`rejected_by`
+  (nullable, `nullOnDelete`), diisi di kedua aksi, lalu ditampilkan di halaman detail insiden,
+  daftar Verifikasi Laporan, dan berkas Export Excel (kolom "Ditutup Oleh", "Waktu Ditutup",
+  "Ditolak Oleh"). Empat hal yang mengikat:
+  - **Nama relasinya `resolver()`/`rejector()`, BUKAN `resolvedBy()`/`rejectedBy()`** seperti
+    pola `ReportAgency`. Model `Report` dikirim UTUH ke halaman detail, dan relasi
+    diserialisasi dengan nama ter-snake_case — `resolvedBy` akan MENIMPA kolom `resolved_by`
+    di JSON sehingga atributnya berubah dari angka jadi objek tanpa galat apa pun. Pola yang
+    diikuti adalah `ReportResolution::creator()` untuk `created_by`.
+  - **`resolved_at` BUKAN duplikat kolom "Jam Selesai" di rekap.** Yang itu diturunkan dari
+    `finished_at` responder terakhir; yang ini saat Pusat Komando menyatakan insiden ditutup.
+    Keduanya bisa berjarak jauh, jadi keduanya diekspor berdampingan.
+  - **Tanpa backfill.** Laporan yang ditutup/ditolak sebelum kolomnya ada memang tak diketahui
+    pelakunya; layar berbunyi "tidak tercatat", tidak mengarang nama dan tidak menyembunyikan
+    pertanyaannya.
+  - **Audiens jejak = rekan kerja & pengawas, bukan pelapor.** Jejak penutupan memang sudah
+    berada di dalam "Panel Tindakan Anda" yang bergerbang peran, jadi jejak PENOLAKAN
+    mengikuti audiens yang sama lewat satu penjaga `canSeeClosureActor` — kartu "Laporan
+    Ditolak" sendiri terbuka untuk pelapor, dan nama petugas penolak di sana adalah keputusan
+    tersendiri. Ubah di satu tempat itu bila kelak dikehendaki lain.
+- **Penjaga:** `tests/Feature/Sisupit/ReportClosureActorTest.php` (6 test, **keenamnya
+  dibuktikan merah** lebih dulu). Test terakhir mengunci panjang tiga daftar berkas ekspor
+  (heading, nilai per baris, lebar kolom) agar penambahan kolom berikutnya tak bisa lolos
+  setengah jalan dan menggeser seluruh rekap tanpa galat.
+- **Status:** FIXED
+### #89 — Admin kabupaten mengelola master OPD tapi tak bisa membuatkan akunnya
+- **Severity:** P3 (alur kerja; menyandera pekerjaan admin ke superadmin)
+- **Dilaporkan user 2026-08-27:** "Di manajemen pengguna harus ada untuk ubah jadi opd".
+- **Akar:** `Admin\UserController::assignableRoleNames()` mengembalikan
+  `['masyarakat','relawan','petugas','pejabat']` untuk admin non-superadmin — `opd` tak ada di
+  daftar itu, sehingga opsinya tak pernah sampai ke layar (prop `assignable_roles`) dan
+  `Rule::in()` di `assignRole()` akan menolaknya andai pun dipaksa. Seluruh sisa alurnya SUDAH
+  lengkap sejak TASK_27: pemilih instansi di `Admin/Users/Index.jsx`, validasi `agency_id`
+  wajib, dan pelepasan tautan saat peran dipindah. Yang hilang cuma satu nama di satu array.
+- **Kenapa ini janggal:** admin kabupaten justru pemegang `/admin/agencies` — ia bisa
+  MENDAFTARKAN instansinya tapi tidak bisa MEMBUATKAN akunnya, sehingga tiap penambahan mitra
+  harus menunggu superadmin.
+- **Fix (2026-08-27, TASK_45):** `opd` masuk daftar. **Bukan eskalasi hak akses:** `opd` di
+  luar `User::STAFF_ROLES` (ia tak pernah menerima siaran wilayah, #56/#44), dan penautan
+  instansinya sudah dijaga `Agency::whereKey()` yang ber-`Tenantable` sehingga admin hanya bisa
+  menunjuk instansi di wilayahnya sendiri. Batas lama utuh: admin tetap tak bisa mengangkat
+  admin/superadmin.
+- **Penjaga:** tiga test di `UserAssignRoleTest.php` — termasuk satu yang mengadu prop
+  `assignable_roles` yang benar-benar sampai ke layar, bukan cuma isi konstantanya.
+- **Status:** FIXED
+
+### #90 — Tangga `if` peran menyebut OPD, pejabat, dan superadmin "Anggota Masyarakat"
+- **Severity:** P2 (akun membaca dirinya sendiri sebagai peran yang salah)
+- **Dilaporkan user 2026-08-27:** "Di profil masih bug untuk role nya seharusnya opd tapi masih
+  muncul sebagai anggota masyarakat".
+- **Akar:** `resources/js/Pages/Profile/Edit.jsx` menentukan nama peran lewat tangga tiga
+  cabang: `relawan → admin/petugas → 'Anggota Masyarakat'`. Prop `auth.user.role` sebenarnya
+  SUDAH membawa seluruh peran (`UserSingleResource::getRoleNames()`) — datanya tak pernah
+  kurang. Yang salah bentuk kodenya: cabang terakhir bukan "tidak dikenal", melainkan sebuah
+  KLAIM ("warga biasa"). Karena itu bukan cuma `opd` yang salah — `pejabat` dan `superadmin`
+  pun berbunyi "Anggota Masyarakat" sejak peran-peran itu lahir, tanpa satu pun gejala.
+- **Fix (2026-08-27, TASK_45):** kamus `ROLE_LABELS` + `roleLabel()`/`roleTone()` di
+  `lib/utils.js`, pola yang sama dengan `facilityStatusLabel()`. Tiga hal yang mengikat:
+  urutan daftarnya BERARTI (satu akun bisa berperan ganda; yang tampil adalah yang paling
+  menentukan wewenangnya), peran yang tak dikenal berbunyi **"Peran belum ditetapkan"** dan
+  BUKAN "Anggota Masyarakat" — mengklaim warga biasa itulah bugnya, dan lencana perisai kini
+  mengikuti "bukan warga biasa" alih-alih daftar dua peran.
+- **Penjaga:** `RoleLabelParityTest.php` — mengadu ROLE_LABELS dengan peran yang NYATA ada di
+  `Role::where('guard_name','web')` (diseed tiap test), lalu memastikan halaman Profil tak
+  menyusun namanya sendiri lagi. Membaca berkas sumber JS, pola `MobileNavParityTest`.
+- **Status:** FIXED
+
+### #91 — "Arsip & Riwayat" akun OPD selalu kosong: dua jalurnya sama-sama buntu
+- **Severity:** P2 (menu yang ada tapi tak pernah berisi)
+- **Dilaporkan user 2026-08-27:** "Di opd riwayatnya masih bug belum muncul".
+- **Akar:** `ReportController::index()` cuma punya dua jalur, dan keduanya mustahil berisi bagi
+  akun OPD:
+  1. tab **"Riwayat Saya"** menyaring `user_id` — OPD tak pernah MEMBUAT laporan;
+  2. tab **"Semua Laporan"** memakai `Report` ber-`Tenantable`, sedangkan akun OPD sengaja
+     TANPA kode wilayah (relevansinya keanggotaan, bukan wilayah — #44), sehingga jatuh ke
+     cabang `whereRaw('1 = 0')`.
+  Menu "Arsip & Riwayat" sendiri memang ditawarkan ke semua akun yang login (`navItems.js`),
+  jadi OPD melihat menunya, membukanya, dan selalu mendapat daftar kosong tanpa penjelasan.
+- **Fix (2026-08-27, TASK_45):** cabang `agencyIndex()` — daftar insiden yang INSTANSINYA
+  diminta membantu, satu-satunya bentuk riwayat yang punya arti bagi mitra luar. Gerbangnya
+  keanggotaan `report_agencies`, pola yang SAMA dengan `show()` (`$isAgencyPartner`) dan
+  dashboard OPD. Dua hal yang mengikat: `withoutGlobalScopes()` wajib (permintaan bantuan bisa
+  datang dari kelurahan mana pun) sehingga re-check ownership-nya adalah `agency_id` akun itu
+  sendiri (ATURAN EMAS #7), dan akun OPD yang **belum ditautkan** ke instansi mana pun melihat
+  KOSONG — bukan melihat semuanya. Kedua tab disembunyikan lewat prop `scope: 'agency'`: tab
+  yang selalu memulangkan daftar kosong terbaca sebagai bug.
+- **Penjaga:** tiga test di `OpdDashboardTest.php`, termasuk satu yang memastikan
+  `?filter=mine` tidak jadi celah kembali ke jalur lama.
+- **Status:** FIXED

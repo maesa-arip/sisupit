@@ -39,6 +39,9 @@ class Report extends Model
         'status',
         'rejected_reason',
         'rejected_at',
+        'rejected_by',
+        'resolved_at',
+        'resolved_by',
         'photo',
         'province_code',
         'city_code',
@@ -48,11 +51,33 @@ class Report extends Model
 
     protected $casts = [
         'rejected_at' => 'datetime',
+        'resolved_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Siapa yang menutup insiden ini (ReportActionController::resolve) dan siapa yang
+     * menolaknya (::reject). Nullable tanpa backfill — laporan yang ditutup/ditolak
+     * sebelum kolomnya ada memang tak diketahui pelakunya (FINDINGS #88).
+     *
+     * NAMA METODENYA SENGAJA BUKAN `resolvedBy`/`rejectedBy` (pola ReportAgency), melainkan
+     * `resolver`/`rejector` mengikuti `ReportResolution::creator()` untuk `created_by`.
+     * Alasannya mengikat: model ini dikirim UTUH ke halaman detail, dan relasi diserialisasi
+     * dengan nama ter-snake_case sehingga `resolvedBy` akan MENIMPA kolom `resolved_by`
+     * di JSON — atributnya berubah dari angka jadi objek tanpa galat apa pun.
+     */
+    public function resolver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'resolved_by');
+    }
+
+    public function rejector(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'rejected_by');
     }
 
     /**

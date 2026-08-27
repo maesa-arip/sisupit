@@ -132,6 +132,10 @@ class ReportActionController extends Controller
             'status' => 'ditolak',
             'rejected_reason' => $request->reason,
             'rejected_at' => now(),
+            // Siapa yang menolak (FINDINGS #88). Kolomnya sudah lama menyimpan KAPAN &
+            // ALASAN, tapi tidak SIAPA - padahal penolakan adalah keputusan yang
+            // dipertanggungjawabkan, bukan peristiwa tanpa pelaku.
+            'rejected_by' => auth()->id(),
         ]);
 
         broadcast(new ReportStatusChanged($report->id, 'ditolak', $request->reason));
@@ -578,8 +582,18 @@ class ReportActionController extends Controller
             abort(403, 'Akses Ditolak.');
         }
 
-        DB::transaction(function () use ($report) {
-            $report->update(['status' => 'resolved']);
+        $actorId = auth()->id();
+
+        DB::transaction(function () use ($report, $actorId) {
+            // Penutup insiden dicatat bersama waktunya (FINDINGS #88). `resolved_at` TIDAK
+            // sama dengan kolom "Jam Selesai" di rekap: yang itu diturunkan dari
+            // finished_at responder, yang ini adalah saat Pusat Komando menyatakan insiden
+            // ditutup - dua peristiwa yang bisa berjarak jauh.
+            $report->update([
+                'status' => 'resolved',
+                'resolved_by' => $actorId,
+                'resolved_at' => now(),
+            ]);
 
             // Tandai semua relawan & petugas yang berpartisipasi menjadi selesai
             DB::table('report_officers')->where('report_id', $report->id)->update(['status' => 'finished', 'finished_at' => now()]);

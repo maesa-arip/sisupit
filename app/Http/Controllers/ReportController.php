@@ -46,6 +46,15 @@ class ReportController extends Controller
             return $this->monitoringIndex($user);
         }
 
+        // Akun OPD (TASK_27) tidak punya riwayat dalam bentuk yang dipahami kedua jalur di
+        // bawah, sehingga daftarnya SELALU kosong: ia tak pernah membuat laporan (JALUR 1
+        // menyaring `user_id`) dan ia sengaja TANPA kode wilayah karena relevansinya
+        // keanggotaan, bukan wilayah (#44) — sehingga JALUR 2 kena Tenantable
+        // `whereRaw('1 = 0')`. Yang bermakna baginya adalah pelibatan instansinya.
+        if ($user->hasRole('opd')) {
+            return $this->agencyIndex($user);
+        }
+
         $query = Report::query()
             ->with(['helpers.user'])
             ->filter(request()->only(['search']))
@@ -126,6 +135,53 @@ class ReportController extends Controller
         ]);
     }
 
+    /**
+     * Arsip & Riwayat untuk akun OPD (FINDINGS #91): daftar insiden yang INSTANSINYA diminta
+     * membantu — satu-satunya bentuk riwayat yang punya arti bagi mitra luar. Gerbangnya
+     * keanggotaan `report_agencies`, pola yang sama dengan `show()` ($isAgencyPartner) dan
+     * dashboard OPD.
+     *
+     * `withoutGlobalScopes()` wajib: permintaan bantuan bisa datang dari kelurahan mana pun,
+     * sedangkan akun OPD sengaja tanpa kode wilayah. Re-check otorisasi penggantinya adalah
+     * `agency_id` akun itu sendiri (ATURAN EMAS #7) — dan akun OPD yang belum ditautkan ke
+     * instansi mana pun TIDAK melihat apa-apa, bukan melihat semuanya.
+     */
+    private function agencyIndex(User $user): Response
+    {
+        $reports = Report::query()
+            ->withoutGlobalScopes()
+            ->when(
+                $user->agency_id,
+                fn ($query) => $query->whereHas(
+                    'reportAgencies',
+                    fn ($pivot) => $pivot->where('agency_id', $user->agency_id)
+                ),
+                fn ($query) => $query->whereRaw('1 = 0')
+            )
+            ->with(['helpers.user'])
+            ->filter(request()->only(['search']))
+            ->sorting(request()->only(['field', 'direction']))
+            ->latest('created_at')
+            ->paginate(request()->load ?? 10)
+            ->withQueryString();
+
+        return inertia('Front/Reports/Index', [
+            'reports' => $reports,
+            // Menyembunyikan tab "Semua Laporan"/"Riwayat Saya" di frontend: bagi OPD keduanya
+            // tak berlaku, dan tab yang selalu memulangkan daftar kosong terbaca sebagai bug.
+            'scope' => 'agency',
+            'page_settings' => [
+                'title' => 'Arsip & Riwayat',
+                'subtitle' => 'Insiden yang instansi Anda diminta membantu menanganinya.',
+            ],
+            'state' => [
+                'page' => request()->page ?? 1,
+                'search' => request()->search ?? '',
+                'load' => 10,
+            ],
+        ]);
+    }
+
     public function show($id)
     {
         // Bypass Tenantable agar bisa dicari via ID
@@ -164,6 +220,9 @@ class ReportController extends Controller
 
         $report->load([
             'user:id,name,phone',
+            // Penutup & penolak insiden (FINDINGS #88) — hanya nama, tanpa kontak.
+            'resolver:id,name',
+            'rejector:id,name',
             'officers.user:id,name,phone',
             'helpers.user:id,name,phone',
             'photos:id,report_id,path',

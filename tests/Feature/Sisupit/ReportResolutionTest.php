@@ -147,3 +147,72 @@ it('lets staff delete a resolution entry and its private KTP file', function () 
     expect(ReportResolution::find($resolution->id))->toBeNull();
     Storage::disk('local')->assertMissing($ktpPath);
 });
+
+// Sumber informasi & tim atensi berita acara (permintaan user 2026-08-27).
+// Sumber informasi terisi sendiri HANYA untuk laporan yang masuk lewat aplikasi; yang
+// membedakannya adalah PERAN pemilik laporan, karena `ReportController::store()` selalu
+// menulis `auth()->id()` sehingga laporan yang diketik operator ber-user_id operator itu.
+it('prefills the information source for a report filed by a citizen through the app', function () {
+    $petugas = User::factory()->create(['village_code' => '5171012006']);
+    $petugas->assignRole('petugas');
+
+    $props = $this->actingAs($petugas)
+        ->get("/reports/{$this->report->id}/resolution/create")
+        ->original->getData()['page']['props'];
+
+    expect($props['prefill']['sumber_informasi'])->toBe(ReportResolution::SUMBER_APLIKASI);
+});
+
+// Laporan yang DIKETIK operator (alur telepon TASK_28) sengaja tidak punya nilai otomatis:
+// sumber sebenarnya cuma operator yang tahu, dan kalimat umum yang terisi sendiri cenderung
+// dibiarkan apa adanya sehingga sumber aslinya tak pernah tercatat.
+it('leaves the information source empty when an operator filed the report manually', function () {
+    $operator = User::factory()->create(['village_code' => '5171012006']);
+    $operator->assignRole('petugas');
+
+    $manual = Report::create([
+        'user_id' => $operator->id,
+        'title' => 'Kebakaran lapak, laporan lewat telepon',
+        'address' => 'Jl. Gatot Subroto No. 1',
+        'status' => 'resolved',
+        'village_code' => '5171012006',
+    ]);
+
+    $props = $this->actingAs($operator)
+        ->get("/reports/{$manual->id}/resolution/create")
+        ->original->getData()['page']['props'];
+
+    expect($props['prefill']['sumber_informasi'])->toBeNull();
+});
+
+// OPD yang diminta membantu ikut tercatat sebagai "tim yang atensi di TKP", bertanda (OPD)
+// supaya mitra luar bisa dibedakan dari armada & personel Damkar sendiri. Namanya dibaca dari
+// kolom SNAPSHOT `agency_name` di pivot — berita acara dokumen historis, isinya tak boleh ikut
+// berubah saat master OPD di-rename.
+it('lists the involved agencies in the attending-team suggestion, marked as OPD', function () {
+    $petugas = User::factory()->create(['village_code' => '5171012006']);
+    $petugas->assignRole('petugas');
+
+    $agency = \App\Models\Agency::create([
+        'name' => 'PLN ULP Denpasar',
+        'code' => 'pln',
+        'village_code' => '5171012006',
+    ]);
+    \App\Models\ReportAgency::create([
+        'report_id' => $this->report->id,
+        'agency_id' => $agency->id,
+        'agency_name' => 'PLN ULP Denpasar',
+        'notified_at' => now(),
+    ]);
+
+    // Master OPD berganti nama SESUDAH pelibatan: berita acara harus tetap menyebut nama lama.
+    $agency->update(['name' => 'PLN UP3 Bali Selatan']);
+
+    $props = $this->actingAs($petugas)
+        ->get("/reports/{$this->report->id}/resolution/create")
+        ->original->getData()['page']['props'];
+
+    expect($props['timAtensiSuggestion'])->toContain('PLN ULP Denpasar (OPD)');
+    expect($props['timAtensiSuggestion'])->not->toContain('PLN UP3 Bali Selatan');
+    expect($props['prefill']['tim_atensi'])->toContain('PLN ULP Denpasar (OPD)');
+});

@@ -121,3 +121,60 @@ it('keeps the full region when assigning a non-jurisdictional role', function ()
     expect($target->hasRole('relawan'))->toBeTrue();
     expect($target->village_code)->toBe('5171012006');
 });
+
+// Peran `opd` ikut daftar yang boleh diberikan ADMIN WILAYAH (permintaan user 2026-08-27,
+// FINDINGS #89). Sebelumnya hanya superadmin yang bisa, padahal admin kabupaten justru yang
+// mengelola master OPD di /admin/agencies — ia bisa mendaftarkan instansinya tapi tidak bisa
+// membuatkan akunnya. Ini BUKAN eskalasi: `opd` di luar User::STAFF_ROLES.
+it('lets a region admin assign the OPD role and link the account to an agency', function () {
+    $admin = User::factory()->create(['province_code' => '51', 'city_code' => '5171']);
+    $admin->assignRole('admin');
+
+    $agency = App\Models\Agency::create([
+        'name' => 'PLN ULP Denpasar', 'code' => 'PLN', 'is_active' => true,
+        'province_code' => '51', 'city_code' => '5171',
+    ]);
+
+    $target = makeUserWithRegion();
+
+    $this->actingAs($admin)
+        ->put("/admin/users/assign-role/{$target->id}", ['role' => 'opd', 'agency_id' => $agency->id])
+        ->assertRedirect();
+
+    $target->refresh();
+    expect($target->hasRole('opd'))->toBeTrue();
+    expect($target->agency_id)->toBe($agency->id);
+});
+
+// Pilihan perannya harus benar-benar SAMPAI ke layar Manajemen Pengguna — daftar yang tak
+// memuat `opd` membuat tombolnya tak pernah ada, persis keluhan yang memunculkan #89.
+it('offers the OPD role on the user management screen for a region admin', function () {
+    $admin = User::factory()->create(['province_code' => '51', 'city_code' => '5171']);
+    $admin->assignRole('admin');
+
+    $props = $this->actingAs($admin)->get('/admin/users')->original->getData()['page']['props'];
+
+    expect($props['assignable_roles'])->toContain('opd');
+    // Batas lama TETAP berlaku: admin tak boleh mengangkat admin/superadmin.
+    expect($props['assignable_roles'])->not->toContain('admin');
+    expect($props['assignable_roles'])->not->toContain('superadmin');
+});
+
+// Penautan instansi tetap dijaga Tenantable: admin hanya boleh menunjuk OPD di wilayahnya.
+it('refuses an OPD link to an agency outside the admin jurisdiction', function () {
+    $admin = User::factory()->create(['province_code' => '51', 'city_code' => '5171']);
+    $admin->assignRole('admin');
+
+    $agencyLuar = App\Models\Agency::create([
+        'name' => 'PLN UP3 Bandung', 'code' => 'PLNBDG', 'is_active' => true,
+        'province_code' => '32', 'city_code' => '3273',
+    ]);
+
+    $target = makeUserWithRegion();
+
+    $this->actingAs($admin)
+        ->put("/admin/users/assign-role/{$target->id}", ['role' => 'opd', 'agency_id' => $agencyLuar->id])
+        ->assertSessionHasErrors('agency_id');
+
+    expect($target->refresh()->hasRole('opd'))->toBeFalse();
+});

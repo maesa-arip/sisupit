@@ -10,7 +10,7 @@ import {
 } from '@/Components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import AppLayout from '@/Layouts/AppLayout';
-import { cn, flashMessage } from '@/lib/utils';
+import { cn, flashMessage, roleLabel, roleTone } from '@/lib/utils';
 import { Link, router, useForm, usePage } from '@inertiajs/react';
 import {
 	IconAward,
@@ -57,6 +57,12 @@ export default function Edit(props) {
 	const userRoles = Array.isArray(user?.role) ? user.role : user?.role ? [user.role] : [];
 	const isVolunteer = userRoles.includes('relawan');
 	const isAdmin = userRoles.includes('petugas') || userRoles.includes('admin');
+	// Nama & warna peran dibaca dari kamus bersama (lib/utils.js), bukan dari tangga `if` —
+	// bentuk lama menyebut akun OPD, pejabat, dan superadmin "Anggota Masyarakat" karena
+	// ketiganya jatuh ke cabang terakhir (FINDINGS #90). Lencana perisai ikut kamus itu juga:
+	// yang bukan warga biasa mendapatkannya.
+	const accountRole = roleLabel(userRoles);
+	const isPlainCitizen = userRoles.length === 0 || (userRoles.length === 1 && userRoles[0] === 'masyarakat');
 	//  console.log('User Roles:', userRoles, 'Is Volunteer:', isVolunteer);
 
 	// Editor keahlian relawan (lihat VolunteerController::updateSkills).
@@ -106,7 +112,7 @@ export default function Edit(props) {
 					<div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
 						<div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-3xl font-semibold text-foreground">
 							{user.name?.[0]?.toUpperCase() ?? 'U'}
-							{(isVolunteer || isAdmin) && (
+							{!isPlainCitizen && (
 								<div className="absolute bottom-0 right-0 rounded-full border-2 border-background bg-info p-1 text-info-foreground">
 									<IconShieldCheck size={14} stroke={2} />
 								</div>
@@ -116,9 +122,9 @@ export default function Edit(props) {
 							<h2 className="text-xl font-semibold leading-tight text-foreground">{user.name}</h2>
 							<p className="text-sm font-medium text-muted-foreground">{user.email}</p>
 							<span
-								className={`mt-2 rounded-md border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider ${isVolunteer ? 'border-info/20 bg-info/10 text-info' : isAdmin ? 'border-success/20 bg-success/10 text-success' : 'border-border bg-muted text-muted-foreground'}`}
+								className={`mt-2 rounded-md border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider ${roleTone(userRoles)}`}
 							>
-								{isVolunteer ? 'Relawan Aktif' : isAdmin ? 'Administrator' : 'Anggota Masyarakat'}
+								{accountRole}
 							</span>
 						</div>
 					</div>

@@ -24,7 +24,9 @@ class ReportController extends Controller
         $status = $request->status ?: 'aktif';
 
         $reports = Report::query()
-            ->with('user:id,name')
+            // `resolver` = siapa yang menutup insiden (FINDINGS #88). Hanya nama; baris yang
+            // belum/tidak ditutup mengirim null dan dibaca layar sebagai "tidak tercatat".
+            ->with(['user:id,name', 'resolver:id,name'])
             ->filter($request->only(['search']))
             ->when($status !== 'Semua', function ($query) use ($status) {
                 // 'aktif' = laporan yang masih berjalan (belum selesai/ditolak), selaras dgn

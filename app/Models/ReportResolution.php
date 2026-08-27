@@ -8,6 +8,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ReportResolution extends Model
 {
+    /**
+     * Bunyi kolom "Sumber Informasi" untuk laporan yang MASUK LEWAT APLIKASI (warga menekan
+     * Lapor Darurat sendiri). SUMBER TUNGGAL — dibaca `ReportResolutionController::create()`
+     * dan `SeedDemoIncident`; kalimat ini dulu ditulis mati di seeder saja, dan kalimat yang
+     * ditulis dua kali akan menyimpang tanpa gejala (pelajaran FINDINGS #80).
+     *
+     * Laporan yang DIKETIK operator sengaja tidak punya nilai otomatis: sumber sebenarnya
+     * (telepon 113 / laporan langsung / instansi lain) hanya operator yang tahu.
+     */
+    public const SUMBER_APLIKASI = 'Laporan warga melalui aplikasi Sisupit';
+
     protected $fillable = [
         'report_id',
         'created_by',
