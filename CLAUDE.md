@@ -81,6 +81,7 @@ Task aktif   : TASK_45 (prompt/tasks/TASK_45_berita_acara_otomatis_dan_akun_opd.
                 tanpa instansi, tapi karena alasan keliru).
                 Test 329 → 340 passed (1284 assertions), Pint PASS, npm run build lulus.
                 TANPA migrasi/route/perubahan skema. SISA: verifikasi manual §6 file task.
+                TERDEPLOY 2026-08-27 @221ae7ed ke prod/staging/dev, SEKALIGUS dengan TASK_44.
                TASK_44 (prompt/tasks/TASK_44_koreksi_pin_peta_detail_jejak_penutup.md) — SELESAI
                 (kode) 2026-08-27. Satu pesan user, tiga permintaan; dua keputusan cakupan
                 ditanyakan lebih dulu (klik marker → popup + tombol, bukan langsung pindah;
@@ -134,6 +135,18 @@ Task aktif   : TASK_45 (prompt/tasks/TASK_45_berita_acara_otomatis_dan_akun_opd.
                 Test 323 → 329 passed (1253 assertions), Pint PASS, npm run build lulus.
                 SISA: verifikasi manual §6 file task + jalankan migrasi di dev/staging/prod
                 (aditif; route & channel TIDAK berubah jadi route cache tak wajib dibangun).
+                TERDEPLOY 2026-08-27 @221ae7ed ke prod/staging/dev (dua commit: 43b676a0 kode,
+                221ae7ed aset build), urutan dev → staging → prod. Migrasi closure-actor
+                dijalankan di ketiga env (DONE, 0 pending); cadangan mysqldump ketiga DB di VPS
+                `/root/backup-predeploy-20260827-061314` (17 MB per env, "Dump completed").
+                Data prod TIDAK berubah (72 users / 19 reports / 51 hydrants / 320 banjars, sama
+                persis pra-migrasi). Verifikasi: ketiga domain HTTP 200, bundel BARU
+                Map-CsHP4DWU.js 200 & bundel LAMA Map-Slx_bSFP.js 404 di ketiganya, POST
+                /broadcasting/auth 403, nginx/php8.2-fpm/reverb/reverb-staging/reverb-dev active,
+                0 berkas root-owned pasca-chown, dan 0 ERROR baru (ERROR terakhir di ketiga env
+                bertanggal 2026-08-26 06:07 = queue worker "Connection refused" lama).
+                Route cache TIDAK dibangun ulang — routes/ tak berubah di rentang ini.
+                `composer install` dilewati (composer.json & .lock tak berubah).
                TASK_43 (prompt/tasks/TASK_43_dashboard_realtime_alamat_thanks.md) — SELESAI
                 (kode) 2026-08-27. Satu pesan user, tiga permintaan; dua keputusan cakupan
                 ditanyakan dan dijawab "ya keduanya".
