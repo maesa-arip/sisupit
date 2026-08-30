@@ -75,8 +75,25 @@ Task aktif   : TASK_50 (prompt/tasks/TASK_50_suara_notifikasi_bertingkat.md) —
                 tepat 5 putaran. SisupitWebView — tiga channel BARU di samping
                 emergency_channel_v4 yang TIDAK disentuh; gradlew assembleDebug LULUS, APK
                 15,0 MB, ketiga suara terbukti terpaket di res/raw/.
+                TERDEPLOY 2026-08-30 @3e0f8516 ke prod/staging/dev, ff dari a2370058, urutan
+                dev -> staging -> prod. DUA commit: af5c8947 kode + 3e0f8516 aset build.
+                SEKALIGUS memuat perbaikan ikutan yang selama ini belum ter-commit: #98 kontras
+                tautan popup Leaflet, rename badan hukum jadi "PT Tawarin Dimana Saja", seksi
+                nav "Bantuan & Legal" dihapus, dan label status hydrant warga yang terpotong
+                (`longStatusLabels`). TANPA migrasi (0 pending di ketiga env), TANPA
+                `composer install`, TANPA route cache — database/migrations/, routes/, dan
+                composer.lock tidak berubah di rentang ini. Verifikasi: ketiga domain / &
+                /hydrants 200; bundel BARU app-DhoOMq38.js 200 & LAMA app-DUcZWODb.js 404 di
+                ketiganya; POST /broadcasting/auth 403; nginx/php8.2-fpm/reverb/reverb-staging/
+                reverb-dev active; 0 berkas root-owned di public/build; 0 ERROR baru (ERROR
+                terakhir prod 2026-08-27 23:42 = gotcha T_NS_SEPARATOR sesi TASK_49, staging/dev
+                2026-08-26 = queue worker lama). Data prod utuh: 88 users / 30 reports /
+                51 hydrants / 6 pompas / 326 banjars / 1 berita acara. Nama penyedia dibuktikan
+                berbunyi "PT Tawarin Dimana Saja" di ketiga halaman live.
                 SISA: `npm run dist` installer .exe, pasang APK, verifikasi di perangkat
-                (FLAG_INSISTENT di Android O+ BELUM diuji), lalu deploy Bagian A.
+                (FLAG_INSISTENT di Android O+ BELUM diuji). Sampai kedua wrapper itu dirilis,
+                `alert_stage` sudah TERKIRIM dari server tapi klien lama mengabaikannya — suara
+                bertingkatnya belum terdengar bedanya di perangkat mana pun.
                TASK_49 (prompt/tasks/TASK_49_alamat_detail_yurisdiksi_berita_acara.md) — SELESAI
                 (kode) 2026-08-28. Satu pesan user, TUJUH butir; DUA di antaranya ternyata SUDAH
                 selesai sejak TASK_45 dan hanya diverifikasi ulang, tidak dikerjakan lagi:
