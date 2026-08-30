@@ -20,7 +20,7 @@ export default function AppLayout({ title, children }) {
 	const unreadCount = usePage().props.unread_notifications_count ?? 0;
 	// Nama badan hukum penyedia dari config/legal.php (shared prop) — sebelumnya ter-hardcode
 	// di footer dengan ejaan yang berbeda dari dokumen legal.
-	const penyediaNama = usePage().props.penyedia_nama ?? 'PT Tawarin Dimana Aja';
+	const penyediaNama = usePage().props.penyedia_nama ?? 'PT Tawarin Dimana Saja';
 
 	useEffect(() => {
 		if (!auth) return;

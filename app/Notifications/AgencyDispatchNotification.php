@@ -35,9 +35,14 @@ class AgencyDispatchNotification extends Notification implements ShouldQueue
 
     public function via($notifiable)
     {
-        // FCM (mobile) + database (lonceng web). Tanpa broadcast: akun OPD tidak digambar
-        // di peta command center, jadi tak ada channel privat yang perlu diberi tahu.
-        return [FcmChannel::class, 'database'];
+        // FCM (mobile) + database (lonceng web) + broadcast.
+        //
+        // Alasan lama "tanpa broadcast" sudah tidak berlaku: ia mengira channel privat hanya
+        // dipakai menggambar responder di peta command center. Sejak ada aplikasi desktop
+        // (.exe), channel App.Models.User.{id} juga jalur notifikasi — dan .exe tidak memakai
+        // FCM sama sekali. Akun OPD yang bekerja dari desktop tak akan pernah tahu ia diminta
+        // bantuan tanpa ini (TASK_50).
+        return [FcmChannel::class, 'database', 'broadcast'];
     }
 
     private function content(): array

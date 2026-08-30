@@ -665,7 +665,11 @@ export default function Create({
 									{errors.address && <InputError message={errors.address} />}
 								</div>
 
-								<div className="grid grid-cols-2 gap-4">
+								{/* Satu kolom bila kosakata statusnya berupa kalimat (hydrant warga):
+								    di kolom setengah lebar, "Terdaftar Belum Dimodifikasi" terpotong keras
+								    di dalam trigger-nya. Sebagai DATA di ./variants.jsx, sebentuk dengan
+								    baris kolom air di bawah — bukan `if (variant === 'warga')` di sini. */}
+								<div className={`grid gap-4 ${v.longStatusLabels ? 'grid-cols-1' : 'grid-cols-2'}`}>
 									<div className="grid gap-1.5">
 										<Label>{v.typeLabel}</Label>
 										{/* Terkendali (`value`), bukan `defaultValue`: tombol Reset memanggil

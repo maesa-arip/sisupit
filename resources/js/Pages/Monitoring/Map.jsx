@@ -207,6 +207,15 @@ export default function MonitoringMap({ layers }) {
 				// ter-scope yurisdiksi di server, sama seperti gerbang ReportController::show —
 				// jadi tautan ini tak membuka apa pun yang tak boleh dilihat pembukanya.
 				const detailUrl = route('reports.show', r.id);
+				// `!text-destructive-foreground` WAJIB pakai important: leaflet.css memasang
+				// `.leaflet-container a { color:#0078A8 }` — spesifisitasnya (0,1,1) mengalahkan
+				// utility Tailwind (0,1,0) DAN berkasnya dimuat sesudah bundel Vite di
+				// app.blade.php, jadi ia menang dua kali. Tanpa itu teks & panah tombol ini
+				// biru Leaflet di atas latar merah = praktis tak terbaca. Berlaku untuk SETIAP
+				// <a> di dalam popup Leaflet, bukan cuma yang ini.
+				// Sisa tokennya menyalin Button varian `destructive` (rounded-md, text-xs
+				// font-semibold, shadow-sm, ikon 16px stroke-2) supaya sebentuk dengan tombol
+				// di halaman lain — bukan label mungil huruf kapital seperti sebelumnya.
 				const html = popupShell(`
 					<h4 class="m-0 text-[13px] font-bold leading-snug text-foreground">${r.title}</h4>
 					<div class="space-y-1 text-[11px] font-medium text-muted-foreground">
@@ -214,9 +223,9 @@ export default function MonitoringMap({ layers }) {
 						<div class="flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>${r.time || ''}</span></div>
 					</div>
 					<span class="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-bold ${meta.badge}">${meta.label}</span>
-					<a href="${detailUrl}" data-report-detail="${r.id}" class="flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-destructive text-[11px] font-bold uppercase tracking-wider text-destructive-foreground no-underline hover:bg-destructive/90">
+					<a href="${detailUrl}" data-report-detail="${r.id}" class="flex h-9 w-full items-center justify-center gap-2 rounded-md bg-destructive text-xs font-semibold !text-destructive-foreground no-underline shadow-sm hover:bg-destructive/90">
 						Lihat Detail
-						<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
 					</a>`);
 				const m = window.L.marker([r.lat, r.lng], {
 					icon: glyphIcon(meta.marker, GLYPH.flame),

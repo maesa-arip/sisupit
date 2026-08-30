@@ -7,13 +7,10 @@ import {
 	IconFireHydrant,
 	IconFiretruck,
 	IconFlame,
-	IconGavel,
 	IconHeartHandshake,
 	IconHistory,
 	IconHomeCog,
-	IconInfoCircle,
 	IconKey,
-	IconLifebuoy,
 	IconLockAccess,
 	IconLogin2,
 	IconLogout,
@@ -90,7 +87,6 @@ export function resolveAbilities(auth) {
  * dihapus 2026-08-13, jadi nilai ini kini tak berpengaruh apa pun. Artinya dulu:
  *   - 'list'        → daftar terbuka
  *   - 'collapsible' → terlipat, default tertutup (seksi admin yang jarang disentuh)
- *   - 'legal'       → tautan teks kecil di kaki panel
  *   - 'account'     → baris aksi akun di kaki panel
  * <Sidebar/> dan <MobileBottomNav/> sama-sama mengabaikan `mobile`: keduanya merender
  * seksi secara seragam (bottom-nav membagi berdasarkan KUNCI item, bukan metadata ini).
@@ -329,41 +325,6 @@ export function buildNavSections({ auth, url = '' }) {
 						},
 					]
 				: [],
-		},
-		{
-			key: 'legal',
-			title: 'Bantuan & Legal',
-			mobile: 'legal',
-			items: [
-				{
-					key: 'info.help',
-					title: 'Pusat Bantuan',
-					icon: IconLifebuoy,
-					url: route('info.help'),
-					active: startsWith('/pusat-bantuan'),
-				},
-				{
-					key: 'info.terms',
-					title: 'Syarat & Ketentuan',
-					icon: IconGavel,
-					url: route('info.terms'),
-					active: startsWith('/syarat-ketentuan'),
-				},
-				{
-					key: 'info.privacy',
-					title: 'Kebijakan Privasi',
-					icon: IconShieldLock,
-					url: route('info.privacy'),
-					active: startsWith('/kebijakan-privasi'),
-				},
-				{
-					key: 'info.about',
-					title: 'Tentang Aplikasi',
-					icon: IconInfoCircle,
-					url: route('info.about'),
-					active: startsWith('/tentang'),
-				},
-			],
 		},
 		{
 			key: 'akun',

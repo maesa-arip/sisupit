@@ -114,6 +114,16 @@
 - Nominatim: hanya ~1 request/detik (kebijakan publik instance), **selalu** lewat
   `GeocodeController` (cache 24h + `Cache::lock`) — jangan panggil Nominatim langsung dari
   frontend/controller lain. `docker/nominatim/` sudah disiapkan untuk migrasi self-hosted.
+- **Tautan `<a>` di dalam popup Leaflet WAJIB `!` (important) untuk warna teksnya** —
+  `leaflet.css` memasang `.leaflet-container a { color:#0078A8 }` (spesifisitas 0,1,1) dan
+  `resources/views/app.blade.php` memuatnya dari unpkg SESUDAH `@vite`, jadi ia mengalahkan
+  utility Tailwind (0,1,0) lewat spesifisitas MAUPUN urutan. Gejalanya senyap total: kelasnya
+  terbaca benar di DOM, tak ada galat, hanya teks & ikon `currentColor` yang membiru sampai tak
+  terbaca (FINDINGS #98). Menaikkan spesifisitas dari `app.css` TIDAK menolong — berkas itu
+  dimuat lebih dulu. Ini satu-satunya pemakaian `!` di seluruh `resources/js/`; jangan
+  memperluasnya ke luar konteks popup Leaflet. Sisa tokennya tetap menyalin `Button` varian
+  yang sesuai (`rounded-md`, `text-xs font-semibold`, `shadow-sm`, ikon 16px `stroke-width=2`),
+  bukan bentuk khusus peta. Patokan: `resources/js/Pages/Monitoring/Map.jsx`.
 - Role check: **selalu** `hasRole()`/`hasAnyRole()` dari Spatie Permission, bukan kolom
   string manual. `User::role([...])` bisa melempar `RoleDoesNotExist` di DB belum ter-seed
   (lihat workaround di `HomeController`).

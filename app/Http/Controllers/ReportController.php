@@ -445,7 +445,11 @@ class ReportController extends Controller
                 ->whereNot('id', auth()->id())
                 ->get();
             if ($commandCenterUsers->isNotEmpty()) {
-                Notification::send($commandCenterUsers, new EmergencyAlertNotification($report, 'petugas'));
+                // STAGE_REPORT_INCOMING: laporan ini BELUM diverifikasi siapa pun, jadi ia
+                // tidak boleh berbunyi & berbunyi-nama sama dengan panggilan meluncur. Sirine
+                // untuk sesuatu yang bisa saja hoaks melatih petugas mengabaikan sirine, dan
+                // begitu itu terjadi siaran sungguhan ikut terabaikan (TASK_50).
+                Notification::send($commandCenterUsers, new EmergencyAlertNotification($report, 'petugas', EmergencyAlertNotification::STAGE_REPORT_INCOMING));
             }
 
             // Aba-aba ke dashboard yang sedang terbuka di wilayah kejadian: kejadian BARU

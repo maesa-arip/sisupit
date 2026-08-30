@@ -12,7 +12,7 @@
 |
 | CATATAN PENTING — dua pihak yang berbeda, jangan tertukar:
 |   - PENYEDIA SISTEM  = badan hukum pemilik & pengelola SISUPIT (pemilik kode,
-|     pemroses data). Sejak 2026-08-07 diisi PT Tawarin Dimana Aja.
+|     pemroses data). Sejak 2026-08-07 diisi PT Tawarin Dimana Saja.
 |   - INSTANSI (tenant) = Damkar kabupaten/kota, PENGENDALI data warga. Datanya
 |     tidak di sini melainkan di tabel `tenants` (nama_instansi, alamat_instansi,
 |     email_kontak, penanggung_jawab_data), karena berbeda tiap kabupaten.
@@ -22,7 +22,7 @@
 return [
     'penyedia' => [
         // Badan hukum pemilik/pengelola aplikasi. Sesuaikan dengan yang tertulis di PKS.
-        'nama' => env('LEGAL_PENYEDIA_NAMA', 'PT Tawarin Dimana Aja'),
+        'nama' => env('LEGAL_PENYEDIA_NAMA', 'PT Tawarin Dimana Saja'),
 
         // Kontak dukungan teknis (bukan kanal darurat — darurat selalu ke nomor instansi).
         'email' => env('LEGAL_PENYEDIA_EMAIL', 'support@sisupit.com'),
@@ -46,7 +46,7 @@ return [
     | secara material — tanggal ini yang tampil sebagai "berlaku sejak" di halaman.
     */
     'dokumen' => [
-        // 2.0 = penggabungan draf legal PT Tawarin Dimana Aja (ToS umum + ToS Pengguna
+        // 2.0 = penggabungan draf legal PT Tawarin Dimana Saja (ToS umum + ToS Pengguna
         // Berkontrak) ke halaman Syarat & Ketentuan.
         'syarat_versi' => env('LEGAL_SYARAT_VERSI', '2.0'),
         'syarat_berlaku' => env('LEGAL_SYARAT_BERLAKU', '2026-08-07'),

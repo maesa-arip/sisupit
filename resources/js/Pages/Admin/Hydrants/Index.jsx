@@ -169,9 +169,14 @@ export default function Index({ variant = 'resmi', counts = {}, hydrants, summar
 								onChange={(e) => setData('search', e.target.value)}
 							/>
 						</form>
-						<div className="flex gap-2">
-							{/* Kosakata statusnya beda per jenis hydrant (lihat ./variants.jsx): resmi
-							    Berfungsi/Tidak Berfungsi, warga Terdaftar Belum/Sudah Dimodifikasi. */}
+						{/* `flex-wrap` WAJIB, dan itulah bedanya dengan bentuk sebelumnya: kosakata
+						    statusnya beda per jenis hydrant (lihat ./variants.jsx) — resmi Berfungsi/Tidak
+						    Berfungsi, warga Terdaftar Belum/Sudah Dimodifikasi. Label warga hampir tiga kali
+						    lebih panjang sementara kolom ini cuma ~1/3 layar, jadi tanpa wrap ketiga chip
+						    dipaksa berdesakan dalam satu baris: teksnya patah di tengah pill dan barisnya
+						    melewati lebar kolom. Bentuk ini menyalin /admin/pumps, yang memang sudah
+						    menghadapi keempat kosakata itu sekaligus. */}
+						<div className="flex flex-wrap gap-2">
 							{['Semua', ...v.statusOptions].map((status) => (
 								<button
 									key={status}

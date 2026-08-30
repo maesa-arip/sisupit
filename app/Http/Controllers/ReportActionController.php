@@ -77,16 +77,19 @@ class ReportActionController extends Controller
             // sudah dibuka untuknya sejak #41. Saklar siaganya sama dengan relawan (User::STANDBY_ROLES).
             $pejabatWatchers = User::role('pejabat')->where('is_standby', true)->notifiableForReport($report, $pejabatCeiling)->whereNot('id', auth()->id())->get();
 
+            // STAGE_DISPATCH disebut EKSPLISIT walau ia nilai bawaan: laporan masuk (TASK_50)
+            // memakai kelas yang SAMA dengan tahap berbeda, jadi dua pemanggil dengan arti
+            // berbeda harus sama-sama menyebutkan maunya. Hanya tahap inilah yang bersirine.
             if ($petugasResponders->isNotEmpty()) {
-                Notification::send($petugasResponders, new EmergencyAlertNotification($report, 'petugas'));
+                Notification::send($petugasResponders, new EmergencyAlertNotification($report, 'petugas', EmergencyAlertNotification::STAGE_DISPATCH));
             }
             if ($relawanResponders->isNotEmpty()) {
-                Notification::send($relawanResponders, new EmergencyAlertNotification($report, 'relawan'));
+                Notification::send($relawanResponders, new EmergencyAlertNotification($report, 'relawan', EmergencyAlertNotification::STAGE_DISPATCH));
             }
             if ($pejabatWatchers->isNotEmpty()) {
                 // `user_role` di payload FCM sengaja 'pejabat' agar wrapper Android/iOS bisa
                 // membedakan perlakuannya tanpa perubahan server lagi (mis. tak memutar sirine).
-                Notification::send($pejabatWatchers, new EmergencyAlertNotification($report, 'pejabat'));
+                Notification::send($pejabatWatchers, new EmergencyAlertNotification($report, 'pejabat', EmergencyAlertNotification::STAGE_DISPATCH));
             }
         });
 

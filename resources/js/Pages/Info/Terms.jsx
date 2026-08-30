@@ -22,7 +22,7 @@ const tabTriggerClass =
  */
 export default function Terms({ instansi, legal }) {
 	const penyelenggara = instansi?.nama_instansi || 'Dinas Pemadam Kebakaran dan Penyelamatan';
-	const penyedia = legal?.penyedia?.nama || 'PT Tawarin Dimana Aja';
+	const penyedia = legal?.penyedia?.nama || 'PT Tawarin Dimana Saja';
 	// Cadangan = nomor pemadam kebakaran nasional. Karena cadangannya bernilai sama,
 	// kalimat penafian di bawah menyebut nomor nasional HANYA bila nomor instansi
 	// memang berbeda — kalau tidak ia berbunyi "113 atau 113".

@@ -24,7 +24,60 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : TASK_49 (prompt/tasks/TASK_49_alamat_detail_yurisdiksi_berita_acara.md) — SELESAI
+Task aktif   : TASK_50 (prompt/tasks/TASK_50_suara_notifikasi_bertingkat.md) — SELESAI (kode)
+                2026-08-28. Permintaan user: laporan yang BARU MASUK ke admin/petugas harus
+                berbunyi BEDA dari broadcast sesudah verifikasi; sirine hanya untuk broadcast;
+                konfirmasi OPD (PLN) juga dibedakan. Empat keputusan user dijawab lebih dulu:
+                payload tak dikenal TETAP sirine (gagal berisik lebih aman daripada gagal diam
+                untuk layanan kebakaran), notif balik ke PELAPOR pakai bunyi BAWAAN sistem,
+                nada DIBUAT SENDIRI, dan judul tahap masuk boleh diubah.
+                TIGA FAKTA YANG MENENTUKAN BENTUK PEKERJAANNYA, semuanya baru ketahuan setelah
+                menelusuri kode: (1) laporan masuk & broadcast memakai KELAS + JUDUL yang sama
+                persis (ReportController:448 vs ReportActionController:81), jadi keluhan user
+                tepat — tak ada satu pun jalan membedakannya; (2) di ANDROID suara melekat pada
+                notification channel, BUKAN payload, dan setelan channel PERMANEN — server tak
+                bisa mengirim "mainkan berkas X", ia hanya bisa mengirim penanda lalu wrapper
+                memilih channel, sehingga membedakan suara = MENAMBAH channel dan WAJIB rebuild
+                APK; komentar "Tanpa sirine: ini kabar koordinasi" di AgencyConfirmation cuma
+                benar untuk iOS; (3) aplikasi .exe yang dipakai admin TIDAK memakai FCM sama
+                sekali — ia mendengar Reverb di App.Models.User.{id}, sehingga konfirmasi PLN
+                TIDAK PERNAH tiba di layar Pusat Komando (via() kedua kelas Agency tanpa
+                'broadcast'). Ikutan yang ikut terbetulkan: `report_status` juga lewat channel
+                darurat, jadi WARGA PELAPOR selama ini dibangunkan sirine menembus mode senyap
+                tiap kali status laporannya berubah.
+                TIGA TINGKAT, pembedanya TINDAKAN yang diminta — bukan topik (ini yang menjaga
+                daftar suara tidak beranak-pinak): triase (nada NAIK, laporan belum diverifikasi)
+                → panggilan meluncur (SIRINE, tetap) → koordinasi (nada TURUN). Arah nada dipilih
+                karena terbaca tanpa dihafal. Sirine harus tetap berarti SATU hal saja; laporan
+                mentah bisa hoaks, dan sirine untuk yang belum tentu benar melatih orang
+                mengabaikan sirine — lalu broadcast sungguhan ikut terabaikan.
+                YANG MENGIKAT: (a) penanda tahap TIDAK BOLEH bernama `type` —
+                BroadcastNotificationCreated::broadcastWith() melakukan array_merge(data,
+                ['type' => nama kelas]), jadi kunci itu DITIMPA di jalur siaran; Android akan
+                melihat nilai kita dan .exe TIDAK, tanpa galat di mana pun. Namanya `alert_stage`;
+                (b) jeda antar-pengulangan TAK BISA diatur di Android (FLAG_INSISTENT mengulang
+                sampai notifikasi ditutup, tanpa kendali jumlah/jeda) sehingga jeda DIBANGUN KE
+                DALAM masuk.wav (2,4 dtk sunyi di ekor → berdenting tiap ~3,7 dtk); (c) Android
+                tak bisa "5×" — koordinasi berbunyi SEKALI di ponsel, 5× di .exe, disengaja
+                karena pendengarnya berbeda; (d) "berbunyi sampai diklik" tak cukup mengandalkan
+                klik: toast Windows menyingkir sendiri ke Pusat Tindakan, jadi suara juga
+                berhenti saat jendela utama dibuka/difokuskan, lewat tray, atau batas waktu.
+                Nada dibangkitkan docs/sounds/buat_nada.py (WAV 22,05 kHz — satu-satunya format
+                yang diterima Android, Chromium, DAN iOS tanpa konversi; ffmpeg tak terpasang).
+                Penjaga: NotificationSoundStageTest BARU (5 test) yang mengadu payload SIARAN
+                sungguhan, bukan toArray(); EMPAT di antaranya dibuktikan MERAH lewat sabotase
+                sengaja (penanda dinamai `type`, pemanggil lupa tahap, 'broadcast' dicabut).
+                Test 363 → 368 passed (1428 assertions), Pint PASS. npm run build TIDAK perlu
+                (nol berkas resources/js/ berubah). TANPA migrasi/route/perubahan skema.
+                DI LUAR REPO (keduanya tanpa git, catatan di memori): SisupitDesktop —
+                siren.html → suara.html, tabel TINGKAT, judul kini dari SERVER bukan ditulis
+                mati lagi di main.js; ketiga suara dibuktikan berbunyi lewat CDP, konfirmasi
+                tepat 5 putaran. SisupitWebView — tiga channel BARU di samping
+                emergency_channel_v4 yang TIDAK disentuh; gradlew assembleDebug LULUS, APK
+                15,0 MB, ketiga suara terbukti terpaket di res/raw/.
+                SISA: `npm run dist` installer .exe, pasang APK, verifikasi di perangkat
+                (FLAG_INSISTENT di Android O+ BELUM diuji), lalu deploy Bagian A.
+               TASK_49 (prompt/tasks/TASK_49_alamat_detail_yurisdiksi_berita_acara.md) — SELESAI
                 (kode) 2026-08-28. Satu pesan user, TUJUH butir; DUA di antaranya ternyata SUDAH
                 selesai sejak TASK_45 dan hanya diverifikasi ulang, tidak dikerjakan lagi:
                 "sumber informasi otomatis" & "OPD masuk tim atensi" (keduanya sudah dikunci
@@ -1084,7 +1137,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-08-26: 295 passed, 1104 assertions —
+Test      : php artisan test            (baseline 2026-08-28: 368 passed, 1428 assertions —
             angka lama "65 passed, 164 assertions" per 2026-06-25 sudah jauh tertinggal)
 Run (dev) : composer dev
 Lint      : vendor/bin/pint  /  npm run format (auto-fix, BUKAN check-only — tidak ada di CI)

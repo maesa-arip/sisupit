@@ -828,6 +828,9 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **Verifikasi:** `php artisan test` 182 passed (726 assertions), `npm run build` lulus (client + SSR), Pint & Prettier bersih. Markup diperiksa lewat render SSR sungguhan (login superadmin → `/dashboard`): kelas `md:block`/`lg:w-64` pada sidebar, `md:hidden` pada bar bawah, tombol `aria-label="Buka menu"`, seksi "Bantuan & Legal", dan keempat tautan legal di footer — semuanya ter-render, dan kelas responsifnya terbukti ada di CSS terkompilasi. **Sisa yang belum diverifikasi = perilaku interaktif & rupa visual** (Sheet membuka/menutup, keterbacaan rail) — daftar periksa manual di `prompt/tasks/TASK_20_navigasi_mobile_tablet.md`.
 - **Sumber:** laporan user 2026-08-07.
 - **Status:** SELESAI (FIXED) lagi 2026-08-19 lewat TASK_31 — slot ke-5 bottom-nav kembali jadi "Menu" untuk SEMUA peran (tautan legal & Keluar terjangkau di ponsel), kali ini tanpa mencabut bentuk popover yang diminta user. Sempat REOPEN 2026-08-13 (lihat catatan pembalikan di #54).
+- **KOREKSI 2026-08-28 (dua hal dari entri ini kini TIDAK berlaku lagi):**
+  1. **Ejaan penyedia: yang hardcoded dulu justru BENAR.** Kalimat di atas menyebut footer lama `"PT. Tawarin Dimana Saja"` sebagai "ejaan yang berbeda dari dokumen legal" lalu menyeragamkannya ke `config/legal.php`. User menegaskan 2026-08-28 bahwa ejaan yang SAH adalah **PT Tawarin Dimana Saja** — jadi yang 2026-08-07 terjadi bukan penyeragaman ke ejaan benar, melainkan **typo di dokumen legal ikut disalin ke aplikasi**. `config/legal.php` sudah dibetulkan; JANGAN "seragamkan" balik ke "Dimana Aja". Sumber typo-nya diduga kedua draf `docs/*.docx` yang jadi bahan PKS — keduanya BELUM diubah (lihat #51/#52).
+  2. **Tautan legal di navigasi sudah TIDAK ADA lagi.** Atas permintaan user 2026-08-28 seksi "Bantuan & Legal" dihapus dari `navItems.js`, sehingga klaim "tautan legal & Keluar terjangkau di ponsel" hanya berlaku untuk Keluar. Keempat halaman tetap hidup, tapi satu-satunya tautan tersisa di seluruh aplikasi = footer `AppLayout` (untuk SEMUA peran, bukan cuma tamu). Footer itu jadi titik tunggal kegagalan: menghapusnya mengulang persis #53 tanpa gejala apa pun.
 
 ### #54 — Panel menu mobile "terlalu primitif": sidebar desktop dituang apa adanya ke Sheet
 - **Severity:** P2 (UX; bukan keamanan)
@@ -1873,3 +1876,143 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **Penjaga:** `tests/Feature/Sisupit/ReportAddressPatokanTest.php` (6 test, EMPAT dibuktikan
   merah dulu), termasuk parity aturan tampil antara server & klien.
 - **Status:** FIXED (TASK_49, 2026-08-28)
+
+---
+
+### #96 — `window.playCustomAlert` tak pernah dipanggil: lonceng notifikasi di BROWSER bisu total
+- **Severity:** P2 (fitur yang tampak ada tapi tak pernah hidup; bukan bug fungsional yang
+  merusak data)
+- **Ditemukan** saat memetakan jalur suara untuk TASK_50, 2026-08-28.
+- **Gejala:** tak ada. Persis itu masalahnya — `SoundNotificationControl` dirender di
+  `AppLayout.jsx:111`, komponennya utuh, berkas `public/sounds/alert.mp3` (478 KB) ada di
+  tempatnya, dan tak satu pun dari itu pernah berbunyi.
+- **Akar:** komponen itu hanya **mendaftarkan** `window.playCustomAlert` di sebuah `useEffect`
+  dan menunggu ada yang memanggilnya. **Nol pemanggil** di seluruh `resources/js/` — dibuktikan
+  dengan grep menyeluruh termasuk bundel build & worktree: satu-satunya kemunculan lain adalah
+  salinan komponen yang sama di dalam `public/build/assets/AppLayout-*.js`. Jadi tombol
+  "🔇 Matikan Notifikasi Suara" pun tak pernah bisa muncul, sebab ia digerbangi `isPlaying`
+  yang hanya di-set oleh fungsi yang tak pernah dipanggil itu.
+- **Kenapa tidak ketahuan:** lonceng web memang bukan real-time (temuan #46), jadi tak ada
+  peristiwa klien yang secara alami akan memanggilnya; dan tak ada yang pernah mengeluh
+  "suaranya tidak bunyi" karena di browser tak pernah ADA suara untuk dibandingkan.
+- **Kenapa TIDAK dikerjakan di TASK_50:** user menyatakan 2026-08-28 bahwa **admin memakai
+  aplikasi .exe, bukan browser**, sehingga permukaan yang berarti untuk suara adalah Electron.
+  Ini tetap OPEN karena begitu ada peran yang bekerja dari browser (mis. pejabat atau operator
+  cadangan), ia jadi P1 seketika.
+- **Kalau kelak dikerjakan:** salurannya sudah hidup — `hooks/use-report-feed.js` mendengar
+  `ReportFeedChanged` yang membawa `status`, dan `TERLAPOR` vs `pending` persis pembeda
+  tingkat 1 vs 2. Hambatannya kebijakan autoplay browser: butuh satu gestur pengguna untuk
+  membuka kunci audio, yang sebaiknya sekalian jadi saklar menyalakan/mematikan suara.
+- **Status:** OPEN
+
+---
+
+### #97 — `user_role` dikirim ke wrapper dengan niat eksplisit, tapi tak pernah dibaca
+- **Severity:** P3 (perilaku yang tak diinginkan sudah ditimbang ulang & DITERIMA user)
+- **Ditemukan** saat memetakan jalur suara untuk TASK_50, 2026-08-28.
+- **Gejala:** pejabat yang MEMANTAU (bukan merespons) menerima sirine penuh lewat stream ALARM
+  yang menembus mode senyap, sama persis dengan petugas yang harus meluncur.
+- **Akar:** `ReportActionController.php:86` mengirim `user_role: 'pejabat'` di payload FCM
+  dengan komentar yang menyatakan maksudnya terang-terangan — "agar wrapper Android/iOS bisa
+  membedakan perlakuannya tanpa perubahan server lagi (mis. tak memutar sirine)". Wrapper
+  Android **tak pernah membaca kunci itu**: `SisupitFirebaseMessagingService.showNotification()`
+  hanya memakai `title`, `body`, `action_url`, `report_id`. Payload membawa niat yang tak pernah
+  dijemput klien — bentuk yang sama dengan bug utama TASK_50.
+- **Keputusan user 2026-08-28: WONTFIX, pejabat TETAP bersirine.** Alasannya bukan kelalaian
+  melainkan perubahan keadaan: sejak TASK_34 pejabat masuk `User::STANDBY_ROLES` dan **punya
+  saklar siaganya sendiri** di kartu "Mode Kesiapan" (`profile.standby`). Pejabat yang tak ingin
+  diganggu mematikan siaganya, dan `approve()` memang menyaring `where('is_standby', true)` —
+  jadi kendalinya sudah ada di tangan orangnya, bukan ditebak wrapper dari peran.
+- **Yang mengikat kalau ini dibuka lagi:** komentar di `ReportActionController.php:86` kini
+  menjanjikan sesuatu yang sengaja tidak dikerjakan. Jangan menambal wrapper diam-diam atas dasar
+  komentar itu — keputusan di atas yang berlaku, dan mengubahnya berarti menghapus kendali yang
+  sudah dipegang pejabat sendiri.
+- **Status:** WONTFIX (keputusan user 2026-08-28)
+
+---
+
+### #98 — Tombol "Lihat Detail" di popup Peta Pemantauan berteks biru Leaflet di atas latar merah
+- **Severity:** P2 (satu-satunya jalan dari peta ke detail insiden praktis tak terbaca)
+- **Dilaporkan user** 2026-08-28: "di peta pemantauan tombol lihat detail tidak terbaca teksnya".
+- **Gejala:** tombolnya tergambar utuh — kotak merah, tinggi benar, panah di tempatnya — hanya
+  TEKS & panahnya yang nyaris lenyap. Nol galat, nol baris log; kelasnya pun terbaca BENAR di
+  DOM (`text-destructive-foreground` ada di sana), jadi memeriksa markup saja tidak menemukan
+  apa-apa. Yang harus dilihat: warna yang MENANG di panel Computed.
+- **Akar:** `leaflet.css` memasang `.leaflet-container a { color:#0078A8 }`. Spesifisitasnya
+  (0,1,1 — satu kelas + satu elemen) MENGALAHKAN utility Tailwind `.text-destructive-foreground`
+  (0,1,0), dan `resources/views/app.blade.php` memuat leaflet.css dari unpkg **sesudah**
+  `@vite` — jadi ia menang dua kali, lewat spesifisitas maupun urutan. Karena panahnya
+  `stroke="currentColor"`, ia ikut membiru. Biru tua #0078A8 di atas `--destructive` = kontras
+  jauh di bawah ambang baca.
+- **Kenapa baru sekarang:** tombol ini lahir di TASK_44 (#87) dan merupakan SATU-SATUNYA `<a>`
+  di dalam popup Leaflet di seluruh repo — sisa isi popup memakai `<h4>/<span>/<div>`, yang
+  tidak disentuh selektor Leaflet. Jadi bukan regresi; ia salah sejak menit pertama.
+- **Fix:** `!text-destructive-foreground` (important) di `Pages/Monitoring/Map.jsx`. Ini
+  satu-satunya bentuk yang menang tanpa bergantung pada urutan muat: menaikkan spesifisitas
+  lewat aturan di `app.css` TIDAK cukup — berkas itu dimuat lebih dulu, dan `color: inherit`
+  yang cukup spesifik justru mematikan utility Tailwind di elemennya sendiri.
+- **Sekalian diselaraskan** (permintaan user "pastikan sesuai aturan tampilan"): tokennya kini
+  menyalin `Button` varian `destructive` — `rounded-md` (bukan `rounded-lg`), `text-xs
+  font-semibold` menggantikan `text-[11px] font-bold uppercase tracking-wider` (bentuk yang
+  sudah ditinggalkan kluster H #37), `shadow-sm`, dan ikon 16px `stroke-width=2` seperti
+  `[&_svg]:size-4` milik Button.
+- **Yang mengikat:** aturannya berlaku untuk SETIAP `<a>` yang kelak ditaruh di dalam popup
+  Leaflet mana pun di repo ini, bukan cuma tombol ini — warna teks tautan di sana WAJIB
+  important. Ini juga satu-satunya pemakaian `!` di seluruh `resources/js/`; kalau kelak ada
+  tautan popup kedua, jangan menyalin kelasnya buta, salin alasannya.
+- **Status:** FIXED 2026-08-28 (test 368 passed, `npm run build` lulus; kelas
+  `\!text-destructive-foreground{color:hsl(var(--destructive-foreground))!important}`
+  diperiksa hadir di `public/build/assets/app-*.css`)
+
+### #99 — Bagian status hydrant warga dirancang untuk kosakata hydrant resmi
+- **Severity:** P2 (tak ada data yang salah; yang rusak keterbacaannya, di layar tempat status
+  itu satu-satunya yang dibaca)
+- **Dilaporkan user** 2026-08-28: "pada hydrant warga lewat pada bagian status, perbaiki ui nya".
+- **Gejala, DUA tempat, satu sebab:**
+  1. *Chip filter* (`Admin/Hydrants/Index.jsx`) berada di `flex gap-2` TANPA `flex-wrap`, di
+     kolom kiri yang cuma `lg:w-5/12 xl:w-1/3` (~293 px pada layar 1024). Tiga chip warga
+     ("Semua" + dua label kalimat) menuntut ~490 px, jadi flexbox memampatkan mereka sampai
+     batas min-content: teksnya patah di tengah pill, tinggi antar-pill jadi tak sama, dan
+     barisnya tetap melewati lebar kolom.
+  2. *Select status* di `Create.jsx`/`Edit.jsx` duduk di `grid grid-cols-2` — setengah kolom
+     itu, ~138 px, sisa ~98 px untuk teks setelah padding & chevron. `SelectTrigger` memakai
+     `whitespace-nowrap` + `[&>span]:line-clamp-1`, yang memotong TANPA elipsis, sehingga yang
+     tampil kira-kira "Terdaftar Bel" — penggalan yang tak membedakan sudah/belum dimodifikasi.
+- **Akar:** kedua layout itu dipahat saat satu-satunya kosakata status adalah milik hydrant
+  resmi ("Berfungsi" / "Tidak Berfungsi", ≤ 15 karakter). TASK_33 memberi hydrant warga
+  kosakata sendiri yang hampir tiga kali lebih panjang ("Terdaftar Belum Dimodifikasi", 28) —
+  perubahan yang BENAR dan diminta user — tapi wadahnya tak ikut ditinjau. Ini bentuk yang
+  sama dengan #90/#94: bukan datanya yang salah, melainkan sebuah asumsi lama yang tak pernah
+  dinyatakan (di sini: "label status itu pendek") yang diam-diam berhenti berlaku.
+- **Kenapa lolos:** keduanya gagal TANPA galat — tak ada overflow yang melempar, tak ada baris
+  log. Untuk yang kedua, daftar pilihannya sendiri tampil utuh (`SelectContent` memakai
+  `min-w-[var(--radix-select-trigger-width)]`, jadi boleh melebihi trigger), sehingga saat
+  MEMILIH semuanya terbaca benar; potongannya baru muncul SESUDAH pilihan itu ditutup. Dan
+  hydrant resmi — satu-satunya yang dipakai saat layout ini dibuat — memang muat.
+- **Fix:** (1) `flex flex-wrap gap-2`, menyalin `/admin/pumps` yang sudah lebih dulu menghadapi
+  keempat kosakata sekaligus; (2) penanda DATA `longStatusLabels` di `variants.jsx` yang
+  membuat baris jenis+status jadi satu kolom untuk warga — sebentuk dengan preseden
+  `showWaterPressure` di baris kolom air tepat di bawahnya, BUKAN `if (variant === 'warga')`.
+  Varian resmi tak berubah sedikit pun (tetap dua kolom, chip tetap satu baris).
+- **Yang mengikat:** penandanya sengaja menyatakan sifat KOSAKATA-nya ("labelnya kalimat"),
+  bukan lebar kolomnya, supaya tetap benar bila kelak labelnya dipendekkan. Dan aturan yang
+  lebih besar: kolom kiri ketiga modul fasilitas hanya ~1/3 layar, jadi setiap kali sebuah
+  kosakata status baru lahir, wadahnya ikut ditinjau — label baru tak pernah memberi gejala
+  sendiri.
+- **Status:** FIXED 2026-08-28 (test 370 passed, `npm run build` lulus)
+
+### #100 — Label medan status berbunyi "Status Operasional" di Edit tapi "Status" di Create (OPEN)
+- **Severity:** P3 (kosmetik, tapi salah kata untuk hydrant warga)
+- **Ditemukan** 2026-08-28 saat mengerjakan #99; **sengaja TIDAK dikerjakan** (aturan emas #6).
+- **Isi:** ketiga modul fasilitas memberi medan status label "Status" di form Tambah dan
+  "Status Operasional" di form Edit (`Admin/{Hydrants,Pumps,FireStations}/Edit.jsx`) — jadi
+  divergensinya berulang di enam berkas, bukan cuma hydrant. Untuk hydrant WARGA kata
+  "Operasional" bahkan keliru: yang ditanya di sana bukan apakah tandonnya beroperasi,
+  melainkan apakah mulutnya sudah dimodifikasi agar bisa dihisap mobil pemadam (TASK_33) —
+  label itu duduk persis di atas pilihan "Terdaftar Belum Dimodifikasi".
+- **Kenapa tidak sekalian dibetulkan:** menyeragamkannya menyentuh tiga modul di luar
+  permintaan user, dan memilih SATU kata untuk varian resmi mau tak mau membuat form hydrant
+  menyimpang dari Pompa & Pos Pemadam yang bunyinya sama. Kalau dikerjakan, kerjakan bertiga
+  sekaligus — dan untuk warga jadikan DATA per varian (mis. `statusLabel`), bukan satu string
+  yang dipakai dua kosakata berbeda.
+- **Status:** OPEN — menunggu keputusan user

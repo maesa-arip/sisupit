@@ -24,17 +24,20 @@ import { buildNavSections, flattenNavItems, resolveAbilities } from './navItems'
  * otomatis mendarat di popover "Menu" tanpa perubahan apa pun di berkas ini.
  *
  * Slot ke-5 tampil untuk SEMUA PERAN yang sudah login (dulu popover admin saja, peran lain
- * hanya dapat tautan Profil) — itulah yang membuat Pusat Bantuan/S&K/Privasi dan tombol
- * Keluar akhirnya terjangkau pengguna ponsel non-admin (temuan #53).
+ * hanya dapat tautan Profil) — itulah yang membuat menu admin dan tombol Keluar akhirnya
+ * terjangkau pengguna ponsel non-admin (temuan #53). Seksi "Bantuan & Legal" DIHAPUS dari
+ * navItems.js atas permintaan user 2026-08-28, jadi Pusat Bantuan/S&K/Privasi/Tentang kini
+ * hanya lewat footer AppLayout — untuk SEMUA peran, bukan cuma tamu.
  *
  * TAMU (keputusan user 2026-08-25): slot ke-5 BUKAN popover "Menu" melainkan tombol
  * **Masuk**. Alasannya, isi menu bagi tamu nyaris seluruhnya bukan tujuan yang ia cari
- * (empat tautan legal + dua tautan akun), sementara satu-satunya hal yang ingin ia lakukan
- * — masuk — terkubur satu ketukan di dalam panel. Harga yang DISETUJUI user: bagi tamu,
- * Bantuan/S&K/Privasi/Tentang hanya lewat footer AppLayout dan "Daftar Baru" hanya lewat
- * tautan di halaman login. Keduanya sudah ada dan sudah dipakai, jadi tak ada tujuan yang
- * benar-benar buntu — tapi ingat #71 sebelum memindahkan salah satunya: begitu footer atau
- * tautan daftar itu hilang, menu-menu tadi ikut hilang dari ponsel tanpa gejala apa pun.
+ * (dulu empat tautan legal + dua tautan akun), sementara satu-satunya hal yang ingin ia
+ * lakukan — masuk — terkubur satu ketukan di dalam panel. Harga yang DISETUJUI user: bagi
+ * tamu, "Daftar Baru" hanya lewat tautan di halaman login. Tautan itu sudah ada dan sudah
+ * dipakai, jadi tak ada tujuan yang benar-benar buntu — tapi ingat #71 sebelum
+ * memindahkannya: begitu tautan daftar itu hilang, menu tadi ikut hilang dari ponsel tanpa
+ * gejala apa pun. Hal yang sama kini berlaku untuk footer AppLayout, satu-satunya jalan
+ * tersisa ke halaman Bantuan & Legal.
  *
  * Tujuan tombolnya TIDAK dipaku di sini: ia diambil dari item `login` milik navItems.js,
  * sumber yang sama dengan sidebar (aturan #71). Kalau item itu suatu saat tak ada, slotnya

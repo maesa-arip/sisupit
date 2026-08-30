@@ -40,8 +40,15 @@ class AgencyConfirmationNotification extends Notification implements ShouldQueue
 
     public function via($notifiable)
     {
-        // FCM (mobile) + database (lonceng web) — sama seperti permintaan bantuannya.
-        return [FcmChannel::class, 'database'];
+        // FCM (mobile) + database (lonceng web) + broadcast — sama seperti permintaan bantuannya.
+        //
+        // 'broadcast' ditambahkan TASK_50. Aplikasi desktop (.exe) yang dipakai Pusat Komando
+        // TIDAK memakai FCM sama sekali; ia mendengar Reverb di channel privat
+        // App.Models.User.{id}, jadi tanpa channel ini kabar "listrik sudah dipadamkan" —
+        // justru yang paling ditunggu operator — tak pernah tiba di layar tempat mereka
+        // bekerja. Tidak ada permukaan otorisasi baru: channel itu milik penerima sendiri dan
+        // daftar penerimanya tidak diubah sebaris pun.
+        return [FcmChannel::class, 'database', 'broadcast'];
     }
 
     private function content(): array

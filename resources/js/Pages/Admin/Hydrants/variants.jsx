@@ -61,6 +61,9 @@ export const HYDRANT_VARIANTS = {
 		typeDefault: 'Stick',
 		statusOptions: ['Aktif', 'Perbaikan'],
 		statusDefault: 'Aktif',
+		// "Berfungsi"/"Tidak Berfungsi" — cukup pendek untuk kolom setengah lebar. Lihat
+		// keterangan `longStatusLabels` di varian warga.
+		longStatusLabels: false,
 		// Tekanan air = sifat jaringan pipa bertekanan, jadi hanya relevan di sini.
 		showWaterPressure: true,
 		waterField: 'debit_lpm',
@@ -106,6 +109,16 @@ export const HYDRANT_VARIANTS = {
 		typeDefault: '',
 		statusOptions: ['Belum Modifikasi', 'Sudah Modifikasi'],
 		statusDefault: 'Belum Modifikasi',
+		// Label statusnya KALIMAT, bukan satu kata: "Terdaftar Belum Dimodifikasi" (28 karakter)
+		// lawan "Berfungsi" (9). Panel form hanya selebar ~1/3 layar, jadi di kolom setengah
+		// lebar teks sepanjang itu terpotong keras oleh SelectTrigger — `[&>span]:line-clamp-1`
+		// + `whitespace-nowrap` memotongnya TANPA elipsis, sehingga petugas melihat penggalan
+		// seperti "Terdaftar Bel" dan tak bisa membedakan sudah/belum dimodifikasi. Daftar
+		// pilihannya sendiri tidak ikut terpotong (SelectContent boleh melebihi lebar trigger),
+		// jadi gejalanya hanya muncul SESUDAH memilih — itu sebabnya lolos selama ini.
+		// Penanda ini menyatakan sifat KOSAKATA-nya, bukan lebar kolomnya, supaya tetap benar
+		// bila kelak labelnya dipendekkan.
+		longStatusLabels: true,
 		// Tandon berisi air diam — tak ada tekanan yang bisa dinilai.
 		showWaterPressure: false,
 		waterField: 'capacity_liter',
