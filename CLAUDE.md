@@ -233,20 +233,29 @@ Task aktif   : TASK_52 (prompt/tasks/TASK_52_asal_titik_laporan.md) — SELESAI 
                 berbunyi "PT Tawarin Dimana Saja" di ketiga halaman live.
                 KEDUA WRAPPER DIRILIS 2026-09-01 & TERPASANG di prod/staging/dev.
                 APK: `gradlew assembleDebug` (JAVA_HOME wajib diisi ke jbr Android Studio -
-                shell non-IDE tak punya java di PATH), 15.020.777 B, versionName 1.1.1 /
-                versionCode 3, debug-signed; sirine.mp3 + masuk.wav + konfirmasi.wav dibuktikan
-                terpaket di res/raw/. Menimpa public/apk/sisupit.apk (LAMA 4,0 MB 15 Mei
+                shell non-IDE tak punya java di PATH), 14.202.377 B, versionName 1.1.2 /
+                versionCode 4, debug-signed; sirine.mp3 + masuk.wav + konfirmasi.wav dibuktikan
+                terpaket di res/raw/. NOMOR VERSI DINAIKKAN 2026-09-01 atas permintaan user
+                (1.1.1/vc3 -> 1.1.2/vc4): versionCode WAJIB ikut naik, sebab itulah bilangan
+                yang dipakai Android mengurutkan pembaruan - versionName cuma teks bagi manusia,
+                menaikkan namanya saja membuat pemasang menganggapnya build yang sama. APK-nya
+                menyusut 818 KB murni karena repack; diperiksa BUKAN kehilangan isi (entri 849
+                vs 849, nol entri hilang, ketiga suara tetap ada). Menimpa public/apk/sisupit.apk (LAMA 4,0 MB 15 Mei
                 dicadangkan ke C:\Users\Admin\backup-sisupit-wrapper\, md5 dicocokkan; di prod
                 ada APK Juni 13,5 MB unggahan tangan yang tak pernah ter-commit, dicadangkan ke
                 /root/backup-predeploy-20260831-170605/sisupit-apk-prod-LAMA.apk).
-                EXE: `npm run dist` SisupitDesktop, 80.486.899 B, NSIS per-user, TIDAK
-                ditandatangani; asar dibuktikan memuat suara.html. Ditaruh di public/exe/ tapi
+                EXE: `npm run dist` SisupitDesktop, versi 1.0.1 (dinaikkan dari 1.0.0
+                2026-09-01 bersama APK), 80.485.941 B, NSIS per-user, TIDAK ditandatangani;
+                asar dibuktikan memuat suara.html. AWAS: `artifactName` memakai ${version},
+                jadi menaikkan versi MENGUBAH NAMA BERKAS dan otomatis mengubah URL unduhannya
+                (Sisupit-Desktop-Setup-1.0.1.exe); yang 1.0.0 dihapus dari ketiga env supaya
+                tak ada dua installer beredar, dan kini balas 404. Ditaruh di public/exe/ tapi
                 SENGAJA DI LUAR GIT (public/exe/.gitignore, pola docker/tiles/data/) supaya blob
                 80 MB tak masuk riwayat selamanya - dikirim ke tiap env lewat pscp SEKALI ke
                 /root lalu disalin ke tiga folder, md5 b8bd8604... cocok di ketiganya. Keduanya
-                terbukti terunduh: /apk/sisupit.apk 200 content-length 15.020.777 dan
-                /exe/Sisupit-Desktop-Setup-1.0.0.exe 200 content-length 80.486.899 (byte awal
-                "MZ") di ketiga domain.
+                terbukti terunduh: /apk/sisupit.apk content-length 14.202.377 dan
+                /exe/Sisupit-Desktop-Setup-1.0.1.exe content-length 80.485.941 (byte awal
+                "MZ") di ketiga domain, @cf90d8a8.
                 SISA: verifikasi di PERANGKAT SUNGGUHAN - pasang APK & jalankan installer,
                 dengarkan ketiga nada. FLAG_INSISTENT di Android O+ MASIH BELUM diuji; kalau
                 ternyata diabaikan, jatuhkan ke bunyi sekali dan catat, JANGAN bangun foreground
