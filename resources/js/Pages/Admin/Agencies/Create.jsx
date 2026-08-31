@@ -73,8 +73,8 @@ export default function Create({ category_options = [], incident_types = [] }) {
 							<div className="flex items-start gap-3 rounded-md border border-info/20 bg-info/10 p-3 text-info">
 								<IconInfoCircle className="mt-0.5 h-5 w-5 shrink-0" />
 								<p className="text-xs font-medium leading-relaxed">
-									OPD otomatis terdaftar pada yurisdiksi wilayah Anda. Kedua pengaturan di bawah —
-									auto-centang & konfirmasi wajib — membuat perilaku tiap instansi bisa berbeda tanpa
+									OPD otomatis terdaftar pada yurisdiksi wilayah Anda. Kedua pengaturan di bawah -
+									auto-centang & konfirmasi wajib - membuat perilaku tiap instansi bisa berbeda tanpa
 									perubahan aplikasi.
 								</p>
 							</div>

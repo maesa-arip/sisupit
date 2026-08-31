@@ -21,6 +21,7 @@
 | Rate limit aksi sensitif | `RateLimiter::for()` di `AppServiceProvider::boot()` — saat ini hanya **satu** limiter: `report-create` (5/10menit per user/IP) | `app/Providers/AppServiceProvider.php:34-36` |
 | Setting global vs tenant | `Setting::getValue()`/`setValue()` (cache permanen, invalidate saat set) untuk kebijakan lintas-tenant — jangan dicampur dengan data per-tenant yang harus pakai `Tenantable` | `app/Models/Setting.php` |
 | Alamat laporan | **DUA kolom, dua penulis** (TASK_49): `reports.address` = patokan yang DIKETIK warga (sah kosong — kebakaran itu darurat-first), `reports.geo_address` = alamat hasil reverse-geocode dari pin. Yang mesin hitung TIDAK boleh ditulis ke kolom manusia dan sebaliknya — bentuk lama membuat koreksi pin menghapus patokan warga tanpa jejak (#95). Untuk baris ringkas "di mana" pakai `Report::alamatTampil()` / `alamatLaporan()`, jangan `address` langsung | `app/Models/Report.php`, `resources/js/lib/utils.js` |
+| Asal titik laporan | **Pin laporan punya asal-usul, dan layar wajib menyebutkannya** (TASK_52, #104). `reports.location_source` diisi SERVER dari bukti — jarak posisi pelapor ke pin diadu dengan `Report::JARAK_PELAPOR_MAKS_M` (300 m) — bukan dari klaim klien maupun dari peran pengirimnya; klien cuma mengirim `reporter_lat/lng` + `gps_accuracy_m` mentah, dan koordinat itu **tidak pernah disimpan** (yang tersimpan `reporter_distance_m`). `correctLocation()` menimpanya jadi `dikoreksi_petugas` sekaligus mengosongkan jarak & akurasi — angka yang menerangkan titik yang sudah tidak ada lagi lebih menyesatkan daripada kolom kosong. Kamus layarnya `LOCATION_SOURCE_META` + `asalTitikLaporan()` di `lib/utils.js`, dan ia **tidak boleh bercadangan** ke salah satu nilainya: sumber tak dikenal & kolom kosong berbunyi "Asal titik tidak tercatat". **JANGAN mengambil posisi pelapor dari state `userLocation` di `Reports/Create.jsx`** — state itu juga ditulis saat pin digeser, jadi jaraknya jadi ~0 dan lencananya selalu hijau. Dijaga `ReportLocationSourceTest` | `app/Models/Report.php`, `resources/js/lib/utils.js`, `resources/js/Pages/Front/Reports/Create.jsx` |
 | Region/wilayah | Selalu `*_code` (province/city/district/village_code), relasi ke tabel `indonesia_*` (package `laravolt/indonesia`) | migrasi `2026_05_15_132259_add_hierarchical_tenant_columns_to_sisupit_tables.php` |
 | Uang | **Tidak ada alur uang aktif.** Sisa scaffolding Midtrans (paket `midtrans/midtrans-php`, helper `signatureMidtrans()`, config `services.midtrans`, key `.env`, script `snap.js` di layout) sudah **dihapus total** 2026-06-27 (lihat FINDINGS_LOG #15). Yang tersisa hanya `formatToRupiah()` di frontend (kosmetik). Jangan asumsikan ada flow pembayaran | — |
 
@@ -124,6 +125,19 @@
   memperluasnya ke luar konteks popup Leaflet. Sisa tokennya tetap menyalin `Button` varian
   yang sesuai (`rounded-md`, `text-xs font-semibold`, `shadow-sm`, ikon 16px `stroke-width=2`),
   bukan bentuk khusus peta. Patokan: `resources/js/Pages/Monitoring/Map.jsx`.
+- **Tombol beraksi digerbangi PROP SERVER, bukan daftar peran di JSX.** Pola yang sudah ada:
+  `canManageUnits`, `canManageResolution`, `canViewResolution`, `canManageAgencies`,
+  `canRemoveAgencies`, `canVerify` — semuanya dikirim `ReportController::show()` dan dibaca
+  apa adanya oleh `Front/Reports/Show.jsx`. Alasannya bukan kerapian: daftar peran yang
+  ditulis di dua tempat akan menyimpang, dan yang menyimpang di sisi layar melahirkan tombol
+  yang selalu berakhir 403 — atau, lebih buruk, tombol yang hilang bagi orang yang berhak
+  tanpa satu pun galat (bentuk #94). `isStaffOrAdmin` di berkas itu adalah SISA pola lama;
+  ia masih dipakai untuk hal-hal non-aksi (audiens jejak penutupan), **jangan** dipakai
+  untuk menggerbangi aksi baru. Saat mengubah daftar peran sebuah endpoint di
+  `ReportActionController`, ubah prop pasangannya di `show()` dalam commit yang sama.
+- **Permission Spatie di repo ini TIDAK MENGGERBANGI APA PUN** (#103): `RolePermissionSeeder`
+  mengisinya lengkap, tapi pencarian `can(...)` di seluruh `app/` & `routes/` nihil. Jangan
+  "membatasi peran" dengan mencabut permission — tak akan terjadi apa-apa, tanpa galat.
 - Role check: **selalu** `hasRole()`/`hasAnyRole()` dari Spatie Permission, bukan kolom
   string manual. `User::role([...])` bisa melempar `RoleDoesNotExist` di DB belum ter-seed
   (lihat workaround di `HomeController`).

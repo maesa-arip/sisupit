@@ -76,7 +76,7 @@ class BanjarController extends Controller
 
         if ($validated['require'] && Banjar::count() === 0) {
             return redirect()->back()->withErrors([
-                'require' => 'Master banjar masih kosong. Isi daftarnya dulu — mewajibkan banjar sekarang akan memblokir pendaftaran warga.',
+                'require' => 'Master banjar masih kosong. Isi daftarnya dulu - mewajibkan banjar sekarang akan memblokir pendaftaran warga.',
             ]);
         }
 

@@ -26,10 +26,15 @@ it('notifies the reporter at each status transition (approve, first en_route, fi
 
     $petugas = User::factory()->create(['village_code' => '5171012006']);
     $petugas->assignRole('petugas');
+
+    // Verifikasi pindah ke admin (TASK_51); penutupan insiden tetap milik petugas, jadi
+    // rangkaian transisi di test ini kini memang dijalankan DUA pelaku yang berbeda.
+    $admin = User::factory()->create(['village_code' => '5171012006']);
+    $admin->assignRole('admin');
     $relawan = User::factory()->create(['village_code' => '5171012006']);
     $relawan->assignRole('relawan');
 
-    $this->actingAs($petugas)->post("/reports/{$this->report->id}/approve")->assertRedirect();
+    $this->actingAs($admin)->post("/reports/{$this->report->id}/approve")->assertRedirect();
     $this->actingAs($relawan)->post("/reports/{$this->report->id}/take-action")->assertRedirect();
     $this->actingAs($relawan)->post("/reports/{$this->report->id}/arrive")->assertRedirect();
     $this->actingAs($petugas)->post("/reports/{$this->report->id}/resolve")->assertRedirect();
@@ -55,12 +60,17 @@ it('does not re-notify the reporter when later responders join or arrive', funct
 
     $petugas = User::factory()->create(['village_code' => '5171012006']);
     $petugas->assignRole('petugas');
+
+    // Verifikasi pindah ke admin (TASK_51); penutupan insiden tetap milik petugas, jadi
+    // rangkaian transisi di test ini kini memang dijalankan DUA pelaku yang berbeda.
+    $admin = User::factory()->create(['village_code' => '5171012006']);
+    $admin->assignRole('admin');
     $relawanA = User::factory()->create(['village_code' => '5171012006']);
     $relawanA->assignRole('relawan');
     $relawanB = User::factory()->create(['village_code' => '5171012006']);
     $relawanB->assignRole('relawan');
 
-    $this->actingAs($petugas)->post("/reports/{$this->report->id}/approve")->assertRedirect();
+    $this->actingAs($admin)->post("/reports/{$this->report->id}/approve")->assertRedirect();
     $this->actingAs($relawanA)->post("/reports/{$this->report->id}/take-action")->assertRedirect(); // en_route #1
     $this->actingAs($relawanB)->post("/reports/{$this->report->id}/take-action")->assertRedirect(); // sudah handling → tak ada notif
     $this->actingAs($relawanA)->post("/reports/{$this->report->id}/arrive")->assertRedirect();      // arrived #1

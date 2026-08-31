@@ -47,7 +47,7 @@ class AgencyDispatchNotification extends Notification implements ShouldQueue
 
     private function content(): array
     {
-        $body = 'Damkar meminta bantuan di "'.$this->report->title.'" — '.$this->report->address;
+        $body = 'Damkar meminta bantuan di "'.$this->report->title.'" - '.$this->report->address;
 
         if ($this->reportAgency->requires_confirmation && $this->reportAgency->confirmation_label) {
             $body .= '. Dibutuhkan: '.$this->reportAgency->confirmation_label;

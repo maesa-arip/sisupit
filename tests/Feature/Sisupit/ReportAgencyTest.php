@@ -37,6 +37,12 @@ beforeEach(function () {
     $this->petugas = User::factory()->create(['village_code' => '5171012006']);
     $this->petugas->assignRole('petugas');
 
+    // TASK_51: verifikasi (approve) & PENCABUTAN OPD kini admin. Petugas tetap dipakai di
+    // berkas ini untuk yang memang masih miliknya — MEMINTA bantuan OPD & mencatatkan
+    // konfirmasi atas nama instansi.
+    $this->admin = User::factory()->create(['village_code' => '5171012006']);
+    $this->admin->assignRole('admin');
+
     $this->bpbd = Agency::create([
         'name' => 'BPBD Kota Denpasar',
         'code' => 'BPBD',
@@ -71,7 +77,7 @@ it('recommends the agencies configured for that incident type, and nothing for a
 
 it('only involves the agencies the operator actually submitted (unchecking works)', function () {
     // Rekomendasi berisi BPBD + PLN, tapi operator meng-uncentang BPBD.
-    $this->actingAs($this->petugas)
+    $this->actingAs($this->admin)
         ->post("/reports/{$this->report->id}/approve", ['agency_ids' => [$this->pln->id]])
         ->assertRedirect();
 
@@ -82,7 +88,7 @@ it('only involves the agencies the operator actually submitted (unchecking works
 });
 
 it('still approves a report when no agency is selected at all', function () {
-    $this->actingAs($this->petugas)
+    $this->actingAs($this->admin)
         ->post("/reports/{$this->report->id}/approve")
         ->assertRedirect();
 
@@ -94,7 +100,7 @@ it('notifies the agency account and snapshots the confirmation rule at involveme
     $plnAccount = User::factory()->create(['village_code' => '5171012006', 'agency_id' => $this->pln->id]);
     $plnAccount->assignRole('opd');
 
-    $this->actingAs($this->petugas)
+    $this->actingAs($this->admin)
         ->post("/reports/{$this->report->id}/approve", ['agency_ids' => [$this->pln->id]])
         ->assertRedirect();
 
@@ -118,7 +124,7 @@ it('drops agency ids from another jurisdiction that were injected into the reque
         'village_code' => '5103010001',
     ]);
 
-    $this->actingAs($this->petugas)
+    $this->actingAs($this->admin)
         ->post("/reports/{$this->report->id}/approve", ['agency_ids' => [$this->bpbd->id, $luar->id]])
         ->assertRedirect();
 
@@ -130,7 +136,7 @@ it('records who confirmed and through which route (agency itself vs command cent
     $plnAccount = User::factory()->create(['village_code' => '5171012006', 'agency_id' => $this->pln->id]);
     $plnAccount->assignRole('opd');
 
-    $this->actingAs($this->petugas)
+    $this->actingAs($this->admin)
         ->post("/reports/{$this->report->id}/approve", ['agency_ids' => [$this->bpbd->id, $this->pln->id]]);
 
     // (a) instansi mengonfirmasi sendiri
@@ -152,7 +158,7 @@ it('records who confirmed and through which route (agency itself vs command cent
 });
 
 it('lets the command center record a confirmation on behalf of the agency, marked as such', function () {
-    $this->actingAs($this->petugas)
+    $this->actingAs($this->admin)
         ->post("/reports/{$this->report->id}/approve", ['agency_ids' => [$this->pln->id]]);
 
     $this->actingAs($this->petugas)
@@ -183,7 +189,7 @@ it('tells the command center and the officers on scene when an agency confirms',
     $petugasDiLokasi = User::factory()->create(['village_code' => '5103010002']);
     $petugasDiLokasi->assignRole('petugas');
 
-    $this->actingAs($this->petugas)
+    $this->actingAs($this->admin)
         ->post("/reports/{$this->report->id}/approve", ['agency_ids' => [$this->pln->id]]);
 
     DB::table('report_officers')->insert([
@@ -234,7 +240,7 @@ it('also tells the volunteers on standby and the reporter when an agency confirm
     $relawanDiLokasi = User::factory()->create(['village_code' => '5103010002', 'is_standby' => false]);
     $relawanDiLokasi->assignRole('relawan');
 
-    $this->actingAs($this->petugas)
+    $this->actingAs($this->admin)
         ->post("/reports/{$this->report->id}/approve", ['agency_ids' => [$this->pln->id]]);
 
     DB::table('report_helpers')->insert([
@@ -261,13 +267,15 @@ it('also tells the volunteers on standby and the reporter when an agency confirm
 
 it('does not tell the reporter twice when the reporter is the one recording the confirmation', function () {
     // Operator boleh mencatatkan konfirmasi atas nama OPD. Kalau kebetulan dialah pelapornya
-    // (petugas yang melapor lalu memproses sendiri — alur telepon TASK_28), ia tidak perlu
-    // dikabari tindakannya sendiri lewat jalur "pelapor" yang baru.
-    $petugasPelapor = User::factory()->create(['village_code' => '5171012006']);
-    $petugasPelapor->assignRole('petugas');
+    // (operator yang menerima telepon lalu memproses sendiri — alur TASK_28), ia tidak perlu
+    // dikabari tindakannya sendiri lewat jalur "pelapor" yang baru. Aktornya ADMIN sejak
+    // TASK_51: sesudah verifikasi dicabut dari petugas, satu-satunya orang yang bisa
+    // melapor DAN memverifikasi laporannya sendiri adalah admin.
+    $adminPelapor = User::factory()->create(['village_code' => '5171012006']);
+    $adminPelapor->assignRole('admin');
 
     $report = Report::create([
-        'user_id' => $petugasPelapor->id,
+        'user_id' => $adminPelapor->id,
         'title' => 'Kebakaran lapak dilaporkan lewat telepon',
         'incident_type' => 'rumah',
         'address' => 'Jl. Pemogan No. 9',
@@ -277,20 +285,20 @@ it('does not tell the reporter twice when the reporter is the one recording the 
         'village_code' => '5171012006',
     ]);
 
-    $this->actingAs($petugasPelapor)->post("/reports/{$report->id}/approve", ['agency_ids' => [$this->pln->id]]);
+    $this->actingAs($adminPelapor)->post("/reports/{$report->id}/approve", ['agency_ids' => [$this->pln->id]]);
 
-    $this->actingAs($petugasPelapor)
+    $this->actingAs($adminPelapor)
         ->post("/reports/{$report->id}/agencies/confirm", ['agency_id' => $this->pln->id])
         ->assertRedirect();
 
-    Notification::assertNotSentTo($petugasPelapor, AgencyConfirmationNotification::class);
+    Notification::assertNotSentTo($adminPelapor, AgencyConfirmationNotification::class);
 });
 
 it('blocks an agency account from confirming on behalf of a different agency', function () {
     $bpbdAccount = User::factory()->create(['village_code' => '5171012006', 'agency_id' => $this->bpbd->id]);
     $bpbdAccount->assignRole('opd');
 
-    $this->actingAs($this->petugas)
+    $this->actingAs($this->admin)
         ->post("/reports/{$this->report->id}/approve", ['agency_ids' => [$this->pln->id]]);
 
     $this->actingAs($bpbdAccount)
@@ -308,29 +316,50 @@ it('opens the incident detail to an involved agency account and keeps it shut to
     // Sebelum dilibatkan: tertutup untuk keduanya.
     $this->actingAs($plnAccount)->get("/reports/show/{$this->report->id}")->assertForbidden();
 
-    $this->actingAs($this->petugas)
+    $this->actingAs($this->admin)
         ->post("/reports/{$this->report->id}/approve", ['agency_ids' => [$this->pln->id]]);
 
     $this->actingAs($plnAccount)->get("/reports/show/{$this->report->id}")->assertOk();
     $this->actingAs($outsider)->get("/reports/show/{$this->report->id}")->assertForbidden();
 });
 
-it('lets the command center release an agency from the incident', function () {
-    $this->actingAs($this->petugas)
+it('lets an admin release an agency from the incident', function () {
+    $this->actingAs($this->admin)
         ->post("/reports/{$this->report->id}/approve", ['agency_ids' => [$this->bpbd->id]]);
 
-    $this->actingAs($this->petugas)
+    $this->actingAs($this->admin)
         ->delete("/reports/{$this->report->id}/agencies", ['agency_id' => $this->bpbd->id])
         ->assertRedirect();
 
     expect(ReportAgency::where('report_id', $this->report->id)->count())->toBe(0);
 });
 
+/**
+ * TASK_51, permintaan user: "petugas tidak bisa cabut opd". SENGAJA tidak simetris —
+ * MEMINTA bantuan tetap boleh (eskalasi lahir di lapangan: "ada kabel jatuh, panggil PLN"),
+ * MENCABUTNYA tidak. Kedua sisi diuji dalam satu test supaya asimetri ini tak bisa
+ * "dirapikan" jadi seragam tanpa ada yang merah.
+ */
+it('lets petugas ask for an agency but never release one', function () {
+    $this->actingAs($this->admin)
+        ->post("/reports/{$this->report->id}/approve", ['agency_ids' => [$this->bpbd->id]]);
+
+    $this->actingAs($this->petugas)
+        ->post("/reports/{$this->report->id}/agencies", ['agency_ids' => [$this->pln->id]])
+        ->assertRedirect();
+    expect(ReportAgency::where('report_id', $this->report->id)->count())->toBe(2);
+
+    $this->actingAs($this->petugas)
+        ->delete("/reports/{$this->report->id}/agencies", ['agency_id' => $this->bpbd->id])
+        ->assertForbidden();
+    expect(ReportAgency::where('report_id', $this->report->id)->count())->toBe(2);
+});
+
 it('does not send a second request when the same agency is involved twice', function () {
     $plnAccount = User::factory()->create(['village_code' => '5171012006', 'agency_id' => $this->pln->id]);
     $plnAccount->assignRole('opd');
 
-    $this->actingAs($this->petugas)
+    $this->actingAs($this->admin)
         ->post("/reports/{$this->report->id}/approve", ['agency_ids' => [$this->pln->id]]);
 
     $this->actingAs($this->petugas)

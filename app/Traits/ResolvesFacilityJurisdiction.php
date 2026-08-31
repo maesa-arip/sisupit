@@ -64,7 +64,7 @@ trait ResolvesFacilityJurisdiction
         }
 
         if ($district && $city && ! str_starts_with($district, $city)) {
-            $errors['district_code'] = 'Kecamatan yang dipilih berada di luar Kabupaten/Kota yang berlaku — periksa kembali titik pin dan pilihan wilayahnya.';
+            $errors['district_code'] = 'Kecamatan yang dipilih berada di luar Kabupaten/Kota yang berlaku - periksa kembali titik pin dan pilihan wilayahnya.';
         }
 
         // Desa dicek terhadap kecamatan bila ada; kalau kecamatan kosong, kota sudah cukup
@@ -72,7 +72,7 @@ trait ResolvesFacilityJurisdiction
         $villageParent = $district ?: $city;
 
         if ($village && $villageParent && ! str_starts_with($village, $villageParent)) {
-            $errors['village_code'] = 'Desa/Kelurahan yang dipilih berada di luar wilayah yang berlaku — periksa kembali titik pin dan pilihan wilayahnya.';
+            $errors['village_code'] = 'Desa/Kelurahan yang dipilih berada di luar wilayah yang berlaku - periksa kembali titik pin dan pilihan wilayahnya.';
         }
 
         if ($errors !== []) {

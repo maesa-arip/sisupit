@@ -232,10 +232,11 @@ it('wakes the dashboards on every status transition too', function () {
     config(['broadcasting.default' => 'log']);
     Event::fake([ReportFeedChanged::class]);
 
-    $petugas = User::factory()->create(['village_code' => '5171012006']);
-    $petugas->assignRole('petugas');
+    // Verifikasi = admin sejak TASK_51.
+    $admin = User::factory()->create(['village_code' => '5171012006']);
+    $admin->assignRole('admin');
 
-    $this->actingAs($petugas)->post("/reports/{$this->report->id}/approve")->assertRedirect();
+    $this->actingAs($admin)->post("/reports/{$this->report->id}/approve")->assertRedirect();
     Event::assertDispatched(ReportFeedChanged::class, fn ($e) => $e->status === 'pending');
 
     $relawan = User::factory()->create(['village_code' => '5171012006']);

@@ -2016,3 +2016,126 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
   sekaligus — dan untuk warga jadikan DATA per varian (mis. `statusLabel`), bukan satu string
   yang dipakai dua kosakata berbeda.
 - **Status:** OPEN — menunggu keputusan user
+
+### #101 — Petugas memegang verifikasi laporan (broadcast & tolak) yang bukan wewenangnya
+- **Severity:** P2 (bukan bug: KEPUTUSAN DESAIN yang tak lagi sesuai kehendak pemilik sistem)
+- **Dilaporkan user** 2026-08-31: "petugas dapat notif tapi tidak bisa broadcast atau tolak,
+  cek hal tersebut apakah sudah atau ada yang beda?"
+- **Temuan audit:** ternyata KEBALIKANNYA. Petugas boleh melakukan keduanya, di DUA lapis
+  sekaligus — `ReportActionController::approve()`/`reject()` sama-sama
+  `hasAnyRole(['petugas','admin','superadmin'])`, dan `Front/Reports/Show.jsx` merender panel
+  "Verifikasi Laporan Masuk" (tombol **Broadcast Misi** + **Tolak laporan**) dari
+  `isStaffOrAdmin`, daftar peran yang disusun DI DALAM berkas JSX itu dan memuat `petugas`.
+  Ini bukan celah yang kelupaan: seluruh komentar repo — termasuk kalimat pembuka CLAUDE.md
+  ("Pusat Komando (petugas/admin) memvalidasi") — memang menempatkan petugas sebagai
+  pemverifikasi, dan `ReportActionAuthorizationTest` MENGUNCINYA lewat test bernama
+  *"it lets petugas approve a report"*.
+- **Kenapa tak pernah terlihat sebagai masalah:** halaman `/admin/reports` ("Verifikasi
+  Laporan") memang tertutup untuk petugas (`role:admin|superadmin` di `routes/web.php`), jadi
+  dari sisi menu petugas tampak tidak punya wewenang itu. Yang membocorkannya adalah HALAMAN
+  DETAIL, yang dicapai petugas lewat tiga jalan lain: kartu misi di dashboardnya
+  (`DashboardController` memasukkan `TERLAPOR` ke misi aktif), tab "Semua Laporan"
+  (`ReportController::index` sengaja tak menyembunyikan `TERLAPOR` dari petugas), dan
+  notifikasi laporan masuk yang memang menyasar petugas.
+- **Fix (TASK_51, keputusan user 2026-08-31):** `approve()`, `reject()`, dan `removeAgency()`
+  jadi `['admin','superadmin']`. Panel verifikasi kini bergerbang prop SERVER `canVerify`
+  (`ReportController::show`), bukan daftar peran di JSX — sebab daftar peran yang ditulis dua
+  kali akan menyimpang, dan yang menyimpang di sisi layar melahirkan tombol yang selalu
+  berakhir 403 (bentuk yang sama dengan #94).
+- **Yang SENGAJA tidak ikut dicabut:** `notifyAgencies()` (MEMINTA bantuan OPD). Eskalasi
+  lahir di lapangan — "ada kabel jatuh, panggil PLN" — dan komentar di method itu sudah lama
+  mengatakannya. Yang dicabut hanya `removeAgency()`: membatalkan permintaan yang sudah
+  dikirim ke instansi luar adalah pencabutan koordinasi, bukan pengamatan lapangan.
+  Asimetri ini dikunci satu test agar tak bisa "dirapikan" jadi seragam tanpa ada yang merah.
+- **Ikutan yang WAJIB:** tanpa afordans apa pun, layar petugas atas laporan mentah jadi SEPI —
+  tak ada tombol, tak ada keterangan — dan keadaan yang tak dijelaskan terbaca sebagai fitur
+  rusak (pelajaran TASK_45/#94). Karena itu lahir keadaan **"Menunggu Konfirmasi Admin"** di
+  halaman detail, dan di dashboard petugas ajakan merah "Tanggapi" pada laporan `TERLAPOR`
+  diganti "Menunggu Admin" — ajakan yang tak bisa ia penuhi lebih buruk daripada tak ada
+  ajakan. Urgensi merah PINDAH ke `pending`, yang memang keadaan saat petugas dipanggil
+  meluncur. Kamus status TIDAK difork per peran: badge tetap berbunyi "Laporan Masuk", yang
+  ditampilkan adalah APA YANG DITUNGGU, bukan nama status kedua.
+- **Status:** FIXED 2026-08-31 (test 370 → 375 passed, 1470 assertions; LIMA penjaga baru,
+  tiga dibuktikan MERAH lewat sabotase sengaja)
+
+### #102 — `approve()`, `reject()`, dan `resolve()` tak memeriksa yurisdiksi padahal mem-bypass Tenantable (OPEN)
+- **Severity:** P2 (tak terjangkau lewat UI, tapi melanggar ATURAN EMAS #7)
+- **Ditemukan** 2026-08-31 saat mengaudit #101; **sengaja TIDAK dikerjakan** (aturan emas #6).
+- **Isi:** ketiga method itu mengambil laporannya dengan
+  `Report::withoutGlobalScopes()->findOrFail($id)` lalu langsung bertindak — tak satu pun
+  memanggil `ensureWithinJurisdiction()`. Delapan aksi lain di controller yang SAMA
+  memanggilnya (takeAction, dispatchUnit, releaseUnit, notifyAgencies, removeAgency,
+  confirmAgency), begitu pula `ReportResolutionController::authorizeStaff()`. Artinya admin
+  Denpasar bisa menyiarkan, menolak, atau menutup insiden milik kabupaten lain hanya dengan
+  menebak id-nya.
+- **Kenapa belum jadi insiden:** tak ada satu pun jalan dari UI ke sana —
+  `ReportController::show()` sudah menyaring `withinReportJurisdiction()`, jadi halaman yang
+  memuat tombolnya tak akan pernah terbuka lintas wilayah. Ini lubang tanpa pintu; yang
+  membuatnya berbahaya adalah ia terbaca seolah SUDAH dijaga karena tetangganya dijaga.
+- **Kalau dikerjakan:** cukup satu baris `$this->ensureWithinJurisdiction($report, auth()->user())`
+  di masing-masing, PLUS test lintas-wilayah — tapi periksa dulu apakah ada alur sah yang
+  mengandalkan admin nasional (kolom wilayah NULL); `withinReportJurisdiction()` sudah
+  membebaskan superadmin & admin tanpa kode wilayah, jadi kemungkinan besar aman.
+- **Status:** OPEN — menunggu keputusan user
+
+### #103 — Permission Spatie diseed lengkap tapi tidak pernah dicek di mana pun (OPEN)
+- **Severity:** P3 (menyesatkan, bukan merusak)
+- **Ditemukan** 2026-08-31 saat mengaudit #101; **sengaja TIDAK dikerjakan**.
+- **Isi:** `RolePermissionSeeder` memberi tiap peran daftar permission yang rapi (petugas
+  dapat `create_reports`, `manage_reports`, `view_dashboard`), tapi pencarian
+  `can('...')`/`manage_reports` di seluruh `app/` dan `routes/` memulangkan NOL hasil. Seluruh
+  otorisasi repo ini memakai `hasRole()`/`hasAnyRole()` dan middleware `role:`. Permission-nya
+  murni hiasan.
+- **Bahayanya:** halaman `/admin/assign-permission` memperlihatkan permission yang bisa
+  dicentang, sehingga admin bisa yakin telah mencabut/memberi wewenang padahal tak terjadi
+  apa-apa — perubahan yang tak berefek dan tak bergalat. Selama audit #101 ini sempat menjadi
+  kandidat tempat memperbaiki ("cabut saja `manage_reports` dari petugas"); itu tidak akan
+  mengubah apa pun.
+- **Pilihannya dua, dan keduanya keputusan user:** menegakkan permission sungguhan (besar —
+  menyentuh setiap gerbang), atau menyembunyikan/menandai layar permission sebagai belum aktif.
+- **Status:** OPEN — menunggu keputusan user
+
+### #104 — Titik laporan tidak punya asal-usul, sehingga pin yang salah tak bisa dibedakan dari yang benar (OPEN)
+- **Severity:** P2 (kerugian nyata sudah terjadi: petugas berangkat ke lokasi yang salah)
+- **Dilaporkan user** 2026-08-31: "ada beberapa orang yang lapor tapi tidak dari lokasi
+  kejadian, namun user yang lapor tidak memperhatikan jadi petugas salah menuju lokasi".
+- **Isi:** `ReportController::store()` menyimpan `lat`/`lng`/`address`/`geo_address` dan
+  **tak satu pun kolom mencatat titik itu datang dari mana**. Akibatnya di halaman detail,
+  pin dari fix GPS presisi ±10 m dan pin yang digeser 8 km oleh pelapor yang sedang di rumah
+  **terlihat persis sama** — keduanya menawarkan tombol "Navigasi ke Lokasi" yang sama
+  tegasnya. Layar mengklaim presisi yang tak pernah dijamin siapa pun; bentuk yang sama
+  dengan #95 ("Alamat Presisi") dan #94 (cadangan sebuah kamus = klaim).
+- **Sinyalnya sebenarnya sudah ada dan dibuang:** `Front/Reports/Create.jsx:414` membaca
+  `coords.accuracy`, memakainya sekali untuk ambang `GEO_ACCURACY_THRESHOLD`, lalu
+  melupakannya — angka itu tak pernah dikirim ke server.
+- **JEBAKAN yang wajib diketahui sebelum memperbaikinya:** state `userLocation`
+  (`Create.jsx:147`) BUKAN posisi pengguna. Ia ditulis di tiga tempat dan dua di antaranya
+  mengikuti PIN — `resolveLocation()` (`:267`, dipanggil `handleMarkerDrag`) dan
+  `selectRegion()` (`:532`). Maknanya "titik yang terakhir dipakai", pembacanya cuma
+  `locState` (`:781`). Menghitung jarak dari state ini memulangkan ~0 meter untuk hampir
+  semua laporan, sehingga lencana kepercayaan akan **selalu hijau** — jaminan palsu, lebih
+  buruk daripada tidak ada lencana. Posisi GPS asli harus ditampung ref BARU yang hanya
+  ditulis di callback sukses `getUserLocation()` (`:412`).
+- **Kenapa popup "apakah Anda di lokasi?" tidak cukup** (usulan awal user, dibahas
+  2026-08-31): orang yang jadi masalah justru yang tak memperhatikan — ia mengetuk tombol
+  besar secara refleks, jadi deklarasi diri adalah sinyal terlemah yang tersedia; ia jadi
+  pajak bagi semua orang demi segelintir kasus (membatalkan sebagian kerja darurat-first
+  Kluster A); dan jawaban "tidak di lokasi" pun **tidak memberi tahu petugas di mana apinya**
+  — pinnya tetap salah, yang berubah cuma labelnya.
+- **Rencana:** TASK_52 (`prompt/tasks/TASK_52_asal_titik_laporan.md`), lapis 3 saja atas
+  keputusan user — kolom `location_source`/`location_accuracy_m`/`reporter_distance_m` +
+  lencana di detail & panel verifikasi admin, **tanpa menyentuh form warga**. Ambang 300 m,
+  koordinat pelapor tidak disimpan (hanya jaraknya). Lapis 1 (deteksi jarak) & lapis 2
+  (menyela + mewajibkan patokan) DITUNDA.
+- **Status:** FIXED 2026-08-31 (TASK_52). Kolom `location_source`/`location_accuracy_m`/
+  `reporter_distance_m` (aditif, nullable, tanpa backfill); server yang menghitung jaraknya
+  dan menetapkan sumbernya, klien hanya mengirim koordinat & akurasi mentah lewat `gpsFixRef`
+  BARU (bukan `userLocation` — lihat jebakan di atas). Lencana kepercayaan tampil di kartu
+  Alamat halaman detail dan sebagai peringatan di panel verifikasi admin, tepat sebelum
+  tombol Broadcast. `correctLocation()` menimpanya jadi `dikoreksi_petugas` & mengosongkan
+  jarak/akurasi lama, dan `IncidentLocationCorrected` membawanya supaya lencana ikut berubah
+  tanpa muat ulang. Test 375 → 382 passed; KETUJUH penjaga di `ReportLocationSourceTest`
+  dibuktikan MERAH lebih dulu lewat sabotase sengaja (ambang diabaikan, `store()` lupa
+  menulis, `correctLocation()` lupa menimpa, satu nilai server tanpa entri di kamus layar,
+  kamus bercadangan ke `gps_pelapor`, dan koordinat pelapor ikut disimpan).
+  Lapis 1 & 2 (deteksi + menyela saat melapor) TETAP DITUNDA — form warga belum disentuh.

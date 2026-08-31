@@ -311,6 +311,7 @@ export default function AppLayout({ title, children }) {
 									{ href: route('info.terms'), label: 'Syarat & Ketentuan' },
 									{ href: route('info.privacy'), label: 'Kebijakan Privasi' },
 									{ href: route('info.about'), label: 'Tentang' },
+									{ href: route('info.pricing'), label: 'Paket & Lisensi' },
 								].map((item) => (
 									<Link
 										key={item.href}

@@ -13,7 +13,7 @@ const RINCIAN = {
 		'Biaya berulang, tanpa investasi awal besar',
 	],
 	beli: [
-		'Lisensi perpetual — hak pakai selamanya, tanpa biaya sewa',
+		'Lisensi perpetual - hak pakai selamanya, tanpa biaya sewa',
 		'Salinan kode sumber diserahkan sebagai aset instansi',
 		'Subdomain sendiri beserta branding instansi',
 		'Halaman dan modul khusus sesuai kebutuhan daerah dimungkinkan',
@@ -68,7 +68,7 @@ export default function Pricing({ instansi, legal, editions }) {
 			<Section number="1" title="Yang berlaku sama di kedua paket">
 				<Bullets
 					items={[
-						'Data kejadian adalah milik instansi, bukan milik pengembang — pada skema sewa maupun beli.',
+						'Data kejadian adalah milik instansi, bukan milik pengembang - pada skema sewa maupun beli.',
 						'Hak eksit: data satu kabupaten dapat diekstrak utuh dan terpisah kapan pun diminta, sehingga instansi tidak terkunci pada penyedia.',
 						'Isolasi data antar kabupaten berlaku di lapisan basis data, bukan sekadar tampilan.',
 						'Identitas publik instansi (nama dinas, pejabat, nomor darurat) dikelola sendiri lewat panel administrasi.',
@@ -81,7 +81,7 @@ export default function Pricing({ instansi, legal, editions }) {
 				<p>
 					Kabupaten/kota baru cukup didaftarkan pada panel administrasi: subdomain, identitas dinas, pejabat,
 					dan nomor darurat. Sejak saat itu wilayah tersebut punya wajah publiknya sendiri, dan seluruh data
-					laporannya terpisah dari daerah lain — tanpa perlu pemasangan sistem baru.
+					laporannya terpisah dari daerah lain - tanpa perlu pemasangan sistem baru.
 				</p>
 				<Callout tone="info" title="Catatan teknis">
 					Semua kabupaten berjalan pada satu sistem yang sama. Perbedaan tampilan dan modul per daerah
@@ -103,7 +103,7 @@ export default function Pricing({ instansi, legal, editions }) {
 
 			<Section number="4" title="Langkah berikutnya">
 				<p>
-					Sampaikan kebutuhan daerah Anda — jumlah pos, perkiraan volume kejadian, dan skema yang diminati —
+					Sampaikan kebutuhan daerah Anda - jumlah pos, perkiraan volume kejadian, dan skema yang diminati -
 					untuk kami tindak lanjuti dengan penawaran resmi beserta rancangan Perjanjian Kerja Sama.
 				</p>
 				<div className="mt-2 grid gap-3 sm:grid-cols-2">
@@ -130,7 +130,7 @@ export default function Pricing({ instansi, legal, editions }) {
 							<p className="text-sm font-bold text-foreground">Sudah berjalan di</p>
 						</div>
 						<p className="mt-1.5 text-sm text-muted-foreground">
-							{instansi?.nama_instansi || 'Damkar kabupaten/kota di Bali'} — beserta kabupaten lain yang
+							{instansi?.nama_instansi || 'Damkar kabupaten/kota di Bali'} - beserta kabupaten lain yang
 							bergabung pada sistem yang sama.
 						</p>
 					</div>

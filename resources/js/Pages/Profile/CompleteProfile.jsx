@@ -221,11 +221,11 @@ export default function CompleteProfile({ provinces, user, banjar_required = fal
 								<IconMapPin className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
 								<span>
 									Lokasi terdeteksi di <b>{detectedRegion}</b>. Wilayah di bawah sudah terisi otomatis
-									&mdash; periksa dan sesuaikan bila kurang tepat.
+									- periksa dan sesuaikan bila kurang tepat.
 									{!data.village_code && (
 										<span className="mt-1 block font-medium text-foreground">
-											Kelurahan/Desa belum bisa ditentukan otomatis &mdash; silakan pilih sendiri
-											di bawah.
+											Kelurahan/Desa belum bisa ditentukan otomatis - silakan pilih sendiri di
+											bawah.
 										</span>
 									)}
 								</span>

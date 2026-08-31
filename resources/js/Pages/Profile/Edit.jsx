@@ -174,7 +174,7 @@ export default function Edit(props) {
 							</dl>
 						) : (
 							<p className="mt-3 text-sm text-muted-foreground">
-								Cakupan nasional — tidak terbatas pada wilayah tertentu.
+								Cakupan nasional - tidak terbatas pada wilayah tertentu.
 							</p>
 						)}
 					</div>

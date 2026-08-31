@@ -7,7 +7,7 @@ import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
-import { alamatTerbaca, cn, GEO_OPTIONS, MAP_TILE_URL, reportNumber } from '@/lib/utils';
+import { alamatTerbaca, asalTitikLaporan, cn, GEO_OPTIONS, MAP_TILE_URL, reportNumber } from '@/lib/utils';
 import { Head, Link, router } from '@inertiajs/react';
 import {
 	IconAlertCircle,
@@ -18,6 +18,7 @@ import {
 	IconFileText,
 	IconFiretruck,
 	IconFlag,
+	IconHourglass,
 	IconLoader2,
 	IconMap,
 	IconMapPin,
@@ -138,6 +139,10 @@ export default function ReportShow(props) {
 	const agencyRecommendations = props.agencyRecommendations || [];
 	const reportAgencies = props.reportAgencies || [];
 	const canManageAgencies = props.canManageAgencies || false;
+	// Petugas boleh MEMINTA bantuan OPD, tapi tidak MENCABUTNYA (TASK_51). Dibaca dari server,
+	// bukan diturunkan dari daftar peran di berkas ini: gerbangnya ada di
+	// ReportActionController::removeAgency() dan hanya server yang tahu batas wilayahnya.
+	const canRemoveAgencies = props.canRemoveAgencies || false;
 	const myAgencyId = props.myAgencyId || null;
 	const involvedAgencyIds = reportAgencies.map((a) => a.agency_id);
 	// OPD yang masih bisa diminta = master dikurangi yang sudah tercatat. Dipisahkan dari
@@ -178,6 +183,11 @@ export default function ReportShow(props) {
 		lng: report.lng,
 		address: report.address,
 		geoAddress: report.geo_address,
+		// Asal-usul titik (TASK_52) ikut jadi STATE, bukan dibaca dari prop `report`, karena
+		// ketiganya berubah bersamaan dengan pin saat responder mengoreksinya.
+		locationSource: report.location_source,
+		reporterDistanceM: report.reporter_distance_m,
+		locationAccuracyM: report.location_accuracy_m,
 	});
 	const [isCorrectingMode, setIsCorrectingMode] = useState(false);
 	const [pendingPosition, setPendingPosition] = useState(null);
@@ -195,6 +205,14 @@ export default function ReportShow(props) {
 	// Anda" yang bergerbang peran, jadi jejak penolakan mengikuti audiens yang SAMA. Kalau
 	// kelak pelapor memang harus tahu nama penolaknya, ubah di satu tempat ini.
 	const canSeeClosureActor = isStaffOrAdmin || isRelawan || userRoles.includes('pejabat');
+	// Verifikasi (Broadcast Misi & Tolak laporan) = admin saja sejak TASK_51. SENGAJA dibaca
+	// dari prop server, bukan dihitung ulang dari `userRoles` di sini: daftar peran yang
+	// ditulis dua kali akan menyimpang, dan yang menyimpang di sisi layar melahirkan tombol
+	// yang selalu berakhir 403 (bentuk yang sama dengan #94).
+	const canVerify = props.canVerify || false;
+	// Petugas di wilayah laporan yang melihat laporan mentah: ia BUKAN pemverifikasi, jadi
+	// yang ditampilkan bukan tombol melainkan keadaan "sedang ditunggu".
+	const isAwaitingAdmin = isStaffOrAdmin && !canVerify;
 
 	useEffect(() => {
 		setOfficerList(props.report.officers || []);
@@ -202,6 +220,15 @@ export default function ReportShow(props) {
 		setReportStatus(props.report.status);
 		setRejectedReason(props.report.rejected_reason);
 	}, [props.report]);
+
+	// Seberapa boleh pin ini dipercaya (TASK_52, #104). Dibaca dari `incidentLocation` supaya
+	// ikut berubah begitu responder mengoreksi titiknya, bukan dari prop `report` yang baru
+	// segar setelah halaman dimuat ulang.
+	const asalTitik = asalTitikLaporan({
+		location_source: incidentLocation.locationSource,
+		reporter_distance_m: incidentLocation.reporterDistanceM,
+		location_accuracy_m: incidentLocation.locationAccuracyM,
+	});
 
 	const myOfficerRecord = officerList.find((o) => o.user_id === auth.user.id);
 	const myHelperRecord = helperList.find((h) => h.user_id === auth.user.id);
@@ -530,7 +557,18 @@ export default function ReportShow(props) {
 				preserveScroll: true,
 				onSuccess: () => {
 					// Patokan pelapor dibawa apa adanya — koreksi pin tidak menyentuhnya.
-					setIncidentLocation((prev) => ({ ...prev, lat: target.lat, lng: target.lng, geoAddress }));
+					// Asal titik ikut berganti persis seperti yang baru saja ditulis server
+					// (ReportActionController::correctLocation): jarak & akurasi lama
+					// menerangkan titik yang sudah tidak ada lagi, jadi dikosongkan.
+					setIncidentLocation((prev) => ({
+						...prev,
+						lat: target.lat,
+						lng: target.lng,
+						geoAddress,
+						locationSource: 'dikoreksi_petugas',
+						reporterDistanceM: null,
+						locationAccuracyM: null,
+					}));
 					setIsCorrectingMode(false);
 					setPendingPosition(null);
 					toast.success('Lokasi insiden berhasil dikoreksi.');
@@ -838,7 +876,17 @@ export default function ReportShow(props) {
 				}
 			});
 			channel.listen('IncidentLocationCorrected', (e) => {
-				setIncidentLocation((prev) => ({ ...prev, lat: e.lat, lng: e.lng, geoAddress: e.geoAddress }));
+				setIncidentLocation((prev) => ({
+					...prev,
+					lat: e.lat,
+					lng: e.lng,
+					geoAddress: e.geoAddress,
+					// Tanpa ini lencana "±8 km dari posisi pelapor" tetap menempel pada pin
+					// yang baru saja dibetulkan responder di TKP sampai halaman dimuat ulang.
+					locationSource: e.locationSource ?? prev.locationSource,
+					reporterDistanceM: e.locationSource ? null : prev.reporterDistanceM,
+					locationAccuracyM: e.locationSource ? null : prev.locationAccuracyM,
+				}));
 			});
 			// Daftar responder berubah dari sisi lain (responder baru meluncur / batal /
 			// tiba) — muat ulang prop `report` agar manifes & marker peta ikut tampil tanpa
@@ -918,8 +966,8 @@ export default function ReportShow(props) {
 				)}
 			</div>
 
-			{/* --- 🛡️ PANEL VERIFIKASI --- */}
-			{reportStatus === 'TERLAPOR' && isStaffOrAdmin && (
+			{/* --- 🛡️ PANEL VERIFIKASI (ADMIN SAJA sejak TASK_51) --- */}
+			{reportStatus === 'TERLAPOR' && canVerify && (
 				<Card className="rounded-xl border border-border bg-card shadow-none">
 					<CardContent className="flex flex-col items-start justify-between gap-4 p-4 sm:p-5 md:flex-row md:items-center">
 						<div className="flex items-start gap-3">
@@ -935,6 +983,18 @@ export default function ReportShow(props) {
 									</b>{' '}
 									sebelum menugaskan armada.
 								</p>
+								{/* Titik yang belum bisa dipercaya diangkat DI SINI, bukan cuma di kartu
+								    alamat jauh di bawah: begitu Broadcast ditekan, sirine berbunyi di
+								    seluruh wilayah dan tim berangkat ke koordinat ini. Ini gerbang
+								    terakhir tempat kekeliruan lokasi masih murah diperbaiki — lewat
+								    telepon pelapor yang nomornya sudah tertera persis di atasnya. */}
+								{!asalTitik.terpercaya && (
+									<p className="mt-2 max-w-xl rounded-md border border-warning/20 bg-warning/10 p-2 text-xs leading-relaxed text-warning">
+										<b>{asalTitik.label}</b>
+										{asalTitik.detail ? ` (${asalTitik.detail}). ` : '. '}
+										{asalTitik.hint}
+									</p>
+								)}
 							</div>
 						</div>
 
@@ -953,6 +1013,31 @@ export default function ReportShow(props) {
 							>
 								<IconX className="h-3.5 w-3.5" /> Tolak laporan
 							</Button>
+						</div>
+					</CardContent>
+				</Card>
+			)}
+
+			{/* --- ⏳ MENUNGGU KONFIRMASI ADMIN (petugas, TASK_51) --- */}
+			{/* Petugas melihat laporan mentah ini di dashboard misinya dan menerima notifikasinya,
+			    tapi tidak boleh memverifikasi. Tanpa panel ini layarnya hanya SEPI — tak ada
+			    tombol, tak ada keterangan — dan keadaan yang tak dijelaskan terbaca sebagai
+			    fitur rusak (pelajaran TASK_45/#94: antrian yang tak bisa dibereskan sendiri).
+			    Yang ditampilkan bukan nama status (kamus status tetap satu, "Laporan Masuk")
+			    melainkan APA YANG SEDANG DITUNGGU. */}
+			{reportStatus === 'TERLAPOR' && isAwaitingAdmin && (
+				<Card className="rounded-xl border border-warning/30 bg-warning/5 shadow-none">
+					<CardContent className="flex items-start gap-3 p-4 sm:p-5">
+						<div className="mt-0.5 shrink-0 rounded-lg bg-warning/15 p-2 text-warning">
+							<IconHourglass className="h-5 w-5" />
+						</div>
+						<div className="space-y-1">
+							<h3 className="text-sm font-bold text-foreground">Menunggu Konfirmasi Admin</h3>
+							<p className="max-w-xl text-xs leading-relaxed text-muted-foreground">
+								Laporan ini belum diverifikasi. Broadcast misi dan penolakan laporan adalah kewenangan
+								admin - begitu disiarkan, Anda akan menerima panggilan meluncur dan tombol tindakan
+								muncul di sini.
+							</p>
 						</div>
 					</CardContent>
 				</Card>
@@ -1036,6 +1121,32 @@ export default function ReportShow(props) {
 								    ("gang buntu sebelah warung Bu Made"). Dulu keduanya satu baris berjudul
 								    "Alamat Presisi" yang isinya bisa mana saja di antara keduanya. */}
 								<div className="space-y-1 rounded-lg border border-border bg-muted p-3 sm:col-span-2">
+									{/* Seberapa boleh pin ini dipercaya (TASK_52, #104). Sengaja DI ATAS alamat
+									    dan tombol "Navigasi ke Lokasi": sebelum ini pin hasil fix GPS di TKP dan
+									    pin yang digeser jauh oleh pelapor yang sedang di rumah terlihat persis
+									    sama, dan keduanya menawarkan navigasi yang sama tegasnya — itulah yang
+									    membuat petugas berangkat ke tempat yang salah. Keterangannya muncul
+									    hanya saat titiknya belum bisa dipercaya, supaya kasus normal tetap
+									    sepi dan peringatannya tidak berubah jadi hiasan. */}
+									<div className="mb-2 space-y-1">
+										<div
+											className={cn(
+												'inline-flex flex-wrap items-center gap-x-1.5 rounded-md border px-2 py-1 text-[11px] font-semibold',
+												asalTitik.tone,
+											)}
+										>
+											<span>{asalTitik.label}</span>
+											{asalTitik.detail && (
+												<span className="font-normal opacity-80">· {asalTitik.detail}</span>
+											)}
+										</div>
+										{!asalTitik.terpercaya && (
+											<p className="text-[11px] leading-relaxed text-muted-foreground">
+												{asalTitik.hint}
+											</p>
+										)}
+									</div>
+
 									<div className="font-medium text-muted-foreground">Alamat</div>
 									<div className="mt-1 flex items-start gap-1.5 font-bold text-foreground">
 										<IconMapPin className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
@@ -1321,7 +1432,7 @@ export default function ReportShow(props) {
 												<option value="">Pilih unit tersedia...</option>
 												{availableUnits.map((u) => (
 													<option key={u.id} value={u.id}>
-														{u.name} — {u.type}
+														{u.name} - {u.type}
 													</option>
 												))}
 											</select>
@@ -1402,7 +1513,7 @@ export default function ReportShow(props) {
 																Diminta oleh {row.notified_by || 'Pusat Komando'}
 															</div>
 														</div>
-														{canManageAgencies && reportStatus !== 'resolved' && (
+														{canRemoveAgencies && reportStatus !== 'resolved' && (
 															<Button
 																onClick={() => setAgencyToRemove(row)}
 																variant="ghost"
@@ -1432,12 +1543,12 @@ export default function ReportShow(props) {
 															</div>
 															{row.confirmed_at ? (
 																<div className="mt-1 pl-5 text-[10px] font-medium opacity-80">
-																	Dikonfirmasi {row.confirmed_by || '—'}
+																	Dikonfirmasi {row.confirmed_by || '-'}
 																	{row.confirmed_source === 'operator'
 																		? ' (dicatat Pusat Komando)'
 																		: ''}
 																	{row.confirmation_note
-																		? ` — ${row.confirmation_note}`
+																		? ` - ${row.confirmation_note}`
 																		: ''}
 																</div>
 															) : (
@@ -1927,7 +2038,7 @@ export default function ReportShow(props) {
 						</div>
 						<h2 className="text-lg font-bold text-foreground">Tolak Laporan?</h2>
 						<p className="text-sm leading-relaxed text-muted-foreground">
-							Laporan ditandai <b>ditolak</b> dan diarsipkan (tidak dihapus) — tetap bisa ditelusuri Pusat
+							Laporan ditandai <b>ditolak</b> dan diarsipkan (tidak dihapus) - tetap bisa ditelusuri Pusat
 							Komando.
 						</p>
 						<div className="w-full text-left">
@@ -1983,7 +2094,7 @@ export default function ReportShow(props) {
 								<ul className="space-y-0.5 pl-5 text-[11px] leading-relaxed text-warning">
 									{awaitingConfirmations.map((a) => (
 										<li key={a.id} className="list-disc">
-											<b>{a.agency_name}</b> — {a.confirmation_label}
+											<b>{a.agency_name}</b> - {a.confirmation_label}
 										</li>
 									))}
 								</ul>
@@ -2020,7 +2131,7 @@ export default function ReportShow(props) {
 						</div>
 						<h2 className="text-lg font-bold text-foreground">Catat Konfirmasi?</h2>
 						<p className="text-sm leading-relaxed text-muted-foreground">
-							<b>{agencyToConfirm?.agency_name}</b> — {agencyToConfirm?.confirmation_label}.
+							<b>{agencyToConfirm?.agency_name}</b> - {agencyToConfirm?.confirmation_label}.
 							{canManageAgencies && myAgencyId !== agencyToConfirm?.agency_id
 								? ' Konfirmasi ini akan tercatat sebagai catatan Pusat Komando, bukan dari OPD langsung.'
 								: ''}

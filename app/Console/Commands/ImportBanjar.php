@@ -82,7 +82,7 @@ class ImportBanjar extends Command
                 if (count($candidates) === 1) {
                     $code = $candidates[0];
                 } elseif (count($candidates) > 1) {
-                    $ditolak[] = "baris {$baris}: nama desa '{$row['village']}' ada di lebih dari satu wilayah — pakai --city atau kolom kode desa";
+                    $ditolak[] = "baris {$baris}: nama desa '{$row['village']}' ada di lebih dari satu wilayah - pakai --city atau kolom kode desa";
 
                     continue;
                 } else {
@@ -193,7 +193,7 @@ class ImportBanjar extends Command
         $this->newLine();
 
         if (! $this->option('apply')) {
-            $this->info('Tinjauan saja — belum ada yang ditulis. Ulangi dengan --apply bila sudah benar.');
+            $this->info('Tinjauan saja - belum ada yang ditulis. Ulangi dengan --apply bila sudah benar.');
         } else {
             $this->info('Selesai. Master banjar diperbarui.');
         }

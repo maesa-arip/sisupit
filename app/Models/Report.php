@@ -37,6 +37,35 @@ class Report extends Model
      */
     public const FIRE_INCIDENT_TYPES = ['rumah', 'toko', 'kendaraan', 'lahan', 'kebakaran_lainnya'];
 
+    /**
+     * Asal-usul TITIK laporan (TASK_52, #104) — SUMBER TUNGGAL. Menjawab satu pertanyaan
+     * yang sebelumnya tak bisa dijawab dari data mana pun: "boleh saya percaya pin ini?".
+     *
+     * Tiap nilai diturunkan dari BUKTI, bukan dari peran pengirimnya. Karena itu tidak ada
+     * nilai khusus untuk alur telepon Pusat Komando (TASK_28): menurunkannya dari peran akan
+     * mengklaim "titik dipilih operator" pada petugas yang kebetulan melapor dari TKP
+     * sungguhan — klaim yang bisa salah (bentuk #90). Laporan telepon jatuh sendiri ke
+     * `ditandai_manual`, dan itu memang benar apa adanya.
+     *
+     * Kembarannya di sisi klien adalah `LOCATION_SOURCE_META` di `resources/js/lib/utils.js`
+     * (dijaga ReportLocationSourceTest) — menambah nilai berarti mengubah keduanya.
+     *
+     * @var list<string>
+     */
+    public const LOCATION_SOURCES = ['gps_pelapor', 'ditandai_manual', 'tanpa_referensi', 'dikoreksi_petugas'];
+
+    /**
+     * Batas "pelapor masih di lokasi" (meter). Ditulis SEKALI di sini dan hanya dibaca
+     * server: klien mengirim koordinat & akurasi MENTAH, tidak menghitung dan tidak
+     * menyimpulkan apa pun. Klien yang ikut memutuskan = dua rumus yang bisa menyimpang
+     * (#79/#84) sekaligus vonis yang bisa dipalsukan.
+     *
+     * 300 m (keputusan user 2026-08-31), sengaja longgar: warga lazimnya LARI dulu dari api
+     * baru mengeluarkan ponselnya, jadi ambang yang ketat akan menuduh pelapor yang justru
+     * benar-benar ada di sana.
+     */
+    public const JARAK_PELAPOR_MAKS_M = 300;
+
     protected $fillable = [
         'user_id',
         'name',
@@ -50,6 +79,11 @@ class Report extends Model
         'geo_address',
         'lat',
         'lng',
+        // Asal-usul titik (TASK_52). Ketiganya nullable tanpa backfill — laporan lama &
+        // klien lama tak mengirimnya, dan layar membacanya sebagai "tidak tercatat".
+        'location_source',
+        'location_accuracy_m',
+        'reporter_distance_m',
         'status',
         'rejected_reason',
         'rejected_at',
@@ -167,6 +201,51 @@ class Report extends Model
     public function alamatTampil(): ?string
     {
         return $this->geo_address ?: $this->address;
+    }
+
+    /**
+     * Tetapkan asal-usul titik sebuah laporan BARU dari bukti yang dikirim form (TASK_52).
+     * Memulangkan pasangan kolom siap simpan: `location_source` + `reporter_distance_m`.
+     *
+     * Jaraknya dihitung di PHP (haversine), BUKAN lewat `selectRaw` — `acos()`/`radians()`
+     * tidak tersedia di SQLite bawaan PHP yang dipakai lokal & testing, jadi versi SQL-nya
+     * hanya jalan di MySQL produksi (pelajaran #64, pola yang sama sudah dipakai
+     * `Front\PompaController::haversineKm()`).
+     *
+     * Koordinat pelapor MASUK ke sini, tapi tidak pernah keluar lagi: yang dipulangkan cuma
+     * jaraknya (keputusan privasi user 2026-08-31). Jangan menambahkan `reporter_lat/lng`
+     * ke nilai kembalian "biar bisa diaudit" — itu membalik keputusan itu tanpa bertanya.
+     *
+     * @return array{location_source: string, reporter_distance_m: int|null}
+     */
+    public static function asalTitikDari(?float $reporterLat, ?float $reporterLng, float $lat, float $lng): array
+    {
+        // Posisi pelapor tak diketahui (izin lokasi ditolak, GPS gagal, atau klien lama yang
+        // memang tak mengirimnya). Titiknya TIDAK divonis salah — ia hanya tak punya
+        // pembanding, dan itu keadaan tersendiri yang harus terbaca apa adanya di layar.
+        if ($reporterLat === null || $reporterLng === null) {
+            return ['location_source' => 'tanpa_referensi', 'reporter_distance_m' => null];
+        }
+
+        $meter = (int) round(self::jarakMeter($reporterLat, $reporterLng, $lat, $lng));
+
+        return [
+            'location_source' => $meter <= self::JARAK_PELAPOR_MAKS_M ? 'gps_pelapor' : 'ditandai_manual',
+            'reporter_distance_m' => $meter,
+        ];
+    }
+
+    /** Jarak dua titik di permukaan bumi (meter). */
+    private static function jarakMeter(float $lat1, float $lng1, float $lat2, float $lng2): float
+    {
+        $earthRadius = 6371000;
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLng = deg2rad($lng2 - $lng1);
+
+        $a = sin($dLat / 2) ** 2
+            + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLng / 2) ** 2;
+
+        return $earthRadius * 2 * atan2(sqrt($a), sqrt(1 - $a));
     }
 
     public function scopeFilter($query, array $filters)

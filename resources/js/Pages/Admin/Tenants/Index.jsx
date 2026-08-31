@@ -94,7 +94,7 @@ export default function Index(props) {
 											{tenant.city_name}{' '}
 											<span className="text-xs text-muted-foreground">({tenant.city_code})</span>
 										</TableCell>
-										<TableCell>{tenant.telepon_darurat || '—'}</TableCell>
+										<TableCell>{tenant.telepon_darurat || '-'}</TableCell>
 										<TableCell>
 											{tenant.is_active ? (
 												<IconCheck className="size-4 text-emerald-600" />

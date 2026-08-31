@@ -29,10 +29,15 @@ it('broadcasts ReportStatusChanged on approve, first handling, and resolve', fun
 
     $petugas = User::factory()->create(['village_code' => '5171012006']);
     $petugas->assignRole('petugas');
+
+    // Verifikasi pindah ke admin (TASK_51); penutupan insiden tetap milik petugas, jadi
+    // rangkaian transisi di test ini kini memang dijalankan DUA pelaku yang berbeda.
+    $admin = User::factory()->create(['village_code' => '5171012006']);
+    $admin->assignRole('admin');
     $relawan = User::factory()->create(['village_code' => '5171012006']);
     $relawan->assignRole('relawan');
 
-    $this->actingAs($petugas)->post("/reports/{$this->report->id}/approve")->assertRedirect();
+    $this->actingAs($admin)->post("/reports/{$this->report->id}/approve")->assertRedirect();
     Event::assertDispatched(ReportStatusChanged::class,
         fn ($e) => $e->reportId === $this->report->id && $e->status === 'pending');
 
@@ -49,7 +54,12 @@ it('broadcasts ReportStatusChanged with the reason on reject', function () {
     $petugas = User::factory()->create(['village_code' => '5171012006']);
     $petugas->assignRole('petugas');
 
-    $this->actingAs($petugas)
+    // Verifikasi pindah ke admin (TASK_51); penutupan insiden tetap milik petugas, jadi
+    // rangkaian transisi di test ini kini memang dijalankan DUA pelaku yang berbeda.
+    $admin = User::factory()->create(['village_code' => '5171012006']);
+    $admin->assignRole('admin');
+
+    $this->actingAs($admin)
         ->post("/reports/{$this->report->id}/reject", ['reason' => 'Laporan hoax'])
         ->assertRedirect();
 

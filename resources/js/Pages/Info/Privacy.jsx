@@ -3,7 +3,7 @@ import { Link } from '@inertiajs/react';
 import { IconShieldLock } from '@tabler/icons-react';
 
 const formatTanggal = (value) => {
-	if (!value) return '—';
+	if (!value) return '-';
 	const date = new Date(value);
 	if (Number.isNaN(date.getTime())) return value;
 	return new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
@@ -18,7 +18,7 @@ export default function Privacy({ instansi, legal }) {
 	return (
 		<InfoShell
 			icon={IconShieldLock}
-			eyebrow={`Versi ${legal?.dokumen?.privasi_versi || '1.0'} — berlaku sejak ${formatTanggal(legal?.dokumen?.privasi_berlaku)}`}
+			eyebrow={`Versi ${legal?.dokumen?.privasi_versi || '1.0'} - berlaku sejak ${formatTanggal(legal?.dokumen?.privasi_berlaku)}`}
 			title="Kebijakan Privasi"
 			subtitle="Data apa yang dikumpulkan saat Anda memakai SISUPIT, untuk apa dipakai, siapa yang bisa melihatnya, dan hak Anda atas data itu."
 			footerNote="Kebijakan ini menjelaskan praktik yang benar-benar berjalan di sistem, bukan pernyataan umum. Bila fitur berubah dan memengaruhi pemrosesan data, dokumen ini diperbarui beserta versinya."
@@ -49,7 +49,7 @@ export default function Privacy({ instansi, legal }) {
 				<Bullets
 					items={[
 						'Identitas akun: nama, nama pengguna, email, nomor telepon, jenis kelamin, dan foto profil bila diisi.',
-						'Wilayah administratif: provinsi, kabupaten/kota, kecamatan, dan kelurahan/desa — dipakai untuk membatasi akses data per wilayah.',
+						'Wilayah administratif: provinsi, kabupaten/kota, kecamatan, dan kelurahan/desa - dipakai untuk membatasi akses data per wilayah.',
 						'Data akun Google (nama, email, foto) bila Anda masuk memakai Google.',
 						'Token perangkat untuk notifikasi, agar pemberitahuan kejadian sampai ke ponsel Anda.',
 						'Catatan teknis: waktu akses dan aktivitas dalam sistem.',
@@ -85,7 +85,7 @@ export default function Privacy({ instansi, legal }) {
 						'Mengirim petugas/relawan ke lokasi yang benar dan menghubungi pelapor bila keterangan kurang jelas.',
 						'Memberi tahu warga di sekitar wilayah kejadian serta memberi kabar balik ke pelapor setiap kali status laporannya berubah.',
 						'Menyusun berita acara dan dokumentasi resmi pasca-kejadian.',
-						'Menyusun rekapitulasi dan statistik wilayah yang dipakai instansi untuk perencanaan — dalam bentuk angka gabungan, tanpa identitas perorangan.',
+						'Menyusun rekapitulasi dan statistik wilayah yang dipakai instansi untuk perencanaan - dalam bentuk angka gabungan, tanpa identitas perorangan.',
 					]}
 				/>
 				<p>
@@ -98,7 +98,7 @@ export default function Privacy({ instansi, legal }) {
 				<Bullets
 					items={[
 						'Warga pelapor hanya dapat melihat laporannya sendiri beserta perkembangan statusnya.',
-						'Petugas, admin, dan pejabat pemantau hanya melihat data pada wilayah kewenangannya — pembatasan ini berlaku di lapisan basis data, bukan sekadar tampilan.',
+						'Petugas, admin, dan pejabat pemantau hanya melihat data pada wilayah kewenangannya - pembatasan ini berlaku di lapisan basis data, bukan sekadar tampilan.',
 						'Relawan melihat kejadian di area penugasannya dan kejadian yang ia ikuti.',
 						'Foto KTP korban disimpan pada penyimpanan tertutup dan hanya dapat dibuka lewat jalur berizin oleh petugas berwenang di wilayah tersebut; tidak ada tautan publik ke berkas tersebut.',
 						'Superadmin sistem memiliki akses lintas wilayah untuk keperluan pemeliharaan.',
@@ -144,7 +144,7 @@ export default function Privacy({ instansi, legal }) {
 						'Melihat dan memperbaiki data akun Anda sendiri lewat halaman Profil.',
 						'Meminta salinan data Anda yang tersimpan pada sistem.',
 						'Meminta penghapusan akun. Data yang telah menjadi bagian dokumen penanganan resmi tetap diarsipkan instansi sesuai ketentuan kearsipan.',
-						'Menarik izin lokasi atau notifikasi lewat pengaturan perangkat — sebagian fitur pelaporan akan berkurang ketepatannya.',
+						'Menarik izin lokasi atau notifikasi lewat pengaturan perangkat - sebagian fitur pelaporan akan berkurang ketepatannya.',
 					]}
 				/>
 				<p>

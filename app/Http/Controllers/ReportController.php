@@ -198,6 +198,13 @@ class ReportController extends Controller
         // detail & berita acara insiden di yurisdiksinya, TAPI tanpa aksi/kelola (di-gate terpisah
         // via $isStaff, dan tombol aksi di frontend memang tidak menyertakan role pejabat).
         $isPejabat = $user->hasRole('pejabat') && $user->withinReportJurisdiction($report);
+        // Verifikasi laporan (broadcast & tolak) dan PENCABUTAN OPD adalah keputusan admin,
+        // bukan petugas lapangan (keputusan user 2026-08-31, TASK_51). Sengaja diturunkan dari
+        // $isStaff, bukan ditulis sebagai daftar peran kedua: batas wilayahnya harus sama
+        // persis. Harus selalu menjawab pertanyaan yang sama dengan gerbang
+        // ReportActionController::approve()/reject()/removeAgency() — tombol yang tampil tanpa
+        // gerbang yang mengizinkannya hanya melahirkan 403 di wajah pengguna.
+        $isVerifier = $isStaff && $user->hasAnyRole(['admin', 'superadmin']);
         $isHelper = DB::table('report_helpers')->where('report_id', $report->id)->where('user_id', $user->id)->exists();
         // Relawan boleh memantau insiden di wilayahnya secara read-only untuk menilai
         // sebelum memutuskan meluncur (alur respons disatukan di halaman detail). Ter-scope
@@ -353,6 +360,12 @@ class ReportController extends Controller
             'agencyRecommendations' => $agencyRecommendations,
             'reportAgencies' => $reportAgencies,
             'canManageAgencies' => $isStaff,
+            // Petugas boleh MEMINTA bantuan OPD (eskalasi datang dari lapangan) tapi tidak
+            // MENCABUTNYA — dua prop terpisah karena dua pertanyaan berbeda, meski hari ini
+            // keduanya bersumber dari satu variabel di atas.
+            'canRemoveAgencies' => $isVerifier,
+            // Panel verifikasi (Broadcast Misi & Tolak laporan) di halaman detail.
+            'canVerify' => $isVerifier,
             // Dipakai frontend untuk menampilkan tombol konfirmasi pada baris instansinya sendiri.
             'myAgencyId' => $isAgencyPartner ? $user->agency_id : null,
         ]);
@@ -405,6 +418,25 @@ class ReportController extends Controller
                 $photoPaths[] = $file->store('reports', 'public');
             }
 
+            // Asal-usul TITIK (TASK_52, #104): pin yang ditandai jauh dari posisi pelapor
+            // harus bisa dibedakan dari pin hasil fix GPS di TKP, sebab layar detail
+            // menawarkan tombol "Navigasi ke Lokasi" yang sama tegasnya untuk keduanya.
+            // Yang memutuskan SERVER — klien hanya mengirim koordinat & akurasi mentah.
+            $asalTitik = Report::asalTitikDari(
+                $request->filled('reporter_lat') ? (float) $request->reporter_lat : null,
+                $request->filled('reporter_lng') ? (float) $request->reporter_lng : null,
+                (float) $request->lat,
+                (float) $request->lng,
+            );
+
+            // Akurasi dipagari sebelum disimpan: kolomnya unsignedInteger, dan angka janggal
+            // dari klien yang rusak akan membuat INSERT gagal — laporan daruratnya ikut
+            // hilang ke blok catch di bawah. Tak satu pun bagian fitur ini boleh bisa
+            // menggagalkan sebuah laporan (100 km sudah jauh melewati fix terburuk).
+            $akurasi = $request->filled('gps_accuracy_m')
+                ? min(max((int) round((float) $request->gps_accuracy_m), 0), 100000)
+                : null;
+
             $report = Report::create([
                 'user_id' => auth()->id(),
                 'name' => $request->name,
@@ -416,6 +448,12 @@ class ReportController extends Controller
                 'description' => $request->description,
                 'lat' => $request->lat,
                 'lng' => $request->lng,
+                // Hanya JARAK-nya yang tersimpan, bukan koordinat pelapor (keputusan user
+                // 2026-08-31) — sinyal kepercayaannya utuh tanpa merekam di mana warganya
+                // berdiri saat menelepon.
+                'location_source' => $asalTitik['location_source'],
+                'reporter_distance_m' => $asalTitik['reporter_distance_m'],
+                'location_accuracy_m' => $akurasi,
                 'province_code' => $request->province_code,
                 'city_code' => $request->city_code,
                 'district_code' => $request->district_code,

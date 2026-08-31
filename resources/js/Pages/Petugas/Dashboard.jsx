@@ -12,6 +12,7 @@ import {
 	IconClock,
 	IconFileText,
 	IconFiretruck,
+	IconHourglass,
 	IconMapPin,
 	IconRadar,
 	IconRoute,
@@ -58,9 +59,15 @@ export default function PetugasDashboard({ auth, activeMissions = [], pendingRes
 	}, []);
 
 	// Perkaya tiap misi dengan penanda urgensi + jarak km (bila lokasi petugas diketahui).
+	//
+	// TASK_51: yang MENDESAK bagi petugas kini `pending` — laporan yang sudah diverifikasi
+	// admin dan sedang memanggil responder. `TERLAPOR` PINDAH jadi keadaan menunggu: sejak
+	// verifikasi dicabut dari petugas, ajakan merah "Tanggapi" pada laporan mentah adalah
+	// janji yang tak bisa ia tepati — dibuka pun tak ada tombol apa pun di sana.
 	const missions = activeMissions.map((m) => ({
 		...m,
-		isUrgent: m.status === 'TERLAPOR',
+		isUrgent: m.status === 'pending',
+		isAwaitingAdmin: m.status === 'TERLAPOR',
 		distKm: myPos && m.lat && m.lng ? distanceKm(myPos.lat, myPos.lng, parseFloat(m.lat), parseFloat(m.lng)) : null,
 	}));
 
@@ -256,13 +263,25 @@ export default function PetugasDashboard({ auth, activeMissions = [], pendingRes
 											<div
 												className={cn(
 													'flex h-10 items-center justify-center gap-1.5 rounded-lg px-4 text-xs font-bold uppercase tracking-wider transition-all',
-													mission.isUrgent
-														? 'bg-destructive text-destructive-foreground group-hover:bg-destructive/90'
-														: 'border border-border bg-muted text-foreground/80 group-hover:border-destructive group-hover:bg-destructive group-hover:text-destructive-foreground',
+													mission.isUrgent &&
+														'bg-destructive text-destructive-foreground group-hover:bg-destructive/90',
+													mission.isAwaitingAdmin &&
+														'border border-warning/30 bg-warning/10 text-warning',
+													!mission.isUrgent &&
+														!mission.isAwaitingAdmin &&
+														'border border-border bg-muted text-foreground/80 group-hover:border-destructive group-hover:bg-destructive group-hover:text-destructive-foreground',
 												)}
 											>
-												{mission.isUrgent ? 'Tanggapi' : 'Pantau'}
-												<IconChevronRight className="h-4 w-4" />
+												{mission.isAwaitingAdmin ? (
+													<>
+														<IconHourglass className="h-4 w-4" /> Menunggu Admin
+													</>
+												) : (
+													<>
+														{mission.isUrgent ? 'Tanggapi' : 'Pantau'}
+														<IconChevronRight className="h-4 w-4" />
+													</>
+												)}
 											</div>
 										</div>
 									</Link>

@@ -138,7 +138,7 @@ class SimulateResponders extends Command
 
         $coords = $this->resample($coords, max(2, (int) $this->option('steps')));
 
-        $this->line("  {$type}: {$user->name} — titik awal ".number_format($startLat, 5).','.number_format($startLng, 5).' ('.count($coords).' titik rute)');
+        $this->line("  {$type}: {$user->name} - titik awal ".number_format($startLat, 5).','.number_format($startLng, 5).' ('.count($coords).' titik rute)');
 
         return [
             'user' => $user,

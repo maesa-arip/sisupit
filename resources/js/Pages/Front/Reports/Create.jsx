@@ -148,6 +148,19 @@ export default function Create(props) {
 	const [locationLoading, setLocationLoading] = useState(true);
 	const [friendlyAddress, setFriendlyAddress] = useState('');
 
+	// POSISI PELAPOR yang sebenarnya, dipakai server untuk menetapkan `reports.location_source`
+	// (TASK_52, #104). SENGAJA ref tersendiri dan BUKAN `userLocation` di atas: state itu
+	// terbaca seolah "di mana penggunanya", padahal ia juga ditulis resolveLocation() —
+	// yang dipanggil setiap kali pin DIGESER — dan selectRegion() saat pin melompat ke
+	// centroid wilayah. Maknanya "titik yang terakhir dipakai", dan pembacanya cuma locState.
+	// Menghitung jarak darinya memulangkan ~0 m untuk hampir semua laporan, sehingga lencana
+	// kepercayaan di layar petugas akan SELALU hijau — jaminan palsu yang lebih buruk
+	// daripada tidak ada lencana sama sekali.
+	//
+	// Karena itu ref ini hanya boleh ditulis di callback sukses getUserLocation(). Tetap
+	// null bila izin lokasi ditolak/GPS gagal, dan itu keadaan yang sah (`tanpa_referensi`).
+	const gpsFixRef = useRef(null);
+
 	// 'manual' = wilayah pilihan operator yang jadi sumber kebenaran (geser pin hanya
 	// mengoreksi titik, tidak menimpa kode wilayah); 'pin' = perilaku lama, wilayah
 	// diturunkan dari reverse-geocode pin. Warga selalu 'pin'.
@@ -186,7 +199,7 @@ export default function Create(props) {
 	// Foto disembunyikan default (collapsible) untuk kebakaran; dibuka manual/otomatis.
 	const [showPhotoSection, setShowPhotoSection] = useState(false);
 
-	const { data, setData, post, processing, errors } = useForm({
+	const { data, setData, post, processing, errors, transform } = useForm({
 		name: auth?.name || '',
 		incident_type: '',
 		address: '',
@@ -411,13 +424,23 @@ export default function Create(props) {
 
 				setUserLocation({ latitude: coords.latitude, longitude: coords.longitude });
 
+				// Satu-satunya tempat posisi pelapor dicatat (TASK_52). Fix yang AKURASINYA
+				// BURUK pun ikut dicatat, bukan dibuang: ia tetap posisi pelapor, dan
+				// angka akurasinya justru yang memberi tahu petugas bahwa jarak kecil di
+				// laporan ini belum membuktikan apa-apa.
+				gpsFixRef.current = {
+					lat: coords.latitude,
+					lng: coords.longitude,
+					accuracy: coords.accuracy ?? null,
+				};
+
 				if (coords.accuracy != null && coords.accuracy > GEO_ACCURACY_THRESHOLD) {
 					// Kemungkinan fix jaringan/IP (bisa meleset puluhan km): pakai titiknya
 					// sebagai awalan pin, tapi minta user mengoreksi lewat geser pin.
 					applyUntrustedPoint(
 						coords.latitude,
 						coords.longitude,
-						'Lokasi kurang akurat — geser pin merah tepat ke titik kejadian.',
+						'Lokasi kurang akurat - geser pin merah tepat ke titik kejadian.',
 					);
 					setLocationLoading(false);
 					toast.warning('Lokasi kurang akurat. Geser pin merah di peta tepat ke titik kejadian.');
@@ -440,7 +463,7 @@ export default function Create(props) {
 				applyUntrustedPoint(
 					DEFAULT_MAP_CENTER.lat,
 					DEFAULT_MAP_CENTER.lng,
-					'Lokasi tak terdeteksi — geser pin merah ke titik kejadian.',
+					'Lokasi tak terdeteksi - geser pin merah ke titik kejadian.',
 				);
 				setLocationLoading(false);
 				toast.error('Gagal melacak lokasi. Pastikan izin/GPS aktif, lalu geser pin merah & isi patokan.');
@@ -752,6 +775,18 @@ export default function Create(props) {
 			return;
 		}
 
+		// Posisi pelapor & akurasinya ikut dikirim MENTAH (TASK_52) — server yang menghitung
+		// jaraknya ke pin lalu menetapkan `location_source`. Sengaja lewat transform, bukan
+		// field useForm: nilainya tidak boleh bisa tersentuh setData mana pun, dan tak ada
+		// satu pun bagian layar yang menampilkannya. Ketiganya null bila GPS gagal/ditolak —
+		// itu keadaan yang sah dan server membacanya sebagai "tanpa referensi".
+		transform((payload) => ({
+			...payload,
+			reporter_lat: gpsFixRef.current?.lat ?? null,
+			reporter_lng: gpsFixRef.current?.lng ?? null,
+			gps_accuracy_m: gpsFixRef.current?.accuracy ?? null,
+		}));
+
 		post(props.page_settings.action, {
 			preserveScroll: true,
 			preserveState: true,
@@ -887,7 +922,7 @@ export default function Create(props) {
 												<p className="mt-0.5 text-[13px] text-muted-foreground">
 													{regionMode === 'manual'
 														? 'Cari nama tempatnya, atau pilih sampai desa/kelurahan di bawah.'
-														: 'Wilayah terisi otomatis dari titik peta — koreksi lewat dropdown bila meleset.'}
+														: 'Wilayah terisi otomatis dari titik peta - koreksi lewat dropdown bila meleset.'}
 												</p>
 											</div>
 
@@ -1082,7 +1117,7 @@ export default function Create(props) {
 								</div>
 								<p className="mt-1.5 text-xs text-muted-foreground">
 									{regionMode === 'manual'
-										? 'Pin berada di tengah wilayah terpilih — geser ke titik kejadian sebenarnya. Pilihan wilayah di atas tidak ikut berubah.'
+										? 'Pin berada di tengah wilayah terpilih - geser ke titik kejadian sebenarnya. Pilihan wilayah di atas tidak ikut berubah.'
 										: hasRegionPicker
 											? 'Klik peta atau geser pin merah ke titik kejadian - wilayah di atas ikut menyesuaikan otomatis.'
 											: 'Titik kurang tepat? Geser pin merah di peta untuk mengoreksi lokasi.'}

@@ -23,7 +23,7 @@ const LANGKAH = [
 	{
 		icon: IconMapPin,
 		title: 'Pastikan titik lokasi benar',
-		body: 'Aplikasi mengambil titik GPS Anda. Bila penanda meleset, geser penanda di peta tepat ke lokasi kejadian — titik inilah yang menentukan Damkar wilayah mana yang menerima laporan.',
+		body: 'Aplikasi mengambil titik GPS Anda. Bila penanda meleset, geser penanda di peta tepat ke lokasi kejadian - titik inilah yang menentukan Damkar wilayah mana yang menerima laporan.',
 	},
 	{
 		icon: IconPhoto,
@@ -40,7 +40,7 @@ const LANGKAH = [
 const FAQ_WARGA = [
 	{
 		q: 'Apakah laporan saya langsung diterima petugas?',
-		a: 'Laporan masuk ke antrean Pusat Komando dan diverifikasi lebih dulu agar sumber daya tidak dikerahkan untuk laporan keliru. Anda menerima pemberitahuan begitu status berubah. Bila keadaan mengancam jiwa, tetap telepon nomor darurat — jangan menunggu verifikasi.',
+		a: 'Laporan masuk ke antrean Pusat Komando dan diverifikasi lebih dulu agar sumber daya tidak dikerahkan untuk laporan keliru. Anda menerima pemberitahuan begitu status berubah. Bila keadaan mengancam jiwa, tetap telepon nomor darurat - jangan menunggu verifikasi.',
 	},
 	{
 		q: 'Titik lokasi saya meleset jauh. Bagaimana?',
@@ -212,7 +212,7 @@ export default function Help({ instansi, legal }) {
 							)}
 						</p>
 						<p className="mt-1 text-xs text-muted-foreground">
-							{legal?.penyedia?.jam_dukungan || 'Jam kerja'} — bukan kanal darurat.
+							{legal?.penyedia?.jam_dukungan || 'Jam kerja'} - bukan kanal darurat.
 						</p>
 					</div>
 				</div>

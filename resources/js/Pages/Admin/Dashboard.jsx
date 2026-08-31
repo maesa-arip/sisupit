@@ -431,7 +431,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 								<div>
 									<h3 className="text-lg font-bold text-foreground">Peta Pemantauan</h3>
 									<p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
-										Peta terpadu dengan filter lengkap — kejadian, hydrant, pos pemadam, pompa, &
+										Peta terpadu dengan filter lengkap - kejadian, hydrant, pos pemadam, pompa, &
 										relawan di seluruh yurisdiksi Anda.
 									</p>
 								</div>

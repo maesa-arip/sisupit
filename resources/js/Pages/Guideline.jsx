@@ -260,7 +260,7 @@ export default function Guideline() {
 
 	return (
 		<>
-			<Head title="Panduan Desain — Sisupit" />
+			<Head title="Panduan Desain - Sisupit" />
 			<style>{css}</style>
 
 			<div className="gl">
@@ -303,7 +303,7 @@ export default function Guideline() {
 							Panduan desain untuk keadaan <em>darurat</em>.
 						</h1>
 						<p>
-							Satu sistem yang menyatukan warna, tipografi, sudut, dan jarak Sisupit — di mode terang
+							Satu sistem yang menyatukan warna, tipografi, sudut, dan jarak Sisupit - di mode terang
 							maupun gelap. Semua nilai memetakan token nyata di <span className="mono">app.css</span>{' '}
 							&amp; <span className="mono">tailwind.config.js</span>. Aturan tunggal: gunakan token,
 							jangan warna mentah.
@@ -346,7 +346,7 @@ export default function Guideline() {
 							</div>
 						</div>
 						<p className="lead" style={{ marginTop: 20 }}>
-							Pengecualian sah: nilai warna pada <b>marker peta Leaflet</b> dan <b>chart</b> — ambil dari
+							Pengecualian sah: nilai warna pada <b>marker peta Leaflet</b> dan <b>chart</b> - ambil dari
 							token via JS bila memungkinkan.
 						</p>
 					</section>
@@ -359,7 +359,7 @@ export default function Guideline() {
 						</div>
 						<h2 className="sec">Merah brand + lima warna semantik.</h2>
 						<p className="lead">
-							Merah menanggung identitas (api/damkar) dan bahaya sekaligus. Dipilih <b>#E0241B</b> —
+							Merah menanggung identitas (api/damkar) dan bahaya sekaligus. Dipilih <b>#E0241B</b> -
 							cerah, mendesak, identik logo &amp; ikon Android. Teks putih di atasnya = kontras 4.74:1
 							(lulus WCAG AA).
 						</p>
@@ -368,7 +368,7 @@ export default function Guideline() {
 							<Swatch c="success" name="Success (Emerald)" role="Penanganan berjalan, relawan aktif, konfirmasi." light="160 84% 39%" dark="160 72% 45%" hex="#10B981" />
 							<Swatch c="info" name="Info (Biru / Air)" role="Laporan selesai (air memadamkan api), aksi responder, CTA sekunder." light="199 89% 48%" dark="199 89% 40%" hex="#0EA5E9" />
 							<Swatch c="warning" name="Warning (Amber)" role="Menunggu validasi, standby, peringatan." light="38 92% 50%" dark="38 92% 40%" hex="#F59E0B" />
-							<Swatch c="teal" name="Teal" role="Hidran & fasilitas air — peran khusus, beda dari emerald." light="175 84% 32%" dark="173 66% 50%" hex="#0D9488" />
+							<Swatch c="teal" name="Teal" role="Hidran & fasilitas air - peran khusus, beda dari emerald." light="175 84% 32%" dark="173 66% 50%" hex="#0D9488" />
 							<Swatch c="volunteer" name="Volunteer" isNew role="Kategori relawan di peta & daftar." light="271 76% 53%" dark="271 76% 66%" hex="#9333EA" />
 						</div>
 
@@ -435,7 +435,7 @@ export default function Guideline() {
 								<path d="M12 2s6 7 6 11a6 6 0 1 1-12 0c0-4 6-11 6-11z" />
 							</svg>
 							<p>
-								<b>Selesai = biru, bukan hijau.</b> Ini aplikasi pemadam kebakaran — biru identik dengan{' '}
+								<b>Selesai = biru, bukan hijau.</b> Ini aplikasi pemadam kebakaran - biru identik dengan{' '}
 								<b>air yang memadamkan api</b>. Merah (darurat) di awal, biru (padam/aman) di akhir.
 								Emerald untuk fase <b>Penanganan</b> yang aktif berjalan; Ditolak memudar jadi netral.
 							</p>
@@ -450,7 +450,7 @@ export default function Guideline() {
 						</div>
 						<h2 className="sec">Inter, satu skala disiplin.</h2>
 						<p className="lead">
-							Satu keluarga — <b>Inter</b> (<span className="mono">tailwind.config.js</span> ·
+							Satu keluarga - <b>Inter</b> (<span className="mono">tailwind.config.js</span> ·
 							fontFamily.sans). Judul rapat (<span className="mono">tracking-tight</span>), label
 							huruf-besar diberi jarak, teks bodi ~65 karakter/baris.
 						</p>
@@ -545,12 +545,12 @@ export default function Guideline() {
 						</p>
 						<div>
 							{[
-								[8, '2 · 8px — jarak ikon↔teks, gap chip'],
-								[12, '3 · 12px — padding tombol, gap kecil'],
-								[16, '4 · 16px — gap kartu di grid'],
-								[24, '6 · 24px — padding kartu/panel'],
-								[48, '12 · 48px — jarak antar-blok'],
-								[68, '16–18 · 64–72px — jarak antar-section'],
+								[8, '2 · 8px - jarak ikon↔teks, gap chip'],
+								[12, '3 · 12px - padding tombol, gap kecil'],
+								[16, '4 · 16px - gap kartu di grid'],
+								[24, '6 · 24px - padding kartu/panel'],
+								[48, '12 · 48px - jarak antar-blok'],
+								[68, '16–18 · 64–72px - jarak antar-section'],
 							].map(([w, label]) => (
 								<div className="space-row" key={w}>
 									<div className="bar" style={{ width: w }} />
@@ -572,7 +572,7 @@ export default function Guideline() {
 						</div>
 						<h2 className="sec">Datar sebagai default.</h2>
 						<p className="lead">
-							Aplikasi condong flat — banyak tombol pakai <span className="mono">shadow-none</span>.
+							Aplikasi condong flat - banyak tombol pakai <span className="mono">shadow-none</span>.
 							Naikkan elevasi hanya saat elemen benar-benar mengambang.
 						</p>
 						<div className="grid g4">
@@ -771,7 +771,7 @@ export default function Guideline() {
 										Warna mentah baru: <code>bg-red-600</code>, <code>text-blue-500</code>, hex.
 									</li>
 									<li>
-										Pola <code>light-mentah / dark:token</code> — sumber tiga-nuansa-merah.
+										Pola <code>light-mentah / dark:token</code> - sumber tiga-nuansa-merah.
 									</li>
 									<li>Dua merah mirip untuk brand vs bahaya.</li>
 									<li>
@@ -787,7 +787,7 @@ export default function Guideline() {
 					<footer>
 						Sumber token: <code>resources/css/app.css</code> · <code>tailwind.config.js</code> · konvensi{' '}
 						<code>.claude/skills/sisupit-ui/SKILL.md</code>. Keputusan final: brand <code>#E0241B</code>,
-						success emerald, selesai biru (air). Halaman referensi — belum mengubah token global aplikasi.
+						success emerald, selesai biru (air). Halaman referensi - belum mengubah token global aplikasi.
 					</footer>
 				</div>
 			</div>

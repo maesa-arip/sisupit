@@ -171,7 +171,7 @@ export default function Create(props) {
 							Laporan Kegiatan Penyelamatan
 						</CardTitle>
 						<CardDescription className="mt-1 text-sm text-muted-foreground">
-							{report.title ? `${report.title} — ` : ''}
+							{report.title ? `${report.title} - ` : ''}
 							Isi data kejadian. Simpan sebagai <b>sementara</b> dulu; entri <b>final</b> dibuat terpisah
 							setelah investigasi{canFinalize ? '' : ' dan hanya bisa ditutup admin'}.
 						</CardDescription>

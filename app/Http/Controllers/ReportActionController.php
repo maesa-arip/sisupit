@@ -32,10 +32,18 @@ use Illuminate\Support\Facades\Notification;
 // Jangan konsolidasi ke Eloquent tanpa mempertahankan locking ini (lihat FINDINGS_LOG #6).
 class ReportActionController extends Controller
 {
-    // 1. Saat Pusat Komando memvalidasi laporan
+    // 1. Saat Pusat Komando memvalidasi laporan.
+    //
+    // ADMIN SAJA (keputusan user 2026-08-31, TASK_51). Petugas dulu ikut boleh — repo ini
+    // memang lama menyebut "Pusat Komando (petugas/admin)" — tapi verifikasi adalah
+    // keputusan menyaring hoaks yang memicu sirine ke seluruh wilayah, dan itu wewenang
+    // admin. Petugas tetap menerima notifikasi laporan masuk (nadanya sudah dibedakan
+    // TASK_50) lalu MENUNGGU konfirmasi admin; peranannya mulai di takeAction().
+    // Kalau daftar peran di sini diubah, ubah juga $isVerifier di ReportController::show —
+    // tombolnya dan gerbangnya harus selalu menjawab pertanyaan yang sama.
     public function approve(Request $request, $id)
     {
-        if (! auth()->user()->hasAnyRole(['petugas', 'admin', 'superadmin'])) {
+        if (! auth()->user()->hasAnyRole(['admin', 'superadmin'])) {
             abort(403, 'Akses Ditolak.');
         }
 
@@ -114,9 +122,11 @@ class ReportActionController extends Controller
     // Tolak = set status 'ditolak' + simpan alasan (arsip), BUKAN hapus. Laporan tetap
     // bisa ditelusuri staff & terlihat di riwayat pemilik. Endpoint hapus-milik-sendiri
     // (ReportController::destroy) sengaja dipisah dari sini.
+    // ADMIN SAJA, sepasang dengan approve() (TASK_51): menolak laporan warga adalah sisi
+    // lain dari keputusan verifikasi yang sama, jadi ia tak boleh punya daftar peran sendiri.
     public function reject(Request $request, $id)
     {
-        if (! auth()->user()->hasAnyRole(['petugas', 'admin', 'superadmin'])) {
+        if (! auth()->user()->hasAnyRole(['admin', 'superadmin'])) {
             abort(403, 'Akses Ditolak.');
         }
 
@@ -356,9 +366,15 @@ class ReportActionController extends Controller
     // 2f. Melepas OPD dari insiden (salah pilih / ternyata tak diperlukan). Barisnya DIHAPUS,
     // bukan ditandai: pelibatan yang dicabut bukan riwayat yang perlu disimpan, dan unique
     // (report_id, agency_id) membuat OPD yang sama bisa dilibatkan lagi nanti.
+    //
+    // ADMIN SAJA (keputusan user 2026-08-31, TASK_51) — SENGAJA tidak simetris dengan
+    // notifyAgencies() di atas, yang tetap terbuka untuk petugas. Meminta bantuan adalah
+    // eskalasi yang datang dari lapangan ("ada kabel jatuh, panggil PLN"); MEMBATALKAN
+    // permintaan yang sudah dikirim ke instansi luar adalah pencabutan koordinasi, dan
+    // instansi yang sudah bergerak tak boleh dilepas oleh satu orang di lokasi.
     public function removeAgency(Request $request, $id)
     {
-        if (! auth()->user()->hasAnyRole(['petugas', 'admin', 'superadmin'])) {
+        if (! auth()->user()->hasAnyRole(['admin', 'superadmin'])) {
             abort(403, 'Akses Ditolak.');
         }
 
@@ -730,10 +746,18 @@ class ReportActionController extends Controller
             // satu-satunya keterangan yang tak bisa diturunkan dari koordinat, mis. "gang
             // buntu sebelah warung Bu Made" — hilang tanpa jejak justru saat responder
             // menyempurnakan titiknya. Yang mesin hitung sekarang punya kolomnya sendiri.
+            // Asal-usul titik IKUT ditimpa (TASK_52). Tanpa baris ini lencana "±8 km dari
+            // posisi pelapor" tetap menempel pada pin yang baru saja dibetulkan responder
+            // yang BERDIRI DI TKP — kolom yang tak lagi dijamin penulisnya, persis bentuk
+            // #95. Jarak & akurasi lama ikut dikosongkan: keduanya menerangkan titik yang
+            // sudah tidak ada lagi, dan angka basi lebih menyesatkan daripada kolom kosong.
             $report->update([
                 'lat' => $request->lat,
                 'lng' => $request->lng,
                 'geo_address' => $request->geo_address ?? $report->geo_address,
+                'location_source' => 'dikoreksi_petugas',
+                'reporter_distance_m' => null,
+                'location_accuracy_m' => null,
             ]);
 
             TrackingLog::create([
@@ -746,7 +770,7 @@ class ReportActionController extends Controller
             ]);
         });
 
-        broadcast(new IncidentLocationCorrected($report->id, $request->lat, $request->lng, $report->geo_address));
+        broadcast(new IncidentLocationCorrected($report->id, $request->lat, $request->lng, $report->geo_address, $report->location_source));
 
         return back()->with('success', 'Titik lokasi insiden berhasil dikoreksi.');
     }

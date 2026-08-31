@@ -36,6 +36,11 @@ beforeEach(function () {
 
     $this->petugas = User::factory()->create(['name' => 'Komandan Regu A', 'village_code' => '5171012006']);
     $this->petugas->assignRole('petugas');
+
+    // Penutupan insiden tetap milik petugas; PENOLAKAN pindah ke admin sejak TASK_51 —
+    // dua pelaku yang berbeda, jadi dua akun yang berbeda di sini.
+    $this->admin = User::factory()->create(['name' => 'Kepala Pusat Komando', 'village_code' => '5171012006']);
+    $this->admin->assignRole('admin');
 });
 
 it('records who closed the incident and when', function () {
@@ -60,15 +65,15 @@ it('records who rejected the report alongside the reason it already kept', funct
         'village_code' => '5171012006',
     ]);
 
-    $this->actingAs($this->petugas)
+    $this->actingAs($this->admin)
         ->post("/reports/{$terlapor->id}/reject", ['reason' => 'Tidak dapat dihubungi'])
         ->assertRedirect();
 
     $terlapor->refresh();
 
     expect($terlapor->status)->toBe('ditolak');
-    expect($terlapor->rejected_by)->toBe($this->petugas->id);
-    expect($terlapor->rejector->name)->toBe('Komandan Regu A');
+    expect($terlapor->rejected_by)->toBe($this->admin->id);
+    expect($terlapor->rejector->name)->toBe('Kepala Pusat Komando');
 });
 
 it('ships the closing officer name to the incident detail page', function () {

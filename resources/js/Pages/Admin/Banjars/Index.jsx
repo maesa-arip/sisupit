@@ -107,7 +107,7 @@ export default function Index({
 						</div>
 						<p className="mt-2 text-sm text-muted-foreground">
 							Banjar ini tidak lagi muncul di pilihan warga maupun form hydrant warga. Warga dan tandon
-							yang terlanjur menunjuk ke sana TIDAK ikut terhapus — banjarnya saja yang dikosongkan.
+							yang terlanjur menunjuk ke sana TIDAK ikut terhapus - banjarnya saja yang dikosongkan.
 						</p>
 						<div className="mt-6 flex justify-end gap-3">
 							<Button variant="ghost" onClick={() => setBanjarToDelete(null)}>
@@ -127,7 +127,7 @@ export default function Index({
 			<div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
 				<HeaderTitle
 					title="Manajemen Banjar"
-					subtitle="Daftar banjar per desa/kelurahan — dipakai form hydrant warga & pendaftaran warga."
+					subtitle="Daftar banjar per desa/kelurahan - dipakai form hydrant warga & pendaftaran warga."
 					icon={IconHomeCog}
 				/>
 				<Button size="sm" asChild>
@@ -145,9 +145,9 @@ export default function Index({
 						</h3>
 						<p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
 							{total === 0
-								? 'Belum bisa dinyalakan — master banjar masih kosong, dan dropdown kosong yang diwajibkan akan memblokir pendaftaran warga.'
+								? 'Belum bisa dinyalakan - master banjar masih kosong, dan dropdown kosong yang diwajibkan akan memblokir pendaftaran warga.'
 								: require_banjar
-									? 'Warga tidak bisa melanjutkan sebelum memilih banjar. Desa yang masternya masih kosong tidak terkunci — warga di sana bisa menambahkan banjarnya sendiri, lalu masuk ke antrean tinjauan.'
+									? 'Warga tidak bisa melanjutkan sebelum memilih banjar. Desa yang masternya masih kosong tidak terkunci - warga di sana bisa menambahkan banjarnya sendiri, lalu masuk ke antrean tinjauan.'
 									: 'Saat ini banjar masih opsional. Warga yang banjarnya belum terdaftar bisa menambahkan sendiri, jadi desa yang belum lengkap tidak menghalangi.'}
 						</p>
 						{/* Kelengkapan ditampilkan supaya keputusan menyalakan saklar diambil sambil
@@ -169,7 +169,7 @@ export default function Index({
 						onClick={toggleRequirement}
 						className="shrink-0"
 					>
-						{require_banjar ? 'Wajib — matikan' : 'Nyalakan kewajiban'}
+						{require_banjar ? 'Wajib - matikan' : 'Nyalakan kewajiban'}
 					</Button>
 				</CardContent>
 			</Card>
@@ -337,12 +337,12 @@ export default function Index({
 						</p>
 						{total === 0 && (
 							<p className="mx-auto mt-2 max-w-lg text-xs leading-relaxed text-muted-foreground">
-								Daftar banjar tidak tersedia sebagai unduhan resmi — mintakan ke BPS Kota (banjar = SLS,
+								Daftar banjar tidak tersedia sebagai unduhan resmi - mintakan ke BPS Kota (banjar = SLS,
 								punya kode) atau Bagian Pemerintahan/Dinas PMD, lalu muat sekaligus dengan{' '}
 								<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
 									php artisan sisupit:import-banjar berkas.csv
 								</code>
-								. Selama master masih kosong, jangan menyalakan kewajiban banjar di Pengaturan —
+								. Selama master masih kosong, jangan menyalakan kewajiban banjar di Pengaturan -
 								dropdown yang kosong akan memblokir pendaftaran warga.
 							</p>
 						)}

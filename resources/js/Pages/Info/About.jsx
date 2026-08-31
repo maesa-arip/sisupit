@@ -17,7 +17,7 @@ export default function About({ instansi, legal }) {
 			icon={IconInfoCircle}
 			eyebrow="Tentang Aplikasi"
 			title="Tentang SISUPIT"
-			subtitle="Sistem Informasi Kesiapsiagaan untuk Pemadam Kebakaran Terintegrasi — kanal pelaporan dan koordinasi kedaruratan antara warga, Pusat Komando, petugas, dan relawan."
+			subtitle="Sistem Informasi Kesiapsiagaan untuk Pemadam Kebakaran Terintegrasi - kanal pelaporan dan koordinasi kedaruratan antara warga, Pusat Komando, petugas, dan relawan."
 		>
 			<Section number="1" title="Bagaimana sistem ini bekerja">
 				<div className="grid gap-3 sm:grid-cols-2">
@@ -72,7 +72,7 @@ export default function About({ instansi, legal }) {
 					rute jalan dijalankan pada layanan milik penyedia sistem yang dibangun dari data OpenStreetMap.
 				</p>
 				<p className="text-xs">
-					© Kontributor OpenStreetMap — data tersedia di bawah ODbL. Tampilan peta dasar disediakan oleh
+					© Kontributor OpenStreetMap - data tersedia di bawah ODbL. Tampilan peta dasar disediakan oleh
 					penyedia tile yang dikonfigurasikan pada instalasi ini.
 				</p>
 			</Section>
@@ -80,9 +80,9 @@ export default function About({ instansi, legal }) {
 			<Section number="5" title="Dokumen terkait">
 				<Bullets
 					items={[
-						'Syarat & Ketentuan — hak dan kewajiban saat memakai layanan.',
-						'Kebijakan Privasi — data apa yang dikumpulkan dan siapa yang bisa melihatnya.',
-						'Pusat Bantuan — panduan pemakaian dan jawaban pertanyaan umum.',
+						'Syarat & Ketentuan - hak dan kewajiban saat memakai layanan.',
+						'Kebijakan Privasi - data apa yang dikumpulkan dan siapa yang bisa melihatnya.',
+						'Pusat Bantuan - panduan pemakaian dan jawaban pertanyaan umum.',
 					]}
 				/>
 			</Section>

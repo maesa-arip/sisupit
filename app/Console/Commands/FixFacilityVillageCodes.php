@@ -71,7 +71,7 @@ class FixFacilityVillageCodes extends Command
     public function handle(): int
     {
         if (! DB::table('indonesia_villages')->exists()) {
-            $this->error('Tabel indonesia_villages kosong — jalankan `php artisan indonesia:install` dulu.');
+            $this->error('Tabel indonesia_villages kosong - jalankan `php artisan indonesia:install` dulu.');
 
             return self::FAILURE;
         }
@@ -279,7 +279,7 @@ class FixFacilityVillageCodes extends Command
             return $response->getData(true)['address'] ?? null;
         } catch (Throwable $e) {
             $this->mapUnavailable = true;
-            $this->warn('Nominatim tidak terjangkau ('.$e->getMessage().') — sisa barisnya memakai centroid desa terdekat.');
+            $this->warn('Nominatim tidak terjangkau ('.$e->getMessage().') - sisa barisnya memakai centroid desa terdekat.');
 
             return null;
         }
@@ -375,7 +375,7 @@ class FixFacilityVillageCodes extends Command
             return;
         }
 
-        $this->line('Kode desa TIDAK DIKENAL — usulan penggantinya, ditentukan dari titik fasilitas:');
+        $this->line('Kode desa TIDAK DIKENAL - usulan penggantinya, ditentukan dari titik fasilitas:');
 
         $this->table(
             ['Modul', 'ID', 'Nama', 'Kode lama', 'Usulan', 'Sumber', 'Jarak ke centroid', 'Kecamatan'],
@@ -386,7 +386,7 @@ class FixFacilityVillageCodes extends Command
                 $item['old'],
                 $item['village']->code.' '.$item['village']->name,
                 $item['source'],
-                $item['distance'] === null ? '—' : number_format($item['distance'], 2).' km',
+                $item['distance'] === null ? '-' : number_format($item['distance'], 2).' km',
                 $item['district_changed'] ? 'ikut diperbaiki' : 'tetap',
             ], $fixable)
         );
@@ -394,7 +394,7 @@ class FixFacilityVillageCodes extends Command
         $guessed = array_filter($fixable, fn (array $item) => $item['source'] === 'centroid');
 
         if ($guessed !== []) {
-            $this->warn(count($guessed).' usulan berasal dari centroid (peta tidak menjawab) — periksa di peta dulu sebelum --apply.');
+            $this->warn(count($guessed).' usulan berasal dari centroid (peta tidak menjawab) - periksa di peta dulu sebelum --apply.');
         }
     }
 
@@ -416,7 +416,7 @@ class FixFacilityVillageCodes extends Command
         }
 
         $this->newLine();
-        $this->line('Kode desa terdaftar tapi titiknya menunjuk desa lain — TIDAK diubah, hanya dilaporkan:');
+        $this->line('Kode desa terdaftar tapi titiknya menunjuk desa lain - TIDAK diubah, hanya dilaporkan:');
         $this->table(['Modul', 'ID', 'Nama', 'Desa tersimpan', 'Desa menurut titiknya'], $suspicious);
         $this->comment('Tambahkan --include-mismatch bila daftar ini memang ingin diserahkan ke peta.');
     }

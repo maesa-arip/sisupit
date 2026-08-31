@@ -223,7 +223,7 @@ export default function Index({ variant = 'resmi', counts = {}, hydrants, summar
 											<span className="shrink-0 font-semibold text-foreground">
 												{/* "0 liter" akan terbaca sebagai fakta, padahal artinya
 												    belum ada satu pun titik yang mengisi angkanya. */}
-												{row.capacity_liter > 0 ? capacityLabel(row.capacity_liter) : '—'}
+												{row.capacity_liter > 0 ? capacityLabel(row.capacity_liter) : '-'}
 											</span>
 										</div>
 									))}
@@ -231,7 +231,7 @@ export default function Index({ variant = 'resmi', counts = {}, hydrants, summar
 								{summary.some((row) => row.unknown_capacity > 0) && (
 									<p className="mt-2 border-t border-teal-200 pt-2 text-[11px] leading-relaxed text-muted-foreground dark:border-teal/20">
 										Sebagian titik belum mengisi kapasitasnya, jadi angka di atas adalah batas bawah
-										— bukan total sebenarnya.
+										- bukan total sebenarnya.
 									</p>
 								)}
 							</CardContent>

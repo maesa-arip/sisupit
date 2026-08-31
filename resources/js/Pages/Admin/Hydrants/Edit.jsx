@@ -501,7 +501,7 @@ export default function Edit({
 											<p className="text-[11px] font-medium leading-relaxed">
 												Titik pin terdeteksi di luar {jurisdictionWarning.level} wilayah tugas
 												Anda ({jurisdictionWarning.name}). Data tetap akan tersimpan atas nama
-												wilayah Anda — geser pin kembali ke dalam wilayah tugas, atau abaikan
+												wilayah Anda - geser pin kembali ke dalam wilayah tugas, atau abaikan
 												pesan ini bila lokasinya memang sudah benar.
 											</p>
 										</div>

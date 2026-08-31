@@ -28,7 +28,7 @@ if (reverb.key) {
 	});
 } else {
 	console.warn(
-		'[echo] REVERB_APP_KEY tidak di-set di server — fitur realtime (Reverb) dinonaktifkan. ' +
+		'[echo] REVERB_APP_KEY tidak di-set di server - fitur realtime (Reverb) dinonaktifkan. ' +
 			'Set REVERB_APP_KEY/REVERB_HOST/REVERB_PORT/REVERB_SCHEME di .env server; ' +
 			'TIDAK perlu rebuild frontend, nilainya dibaca runtime.',
 	);

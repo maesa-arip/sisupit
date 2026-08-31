@@ -1,13 +1,18 @@
 import HeaderTitle from '@/Components/HeaderTitle';
 import { Card, CardContent } from '@/Components/ui/card';
 import AppLayout from '@/Layouts/AppLayout';
-import { Link } from '@inertiajs/react';
-import { IconFileDescription } from '@tabler/icons-react';
 
 /**
  * Kerangka bersama halaman informasi publik (TASK_19): Syarat & Ketentuan, Kebijakan
- * Privasi, Pusat Bantuan, Tentang, Paket & Lisensi. Menyatukan kepala halaman, lebar,
- * dan navigasi antar-dokumen supaya kelimanya terasa satu keluarga — bukan lima halaman lepas.
+ * Privasi, Pusat Bantuan, Tentang, Paket & Lisensi. Menyatukan kepala halaman, lebar, dan
+ * bentuk kartu supaya kelimanya terasa satu keluarga — bukan lima halaman lepas.
+ *
+ * NAVIGASI ANTAR-DOKUMEN (permintaan user 2026-08-31): kerangka ini TIDAK LAGI merender
+ * daftar "Dokumen lain" di kaki halaman. Daftar itu mengulang persis tautan legal di footer
+ * AppLayout yang sudah muncul di halaman ini juga, jadi kelima halaman menampilkan dua daftar
+ * kembar bertumpuk. Satu-satunya tautan yang dulu HANYA ada di sini — "Paket & Lisensi" —
+ * dipindahkan ke footer AppLayout; jangan hapus dari sana, /paket-lisensi akan kehilangan
+ * jalan masuk tetapnya (sisanya cuma satu kalimat di badan halaman Tentang).
  *
  * RUPA (permintaan user 2026-08-26): mengikuti halaman FASILITAS (`Pages/Hydrants/Index.jsx`,
  * `Pages/Pumps/Index.jsx`, `Pages/FireStations/Index.jsx`) — skala huruf, jarak, dan bentuk
@@ -39,8 +44,6 @@ export function InfoShell({ icon, eyebrow, title, subtitle, children, footerNote
 			<div className="flex w-full flex-col gap-5">{children}</div>
 
 			{footerNote && <p className="text-xs leading-relaxed text-muted-foreground">{footerNote}</p>}
-
-			<InfoNav />
 		</div>
 	);
 }
@@ -108,41 +111,7 @@ export function DefinitionRow({ label, value }) {
 			<span className="w-full text-[10px] font-medium uppercase tracking-wide text-muted-foreground sm:w-56 sm:shrink-0 sm:pt-0.5">
 				{label}
 			</span>
-			<span className="text-sm font-medium text-foreground">{value || '—'}</span>
-		</div>
-	);
-}
-
-/** Navigasi antar dokumen informasi — muncul di kaki setiap halaman. */
-function InfoNav() {
-	const links = [
-		{ href: route('info.help'), label: 'Pusat Bantuan' },
-		{ href: route('info.terms'), label: 'Syarat & Ketentuan' },
-		{ href: route('info.privacy'), label: 'Kebijakan Privasi' },
-		{ href: route('info.about'), label: 'Tentang Aplikasi' },
-		{ href: route('info.pricing'), label: 'Paket & Lisensi' },
-	];
-
-	return (
-		<div className="flex flex-col gap-3">
-			{/* Kepala kolom bergaya halaman fasilitas ("Sebaran Titik Hydrant"): ikon + text-sm semibold. */}
-			<div className="flex items-center gap-2 px-1">
-				<IconFileDescription className="h-4 w-4 text-muted-foreground" />
-				<h2 className="text-sm font-semibold text-foreground">Dokumen lain</h2>
-			</div>
-
-			{/* Bentuk chip sama dengan chip filter status di halaman fasilitas. */}
-			<div className="flex flex-wrap gap-2">
-				{links.map((link) => (
-					<Link
-						key={link.href}
-						href={link.href}
-						className="whitespace-nowrap rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground/80 transition-colors hover:bg-muted"
-					>
-						{link.label}
-					</Link>
-				))}
-			</div>
+			<span className="text-sm font-medium text-foreground">{value || '-'}</span>
 		</div>
 	);
 }

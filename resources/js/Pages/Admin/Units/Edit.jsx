@@ -60,7 +60,7 @@ export default function Edit({ unit, pos_options = [], type_options = [] }) {
 									<IconAlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
 									<p className="text-xs font-medium leading-relaxed">
 										Unit ini sedang <b>dikerahkan</b> ke sebuah insiden. Sebaiknya tarik unit dari
-										insiden terlebih dahulu — menyimpan dari sini akan mengubah statusnya.
+										insiden terlebih dahulu - menyimpan dari sini akan mengubah statusnya.
 									</p>
 								</div>
 							)}

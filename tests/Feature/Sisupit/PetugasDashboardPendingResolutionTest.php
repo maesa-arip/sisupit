@@ -33,6 +33,25 @@ function makeResolvedReport(array $overrides = []): Report
     ], $overrides));
 }
 
+/**
+ * TASK_51. Sejak verifikasi dicabut dari petugas, laporan mentah (TERLAPOR) di dashboardnya
+ * berubah makna: dari "Tanggapi" jadi "Menunggu Admin". Yang dikunci di sini adalah
+ * PRASYARAT keadaan itu — laporan mentah HARUS tetap sampai ke dashboard petugas berikut
+ * kolom statusnya. Kalau ia diam-diam disaring keluar, keadaan menunggu itu tak akan pernah
+ * punya apa pun untuk digambar, dan petugas kembali buta terhadap laporan yang notifikasinya
+ * baru saja ia terima.
+ */
+it('keeps unverified reports on the petugas dashboard so the waiting state has something to show', function () {
+    makeResolvedReport(['status' => 'TERLAPOR', 'title' => 'Kebakaran belum diverifikasi']);
+
+    $this->actingAs($this->petugas)
+        ->get(route('dashboard'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Petugas/Dashboard')
+            ->has('activeMissions', 1)
+            ->where('activeMissions.0.status', 'TERLAPOR'));
+});
+
 it('surfaces resolved reports without any berita acara in the petugas queue', function () {
     makeResolvedReport();
 

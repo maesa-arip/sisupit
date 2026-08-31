@@ -64,7 +64,7 @@ class EmergencyAlertNotification extends Notification implements ShouldQueue
         if ($this->stage === self::STAGE_REPORT_INCOMING) {
             return [
                 'title' => '📥 Laporan baru menunggu verifikasi',
-                'body' => trim($this->report->title.($alamat ? ' — '.$alamat : '')),
+                'body' => trim($this->report->title.($alamat ? ' - '.$alamat : '')),
             ];
         }
 

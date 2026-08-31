@@ -1,8 +1,11 @@
 # Sisupit DAMKAR — CLAUDE CODE INSTRUCTIONS (EXISTING APP)
 
 Sistem Informasi Kesiapsiagaan untuk Pemadam Kebakaran Terintegrasi — platform pelaporan
-dan koordinasi kebakaran/darurat real-time. Warga melapor → Pusat Komando (petugas/admin)
-memvalidasi → petugas/relawan merespons dengan tracking lokasi live → insiden ditutup.
+dan koordinasi kebakaran/darurat real-time. Warga melapor → ADMIN memvalidasi & menyiarkan
+→ petugas/relawan merespons dengan tracking lokasi live → insiden ditutup.
+(Kalimat ini dulu berbunyi "Pusat Komando (petugas/admin) memvalidasi"; verifikasi dicabut
+dari petugas 2026-08-31, TASK_51/#101. Petugas tetap menerima notifikasi laporan masuk dan
+memegang seluruh aksi lapangan — ia MENUNGGU keputusan admin, bukan mengambilnya.)
 
 <!-- Diisi saat onboarding (TASK_01, 2026-06-25). Ini "otak permanen" untuk bekerja di repo ini. -->
 
@@ -24,7 +27,128 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : TASK_50 (prompt/tasks/TASK_50_suara_notifikasi_bertingkat.md) — SELESAI (kode)
+Task aktif   : TASK_52 (prompt/tasks/TASK_52_asal_titik_laporan.md) — SELESAI (kode)
+                2026-08-31. Laporan user: "ada beberapa orang yang lapor tapi tidak dari lokasi
+                kejadian, namun user yang lapor tidak memperhatikan jadi petugas salah menuju
+                lokasi". Usulan user: popup "apakah Anda di lokasi?" saat melapor.
+                USULAN ITU DIPECAH TIGA LAPIS dan user memilih LAPIS 3 SAJA. Popup ya/tidak
+                ditolak sebagai perbaikan tunggal karena TIGA alasan: orang yang jadi masalah
+                justru yang tak memperhatikan — ia mengetuk tombol besar secara refleks,
+                sehingga deklarasi diri adalah sinyal TERLEMAH yang tersedia; ia jadi pajak
+                bagi semua orang demi segelintir kasus (membatalkan sebagian kerja
+                darurat-first Kluster A); dan yang paling menentukan, jawaban "tidak di
+                lokasi" pun TIDAK memberi tahu petugas di mana apinya — pinnya tetap salah,
+                yang berubah cuma labelnya. Lapis 1 (deteksi jarak tanpa bertanya) & lapis 2
+                (menyela hanya saat jauh + mewajibkan patokan) TETAP DITUNDA; form lapor
+                warga TIDAK DISENTUH sama sekali di task ini.
+                EMPAT KEPUTUSAN USER: ambang 300 m; cabang "melapor dari jauh" mewajibkan
+                patokan saja (bukan + telepon); SIMPAN JARAKNYA SAJA (koordinat pelapor tidak
+                disimpan); lapis 3 lebih dulu.
+                YANG DITEMUKAN & MENENTUKAN BENTUK PEKERJAANNYA — `userLocation` di
+                Front/Reports/Create.jsx:147 BUKAN posisi pengguna. Ia ditulis di TIGA tempat
+                dan dua di antaranya MENGIKUTI PIN: resolveLocation() (dipanggil
+                handleMarkerDrag) dan selectRegion() saat pin melompat ke centroid. Maknanya
+                "titik yang terakhir dipakai"; pembacanya cuma locState. Menghitung jarak
+                darinya memulangkan ~0 m untuk hampir semua laporan, sehingga lencana
+                kepercayaan akan SELALU HIJAU — jaminan palsu yang lebih buruk daripada tidak
+                ada lencana. Karena itu posisi GPS asli ditampung `gpsFixRef` BARU yang hanya
+                ditulis di callback sukses getUserLocation(), dan makna `userLocation` TIDAK
+                diubah. JANGAN memakai ulang state itu untuk posisi pelapor.
+                SINYALNYA sebenarnya sudah dihitung lalu dibuang: Create.jsx:414 membaca
+                coords.accuracy, memakainya sekali untuk ambang GEO_ACCURACY_THRESHOLD, lalu
+                melupakannya — angka itu tak pernah dikirim ke server.
+                YANG MENGIKAT: (a) `location_source` diisi SERVER dari BUKTI (jarak pelapor ke
+                pin vs Report::JARAK_PELAPOR_MAKS_M = 300 m), klien cuma mengirim koordinat &
+                akurasi MENTAH — klien yang ikut memutuskan = dua rumus yang bisa menyimpang
+                (#79/#84) sekaligus vonis yang bisa dipalsukan; (b) SENGAJA TIDAK ADA nilai
+                `pemilih_wilayah` untuk alur telepon Pusat Komando — menurunkannya dari PERAN
+                akan mengklaim "titik dipilih operator" pada petugas yang benar-benar melapor
+                dari TKP (bentuk #90), dan laporan telepon memang jatuh dengan benar ke
+                `ditandai_manual`; (c) correctLocation() WAJIB menimpa sumbernya jadi
+                `dikoreksi_petugas` DAN mengosongkan jarak/akurasi — tanpa itu lencana "±3,3 km
+                dari pelapor" tetap menempel pada pin yang baru dibetulkan responder yang
+                BERDIRI DI TKP, persis bentuk #95; IncidentLocationCorrected ikut membawanya
+                supaya lencana berubah tanpa muat ulang; (d) kamus LOCATION_SOURCE_META di
+                lib/utils.js TIDAK BOLEH bercadangan ke salah satu nilainya — sumber tak
+                dikenal & kolom kosong berbunyi "Asal titik tidak tercatat" (#94/#90);
+                (e) koordinat pelapor TIDAK DISIMPAN, dipakai sekali lalu dibuang — jangan
+                "sekalian simpan biar bisa diaudit"; (f) BUKAN status baru, StatusBadge tidak
+                disentuh (pelajaran TASK_51 poin b); (g) NOL yang memblokir — ketiga kolom &
+                ketiga field request nullable, klien lama (APK WebView/.exe) yang tak
+                mengirimnya cukup berlencana "tidak tercatat", tak ada rilis wrapper yang
+                dibutuhkan.
+                Lencana tampil di DUA tempat: kartu Alamat halaman detail (tepat di atas tombol
+                "Navigasi ke Lokasi") dan peringatan di panel verifikasi admin sebelum tombol
+                Broadcast — gerbang terakhir tempat kekeliruan lokasi masih murah diperbaiki,
+                lewat telepon pelapor yang nomornya sudah tertera persis di atasnya.
+                Penjaga: ReportLocationSourceTest BARU (7 test), KETUJUHNYA dibuktikan MERAH
+                lewat sabotase sengaja; keempat berkas yang disabotase dipulihkan byte-exact
+                (checksum md5 dicocokkan). Test 375 -> 382 passed, Pint PASS, prettier
+                "unchanged" untuk ketiga berkas JS, npm run build lulus. SATU MIGRASI aditif &
+                nullable TANPA backfill, sudah dijalankan di DB dev LOKAL (sisupit_dev MySQL;
+                141 laporan tidak berubah, 0 ter-backfill), BELUM di prod/staging/dev VPS.
+                TANPA perubahan route/channel/status/notifikasi.
+                SENGAJA DI LUAR SCOPE (aturan emas #6): kolom asal titik di Export Excel, kartu
+                misi dashboard petugas, popup Peta Pemantauan — ketiganya bisa membaca kolom
+                yang kini sudah ada tanpa migrasi tambahan.
+                SISA: verifikasi visual §6 file task (6 langkah, butuh browser) + deploy
+                (frontend BERUBAH, jadi npm run build harus ikut).
+               TASK_51 (prompt/tasks/TASK_51_wewenang_verifikasi_admin_saja.md) — SELESAI
+                (kode) 2026-08-31. User menyodorkan pembagian peran yang dikehendakinya lalu
+                minta DIPERIKSA ("admin -> verif dan broadcast; petugas -> meluncur,
+                selesaikan laporan, input laporan penanganan, rubah posisi; petugas dapat
+                notif tapi tidak bisa broadcast atau tolak"). Audit: ENAM dari delapan sudah
+                sesuai, DUA justru KEBALIKANNYA — petugas BISA broadcast dan BISA menolak, di
+                server (ReportActionController:38 & :119) MAUPUN di layar (Show.jsx:187
+                `isStaffOrAdmin` memuat 'petugas'). Bukan celah yang kelupaan: seluruh komentar
+                repo menempatkan petugas sebagai "Pusat Komando", dan
+                ReportActionAuthorizationTest MENGUNCINYA lewat test bernama "it lets petugas
+                approve a report". Jadi yang diminta = PERUBAHAN KEPUTUSAN DESAIN, bukan bugfix.
+                KENAPA TAK PERNAH TERLIHAT: /admin/reports ("Verifikasi Laporan") memang
+                tertutup untuk petugas, jadi dari sisi MENU ia tampak tak berwenang. Yang
+                membocorkannya HALAMAN DETAIL, dicapai lewat tiga jalan lain: kartu misi
+                dashboard (DashboardController memasukkan TERLAPOR ke misi aktif), tab "Semua
+                Laporan" (ReportController::index sengaja tak menyembunyikan TERLAPOR dari
+                petugas), dan notifikasi laporan masuk yang memang menyasar petugas.
+                KEPUTUSAN USER: "cabut", petugas TIDAK BISA CABUT OPD, di petugas ada status
+                "menunggu konfirmasi admin", notifikasi petugas TIDAK diubah (nada tahap masuk
+                sudah dibedakan TASK_50), dan ceiling yurisdiksi petugas yang sudah ada di
+                /admin/settings tidak disentuh.
+                ASIMETRI YANG DISENGAJA: notifyAgencies() (MEMINTA OPD) TETAP milik petugas —
+                eskalasi lahir di lapangan ("ada kabel jatuh, panggil PLN"), dan komentar di
+                method itu sudah lama mengatakannya. Yang dicabut removeAgency(): membatalkan
+                permintaan yang sudah dikirim ke instansi luar adalah pencabutan koordinasi.
+                Keduanya diuji dalam SATU test agar tak bisa "dirapikan" jadi seragam tanpa
+                ada yang merah.
+                YANG MENGIKAT: (a) panel verifikasi kini bergerbang prop SERVER `canVerify`
+                (+`canRemoveAgencies`), diturunkan dari $isStaff lewat $isVerifier di
+                ReportController::show — JANGAN dikembalikan jadi daftar peran di JSX; daftar
+                yang ditulis dua kali menyimpang, dan yang menyimpang di sisi layar melahirkan
+                tombol yang selalu berakhir 403 (bentuk #94); (b) KAMUS STATUS TIDAK DIFORK per
+                peran — StatusBadge tetap "Laporan Masuk" untuk semua; yang ditampilkan APA
+                YANG DITUNGGU, bukan nama status kedua; (c) keadaan "Menunggu Konfirmasi Admin"
+                itu WAJIB, bukan hiasan — tanpanya layar petugas atas laporan mentah jadi SEPI
+                dan keadaan yang tak dijelaskan terbaca sebagai fitur rusak (pelajaran
+                TASK_45/#94); (d) urgensi merah di dashboard petugas PINDAH dari TERLAPOR ke
+                `pending` — kalau TERLAPOR cuma dijadikan tidak-mendesak, tak ada satu pun misi
+                merah tersisa dan sinyalnya mati; (e) dua test gerbang STATUS (approve laporan
+                bukan-TERLAPOR, reject insiden resolved) WAJIB pakai admin — dengan petugas
+                keduanya hijau karena tertolak di gerbang PERAN, alasan yang keliru.
+                ENAM berkas test dipindah aktornya ke admin (approve/reject saja; resolve TETAP
+                petugas). Test 370 -> 375 passed (1470 assertions), Pint PASS, prettier PASS,
+                npm run build lulus. TANPA migrasi/route/perubahan skema/sentuhan DB.
+                RISIKO OPERASIONAL yang harus disadari: di wilayah yang TAK punya admin aktif,
+                laporan mentah tak akan pernah disiarkan — dulu petugas bisa menambalnya. Itu
+                konsekuensi langsung keputusan ini, bukan efek samping.
+                DUA TEMUAN BARU, sengaja TIDAK dikerjakan: #102 approve()/reject()/resolve()
+                mem-bypass Tenantable TANPA ensureWithinJurisdiction() padahal delapan aksi
+                tetangganya memanggilnya (tak terjangkau lewat UI karena show() sudah menyaring
+                wilayah — lubang tanpa pintu, tapi melanggar ATURAN EMAS #7); #103 permission
+                Spatie diseed lengkap tapi NOL yang mengeceknya di seluruh app/ & routes/,
+                sehingga /admin/assign-permission memperlihatkan centang yang tak berefek apa
+                pun — jangan pernah "membatasi peran" lewat layar itu.
+                SISA: verifikasi visual §6 file task + deploy (frontend saja).
+               TASK_50 (prompt/tasks/TASK_50_suara_notifikasi_bertingkat.md) — SELESAI (kode)
                 2026-08-28. Permintaan user: laporan yang BARU MASUK ke admin/petugas harus
                 berbunyi BEDA dari broadcast sesudah verifikasi; sirine hanya untuk broadcast;
                 konfirmasi OPD (PLN) juga dibedakan. Empat keputusan user dijawab lebih dulu:
@@ -1154,7 +1278,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-08-28: 368 passed, 1428 assertions —
+Test      : php artisan test            (baseline 2026-08-31: 375 passed, 1470 assertions —
             angka lama "65 passed, 164 assertions" per 2026-06-25 sudah jauh tertinggal)
 Run (dev) : composer dev
 Lint      : vendor/bin/pint  /  npm run format (auto-fix, BUKAN check-only — tidak ada di CI)

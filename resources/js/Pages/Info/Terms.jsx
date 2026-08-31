@@ -5,7 +5,7 @@ import { Link } from '@inertiajs/react';
 import { IconBuildingBank, IconGavel, IconUser } from '@tabler/icons-react';
 
 const formatTanggal = (value) => {
-	if (!value) return '—';
+	if (!value) return '-';
 	const date = new Date(value);
 	if (Number.isNaN(date.getTime())) return value;
 	return new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
@@ -35,7 +35,7 @@ export default function Terms({ instansi, legal }) {
 	return (
 		<InfoShell
 			icon={IconGavel}
-			eyebrow={`Versi ${legal?.dokumen?.syarat_versi || '1.0'} — berlaku sejak ${formatTanggal(legal?.dokumen?.syarat_berlaku)}`}
+			eyebrow={`Versi ${legal?.dokumen?.syarat_versi || '1.0'} - berlaku sejak ${formatTanggal(legal?.dokumen?.syarat_berlaku)}`}
 			title="Syarat & Ketentuan"
 			subtitle={`Ketentuan penggunaan SISUPIT di wilayah layanan ${penyelenggara}.`}
 			footerNote={`Dokumen ini ditulis dalam Bahasa Indonesia dan tunduk pada hukum Republik Indonesia. Jika Anda menemukan bagian yang tidak jelas, hubungi ${kontak || penyelenggara} sebelum menggunakan layanan.`}
@@ -93,7 +93,7 @@ export default function Terms({ instansi, legal }) {
 								'"Aplikasi" atau "SISUPIT" adalah platform digital pelaporan dan koordinasi kedaruratan, mencakup aplikasi mobile, web, API, sistem backend, dan seluruh fitur di dalamnya.',
 								`"${penyedia}" adalah badan hukum perseroan terbatas yang sah menurut hukum Republik Indonesia selaku pemilik dan pengelola resmi Aplikasi.`,
 								`"Instansi" atau "Penyelenggara" adalah ${penyelenggara}, yaitu instansi pemerintah yang menyelenggarakan layanan kedaruratan di wilayah ini dan menjadi pengendali data laporan warga.`,
-								'"Pengguna" adalah setiap orang yang mengunduh, mengakses, mendaftar, atau menggunakan layanan di dalam Aplikasi — termasuk warga pelapor, petugas, dan relawan.',
+								'"Pengguna" adalah setiap orang yang mengunduh, mengakses, mendaftar, atau menggunakan layanan di dalam Aplikasi - termasuk warga pelapor, petugas, dan relawan.',
 								'"Konten" meliputi seluruh teks, grafis, gambar, data, informasi, logo, ikon, perangkat lunak, audio, video, dan materi lain yang tersedia di dalam Aplikasi.',
 							]}
 						/>
@@ -124,7 +124,7 @@ export default function Terms({ instansi, legal }) {
 					<Section number="4" title="Akun pengguna">
 						<Bullets
 							items={[
-								'Akun dibuat dengan data yang benar. Nama, nomor telepon, dan wilayah dipakai petugas untuk menghubungi Anda saat kejadian — data palsu memperlambat pertolongan.',
+								'Akun dibuat dengan data yang benar. Nama, nomor telepon, dan wilayah dipakai petugas untuk menghubungi Anda saat kejadian - data palsu memperlambat pertolongan.',
 								'Akun bersifat pribadi. Jangan bagikan akses akun Anda kepada orang lain. Seluruh aktivitas yang terjadi lewat akun Anda menjadi tanggung jawab Anda.',
 								'Melengkapi wilayah (kabupaten/kecamatan/kelurahan) diwajibkan sebelum memakai fitur berdata, karena akses data dibatasi per wilayah.',
 								'Instansi berhak menangguhkan akun yang dipakai menyalahi ketentuan ini.',
@@ -146,7 +146,7 @@ export default function Terms({ instansi, legal }) {
 					<Section number="6" title="Ketentuan bagi petugas & relawan">
 						<Bullets
 							items={[
-								'Data laporan memuat identitas, nomor telepon, dan lokasi warga. Data itu hanya boleh dipakai untuk penanganan kejadian — dilarang disebarkan, disalin ke luar sistem, atau dipakai untuk keperluan pribadi.',
+								'Data laporan memuat identitas, nomor telepon, dan lokasi warga. Data itu hanya boleh dipakai untuk penanganan kejadian - dilarang disebarkan, disalin ke luar sistem, atau dipakai untuk keperluan pribadi.',
 								'Berbagi lokasi saat merespons kejadian dilakukan agar Pusat Komando dapat mengoordinasikan bantuan; lokasi direkam selama misi berlangsung.',
 								'Relawan bekerja pada wilayah penugasannya. Bergabung ke sebuah kejadian berarti bersedia mengikuti arahan petugas di lokasi.',
 								'Penyalahgunaan akses data dapat berakibat pencabutan peran dan tindakan sesuai ketentuan kepegawaian/kerelawanan yang berlaku.',
@@ -161,7 +161,7 @@ export default function Terms({ instansi, legal }) {
 								'Pelanggaran hukum: memakai Aplikasi untuk tujuan apa pun yang melanggar hukum, undang-undang, atau peraturan yang berlaku di tingkat lokal, nasional, maupun internasional.',
 								'Rekayasa balik & akses tidak sah: melakukan reverse engineering, dekompilasi, pembongkaran, atau mencoba memperoleh akses tidak sah ke kode sumber, server, basis data, atau sistem keamanan Aplikasi.',
 								'Penyebaran kode berbahaya: mengunggah atau menyebarkan virus, malware, spyware, atau kode lain yang dapat merusak fungsi Aplikasi maupun infrastruktur sistem.',
-								`Pencurian identitas & penipuan: menyamar sebagai orang atau entitas lain, memberikan informasi palsu, atau melakukan pemalsuan identitas dalam bentuk apa pun — termasuk mengaku sebagai petugas ${penyelenggara}.`,
+								`Pencurian identitas & penipuan: menyamar sebagai orang atau entitas lain, memberikan informasi palsu, atau melakukan pemalsuan identitas dalam bentuk apa pun - termasuk mengaku sebagai petugas ${penyelenggara}.`,
 								`Aktivitas komersial tanpa izin: memakai Aplikasi untuk kepentingan komersial pihak ketiga atau mengeruk data (scraping) tanpa izin tertulis dari ${penyedia}.`,
 								'Pembebanan sistem: membebani infrastruktur server melebihi batas wajar, termasuk melalui bot, spider, atau serangan penolakan layanan.',
 								`Pelanggaran hak kekayaan intelektual: menyalin, mendistribusikan, memodifikasi, atau mengeksploitasi kekayaan intelektual milik ${penyedia} tanpa izin resmi.`,
@@ -181,8 +181,8 @@ export default function Terms({ instansi, legal }) {
 					<Section number="9" title="Hak kekayaan intelektual atas Aplikasi">
 						<p>
 							Seluruh hak cipta, merek dagang, desain, paten, rahasia dagang, dan hak kekayaan intelektual
-							lain yang melekat pada Aplikasi SISUPIT — termasuk namun tidak terbatas pada logo, teks,
-							grafis, kode perangkat lunak, dan tata letak — sepenuhnya milik sah {penyedia} atau telah
+							lain yang melekat pada Aplikasi SISUPIT - termasuk namun tidak terbatas pada logo, teks,
+							grafis, kode perangkat lunak, dan tata letak - sepenuhnya milik sah {penyedia} atau telah
 							memperoleh lisensi yang sah. Penggunaan Aplikasi tidak memberikan hak kepemilikan apa pun
 							kepada Pengguna atas kekayaan intelektual tersebut.
 						</p>
@@ -246,7 +246,7 @@ export default function Terms({ instansi, legal }) {
 							)}
 							<p className="mt-2 text-xs text-muted-foreground">
 								Hak pakai pada kedua paket bersifat internal instansi. Menjual kembali, menyewakan, atau
-								me-white-label Aplikasi kepada pihak lain tetap dilarang — lihat tab{' '}
+								me-white-label Aplikasi kepada pihak lain tetap dilarang - lihat tab{' '}
 								<b>Pengguna Berkontrak</b> bagian 4.
 							</p>
 						</div>
@@ -290,11 +290,11 @@ export default function Terms({ instansi, legal }) {
 						<Bullets
 							items={[
 								`Penyedia sistem: ${penyedia}`,
-								`Dukungan teknis: ${legal?.penyedia?.email || '—'}`,
-								`Kanal legal: ${emailLegal || '—'}`,
+								`Dukungan teknis: ${legal?.penyedia?.email || '-'}`,
+								`Kanal legal: ${emailLegal || '-'}`,
 								legal?.penyedia?.telepon ? `Telepon/WhatsApp: ${legal.penyedia.telepon}` : null,
 								alamatPenyedia ? `Alamat kantor: ${alamatPenyedia}` : null,
-								`Kontak instansi penyelenggara: ${kontak || '—'}`,
+								`Kontak instansi penyelenggara: ${kontak || '-'}`,
 							].filter(Boolean)}
 						/>
 					</Section>
@@ -304,7 +304,7 @@ export default function Terms({ instansi, legal }) {
 				<TabsContent value="berkontrak" className="mt-4 space-y-4 outline-none focus-visible:ring-0">
 					<Callout tone="info" title="Bagian ini untuk instansi & entitas berkontrak">
 						Ketentuan di bawah mengikat pihak yang menandatangani Perjanjian Kerja Sama (PKS) dengan{' '}
-						{penyedia} — bukan warga pengguna aplikasi. Bila Anda memakai SISUPIT sebagai pelapor, petugas,
+						{penyedia} - bukan warga pengguna aplikasi. Bila Anda memakai SISUPIT sebagai pelapor, petugas,
 						atau relawan, ketentuan yang berlaku bagi Anda ada di tab <b>Pengguna Umum</b>.
 					</Callout>
 
@@ -313,7 +313,7 @@ export default function Terms({ instansi, legal }) {
 							items={[
 								'"Aplikasi": platform digital SISUPIT, mencakup aplikasi mobile, web, API, sistem backend, dan seluruh fitur di dalamnya.',
 								`"${penyedia}": badan hukum perseroan terbatas yang sah menurut hukum Republik Indonesia selaku pemilik eksklusif Aplikasi.`,
-								'"Pengguna Berkontrak": pengguna — baik entitas pemerintah, badan usaha, maupun perorangan — yang terikat perjanjian tertulis terpisah seperti Perjanjian Kerja Sama (PKS), Master Services Agreement (MSA), Surat Perintah Kerja (SPK), atau formulir berlangganan resmi dengan penyedia.',
+								'"Pengguna Berkontrak": pengguna - baik entitas pemerintah, badan usaha, maupun perorangan - yang terikat perjanjian tertulis terpisah seperti Perjanjian Kerja Sama (PKS), Master Services Agreement (MSA), Surat Perintah Kerja (SPK), atau formulir berlangganan resmi dengan penyedia.',
 								'"Akun Turunan (Sub-Account)": akun tambahan yang didaftarkan atau dikelola di bawah Pengguna Berkontrak untuk dipakai pegawai, petugas, relawan, mitra, atau pihak internal lainnya.',
 								'"Penyalahgunaan Hak (Abuse of Rights)": penggunaan fitur, lisensi, data, atau hak akses melebihi batas peruntukan yang diperbolehkan dalam Ketentuan ini maupun PKS, atau tindakan yang merugikan penyedia maupun pihak ketiga.',
 							]}
@@ -324,7 +324,7 @@ export default function Terms({ instansi, legal }) {
 						<Bullets
 							items={[
 								'Kedudukan perjanjian utama: bagi Pengguna Berkontrak, Ketentuan ini merupakan satu kesatuan dan bagian tidak terpisahkan dari PKS/MSA yang telah ditandatangani.',
-								`Hierarki ketentuan (order of precedence): apabila terdapat pertentangan antara Ketentuan ini dan klausul dalam PKS khusus, maka klausul PKS yang berlaku — sejauh tidak mengurangi batasan tanggung jawab (limitation of liability) dan hak perlindungan kekayaan intelektual milik ${penyedia} dalam Ketentuan ini.`,
+								`Hierarki ketentuan (order of precedence): apabila terdapat pertentangan antara Ketentuan ini dan klausul dalam PKS khusus, maka klausul PKS yang berlaku - sejauh tidak mengurangi batasan tanggung jawab (limitation of liability) dan hak perlindungan kekayaan intelektual milik ${penyedia} dalam Ketentuan ini.`,
 							]}
 						/>
 					</Section>
@@ -352,7 +352,7 @@ export default function Terms({ instansi, legal }) {
 						<Callout title="Berlaku untuk seluruh paket, termasuk paket Beli">
 							Larangan menjual kembali, menyewakan, dan me-white-label berlaku tanpa pengecualian pada
 							paket Sewa maupun paket Beli. Hak pakai perpetual dan penyerahan salinan kode sumber pada
-							paket Beli adalah hak pemakaian internal instansi — bukan hak mendistribusikan,
+							paket Beli adalah hak pemakaian internal instansi - bukan hak mendistribusikan,
 							memperdagangkan, atau melisensikan ulang Aplikasi kepada wilayah atau pihak lain.
 						</Callout>
 					</Section>
@@ -426,7 +426,7 @@ export default function Terms({ instansi, legal }) {
 						<Bullets
 							items={[
 								`Entitas: ${penyedia}`,
-								`Email legal: ${emailLegal || '—'}`,
+								`Email legal: ${emailLegal || '-'}`,
 								legal?.penyedia?.telepon ? `Telepon: ${legal.penyedia.telepon}` : null,
 								alamatPenyedia ? `Alamat kantor: ${alamatPenyedia}` : null,
 							].filter(Boolean)}

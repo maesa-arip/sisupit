@@ -19,11 +19,13 @@ beforeEach(function () {
     ]);
 });
 
-it('lets staff reject a report into the ditolak status with a reason, keeping the row', function () {
-    $petugas = User::factory()->create(['village_code' => '5171012006']);
-    $petugas->assignRole('petugas');
+it('lets an admin reject a report into the ditolak status with a reason, keeping the row', function () {
+    // Sejak TASK_51 penolakan adalah wewenang ADMIN (sisi lain dari verifikasi), bukan
+    // "staf" secara umum — petugas yang dulu dipakai di sini kini tertolak di gerbang peran.
+    $admin = User::factory()->create(['village_code' => '5171012006']);
+    $admin->assignRole('admin');
 
-    $this->actingAs($petugas)
+    $this->actingAs($admin)
         ->post("/reports/{$this->report->id}/reject", ['reason' => 'Tidak dapat dihubungi'])
         ->assertRedirect();
 
@@ -49,10 +51,12 @@ it('blocks non-staff (masyarakat) from rejecting a report', function () {
 it('does not allow rejecting a resolved incident', function () {
     $this->report->update(['status' => 'resolved']);
 
-    $petugas = User::factory()->create(['village_code' => '5171012006']);
-    $petugas->assignRole('petugas');
+    // ADMIN, supaya yang diuji benar-benar gerbang STATUS — petugas sudah tertolak lebih
+    // dulu di gerbang peran (TASK_51) dan akan menghijaukan test ini karena alasan lain.
+    $admin = User::factory()->create(['village_code' => '5171012006']);
+    $admin->assignRole('admin');
 
-    $this->actingAs($petugas)
+    $this->actingAs($admin)
         ->post("/reports/{$this->report->id}/reject")
         ->assertForbidden();
 

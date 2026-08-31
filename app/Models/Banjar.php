@@ -137,7 +137,7 @@ class Banjar extends Model
 
         if (! $banjar || (string) $banjar->village_code !== $villageCode) {
             throw ValidationException::withMessages([
-                'banjar_id' => 'Banjar yang dipilih bukan milik Desa/Kelurahan ini — periksa kembali titik pin dan pilihan wilayahnya.',
+                'banjar_id' => 'Banjar yang dipilih bukan milik Desa/Kelurahan ini - periksa kembali titik pin dan pilihan wilayahnya.',
             ]);
         }
     }

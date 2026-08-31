@@ -281,7 +281,7 @@ class HydrantWargaController extends Controller
             'village_code' => 'nullable|string',
         ], [
             'type.required' => 'Sumber air wajib dipilih.',
-            'capacity_liter.required' => 'Kapasitas volume wajib diisi — angka ini dipakai menghitung total simpanan air per desa.',
+            'capacity_liter.required' => 'Kapasitas volume wajib diisi - angka ini dipakai menghitung total simpanan air per desa.',
         ]);
     }
 

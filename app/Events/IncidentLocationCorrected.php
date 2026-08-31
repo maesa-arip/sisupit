@@ -26,12 +26,21 @@ class IncidentLocationCorrected implements ShouldBroadcastNow
      */
     public $geoAddress;
 
-    public function __construct($reportId, $lat, $lng, $geoAddress)
+    /**
+     * Asal-usul titik SESUDAH koreksi (TASK_52) — selalu `dikoreksi_petugas`. Ikut disiarkan
+     * supaya lencana kepercayaan lokasi di layar yang SEDANG TERBUKA berubah bersamaan
+     * dengan pinnya; kalau tidak, penerima siaran melihat pin baru masih berlabel jarak
+     * pelapor yang lama sampai halamannya dimuat ulang.
+     */
+    public $locationSource;
+
+    public function __construct($reportId, $lat, $lng, $geoAddress, $locationSource = null)
     {
         $this->reportId = $reportId;
         $this->lat = $lat;
         $this->lng = $lng;
         $this->geoAddress = $geoAddress;
+        $this->locationSource = $locationSource;
     }
 
     public function broadcastOn()

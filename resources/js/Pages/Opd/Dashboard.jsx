@@ -86,7 +86,7 @@ export default function OpdDashboard({ agencyName, requests = [], feed_channel =
 													<IconAlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
 												)}
 												{item.confirmation_label}
-												{item.confirmed_at ? ' — sudah dikonfirmasi' : ' — belum dikonfirmasi'}
+												{item.confirmed_at ? ' - sudah dikonfirmasi' : ' - belum dikonfirmasi'}
 											</p>
 										)}
 									</div>

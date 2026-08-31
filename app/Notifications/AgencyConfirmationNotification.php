@@ -55,7 +55,7 @@ class AgencyConfirmationNotification extends Notification implements ShouldQueue
     {
         $label = $this->reportAgency->confirmation_label ?: 'Tindakan yang diminta sudah dipenuhi';
 
-        $body = $label.' — "'.$this->report->title.'"';
+        $body = $label.' - "'.$this->report->title.'"';
 
         // Bobot buktinya berbeda dan operator berhak tahu yang mana: konfirmasi dari akun OPD
         // sendiri vs dicatatkan operator atas laporan lisan/telepon (TASK_27).

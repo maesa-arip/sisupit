@@ -111,6 +111,31 @@ class ReportRequest extends FormRequest
                 'max:500',
                 'string',
             ],
+            // Posisi GPS PELAPOR & akurasinya saat mengirim (TASK_52, #104) — bahan mentah
+            // untuk menetapkan `reports.location_source`. SELALU opsional, apa pun jenis
+            // kejadiannya: izin lokasi bisa ditolak, GPS bisa gagal, dan klien lama (APK
+            // WebView/.exe yang belum diperbarui) memang tak mengirimnya sama sekali. Tak
+            // satu pun dari ketiganya boleh bisa MENOLAK sebuah laporan darurat.
+            //
+            // Koordinat ini TIDAK disimpan — `store()` memakainya sekali untuk menghitung
+            // jarak lalu membuangnya (keputusan privasi user 2026-08-31). Batasnya memakai
+            // `numeric|between` seperti `correctLocation()`, bukan `min/max` panjang string
+            // seperti `lat`/`lng` di atas, karena di sini yang dibandingkan memang angka.
+            'reporter_lat' => [
+                'nullable',
+                'numeric',
+                'between:-90,90',
+            ],
+            'reporter_lng' => [
+                'nullable',
+                'numeric',
+                'between:-180,180',
+            ],
+            'gps_accuracy_m' => [
+                'nullable',
+                'numeric',
+                'min:0',
+            ],
             // Galeri foto (FINDINGS #17). Darurat-first (Kluster A): opsional untuk kebakaran
             // (jangan paksa warga mendekati api), WAJIB hanya untuk darurat non-kebakaran
             // ('lainnya') saat membuat. Pada update (PUT) opsional. Kolom `photo` lama = sampul.

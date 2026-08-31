@@ -175,7 +175,7 @@ export default function PublicLayout({ children, title }) {
 										className="inline-flex items-center gap-2 text-muted-foreground hover:text-destructive"
 									>
 										<IconPhoneCall className="h-4 w-4" stroke={2} />
-										{NOMOR_DARURAT_NASIONAL} — Panggilan Darurat
+										{NOMOR_DARURAT_NASIONAL} - Panggilan Darurat
 									</a>
 								</li>
 							</ul>

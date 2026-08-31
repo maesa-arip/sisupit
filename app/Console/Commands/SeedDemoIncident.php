@@ -32,7 +32,7 @@ class SeedDemoIncident extends Command
         {report : ID laporan yang akan dilengkapi}
         {--officers= : ID user petugas, dipisah koma}
         {--volunteers= : ID user relawan, dipisah koma}
-        {--agencies=none : none|notified|confirmed — lampirkan OPD aktif di kota laporan}
+        {--agencies=none : none|notified|confirmed - lampirkan OPD aktif di kota laporan}
         {--resolution : buat berita acara final (hanya untuk laporan yang sudah selesai)}';
 
     protected $description = 'Lengkapi sebuah laporan jadi contoh peragaan: responder + jejak rute di peta, OPD terkait, berita acara';
@@ -69,7 +69,7 @@ class SeedDemoIncident extends Command
         // mencegah contoh peragaan yang isinya bertentangan dengan statusnya sendiri.
         if (($officers->isNotEmpty() || $volunteers->isNotEmpty())
             && ! in_array($report->status, ['handling', 'resolved'], true)) {
-            $this->error("Laporan #{$report->id} berstatus '{$report->status}' — responder hanya untuk status handling atau resolved.");
+            $this->error("Laporan #{$report->id} berstatus '{$report->status}' - responder hanya untuk status handling atau resolved.");
 
             return self::FAILURE;
         }
@@ -186,7 +186,7 @@ class SeedDemoIncident extends Command
         DB::table('tracking_logs')->insert($rows);
 
         $status = $finishedAt ? 'selesai' : ($arrived ? 'tiba di lokasi' : 'masih di jalan');
-        $this->line("  {$type}: {$user->name} — {$status}, ".count($rows).' titik jejak');
+        $this->line("  {$type}: {$user->name} - {$status}, ".count($rows).' titik jejak');
     }
 
     /** OPD terkait + konfirmasinya, meniru apa yang ditulis ReportActionController saat broadcast. */
@@ -198,7 +198,7 @@ class SeedDemoIncident extends Command
             ->get();
 
         if ($agencies->isEmpty()) {
-            $this->warn('  Tidak ada OPD aktif untuk kota laporan ini — bagian OPD dilewati.');
+            $this->warn('  Tidak ada OPD aktif untuk kota laporan ini - bagian OPD dilewati.');
 
             return;
         }
@@ -224,14 +224,14 @@ class SeedDemoIncident extends Command
                     'confirmed_by' => $confirmed ? $operator?->id : null,
                     'confirmed_source' => $confirmed ? ReportAgency::SOURCE_OPD : null,
                     'confirmation_note' => $confirmed && $agency->requires_confirmation
-                        ? $agency->confirmation_label.' — dikonfirmasi petugas instansi di lokasi.'
+                        ? $agency->confirmation_label.' - dikonfirmasi petugas instansi di lokasi.'
                         : null,
                     'created_at' => $notifiedAt,
                     'updated_at' => $notifiedAt->copy()->addMinutes(11),
                 ]
             );
 
-            $this->line("  OPD: {$agency->name} — ".($confirmed ? 'terkonfirmasi' : 'menunggu konfirmasi'));
+            $this->line("  OPD: {$agency->name} - ".($confirmed ? 'terkonfirmasi' : 'menunggu konfirmasi'));
         }
     }
 
