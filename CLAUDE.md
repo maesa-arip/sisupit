@@ -91,8 +91,21 @@ Task aktif   : TASK_52 (prompt/tasks/TASK_52_asal_titik_laporan.md) — SELESAI 
                 SENGAJA DI LUAR SCOPE (aturan emas #6): kolom asal titik di Export Excel, kartu
                 misi dashboard petugas, popup Peta Pemantauan — ketiganya bisa membaca kolom
                 yang kini sudah ada tanpa migrasi tambahan.
-                SISA: verifikasi visual §6 file task (6 langkah, butuh browser) + deploy
-                (frontend BERUBAH, jadi npm run build harus ikut).
+                TERDEPLOY 2026-09-01 @1ed163ff ke prod/staging/dev, ff dari 350ab043, urutan
+                dev -> staging -> prod. SATU MIGRASI ADITIF & nullable DONE di ketiga env,
+                0 pending, 0 laporan ter-backfill (`location_source is not null` = 0 di prod,
+                memang desainnya). Cadangan mysqldump ketiga DB lebih dulu di VPS
+                `/root/backup-predeploy-20260831-170605` (18/17/17 MB, "Dump completed").
+                Data prod UTUH: 88 users / 30 reports / 51 hydrants / 6 pompas / 326 banjars /
+                1 berita acara - sama persis pra-migrasi. `composer install` DILEWATI & route
+                cache TIDAK dibangun ulang (routes/ & composer.lock tak berubah di rentang ini,
+                diperiksa `git diff --stat`). Verifikasi: ketiga domain / & /hydrants 200;
+                bundel BARU Show-BKfdgJmZ.js 200 & LAMA Show-DDBdmLIX.js 404 di ketiganya;
+                ketiga kolom baru ada & nullable di prod; nginx/php8.2-fpm/reverb/
+                reverb-staging/reverb-dev active; 0 berkas root-owned pasca-chown; 0 ERROR baru
+                (ERROR terakhir prod 2026-08-27 23:42 = gotcha T_NS_SEPARATOR sesi TASK_49,
+                staging/dev 2026-08-26 = queue worker lama).
+                SISA: verifikasi visual §6 file task (6 langkah, butuh browser).
                TASK_51 (prompt/tasks/TASK_51_wewenang_verifikasi_admin_saja.md) — SELESAI
                 (kode) 2026-08-31. User menyodorkan pembagian peran yang dikehendakinya lalu
                 minta DIPERIKSA ("admin -> verif dan broadcast; petugas -> meluncur,
@@ -147,7 +160,11 @@ Task aktif   : TASK_52 (prompt/tasks/TASK_52_asal_titik_laporan.md) — SELESAI 
                 Spatie diseed lengkap tapi NOL yang mengeceknya di seluruh app/ & routes/,
                 sehingga /admin/assign-permission memperlihatkan centang yang tak berefek apa
                 pun — jangan pernah "membatasi peran" lewat layar itu.
-                SISA: verifikasi visual §6 file task + deploy (frontend saja).
+                TERDEPLOY 2026-09-01 @1ed163ff ke prod/staging/dev, BERSAMAAN dengan TASK_52
+                (rincian deploy ada di blok TASK_52 di atas). Konsekuensi yang mulai berlaku
+                di produksi sejak commit ini: di wilayah yang TAK punya admin aktif, laporan
+                mentah tak akan pernah disiarkan - dulu petugas bisa menambalnya.
+                SISA: verifikasi visual §6 file task.
                TASK_50 (prompt/tasks/TASK_50_suara_notifikasi_bertingkat.md) — SELESAI (kode)
                 2026-08-28. Permintaan user: laporan yang BARU MASUK ke admin/petugas harus
                 berbunyi BEDA dari broadcast sesudah verifikasi; sirine hanya untuk broadcast;
@@ -214,10 +231,26 @@ Task aktif   : TASK_52 (prompt/tasks/TASK_52_asal_titik_laporan.md) — SELESAI 
                 2026-08-26 = queue worker lama). Data prod utuh: 88 users / 30 reports /
                 51 hydrants / 6 pompas / 326 banjars / 1 berita acara. Nama penyedia dibuktikan
                 berbunyi "PT Tawarin Dimana Saja" di ketiga halaman live.
-                SISA: `npm run dist` installer .exe, pasang APK, verifikasi di perangkat
-                (FLAG_INSISTENT di Android O+ BELUM diuji). Sampai kedua wrapper itu dirilis,
-                `alert_stage` sudah TERKIRIM dari server tapi klien lama mengabaikannya — suara
-                bertingkatnya belum terdengar bedanya di perangkat mana pun.
+                KEDUA WRAPPER DIRILIS 2026-09-01 & TERPASANG di prod/staging/dev.
+                APK: `gradlew assembleDebug` (JAVA_HOME wajib diisi ke jbr Android Studio -
+                shell non-IDE tak punya java di PATH), 15.020.777 B, versionName 1.1.1 /
+                versionCode 3, debug-signed; sirine.mp3 + masuk.wav + konfirmasi.wav dibuktikan
+                terpaket di res/raw/. Menimpa public/apk/sisupit.apk (LAMA 4,0 MB 15 Mei
+                dicadangkan ke C:\Users\Admin\backup-sisupit-wrapper\, md5 dicocokkan; di prod
+                ada APK Juni 13,5 MB unggahan tangan yang tak pernah ter-commit, dicadangkan ke
+                /root/backup-predeploy-20260831-170605/sisupit-apk-prod-LAMA.apk).
+                EXE: `npm run dist` SisupitDesktop, 80.486.899 B, NSIS per-user, TIDAK
+                ditandatangani; asar dibuktikan memuat suara.html. Ditaruh di public/exe/ tapi
+                SENGAJA DI LUAR GIT (public/exe/.gitignore, pola docker/tiles/data/) supaya blob
+                80 MB tak masuk riwayat selamanya - dikirim ke tiap env lewat pscp SEKALI ke
+                /root lalu disalin ke tiga folder, md5 b8bd8604... cocok di ketiganya. Keduanya
+                terbukti terunduh: /apk/sisupit.apk 200 content-length 15.020.777 dan
+                /exe/Sisupit-Desktop-Setup-1.0.0.exe 200 content-length 80.486.899 (byte awal
+                "MZ") di ketiga domain.
+                SISA: verifikasi di PERANGKAT SUNGGUHAN - pasang APK & jalankan installer,
+                dengarkan ketiga nada. FLAG_INSISTENT di Android O+ MASIH BELUM diuji; kalau
+                ternyata diabaikan, jatuhkan ke bunyi sekali dan catat, JANGAN bangun foreground
+                service.
                TASK_49 (prompt/tasks/TASK_49_alamat_detail_yurisdiksi_berita_acara.md) — SELESAI
                 (kode) 2026-08-28. Satu pesan user, TUJUH butir; DUA di antaranya ternyata SUDAH
                 selesai sejak TASK_45 dan hanya diverifikasi ulang, tidak dikerjakan lagi:
