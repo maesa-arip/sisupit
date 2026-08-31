@@ -2139,3 +2139,41 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
   menulis, `correctLocation()` lupa menimpa, satu nilai server tanpa entri di kamus layar,
   kamus bercadangan ke `gps_pelapor`, dan koordinat pelapor ikut disimpan).
   Lapis 1 & 2 (deteksi + menyela saat melapor) TETAP DITUNDA — form warga belum disentuh.
+
+---
+
+### #105 — Warga tak punya satu pun cara membetulkan desa yang gagal dicocokkan, padahal server mewajibkannya (FIXED)
+
+- **Prioritas:** P2 — bukan kebocoran data, tapi ia MENGGAGALKAN pengiriman laporan darurat
+  pada keadaan yang tidak jarang, dan gagalnya tanpa jalan keluar.
+- **Ditemukan:** 2026-09-01, saat mengerjakan permintaan user menyatukan mode lokasi form
+  lapor. Bukan yang dicari; ketahuan saat membaca `ReportRequest` untuk memastikan
+  perubahan UI tidak menyentuh aturan darurat-first.
+- **Isi:** `ReportRequest::rules()` mewajibkan `province_code`, `city_code`,
+  `district_code`, DAN `village_code` untuk setiap `POST` — `$isCreate ? 'required' : 'nullable'`,
+  **tanpa membedakan peran**. Sementara itu blok "Wilayah Kejadian" (kotak cari + keempat
+  dropdown) di `Front/Reports/Create.jsx` digerbangi prop `region_picker`, yang hanya dikirim
+  untuk petugas/admin/superadmin. Warga karena itu **hanya bisa mengandalkan pencocokan nama
+  OSM** — dan pencocokan itu kerap berhenti di kecamatan (sudah tercatat di TASK_28: "pencocokan
+  nama OSM sering berhenti di kecamatan"). Begitu itu terjadi, `village_code` kosong dan:
+  1. penjaga di layar meloloskannya (syaratnya `hasRegionPicker && !village_code`, dan
+     `hasRegionPicker` false untuk warga; penjaga satunya cuma menuntut `province_code`);
+  2. lencana GPS tetap **hijau "Lokasi terdeteksi"** (ambang warga cuma `province_code`);
+  3. server menolak dengan `errors.village_code` — mendarat di `<input type="hidden">` yang
+     **tak pernah dirender**, jadi tak ada pesan yang terlihat di mana pun.
+- **Bentuknya:** dua ambang untuk satu pertanyaan. Layar bilang "siap" memakai ukuran yang
+  lebih longgar daripada yang dipakai server untuk menerima — dan yang longgar itu memberi
+  JAMINAN HIJAU pada laporan yang pasti ditolak. Gema #94 (cadangan sebuah kamus = klaim) dan
+  #95 (satu kolom, dua penulis): sekali lagi bukan datanya yang kurang, melainkan satu sisi
+  yang mengaku tahu lebih banyak daripada yang dijaminnya.
+- **Kenapa tak pernah terlihat:** ia hanya muncul bila reverse-geocode gagal mencocokkan desa,
+  dan di koridor Denpasar yang dipakai menguji, pencocokannya hampir selalu berhasil sampai
+  desa. Tidak ada test yang membuat laporan warga TANPA `village_code`.
+- **Status:** FIXED 2026-09-01, bersamaan dengan pencabutan sakelar dua mode (permintaan user
+  "di masyarakatpun sekarang buat seperti itu"). Blok Wilayah Kejadian & panel alamat otomatis
+  kini tampil untuk semua pelapor, penjaga di layar disatukan jadi satu ambang yang sama dengan
+  server (`!data.village_code`), dan `locState` memakai ambang itu juga sehingga lencana hijau
+  tak bisa lagi berdiri di atas laporan yang akan ditolak. Dijaga
+  `tests/Feature/Sisupit/ReportLocationSingleModeTest.php` — tiga penjaga JSX dibuktikan MERAH
+  lebih dulu terhadap berkas sebelum perubahan; yang keempat (server menolak laporan warga
+  tanpa desa) penjaga regresi atas perilaku yang memang sudah ada.

@@ -191,7 +191,15 @@ Catatan: _______________________________________________
 - [ ] Peta terbuka dengan pin merah di posisi GPS
 - [ ] Badge GPS berganti warna sesuai keadaan (mencari / akurat / kurang akurat / gagal)
 - [ ] Pin bisa digeser; alamat otomatis ikut berubah
-- [ ] **Tidak ada** dropdown wilayah (pemilih wilayah hanya untuk Pusat Komando)
+- [ ] Peta bisa **diklik** untuk memindahkan pin (2026-09-01, sebelumnya Pusat Komando saja)
+- [ ] Blok **Wilayah Kejadian** ADA: kotak "Cari Lokasi Kejadian" + Provinsi→Desa
+      (2026-09-01 — sebelumnya disembunyikan dari warga; baris ini dulu berbunyi
+      "**Tidak ada** dropdown wilayah")
+- [ ] Keempat dropdown **terisi sendiri** dari pin; warga normal tak perlu menyentuhnya
+- [ ] Geser pin → keempatnya ikut berubah mengikuti titik baru
+- [ ] Pilih desa di dropdown → pin melompat ke tengah desa itu
+- [ ] Desa tak tercocokkan → tombol Kirim menolak dengan pesan yang menunjuk blok itu,
+      **bukan** galat validasi di field tersembunyi
 - [ ] Tab **Kebakaran** aktif otomatis, berisi tombol pilihan cepat + tombol **"Lainnya"**
 - [ ] "Lainnya" di tab Kebakaran membuka isian judul bebas
 - [ ] Tab **Non Kebakaran** langsung meminta judul bebas
@@ -332,13 +340,18 @@ Catatan: _______________________________________________
 
 ### 6.6 Lapor lewat telepon (Pusat Komando)
 
+> **2026-09-01:** sakelar dua mode ("Pilih manual" / "Ikuti pin peta") DICABUT — form lapor
+> kini punya SATU cara menetapkan lokasi, dan blok Wilayah Kejadian tampil untuk semua
+> pelapor (lihat §2.x warga). Yang di bawah ini khusus alur telepon.
+
 - [ ] `/reports/create` menampilkan **pemilih wilayah** Provinsi→Kabupaten→Kecamatan→Desa
 - [ ] Nilai awal terisi dari yurisdiksi operator sendiri
 - [ ] Memilih wilayah → pin melompat ke centroid wilayah itu
 - [ ] Kotak **"Cari Lokasi Kejadian"** melompatkan pin & mengisi wilayah otomatis
-- [ ] Peta bisa **diklik** untuk menaruh pin (mode Pusat Komando)
-- [ ] Menggeser pin **tidak menimpa** pilihan wilayah operator
-- [ ] Tombol "Ikuti pin peta" mengembalikan perilaku mengikuti pin
+- [ ] Peta bisa **diklik** untuk menaruh pin
+- [ ] Menggeser pin **menimpa** wilayah yang tadi dipilih, mengikuti titik pin yang baru
+      (ini kebalikan perilaku lama — dulu pilihan operator dikunci)
+- [ ] **Tidak ada lagi** tombol "Pilih manual" / "Ikuti pin peta" di layar
 - [ ] Laporan hasil telepon berlencana asal titik **"ditandai manual"** (TASK_52)
 
 ### 6.7 Menu & daftar

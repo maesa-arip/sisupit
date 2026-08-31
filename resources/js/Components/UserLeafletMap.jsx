@@ -16,9 +16,15 @@ const UserLeafletMap = ({
 	// Hanya diterapkan saat NILAINYA BERUBAH, supaya zoom manual pengguna tidak dipaksa
 	// kembali tiap kali pin digeser (pergeseran pin memicu effect ini juga).
 	zoom = null,
-	// Klik di peta = pindahkan titik (parity dengan Admin/Hydrants/Create). Default MATI:
-	// hanya permukaan yang memintanya (form Pusat Komando) yang menyalakan, supaya sentuhan
-	// tak sengaja di form lapor warga tidak menggeser pin darurat.
+	// Klik di peta = pindahkan titik (parity dengan Admin/Hydrants/Create). Default tetap
+	// MATI: hanya permukaan yang memintanya yang menyalakan.
+	//
+	// CATATAN: alasan default ini dulu berbunyi "supaya sentuhan tak sengaja di form lapor
+	// WARGA tidak menggeser pin darurat" — dan form lapor memang mematikannya untuk warga.
+	// Sejak 2026-09-01 form itu menyalakannya untuk SEMUA pelapor atas permintaan user
+	// (satu perilaku peta, sama dengan /admin/hydrants/create). Risiko yang diterima:
+	// sentuhan tak sengaja memindahkan pin. Peredamnya, pin itu terlihat & panel "Alamat
+	// Lengkap (otomatis)" tepat di bawah peta ikut berubah, jadi perpindahannya tidak senyap.
 	clickToPlace = false,
 }) => {
 	const mapRef = useRef(null);

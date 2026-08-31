@@ -7,9 +7,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 
 // TASK_28 — Pusat Komando banyak menerima laporan lewat telepon, jadi ia memilih wilayah
-// (provinsi..desa) alih-alih menggeser pin dari titik GPS kantornya. Prop `region_picker`
-// adalah GERBANG fitur itu: hanya petugas/admin/superadmin yang menerimanya, isinya
-// yurisdiksi operator sebagai nilai awal (Bali otomatis untuk akun Damkar Bali).
+// (provinsi..desa) alih-alih menggeser pin dari titik GPS kantornya.
+//
+// SEJAK 2026-09-01 prop `region_picker` BUKAN LAGI GERBANG tampil: kotak cari & keempat
+// dropdown wilayah ada untuk SEMUA pelapor (lihat ReportLocationSingleModeTest). Yang
+// tersisa dan masih dijaga di berkas ini: prop itu hanya berisi yurisdiksi operator sebagai
+// NILAI AWAL, dan warga menerimanya null sehingga tidak ada wilayah yang terisi lebih dulu
+// atas nama siapa pun.
 beforeEach(function () {
     DB::table('indonesia_provinces')->insert(['code' => '51', 'name' => 'Bali']);
     DB::table('indonesia_cities')->insert(['code' => '5171', 'province_code' => '51', 'name' => 'Kota Denpasar']);
@@ -33,7 +37,7 @@ it('gives the command center a region picker seeded with its own jurisdiction', 
             ->where('region_picker.village_code', null));
 });
 
-it('hides the region picker from a citizen so the form stays emergency-first', function () {
+it('never seeds a citizen form with someone elses jurisdiction', function () {
     $warga = User::factory()->create(['village_code' => '5171012006']);
     $warga->assignRole('masyarakat');
 

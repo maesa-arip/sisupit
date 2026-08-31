@@ -27,7 +27,57 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : TASK_52 (prompt/tasks/TASK_52_asal_titik_laporan.md) — SELESAI (kode)
+Task aktif   : TASK_53 (prompt/tasks/TASK_53_satu_mode_lokasi_form_lapor.md) — SELESAI
+                (kode) 2026-09-01. Permintaan user: "di form lapor jadikan 1, jangan ada
+                pilih manual atau ikuti peta, peta dan lokasi sinkron, saat pin digeser data
+                mengikuti lokasi pin, mirip seperti /admin/hydrants/create", lalu diperluas
+                "bukan hanya di pusat komando di masyarakatpun sekarang buat seperti itu".
+                Perluasan kedua itu yang menentukan bobotnya.
+                SAKELAR DUA MODE (TASK_28) DICABUT. Mode 'manual' bukan cuma tampilan: ia
+                MEMBLOKIR penulisan kode wilayah dari pin (cabang `keepRegion` di
+                resolveLocation), sehingga laporan bisa tersimpan dengan lat/lng titik A dan
+                kode wilayah B tanpa satu pun tanda di layar - peta petugas menggambar dari
+                lat/lng sementara yurisdiksi, notifikasi & rekap memakai kode wilayah. Itu
+                bentuk yang sama dengan #78, yang dulu harus dibersihkan lewat perintah
+                artisan tersendiri.
+                TEMUAN BARU #105 yang ikut ketahuan & MENGUBAH NILAI TASK INI (FIXED di sini):
+                ReportRequest mewajibkan `village_code` untuk SETIAP laporan baru TANPA
+                membedakan peran, tapi keempat dropdown wilayah digerbangi prop `region_picker`
+                = Pusat Komando saja. Warga karena itu hanya bisa mengandalkan pencocokan nama
+                OSM, dan pencocokan itu KERAP BERHENTI DI KECAMATAN (sudah tercatat sejak
+                TASK_28). Begitu terjadi: penjaga layar meloloskannya (syaratnya
+                `hasRegionPicker && !village_code`), lencana GPS tetap HIJAU "Lokasi
+                terdeteksi" (ambang warga cuma province_code), lalu server menolak pada
+                `village_code` - sebuah <input type="hidden"> yang TAK PERNAH DIRENDER, jadi
+                tak ada pesan yang terlihat di mana pun. Warga tak punya satu pun cara
+                membetulkannya. Gema #94/#95: bukan datanya yang kurang, melainkan satu sisi
+                yang mengaku tahu lebih banyak daripada yang dijaminnya.
+                YANG MENGIKAT: (a) `region_picker` BUKAN LAGI GERBANG, hanya NILAI AWAL kode
+                wilayah bagi operator - menjadikannya gerbang lagi = menghidupkan #105;
+                (b) dropdown TETAP melompatkan pin ke centroid, satu-satunya beda dari
+                /admin/hydrants/create, disengaja karena alur telepon Pusat Komando adalah
+                alasan TASK_28 lahir - hasilnya sinkron DUA ARAH; (c) menggeser pin sesudah
+                memilih dropdown MENIMPA pilihan itu (memang yang diminta) sehingga bila
+                pencocokan OSM meleset di titik baru dropdown bisa ikut kosong - peredamnya
+                dropdown itu terlihat & tombol Kirim menolak tanpa desa; (d) AMBANG LAYAR =
+                AMBANG SERVER, `locState` 'ready' dan penjaga submit sama-sama menuntut
+                `village_code` seperti ReportRequest, jangan longgarkan salah satunya
+                sendirian; (e) `gpsFixRef` (TASK_52) TIDAK tersentuh, `userLocation` tetap
+                berarti "titik yang terakhir dipakai"; (f) `clickToPlace` kini MENYALA untuk
+                warga - pembalikan sadar atas komentar lama di UserLeafletMap.jsx yang
+                berbunyi "supaya sentuhan tak sengaja di form lapor warga tidak menggeser pin
+                darurat"; komentarnya sudah diperbarui, nilai defaultnya tidak.
+                Penjaga: ReportLocationSingleModeTest BARU (4 test); TIGA dibuktikan MERAH
+                terhadap berkas sebelum perubahan, yang keempat (server menolak laporan warga
+                tanpa desa) hijau sejak awal = penjaga regresi, bukan bukti bug.
+                ReportManualRegionPickerTest: nama & komentar diluruskan, ASERSI TIDAK DIUBAH.
+                Test 382 -> 386 passed (1502 assertions), Pint PASS (295 berkas), prettier &
+                npm run build lulus. NOL perubahan server: ReportController, ReportRequest,
+                route, skema, migrasi, channel, notifikasi tak disentuh.
+                SISA: verifikasi visual §8 file task (butuh browser), termasuk uji sentuh di
+                APK WebView untuk memastikan clickToPlace tidak memindahkan pin saat pengguna
+                sebenarnya hendak menggulir halaman.
+               TASK_52 (prompt/tasks/TASK_52_asal_titik_laporan.md) — SELESAI (kode)
                 2026-08-31. Laporan user: "ada beberapa orang yang lapor tapi tidak dari lokasi
                 kejadian, namun user yang lapor tidak memperhatikan jadi petugas salah menuju
                 lokasi". Usulan user: popup "apakah Anda di lokasi?" saat melapor.
