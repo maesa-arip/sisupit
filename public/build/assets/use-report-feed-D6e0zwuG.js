@@ -1,0 +1,1 @@
+import{r as i}from"./app-DM9X4ehu.js";const s=1e3;function n(e,r){const o=i.useRef(r);o.current=r,i.useEffect(()=>{if(!e||!window.Echo)return;let t=null;return window.Echo.private(e).listen("ReportFeedChanged",()=>{clearTimeout(t),t=setTimeout(()=>o.current(),s)}),()=>{clearTimeout(t),window.Echo.leave(e)}},[e])}export{n as u};
