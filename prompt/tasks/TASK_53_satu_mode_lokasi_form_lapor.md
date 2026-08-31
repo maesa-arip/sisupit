@@ -2,7 +2,7 @@
 
 **Sumber:** permintaan user 2026-09-01.
 **Temuan terkait:** #105 (BARU, FIXED di task ini). Mencabut sebagian TASK_28.
-**Status:** SELESAI (kode). Sisa: verifikasi visual §6 + deploy.
+**Status:** SELESAI & TERDEPLOY 2026-09-01 @e41719aa (prod/staging/dev). Sisa: verifikasi visual §8.
 
 ---
 
@@ -96,6 +96,25 @@ notifikasi — semuanya tak disentuh. Prop `region_picker` tetap dikirim apa ada
   disebut apa adanya, bukan diklaim sebagai bukti bug.
 - `vendor/bin/pint` PASS (295 berkas), `npx prettier --write` atas kedua berkas JS,
   `npm run build` lulus.
+
+## 7b. Deploy 2026-09-01 @e41719aa
+
+ff dari `64a97d3b`, urutan dev -> staging -> prod. DUA commit: `6eb8ad43` kode (10 berkas) +
+`e41719aa` aset build.
+
+Deploy paling sederhana sejauh ini - `git diff --stat 64a97d3b..e41719aa -- database/migrations/
+routes/ composer.json composer.lock` **kosong**, jadi TANPA migrasi, TANPA cadangan DB (tak ada
+yang menyentuh DB), TANPA `composer install`, TANPA rebuild route cache. Cukup `git pull` +
+`chown -R www-data:www-data`.
+
+Verifikasi: 0 migrasi pending di ketiga env; ketiga domain `/` & `/hydrants` 200 dan
+`/reports/create` 302 (gerbang login, wajar); bundel **BARU `Create-C0o7-0qe.js` 200** & **LAMA
+`Create-D8Ndm7-0.js` 404** di ketiganya; 0 berkas root-owned pasca-chown;
+nginx/php8.2-fpm/reverb/reverb-staging/reverb-dev active; 0 ERROR baru.
+
+Data prod: 88 users / 51 hydrants / 6 pompas / 326 banjars sama persis pra-deploy. `reports`
+30 -> 35 dan itu **bukan** efek deploy - laporan terbaru bertanggal 23:09 sementara pull prod
+jam 23:41, jadi kelimanya lahir dari pemakaian nyata sejak deploy sebelumnya.
 
 ## 8. SISA — verifikasi visual (butuh browser)
 

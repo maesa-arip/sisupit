@@ -74,6 +74,22 @@ Task aktif   : TASK_53 (prompt/tasks/TASK_53_satu_mode_lokasi_form_lapor.md) —
                 Test 382 -> 386 passed (1502 assertions), Pint PASS (295 berkas), prettier &
                 npm run build lulus. NOL perubahan server: ReportController, ReportRequest,
                 route, skema, migrasi, channel, notifikasi tak disentuh.
+                TERDEPLOY 2026-09-01 @e41719aa ke prod/staging/dev, ff dari 64a97d3b, urutan
+                dev -> staging -> prod. DUA commit: 6eb8ad43 kode (10 berkas) + e41719aa aset
+                build. DEPLOY PALING SEDERHANA sejauh ini: `git diff --stat 64a97d3b..e41719aa
+                -- database/migrations/ routes/ composer.json composer.lock` KOSONG, jadi TANPA
+                migrasi, TANPA cadangan DB (tak ada yang menyentuh DB), TANPA composer install,
+                TANPA rebuild route cache - cukup `git pull` + `chown`. 0 migrasi pending di
+                ketiga env. Verifikasi: ketiga domain / & /hydrants 200, /reports/create 302
+                (gerbang login, wajar); bundel BARU Create-C0o7-0qe.js 200 & LAMA
+                Create-D8Ndm7-0.js 404 di ketiganya; 0 berkas root-owned pasca-chown;
+                nginx/php8.2-fpm/reverb/reverb-staging/reverb-dev active; 0 ERROR baru (ERROR
+                terakhir prod 2026-08-27 23:42 = gotcha T_NS_SEPARATOR sesi TASK_49,
+                staging/dev 2026-08-26 = queue worker lama).
+                DATA PROD: 88 users / 51 hydrants / 6 pompas / 326 banjars - SAMA PERSIS
+                pra-deploy. `reports` 30 -> 35, dan itu BUKAN efek deploy: laporan terbaru
+                bertanggal 23:09 sementara pull prod jam 23:41, jadi kelimanya lahir dari
+                pemakaian nyata antara deploy 1ed163ff dan ini. Deploy ini nol sentuhan DB.
                 SISA: verifikasi visual §8 file task (butuh browser), termasuk uji sentuh di
                 APK WebView untuk memastikan clickToPlace tidak memindahkan pin saat pengguna
                 sebenarnya hendak menggulir halaman.
