@@ -233,8 +233,8 @@ Task aktif   : TASK_52 (prompt/tasks/TASK_52_asal_titik_laporan.md) — SELESAI 
                 berbunyi "PT Tawarin Dimana Saja" di ketiga halaman live.
                 KEDUA WRAPPER DIRILIS 2026-09-01 & TERPASANG di prod/staging/dev.
                 APK: `gradlew assembleDebug` (JAVA_HOME wajib diisi ke jbr Android Studio -
-                shell non-IDE tak punya java di PATH), 14.202.377 B, versionName 1.1.2 /
-                versionCode 4, debug-signed; sirine.mp3 + masuk.wav + konfirmasi.wav dibuktikan
+                shell non-IDE tak punya java di PATH), 14.202.482 B, versionName 1.1.3 /
+                versionCode 5, debug-signed; sirine.mp3 + masuk.wav + konfirmasi.wav dibuktikan
                 terpaket di res/raw/. NOMOR VERSI DINAIKKAN 2026-09-01 atas permintaan user
                 (1.1.1/vc3 -> 1.1.2/vc4): versionCode WAJIB ikut naik, sebab itulah bilangan
                 yang dipakai Android mengurutkan pembaruan - versionName cuma teks bagi manusia,
@@ -253,11 +253,36 @@ Task aktif   : TASK_52 (prompt/tasks/TASK_52_asal_titik_laporan.md) — SELESAI 
                 SENGAJA DI LUAR GIT (public/exe/.gitignore, pola docker/tiles/data/) supaya blob
                 80 MB tak masuk riwayat selamanya - dikirim ke tiap env lewat pscp SEKALI ke
                 /root lalu disalin ke tiga folder, md5 b8bd8604... cocok di ketiganya. Keduanya
-                terbukti terunduh: /apk/sisupit.apk content-length 14.202.377 dan
+                terbukti terunduh: /apk/sisupit.apk content-length 14.202.482 dan
                 /exe/Sisupit-Desktop-Setup-1.0.1.exe content-length 80.485.941 (byte awal
                 "MZ") di ketiga domain, @cf90d8a8.
+                BUG DITEMUKAN & DIPERBAIKI 2026-09-01 (APK 1.1.3/vc5, @e71c356e), dilaporkan
+                user: dipasang sebagai PEMBARUAN, notifikasi broadcast ke petugas berbunyi BUKAN
+                sirine; instalasi BERSIH benar. Yang berbeda antara dua jalur itu cuma keadaan
+                yang BERTAHAN di perangkat = NotificationChannel. AKARNYA bukan di kode yang
+                berubah (blok channel darurat tak disentuh sejak sebelum TASK_50) melainkan
+                BENTUK URI suaranya: `android.resource://<pkg>/<ANGKA>` menyimpan ID resource
+                NUMERIK, dan angka itu digeser compiler tiap kali isi res/raw bertambah.
+                Dibuktikan dengan aapt2 atas APK yang benar-benar beredar: build Juni punya
+                raw/sirine = 0x7f0e0001, sedangkan di 1.1.2 angka itu milik raw/konfirmasi
+                (sirine geser ke 0x7f0e0003) - sebab masuk.wav & konfirmasi.wav duduk sebelum
+                "sirine" secara alfabet. Setelan channel PERMANEN, jadi perangkat yang meng-update
+                tetap memegang angka basi yang kini menunjuk NADA KOORDINASI.
+                FIX DUA LAPIS, keduanya wajib: (a) URI suara jadi ber-NAMA (`.../raw/sirine`) -
+                nama tak pernah bergeser, JANGAN dikembalikan ke R.raw.*; (b) ID channel dinaikkan
+                v4 -> v5 (+ ketiga channel TASK_50 v1 -> v2), sebab channel yang terlanjur salah
+                TIDAK BISA diperbaiki di tempat - menghapus lalu membuat ulang dengan ID YANG SAMA
+                justru MEMULIHKAN setelan lamanya (perilaku Android yang disengaja).
+                ID channel darurat ternyata ditulis di TIGA tempat (konstanta service, salinan
+                hardcoded di MainActivity, dan `default_notification_channel_id` di
+                AndroidManifest.xml) - ketiganya WAJIB naik bersamaan, satu tertinggal = FCM
+                menunjuk channel yang tak pernah dibuat lalu suaranya jatuh ke nada bawaan tanpa
+                galat. MainActivity kini MEMBACA konstanta service, tak lagi menyimpan salinan.
+                HARGANYA: penyesuaian per-channel milik pengguna di Setelan Android hilang
+                (preseden sama saat v2 & v3 dipensiunkan). Perangkat yang terlanjur memasang 1.1.2
+                IKUT SEMBUH lewat update ini, tanpa perlu uninstall.
                 SISA: verifikasi di PERANGKAT SUNGGUHAN - pasang APK & jalankan installer,
-                dengarkan ketiga nada. FLAG_INSISTENT di Android O+ MASIH BELUM diuji; kalau
+                dengarkan ketiga nada, khususnya lewat jalur UPDATE (bukan cuma install bersih). FLAG_INSISTENT di Android O+ MASIH BELUM diuji; kalau
                 ternyata diabaikan, jatuhkan ke bunyi sekali dan catat, JANGAN bangun foreground
                 service.
                TASK_49 (prompt/tasks/TASK_49_alamat_detail_yurisdiksi_berita_acara.md) — SELESAI
