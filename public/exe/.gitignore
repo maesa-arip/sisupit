@@ -1,0 +1,11 @@
+# Installer desktop Windows (Sisupit-Desktop-Setup-*.exe, ~80 MB) SENGAJA di luar git,
+# alasan yang sama dengan /docs/video/ di .gitignore utama: deploy ketiga environment
+# memakai `git pull`, sehingga blob sebesar ini akan ikut masuk riwayat git SELAMANYA
+# dan terunduh ulang tiap klon. Berkasnya dikirim langsung ke tiap env lewat `pscp`
+# (lihat catatan deploy), jadi ia TETAP tersaji di /exe/ tanpa membebani repo.
+#
+# Berkas .gitignore ini sendiri IKUT di-commit supaya direktori public/exe/ tetap
+# lahir saat `git pull` — pola yang sama dipakai docker/tiles/data/.
+*.exe
+*.blockmap
+!.gitignore
