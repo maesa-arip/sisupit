@@ -1,5 +1,6 @@
 import DatePicker from '@/Components/DatePicker';
 import InputError from '@/Components/InputError';
+import TimePicker from '@/Components/TimePicker';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
@@ -229,12 +230,12 @@ export default function Create(props) {
 											startYear={2000}
 											className="flex-1"
 										/>
-										<Input
-											type="time"
+										<TimePicker
 											aria-label="Pukul"
 											value={occurredTime}
-											onChange={(e) => setOccurred(undefined, e.target.value)}
-											className="h-10 w-28 rounded-md border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+											onChange={(t) => setOccurred(undefined, t)}
+											placeholder="Pukul"
+											className="w-28"
 										/>
 									</div>
 									<InputError message={errors.occurred_at} className="mt-1" />

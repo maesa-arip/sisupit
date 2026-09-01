@@ -2177,3 +2177,223 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
   `tests/Feature/Sisupit/ReportLocationSingleModeTest.php` — tiga penjaga JSX dibuktikan MERAH
   lebih dulu terhadap berkas sebelum perubahan; yang keempat (server menolak laporan warga
   tanpa desa) penjaga regresi atas perilaku yang memang sudah ada.
+
+---
+
+### #106 — Ikon brand slot "Lapor" membuat satu slot bilah bawah tampak aktif di semua halaman (FIXED)
+
+- **Prioritas:** P3 — murni rupa, tak ada data/otorisasi yang tersentuh. Yang dirusaknya
+  kepercayaan pada satu-satunya penanda posisi yang dipunyai pengguna ponsel.
+- **Dilaporkan user:** 2026-09-01 — "untuk logo sekarang sudah merah seperti aktif terus".
+- **Isi:** aturan bilah bawah sejak koreksi user 2026-08-19 berbunyi **"warna aksen (merah)
+  hanya menandai LOKASI — halaman yang sedang dibuka, satu saja pada satu waktu"**
+  (`.claude/skills/sisupit-ui/SKILL.md`). Slot "Lapor" melanggarnya di setiap halaman: ia
+  merender `/icon.png`, dan berkas itu **petir putih di dalam kotak merah penuh** — bidang
+  yang bentuk, sudut, dan warnanya nyaris identik dengan kotak `bg-destructive rounded-xl`
+  yang dipakai keempat slot lain untuk berarti "kamu di sini". Labelnya pun `text-destructive`
+  permanen. Jadi di halaman mana pun selalu ada dua slot yang tampak aktif — persis keluhan
+  yang sudah pernah dibetulkan 2026-08-19 ("seolah ada 2 yang sedang aktif"), tapi kali ini
+  dari arah yang tak kelihatan saat membaca kode: **pelanggarannya ada DI DALAM aset PNG**,
+  bukan di satu kelas Tailwind pun. Penanda aktif slot itu sendiri (cincin) dengan demikian
+  hampir tak terbaca, karena ia harus membedakan "merah" dari "merah bercincin".
+- **Pelajaran:** aturan warna hanya berlaku sejauh WARNA ITU DITULIS DI KODE. Begitu sebuah
+  aset membawa warnanya sendiri, ia lolos dari setiap pemeriksaan yang membaca kelas — dan
+  makna yang dijaga susah payah di token bisa dibatalkan diam-diam oleh satu berkas gambar.
+- **Status:** FIXED 2026-09-01, dua putaran. Putaran pertama membuat warna logo jadi KEADAAN
+  (`grayscale` saat tidak aktif, penuh saat aktif) sambil mencabut cincin penanda aktif dan
+  label `text-destructive` permanennya. Usul user satunya — "penanda AKTIF dibuat abu" —
+  ditolak: abu di bilah ini sudah berarti TIDAK aktif, jadi slot yang sedang dibuka akan
+  terbaca seperti tombol mati sementara empat slot lain tetap memerah saat aktif.
+- **Putaran kedua, setelah user menunjuk referensi `docs/example/menu.png`:** logo yang
+  di-grayscale ternyata masih menyimpang, sebab ia tetap sebuah BIDANG TERISI sementara empat
+  tetangganya glyph telanjang — bobotnya lebih berat tanpa alasan. Referensi itu (diukur:
+  kotak aktif 78px persegi, glyph 29px, pitch 123px → pada layar 375px ≈ kotak 48px, glyph
+  18px) memperlihatkan satu aturan tunggal: **bidang terisi HANYA milik slot aktif.** Bentuk
+  finalnya karena itu: slot "Lapor" memperlihatkan `/icon.png` **hanya saat aktif** dan
+  memakai glyph `IconFlame` biasa selebihnya — glyph diambil dari item `report.create` milik
+  `navItems.js` (ikon yang sama dengan "Lapor Darurat!" di sidebar, aturan #71). `IconBolt`
+  SENGAJA tidak dipakai meski brandnya petir: di repo ini petir sudah berarti jenis kejadian
+  LISTRIK (`Admin/Dashboard.jsx`), dan satu ikon tak boleh punya dua makna. Kotak penanda aktif
+  kelima slot jadi **persegi 40px** (dulu pil `h-8 w-12`). Label 12px DIPERTAHANKAN meski
+  referensinya tanpa label (keputusan user: pemakai utamanya warga awam dalam keadaan panik,
+  dan yang paling mahal kalau salah tebak justru slot "Lapor") — itulah yang menahan kotaknya
+  di 40px alih-alih 48px, sebab 48+6+16 tak muat di bilah 64px.
+- **Putaran ketiga (proporsi), setelah user menambah empat referensi & berkata "yang sekarang
+  tidak enak dilihat, terutama untuk active nya":** keempatnya diukur lalu dinormalkan ke lebar
+  layar 375px — kotak aktif 49-55px, glyph 15-18px, ruang atas/bawah 9-22px, dan yang paling
+  menentukan, **glyph hanya mengisi 29-33% sisi kotak aktif**. Bilah kita saat itu: kotak 40px
+  berisi glyph 20px = **50%**, dengan sisa ruang **2px** di atas & bawah (bar 64px habis oleh
+  40+4+16). Jadi yang salah bukan warna atau bentuknya melainkan PERBANDINGANNYA: kotak aktif
+  memeluk ikonnya, sehingga terbaca sesak alih-alih seperti plakat. Akar ruangnya satu: keempat
+  referensi tak punya label, dan 16px teks itulah yang mereka pakai untuk memperbesar blok.
+  Keputusan user: **label tetap** (pemakai utamanya warga awam dalam keadaan panik, dan slot
+  yang paling mahal kalau salah tebak justru "Lapor"), **bilah dilegakan** 64px → 80px, kotak
+  aktif 40 → 48px, glyph 20 → 18px (= 37%, sedekat yang bisa dicapai selama label bertahan),
+  napas 6px atas & bawah.
+- **Putaran keempat (permintaan user 2026-09-01):** "buat agar teksnya di dalam kotak merah,
+  dan untuk lapor gunakan ikon api yang non aktif, jangan gunakan logo". Dua hal, dan keduanya
+  membereskan sisa masalah yang sama. (a) Kotak aktif kini **membungkus ikon DAN label**
+  (`w-full py-2`), bukan cuma memeluk ikon dengan label menggantung di bawahnya — bentuk lama
+  membuat slot aktif terbaca sebagai DUA benda, sebuah tombol berwarna dengan keterangan di
+  luarnya. Lebarnya sengaja `w-full`, bukan mengikuti panjang label: kalau tidak, kotak merah
+  berganti ukuran tiap pindah halaman ("Fasilitas" jauh lebih lebar dari "Menu"). (b) Ikon
+  brand `/icon.png` **dilepas dari bilah**; slot "Lapor" memakai `IconFlame` di kedua keadaan
+  seperti empat tetangganya. Ini menutup akar #106 pada sumbernya: selama slot itu memakai aset
+  yang SUDAH berupa kotak merah, ia tak akan pernah bisa ikut aturan bidang/glyph yang berlaku
+  bagi slot lain — tiap putaran sebelumnya hanya menyiasati keadaannya. Prop `imageSrc` di
+  `SlotContent`/`NavItem` ikut dihapus karena tak lagi punya pemanggil; berkas `/icon.png`
+  TETAP dipakai favicon & `ApplicationLogo`, jangan dihapus.
+- **Putaran ketujuh — MINIMALIS, dan inilah bentuk yang berlaku (permintaan user
+  2026-09-01, referensi `docs/example/Menu 6.png`):** bentuk kapsul-melayang putaran kelima &
+  keenam dinilai user "kurang sesuai" dan DITINGGALKAN (ada di riwayat git, tidak diarsipkan
+  sebagai sepakat). Navigasi dibangun ulang DARI ARSIP sepakat 1 — bukan dari kapsul — lalu
+  dilucuti: bilah 80px → 64px, `border-t` dibuang, glyph 18px → 16px, jarak ikon↔label 4px →
+  8px, dan **seluruh bidang penanda aktif dihapus**. Yang menandai halaman yang sedang dibuka
+  kini hanya `text-destructive` + `font-semibold`. Terukur dari referensi: ikon 21px berbanding
+  pitch slot 102px = 20,6%, yang pada layar 390px berarti ikon 16px.
+  Referensi membedakan aktif lewat ikon PADAT vs ikon garis; itu sengaja TIDAK ditiru karena
+  @tabler tak menyediakan varian padat untuk semua ikon yang dipakai (`IconMenu2` &
+  `IconHistory` tak punya) — sebagian slot akan memadat dan sebagian tidak, tepat di penanda
+  yang paling sering dilihat. Ketebalan garis juga tidak dipakai: itu persis yang dicabut #72.
+  Efek samping yang menguntungkan: karena tak ada lagi bidang berwarna permanen di navigasi,
+  akar #106 tertutup dengan sendirinya — satu-satunya yang merah adalah slot yang sedang
+  dibuka. Efek samping yang MERUGIKAN dan harus disadari: slot "Lapor" kehilangan seluruh
+  penonjolan tetapnya dan kini sama rata dengan empat tujuan lain; di aplikasi darurat itu
+  bukan harga yang sepele.
+- **Ikutan yang WAJIB ikut tiap kali tinggi bilah berubah** — ketahuan saat menghitung blast
+  radius: `AppLayout` ruang konten (`pb-[calc(6rem+…)]`) dan **tombol "Kirim" melayang di
+  `Front/Reports/Create.jsx`**, yang dipaku `bottom-16` mengikuti bilah 64px. Tanpa ikut naik,
+  tombol pengirim laporan darurat tertutup separuh oleh bilah, tanpa galat apa pun. Sekalian
+  ketahuan bahwa `bottom-16` itu memang **sudah keliru sejak awal**: bilah memakai padding
+  `env(safe-area-inset-bottom)` sehingga tinggi nyatanya lebih dari 4rem di ponsel
+  bergesture-bar — mayoritas perangkat APK — jadi tombol itu selama ini tertutup ~30px di sana.
+  Keduanya dibetulkan jadi `bottom-[calc(5rem+env(safe-area-inset-bottom))]`.
+- **Putaran kelima — BENTUKNYA yang diganti (permintaan user 2026-09-01, referensi
+  `docs/example/menu 5.png`):** bentuk hasil putaran keempat DISEPAKATI & DIARSIPKAN utuh di
+  `docs/example/sepakat/1-MobileBottomNav.jsx.txt` (berikut tiga angka di berkas lain yang
+  terikat padanya), lalu navigasi dibangun ulang mengikuti referensi baru: **kapsul melayang**
+  `rounded-full` yang mengambang di atas dasar layar berisi EMPAT tujuan, plus **lingkaran
+  merah terpisah** di kanannya untuk aksi "Lapor". Terukur & dinormalkan ke layar 390px:
+  kapsul 62px tinggi, 17px dari tepi kiri/kanan, ~28px dari dasar layar, lingkaran 60px
+  berjarak 17px dari kapsul, kapsul-aktif ter-inset 4px.
+  Pemisahan TUJUAN (kapsul) vs AKSI (lingkaran) itulah inti bentuknya, dan ia mengubah dua
+  aturan yang lahir dari temuan ini sendiri: (a) lingkaran "Lapor" kini **merah permanen** —
+  boleh, karena bidang di LUAR barisan slot tak bisa terbaca sebagai "halaman yang sedang
+  dibuka"; yang dulu keliru pada #106 justru bidang merah yang duduk DI DALAM barisan itu,
+  sebaris dengan penanda lokasi; (b) penanda aktif di dalam kapsul turun dari blok solid jadi
+  **tint** `bg-destructive/10`, sebab blok merah solid berdiri tepat di sebelah lingkaran merah
+  pekat akan membuat keduanya saling melemahkan — referensi memang memisahkan keduanya begitu.
+  **Putaran keenam (permintaan user, hari yang sama):** kapsulnya tetap, tombol "Lapor" pindah
+  dari samping kanan ke TENGAH — bertengger 12px di atas bibir kapsul (`absolute -top-3`,
+  `ring-4 ring-background` sebagai celah supaya dua bidang membulat tak menempel), dengan lubang
+  selebar 80px di tengah barisan supaya keempat slot tak tertimpa. Yang mengikat: alasan tombol
+  itu boleh berwarna permanen bergeser dari "ia di LUAR barisan" jadi "ia BERTENGGER, bukan
+  sebaris" — jadi jangan pernah meratakannya menjadi slot kelima, sebab begitu ia sebaris,
+  bentuk #106 kembali. Ikutannya, ruang konten `AppLayout` dan tombol Kirim melayang kini harus
+  melewati PUNCAK tombol (kapsul + angkat), bukan bibir kapsul: keduanya jadi 6,5rem + safe-area.
+  HARGA yang melekat & harus disadari: nama "Lapor" tak lagi tertulis (tak ada ruang teks di
+  lingkaran 64px, namanya hidup di `aria-label`), sehingga keputusan "label dipertahankan demi
+  warga awam" dari putaran ketiga ditekuk khusus untuk slot itu.
+- **Tanpa test penjaga** — sama seperti PENGECUALIAN #2, ini rupa; `MobileNavParityTest`
+  menjaga isi menu, bukan warnanya. Verifikasinya visual di ponsel.
+
+---
+
+### #107 — Tombol "Kirim Laporan Darurat" menyalin gayanya sendiri & melayang berjarak dari bilah (FIXED)
+
+- **Prioritas:** P3 — rupa. Tapi ia rupa dari SATU-SATUNYA tombol yang menyelesaikan alur
+  paling penting di aplikasi ini, jadi murah untuk dibenahi dan mahal untuk dibiarkan.
+- **Ditemukan:** 2026-09-01 atas permintaan user ("perbaiki tampilan lapor pada tombol kirim
+  laporan darurat"), setelah navigasi bawah berpindah ke model minimalis (#106 putaran ketujuh).
+- **Isi, empat hal:**
+  1. **Celah 8px.** Sticky bar-nya duduk di `bottom-[calc(4.5rem+…)]` sementara bibir bilah ada
+     di `4rem+…`, jadi ada sepotong konten halaman MENGINTIP di antara dua bidang yang
+     sama-sama selebar layar. Celah itu warisan langsung dari bentuk kapsul yang sempat dicoba
+     (di sana memang ada jarak) dan tak pernah disetel ulang saat bilah kembali menempel.
+  2. **Bayangan naik `0 -2px 10px`** — lahir ketika bilah di bawahnya masih ber-`border-t`.
+     Sejak bilah tak bergaris, bayangan itu jadi satu-satunya benda berat di bagian bawah layar.
+  3. **`bg-card/95` + `backdrop-blur` bersentuhan dengan bilah `bg-card` pekat** — dua bidang
+     bersentuhan dengan tembus-pandang berbeda memperlihatkan garis sambungan tiap kali konten
+     gelap lewat di belakangnya.
+  4. **Kelas warna rakitan tangan.** Kedua tombol (desktop & sticky mobile) menyalin sendiri
+     `bg-destructive … hover:bg-destructive/90 … disabled:opacity-70` padahal
+     `Components/ui/button.jsx` sudah punya `variant="destructive"` dan `size="xl"` yang berisi
+     persis itu. Akibat yang tak pernah disadari: keduanya memakai `rounded-md`, sedangkan
+     `size="xl"` di seluruh aplikasi `rounded-xl` — jadi tombol utama halaman ini bersudut lebih
+     tajam daripada tombol utama halaman lain. Keduanya juga sudah menyimpang satu sama lain
+     (`text-sm` + `px-8` di desktop vs `text-base` di mobile).
+- **Bentuknya:** sama dengan #94 pada tingkat rupa — sebuah komponen menyalin ulang keputusan
+  yang sudah punya sumber, lalu salinannya menyimpang tanpa gejala. Yang menyimpang di sini
+  cuma sudut dan ukuran huruf, jadi tak ada yang merah; ia hanya membuat satu halaman terasa
+  "bukan bagian dari aplikasi yang sama".
+- **Status:** FIXED 2026-09-01. Sticky bar RAPAT ke bilah (`bottom-[calc(4rem+…)]`) sehingga
+  keduanya jadi satu blok kaki dengan satu garis batas, bayangan dibuang, latarnya `bg-card`
+  pekat, dan KEDUA tombol memakai `variant="destructive" size="xl"` dari komponen — bukan
+  kelas warna sendiri. Angka `4rem` itu terikat pada tinggi bilah; catatannya ada di komentar
+  kedua berkas dan di `docs/example/sepakat/README.md`.
+
+
+### #108 — `<input type="time">` di Berita Acara menutup aplikasi APK saat diketuk (FIXED)
+
+- **Prioritas:** P1 — bukan rupa. Mengetuknya MENUTUP APLIKASI, dan yang terketuk adalah
+  petugas yang sedang mengisi dokumen resmi pasca-insiden; seluruh isian yang belum tersimpan
+  ikut hilang bersama prosesnya.
+- **Ditemukan:** 2026-09-02, laporan user ("di buat laporan penanganan saat klik jam aplikasi
+  apk langsung force close").
+- **Isi:** `Front/Reports/Resolution/Create.jsx` memilih jam kejadian lewat `<input type="time">`.
+  Input itu tidak digambar halaman — ia menyerahkan pemilihannya ke **dialog NATIVE** milik
+  WebView (Chromium `InputDialogContainer` → `TimePickerDialog` platform, memakai tema Activity).
+  Di browser desktop jalur itu tak pernah dipakai, jadi cacatnya **tak bisa terlihat di tempat
+  perubahan frontend biasanya diperiksa**; ia hanya muncul di perangkat.
+- **Yang membuatnya sebuah temuan, bukan sekadar bug:** input ini adalah **satu-satunya**
+  input tanggal/jam native di seluruh `resources/js/` (dibuktikan grep). Tanggal yang duduk
+  PERSIS DI SEBELAHNYA dalam `flex` yang sama, dan setiap tanggal lain di aplikasi ini, sudah
+  lama memakai `Components/DatePicker.jsx` — Popover + Calendar, murni JavaScript, nol dialog
+  native. Jadi yang menabrak bukan "cara aplikasi memilih waktu" melainkan **satu tempat yang
+  menyimpang dari cara aplikasi ini sendiri**, dan menyimpang ke arah yang menyerahkan kendali
+  ke lapisan yang tak dimiliki aplikasi.
+- **Kenapa fixnya di WEB, bukan di wrapper:** akar native persisnya (tema `Theme.MaterialComponents`
+  + `material:1.5.0` pada `AppCompatActivity`) **tidak diverifikasi** — tak ada perangkat
+  tersambung saat ini, jadi tak ada logcat, dan menebak isi stack trace lalu menuliskannya
+  sebagai fakta akan lebih berbahaya daripada mengakui batasnya. Yang bisa dibuktikan justru
+  cukup untuk memutuskan: menghapus dialog native menghapus SELURUH kelas kegagalan ini,
+  berlaku juga di WebView OEM mana pun yang memperlakukannya berbeda. Dan harganya jauh lebih
+  murah — perbaikan web tiba lewat `git pull` ke SEMUA pengguna sekaligus, termasuk yang masih
+  memegang APK 1.1.2 atau build Juni; perbaikan wrapper menuntut versionCode naik, pscp ke tiga
+  env, dan pemasangan ulang di tiap perangkat (lihat catatan rilis TASK_50/#106).
+- **Status:** FIXED 2026-09-02. `Components/TimePicker.jsx` BARU — kembaran `DatePicker.jsx`
+  (Popover + dua kolom angka, menyimpan/mengembalikan `'HH:mm'`, token & bentuk trigger
+  disalin persis). Menitnya sengaja **penuh 0-59, bukan kelipatan 5**: kolom yang sama dipakai
+  MENYUNTING berita acara lama yang jamnya tercatat lewat input native, dan grid berkelipatan
+  akan membuang menitnya diam-diam.
+- **Sisa yang belum diverifikasi:** perbaikan ini dibuktikan lewat test, build, dan bundel
+  produksi (`type:"time"` = 0), **belum di perangkat**. Uji ketuk di APK sungguhan masih perlu.
+  Akar native-nya juga sengaja dibiarkan hidup di wrapper — kalau kelak ada `<input type="date">`
+  lain yang lolos, ia akan menabrak hal yang sama; penjaga di bawah ada supaya itu tak terjadi.
+- **Penjaga:** `tests/Feature/Sisupit/FormControlNativeDialogTest.php` — menolak `type="time|date|
+  datetime-local|month|week"` di SELURUH `resources/js/` (komentar dibuang lebih dulu supaya
+  berkas yang menjelaskan larangannya tidak menjegal penjaganya sendiri), dibuktikan MERAH.
+
+### #109 — `fles-wrap`: satu huruf salah ketik membuat paginasi melewati tepi kartu (FIXED)
+
+- **Prioritas:** P2 — tak ada data yang salah, tapi daftar halaman `/admin/users` tak terpakai
+  di ponsel.
+- **Ditemukan:** 2026-09-02, laporan user ("di manajemen pengguna paginationnya lewat").
+- **Isi:** `<PaginationContent className="fles-wrap flex …">`. **`fles-wrap` bukan kelas
+  Tailwind** — ia tak pernah dipancarkan, jadi `flex-wrap` TIDAK PERNAH berlaku, sementara
+  `PaginationContent` sendiri ber-basis `flex flex-row items-center gap-2` yang tak membungkus.
+  Produksi punya 88 akun dan halaman ini memaginasi 10, jadi tautannya sebelas (« Previous,
+  1..9, Next ») berjejer dalam satu baris di layar ~360px.
+- **Kenapa lolos sejauh ini:** salah ketik nama kelas **tidak pernah bergalat**. Tailwind tak
+  memperingatkan kelas tak dikenal, build tetap hijau, DOM tetap memperlihatkan atribut yang
+  "terbaca benar" — persis pola senyap #98. Bukti niat aslinya masih tertinggal di sebelahnya:
+  `PaginationItem` ber-`mb-1 lg:mb-0`, jarak antar-BARIS yang cuma masuk akal bila barisnya
+  memang lebih dari satu.
+- **Sebarannya:** TIGA berkas lewat salin-tempel — `Admin/Users/Index.jsx` (yang dilaporkan),
+  `Admin/Announcements/Index.jsx` (hidup, superadmin), dan `Front/Settings/Index.jsx` (dead
+  code). Ketiganya dibetulkan; yang ketiga ikut **hanya** supaya penjaganya bisa menuntut
+  seluruh `resources/js/` alih-alih menyebut dua nama berkas yang bisa dihindari salinan
+  keempat.
+- **Status:** FIXED 2026-09-02 → `flex flex-wrap justify-center lg:justify-end`.
+- **Penjaga:** `FormControlNativeDialogTest.php` — dua test, dibuktikan MERAH: tak boleh ada
+  `fles-wrap` di mana pun, dan **setiap** `PaginationContent` wajib ber-`flex-wrap`.
