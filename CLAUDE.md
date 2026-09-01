@@ -27,7 +27,69 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : TASK_53 (prompt/tasks/TASK_53_satu_mode_lokasi_form_lapor.md) — SELESAI
+Task aktif   : PERBAIKAN LEPAS #108 & #109 — SELESAI & TERDEPLOY 2026-09-02 @2f371c32.
+                Dua cacat dilaporkan user ("di buat laporan penanganan saat klik jam aplikasi
+                apk langsung force close, dan di manajemen pengguna paginationnya lewat"),
+                keduanya hidup HANYA di berkas JSX sehingga tak ada test lama yang melihatnya.
+                #108 (P1): form Berita Acara memilih jam lewat <input type="time">. Input itu
+                TIDAK digambar halaman - ia menyerahkan pemilihannya ke dialog NATIVE milik
+                WebView, dan di APK mengetuknya MENUTUP APLIKASI di tengah pengisian dokumen
+                resmi. YANG MENENTUKAN BENTUK PERBAIKANNYA: input itu SATU-SATUNYA input
+                tanggal/jam native di seluruh resources/js (dibuktikan grep) - tanggal yang
+                duduk PERSIS DI SEBELAHNYA dalam flex yang sama, dan setiap tanggal lain di
+                aplikasi ini, sudah lama memakai Components/DatePicker.jsx yang murni
+                JavaScript. Jadi yang menabrak bukan "cara aplikasi memilih waktu" melainkan
+                satu tempat yang menyimpang dari cara aplikasi ini sendiri.
+                AKAR NATIVE-nya SENGAJA TIDAK DIKLAIM: tak ada perangkat tersambung = tak ada
+                logcat, dan mengarang stack trace lebih berbahaya daripada mengakui batasnya.
+                Yang bisa dibuktikan sudah cukup untuk memutuskan: menghapus dialog native
+                menghapus SELURUH kelas kegagalannya, berlaku juga di WebView OEM mana pun,
+                dan tiba lewat `git pull` ke SEMUA pengguna termasuk yang masih memegang APK
+                1.1.2 - tanpa rilis wrapper (versionCode + pscp + pasang ulang tiap perangkat).
+                Fix: Components/TimePicker.jsx BARU, kembaran DatePicker.jsx. MENIT PENUH 0-59
+                dan BUKAN kelipatan 5 - kolom yang sama dipakai MENYUNTING berita acara lama
+                yang jamnya tercatat lewat input native, grid berkelipatan akan membuang
+                menitnya diam-diam. Digulir lewat scrollTop kolomnya sendiri, BUKAN
+                scrollIntoView() yang ikut menggulung setiap leluhur (panel akan menggeser
+                halaman di belakangnya).
+                #109 (P2): PaginationContent dikelasi `fles-wrap`. Itu BUKAN kelas Tailwind,
+                jadi flex-wrap TIDAK PERNAH berlaku sementara komponennya berbasis flex-row
+                yang tak membungkus: 88 akun prod / 10 per halaman = sebelas tautan berjejer
+                satu baris di layar ponsel. Lolos karena salah ketik nama kelas TIDAK PERNAH
+                BERGALAT - Tailwind diam, build hijau, DOM "terbaca benar" (pola senyap #98).
+                Niat aslinya masih tertinggal di sebelahnya: PaginationItem ber-`mb-1 lg:mb-0`,
+                jarak antar-BARIS. Tersalin ke TIGA berkas (Users, Announcements, +
+                Front/Settings yang dead code); ketiganya dibetulkan HANYA supaya penjaganya
+                bisa menuntut seluruh resources/js alih-alih menyebut nama berkas yang bisa
+                dihindari salinan keempat.
+                Penjaga: FormControlNativeDialogTest BARU (4 test, KEEMPATNYA dibuktikan MERAH
+                lewat sabotase; berkas dipulihkan byte-exact, md5 dicocokkan). Penjaga input
+                native MEMBUANG KOMENTAR lebih dulu - tanpa itu ia tersandung berkas yang
+                menjelaskan larangannya sendiri (TimePicker.jsx), dan penjaga yang menjegal
+                dirinya sendiri akan dimatikan orang berikutnya alih-alih dipatuhi.
+                Test 386 -> 390 passed (1507 assertions), Pint PASS, prettier clean, npm run
+                build lulus. NOL perubahan server: tanpa migrasi, route, skema, controller.
+                TERDEPLOY 2026-09-02 @2f371c32 ke prod/staging/dev, ff dari 4d38a85a, urutan
+                dev -> staging -> prod. TIGA commit: c138b8a6 (#106/#107 sesi 2026-09-01 yang
+                belum ter-commit) + 13bda4bb (#108/#109) + 2f371c32 aset build. DEPLOY PALING
+                SEDERHANA: `git status --short database/migrations/ routes/ composer.json
+                composer.lock` KOSONG, jadi TANPA migrasi, TANPA cadangan DB (tak ada yang
+                menyentuh DB), TANPA composer install, TANPA rebuild route cache - cukup
+                `git pull` + `chown`. 0 migrasi pending di ketiga env sebelum & sesudah.
+                Verifikasi: ketiga domain / & /hydrants 200, prod /pumps 200, POST
+                /broadcasting/auth 403; bundel BARU Create-BC6uIkJ_.js 200 & LAMA
+                Create-C0o7-0qe.js 404 di ketiganya; 0 berkas root-owned pasca-chown di ketiga
+                env; nginx/php8.2-fpm/reverb/reverb-staging/reverb-dev active; 0 ERROR baru
+                (ERROR terakhir ketiga env 2026-09-01 06:46-06:47 = queue worker "Connection
+                refused" lama). DATA PROD TIDAK BERUBAH: 89 users / 38 reports / 51 hydrants /
+                6 pompas / 326 banjars / 1 berita acara, sama persis pra-deploy - deploy ini
+                nol sentuhan DB.
+                SISA: uji ketuk pemilih jam di APK SUNGGUHAN (perbaikan ini dibuktikan lewat
+                test, build, & bundel produksi `type:"time"` = 0, BELUM di perangkat), dan
+                periksa paginasi /admin/users di ponsel. Akar native-nya sengaja dibiarkan
+                hidup di wrapper - kalau kelak ada input tanggal/jam native lain yang lolos ia
+                akan menabrak hal yang sama; penjaga di atas ada supaya itu tak terjadi.
+               TASK_53 (prompt/tasks/TASK_53_satu_mode_lokasi_form_lapor.md) — SELESAI
                 (kode) 2026-09-01. Permintaan user: "di form lapor jadikan 1, jangan ada
                 pilih manual atau ikuti peta, peta dan lokasi sinkron, saat pin digeser data
                 mengikuti lokasi pin, mirip seperti /admin/hydrants/create", lalu diperluas
