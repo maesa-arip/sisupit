@@ -1347,16 +1347,22 @@ export default function Create(props) {
 
 							{/* --- ACTIONS (desktop; di mobile pakai sticky bar di bawah) --- */}
 							<div className="mt-5 border-t border-border pt-5">
+								{/* Varian & ukuran dari `Components/ui/button.jsx`, bukan kelas warna
+								    rakitan tangan: `destructive` + `xl` sudah persis inilah yang
+								    dimaksud (h-12, rounded-xl, hover & disabled ikut). Bentuk lama
+								    menyalin warnanya sendiri lalu memakai `rounded-md`, sehingga
+								    tombol utama halaman ini bersudut lebih tajam daripada tombol
+								    utama halaman lain tanpa ada yang menyadarinya. Kembarannya di
+								    sticky bar mobile memakai varian yang SAMA supaya keduanya tak
+								    bisa menyimpang lagi. */}
 								<Button
 									type="submit"
-									className="hidden h-12 w-full items-center justify-center gap-2 rounded-md bg-destructive px-8 text-sm font-semibold text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:cursor-not-allowed disabled:opacity-70 sm:flex"
+									variant="destructive"
+									size="xl"
+									className="hidden w-full font-semibold sm:inline-flex"
 									disabled={processing || locationLoading}
 								>
-									{processing ? (
-										<IconLoader2 className="h-5 w-5 animate-spin" />
-									) : (
-										<IconSend className="h-5 w-5" />
-									)}
+									{processing ? <IconLoader2 className="animate-spin" /> : <IconSend />}
 									{submitLabel}
 								</Button>
 							</div>
@@ -1366,15 +1372,28 @@ export default function Create(props) {
 			</div>
 
 			{/* Sticky CTA mobile — tombol Kirim selalu terlihat tanpa perlu scroll ke bawah.
-			    Diangkat ke bottom-16 agar tidak tertutup MobileBottomNav (fixed bottom-0 h-16 z-50). */}
-			<div className="fixed inset-x-0 bottom-16 z-40 border-t border-border bg-card/95 p-3 shadow-[0_-2px_10px_rgba(0,0,0,0.06)] backdrop-blur sm:hidden">
+			    RAPAT ke MobileBottomNav (tepat 4rem + safe-area, tinggi bilah itu), bukan
+			    melayang 8px di atasnya seperti sebelumnya: dengan celah, sepotong konten
+			    halaman mengintip di antara dua bidang yang sama-sama selebar layar, dan itu
+			    terbaca seperti tata letak yang meleset, bukan seperti disengaja. Rapat begini
+			    keduanya jadi SATU blok kaki: garis atas bar ini menjadi satu-satunya batas,
+			    sebab bilahnya sendiri sudah tak bergaris sejak model minimalis.
+			    Karena itu pula `shadow` dibuang (bayangan naik di atas bilah yang tak bergaris
+			    jadi satu-satunya benda berat di layar) dan latarnya `bg-card` PEKAT, bukan
+			    `bg-card/95` + blur — dua bidang bersentuhan dengan tembus-pandang berbeda akan
+			    memperlihatkan garis sambungan tiap kali konten gelap lewat di belakangnya.
+			    Kalau tinggi bilah berubah, angka 4rem di sini WAJIB ikut — kalau tidak tombol
+			    kirim laporan darurat tertutup tanpa galat apa pun. */}
+			<div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-40 border-t border-border bg-card px-4 py-3 sm:hidden">
 				<Button
 					type="submit"
 					form="reportForm"
-					className="flex h-12 w-full items-center justify-center gap-2 rounded-md bg-destructive text-base font-semibold text-destructive-foreground transition-colors hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-70"
+					variant="destructive"
+					size="xl"
+					className="w-full text-base font-semibold"
 					disabled={processing || locationLoading}
 				>
-					{processing ? <IconLoader2 className="h-5 w-5 animate-spin" /> : <IconSend className="h-5 w-5" />}
+					{processing ? <IconLoader2 className="animate-spin" /> : <IconSend />}
 					{submitLabel}
 				</Button>
 			</div>

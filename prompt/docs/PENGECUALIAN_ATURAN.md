@@ -113,6 +113,10 @@
 - **Yang TIDAK ikut berubah:** kotak ikon slot bilah (tetap `rounded-xl bg-destructive`),
   ukuran ikon 20px/label 12px/stroke tetap (hasil #72 — user menolak mengembalikan ikon 28px),
   keadaan "panel terbuka" (tetap `bg-accent` netral + `aria-expanded`), dan slot "Lapor".
+  *(Slot "Lapor" kemudian BERUBAH 2026-09-01 atas permintaan user — logonya abu saat tidak
+  aktif & merah saat aktif, ukurannya 40px, cincin dan label merah permanennya dicabut. Itu
+  BUKAN pengecualian baru melainkan pemulihan aturan "merah = lokasi"; rinciannya FINDINGS
+  #106. Entri ini tetap seperti aslinya karena mencatat keputusan 2026-08-20.)*
 - **Hidup di:** `resources/js/Layouts/Partials/MobileBottomNav.jsx` — `FASILITAS_ITEM_TONE`,
   `MENU_ACTIVE_TONE`, dan `FloatingLink` (masing-masing berkomentar merujuk entri ini).
 - **Test penjaga:** tidak ada — ini murni rupa. `tests/Feature/Sisupit/MobileNavParityTest.php`

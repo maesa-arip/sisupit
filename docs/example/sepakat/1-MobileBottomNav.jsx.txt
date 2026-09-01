@@ -7,82 +7,110 @@ import { buildNavSections, flattenNavItems, resolveAbilities } from './navItems'
 /**
  * Navigasi bawah untuk layar kecil.
  *
- * BENTUK - MINIMALIS (permintaan user 2026-09-01, referensi `docs/example/Menu 6.png`):
- * bilah selebar layar yang menempel di tepi bawah, lima slot sama rata berisi ikon + label,
- * dan **tanpa bidang penanda aktif apa pun**. Referensinya juga tanpa pemisah sama sekali;
- * pemisah tipis DITAMBAHKAN atas permintaan user berikutnya (lihat komentar di wadah
- * bilahnya) karena tanpa itu bilah menyatu dengan konten di belakangnya. Yang menandai halaman
- * yang sedang dibuka hanya WARNA dan TEBAL HURUF. Tak ada kotak, pil, kapsul, garis, titik,
- * maupun tombol melayang.
+ * BENTUK (keputusan user 2026-08-13, membalikkan TASK_20/21): dua popover melayang buatan
+ * tangan tepat di atas tombol pemicunya — bukan Sheet dari kanan maupun drawer-dari-bawah.
+ * Jangan hidupkan lagi pola drawer tanpa menanyakan user.
  *
- * DUA bentuk lain sudah pernah dicoba dan JANGAN ditulis ulang dari ingatan kalau user
- * memintanya kembali - `docs/example/sepakat/` menyimpannya utuh berikut cara memulihkan &
- * angka-angka di berkas lain yang terikat padanya:
- *   - **sepakat 1** - bilah menempel 80px, penanda aktif KOTAK MERAH SOLID yang membungkus
- *     ikon + label. Model sekarang adalah sepakat 1 yang dilucuti bidangnya lalu dirampingkan
- *     (80px -> 64px, glyph 18px -> 16px, jarak ikon-label 4px -> 8px, garis atas dibuang).
- *   - **kapsul melayang** (referensi `menu 5.png`) - kapsul `rounded-full` mengambang di atas
- *     dasar layar + tombol bulat merah "Lapor" bertengger di tengahnya. Dicoba 2026-09-01,
- *     dinilai user "kurang sesuai"; TIDAK diarsipkan sebagai sepakat, ada di riwayat git.
+ * ISI (keputusan user 2026-08-19, TASK_31): daftar menunya TIDAK lagi ditulis di sini.
+ * Kedua popover dibangun dari `buildNavSections()` — sumber yang sama dengan sidebar
+ * desktop. Pengecualian "dua daftar" yang berlaku sejak 2026-08-13 dengan demikian
+ * DICABUT: sembilan menu desktop (Manajemen SKKL, Pos Pemadam, OPD Terkait,
+ * Instansi/Kabupaten, empat tautan Bantuan & Legal, dan Daftar Baru) sempat hilang tanpa
+ * gejala di ponsel karena aturan "tulis dua kali" itu — lihat FINDINGS_LOG #71.
  *
- * Karena tak ada lagi bidang berwarna permanen, temuan #106 ("logo merah seperti aktif
- * terus") tertutup dengan sendirinya di model ini: satu-satunya yang merah adalah slot yang
- * sedang dibuka. Konsekuensi yang harus disadari: slot "Lapor" kehilangan seluruh penonjolan
- * tetapnya - ia sama rata dengan empat tujuan lain. Itu memang harga bentuk minimalis, dan
- * di aplikasi darurat harganya tidak sepele; kalau kelak dianggap terlalu mahal, sepakat 1
- * atau kapsul-dengan-tombol-tengah adalah dua jalan yang sudah terbukti jalan.
+ * Pembagiannya: bilah memegang empat jangkar tetap (Beranda, Fasilitas, SOS, Riwayat),
+ * dan slot ke-5 "Menu" memuat SEMUA seksi yang belum terwakili di bilah. Karena
+ * pembagian itu memakai daftar KUNCI (bukan daftar menu), item baru di navItems.js
+ * otomatis mendarat di popover "Menu" tanpa perubahan apa pun di berkas ini.
  *
- * ISI (keputusan user 2026-08-19, TASK_31): daftar menunya TIDAK ditulis di sini. Kedua
- * popover dibangun dari `buildNavSections()` - sumber yang sama dengan sidebar desktop.
- * Pengecualian "dua daftar" yang berlaku sejak 2026-08-13 dengan demikian DICABUT: sembilan
- * menu desktop sempat hilang tanpa gejala di ponsel karena aturan "tulis dua kali" itu -
- * lihat FINDINGS_LOG #71. Bilah memegang jangkar tetap lewat daftar KUNCI
- * (BAR_ITEM_KEYS/FASILITAS_ITEM_KEYS), dan slot ke-5 "Menu" memuat SEMUA seksi yang belum
- * terwakili - jadi menu baru di navItems.js otomatis mendarat di sana tanpa menyentuh berkas
- * ini. Seksi "Bantuan & Legal" DIHAPUS dari navItems.js atas permintaan user 2026-08-28,
- * jadi Pusat Bantuan/S&K/Privasi/Tentang kini hanya lewat footer AppLayout.
+ * Slot ke-5 tampil untuk SEMUA PERAN yang sudah login (dulu popover admin saja, peran lain
+ * hanya dapat tautan Profil) — itulah yang membuat menu admin dan tombol Keluar akhirnya
+ * terjangkau pengguna ponsel non-admin (temuan #53). Seksi "Bantuan & Legal" DIHAPUS dari
+ * navItems.js atas permintaan user 2026-08-28, jadi Pusat Bantuan/S&K/Privasi/Tentang kini
+ * hanya lewat footer AppLayout — untuk SEMUA peran, bukan cuma tamu.
  *
- * TAMU (keputusan user 2026-08-25): slot ke-5 BUKAN popover "Menu" melainkan tombol **Masuk**,
- * sebab isi menu bagi tamu nyaris seluruhnya bukan tujuan yang ia cari. Harga yang DISETUJUI
- * user: bagi tamu, "Daftar Baru" hanya lewat tautan di halaman login. Tujuannya TIDAK dipaku
- * di sini - diambil dari item `login` milik navItems.js (aturan #71); kalau item itu hilang,
- * slotnya jatuh kembali ke popover "Menu", bukan menjadi tombol mati. Ingat: footer AppLayout
- * kini satu-satunya jalan ke halaman legal.
+ * TAMU (keputusan user 2026-08-25): slot ke-5 BUKAN popover "Menu" melainkan tombol
+ * **Masuk**. Alasannya, isi menu bagi tamu nyaris seluruhnya bukan tujuan yang ia cari
+ * (dulu empat tautan legal + dua tautan akun), sementara satu-satunya hal yang ingin ia
+ * lakukan — masuk — terkubur satu ketukan di dalam panel. Harga yang DISETUJUI user: bagi
+ * tamu, "Daftar Baru" hanya lewat tautan di halaman login. Tautan itu sudah ada dan sudah
+ * dipakai, jadi tak ada tujuan yang benar-benar buntu — tapi ingat #71 sebelum
+ * memindahkannya: begitu tautan daftar itu hilang, menu tadi ikut hilang dari ponsel tanpa
+ * gejala apa pun. Hal yang sama kini berlaku untuk footer AppLayout, satu-satunya jalan
+ * tersisa ke halaman Bantuan & Legal.
  *
- * DUA KEADAAN YANG TIDAK BOLEH TERTUKAR (koreksi user 2026-08-19 - "seolah ada 2 yang sedang
- * aktif"):
- *   - **Halaman aktif** = `text-destructive` + `font-semibold`, tanpa bidang. Satu slot saja.
- *   - **Panel terbuka** (keadaan sesaat tombol) = latar netral `bg-accent`. Ini SATU-SATUNYA
- *     bidang yang tersisa di bilah, dan justru itu gunanya: karena "aktif" kini tak punya
- *     bidang sama sekali, keduanya mustahil tertukar. Ia hanya tampak selama popovernya
- *     terbuka. TIDAK memakai merah - merah tetap berarti lokasi.
+ * Tujuan tombolnya TIDAK dipaku di sini: ia diambil dari item `login` milik navItems.js,
+ * sumber yang sama dengan sidebar (aturan #71). Kalau item itu suatu saat tak ada, slotnya
+ * jatuh kembali ke popover "Menu" — bukan menjadi tombol mati.
  *
- * KELIMA slot memakai glyph monokrom yang mewarisi warna teksnya, TERMASUK "Lapor" yang
- * memakai `IconFlame` dari item `report.create` milik navItems.js. Ikon brand `/icon.png`
- * pernah dipakai di slot itu (2026-08-19 s/d 2026-09-01) dan sudah DILEPAS atas permintaan
- * user: berkas itu sendiri sebuah kotak merah utuh, sehingga slot itu selalu berbahasa visual
- * sendiri. Jangan dipasang lagi di sini; /icon.png tetap hidup sebagai favicon &
- * ApplicationLogo.
+ * RUPA (FINDINGS #72): bilah ini dulu memakai bahasa visualnya sendiri — ikon 28px
+ * (sistem: 16–20px), pil `rounded-full` (satu-satunya di aplikasi), dan ketebalan garis
+ * yang berubah saat aktif sehingga ikon seolah bergetar tiap pindah halaman. Sekarang
+ * ikon 18px, `stroke` tetap 1.75, label 12px.
  *
- * UKURAN, dari `Menu 6.png` yang diukur (ikon 21px : pitch slot 102px = 20,6%) lalu
- * dinormalkan ke layar 390px: ikon 16px (`h-4 w-4`), label 12px (`text-xs`), jarak ikon-label
- * 8px (`gap-2`), bilah 64px (`h-16`). Referensi membedakan aktif lewat ikon PADAT vs garis;
- * itu sengaja TIDAK ditiru - lihat alasannya di `slotClass`.
+ * UKURAN (keputusan user 2026-09-01, dari empat referensi di `docs/example/`): bilah 80px
+ * (`h-20`, dulu 64px), glyph 18px, label 12px. Kotak aktif TAK lagi berukuran tetap — ia
+ * `w-full py-2` yang membungkus ikon + label, tingginya ~54px. Angka bilahnya bukan
+ * selera: keempat referensi diukur, dan bentuk lama (kotak 40px memeluk glyph 20px, napas
+ * 2px di bilah 64px) terbaca sesak dibanding plakat berruang lega di referensi. Napasnya
+ * sekarang ~13px di atas & bawah kotak.
+ * DUA angka di luar berkas ini terikat pada tinggi 80px — `AppLayout` (ruang konten
+ * `pb-[calc(6rem+…)]`) dan tombol Kirim melayang di `Front/Reports/Create.jsx`
+ * (`bottom-[calc(5rem+…)]`). Mengubah tinggi bilah tanpa keduanya = konten & tombol kirim
+ * laporan darurat tertutup bilah, tanpa galat apa pun.
  *
- * DUA angka di luar berkas ini terikat pada tinggi bilah - mengubahnya sendirian membuat
- * konten & tombol kirim laporan darurat tertutup bilah, tanpa galat apa pun:
- *   - `AppLayout` ruang konten `pb-[calc(5rem+env(safe-area-inset-bottom))]`
- *   - tombol Kirim melayang `Front/Reports/Create.jsx`
- *     `bottom-[calc(4rem+env(safe-area-inset-bottom))]` — RAPAT ke bilah, tanpa celah
- * Ditambah `FloatingPanel` `bottom-[72px]` di berkas ini sendiri.
+ * DUA KEADAAN YANG TIDAK BOLEH TERTUKAR (koreksi user 2026-08-19 — "seolah ada 2 yang
+ * sedang aktif"): sebelumnya tombol pembuka popover ikut memerah saat panelnya dibuka,
+ * warna yang sama dengan penanda halaman aktif, jadi dua slot tampak aktif bersamaan.
+ * Aturannya sekarang:
+ *   - **Halaman aktif** (di mana saya berada) = kotak `rounded-xl bg-destructive` berikon
+ *     putih, dialek <NavLink/> yang sama dengan sidebar. Hanya satu slot boleh punya ini.
+ *     (Percobaan "garis tipis" 2026-08-19 ditolak user; jangan dihidupkan lagi.)
+ *     BERLAKU UNTUK SLOT BILAH SAJA — di DALAM popover, baris aktif memakai tint 10%
+ *     seperti production, bukan blok solid (keputusan user 2026-08-20, lihat
+ *     <FloatingLink/> & prompt/docs/PENGECUALIAN_ATURAN.md).
+ *   - **Panel terbuka** (keadaan sesaat tombol) = latar netral `bg-accent` pada kotak
+ *     ikonnya + `aria-expanded`. TIDAK memakai merah sama sekali.
+ * Karena merah kini berarti "lokasi", hover pun netral (`hover:text-foreground`), bukan
+ * merah seperti dulu. TIDAK ADA LAGI pengecualian: slot "Lapor" pun ikut aturan itu sejak
+ * 2026-09-01 (lihat di bawah), termasuk labelnya.
+ *
+ * KELIMA slot memakai glyph monokrom yang mewarisi warna kotaknya — TERMASUK "Lapor".
+ * Ikon brand `/icon.png` sempat dipakai di slot itu (2026-08-19 s/d 2026-09-01) dan sudah
+ * DILEPAS atas permintaan user: berkas itu sendiri sebuah kotak merah utuh, sehingga satu
+ * slot selalu berbahasa visual sendiri dan tak pernah bisa ikut aturan bidang/glyph yang
+ * berlaku bagi empat tetangganya. Jangan dipasang lagi di sini; /icon.png tetap hidup
+ * sebagai favicon & ApplicationLogo.
+ *
+ * SLOT "LAPOR" IKUT ATURAN MERAH (keputusan user 2026-09-01, laporan user: "logo sekarang
+ * sudah merah seperti aktif terus"). Bidang merah bawaan berkas PNG itu membuat slot ini
+ * memancarkan penanda "kamu di sini" di SETIAP halaman — melanggar aturan dua paragraf di
+ * atas dari satu-satunya arah yang tak terlihat, yaitu dari dalam asetnya sendiri, bukan
+ * dari kelas Tailwind mana pun. Cincin penanda aktifnya dan label `text-destructive`
+ * permanennya DICABUT bersamaan.
+ *
+ * BENTUK FINAL mengikuti empat referensi user di `docs/example/` (2026-09-01): di sana
+ * **bidang terisi HANYA milik slot aktif** — satu kotak berwarna berglyph putih, sementara
+ * slot lain glyph abu telanjang tanpa bidang apa pun. Karena itu:
+ *   - slot "Lapor" memakai glyph `IconFlame` di KEDUA keadaan, sama seperti tetangganya.
+ *     Glyph itu diambil dari item `report.create` milik navItems.js (ikon yang sama dengan
+ *     "Lapor Darurat!" di sidebar), bukan dipaku di sini — aturan #71. JANGAN memakai
+ *     IconBolt: di repo ini petir sudah berarti jenis kejadian LISTRIK
+ *     (Admin/Dashboard.jsx).
+ *   - kotak penanda aktif MEMBUNGKUS ikon dan labelnya sekaligus (permintaan user
+ *     2026-09-01), selebar slot, seragam untuk kelima slot — lihat <SlotContent/>.
+ * Label 12px SENGAJA dipertahankan meski keempat referensi tanpa label (keputusan user
+ * 2026-09-01): pemakai utama aplikasi ini warga awam dalam keadaan panik, dan slot yang
+ * paling mahal kalau salah tebak justru "Lapor". Karena label tinggal DI DALAM kotak
+ * aktif, ia tak lagi menekan ukuran kotak seperti waktu ia menggantung di bawahnya.
  *
  * Dua hal dari TASK_20/21 sengaja DIPERTAHANKAN karena bukan bagian dari panel menu dan
  * mencabutnya akan merusak tata letak lain:
- *   - `md:hidden` (bukan `lg:hidden` seperti versi lama) - AppLayout memasang rail ikon mulai
- *     md; dengan lg:hidden tablet akan memunculkan dua navigasi sekaligus dan menimpa konten
- *     yang sudah ber-`md:pb-0`.
- *   - `env(safe-area-inset-bottom)` - di ponsel berponi/gesture-bar (mayoritas perangkat APK)
- *     tanpa itu baris ikon tertimpa indikator sistem.
+ *   - `md:hidden` (bukan `lg:hidden` seperti versi lama) — AppLayout memasang rail ikon
+ *     mulai md; dengan lg:hidden tablet akan memunculkan dua navigasi sekaligus dan
+ *     menimpa konten yang sudah ber-`md:pb-0`.
+ *   - padding `env(safe-area-inset-bottom)` — di ponsel berponi/gesture-bar (mayoritas
+ *     perangkat APK) tanpa ini baris ikon tertimpa indikator sistem.
  */
 
 /** Kunci item yang sudah punya tombolnya sendiri di bilah — dikeluarkan dari popover "Menu". */
@@ -178,27 +206,11 @@ export default function MobileBottomNav({ auth }) {
 				></div>
 			)}
 
-			{/* PEMISAH dari konten di belakangnya (permintaan user 2026-09-01) berupa
-			    box-shadow DUA LAPIS, bukan `border-t`:
-			      - lapis 1 `0 -1px 0 0 hsl(var(--border))` = garis rambut setebal 1px yang
-			        mengikuti token border, jadi ia terbaca di mode terang MAUPUN gelap.
-			        Bayangan gelap sendirian tak akan pernah terlihat di atas latar gelap -
-			        itulah sebabnya garis ini wajib ada, bukan sekadar hiasan.
-			      - lapis 2 = angkatan lembut yang hanya kasatmata di mode terang.
-			    Dipakai sebagai shadow (bukan border) supaya tak menambah 1px ke tinggi
-			    kotaknya - `h-16` di sini terikat pada dua angka di berkas lain (lihat
-			    docblock), dan border akan menggeser semuanya sejauh satu piksel.
-			    CATATAN untuk halaman /reports/create: di sana bar tombol Kirim menempel
-			    persis di atas bilah ini, sehingga garis rambut itu jatuh di sambungannya dan
-			    keduanya terbaca sebagai DUA lapis - bar aksi milik halaman, bilah milik
-			    aplikasi. Itu memang yang dikehendaki; jangan "rapikan" dengan menaikkan
-			    z-index bar itu ke atas bilah, sebab popover Fasilitas & Menu melayang tepat
-			    di ketinggian yang sama dan akan ikut tertutup. */}
 			<div
-				className="fixed bottom-0 left-0 z-50 w-full bg-card shadow-[0_-1px_0_0_hsl(var(--border)),0_-8px_24px_-12px_rgba(0,0,0,0.22)] md:hidden"
+				className="fixed bottom-0 left-0 z-50 w-full border-t border-border bg-card md:hidden"
 				style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
 			>
-				<div className="mx-auto grid h-16 max-w-md grid-cols-5 px-1">
+				<div className="mx-auto grid h-20 max-w-md grid-cols-5 px-1">
 					{/* 1. Beranda — ikon disamakan dengan sidebar (dulu IconHome di sini saja) */}
 					<NavItem
 						href={itemByKey('dashboard')?.url ?? route('dashboard')}
@@ -323,43 +335,54 @@ export default function MobileBottomNav({ auth }) {
  * supaya keduanya mustahil berbeda rupa. Penanda aktif = kotak solid merah `rounded-xl`,
  * dialek yang sama dengan <NavLink/> di sidebar.
  */
-function SlotContent({ icon: Icon, label }) {
+function SlotContent({ icon: Icon, label, active, open = false }) {
 	return (
-		<>
-			<Icon className="h-4 w-4" stroke={1.75} />
-			<span className="max-w-full truncate text-xs leading-4">{label}</span>
-		</>
+		/* Penanda HALAMAN AKTIF: kotak solid merah - dialek yang sama dengan <NavLink/> di
+		   sidebar, jadi satu menu tampak sama di ponsel maupun desktop. (Percobaan "garis
+		   tipis" 2026-08-19 ditolak user.) Keadaan PANEL TERBUKA memakai latar netral
+		   `bg-accent`, bukan merah, supaya dua keadaan itu tak tertukar.
+
+		   KOTAKNYA MEMBUNGKUS IKON **DAN** LABEL (permintaan user 2026-09-01: "buat agar
+		   teksnya di dalam kotak merah"). Sebelumnya kotak hanya memeluk ikon dan label
+		   menggantung di bawahnya, sehingga slot aktif terbaca sebagai dua benda: sebuah
+		   tombol berwarna dengan keterangan di luarnya. Sekarang satu bidang, satu benda.
+		   Konsekuensinya perbandingan "glyph ~30% sisi kotak" dari referensi docs/example/
+		   TIDAK berlaku lagi di sini - kotak ini dilebarkan oleh TEKSNYA, bukan oleh
+		   ikonnya. Yang menggantikannya `w-full`: lebarnya mengikuti slot, bukan panjang
+		   labelnya, kalau tidak kotak merah akan berganti ukuran tiap pindah halaman
+		   ("Fasilitas" jauh lebih lebar dari "Menu"). */
+		<span
+			className={cn(
+				'flex w-full flex-col items-center justify-center gap-1 rounded-xl py-2 transition-colors',
+				active
+					? 'bg-destructive text-destructive-foreground shadow-sm'
+					: open
+						? 'bg-accent'
+						: 'group-hover:bg-accent',
+			)}
+		>
+			<Icon className="h-[18px] w-[18px]" stroke={1.75} />
+			<span className={cn('text-xs leading-4', active ? 'font-semibold' : 'font-medium')}>{label}</span>
+		</span>
 	);
 }
 
 const slotClass = (active, open = false) =>
 	cn(
-		'group relative flex h-full w-full flex-col items-center justify-center gap-2 rounded-lg px-1 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-destructive',
-		// PENANDA AKTIF = WARNA + TEBAL HURUF SAJA. Tidak ada bidang, kotak, pil, garis,
-		// maupun titik - itulah seluruh isi "minimalis" pada referensi `Menu 6.png`, dan
-		// satu-satunya hal yang membedakan model ini dari sepakat 1.
-		// Di referensi pembedanya ikon PADAT vs ikon garis; di sini TIDAK bisa ditiru karena
-		// @tabler tak menyediakan varian padat untuk semua ikon yang kita pakai (IconMenu2 &
-		// IconHistory tak punya), jadi sebagian slot akan memadat dan sebagian tidak - tak
-		// seragam justru di penanda yang paling sering dilihat. Ketebalan garis juga TIDAK
-		// dipakai sebagai pembeda: itu persis yang dicabut FINDINGS #72 karena ikon terlihat
-		// bergetar tiap pindah halaman.
-		active
-			? 'font-semibold text-destructive'
-			: open
-				? 'bg-accent font-medium text-foreground'
-				: 'font-medium text-muted-foreground hover:text-foreground',
+		'group relative flex h-full w-full flex-col items-center justify-center rounded-xl px-1 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-destructive',
+		// Merah = lokasi. Hover & keadaan terbuka sengaja netral agar merah tetap satu makna.
+		active ? 'text-destructive' : open ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
 	);
 
-function NavItem({ href, icon, label, active, ariaLabel }) {
+function NavItem({ href, icon, label, active, ariaLabel, className }) {
 	return (
 		<Link
 			href={href}
 			aria-label={ariaLabel}
 			aria-current={active ? 'page' : undefined}
-			className={slotClass(active)}
+			className={cn(slotClass(active), className)}
 		>
-			<SlotContent icon={icon} label={label} />
+			<SlotContent icon={icon} label={label} active={active} />
 		</Link>
 	);
 }
@@ -373,7 +396,7 @@ function PanelTrigger({ icon, label, active, open, onClick }) {
 			aria-expanded={open}
 			className={slotClass(active, open)}
 		>
-			<SlotContent icon={icon} label={label} />
+			<SlotContent icon={icon} label={label} active={active} open={open} />
 		</button>
 	);
 }
@@ -388,7 +411,7 @@ function FloatingPanel({ className, children }) {
 	return (
 		<div
 			className={cn(
-				'no-scrollbar absolute bottom-[72px] z-50 flex max-h-[70vh] flex-col overflow-y-auto rounded-xl border border-border bg-popover p-1.5 text-popover-foreground shadow-md duration-200 animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2',
+				'no-scrollbar absolute bottom-[88px] z-50 flex max-h-[70vh] flex-col overflow-y-auto rounded-xl border border-border bg-popover p-1.5 text-popover-foreground shadow-md duration-200 animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2',
 				className,
 			)}
 		>
