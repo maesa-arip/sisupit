@@ -1,19 +1,10 @@
 import BanjarField from '@/Components/BanjarField';
 import { Button } from '@/Components/ui/button';
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from '@/Components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import AppLayout from '@/Layouts/AppLayout';
-import { cn, flashMessage, roleLabel, roleTone } from '@/lib/utils';
+import { cn, roleLabel, roleTone } from '@/lib/utils';
 import { Link, router, useForm, usePage } from '@inertiajs/react';
 import {
-	IconAward,
 	IconBrandAndroid,
 	IconChevronRight,
 	IconDeviceFloppy,
@@ -37,8 +28,6 @@ import UpdateProfileInformationForm from './Partials/UpdateProfileInformationFor
 
 export default function Edit(props) {
 	const user = usePage().props.auth.user;
-	const [openRelawan, setOpenRelawan] = useState(false);
-
 	const [isWebView, setIsWebView] = useState(true);
 
 	useEffect(() => {
@@ -56,13 +45,12 @@ export default function Edit(props) {
 
 	const userRoles = Array.isArray(user?.role) ? user.role : user?.role ? [user.role] : [];
 	const isVolunteer = userRoles.includes('relawan');
-	const isAdmin = userRoles.includes('petugas') || userRoles.includes('admin');
 	// Nama & warna peran dibaca dari kamus bersama (lib/utils.js), bukan dari tangga `if` —
 	// bentuk lama menyebut akun OPD, pejabat, dan superadmin "Anggota Masyarakat" karena
 	// ketiganya jatuh ke cabang terakhir (FINDINGS #90). Lencana perisai ikut kamus itu juga:
 	// yang bukan warga biasa mendapatkannya.
 	const accountRole = roleLabel(userRoles);
-	const isPlainCitizen = userRoles.length === 0 || (userRoles.length === 1 && userRoles[0] === 'masyarakat');
+	const isPlainCitizen = userRoles.length === 0 || (userRoles.length === 1 && userRoles[0] === 'warga');
 	//  console.log('User Roles:', userRoles, 'Is Volunteer:', isVolunteer);
 
 	// Editor keahlian relawan (lihat VolunteerController::updateSkills).
@@ -85,21 +73,6 @@ export default function Edit(props) {
 				onSuccess: () => toast.success('Keahlian berhasil diperbarui.'),
 				onError: () => toast.error('Gagal menyimpan keahlian. Silakan coba lagi.'),
 				onFinish: () => setIsSavingSkills(false),
-			},
-		);
-	};
-
-	const handleDaftarRelawan = () => {
-		router.put(
-			route('admin.relawan.update', { user: user.id }),
-			{},
-			{
-				onSuccess: () => {
-					setOpenRelawan(false);
-					const flash = flashMessage('success');
-					if (flash) toast[flash.type](flash.message);
-					toast.success('Berhasil mendaftar sebagai relawan!');
-				},
 			},
 		);
 	};
@@ -259,29 +232,11 @@ export default function Edit(props) {
 						<IconChevronRight className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-foreground" />
 					</Link>
 
-					{!isVolunteer && !isAdmin && (
-						<div className="relative flex flex-col items-start justify-between gap-4 overflow-hidden rounded-xl border border-border bg-secondary p-5 text-secondary-foreground sm:flex-row sm:items-center sm:p-6">
-							<div className="relative z-10">
-								<h3 className="flex items-center gap-2 text-base font-semibold">
-									<IconAward size={20} /> Panggilan Kemanusiaan
-								</h3>
-								<p className="mt-1.5 max-w-md text-sm leading-relaxed text-secondary-foreground/70">
-									Jadilah pahlawan di sekitar Anda. Daftar sebagai relawan untuk merespons keadaan
-									darurat lebih cepat.
-								</p>
-							</div>
-							<Button
-								onClick={() => setOpenRelawan(true)}
-								className="relative z-10 h-9 w-full shrink-0 rounded-md border border-border bg-secondary-foreground text-sm font-medium text-secondary hover:bg-secondary-foreground/90 sm:w-auto"
-							>
-								Daftar Relawan
-							</Button>
-							<IconShieldCheck
-								size={100}
-								className="pointer-events-none absolute -bottom-6 -right-4 rotate-12 text-secondary-foreground/5"
-							/>
-						</div>
-					)}
+					{/* Banner "Panggilan Kemanusiaan" (ajakan mendaftar jadi relawan) DICABUT
+					    2026-09-02 atas permintaan user, sepasang dengan kartu serupa di
+					    Pages/Dashboard.jsx. Peran relawan kini hanya diberikan admin lewat
+					    /admin/users - tak ada lagi pendaftaran mandiri di layar mana pun.
+					    Jangan hidupkan lagi tanpa menanyakan user. */}
 				</div>
 
 				{/* --- 3. PENGATURAN AKUN (MENGGUNAKAN TABS) --- */}
@@ -335,36 +290,6 @@ export default function Edit(props) {
 					</a>
 				</div>
 			)}
-
-			{/* MODAL DAFTAR RELAWAN */}
-			<Dialog open={openRelawan} onOpenChange={setOpenRelawan}>
-				<DialogContent className="w-[95vw] max-w-md rounded-xl border border-border bg-card p-0 shadow-sm">
-					<DialogHeader className="border-b border-border p-5">
-						<DialogTitle className="text-base font-semibold text-foreground">
-							Konfirmasi Pendaftaran
-						</DialogTitle>
-						<DialogDescription className="mt-2 text-sm text-muted-foreground">
-							Dengan mendaftar sebagai relawan, lokasi Anda akan dapat dilacak saat menuju lokasi kejadian
-							untuk membantu pelapor. Pastikan profil (KTP & No. HP) Anda sudah diisi dengan data asli.
-						</DialogDescription>
-					</DialogHeader>
-					<DialogFooter className="gap-2 p-5 sm:justify-end">
-						<Button
-							variant="outline"
-							className="h-9 rounded-md border-border bg-card text-foreground hover:bg-accent"
-							onClick={() => setOpenRelawan(false)}
-						>
-							Batal
-						</Button>
-						<Button
-							className="h-9 rounded-md bg-info font-medium text-info-foreground hover:bg-info/90"
-							onClick={handleDaftarRelawan}
-						>
-							Ya, Daftarkan Saya
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
 		</div>
 	);
 }

@@ -10,7 +10,7 @@ beforeEach(function () {
     Notification::fake();
 
     $reporter = User::factory()->create(['village_code' => '5171012006']);
-    $reporter->assignRole('masyarakat');
+    $reporter->assignRole('warga');
 
     // Laporan berada di Desa A (5171012006), Kec. 5171010, Kota 5171, Prov. 51.
     $this->report = Report::create([

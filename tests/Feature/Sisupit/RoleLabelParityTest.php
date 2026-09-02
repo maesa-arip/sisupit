@@ -37,7 +37,9 @@ it('reads the account role label from the shared dictionary instead of rebuildin
 
     // Bentuk lama: label ditulis langsung di JSX lewat tangga `if`. Selama salah satu
     // kalimatnya masih ada di berkas ini, kamus bersama itu bukan satu-satunya sumber.
-    foreach (["'Anggota Masyarakat'", "'Relawan Aktif'", "'Administrator'"] as $hardcoded) {
+    // ("Anggota Masyarakat" diganti "Warga" 2026-09-02 saat peran `masyarakat` berganti nama;
+    // yang dijaga tetap sama - label peran tak boleh disusun ulang di halaman ini.)
+    foreach (["'Warga'", "'Relawan Aktif'", "'Administrator'"] as $hardcoded) {
         expect($source)->not->toContain($hardcoded);
     }
 });

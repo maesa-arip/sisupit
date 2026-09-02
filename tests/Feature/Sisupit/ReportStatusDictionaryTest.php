@@ -38,7 +38,7 @@ $reportStatusKeys = function () use ($peta) {
 // status di berkas lain — kamus yang cuma diadu dengan kamus tidak menjaga apa pun (#79).
 it('names the status a rejection really writes, in both incident map dictionaries', function () use ($statusMetaKeys, $reportStatusKeys) {
     $reporter = User::factory()->create(['village_code' => '5171012006']);
-    $reporter->assignRole('masyarakat');
+    $reporter->assignRole('warga');
 
     $report = Report::create([
         'user_id' => $reporter->id,
@@ -87,7 +87,7 @@ it('lets the verifier filter the report list down to rejected reports', function
     $admin->assignRole('admin');
 
     $reporter = User::factory()->create(['village_code' => '5171012006']);
-    $reporter->assignRole('masyarakat');
+    $reporter->assignRole('warga');
 
     $ditolak = Report::create([
         'user_id' => $reporter->id,
@@ -128,7 +128,7 @@ it('hides the raw and rejected chips from monitors, matching what the server sen
     $pejabat->assignRole('pejabat');
 
     $reporter = User::factory()->create(['village_code' => '5171012006']);
-    $reporter->assignRole('masyarakat');
+    $reporter->assignRole('warga');
 
     Report::create([
         'user_id' => $reporter->id,

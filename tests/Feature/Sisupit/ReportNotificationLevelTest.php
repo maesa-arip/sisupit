@@ -24,7 +24,7 @@ beforeEach(function () {
     ]);
 
     $reporter = User::factory()->create();
-    $reporter->assignRole('masyarakat');
+    $reporter->assignRole('warga');
 
     $this->report = Report::create([
         'user_id' => $reporter->id,

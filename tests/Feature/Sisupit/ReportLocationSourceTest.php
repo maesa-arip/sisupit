@@ -44,7 +44,7 @@ function laporanDasar(array $extra = []): array
 function wargaPelapor(): User
 {
     $citizen = User::factory()->create(['village_code' => '5171012006']);
-    $citizen->assignRole('masyarakat');
+    $citizen->assignRole('warga');
 
     return $citizen;
 }

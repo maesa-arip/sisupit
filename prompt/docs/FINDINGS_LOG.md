@@ -2397,3 +2397,147 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **Status:** FIXED 2026-09-02 → `flex flex-wrap justify-center lg:justify-end`.
 - **Penjaga:** `FormControlNativeDialogTest.php` — dua test, dibuktikan MERAH: tak boleh ada
   `fles-wrap` di mana pun, dan **setiap** `PaginationContent` wajib ber-`flex-wrap`.
+
+### #110 — Peran `warga`: daftar peran kedua melahirkan peran hantu di Manajemen Pengguna (FIXED)
+
+- **Prioritas:** P2 — belum menimbulkan kerusakan (0 akun memakainya), tapi pilihan yang tampak
+  sah di layar admin dan yang memilihnya mendapat akun tanpa peran yang dikenali.
+- **Ditemukan:** 2026-09-02, pertanyaan user ("di manajemen pengguna apa perbedaan masyarakat
+  dan warga?"). Pertanyaan itu sendiri buktinya: dua pilihan bersebelahan yang bedanya tak bisa
+  dijawab siapa pun.
+- **Isi:** `database/seeders/UserTenantSeeder.php:17` memelihara DAFTAR PERAN SENDIRI di samping
+  `RolePermissionSeeder` (yang seluruh dokumen repo ini sebut sebagai sumber peran), dan daftar
+  kedua itu memuat satu nama yang tak ada di daftar pertama: `warga`. Seeder itu dipanggil
+  `DatabaseSeeder` **sesudah** `RolePermissionSeeder`, sehingga enam nama lainnya cuma
+  pengulangan yang tak berefek — satu-satunya efek nyata daftar itu adalah menciptakan `warga`.
+  Ironisnya seeder yang sama memberi peran `masyarakat` (baris 145) kepada user yang dinamainya
+  "Warga Sipil", jadi peran yang ia buat tak pernah ia pakai sendiri.
+- **Kenapa ia sampai ke layar:** `Admin\UserController::allRoleNames()` membaca peran dari
+  **tabel `roles`**, bukan dari kode — pilihan yang benar (peran bisa dibuat lewat
+  `/admin/roles`), tapi artinya apa pun yang mendarat di tabel itu langsung jadi pilihan. Lalu
+  `roleOptions()` mencetak nama yang tak ada di kamus labelnya lewat cadangan `ucfirst($name)`,
+  sehingga ia muncul sebagai **"Warga"** — berhuruf kapital, sederajat dengan "Masyarakat", tanpa
+  satu pun tanda bahwa ia bukan peran sungguhan. Bentuk yang sama dengan #90 & #94: **cadangan
+  sebuah kamus adalah KLAIM, bukan "tidak dikenal"**.
+- **Akibat bila terlanjur diberikan:** akun itu BUKAN menjadi warga, melainkan menjadi akun tanpa
+  peran yang dikenali. `ROLE_LABELS` tak memuatnya → profilnya sendiri berbunyi "Peran belum
+  ditetapkan" (#90); `RegisteredUserController`/`SocialiteController` tak pernah menuliskannya;
+  0 permission, 0 `route_accesses`; dan nol rujukan di seluruh `app/` & `routes/`. Tak ada galat
+  di mana pun.
+- **Gejala ikutan yang sudah menambal dirinya sendiri:** `ReportSeeder:30` &
+  `ResolvedReportSeeder:21` menulis `User::role(['warga', 'masyarakat'])` — mencari DUA nama
+  untuk satu konsep. Penambalan seperti itu adalah tanda daftar yang menyimpang, bukan kehati-
+  hatian; ia juga yang membuat penghapusan perannya wajib disertai perbaikan keduanya, sebab
+  `User::role()` melempar `RoleDoesNotExist` untuk nama yang tak ada.
+- **Status:** FIXED 2026-09-02 atas permintaan user ("hapus role warga juga"):
+  1. `UserTenantSeeder` tak lagi punya daftar peran; ia memanggil `RolePermissionSeeder`.
+  2. Kedua seeder laporan menanyakan `masyarakat` saja.
+  3. Barisnya dihapus dari DB **dev lokal** (0 akun/permission/route_access, diperiksa lebih
+     dulu) + `permission:cache-reset`.
+- **Penjaga:** `RoleSourceSingleListTest.php` — (a) tak boleh ada `Role::firstOrCreate|create` di
+  seeder mana pun selain `RolePermissionSeeder` (dibuktikan MERAH terhadap berkas sebelum
+  perubahan); (b) setiap peran yang nyata ada punya label di kamus `roleOptions()` — yang ini
+  HIJAU sejak awal, jadi penjaga regresi, bukan bukti bug: di lingkungan test hanya
+  `RolePermissionSeeder` yang berjalan, dan justru itulah sebabnya peran liar ini hidup
+  bertahun-tahun tanpa satu pun test merah.
+- **SISA prod/staging/dev VPS — TERJAWAB pada hari yang sama.** Barisnya memang belum
+  dihapus di ketiga environment VPS dan belum sempat diperiksa, tapi itu berhenti jadi langkah
+  manual: beberapa jam kemudian user meminta peran `masyarakat` **berganti nama jadi `warga`**,
+  dan migrasi `2026_09_02_100000_rename_role_masyarakat_to_warga` **harus** membereskan peran
+  hantu ini lebih dulu — `roles` ber-`UNIQUE(name, guard_name)`, jadi tanpa itu UPDATE-nya
+  menabrak unique key dan migrasi GAGAL DI TENGAH DEPLOY di environment yang masih memilikinya.
+  Migrasi itu menghapusnya **hanya bila benar-benar kosong**; kalau ternyata ada akun/permission
+  menempel, ia berhenti dengan pesan yang menyebut jumlahnya, sebab menggabungkan dua peran
+  diam-diam adalah keputusan data. Kedua cabang dibuktikan di DB dev dengan menirukan keadaan
+  VPS (peran hantu disisipkan ulang, lalu disisipkan lagi berikut satu penugasan).
+
+### #111 — Peran `opd` tidak ada di tabel `roles` (FIXED)
+
+- **Prioritas:** P2, khusus lingkungan dev lokal (belum diperiksa di prod/staging/dev VPS).
+- **Ditemukan:** 2026-09-02, sambil membereskan #110 (menghitung isi tabel `roles`).
+- **Isi:** `RolePermissionSeeder` membuat `opd` sejak TASK_27 (2026-08-12), tapi DB dev lokal
+  masih berisi enam peran hasil seed 2026-05-18 dan tak pernah di-seed ulang. Karena
+  `allRoleNames()` membaca tabel, `opd` **tidak muncul** di dropdown Manajemen Pengguna dev,
+  sehingga seluruh fitur OPD (TASK_27/#89) tak bisa dipakai di sana. Tidak ada galat: daftar
+  cuma lebih pendek.
+- **Catatan:** `assignableRoleNames()` untuk admin non-superadmin menulis `'opd'` sebagai
+  literal, jadi validasinya akan meloloskan nama itu sementara `assignRole('opd')` melempar
+  `RoleDoesNotExist` — jalur itu tak terjangkau lewat UI (dropdownnya memang tak menawarkan),
+  tapi ia satu lagi contoh daftar yang ditulis dua kali.
+- **KOREKSI 2026-09-02, sesudah VPS benar-benar diperiksa (user memberi akses):** dugaan bahwa
+  prod/staging/dev ikut kehilangan `opd` **SALAH**. Ketiganya PUNYA `opd` (id 8) lengkap dengan
+  **3 akun** dan permission `view_dashboard` — jadi fitur OPD memang berjalan di produksi, dan
+  pernyataan sebelumnya di catatan ini ("seluruh fitur OPD tak pernah bisa dipakai di produksi")
+  tidak benar. Celahnya **hanya di DB dev LOKAL (laragon)**, yang di-seed 2026-05-18 dan tak
+  pernah di-seed ulang sesudah TASK_27; ketiga environment VPS rupanya sudah pernah menerima
+  peran itu lewat langkah manual di sesi sebelumnya.
+- **Yang tetap benar & tetap jadi pelajaran:** `db:seed` **tidak** dijalankan saat deploy, jadi
+  peran baru di `RolePermissionSeeder` tidak sampai dengan sendirinya ke database mana pun yang
+  sudah ada. Bedanya, itu selama ini ditambal MANUAL per environment — tambalan manual yang
+  berhasil di VPS dan terlewat di mesin lokal. Migrasi penyelaras di bawah menutup jalur itu
+  supaya tak bergantung ingatan siapa pun lagi.
+- **Status:** FIXED 2026-09-02 atas permintaan user ("tambahkan peran opd") lewat migrasi
+  `2026_09_02_100100_seed_missing_roles_and_permissions` yang **memanggil**
+  `RolePermissionSeeder::run()`. Ia MEMANGGIL, bukan menyalin daftarnya: menuliskan ulang nama
+  peran & permission di dalam migrasi akan membuat daftar kedua — persis sebab #110. Seluruh isi
+  seeder itu `firstOrCreate` + `givePermissionTo`, jadi aman berulang; dibuktikan idempoten
+  (sidik jari peran+akun+permission identik sesudah dijalankan dua kali). `down()` sengaja
+  KOSONG — mencabut peran saat rollback akan melucuti akun yang sudah memakainya.
+- **Aturan turunannya** (dicatat di CONVENTIONS): peran baru = satu baris di seeder **plus** satu
+  migrasi penyelaras. Tanpa itu peran barunya hanya hidup di mesin yang di-seed dari nol.
+- **Hasil di dev lokal:** `opd` (id 10) + permission `view_dashboard`; keenam peran lain tidak
+  berubah sedikit pun (jumlah akun & permission-nya identik pra-migrasi).
+- **Efeknya di prod/staging/dev VPS: NOL.** Ketiganya sudah lengkap, jadi migrasi penyelaras itu
+  no-op di sana — diperiksa langsung: 6 permission master & `opd` berpermission 1 di ketiganya.
+  Ia tetap dibawa serta sebagai jaring pengaman untuk database berikutnya, bukan sebagai
+  perbaikan produksi.
+
+### #112 — Peran `masyarakat` berganti nama jadi `warga` (BUKAN temuan; keputusan user, dicatat di sini karena mengubah nilai DB)
+
+- **Bukan bug.** Dicatat supaya sesi berikutnya tidak membaca kode lama di git history dan
+  mengira `assignRole('masyarakat')` masih benar.
+- **Permintaan user 2026-09-02:** "ganti kata masyarakat menjadi warga", sesudah #110. Karena
+  kata itu hidup di DUA lapis dengan biaya yang jauh berbeda, pilihannya disodorkan lebih dulu —
+  (a) label saja, (b) nama peran di DB juga, (c) label + semua kalimat. **User memilih (b).**
+- **Bentuk perubahannya:** MENGGANTI NAMA baris yang sama, bukan membuat peran baru lalu
+  memindahkan akun. `model_has_roles` menunjuk lewat `role_id`, jadi menyunting `roles.name`
+  membuat seluruh penugasan & permission ikut utuh tanpa satu baris pun berpindah — dan tak ada
+  akun yang bisa "terlewat pindah" lalu jadi akun tanpa peran (bentuk #110).
+- **Yang membuatnya lebih dari satu UPDATE:** `roles` ber-`UNIQUE(name, guard_name)`, dan nama
+  `warga` masih dipegang peran hantu #110 di prod/staging/dev VPS. Migrasi karena itu membuang
+  yang hantu lebih dulu — **hanya bila kosong**; kalau ada akun/permission menempel padanya ia
+  BERHENTI dengan pesan yang menyebut jumlahnya. `down()` sengaja TIDAK menghidupkan lagi peran
+  hantu itu.
+- **Kenapa rename peran berbahaya bila setengah jalan:** namanya bukan foreign key melainkan
+  STRING yang tersebar di `assignRole()`, `hasRole()`, `User::role()`, kamus label
+  `roleOptions()`, dan `assignableRoleNames()`. Satu tertinggal → `assignRole()` melempar
+  `RoleDoesNotExist` (**pendaftaran warga baru gagal total**) sementara `hasRole()` justru diam
+  dan memulangkan false — pemeriksaan izin yang senyap-salah. **Kode & DB wajib naik bersamaan
+  di tiap environment.**
+- **Sebarannya:** 10 rujukan di `app/`+`routes/`+`database/` + **78 di `tests/`** + `ROLE_LABELS`
+  (`lib/utils.js`, label "Anggota Masyarakat" → "Warga") + satu perbandingan di
+  `Profile/Edit.jsx`. Judul & variabel test yang menyebut nama perannya ikut diluruskan — judul
+  test yang menyatakan fakta yang salah lebih buruk daripada tak ada judul.
+- **Penjaga:** test ketiga di `RoleSourceSingleListTest` — tak boleh ada literal `'masyarakat'`
+  tersisa di `app/`, `routes/`, `database/seeders/`, maupun `resources/js/` (migrasinya sendiri
+  dikecualikan: di situlah satu-satunya tempat nama lama masih wajib tertulis).
+- **Dijalankan di:** DB dev lokal (8 akun ikut, id peran tetap 6). **Belum** di prod/staging/dev
+  VPS.
+- **KEADAAN NYATA KETIGA ENVIRONMENT (diperiksa 2026-09-02, user memberi akses root):** peran
+  hantu `warga` **ADA di ketiganya** (id 7) dengan **0 akun & 0 permission** — jadi cabang
+  pembuang di migrasi memang akan terpakai, dan ia tidak akan berhenti. `masyarakat` memegang
+  akun sungguhan: **prod 19, staging 14, dev 14**.
+- **KOREKSI PENTING atas cara kegagalannya kalau kode naik TANPA migrasi.** Catatan sebelumnya
+  berbunyi "`assignRole()` melempar `RoleDoesNotExist`, pendaftaran warga baru gagal total".
+  Itu benar secara umum, **tapi TIDAK untuk ketiga server ini** — justru karena peran hantu
+  `warga` ada di sana, `assignRole('warga')` **berhasil tanpa galat** dan menaruh pendaftar baru
+  di peran kosong itu. Yang terjadi bukan kegagalan yang berisik melainkan **populasi terbelah
+  dua secara diam-diam**: 19 akun lama tetap di `masyarakat` (yang tak lagi dirujuk kode mana
+  pun, sehingga profil mereka berbunyi "Peran belum ditetapkan" dan lencana perisai muncul
+  keliru), sementara akun baru menumpuk di `warga` hantu. Itu #110 terulang dalam skala yang
+  lebih besar. **Diam lebih berbahaya daripada gagal**, jadi jangan mengandalkan "nanti juga
+  ketahuan kalau salah".
+- **Urutan deploy TIDAK BISA dibalik untuk menghindarinya:** menjalankan migrasi LEBIH DULU
+  membuat kode LAMA yang masih terpasang memanggil `assignRole('masyarakat')` atas peran yang
+  sudah tak ada — dan itu benar-benar `RoleDoesNotExist`. Jadi urutannya tetap **kode dulu, lalu
+  migrasi sesegera mungkin**; yang bisa dikecilkan hanya lebar jendelanya, bukan keberadaannya.

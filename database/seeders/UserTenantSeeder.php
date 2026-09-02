@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Role;
 
 class UserTenantSeeder extends Seeder
 {
@@ -13,11 +12,16 @@ class UserTenantSeeder extends Seeder
     {
         $defaultPassword = Hash::make('password');
 
-        // Pastikan Role ada
-        $roles = ['superadmin', 'admin', 'pejabat', 'petugas', 'relawan', 'masyarakat', 'warga'];
-        foreach ($roles as $role) {
-            Role::firstOrCreate(['name' => $role]);
-        }
+        // Pastikan Role ada. Daftarnya TIDAK ditulis ulang di sini: seeder ini dulu memelihara
+        // daftar perannya sendiri, dan daftar kedua itu menyimpang - ia menciptakan peran
+        // `warga` yang tak pernah diberikan ke siapa pun, tak punya permission, dan tak dirujuk
+        // satu baris pun di app/ maupun routes/. Ia hanya muncul di dropdown Manajemen Pengguna
+        // (yang membaca tabel `roles`, bukan kode) berlabel "Warga" hasil cadangan ucfirst(),
+        // sehingga tampak sederajat dengan "Masyarakat"; akun yang diberi peran itu justru
+        // menjadi akun tanpa peran yang dikenali, tanpa satu pun galat. Dicabut 2026-09-02 atas
+        // permintaan user. RolePermissionSeeder adalah SATU-SATUNYA sumber peran - jangan
+        // membuat daftar kedua di sini lagi (dijaga RoleSourceSingleListTest).
+        $this->call(RolePermissionSeeder::class);
 
         // =========================================================================
         // DATA MASTER WILAYAH (Berdasarkan Kode BPS Bali)
@@ -116,7 +120,7 @@ class UserTenantSeeder extends Seeder
         }
 
         // =========================================================================
-        // GENERATE: 5 WARGA / MASYARAKAT UMUM (Lengkap sampai Village/Desa)
+        // GENERATE: 5 WARGA (Lengkap sampai Village/Desa)
         // =========================================================================
         for ($i = 1; $i <= 5; $i++) {
             $isDenpasar = $i <= 3; // 1-3 Denpasar, 4-5 Badung
@@ -142,7 +146,7 @@ class UserTenantSeeder extends Seeder
                     'email_verified_at' => now(),
                 ]
             );
-            $warga->assignRole('masyarakat');
+            $warga->assignRole('warga');
         }
 
         $this->command->info('✅ UserTenantSeeder: Berhasil Generate 5 Petugas, 10 Relawan, dan 5 Warga (Lengkap sampai tingkat Desa/Kelurahan).');

@@ -10,30 +10,30 @@ beforeEach(function () {
     DB::table('indonesia_villages')->insert(['code' => '5171012006', 'district_code' => '517101', 'name' => 'Pemogan']);
 });
 
-it('forces a masyarakat user without a complete profile to the onboarding page', function () {
+it('forces a warga user without a complete profile to the onboarding page', function () {
     $user = User::factory()->create(['phone' => null]);
-    $user->assignRole('masyarakat');
+    $user->assignRole('warga');
 
     $this->actingAs($user)->get('/dashboard')->assertRedirect(route('profile.complete'));
 });
 
 it('does not redirect loop on the onboarding page itself', function () {
     $user = User::factory()->create(['phone' => null]);
-    $user->assignRole('masyarakat');
+    $user->assignRole('warga');
 
     $this->actingAs($user)->get(route('profile.complete'))->assertOk();
 });
 
 it('lets a user with a complete profile reach the dashboard normally', function () {
     $user = User::factory()->create(['village_code' => '5171012006']);
-    $user->assignRole('masyarakat');
+    $user->assignRole('warga');
 
     $this->actingAs($user)->get('/dashboard')->assertOk();
 });
 
 it('saves the completed profile and redirects to the dashboard', function () {
     $user = User::factory()->create(['phone' => null]);
-    $user->assignRole('masyarakat');
+    $user->assignRole('warga');
 
     $this->actingAs($user)->post(route('profile.complete.store'), [
         'phone' => '081234567890',

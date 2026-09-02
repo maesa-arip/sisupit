@@ -50,7 +50,7 @@ class RegisteredUserController extends Controller
             'terms_accepted_at' => now(),
         ]);
 
-        $user->assignRole('masyarakat');
+        $user->assignRole('warga');
 
         event(new Registered($user));
 

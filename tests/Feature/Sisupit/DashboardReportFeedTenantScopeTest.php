@@ -27,7 +27,7 @@ it('only shows the "Semua Laporan" feed scoped to the viewing citizen own villag
         'village_code' => '5171012006',
         'phone' => '081234500000',
     ]);
-    $citizenInVillageA->assignRole('masyarakat');
+    $citizenInVillageA->assignRole('warga');
 
     $response = $this->actingAs($citizenInVillageA)->get('/dashboard');
 

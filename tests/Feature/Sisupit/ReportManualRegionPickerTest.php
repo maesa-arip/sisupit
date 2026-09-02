@@ -39,7 +39,7 @@ it('gives the command center a region picker seeded with its own jurisdiction', 
 
 it('never seeds a citizen form with someone elses jurisdiction', function () {
     $warga = User::factory()->create(['village_code' => '5171012006']);
-    $warga->assignRole('masyarakat');
+    $warga->assignRole('warga');
 
     $this->actingAs($warga)->get(route('front.reports.create'))
         ->assertOk()

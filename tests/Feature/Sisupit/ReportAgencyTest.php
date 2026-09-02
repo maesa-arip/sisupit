@@ -20,7 +20,7 @@ beforeEach(function () {
     Notification::fake();
 
     $reporter = User::factory()->create(['village_code' => '5171012006']);
-    $reporter->assignRole('masyarakat');
+    $reporter->assignRole('warga');
 
     $this->report = Report::create([
         'user_id' => $reporter->id,

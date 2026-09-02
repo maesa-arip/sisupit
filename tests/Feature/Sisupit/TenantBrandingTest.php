@@ -28,7 +28,7 @@ it('brands the thanks page from the report city tenant, not the subdomain', func
     ]);
 
     $reporter = User::factory()->create(['village_code' => '5171012006']);
-    $reporter->assignRole('masyarakat');
+    $reporter->assignRole('warga');
     $report = Report::create([
         'user_id' => $reporter->id, 'title' => 'Kebakaran', 'status' => 'TERLAPOR',
         'lat' => '-8.6', 'lng' => '115.2', 'province_code' => '51', 'city_code' => '5103',
@@ -45,7 +45,7 @@ it('brands the thanks page from the report city tenant, not the subdomain', func
 
 it('falls back to 113 and no pejabat for a non-partner city on the thanks page', function () {
     $reporter = User::factory()->create(['village_code' => '5171012006']);
-    $reporter->assignRole('masyarakat');
+    $reporter->assignRole('warga');
     $report = Report::create([
         'user_id' => $reporter->id, 'title' => 'Kebakaran', 'status' => 'TERLAPOR',
         'lat' => '-8.5', 'lng' => '110.4', 'province_code' => '34', 'city_code' => '3471',

@@ -136,6 +136,43 @@
   ia masih dipakai untuk hal-hal non-aksi (audiens jejak penutupan), **jangan** dipakai
   untuk menggerbangi aksi baru. Saat mengubah daftar peran sebuah endpoint di
   `ReportActionController`, ubah prop pasangannya di `show()` dalam commit yang sama.
+- **Peran hanya lahir di `RolePermissionSeeder`** (#110). Seeder lain tidak boleh memanggil
+  `Role::firstOrCreate()`/`Role::create()`. Alasannya bukan kerapian: `Admin\UserController`
+  membaca daftar peran dari **tabel `roles`**, dan `roleOptions()` mencetak nama yang tak dikenal
+  kamus labelnya lewat cadangan `ucfirst()` - jadi peran liar apa pun langsung muncul di dropdown
+  Manajemen Pengguna tampak sederajat dengan peran sungguhan, sementara akun yang menerimanya
+  justru jadi akun tanpa peran yang dikenali (profilnya berbunyi "Peran belum ditetapkan", tak
+  satu pun gerbang mengenalinya), tanpa galat. `UserTenantSeeder` sempat memelihara daftar kedua
+  selama bertahun-tahun dan melahirkan peran `warga` seperti itu. Menambah peran = satu baris di
+  seeder itu **plus** satu label di `roleOptions()` **plus** satu entri `ROLE_LABELS`
+  (`lib/utils.js`). Dijaga `RoleSourceSingleListTest` & `RoleLabelParityTest`.
+  **Peran warga kini bernama `warga`** - sampai 2026-09-02 ia bernama `masyarakat`, dan nama
+  `warga` justru dipegang peran hantu di atas; keduanya tidak pernah ada bersamaan (migrasi
+  `2026_09_02_100000` membuang yang hantu lebih dulu, dan BERHENTI dengan galat bila ternyata
+  ada akun menempel padanya). **Mengganti nama peran hanya aman bila tuntas:** namanya hidup
+  sebagai STRING di `assignRole()`/`hasRole()`/`User::role()`/kamus label, satu tertinggal dan
+  `assignRole()` melempar `RoleDoesNotExist` sementara `hasRole()` diam-diam memulangkan false.
+  **Dan bila nama barunya kebetulan SUDAH ADA sebagai peran lain** (kasus nyata 2026-09-02: nama
+  `warga` dipegang peran hantu #110 di ketiga server), kode yang naik tanpa migrasinya tidak
+  bergalat sama sekali - ia menaruh pendaftar baru di peran kosong itu sementara akun lama
+  tertinggal di nama lama, dan populasinya terbelah dua tanpa satu pun gejala. Diam lebih
+  berbahaya daripada gagal. Kode & DB WAJIB naik bersamaan di tiap environment, dan urutannya
+  **kode dulu lalu migrasi** - membalik urutannya membuat kode LAMA yang masih terpasang
+  memanggil peran yang sudah tak ada.
+  **Menambah peran ke seeder itu TIDAK CUKUP** (#111): **deploy di repo ini seluruhnya MANUAL**
+  (tak ada git hook, cron, maupun skrip di VPS - diperiksa langsung 2026-09-02; `deploy/` itu
+  folder dokumen, bukan otomatisasi). `db:seed` tak pernah dijalankan sama sekali, dan `migrate`
+  hanya berjalan kalau operatornya ingat mengetiknya - runbook `deploy/environments.md`
+  mencantumkannya, tapi rangkaian deploy terakhir memang cuma `git pull` sebab tak ada migrasi
+  yang menunggu. Akibatnya database yang lahir sebelum sebuah peran ditambahkan tak menerimanya
+  dengan sendirinya - dan karena `allRoleNames()` membaca TABEL, peran itu tak muncul di dropdown
+  sama sekali; gejalanya nol, daftarnya cuma lebih pendek. Itu yang terjadi pada `opd` di DB dev
+  LOKAL (absen sejak TASK_27 sampai 2026-09-02); ketiga environment VPS lolos karena ditambal
+  manual di sesi sebelumnya - persis ketergantungan pada ingatan yang mau dihapus di sini.
+  Karena itu peran baru = satu baris di seeder
+  **plus satu migrasi penyelaras** yang MEMANGGIL seeder itu (`(new RolePermissionSeeder)->run()`;
+  seluruh isinya `firstOrCreate`, jadi aman berulang) - jangan menyalin daftarnya ke dalam
+  migrasi, itu daftar kedua lagi. Patokan: `2026_09_02_100100_seed_missing_roles_and_permissions`
 - **Permission Spatie di repo ini TIDAK MENGGERBANGI APA PUN** (#103): `RolePermissionSeeder`
   mengisinya lengkap, tapi pencarian `can(...)` di seluruh `app/` & `routes/` nihil. Jangan
   "membatasi peran" dengan mencabut permission — tak akan terjadi apa-apa, tanpa galat.

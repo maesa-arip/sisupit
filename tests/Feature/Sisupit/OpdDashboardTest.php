@@ -75,7 +75,7 @@ it('lists the incidents the agency was asked to help with in its archive', funct
     $lain = Agency::create(['name' => 'BPBD Kota Denpasar', 'code' => 'BPBD', 'is_active' => true, 'city_code' => '5171']);
 
     $reporter = User::factory()->create(['village_code' => '5171012006']);
-    $reporter->assignRole('masyarakat');
+    $reporter->assignRole('warga');
 
     $diminta = App\Models\Report::create([
         'user_id' => $reporter->id,
@@ -130,7 +130,7 @@ it('keeps the OPD archive agency-scoped even when the mine filter is requested',
 // semuanya. Ini re-check ownership yang menyertai withoutGlobalScopes() (ATURAN EMAS #7).
 it('shows nothing to an OPD account that is not linked to any agency', function () {
     $reporter = User::factory()->create(['village_code' => '5171012006']);
-    $reporter->assignRole('masyarakat');
+    $reporter->assignRole('warga');
 
     App\Models\Report::create([
         'user_id' => $reporter->id,

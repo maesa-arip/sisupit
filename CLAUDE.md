@@ -27,7 +27,169 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : PERBAIKAN LEPAS #108 & #109 — SELESAI & TERDEPLOY 2026-09-02 @2f371c32.
+Task aktif   : PERBAIKAN LEPAS PERAN - ajakan "Daftar Relawan" dicabut, peran hantu
+                `warga` dihapus (#110), `masyarakat` BERGANTI NAMA jadi `warga` (#112),
+                dan peran `opd` yang hilang dari DB ditambahkan (#111).
+                SELESAI (kode) 2026-09-02, BELUM DIDEPLOY. **DEPLOY BERMIGRASI (2 migrasi).**
+                Satu pesan user, dua hal: "hide daftar relawan dari dashboard dan dari profile,
+                kemudian di manajemen pengguna apa perbedaan masyarakat dan warga?", lalu
+                "ya lanjutkan, hapus role warga juga".
+                (A) AJAKAN MENDAFTAR RELAWAN DICABUT DI DUA LAYAR. Yang ada di Dashboard &
+                Profil bukan DAFTAR relawan melainkan AJAKAN mendaftar jadi relawan: kartu
+                "Bantu Sesama" (Pages/Dashboard.jsx, cabang else dari isRelawan) dan banner
+                "Panggilan Kemanusiaan" (Pages/Profile/Edit.jsx), dua-duanya berujung tombol
+                "Daftar Relawan". Keduanya dihapus berikut kode yang ikut mati:
+                handleRegisterVolunteer/isRegistering/IconUsersGroup di Dashboard, dan
+                openRelawan/handleDaftarRelawan/<Dialog>/IconAward/flashMessage/isAdmin di
+                Profil. Kartu Mode Kesiapan milik relawan & editor keahlian TETAP.
+                HARGA YANG DISETUJUI USER: sesudah ini TIDAK ADA SATU PUN pintu pendaftaran
+                relawan mandiri di seluruh aplikasi - peran `relawan` hanya diberikan admin
+                lewat /admin/users. Route & controllernya SENGAJA dibiarkan hidup.
+                YANG DITEMUKAN SAMBIL MENGERJAKAN: kedua tombol itu memanggil ENDPOINT YANG
+                BERBEDA untuk tindakan yang sama - Dashboard ke `volunteer.register`
+                (VolunteerController), Profil ke `admin.relawan.update` (= store_relawan, yang
+                justru endpoint TANPA authorize dari FINDINGS #1, P0). Menghidupkan lagi ajakan
+                itu berarti memilih salah satunya lebih dulu; jangan menyalin yang lama.
+                Endpoint #1 kini tanpa pemanggil di frontend, tapi TETAP TERBUKA - bukan fix.
+                (B) PERAN `warga` DIHAPUS (temuan BARU #110). Pertanyaan user itu sendiri
+                buktinya: dua pilihan bersebelahan yang bedanya tak bisa dijawab siapa pun.
+                Jawabannya TIDAK ADA BEDANYA - `warga` peran hantu: 0 akun memakainya,
+                0 permission, 0 route_accesses, NOL rujukan di seluruh app/ & routes/, dan tak
+                pernah diberikan satu pun alur pendaftaran.
+                AKARNYA DAFTAR PERAN KEDUA: `UserTenantSeeder:17` memelihara daftar perannya
+                sendiri di samping RolePermissionSeeder (yang seluruh dokumen repo ini sebut
+                sebagai sumber peran), dan daftar kedua itu memuat satu nama yang tak ada di
+                daftar pertama. Seeder itu dipanggil SESUDAH RolePermissionSeeder, jadi enam
+                nama lainnya cuma pengulangan tak berefek - satu-satunya efek nyata daftar itu
+                adalah menciptakan `warga`. Seeder yang sama bahkan memberi `masyarakat` kepada
+                user yang dinamainya "Warga Sipil": peran yang ia buat tak pernah ia pakai.
+                KENAPA SAMPAI KE LAYAR: allRoleNames() membaca peran dari TABEL `roles` (benar -
+                peran bisa dibuat lewat /admin/roles), lalu roleOptions() mencetak nama yang tak
+                ada di kamus labelnya lewat cadangan `ucfirst()` - sehingga ia muncul sebagai
+                "Warga", berhuruf kapital, sederajat dengan "Masyarakat". Bentuk yang SAMA dengan
+                #90 & #94: cadangan sebuah kamus adalah KLAIM, bukan "tidak dikenal". Akun yang
+                terlanjur diberi peran itu bukan menjadi warga melainkan akun TANPA peran yang
+                dikenali - profilnya sendiri berbunyi "Peran belum ditetapkan".
+                Gejala ikutan yang sudah menambal dirinya sendiri: ReportSeeder:30 &
+                ResolvedReportSeeder:21 menulis `User::role(['warga','masyarakat'])` - mencari
+                DUA nama untuk satu konsep. Penambalan itu tanda daftar yang menyimpang, dan ia
+                juga yang membuat penghapusan perannya WAJIB disertai perbaikan keduanya:
+                `User::role()` melempar RoleDoesNotExist untuk nama yang tak ada.
+                FIX: UserTenantSeeder tak lagi punya daftar peran (memanggil
+                RolePermissionSeeder), kedua seeder laporan menanyakan `masyarakat` saja, dan
+                barisnya dihapus dari DB DEV LOKAL (0 dependen, diperiksa lebih dulu) +
+                permission:cache-reset. AWAS EFEK SAMPING YANG DISENGAJA: menjalankan
+                UserTenantSeeder sendirian kini ikut menyemai permission & peran `opd`.
+                Penjaga: RoleSourceSingleListTest BARU (2 test). Yang pertama - tak boleh ada
+                Role::firstOrCreate|create di seeder mana pun selain RolePermissionSeeder -
+                dibuktikan MERAH lewat pemulihan berkas lama, lalu dipulihkan byte-exact (md5
+                dicocokkan). Yang kedua (setiap peran nyata punya label di roleOptions) HIJAU
+                sejak awal = penjaga regresi, bukan bukti bug: di test hanya RolePermissionSeeder
+                yang berjalan, dan JUSTRU ITULAH sebabnya peran liar ini hidup bertahun-tahun
+                tanpa satu pun test merah.
+                Test 390 -> 392 passed (1516 assertions; angka 386 di STATUS lama sudah
+                tertinggal oleh #108/#109), Pint PASS, prettier PASS, npm run build lulus.
+                TANPA migrasi, TANPA perubahan route/skema, TANPA sentuhan controller.
+                TEMUAN BARU #111 OPEN (sengaja tidak dikerjakan, aturan emas #6): peran `opd`
+                TIDAK ADA di tabel roles DB dev lokal - RolePermissionSeeder membuatnya sejak
+                TASK_27 tapi DB itu diseed 2026-05-18 dan tak pernah diseed ulang, sehingga
+                seluruh fitur OPD tak bisa dipakai di dev tanpa satu pun galat (daftarnya cuma
+                lebih pendek). Perbaikannya satu perintah idempoten, tapi menambah peran ke DB
+                adalah perubahan data tersendiri.
+                (C) PERAN `masyarakat` BERGANTI NAMA JADI `warga` (#112). Permintaan user
+                menyusul: "ganti kata masyarakat menjadi warga". Kata itu hidup di DUA lapis
+                berbiaya jauh berbeda, jadi pilihannya disodorkan lebih dulu - label saja / nama
+                peran di DB juga / label + semua kalimat. USER MEMILIH NAMA PERAN DI DB JUGA.
+                BENTUKNYA MENGGANTI NAMA BARIS YANG SAMA, bukan membuat peran baru lalu
+                memindahkan akun: `model_has_roles` menunjuk lewat `role_id`, jadi menyunting
+                `roles.name` membuat seluruh penugasan & permission utuh tanpa satu baris pun
+                berpindah - dan tak ada akun yang bisa terlewat pindah lalu jadi akun tanpa peran
+                (bentuk #110 lagi).
+                YANG MEMBUATNYA LEBIH DARI SATU UPDATE, dan ini yang menjawab SISA di (B):
+                `roles` ber-UNIQUE(name, guard_name), sementara nama `warga` MASIH DIPEGANG peran
+                hantu #110 di ketiga VPS. Tanpa penanganan, UPDATE-nya menabrak unique key dan
+                migrasi GAGAL DI TENGAH DEPLOY. Migrasi 2026_09_02_100000 karena itu membuang
+                yang hantu lebih dulu - HANYA bila kosong; kalau ada akun/permission menempel ia
+                BERHENTI dengan pesan yang menyebut jumlahnya, sebab menggabungkan dua peran
+                diam-diam adalah keputusan data, bukan langkah migrasi. down() sengaja TIDAK
+                menghidupkan lagi peran hantu itu. KEDUA CABANG DIBUKTIKAN di DB dev dengan
+                menirukan keadaan VPS (hantu disisipkan ulang; lalu disisipkan lagi berikut satu
+                penugasan -> migrasi berhenti, DB tidak berubah).
+                KENAPA RENAME PERAN BERBAHAYA BILA SETENGAH JALAN: namanya bukan foreign key
+                melainkan STRING yang tersebar di assignRole/hasRole/User::role/kamus label/
+                assignableRoleNames. Satu tertinggal -> assignRole melempar RoleDoesNotExist
+                (PENDAFTARAN WARGA BARU GAGAL TOTAL) sementara hasRole justru DIAM dan memulangkan
+                false = pemeriksaan izin yang senyap-salah. KODE & DB WAJIB NAIK BERSAMAAN di tiap
+                environment; jangan pull kode tanpa langsung `php artisan migrate`.
+                Sebaran: 10 rujukan di app/+routes/+database/ + 78 di tests/ + ROLE_LABELS
+                ("Anggota Masyarakat" -> "Warga") + satu perbandingan di Profile/Edit.jsx. Judul &
+                variabel test yang menyebut nama perannya ikut diluruskan - judul test yang
+                menyatakan fakta salah lebih buruk daripada tak ada judul. utils.js disunting
+                BINARY-SAFE; byte NUL #93 diperiksa masih utuh sesudah prettier.
+                Penjaga: test KETIGA di RoleSourceSingleListTest - tak boleh ada literal
+                'masyarakat' tersisa di app/, routes/, database/seeders/, resources/js/ (migrasinya
+                sendiri dikecualikan: di situlah satu-satunya tempat nama lama wajib tertulis).
+                (D) PERAN `opd` DITAMBAHKAN (#111 FIXED). Permintaan user: "tambahkan peran
+                opd". MASALAHNYA BUKAN KODE - `opd` sudah ada di RolePermissionSeeder sejak
+                TASK_27 (2026-08-12); yang tak ada barisnya di database.
+                KOREKSI SESUDAH VPS DIPERIKSA (user memberi akses root): dugaan saya bahwa
+                prod/staging/dev ikut kehilangan `opd` TERNYATA SALAH. Ketiganya PUNYA `opd`
+                (id 8) berikut 3 akun & permission view_dashboard, jadi fitur OPD memang berjalan
+                di produksi - kalimat "tak pernah bisa dipakai di produksi" yang sempat saya tulis
+                tidak benar. Celahnya HANYA di DB dev LOKAL (laragon, diseed 2026-05-18 & tak
+                pernah diseed ulang). Ketiga env VPS lolos karena ditambal MANUAL di sesi
+                sebelumnya - dan justru ketergantungan pada ingatan itulah yang mau dihapus.
+                YANG TETAP BERLAKU: `db:seed` tak pernah dijalankan saat deploy, jadi peran baru
+                di seeder tak sampai sendiri ke database yang sudah ada.
+                Diperbaiki lewat migrasi 2026_09_02_100100 yang MEMANGGIL RolePermissionSeeder,
+                BUKAN menyalin daftarnya - menuliskan ulang nama peran di dalam migrasi = daftar
+                kedua lagi, persis sebab #110. Seluruh isi seeder itu firstOrCreate, jadi aman
+                berulang; DIBUKTIKAN IDEMPOTEN (sidik jari peran+akun+permission identik sesudah
+                dijalankan dua kali). down() sengaja KOSONG - mencabut peran saat rollback akan
+                melucuti akun yang sudah memakainya.
+                Hasil di dev LOKAL: `opd` (id 10) + permission view_dashboard; keenam peran lain
+                tidak berubah sedikit pun. Efeknya di ketiga env VPS: NOL (sudah lengkap), ia
+                dibawa serta sebagai jaring pengaman untuk database berikutnya.
+                ATURAN TURUNAN (dicatat di CONVENTIONS): peran baru = satu baris di seeder PLUS
+                satu migrasi penyelaras. Tanpa itu peran barunya hanya hidup di mesin yang
+                di-seed dari nol.
+                (E) KEADAAN DEPLOY & KETIGA ENVIRONMENT, DIPERIKSA LANGSUNG 2026-09-02 setelah
+                user berkata "deploy kode saja tanpa migrate" dan memberi akses root.
+                DEPLOY DI SERVER INI 100% MANUAL: NOL git hook, NOL cron, NOL skrip deploy,
+                NOL systemd timer. `deploy/` di folder proyek itu FOLDER DOKUMEN (environments.md
+                + template nginx/reverb), bukan otomatisasi - jangan tertipu namanya. Runbook
+                `deploy/environments.md` memang mencantumkan `php artisan migrate --force`, tapi
+                itu baris yang harus DIINGAT operatornya; rangkaian deploy terakhir cuma
+                `git pull` sebab memang tak ada migrasi yang menunggu.
+                Ketiganya kini sejajar di 50ae042e (main/staging/dev) dengan 0 migrasi pending.
+                ISI TABEL `roles` KETIGA ENV: superadmin/admin/pejabat/petugas/relawan/
+                masyarakat/warga(HANTU, id 7)/opd(id 8). Peran hantu `warga` ADA di ketiganya
+                dengan 0 akun & 0 permission - jadi cabang pembuang di migrasi pertama memang
+                akan terpakai DAN tidak akan berhenti. `masyarakat` memegang akun sungguhan:
+                PROD 19, staging 14, dev 14.
+                KOREKSI CARA KEGAGALANNYA - INI YANG PALING PENTING. Saya sempat menulis "kode
+                naik tanpa migrasi = assignRole melempar RoleDoesNotExist, pendaftaran gagal
+                total". Itu benar secara umum TAPI TIDAK UNTUK KETIGA SERVER INI: justru karena
+                peran hantu `warga` ada di sana, `assignRole('warga')` BERHASIL TANPA GALAT dan
+                menaruh pendaftar baru di peran kosong itu. Yang terjadi bukan kegagalan berisik
+                melainkan POPULASI TERBELAH DUA DIAM-DIAM - 19 akun prod tetap di `masyarakat`
+                yang tak lagi dirujuk kode mana pun (profil mereka berbunyi "Peran belum
+                ditetapkan", lencana perisai muncul keliru), sementara akun baru menumpuk di
+                `warga` hantu. Itu #110 terulang dalam skala lebih besar. DIAM LEBIH BERBAHAYA
+                DARIPADA GAGAL.
+                URUTAN TAK BISA DIBALIK untuk menghindarinya: migrasi lebih dulu membuat kode LAMA
+                yang masih terpasang memanggil `assignRole('masyarakat')` atas peran yang sudah
+                tak ada - dan ITU benar-benar RoleDoesNotExist. Jadi tetap KODE DULU lalu MIGRASI
+                sesegera mungkin; yang bisa dikecilkan cuma lebar jendelanya.
+                SISA: (1) DEPLOY - DUA migrasi, dan karena deploy di sini manual, `git pull` TANPA
+                `php artisan migrate --force` menghasilkan keadaan terbelah di atas. Cadangkan DB
+                dulu; urutan dev -> staging -> prod; di tiap env jalankan pull lalu migrate
+                BERURUTAN RAPAT tanpa jeda. Migrasi kedua no-op di ketiga env (sudah punya `opd`).
+                (2) Verifikasi sesudahnya: `masyarakat` sudah TIDAK ADA & `warga` memegang 19/14/14
+                akun, peran hantu lenyap (jumlah peran 8 -> 7), coba daftar akun baru, dan cek
+                dropdown /admin/users berbunyi "Warga" + "OPD / Instansi Terkait".
+                (3) Verifikasi visual dua layar (kartu relawan hilang di Dashboard & Profil).
+               PERBAIKAN LEPAS #108 & #109 — SELESAI & TERDEPLOY 2026-09-02 @2f371c32.
                 Dua cacat dilaporkan user ("di buat laporan penanganan saat klik jam aplikasi
                 apk langsung force close, dan di manajemen pengguna paginationnya lewat"),
                 keduanya hidup HANYA di berkas JSX sehingga tak ada test lama yang melihatnya.
@@ -1473,8 +1635,10 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-08-31: 375 passed, 1470 assertions —
-            angka lama "65 passed, 164 assertions" per 2026-06-25 sudah jauh tertinggal)
+Test      : php artisan test            (baseline 2026-09-02: 392 passed, 1516 assertions.
+            Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
+            sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
+            seperti semula" tak bisa dibuktikan)
 Run (dev) : composer dev
 Lint      : vendor/bin/pint  /  npm run format (auto-fix, BUKAN check-only — tidak ada di CI)
 ```

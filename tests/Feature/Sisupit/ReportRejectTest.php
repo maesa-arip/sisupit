@@ -5,7 +5,7 @@ use App\Models\User;
 
 beforeEach(function () {
     $this->reporter = User::factory()->create(['village_code' => '5171012006']);
-    $this->reporter->assignRole('masyarakat');
+    $this->reporter->assignRole('warga');
 
     $this->report = Report::create([
         'user_id' => $this->reporter->id,
@@ -37,11 +37,11 @@ it('lets an admin reject a report into the ditolak status with a reason, keeping
     expect(Report::withoutGlobalScopes()->whereKey($this->report->id)->exists())->toBeTrue();
 });
 
-it('blocks non-staff (masyarakat) from rejecting a report', function () {
-    $masyarakat = User::factory()->create(['village_code' => '5171012006']);
-    $masyarakat->assignRole('masyarakat');
+it('blocks non-staff (warga) from rejecting a report', function () {
+    $warga = User::factory()->create(['village_code' => '5171012006']);
+    $warga->assignRole('warga');
 
-    $this->actingAs($masyarakat)
+    $this->actingAs($warga)
         ->post("/reports/{$this->report->id}/reject")
         ->assertForbidden();
 
@@ -68,7 +68,7 @@ it('hides rejected reports from the non-staff feed but keeps them visible to the
 
     // Non-staff sewilayah: tab "Semua Laporan" tak memuat laporan ditolak
     $viewer = User::factory()->create(['village_code' => '5171012006']);
-    $viewer->assignRole('masyarakat');
+    $viewer->assignRole('warga');
 
     $response = $this->actingAs($viewer)->get(route('front.reports.index'));
     $allFeed = $response->original->getData()['page']['props']['reports']['data'];

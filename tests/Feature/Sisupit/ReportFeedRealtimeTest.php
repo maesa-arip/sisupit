@@ -35,7 +35,7 @@ beforeEach(function () {
     require base_path('routes/channels.php');
 
     $this->reporter = User::factory()->create(['village_code' => '5171012006']);
-    $this->reporter->assignRole('masyarakat');
+    $this->reporter->assignRole('warga');
 
     $this->report = Report::create([
         'user_id' => $this->reporter->id,
@@ -112,7 +112,7 @@ it('keeps a citizen without region codes off the national channel', function () 
         'district_code' => null,
         'village_code' => null,
     ]);
-    $wargaKosong->assignRole('masyarakat');
+    $wargaKosong->assignRole('warga');
 
     // Tak ada channel yang jadi jatahnya → frontend tak pernah berlangganan apa pun.
     expect($wargaKosong->reportFeedChannel())->toBeNull();

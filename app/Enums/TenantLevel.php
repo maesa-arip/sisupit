@@ -31,7 +31,7 @@ enum TenantLevel: string
      * `null` = tidak punya kode wilayah sama sekali, dan itu punya DUA makna yang tidak
      * bisa dibedakan dari bentuk datanya (#56) — pembedanya PERAN:
      *   - peran staf (User::STAFF_ROLES) → yurisdiksi nasional yang memang sengaja luas;
-     *   - selain itu (masyarakat/relawan) → profil belum lengkap.
+     *   - selain itu (warga/relawan) → profil belum lengkap.
      * Jangan pernah menyimpulkan salah satunya dari NULL saja.
      */
     public static function forCodes(?string $province, ?string $city, ?string $district, ?string $village): ?self

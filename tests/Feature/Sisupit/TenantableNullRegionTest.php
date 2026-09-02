@@ -24,7 +24,7 @@ it('denies national access to a logged-in user without any region (Google/unfini
 
     // Persis kondisi akun Google yang belum melengkapi profil: masyarakat, tanpa kode wilayah.
     $user = User::factory()->create();
-    $user->assignRole('masyarakat');
+    $user->assignRole('warga');
     $user->update(['province_code' => null, 'city_code' => null, 'district_code' => null, 'village_code' => null]);
 
     $this->actingAs($user);
@@ -37,7 +37,7 @@ it('still scopes a user with a region to their own region only', function () {
     seedTwoRegionReports();
 
     $user = User::factory()->create(['village_code' => '5171012006']);
-    $user->assignRole('masyarakat');
+    $user->assignRole('warga');
 
     $this->actingAs($user);
 

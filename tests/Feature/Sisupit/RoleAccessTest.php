@@ -2,7 +2,7 @@
 
 use App\Models\User;
 
-it('assigns the masyarakat role to a freshly registered user', function () {
+it('assigns the warga role to a freshly registered user', function () {
     $response = $this->post('/register', [
         'name' => 'Warga Uji',
         'email' => 'warga@example.com',
@@ -15,12 +15,12 @@ it('assigns the masyarakat role to a freshly registered user', function () {
     $user = User::where('email', 'warga@example.com')->first();
 
     expect($user)->not->toBeNull();
-    expect($user->hasRole('masyarakat'))->toBeTrue();
+    expect($user->hasRole('warga'))->toBeTrue();
 });
 
-it('blocks masyarakat from admin routes', function () {
+it('blocks warga from admin routes', function () {
     $user = User::factory()->create(['village_code' => '5171012006']);
-    $user->assignRole('masyarakat');
+    $user->assignRole('warga');
 
     $response = $this->actingAs($user)->get('/admin/users');
 

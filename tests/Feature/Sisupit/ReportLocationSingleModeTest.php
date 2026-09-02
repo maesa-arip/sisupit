@@ -56,7 +56,7 @@ it('rejects a citizen report that has no village code', function () {
     DB::table('indonesia_villages')->insert(['code' => '5171012006', 'district_code' => '517101', 'name' => 'Pemogan']);
 
     $warga = User::factory()->create(['village_code' => '5171012006']);
-    $warga->assignRole('masyarakat');
+    $warga->assignRole('warga');
 
     // Persis keadaan yang bikin fitur ini perlu: titik & wilayah atas terisi dari pin, tapi
     // pencocokan nama OSM berhenti di kecamatan sehingga desanya kosong.

@@ -27,7 +27,7 @@ class UserController extends Controller
     /**
      * Peran yang yurisdiksinya ditentukan oleh kode wilayah (lihat scopeIsAdmin/UserPolicy).
      * Saat salah satunya ditetapkan, admin juga memilih tingkat wilayah & kode dipangkas
-     * ke tingkat itu — peran lain (masyarakat/relawan) memakai alamat lengkap apa adanya.
+     * ke tingkat itu — peran lain (warga/relawan) memakai alamat lengkap apa adanya.
      */
     private const JURISDICTIONAL_ROLES = ['admin', 'petugas', 'pejabat'];
 
@@ -309,7 +309,7 @@ class UserController extends Controller
     private function roleOptions(array $names): array
     {
         $labels = [
-            'masyarakat' => 'Masyarakat',
+            'warga' => 'Warga',
             'relawan' => 'Relawan',
             'petugas' => 'Petugas',
             'pejabat' => 'Pejabat',
@@ -354,7 +354,7 @@ class UserController extends Controller
             return array_values(array_diff($this->allRoleNames(), ['superadmin']));
         }
 
-        return ['masyarakat', 'relawan', 'petugas', 'pejabat', 'opd'];
+        return ['warga', 'relawan', 'petugas', 'pejabat', 'opd'];
     }
 
     /**

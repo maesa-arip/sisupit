@@ -20,7 +20,7 @@ beforeEach(function () {
 function makeResolvedReport(array $overrides = []): Report
 {
     $reporter = User::factory()->create();
-    $reporter->assignRole('masyarakat');
+    $reporter->assignRole('warga');
 
     return Report::create(array_merge([
         'user_id' => $reporter->id,

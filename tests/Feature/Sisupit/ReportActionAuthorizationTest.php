@@ -12,7 +12,7 @@ beforeEach(function () {
     Notification::fake();
 
     $reporter = User::factory()->create();
-    $reporter->assignRole('masyarakat');
+    $reporter->assignRole('warga');
 
     $this->report = Report::create([
         'user_id' => $reporter->id,
@@ -29,14 +29,14 @@ beforeEach(function () {
     ]);
 });
 
-it('blocks masyarakat from approving, taking action on, or updating location of a report', function () {
-    $masyarakat = User::factory()->create(['village_code' => '5171012006']);
-    $masyarakat->assignRole('masyarakat');
+it('blocks warga from approving, taking action on, or updating location of a report', function () {
+    $warga = User::factory()->create(['village_code' => '5171012006']);
+    $warga->assignRole('warga');
 
-    $this->actingAs($masyarakat)->post("/reports/{$this->report->id}/approve")->assertForbidden();
-    $this->actingAs($masyarakat)->post("/reports/{$this->report->id}/take-action")->assertForbidden();
-    $this->actingAs($masyarakat)->post("/reports/{$this->report->id}/arrive")->assertForbidden();
-    $this->actingAs($masyarakat)->post("/reports/{$this->report->id}/update-location", [
+    $this->actingAs($warga)->post("/reports/{$this->report->id}/approve")->assertForbidden();
+    $this->actingAs($warga)->post("/reports/{$this->report->id}/take-action")->assertForbidden();
+    $this->actingAs($warga)->post("/reports/{$this->report->id}/arrive")->assertForbidden();
+    $this->actingAs($warga)->post("/reports/{$this->report->id}/update-location", [
         'lat' => '-8.65',
         'lng' => '115.22',
     ])->assertForbidden();

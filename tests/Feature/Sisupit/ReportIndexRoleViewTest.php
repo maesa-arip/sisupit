@@ -29,7 +29,7 @@ it('shows the admin-style monitoring view to a relawan', function () {
 
 it('keeps the simple archive list for a warga', function () {
     $warga = User::factory()->create(['village_code' => '5171012006', 'phone' => '081100000002']);
-    $warga->assignRole('masyarakat');
+    $warga->assignRole('warga');
 
     $this->actingAs($warga)->get(route('front.reports.index'))
         ->assertOk()

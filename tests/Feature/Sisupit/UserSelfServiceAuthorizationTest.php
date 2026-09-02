@@ -8,7 +8,7 @@ function makeCompleteCitizen(array $attributes = []): User
         'phone' => '081234500000',
         'village_code' => '5171012006',
     ], $attributes));
-    $user->assignRole('masyarakat');
+    $user->assignRole('warga');
 
     return $user;
 }

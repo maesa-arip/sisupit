@@ -31,7 +31,7 @@ it('stores multiple photos and uses the first as the cover', function () {
     Storage::fake('public');
 
     $citizen = User::factory()->create(['village_code' => '5171012006']);
-    $citizen->assignRole('masyarakat');
+    $citizen->assignRole('warga');
 
     $response = $this->actingAs($citizen)->post('/reports/create', [
         ...$this->payload,
@@ -61,7 +61,7 @@ it('allows creating a fire report without any photo (photo optional for kebakara
     Storage::fake('public');
 
     $citizen = User::factory()->create(['village_code' => '5171012006']);
-    $citizen->assignRole('masyarakat');
+    $citizen->assignRole('warga');
 
     $response = $this->actingAs($citizen)->post('/reports/create', [
         ...$this->payload,
@@ -81,7 +81,7 @@ it('requires a photo for a non-fire emergency (incident_type = lainnya)', functi
     Storage::fake('public');
 
     $citizen = User::factory()->create(['village_code' => '5171012006']);
-    $citizen->assignRole('masyarakat');
+    $citizen->assignRole('warga');
 
     $this->actingAs($citizen)->post('/reports/create', [
         ...$this->payload,

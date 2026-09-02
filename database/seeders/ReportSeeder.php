@@ -27,7 +27,7 @@ class ReportSeeder extends Seeder
         $this->purgeExistingReports();
 
         // Ambil User berdasarkan Role (dibuat di UserTenantSeeder). Users TIDAK diubah.
-        $wargaList = User::role(['warga', 'masyarakat'])->get();
+        $wargaList = User::role('warga')->get();
         $relawanAll = User::role('relawan')->get();
         $petugasAll = User::role('petugas')->get();
 

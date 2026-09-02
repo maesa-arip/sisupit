@@ -26,7 +26,7 @@ beforeEach(function () {
     DB::table('indonesia_villages')->insert(['code' => '5171012008', 'district_code' => '517101', 'name' => 'Pemogan']);
 
     $this->pelapor = User::factory()->create(['city_code' => '5171']);
-    $this->pelapor->assignRole('masyarakat');
+    $this->pelapor->assignRole('warga');
 
     $this->petugas = User::factory()->create(['name' => 'Petugas Uji', 'city_code' => '5171']);
     $this->petugas->assignRole('petugas');

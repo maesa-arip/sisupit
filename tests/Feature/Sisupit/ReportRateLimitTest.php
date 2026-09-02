@@ -13,7 +13,7 @@ beforeEach(function () {
 
 it('throttles a citizen who spams report submissions', function () {
     $citizen = User::factory()->create(['village_code' => '5171012006']);
-    $citizen->assignRole('masyarakat');
+    $citizen->assignRole('warga');
 
     $payload = [
         'title' => 'Kebakaran rumah warga',

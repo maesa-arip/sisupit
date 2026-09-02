@@ -44,12 +44,12 @@ it('lets superadmin see volunteers regardless of jurisdiction', function () {
 it('keeps the volunteer list closed to the public (non-staff roles)', function () {
     // Profil sengaja dilengkapi (phone + village_code) agar lolos EnsureProfileComplete
     // dan benar-benar sampai ke gating role, bukan ter-redirect ke complete-profile.
-    $masyarakat = User::factory()->create([
+    $warga = User::factory()->create([
         'province_code' => '51',
         'phone' => '08123456789',
         'village_code' => '5101010001',
     ]);
-    $masyarakat->assignRole('masyarakat');
+    $warga->assignRole('warga');
 
-    $this->actingAs($masyarakat)->get('/relawan')->assertForbidden();
+    $this->actingAs($warga)->get('/relawan')->assertForbidden();
 });

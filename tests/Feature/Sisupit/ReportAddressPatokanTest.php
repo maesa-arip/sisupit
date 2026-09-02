@@ -25,7 +25,7 @@ it('stores the machine address alongside the landmark the citizen typed', functi
     Notification::fake();
 
     $citizen = User::factory()->create(['village_code' => '5171012006']);
-    $citizen->assignRole('masyarakat');
+    $citizen->assignRole('warga');
 
     $this->actingAs($citizen)->post('/reports/create', [
         'title' => 'Kebakaran rumah warga',
@@ -49,7 +49,7 @@ it('stores the machine address alongside the landmark the citizen typed', functi
 
 it('keeps the citizen landmark intact when a responder corrects the incident pin', function () {
     $citizen = User::factory()->create(['village_code' => '5171012006']);
-    $citizen->assignRole('masyarakat');
+    $citizen->assignRole('warga');
 
     $report = Report::create([
         'user_id' => $citizen->id,
@@ -93,7 +93,7 @@ it('keeps the citizen landmark intact when a responder corrects the incident pin
 
 it('sends both addresses to the incident detail screen', function () {
     $citizen = User::factory()->create(['village_code' => '5171012006']);
-    $citizen->assignRole('masyarakat');
+    $citizen->assignRole('warga');
 
     $report = Report::create([
         'user_id' => $citizen->id,
@@ -118,7 +118,7 @@ it('accepts a report that has a pin but no landmark typed at all', function () {
     Notification::fake();
 
     $citizen = User::factory()->create(['village_code' => '5171012006']);
-    $citizen->assignRole('masyarakat');
+    $citizen->assignRole('warga');
 
     // Kebakaran = darurat-first: patokan OPSIONAL (ReportRequest). Justru laporan seperti
     // inilah yang dulu memunculkan panel "Alamat Presisi" KOSONG padahal titiknya diketahui
@@ -148,7 +148,7 @@ it('summarises a location from the machine address first and the landmark as fal
     // daftar menampilkan baris KOSONG untuk laporan kebakaran (patokan memang opsional di
     // sana) — tanpa galat, tanpa gejala.
     $citizen = User::factory()->create(['village_code' => '5171012006']);
-    $citizen->assignRole('masyarakat');
+    $citizen->assignRole('warga');
 
     $berdua = Report::create([
         'user_id' => $citizen->id, 'title' => 'A', 'status' => 'pending', 'village_code' => '5171012006',

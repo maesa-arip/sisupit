@@ -20,9 +20,9 @@ class VolunteerController extends Controller
         if (! $user->hasRole('relawan')) {
             $user->assignRole('relawan');
 
-            // Opsional: Jika Anda ingin mencabut role masyarakat saat dia jadi relawan
-            if ($user->hasRole('masyarakat')) {
-                $user->removeRole('masyarakat');
+            // Opsional: Jika Anda ingin mencabut role warga saat dia jadi relawan
+            if ($user->hasRole('warga')) {
+                $user->removeRole('warga');
             }
         }
 

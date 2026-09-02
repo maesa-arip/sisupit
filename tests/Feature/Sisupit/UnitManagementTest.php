@@ -35,7 +35,7 @@ it('only lists units within the admin jurisdiction', function () {
 
 it('blocks non-admin from managing units', function () {
     $citizen = User::factory()->create(['village_code' => '5171012006']);
-    $citizen->assignRole('masyarakat');
+    $citizen->assignRole('warga');
 
     $this->actingAs($citizen)->get('/admin/units')->assertForbidden();
 });

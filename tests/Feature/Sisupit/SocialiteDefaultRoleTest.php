@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Auth\SocialiteController;
 
-it('assigns the masyarakat role (not relawan) to a brand new oauth user', function () {
+it('assigns the warga role (not relawan) to a brand new oauth user', function () {
     $socialUser = new class
     {
         public function getId()
@@ -28,6 +28,6 @@ it('assigns the masyarakat role (not relawan) to a brand new oauth user', functi
 
     $user = (new SocialiteController)->findOrCreateUser($socialUser, 'google');
 
-    expect($user->hasRole('masyarakat'))->toBeTrue();
+    expect($user->hasRole('warga'))->toBeTrue();
     expect($user->hasRole('relawan'))->toBeFalse();
 });

@@ -24,7 +24,7 @@ beforeEach(function () {
     DB::table('indonesia_villages')->insert(['code' => '5171012006', 'district_code' => '517101', 'name' => 'Pemogan']);
 
     $this->reporter = User::factory()->create(['village_code' => '5171012006']);
-    $this->reporter->assignRole('masyarakat');
+    $this->reporter->assignRole('warga');
 
     $this->report = Report::create([
         'user_id' => $this->reporter->id,

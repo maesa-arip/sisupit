@@ -7,7 +7,7 @@ use App\Models\User;
 // staf hanya boleh memantau insiden di wilayahnya; pelapor & superadmin/admin nasional bebas.
 beforeEach(function () {
     $reporter = User::factory()->create(['village_code' => '5171012006']);
-    $reporter->assignRole('masyarakat');
+    $reporter->assignRole('warga');
 
     $this->reporter = $reporter;
     // Laporan di Desa A (5171012006), Kec. 5171010, Kota 5171, Prov. 51.

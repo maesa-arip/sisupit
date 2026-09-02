@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     $reporter = User::factory()->create();
-    $reporter->assignRole('masyarakat');
+    $reporter->assignRole('warga');
 
     $this->report = Report::create([
         'user_id' => $reporter->id,
@@ -25,14 +25,14 @@ beforeEach(function () {
 });
 
 it('blocks non-staff from creating a resolution', function () {
-    $masyarakat = User::factory()->create(['village_code' => '5171012006']);
-    $masyarakat->assignRole('masyarakat');
+    $warga = User::factory()->create(['village_code' => '5171012006']);
+    $warga->assignRole('warga');
 
-    $this->actingAs($masyarakat)
+    $this->actingAs($warga)
         ->get("/reports/{$this->report->id}/resolution/create")
         ->assertForbidden();
 
-    $this->actingAs($masyarakat)
+    $this->actingAs($warga)
         ->post("/reports/{$this->report->id}/resolution", ['status' => 'sementara'])
         ->assertForbidden();
 });
@@ -112,9 +112,9 @@ it('serves the private KTP to staff but forbids non-staff', function () {
 
     $this->actingAs($petugas)->get($ktpUrl)->assertOk();
 
-    $masyarakat = User::factory()->create(['village_code' => '5171012006']);
-    $masyarakat->assignRole('masyarakat');
-    $this->actingAs($masyarakat)->get($ktpUrl)->assertForbidden();
+    $warga = User::factory()->create(['village_code' => '5171012006']);
+    $warga->assignRole('warga');
+    $this->actingAs($warga)->get($ktpUrl)->assertForbidden();
 });
 
 it('blocks staff outside the report jurisdiction', function () {

@@ -18,7 +18,7 @@ class RolePermissionSeeder extends Seeder
         // ==========================================
         $permissions = [
             'manage_regions',    // (Khusus Superadmin) Menambah Provinsi/Kota ke sistem
-            'manage_users',      // CRUD User (Masyarakat, Relawan, Petugas, Admin bawahan)
+            'manage_users',      // CRUD User (Warga, Relawan, Petugas, Admin bawahan)
             'manage_facilities', // CRUD Aset Fisik (Pos Damkar, Hydrant, Pompa, dll)
             'manage_reports',    // Mengubah status laporan darurat (Proses -> Selesai)
             'create_reports',    // Mengirimkan laporan kebakaran/darurat
@@ -70,9 +70,10 @@ class RolePermissionSeeder extends Seeder
         $roleRelawan = Role::firstOrCreate(['name' => 'relawan']);
         $roleRelawan->givePermissionTo(['create_reports']);
 
-        // A. Masyarakat Umum
-        $roleMasyarakat = Role::firstOrCreate(['name' => 'masyarakat']);
-        $roleMasyarakat->givePermissionTo(['create_reports']);
+        // A. Warga (masyarakat umum). Peran ini bernama `masyarakat` sampai 2026-09-02;
+        // penggantian namanya dijalankan migrasi 2026_09_02_100000, bukan seeder ini.
+        $roleWarga = Role::firstOrCreate(['name' => 'warga']);
+        $roleWarga->givePermissionTo(['create_reports']);
 
     }
 }

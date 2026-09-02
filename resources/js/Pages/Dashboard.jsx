@@ -21,7 +21,6 @@ import {
 	IconRefresh,
 	IconShieldCheck,
 	IconUserCheck,
-	IconUsersGroup,
 } from '@tabler/icons-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -78,9 +77,6 @@ export default function Dashboard(props) {
 		),
 	);
 
-	// State Loading untuk Pendaftaran Relawan
-	const [isRegistering, setIsRegistering] = useState(false);
-
 	const userRoles = Array.isArray(auth?.role) ? auth.role : auth?.role ? [auth.role] : [];
 	const isRelawan = userRoles.includes('relawan');
 
@@ -122,25 +118,6 @@ export default function Dashboard(props) {
 	useEffect(() => {
 		if (!isRelawan) setActiveTab('semua');
 	}, [isRelawan]);
-
-	// 👇 FUNGSI PENDAFTARAN RELAWAN 👇
-	const handleRegisterVolunteer = () => {
-		setIsRegistering(true);
-		router.post(
-			route('volunteer.register'),
-			{},
-			{
-				preserveScroll: true,
-				onSuccess: () => {
-					toast.success('Selamat! Anda sekarang resmi terdaftar sebagai Relawan.');
-				},
-				onError: () => {
-					toast.error('Gagal mendaftar. Silakan coba lagi.');
-				},
-				onFinish: () => setIsRegistering(false),
-			},
-		);
-	};
 
 	// Feed ter-scope desa untuk tab "Butuh Respons" & "Semua Laporan".
 	const feedReports = useMemo(() => {
@@ -396,8 +373,12 @@ export default function Dashboard(props) {
 				<IconChevronRight className="h-5 w-5 shrink-0" />
 			</Link>
 
-			<div className="w-full">
-				{isRelawan ? (
+			{/* Kartu Mode Kesiapan - HANYA relawan. Cabang sebelahnya dulu berisi ajakan
+			    "Daftar Relawan" bagi warga; DICABUT 2026-09-02 atas permintaan user, sehingga
+			    peran relawan kini hanya diberikan admin lewat /admin/users. Jangan hidupkan
+			    lagi tanpa menanyakan user. */}
+			{isRelawan && (
+				<div className="w-full">
 					<Card
 						className={cn(
 							'overflow-hidden rounded-xl border shadow-none transition-colors',
@@ -461,38 +442,8 @@ export default function Dashboard(props) {
 							</Button>
 						</CardContent>
 					</Card>
-				) : (
-					<Card className="overflow-hidden rounded-xl border border-border bg-card shadow-none transition-colors">
-						<CardContent className="flex flex-col justify-between gap-3 p-4 sm:flex-row sm:items-center">
-							<div className="flex items-center gap-3">
-								<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-foreground">
-									<IconUsersGroup className="h-5 w-5" stroke={1.5} />
-								</div>
-								<div>
-									<h3 className="text-sm font-bold text-foreground">Bantu Sesama</h3>
-									<p className="mt-0.5 text-xs font-medium text-muted-foreground">
-										Daftar jadi relawan damkar.
-									</p>
-								</div>
-							</div>
-							{/* 👇 FIX: TOMBOL PENDAFTARAN RELAWAN (FUNCTIONAL) 👇 */}
-							<Button
-								onClick={handleRegisterVolunteer}
-								disabled={isRegistering}
-								className="h-8 w-full shrink-0 rounded-md border border-transparent bg-foreground px-4 text-[10px] font-bold uppercase tracking-wider text-background shadow-none transition-colors hover:bg-foreground/90 sm:w-auto"
-							>
-								{isRegistering ? (
-									<>
-										<IconLoader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Mendaftar...
-									</>
-								) : (
-									'Daftar Relawan'
-								)}
-							</Button>
-						</CardContent>
-					</Card>
-				)}
-			</div>
+				</div>
+			)}
 
 			<hr className="border-border" />
 

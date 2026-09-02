@@ -25,7 +25,7 @@ beforeEach(function () {
     require base_path('routes/channels.php');
 
     $reporter = User::factory()->create(['village_code' => '5171012006']);
-    $reporter->assignRole('masyarakat');
+    $reporter->assignRole('warga');
 
     $this->reporter = $reporter;
     $this->report = Report::create([
@@ -60,7 +60,7 @@ it('authorizes a user for their own private notification channel', function () {
 
 it('rejects a user subscribing to someone else notification channel', function () {
     $penyusup = User::factory()->create(['village_code' => '5171012006']);
-    $penyusup->assignRole('masyarakat');
+    $penyusup->assignRole('warga');
 
     $this->actingAs($penyusup)
         ->post('/broadcasting/auth', [

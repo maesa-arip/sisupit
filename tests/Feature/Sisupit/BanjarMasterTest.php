@@ -89,7 +89,7 @@ it('serves banjar options to a user who has no region codes yet', function () {
     buatBanjar(['name' => 'Banjar Pemogan Satu']);
 
     $wargaBaru = User::factory()->create(['province_code' => null, 'city_code' => null, 'village_code' => null]);
-    $wargaBaru->assignRole('masyarakat');
+    $wargaBaru->assignRole('warga');
 
     $rows = collect($this->actingAs($wargaBaru)->getJson('/api/banjars/5171012008')->assertOk()->json());
 
@@ -174,7 +174,7 @@ it('refuses a profile whose banjar belongs to another village', function () {
     $banjarPemogan = buatBanjar(['village_code' => '5171012008']);
 
     $warga = User::factory()->create(['phone' => null, 'village_code' => null]);
-    $warga->assignRole('masyarakat');
+    $warga->assignRole('warga');
 
     $this->actingAs($warga)->post('/complete-profile', [
         'phone' => '081234500000',
@@ -192,7 +192,7 @@ it('refuses a profile whose banjar belongs to another village', function () {
 // mengunci pendaftaran warga — bentuk yang sama dengan #61 (migrasi tenants tanpa seeder).
 it('keeps banjar optional on the profile form until the switch is turned on', function () {
     $warga = User::factory()->create(['phone' => null, 'village_code' => null]);
-    $warga->assignRole('masyarakat');
+    $warga->assignRole('warga');
 
     $this->actingAs($warga)->post('/complete-profile', [
         'phone' => '081234500000',
@@ -210,7 +210,7 @@ it('demands a banjar on the profile form once the switch is on', function () {
     Setting::setValue(Setting::KEY_REQUIRE_BANJAR, '1');
 
     $warga = User::factory()->create(['phone' => null, 'village_code' => null]);
-    $warga->assignRole('masyarakat');
+    $warga->assignRole('warga');
 
     $this->actingAs($warga)->post('/complete-profile', [
         'phone' => '081234500000',
@@ -333,7 +333,7 @@ BANJAR DUA,CATUR
 
 it('lets a citizen propose a banjar that is missing from the master', function () {
     $warga = User::factory()->create(['province_code' => null, 'city_code' => null, 'village_code' => null]);
-    $warga->assignRole('masyarakat');
+    $warga->assignRole('warga');
 
     $res = $this->actingAs($warga)->postJson('/api/banjars', [
         'village_code' => '5171012008',
@@ -356,7 +356,7 @@ it('lets a citizen propose a banjar that is missing from the master', function (
 // jadi tiga baris untuk banjar yang sama — persis alasan tabel ini dibuat.
 it('normalises whatever prefix the citizen types', function () {
     $warga = User::factory()->create(['village_code' => null]);
-    $warga->assignRole('masyarakat');
+    $warga->assignRole('warga');
 
     $this->actingAs($warga)->postJson('/api/banjars', [
         'village_code' => '5171012008',
@@ -370,7 +370,7 @@ it('returns the existing row instead of duplicating it when the name already exi
     $ada = buatBanjar(['name' => 'Banjar Tegal Sari', 'village_code' => '5171012008']);
 
     $warga = User::factory()->create(['village_code' => null]);
-    $warga->assignRole('masyarakat');
+    $warga->assignRole('warga');
 
     $this->actingAs($warga)->postJson('/api/banjars', [
         'village_code' => '5171012008',
@@ -386,7 +386,7 @@ it('offers the near-duplicate instead of merging or creating silently', function
     $ada = buatBanjar(['name' => 'Banjar Kertha Dharma', 'village_code' => '5171012008']);
 
     $warga = User::factory()->create(['village_code' => null]);
-    $warga->assignRole('masyarakat');
+    $warga->assignRole('warga');
 
     $this->actingAs($warga)->postJson('/api/banjars', [
         'village_code' => '5171012008',
@@ -424,7 +424,7 @@ it('verifies a proposal without changing its id or orphaning what points at it',
     $banjar = buatBanjar(['name' => 'Banjar Usulan', 'status' => Banjar::STATUS_USULAN]);
 
     $warga = User::factory()->create(['banjar_id' => $banjar->id, 'village_code' => '5171012008']);
-    $warga->assignRole('masyarakat');
+    $warga->assignRole('warga');
 
     $this->actingAs($this->admin)
         ->post(route('admin.banjars.verify', $banjar->id))
@@ -456,7 +456,7 @@ it('lets a citizen change their banjar after the profile is complete', function 
     $baru = buatBanjar(['name' => 'Banjar Baru', 'village_code' => '5171012008']);
 
     $warga = User::factory()->create(['village_code' => '5171012008', 'banjar_id' => $lama->id]);
-    $warga->assignRole('masyarakat');
+    $warga->assignRole('warga');
 
     $this->actingAs($warga)
         ->patch(route('profile.banjar'), ['banjar_id' => $baru->id])
@@ -471,7 +471,7 @@ it('refuses a banjar from outside the village stored on the account', function (
     $luar = buatBanjar(['name' => 'Banjar Sebelah', 'village_code' => '5171012006']);
 
     $warga = User::factory()->create(['village_code' => '5171012008', 'banjar_id' => null]);
-    $warga->assignRole('masyarakat');
+    $warga->assignRole('warga');
 
     $this->actingAs($warga)
         ->patch(route('profile.banjar'), ['banjar_id' => $luar->id])

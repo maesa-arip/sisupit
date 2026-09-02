@@ -130,7 +130,7 @@ it('keeps denying a logged-in user without any region code', function () {
     $user = User::factory()->create([
         'province_code' => null, 'city_code' => null, 'district_code' => null, 'village_code' => null,
     ]);
-    $user->assignRole('masyarakat');
+    $user->assignRole('warga');
 
     $this->actingAs($user);
 

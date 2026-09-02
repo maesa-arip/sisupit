@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     $this->owner = User::factory()->create(['village_code' => '5171012006']);
-    $this->owner->assignRole('masyarakat');
+    $this->owner->assignRole('warga');
 
     $this->report = Report::create([
         'user_id' => $this->owner->id,
@@ -53,7 +53,7 @@ it('blocks editing once the report has been validated', function () {
 
 it('blocks a non-owner from editing', function () {
     $other = User::factory()->create(['village_code' => '5171012006']);
-    $other->assignRole('masyarakat');
+    $other->assignRole('warga');
 
     $this->actingAs($other)
         ->put(route('front.reports.update', $this->report->id), [

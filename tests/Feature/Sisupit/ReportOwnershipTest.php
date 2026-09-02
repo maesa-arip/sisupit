@@ -5,7 +5,7 @@ use App\Models\User;
 
 beforeEach(function () {
     $owner = User::factory()->create(['village_code' => '5171012006']);
-    $owner->assignRole('masyarakat');
+    $owner->assignRole('warga');
 
     $this->owner = $owner;
     $this->report = Report::create([
@@ -21,7 +21,7 @@ beforeEach(function () {
 
 it('blocks an unrelated citizen from editing or deleting someone else report', function () {
     $stranger = User::factory()->create(['village_code' => '5171012006']);
-    $stranger->assignRole('masyarakat');
+    $stranger->assignRole('warga');
 
     $this->actingAs($stranger)->get("/reports/edit/{$this->report->id}")->assertForbidden();
     $this->actingAs($stranger)->delete("/reports/destroy/{$this->report->id}")->assertForbidden();

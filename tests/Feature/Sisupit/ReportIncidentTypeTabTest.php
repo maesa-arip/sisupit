@@ -42,7 +42,7 @@ it('accepts kebakaran_lainnya and keeps the fire rules (photo, detail & patokan 
     Storage::fake('public');
 
     $citizen = User::factory()->create(['village_code' => '5171012006']);
-    $citizen->assignRole('masyarakat');
+    $citizen->assignRole('warga');
 
     // Tanpa foto, tanpa deskripsi, tanpa patokan — persis seperti kebakaran lain.
     $response = $this->actingAs($citizen)->post('/reports/create', [

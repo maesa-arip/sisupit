@@ -17,7 +17,7 @@ it('lets a citizen create a report which alerts the command center only', functi
     Notification::fake();
 
     $citizen = User::factory()->create(['village_code' => '5171012006']);
-    $citizen->assignRole('masyarakat');
+    $citizen->assignRole('warga');
 
     $petugas = User::factory()->create();
     $petugas->assignRole('petugas');
@@ -53,7 +53,7 @@ it('shows the persistent thanks screen only to the reporter and command center',
     Notification::fake();
 
     $citizen = User::factory()->create(['village_code' => '5171012006']);
-    $citizen->assignRole('masyarakat');
+    $citizen->assignRole('warga');
 
     $this->actingAs($citizen)->post('/reports/create', [
         'title' => 'Kebakaran lahan',
@@ -84,7 +84,7 @@ it('shows the persistent thanks screen only to the reporter and command center',
 
     // Warga lain (bukan pemilik, bukan Pusat Komando) → 403.
     $orang = User::factory()->create(['village_code' => '5171012006']);
-    $orang->assignRole('masyarakat');
+    $orang->assignRole('warga');
     $this->actingAs($orang)
         ->get(route('front.reports.thanks', $report->id))
         ->assertForbidden();

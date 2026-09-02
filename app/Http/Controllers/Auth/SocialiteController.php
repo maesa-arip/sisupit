@@ -133,7 +133,7 @@ class SocialiteController extends Controller
                     // (halaman Login & Register), jadi waktunya dicatat di sini (TASK_19).
                     'terms_accepted_at' => Carbon::now(),
                     'username' => str($socialUser->getNickname() ?? $socialUser->getName())->slug().'-'.Str::lower(Str::random(6)),
-                ])->assignRole('masyarakat');
+                ])->assignRole('warga');
             }
 
             // Buat Social Account baru

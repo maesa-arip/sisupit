@@ -312,7 +312,7 @@ class User extends Authenticatable implements MustVerifyEmail
             $query->whereHas('roles', fn ($q) => $q->where('name', 'superadmin'));
 
             // Jaring pengaman "tanpa kode wilayah = nasional" HANYA berlaku untuk peran staf
-            // (#56). Bagi masyarakat/relawan kolom kosong berarti profil belum lengkap, bukan
+            // (#56). Bagi warga/relawan kolom kosong berarti profil belum lengkap, bukan
             // yurisdiksi nasional — dulu mereka ikut cabang ini dan menerima sirine untuk
             // kebakaran di seluruh Indonesia, dan EnsureProfileComplete tidak menghalanginya
             // karena push FCM tidak lewat middleware HTTP. Sejalan dengan #44 yang sudah
