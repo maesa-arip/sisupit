@@ -2434,6 +2434,9 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
   2. Kedua seeder laporan menanyakan `masyarakat` saja.
   3. Barisnya dihapus dari DB **dev lokal** (0 akun/permission/route_access, diperiksa lebih
      dulu) + `permission:cache-reset`.
+  4. Di **prod/staging/dev VPS** ia dibuang oleh migrasi rename #112 saat deploy 2026-09-02
+     @0f27a6d9 — ketiganya memang memilikinya dengan 0 akun & 0 permission, persis seperti
+     dugaan, jadi cabang pembuang lewat bersih dan tak ada yang berhenti.
 - **Penjaga:** `RoleSourceSingleListTest.php` — (a) tak boleh ada `Role::firstOrCreate|create` di
   seeder mana pun selain `RolePermissionSeeder` (dibuktikan MERAH terhadap berkas sebelum
   perubahan); (b) setiap peran yang nyata ada punya label di kamus `roleOptions()` — yang ini
@@ -2521,8 +2524,12 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **Penjaga:** test ketiga di `RoleSourceSingleListTest` — tak boleh ada literal `'masyarakat'`
   tersisa di `app/`, `routes/`, `database/seeders/`, maupun `resources/js/` (migrasinya sendiri
   dikecualikan: di situlah satu-satunya tempat nama lama masih wajib tertulis).
-- **Dijalankan di:** DB dev lokal (8 akun ikut, id peran tetap 6). **Belum** di prod/staging/dev
-  VPS.
+- **Dijalankan di:** DB dev lokal (8 akun ikut, id peran tetap 6), lalu **prod/staging/dev VPS
+  2026-09-02 @0f27a6d9** — masing-masing `masyarakat` 19/14/14 akun pindah utuh ke `warga`,
+  peran hantu lenyap (8 → 7 peran), 0 migrasi pending. Data prod utuh: 89 user / 38 laporan.
+  Dibuktikan sesudahnya bahwa `Role::findByName('warga')` resolve di ketiga env sementara
+  `masyarakat` sudah melempar — jadi jalur `assignRole()` pendaftaran hidup dan jendela
+  "populasi terbelah" di bawah tidak pernah terbuka.
 - **KEADAAN NYATA KETIGA ENVIRONMENT (diperiksa 2026-09-02, user memberi akses root):** peran
   hantu `warga` **ADA di ketiganya** (id 7) dengan **0 akun & 0 permission** — jadi cabang
   pembuang di migrasi memang akan terpakai, dan ia tidak akan berhenti. `masyarakat` memegang

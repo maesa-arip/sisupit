@@ -30,7 +30,7 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 Task aktif   : PERBAIKAN LEPAS PERAN - ajakan "Daftar Relawan" dicabut, peran hantu
                 `warga` dihapus (#110), `masyarakat` BERGANTI NAMA jadi `warga` (#112),
                 dan peran `opd` yang hilang dari DB ditambahkan (#111).
-                SELESAI (kode) 2026-09-02, BELUM DIDEPLOY. **DEPLOY BERMIGRASI (2 migrasi).**
+                SELESAI & TERDEPLOY 2026-09-02 @0f27a6d9 ke prod/staging/dev.
                 Satu pesan user, dua hal: "hide daftar relawan dari dashboard dan dari profile,
                 kemudian di manajemen pengguna apa perbedaan masyarakat dan warga?", lalu
                 "ya lanjutkan, hapus role warga juga".
@@ -181,14 +181,33 @@ Task aktif   : PERBAIKAN LEPAS PERAN - ajakan "Daftar Relawan" dicabut, peran ha
                 yang masih terpasang memanggil `assignRole('masyarakat')` atas peran yang sudah
                 tak ada - dan ITU benar-benar RoleDoesNotExist. Jadi tetap KODE DULU lalu MIGRASI
                 sesegera mungkin; yang bisa dikecilkan cuma lebar jendelanya.
-                SISA: (1) DEPLOY - DUA migrasi, dan karena deploy di sini manual, `git pull` TANPA
-                `php artisan migrate --force` menghasilkan keadaan terbelah di atas. Cadangkan DB
-                dulu; urutan dev -> staging -> prod; di tiap env jalankan pull lalu migrate
-                BERURUTAN RAPAT tanpa jeda. Migrasi kedua no-op di ketiga env (sudah punya `opd`).
-                (2) Verifikasi sesudahnya: `masyarakat` sudah TIDAK ADA & `warga` memegang 19/14/14
-                akun, peran hantu lenyap (jumlah peran 8 -> 7), coba daftar akun baru, dan cek
-                dropdown /admin/users berbunyi "Warga" + "OPD / Instansi Terkait".
-                (3) Verifikasi visual dua layar (kartu relawan hilang di Dashboard & Profil).
+                (F) DEPLOY 2026-09-02 @0f27a6d9, ff dari 50ae042e, urutan dev -> staging -> prod.
+                DUA commit: 836f813e kode (64 berkas) + 0f27a6d9 aset build. Ketiga branch
+                (main/staging/dev) didorong ke commit yang sama.
+                DUA MIGRASI dijalankan di ketiga env, 0 pending sesudahnya. Cadangan mysqldump
+                ketiga DB lebih dulu di `/root/backup-predeploy-20260902-034743` (18/17/17 MB,
+                "Dump completed"). TANPA composer install & TANPA route cache - `git diff --stat
+                50ae042e..0f27a6d9 -- routes/ composer.json composer.lock config/` KOSONG.
+                HASIL MIGRASI, ketiganya persis seperti yang diramalkan:
+                  prod    masyarakat=19 + warga=0(hantu) -> warga=19, peran 8 -> 7
+                  staging masyarakat=14 + warga=0(hantu) -> warga=14, peran 8 -> 7
+                  dev     masyarakat=14 + warga=0(hantu) -> warga=14, peran 8 -> 7
+                Migrasi kedua no-op di ketiganya (sudah punya `opd`), sesuai dugaan sesudah VPS
+                diperiksa. DATA PROD UTUH: 89 user / 38 laporan, sama persis pra-migrasi.
+                VERIFIKASI: `Role::findByName('warga')` RESOLVE di ketiga env (id 6, 1 permission)
+                sementara `masyarakat` sudah melempar - jadi jalur assignRole() pendaftaran hidup
+                dan jendela "populasi terbelah" tidak pernah terbuka; dropdown /admin/users
+                berbunyi "Admin | Pejabat | Petugas | Relawan | Warga | OPD / Instansi Terkait" di
+                ketiganya; kamus peran di bundel LIVE memuat label:"Warga" & NOL "Anggota
+                Masyarakat"; string "Bantu Sesama" & "Panggilan Kemanusiaan" NOL di bundel live
+                (bukti kartu relawan benar-benar hilang); bundel BARU Dashboard-EYYQaM2o.js 200 &
+                LAMA Dashboard-ksXUHDYj.js 404 di ketiganya; ketiga domain / & /hydrants 200;
+                nginx/php8.2-fpm/reverb/reverb-staging/reverb-dev active; 0 berkas root-owned
+                pasca-chown; permission:cache-reset dijalankan di ketiganya; 0 ERROR hari ini di
+                ketiga log (ERROR terakhir 2026-09-01 06:47 = queue worker "Connection refused"
+                lama, bukan dari deploy ini).
+                SISA: verifikasi visual di browser (kartu relawan hilang di Dashboard & Profil,
+                lencana peran berbunyi "Warga") + sekali coba daftar akun baru sungguhan.
                PERBAIKAN LEPAS #108 & #109 — SELESAI & TERDEPLOY 2026-09-02 @2f371c32.
                 Dua cacat dilaporkan user ("di buat laporan penanganan saat klik jam aplikasi
                 apk langsung force close, dan di manajemen pengguna paginationnya lewat"),
