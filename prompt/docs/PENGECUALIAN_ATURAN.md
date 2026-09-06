@@ -121,3 +121,62 @@
   `MENU_ACTIVE_TONE`, dan `FloatingLink` (masing-masing berkomentar merujuk entri ini).
 - **Test penjaga:** tidak ada — ini murni rupa. `tests/Feature/Sisupit/MobileNavParityTest.php`
   menjaga *isi* menunya, bukan warnanya. Verifikasinya visual di ponsel.
+
+---
+
+## #3 — Penanda aktif bilah bawah memakai IKON PADAT, dan dua ikon diganti supaya bisa
+
+- **Aturan yang ditekuk:** "penanda aktif bilah bawah = WARNA + TEBAL HURUF saja", khususnya
+  alasan tertulisnya di `MobileBottomNav.jsx` (`slotClass`) dan `.claude/skills/sisupit-ui/SKILL.md`:
+  **ikon PADAT vs ikon GARIS sengaja TIDAK dipakai sebagai pembeda aktif**, sebab @tabler tak
+  menyediakan varian padat untuk semua ikon bilah — sebagian slot akan memadat dan sebagian tidak,
+  tepat di penanda yang paling sering dilihat. Aturan itu lahir dari FINDINGS #106 putaran ketujuh
+  (2026-09-01), dan alasannya **memang benar secara fakta** (dibuktikan ulang 2026-09-06, lihat
+  di bawah).
+- **Keputusan:** **kelima slot** bilah memadat saat menjadi halaman yang sedang dibuka, dan **dua
+  ikon diganti** supaya itu mungkin: `IconHistory` → `IconClock` (Riwayat) dan `IconMenu2` →
+  `IconLayoutGrid` (Menu). Beranda & Fasilitas tidak berubah rupa — `IconDashboardFilled` &
+  `IconMapPinFilled` memang sudah ada. "Lapor" memakai kembaran padat glyph brandnya sendiri.
+- **Disetujui:** user, **2026-09-06**, dua langkah. Mula-mula "saat active, buat icon menjadi fill
+  merah" (hanya slot Lapor yang bisa saat itu, dicatat sebagai pengecualian ketidakseragaman),
+  lalu **"bukan hanya aktif untuk lapor saja fill tapi semua yang lain juga"** — disodori tiga
+  tingkat cakupan berikut harganya, dan user memilih yang penuh (ganti dua ikon).
+- **Kenapa dua ikon HARUS diganti, bukan sekadar diberi `fill`** — ini fakta yang diperiksa
+  langsung di `node_modules`, bukan dugaan:
+  - `IconMenu2` = tiga garis lurus terbuka (`M4 6l16 0`, `M4 12l16 0`, `M4 18l16 0`). **Garis tak
+    punya bagian dalam**, jadi `fill` di atasnya benar-benar tidak menghasilkan apa pun. Sebuah
+    hamburger tak akan pernah bisa memadat, dengan cara apa pun.
+  - `IconHistory` = busur terbuka + jarum (`M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5`). Mengisinya
+    menghasilkan gumpalan miring, bukan jam.
+  - Keduanya juga tak punya kembaran `*Filled` di @tabler v3.30 (dari 944 varian padat yang ada).
+  Menaikkan ketebalan garis sebagai gantinya **ditolak**: itu persis yang dicabut FINDINGS #72.
+- **Kenapa ini BUKAN #106 yang kembali** (wajib dijawab benar tiap kali ada bidang merah di dalam
+  barisan slot): pembedanya **SYARAT munculnya**. "Bidang terisi HANYA milik slot aktif" adalah
+  aturan yang lahir dari #106 putaran kedua, dan bentuk ini memenuhinya persis — satu slot memadat
+  pada satu waktu. Yang keliru pada #106 adalah bidang merah yang muncul di **SETIAP** halaman.
+  Tak satu pun warna ditulis di dalam glyphnya: ikon padat @tabler memakai `fill: color` yang
+  bawaannya `currentColor`, dan `BrandBoltIcon` sama, jadi semuanya mengikuti `text-destructive`
+  milik slotnya.
+- **Konsekuensi yang diterima:**
+  1. **Dua ikon berubah rupa di KEDUA keadaan**, bukan hanya saat aktif. Pengguna yang hafal
+     hamburger & jam-berpanah akan melihat glyph berbeda di bilah.
+  2. **Slot tamu "Masuk" tidak memadat** — ikonnya `IconLogin2` dari `navItems.js` dan @tabler tak
+     punya kembaran padatnya. `iconActive` sengaja OPSIONAL sehingga ia luruh rapi ke glyph garis,
+     bukan pecah. Ia satu-satunya slot yang tidak seragam, dan hanya tamu yang melihatnya.
+  3. Sidebar desktop **tidak ikut** memadat — ia punya dialek penanda aktifnya sendiri (blok solid
+     `bg-destructive`, lihat `NavLink.jsx`) dan tidak disentuh sama sekali.
+- **Yang TIDAK ikut berubah:** tetap tak ada bidang/kotak/pil/kapsul penanda aktif di bilah
+  (bentuk minimalis putaran ketujuh bertahan), ketebalan garis tetap bukan pembeda (#72), keadaan
+  "panel terbuka" tetap `bg-accent` netral, dan bawaan `filled` pada `BrandBoltIcon` tetap
+  **false** — membaliknya berarti petir terisi di setiap halaman, yaitu #106 dari arah berbeda.
+- **Bentuk mekanismenya mengikat:** SATU jalur untuk kelima slot, `icon` + `iconActive`, dipilih di
+  `SlotContent`. `BrandBoltIconFilled` sengaja diekspor sebagai komponen tersendiri (bukan
+  `<BrandBoltIcon filled/>` di tempat pemanggilan) supaya petir brand dipanggil dengan cara yang
+  sama persis dengan pasangan @tabler. **Jangan** membuat jalur khusus untuk satu slot — jalur
+  khusus untuk satu slot persis yang membuat #106 hidup lama.
+- **Hidup di:** `resources/js/Layouts/Partials/MobileBottomNav.jsx` (`SlotContent`, `slotClass`,
+  kelima slot), `resources/js/Components/BrandBoltIcon.jsx` (prop `filled` + `BrandBoltIconFilled`).
+- **Test penjaga:** `tests/Feature/Sisupit/MobileNavIconGlyphTest.php` —
+  `it gives every bottom-bar slot a filled twin for its active state` (kelima pasangan + kedua ikon
+  yang mustahil memadat tidak boleh kembali) dan `it fills the brand bolt only while its slot is
+  the active page`. Rupanya sendiri tetap harus diverifikasi visual di ponsel.

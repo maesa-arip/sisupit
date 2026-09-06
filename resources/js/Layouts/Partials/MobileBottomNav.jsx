@@ -1,6 +1,16 @@
+import BrandBoltIcon, { BrandBoltIconFilled } from '@/Components/BrandBoltIcon';
 import { cn } from '@/lib/utils';
 import { Link, usePage } from '@inertiajs/react';
-import { IconDashboard, IconFlame, IconHistory, IconMapPin, IconMenu2 } from '@tabler/icons-react';
+import {
+	IconClock,
+	IconClockFilled,
+	IconDashboard,
+	IconDashboardFilled,
+	IconLayoutGrid,
+	IconLayoutGridFilled,
+	IconMapPin,
+	IconMapPinFilled,
+} from '@tabler/icons-react';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { buildNavSections, flattenNavItems, resolveAbilities } from './navItems';
 
@@ -58,11 +68,23 @@ import { buildNavSections, flattenNavItems, resolveAbilities } from './navItems'
  *     terbuka. TIDAK memakai merah - merah tetap berarti lokasi.
  *
  * KELIMA slot memakai glyph monokrom yang mewarisi warna teksnya, TERMASUK "Lapor" yang
- * memakai `IconFlame` dari item `report.create` milik navItems.js. Ikon brand `/icon.png`
- * pernah dipakai di slot itu (2026-08-19 s/d 2026-09-01) dan sudah DILEPAS atas permintaan
- * user: berkas itu sendiri sebuah kotak merah utuh, sehingga slot itu selalu berbahasa visual
- * sendiri. Jangan dipasang lagi di sini; /icon.png tetap hidup sebagai favicon &
- * ApplicationLogo.
+ * sejak 2026-09-06 memakai petir brand `<BrandBoltIcon/>`. Yang menentukan boleh-tidaknya
+ * bukan MOTIFNYA melainkan BENTUK ASETNYA: ikon brand `/icon.png` pernah dipakai di slot itu
+ * (2026-08-19 s/d 2026-09-01) lalu dilepas karena berkas itu sendiri sebuah kotak merah utuh,
+ * sehingga slot itu selalu tampak aktif (FINDINGS #106). BrandBoltIcon adalah petir yang SAMA
+ * tanpa platnya, digambar sebagai <svg> ber-`currentColor` - jadi ia mustahil mengulangi
+ * kekeliruan itu: warnanya kembali ditentukan kelas, bukan piksel. Yang TETAP TERLARANG di
+ * bilah ini adalah aset gambar berwarna apa pun (`<img>`); /icon.png sendiri tetap hidup
+ * sebagai favicon & ApplicationLogo.
+ *
+ * KELIMA slot MEMADAT saat aktif (2026-09-06, permintaan user) lewat satu mekanisme:
+ * `icon` + `iconActive`. Dua ikon DIGANTI supaya itu mungkin - `IconHistory` -> `IconClock`
+ * dan `IconMenu2` -> `IconLayoutGrid` - sebab keduanya bentuk GARIS TERBUKA yang tak punya
+ * bagian dalam untuk diisi, dan @tabler tak menyediakan kembaran padatnya. Beranda & Fasilitas
+ * tidak berubah rupa (`IconDashboardFilled`/`IconMapPinFilled` memang ada). Tercatat sebagai
+ * PENGECUALIAN_ATURAN #3. `iconActive` OPSIONAL dan luruh ke glyph garis kalau tak diberikan -
+ * itu yang menyelamatkan slot tamu "Masuk" (`IconLogin2`, tanpa kembaran padat), satu-satunya
+ * slot yang tidak memadat.
  *
  * UKURAN, dari `Menu 6.png` yang diukur (ikon 21px : pitch slot 102px = 20,6%) lalu
  * dinormalkan ke layar 390px: ikon 16px (`h-4 w-4`), label 12px (`text-xs`), jarak ikon-label
@@ -203,6 +225,7 @@ export default function MobileBottomNav({ auth }) {
 					<NavItem
 						href={itemByKey('dashboard')?.url ?? route('dashboard')}
 						icon={IconDashboard}
+						iconActive={IconDashboardFilled}
 						label="Beranda"
 						active={url === '/dashboard' || url === '/'}
 					/>
@@ -227,6 +250,7 @@ export default function MobileBottomNav({ auth }) {
 						)}
 						<PanelTrigger
 							icon={IconMapPin}
+							iconActive={IconMapPinFilled}
 							label="Fasilitas"
 							active={isFasilitasActive}
 							open={showFasilitas}
@@ -237,27 +261,47 @@ export default function MobileBottomNav({ auth }) {
 						/>
 					</div>
 
-					{/* 3. Lapor — ikon api di KEDUA keadaan (permintaan user 2026-09-01: "untuk
-					    lapor gunakan ikon api yang non aktif, jangan gunakan logo"). Ikon
-					    brand `/icon.png` DILEPAS dari bilah: ia sendiri sebuah kotak merah
-					    utuh, jadi slot ini selalu punya bahasa visualnya sendiri — kini
-					    kelima slot benar-benar seragam. Berkas /icon.png TETAP dipakai
-					    favicon & ApplicationLogo; jangan dihapus.
-					    Glyphnya diambil dari navItems.js supaya sama dengan "Lapor Darurat!"
-					    di sidebar; kalau item itu suatu saat hilang, IconFlame jadi
-					    cadangannya — slot ini tak boleh berakhir tanpa ikon. */}
+					{/* 3. Lapor - petir SISUPIT (permintaan user 2026-09-06: "gunakan logo itu
+					    untuk di mobile nav, dan sesuaikan dengan yang icon yang lain").
+					    Ini MEMBALIK keputusan 2026-09-01 yang memasang IconFlame di sini, dan
+					    pembalikannya sah karena alasan aslinya sudah gugur: yang ditolak waktu
+					    itu adalah `/icon.png` - petir DI DALAM kotak merah - bukan petirnya.
+					    <BrandBoltIcon/> memakai `currentColor` & `fill="none"`, jadi ia ikut
+					    `text-destructive`/`text-muted-foreground` seperti empat tetangganya dan
+					    tak bisa lagi tampak aktif terus (akar #106). Bentuknya GARIS, bukan padat:
+					    bidang terisi di antara glyph garis punya bobot lebih berat tanpa alasan,
+					    persis yang ditolak di #106 putaran kedua - KECUALI saat slot ini
+					    sedang aktif, dan di situ ia MEMADAT lewat `iconActive` seperti keempat
+					    slot lain (permintaan user 2026-09-06). Syarat "hanya saat aktif" itulah
+					    yang membuatnya sah: "bidang terisi HANYA milik slot aktif" adalah aturan
+					    yang lahir dari putaran kedua itu sendiri. Merahnya tidak ditulis di
+					    mana pun - fill & stroke sama-sama `currentColor`, jadi ia ikut
+					    `text-destructive` milik slotnya.
+					    Ikonnya kini DIPAKU di sini seperti empat slot lain (yang juga memakai
+					    IconDashboard/IconMapPin/IconClock/IconLayoutGrid sendiri) - bilah ini memang
+					    memilih glyphnya sendiri; yang TIDAK boleh dipaku adalah TUJUANNYA, dan itu
+					    tetap dibaca dari navItems.js (aturan #71). AKIBAT YANG DISENGAJA: sidebar
+					    desktop tetap IconFlame untuk "Lapor Darurat!", jadi satu menu memakai dua
+					    ikon di dua permukaan - kalau itu tak dikehendaki, ubah `report.create` di
+					    navItems.js, jangan tambahkan paku kedua di sini. */}
 					<NavItem
 						href={itemByKey('report.create')?.url ?? route('front.reports.create')}
-						icon={itemByKey('report.create')?.icon ?? IconFlame}
+						icon={BrandBoltIcon}
+						iconActive={BrandBoltIconFilled}
 						label="Lapor"
 						active={isReportActive}
 						ariaLabel="Lapor Darurat"
 					/>
 
-					{/* 4. Riwayat */}
+					{/* 4. Riwayat - IconClock, dulu IconHistory (2026-09-06). Diganti BUKAN karena
+					    rupanya kurang baik melainkan karena `IconHistory` MUSTAHIL memadat:
+					    bentuknya busur terbuka + jarum (`M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5`),
+					    dan garis terbuka tak punya bagian dalam untuk diisi - @tabler pun tak
+					    menyediakan kembaran padatnya. IconClock punya keduanya. */}
 					<NavItem
 						href={itemByKey('reports.mine')?.url ?? route('front.reports.index', { filter: 'mine' })}
-						icon={IconHistory}
+						icon={IconClock}
+						iconActive={IconClockFilled}
 						label="Riwayat"
 						active={url.startsWith('/reports') && !url.startsWith('/reports/create')}
 					/>
@@ -300,8 +344,14 @@ export default function MobileBottomNav({ auth }) {
 									))}
 								</FloatingPanel>
 							)}
+							{/* IconLayoutGrid, dulu IconMenu2 (2026-09-06). Hamburger tak akan
+							    pernah bisa memadat - ia TIGA GARIS LURUS TERBUKA (`M4 6l16 0`
+							    dst.), dan garis tak punya bagian dalam, jadi `fill` di atasnya
+							    benar-benar tak menghasilkan apa pun. Kotak 2x2 punya isi, dan
+							    idiomnya lazim untuk slot "menu/lainnya" di bilah bawah. */}
 							<PanelTrigger
-								icon={IconMenu2}
+								icon={IconLayoutGrid}
+								iconActive={IconLayoutGridFilled}
 								label="Menu"
 								active={isMenuActive}
 								open={showMenu}
@@ -323,10 +373,17 @@ export default function MobileBottomNav({ auth }) {
  * supaya keduanya mustahil berbeda rupa. Penanda aktif = kotak solid merah `rounded-xl`,
  * dialek yang sama dengan <NavLink/> di sidebar.
  */
-function SlotContent({ icon: Icon, label }) {
+function SlotContent({ icon: Icon, iconActive: IconActive, label, active }) {
+	// Slot aktif memakai kembaran PADAT bila ada. `iconActive` opsional dan luruh rapi ke glyph
+	// garis kalau tak diberikan - itu yang menyelamatkan slot tamu "Masuk", yang ikonnya datang
+	// dari navItems.js dan tak punya kembaran padat di @tabler. Ikon padat @tabler MEMBUANG prop
+	// `stroke` sebelum menyentuh DOM (createReactComponent, cabang type === 'filled'), jadi
+	// mengirimnya ke keduanya aman dan pemanggilnya tak perlu tahu ia sedang memegang yang mana.
+	const Glyph = active && IconActive ? IconActive : Icon;
+
 	return (
 		<>
-			<Icon className="h-4 w-4" stroke={1.75} />
+			<Glyph className="h-4 w-4" stroke={1.75} />
 			<span className="max-w-full truncate text-xs leading-4">{label}</span>
 		</>
 	);
@@ -335,15 +392,19 @@ function SlotContent({ icon: Icon, label }) {
 const slotClass = (active, open = false) =>
 	cn(
 		'group relative flex h-full w-full flex-col items-center justify-center gap-2 rounded-lg px-1 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-destructive',
-		// PENANDA AKTIF = WARNA + TEBAL HURUF SAJA. Tidak ada bidang, kotak, pil, garis,
-		// maupun titik - itulah seluruh isi "minimalis" pada referensi `Menu 6.png`, dan
-		// satu-satunya hal yang membedakan model ini dari sepakat 1.
-		// Di referensi pembedanya ikon PADAT vs ikon garis; di sini TIDAK bisa ditiru karena
-		// @tabler tak menyediakan varian padat untuk semua ikon yang kita pakai (IconMenu2 &
-		// IconHistory tak punya), jadi sebagian slot akan memadat dan sebagian tidak - tak
-		// seragam justru di penanda yang paling sering dilihat. Ketebalan garis juga TIDAK
-		// dipakai sebagai pembeda: itu persis yang dicabut FINDINGS #72 karena ikon terlihat
-		// bergetar tiap pindah halaman.
+		// PENANDA AKTIF = WARNA + TEBAL HURUF + IKON PADAT. Tetap tidak ada bidang, kotak,
+		// pil, garis, maupun titik - "minimalis" pada referensi `Menu 6.png` bertahan; yang
+		// ditambahkan 2026-09-06 (permintaan user) hanya pemadatan glyphnya, dan itu justru
+		// pembeda yang dipakai referensi itu sendiri.
+		// SEBELUMNYA pembeda padat-vs-garis DITOLAK dengan alasan @tabler tak menyediakan
+		// varian padat untuk semua ikon bilah - dan alasan itu BENAR: `IconMenu2` tiga garis
+		// lurus terbuka & `IconHistory` busur terbuka, keduanya tanpa bagian dalam sehingga
+		// `fill` di atasnya tak menghasilkan apa pun, dan tak ada kembaran padatnya di
+		// @tabler. Yang berubah bukan faktanya melainkan KEPUTUSANNYA: kedua ikon itu DIGANTI
+		// ke pasangan yang punya kembaran padat (IconClock, IconLayoutGrid) supaya kelima slot
+		// bisa seragam. Lihat PENGECUALIAN_ATURAN #3.
+		// Ketebalan garis tetap TIDAK dipakai sebagai pembeda: itu persis yang dicabut
+		// FINDINGS #72 karena ikon terlihat bergetar tiap pindah halaman.
 		active
 			? 'font-semibold text-destructive'
 			: open
@@ -351,7 +412,7 @@ const slotClass = (active, open = false) =>
 				: 'font-medium text-muted-foreground hover:text-foreground',
 	);
 
-function NavItem({ href, icon, label, active, ariaLabel }) {
+function NavItem({ href, icon, iconActive, label, active, ariaLabel }) {
 	return (
 		<Link
 			href={href}
@@ -359,12 +420,12 @@ function NavItem({ href, icon, label, active, ariaLabel }) {
 			aria-current={active ? 'page' : undefined}
 			className={slotClass(active)}
 		>
-			<SlotContent icon={icon} label={label} />
+			<SlotContent icon={icon} iconActive={iconActive} label={label} active={active} />
 		</Link>
 	);
 }
 
-function PanelTrigger({ icon, label, active, open, onClick }) {
+function PanelTrigger({ icon, iconActive, label, active, open, onClick }) {
 	return (
 		<button
 			type="button"
@@ -373,7 +434,7 @@ function PanelTrigger({ icon, label, active, open, onClick }) {
 			aria-expanded={open}
 			className={slotClass(active, open)}
 		>
-			<SlotContent icon={icon} label={label} />
+			<SlotContent icon={icon} iconActive={iconActive} label={label} active={active} />
 		</button>
 	);
 }
