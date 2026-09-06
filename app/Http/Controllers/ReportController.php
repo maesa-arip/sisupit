@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\MessageType;
 use App\Enums\TenantLevel;
 use App\Events\ReportFeedChanged;
+use App\Events\ReportRecordChanged;
 use App\Http\Requests\ReportRequest;
 use App\Models\Agency;
 use App\Models\Report;
@@ -652,6 +653,12 @@ class ReportController extends Controller
                 $cover = $report->photos()->orderBy('id')->first();
                 $report->update(['photo' => $cover?->path]);
             });
+
+            // Judul, deskripsi, patokan & galeri foto laporan berubah — dan Pusat Komando
+            // bisa saja sedang membuka halaman detailnya saat pelapor menyunting (laporan
+            // masih TERLAPOR, jadi ia justru sedang ditinjau). Siarkan supaya yang meninjau
+            // tidak memutuskan di atas teks & foto yang sudah tidak berlaku (#113).
+            broadcast(new ReportRecordChanged($report->id));
 
             flashMessage(MessageType::UPDATED->message('Laporan'));
 

@@ -176,6 +176,25 @@
 - **Permission Spatie di repo ini TIDAK MENGGERBANGI APA PUN** (#103): `RolePermissionSeeder`
   mengisinya lengkap, tapi pencarian `can(...)` di seluruh `app/` & `routes/` nihil. Jangan
   "membatasi peran" dengan mencabut permission — tak akan terjadi apa-apa, tanpa galat.
+- **Tiap tulisan ke catatan sebuah insiden wajib punya aba-abanya** (#113). Halaman detail
+  (`Front/Reports/Show.jsx`) adalah layar yang dipakai mengambil keputusan lapangan, dan ia
+  server-driven: kalau sebuah mutasi tidak menyiarkan apa pun, layar yang sedang terbuka
+  menampilkan keadaan yang sudah tidak berlaku **tanpa satu pun tanda bahwa ia basi** — bukan
+  kosong, melainkan salah (panel OPD berbunyi "menunggu konfirmasi" sesudah PLN mengonfirmasi;
+  lencana "Laporan Terverifikasi" berdampingan dengan panel OPD kosong). Notifikasi TIDAK
+  menggantikan ini: notifikasi membangunkan ORANGNYA, siaran membetulkan LAYARNYA.
+  Aturannya: menambah endpoint yang menulis ke `reports`, `report_agencies`,
+  `report_resolutions`, `report_photos`, atau pivot responder = tambahkan `broadcast(...)` di
+  channel `report-tracking.{id}`; pakai `ReportRecordChanged` bila status & daftar responder
+  tidak ikut berpindah. **Aba-aba saja, bukan data** — channel itu juga didengar pelapor &
+  relawan yang mengambil tugas, jadi yang menyajikan isinya tetap server lewat
+  `router.reload()` (alasan yang sama dengan `ReportFeedChanged`). Siarannya diletakkan di
+  helper yang menulis (mis. `attachAgencies()`), bukan di tiap pemanggilnya, supaya pemanggil
+  berikutnya tak perlu ingat. Di sisi klien KETIGA sinyal memanggil SATU `reloadIncident()`
+  dengan SATU daftar prop: `reportAgencies` & `resolutions` adalah prop TERPISAH yang bentuk
+  lama `only: ['report']` tak pernah sentuh, dan daftar yang berbeda-beda membuat sinyal yang
+  datang belakangan membatalkan permintaan yang lebih lengkap (Inertia hanya menerbangkan satu
+  kunjungan pada satu waktu). Dijaga `ReportDetailRealtimeTest`.
 - Role check: **selalu** `hasRole()`/`hasAnyRole()` dari Spatie Permission, bukan kolom
   string manual. `User::role([...])` bisa melempar `RoleDoesNotExist` di DB belum ter-seed
   (lihat workaround di `HomeController`).

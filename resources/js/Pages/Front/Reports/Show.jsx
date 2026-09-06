@@ -221,6 +221,25 @@ export default function ReportShow(props) {
 		setRejectedReason(props.report.rejected_reason);
 	}, [props.report]);
 
+	/**
+	 * Ambil ulang isi halaman dari server sesudah menerima aba-aba dari channel insiden
+	 * (#113). Yang disiarkan memang hanya aba-aba — server yang menghitung ulang prop mana
+	 * yang boleh dilihat pembacanya, jadi gerbang per-peran di ReportController::show()
+	 * tetap berlaku dan tak ada data yang menumpang di payload channel.
+	 *
+	 * SATU daftar prop untuk KETIGA sinyal, dan itu disengaja: `resolve()` menyiarkan status
+	 * & roster hampir bersamaan, dan Inertia membatalkan kunjungan yang masih terbang saat
+	 * kunjungan berikutnya dimulai — dengan daftar yang berbeda-beda, sinyal yang datang
+	 * belakangan bisa membatalkan permintaan yang lebih lengkap dan menyisakan panel yang
+	 * justru baru saja berubah dalam keadaan basi.
+	 *
+	 * `report` saja TIDAK cukup: `reportAgencies` (panel OPD) & `resolutions` (berita acara)
+	 * adalah prop TERPISAH, dan bentuk lama `only: ['report']` tak pernah menyentuh keduanya.
+	 */
+	const reloadIncident = () => {
+		router.reload({ only: ['report', 'reportAgencies', 'resolutions'] });
+	};
+
 	// Seberapa boleh pin ini dipercaya (TASK_52, #104). Dibaca dari `incidentLocation` supaya
 	// ikut berubah begitu responder mengoreksi titiknya, bukan dari prop `report` yang baru
 	// segar setelah halaman dimuat ulang.
@@ -889,16 +908,22 @@ export default function ReportShow(props) {
 				}));
 			});
 			// Daftar responder berubah dari sisi lain (responder baru meluncur / batal /
-			// tiba) — muat ulang prop `report` agar manifes & marker peta ikut tampil tanpa
-			// refresh. Ambil ulang lewat controller supaya tetap ter-scope & konsisten bentuknya.
-			channel.listen('ResponderRosterChanged', () => {
-				router.reload({ only: ['report'] });
-			});
-			// Status laporan berubah dari sisi lain (approve/reject/handling/resolve) —
-			// perbarui badge, panel aksi, dan banner tanpa perlu refresh.
+			// tiba) — muat ulang lewat controller supaya tetap ter-scope & konsisten bentuknya.
+			channel.listen('ResponderRosterChanged', reloadIncident);
+			// Catatan insiden berubah tanpa status/roster ikut berpindah: OPD dilibatkan,
+			// dilepas, atau mengonfirmasi tindakannya; entri berita acara dibuat/dihapus;
+			// pelapor menyunting isi laporannya (#113).
+			channel.listen('ReportRecordChanged', reloadIncident);
+			// Status laporan berubah dari sisi lain (approve/reject/handling/resolve).
+			// Badge & banner ditambal SEKETIKA dari payload supaya tak menunggu perjalanan
+			// bolak-balik; reload menyusul untuk hal yang tidak dibawa payload — jejak
+			// "ditutup/ditolak oleh siapa" (#88) ada di prop `report`, dan tanpa ini
+			// penolakan yang baru saja terjadi berbunyi "Ditolak oleh tidak tercatat",
+			// yaitu kalimat yang disediakan untuk baris lama yang memang tak punya jejak.
 			channel.listen('ReportStatusChanged', (e) => {
 				setReportStatus(e.status);
 				setRejectedReason(e.rejectedReason ?? null);
+				reloadIncident();
 			});
 		}
 		return () => {

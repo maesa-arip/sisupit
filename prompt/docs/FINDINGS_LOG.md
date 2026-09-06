@@ -766,7 +766,9 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **Dampak:** petugas/relawan yang membuka aplikasi di desktop TIDAK melihat badge lonceng bertambah sampai mereka berpindah halaman atau me-refresh. Kanal `broadcast` pada notifikasi jadi terkirim tanpa konsumen. Di ponsel dampaknya tertutup oleh push FCM, sehingga isu ini mudah luput.
 - **Rencana fix (belum dikerjakan):** di `AppLayout`, berlangganan `window.Echo.private('App.Models.User.'+auth.id).notification(cb)` lalu `router.reload({ only: ['notifications','unread_notifications_count'] })` — pola yang sama dengan `Show.jsx`. Perlu memastikan `BroadcastServiceProvider`/`channels.php` mengizinkan channel notifikasi milik user sendiri.
 - **Sumber:** temuan sampingan saat produksi video panduan 2026-07-31 (di luar scope, tidak dikerjakan).
-- **Status:** OPEN
+- **Status:** FIXED 2026-09-06 bersama #113 (permintaan user) - rinciannya, termasuk BATASNYA
+  (lonceng PELAPOR masih statis, lihat #114), ada di entri "#46 ... FIXED 2026-09-06" di akhir
+  berkas ini.
 
 ### #47 — Reverb dan kontainer Nominatim sama-sama memakai port 8080 → BroadcastException saat Docker menyala
 - **Severity:** P2 (dev/ops — memunculkan layar "Internal Server Error" ke pengguna pada aksi normal)
@@ -2260,6 +2262,106 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
   dibuka. Efek samping yang MERUGIKAN dan harus disadari: slot "Lapor" kehilangan seluruh
   penonjolan tetapnya dan kini sama rata dengan empat tujuan lain; di aplikasi darurat itu
   bukan harga yang sepele.
+- **Putaran kedelapan — petir brand KEMBALI ke slot "Lapor", kali ini sebagai GLYPH
+  (permintaan user 2026-09-06: "gunakan logo itu untuk di mobile nav, dan sesuaikan dengan yang
+  icon yang lain").** Ini membalik putaran keempat, dan pembalikannya sah karena **alasan
+  aslinya sudah gugur**. Yang ditolak 2026-09-01 bukan petirnya melainkan BENTUK ASETNYA:
+  `/icon.png` adalah petir putih di dalam kotak merah penuh, jadi keberatannya ("sudah merah
+  seperti aktif terus") melekat pada platnya, bukan pada motifnya. Petirnya kini dilepas dari
+  plat itu — ditelusuri dari `public/logo.png` jadi poligon 7 titik (cocok **99,1% IoU**
+  terhadap aslinya; sisa 0,9% adalah ketidaksepakatan antialias di ambang 0,5, yaitu batas
+  sampling) lalu digambar sebagai `<svg>` inline di `Components/BrandBoltIcon.jsx` dengan
+  `stroke="currentColor"` + `fill="none"`. Dengan itu **warnanya kembali ditentukan kelas, bukan
+  piksel** — ia ikut `text-destructive`/`text-muted-foreground` persis seperti empat tetangganya,
+  sehingga kegagalan yang melahirkan #106 mustahil terulang dari aset ini.
+  Bentuknya **GARIS, bukan padat** (keputusan user dari dua pilihan): petir brand aslinya bidang
+  padat, dan bidang terisi di antara empat glyph garis punya bobot visual lebih berat tanpa
+  alasan — persis yang ditolak di putaran kedua. Path-nya diskala ke kotak 24×24 ala @tabler
+  (tinggi 20 + stroke 2), dan kontrak propsnya (`size`/`stroke`/`className`) meniru @tabler
+  supaya `SlotContent` bisa memanggil kelima slot lewat satu jalur.
+  `IconBolt` @tabler tetap TIDAK dipakai — petir @tabler sudah berarti jenis kejadian LISTRIK
+  (`Admin/Dashboard.jsx:339`, `Admin/Agencies/Index.jsx:145`); nama komponennya sengaja dibedakan
+  supaya keduanya tak pernah tersambar autocomplete yang sama.
+  **Yang berubah dari aturan lama:** slot ini dulu membaca glyphnya dari `report.create` milik
+  `navItems.js`; kini ia dipaku seperti empat slot lain (yang memang sudah memakai
+  `IconDashboard`/`IconMapPin`/`IconHistory`/`IconMenu2` sendiri). Yang TIDAK boleh dipaku tetap
+  TUJUANNYA — `href` masih dibaca dari `navItems.js` (aturan #71). **Akibat yang disengaja &
+  harus disadari:** sidebar desktop tetap `IconFlame` untuk "Lapor Darurat!", jadi satu menu kini
+  memakai dua ikon di dua permukaan. Kalau itu tak dikehendaki, ubah `report.create` di
+  `navItems.js` — jangan menambah paku kedua di `MobileBottomNav.jsx`.
+  **Penjaga BARU `MobileNavIconGlyphTest` (3 test, KETIGANYA dibuktikan MERAH lewat sabotase;
+  kedua berkas dipulihkan byte-exact, md5 dicocokkan):** bilah tak boleh memuat `<img>`/aset
+  gambar berwarna, slot Lapor memakai `BrandBoltIcon` dan bukan `IconBolt`, dan glyphnya tak
+  boleh memiliki warna sendiri (hex/rgb/hsl). Tanpa penjaga ini, mengembalikan
+  `<img src="/icon.png">` ke bilah adalah satu baris yang hijau di seluruh test suite — persis
+  keadaan saat #106 lahir. Penjaganya membuang komentar lebih dulu: kedua berkas MENJELASKAN
+  larangannya sendiri, dan penjaga yang tersandung penjelasannya sendiri akan dimatikan orang
+  berikutnya alih-alih dipatuhi (pelajaran #108).
+  Aset pendamping di luar React: `public/bolt.svg` (sumber vektor, `currentColor`),
+  `public/bolt-white.png` & `public/bolt-red.png` (512×512, transparan) — JANGAN dipakai di
+  navigasi, itu justru bentuk yang dilarang di atas.
+- **Putaran kesembilan — slot "Lapor" MEMADAT saat aktif (permintaan user 2026-09-06: "saat
+  active, buat icon menjadi fill merah").** Petirnya kini glyph garis saat diam dan bidang
+  terisi merah saat slotnya halaman yang sedang dibuka (`<BrandBoltIcon filled/>`).
+  **Ini menekuk aturan putaran ketujuh** yang berbunyi "ikon PADAT vs GARIS sengaja tidak dipakai
+  sebagai pembeda aktif" — tapi alasan aturan itu bersifat KEMAMPUAN, bukan prinsip: @tabler tak
+  punya varian padat untuk `IconMenu2` & `IconHistory`, sehingga sebagian slot akan memadat dan
+  sebagian tidak. Petir "Lapor" sejak putaran kedelapan bukan lagi ikon @tabler melainkan glyph
+  milik repo ini sendiri, jadi kendala itu tak berlaku untuknya. **Dicatat sebagai
+  PENGECUALIAN_ATURAN #3**, berikut konsekuensinya: penanda aktif kini TIDAK seragam di lima slot,
+  dan tak bisa diseragamkan ke atas (dua slot lain mustahil memadat selama memakai @tabler).
+  **Kenapa ini BUKAN #106 yang kembali** — ini pertanyaan yang paling penting dijawab benar, sebab
+  bentuknya mirip: bidang merah di dalam barisan slot. Pembedanya SYARAT munculnya. Aturan yang
+  lahir dari putaran kedua berbunyi **"bidang terisi HANYA milik slot aktif"**, dan bentuk ini
+  memenuhinya persis — petir terisi hanya saat aktif, satu slot pada satu waktu. Yang keliru pada
+  #106 adalah bidang merah yang muncul di SETIAP halaman. Merahnya pun tidak ditulis di mana pun:
+  fill & stroke sama-sama `currentColor`, jadi ia sekadar mengikuti `text-destructive` milik
+  slotnya — kalau kelak warna aktif bilah diganti, petirnya ikut tanpa disentuh.
+  **`filled` menambahkan fill TANPA mencabut stroke.** Siluet luarnya karena itu identik di kedua
+  keadaan (tepi luar = path + setengah stroke, sama-sama), sehingga ikon tidak melompat
+  besar-kecil tiap pindah halaman; mencabut stroke saat padat akan mengecilkannya ~1px di ukuran
+  bilah. Efek sampingnya menguntungkan: keluhan "petirnya terbaca ramping di 16px" (putaran
+  kedelapan, akibat rasio brand 0,44) hilang justru di keadaan aktif, saat slot itu paling perlu
+  terbaca.
+  **Jalurnya:** `SlotContent`/`NavItem` menerima `iconProps` yang diteruskan apa adanya ke ikon —
+  jadi empat slot lain tak tersentuh sama sekali, dan tak ada pemeriksaan identitas ikon
+  (`Icon === BrandBoltIcon`) maupun prop tak-dikenal yang mendarat di DOM sebagai atribut invalid.
+  **Penjaga keempat di `MobileNavIconGlyphTest`** (`it fills the brand bolt only while its slot is
+  the active page`, dibuktikan MERAH lewat tiga sabotase: bawaan `filled` dibalik true, slot
+  berhenti mengikat fill ke keadaan aktifnya, dan merah ditulis sebagai hex di dalam glyph; kedua
+  berkas dipulihkan byte-exact, md5 dicocokkan). Ia mengunci KEDUA sisinya, sebab masing-masing
+  sendirian cukup untuk mengembalikan #106 dari arah yang berbeda — dan keduanya senyap total.
+- **Putaran kesepuluh — KELIMA slot memadat, dan dua ikon diganti supaya bisa (permintaan user
+  2026-09-06 menyusul putaran kesembilan: "bukan hanya aktif untuk lapor saja fill tapi semua yang
+  lain juga").** Putaran kesembilan hanya sanggup memadatkan "Lapor" dan itu dicatat sebagai
+  ketidakseragaman yang "tak bisa diseragamkan ke atas". Ternyata **bisa** — dengan mengganti dua
+  ikonnya, dan user memilih itu setelah disodori tiga tingkat cakupan berikut harganya.
+  **Fakta yang menentukan, diperiksa langsung di `node_modules` dan bukan dugaan:** `IconMenu2`
+  adalah TIGA GARIS LURUS TERBUKA (`M4 6l16 0`, `M4 12l16 0`, `M4 18l16 0`) dan **garis tak punya
+  bagian dalam**, jadi `fill` di atasnya benar-benar tidak menghasilkan apa pun — sebuah hamburger
+  tak akan pernah bisa memadat dengan cara apa pun. `IconHistory` (`M3.05 11a9 9 0 1 1 .5 4m-.5
+  5v-5h5`) busur terbuka + jarum; mengisinya menghasilkan gumpalan miring, bukan jam. Keduanya juga
+  tak punya kembaran `*Filled` (dari 944 varian padat di @tabler v3.30). Jadi alasan penolakan
+  putaran ketujuh MEMANG BENAR secara fakta; yang berubah keputusannya, bukan faktanya.
+  Ganti: `IconHistory` -> `IconClock`, `IconMenu2` -> `IconLayoutGrid`. Beranda & Fasilitas
+  **tidak berubah rupa** (`IconDashboardFilled`/`IconMapPinFilled` memang sudah ada).
+  **Mekanismenya disatukan** jadi `icon` + `iconActive` yang dipilih di `SlotContent` — menggantikan
+  `iconProps` yang sempat dipakai putaran kesembilan khusus untuk petir. `BrandBoltIconFilled`
+  diekspor sebagai komponen tersendiri supaya petir brand dipanggil dengan cara yang SAMA PERSIS
+  dengan pasangan @tabler; jalur khusus untuk satu slot persis yang membuat #106 hidup lama.
+  `iconActive` sengaja OPSIONAL: slot tamu "Masuk" (`IconLogin2`, tanpa kembaran padat) luruh rapi
+  ke glyph garis alih-alih pecah — ia satu-satunya slot yang tidak memadat, dan hanya tamu yang
+  melihatnya. Ikon padat @tabler MEMBUANG prop `stroke` sebelum menyentuh DOM
+  (`createReactComponent`, cabang `type === 'filled'`), jadi `SlotContent` boleh mengirim
+  `stroke={1.75}` ke keduanya tanpa tahu ia sedang memegang yang mana.
+  **Dicatat sebagai PENGECUALIAN_ATURAN #3** (entri putaran kesembilan DITULIS ULANG, bukan
+  ditambahi — isinya "hanya Lapor yang memadat, tak bisa diseragamkan" sudah tidak benar lagi).
+  Harga yang diterima: dua ikon berubah rupa di KEDUA keadaan, bukan cuma saat aktif.
+  **Penjaga kelima** `it gives every bottom-bar slot a filled twin for its active state` mengunci
+  kelima pasangan sekaligus DAN melarang kedua ikon yang mustahil memadat itu kembali (dibuktikan
+  MERAH lewat dua sabotase: satu slot kehilangan `iconActive`, dan hamburger dihidupkan lagi;
+  berkas dipulihkan byte-exact). Tanpa itu, satu slot yang kehilangan pasangan padatnya berhenti
+  memadat tanpa galat apa pun - jenis penyimpangan senyap yang sama dengan #94.
 - **Ikutan yang WAJIB ikut tiap kali tinggi bilah berubah** — ketahuan saat menghitung blast
   radius: `AppLayout` ruang konten (`pb-[calc(6rem+…)]`) dan **tombol "Kirim" melayang di
   `Front/Reports/Create.jsx`**, yang dipaku `bottom-16` mengikuti bilah 64px. Tanpa ikut naik,
@@ -2548,3 +2650,121 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
   membuat kode LAMA yang masih terpasang memanggil `assignRole('masyarakat')` atas peran yang
   sudah tak ada — dan itu benar-benar `RoleDoesNotExist`. Jadi urutannya tetap **kode dulu, lalu
   migrasi sesegera mungkin**; yang bisa dikecilkan hanya lebar jendelanya, bukan keberadaannya.
+
+---
+
+### #113 — Halaman detail insiden diam untuk tiga kelompok perubahan: OPD, berita acara, & suntingan pelapor (FIXED)
+
+- **Prioritas:** P1 — bukan kebocoran data, tapi layar yang dipakai mengambil keputusan
+  lapangan menampilkan keadaan yang sudah tidak berlaku, tanpa satu pun tanda bahwa ia basi.
+- **Ditemukan:** 2026-09-06, laporan user ("di reports/show masih ada yang belum auto update
+  harus refresh manual, lihat di semua role").
+- **Isi:** `Front/Reports/Show.jsx` berlangganan EMPAT event di `report-tracking.{id}`
+  (`ResponderLocationUpdated`, `IncidentLocationCorrected`, `ResponderRosterChanged`,
+  `ReportStatusChanged`) dan tidak punya polling sama sekali. Diadu dengan SEMUA mutasi yang
+  mengubah isi halaman itu, ada tiga kelompok yang tak pernah menyiarkan apa pun:
+  1. **Panel OPD Terkait.** Keempat jalur tulisnya bisu — `approve()` (lewat
+     `attachAgencies`), `notifyAgencies()`, `removeAgency()`, `confirmAgency()`.
+  2. **Berita Acara.** `ReportResolutionController::store()` & `destroy()` — berkas itu tak
+     memuat satu pun `broadcast()` maupun import `App\Events`.
+  3. **Suntingan pelapor.** `ReportController::update()` (judul/deskripsi/patokan + galeri
+     foto), yang justru berjalan saat laporan masih `TERLAPOR` — yaitu saat Pusat Komando
+     sedang meninjaunya.
+- **Gejala yang paling mahal:** akun PLN mengonfirmasi "listrik sudah dipadamkan" dari
+  akunnya sendiri; notifikasinya memang terkirim (TASK_30/#63) tapi **layar** petugas yang
+  sedang berdiri di TKP tetap berbunyi "menunggu konfirmasi". Notifikasi membangunkan
+  ORANGNYA, ia tidak membetulkan LAYARNYA — dan yang menunggu kabar itu adalah orang yang
+  belum boleh menyemprot air.
+- **Gejala kedua, ikutan `approve()`:** lencana status berkedip jadi "Laporan Terverifikasi"
+  secara live sementara panel OPD tetap kosong, sehingga layarnya berbunyi "sudah
+  diverifikasi, tak ada OPD yang diminta" — pernyataan yang salah, bukan sekadar tertinggal.
+- **Akar kedua (setengah perbaikan yang sudah ada):** satu-satunya `router.reload` di berkas
+  itu berbunyi `only: ['report']`. `reportAgencies` & `resolutions` adalah prop **TERPISAH**
+  dari `ReportController::show()`, jadi bahkan sinyal yang SUDAH ada (roster) tak pernah
+  menyegarkan keduanya.
+- **Akar ketiga:** `ReportStatusChanged` hanya menambal dua state klien (`reportStatus`,
+  `rejectedReason`) dan tak membaca ulang prop `report`. Akibatnya penolakan yang diterima
+  lewat siaran menampilkan **"Ditolak oleh tidak tercatat"** — kalimat yang disediakan untuk
+  baris lama pra-#88 yang memang tak punya jejak, dipakai untuk penolakan yang barusan
+  terjadi. `resolve()` lolos dari ini hanya karena kebetulan ikut menyiarkan
+  `ResponderRosterChanged`; jadi dua transisi yang sepasang berperilaku berbeda tanpa alasan.
+- **Kena di semua peran** (jawaban atas "lihat di semua role"): admin/superadmin & petugas
+  (panel OPD, berita acara, jejak penolak), pejabat (keduanya, read-only), opd (baris
+  instansinya sendiri), relawan & warga pelapor (jejak penolak sejauh `canSeeClosureActor`
+  mengizinkan; isi laporan yang disunting bagi yang meninjau).
+- **Fix (2026-09-06):**
+  1. Event BARU `App\Events\ReportRecordChanged` di channel yang sama, **aba-aba saja**
+     (`reportId`, tanpa data) dengan alasan yang sama seperti `ReportFeedChanged`: channel
+     ini juga didengar pelapor & relawan yang mengambil tugas, sementara yang berubah bisa
+     berupa catatan konfirmasi OPD atau ringkasan berita acara.
+  2. Disiarkan dari `attachAgencies()` (bukan dari kedua pemanggilnya — `approve()` &
+     `notifyAgencies()` lewat sini, dan pemanggil ketiga kelak tak perlu ingat menyiarkannya
+     sendiri), `removeAgency()`, `confirmAgency()`, resolution `store()` & `destroy()`, serta
+     `ReportController::update()`.
+  3. Di layar: satu `reloadIncident()` = `router.reload({ only: ['report',
+     'reportAgencies', 'resolutions'] })`, dipakai KETIGA sinyal. **Satu daftar prop untuk
+     semuanya, dan itu disengaja:** `resolve()` menyiarkan status & roster hampir bersamaan,
+     dan Inertia membatalkan kunjungan yang masih terbang saat kunjungan berikutnya dimulai —
+     dengan daftar yang berbeda-beda, sinyal yang datang belakangan bisa membatalkan
+     permintaan yang lebih lengkap dan justru menyisakan panel yang baru saja berubah dalam
+     keadaan basi. `ReportStatusChanged` TETAP menambal badge seketika dari payload (supaya
+     tak menunggu perjalanan bolak-balik) lalu memanggil reload untuk sisanya.
+- **Yang TIDAK diubah & kenapa:** `dispatchUnit()`/`releaseUnit()` juga bisu, tapi panel
+  armadanya mati di balik `SHOW_ARMADA_PANEL = false` sehingga belum bergejala — menghidupkannya
+  lagi kelak berarti menambahkan siarannya. Dan `ReportStatusUpdatedNotification::via()`
+  sengaja TIDAK ditambahi `'broadcast'` — lihat #114.
+- **Penjaga:** `tests/Feature/Sisupit/ReportDetailRealtimeTest.php` (8 test). TUJUH dibuktikan
+  MERAH lebih dulu terhadap berkas sebelum perubahan (kelima berkas dipulihkan byte-exact,
+  md5 dicocokkan); yang kedelapan (channel & bentuk payload event) hijau sejak awal =
+  penjaga regresi, bukan bukti bug. Dua di antaranya membaca BERKAS JSX, sebab di situlah
+  sifatnya hidup: daftar event yang didengar, daftar prop yang dimuat ulang, dan larangan
+  kembalinya `only: ['report']`.
+
+### #46 — Lonceng notifikasi tidak pernah update sendiri — FIXED 2026-09-06
+
+- Rencana fix yang dicatat di entri #46 dikerjakan bersama #113 (permintaan user): `AppLayout`
+  kini berlangganan `window.Echo.private('App.Models.User.'+auth.id).notification(...)` lalu
+  `router.reload({ only: ['notifications', 'unread_notifications_count'] })`. Aba-aba, bukan
+  data — isi loncengnya tetap diambil ulang dari server, pola yang sama dengan halaman detail.
+- **Baru bisa dikerjakan sekarang:** sampai #55 diperbaiki (2026-08-11) `/broadcasting/auth`
+  belum terdaftar, sehingga listener apa pun gagal di tahap otorisasi tanpa gejala. Channel
+  `App.Models.User.{id}` sendiri sudah lama ada di `routes/channels.php`.
+- **Batasnya, dan ini penting supaya tak dikira rusak:** yang membangunkan lonceng hanyalah
+  notifikasi yang `via()`-nya memuat `'broadcast'` — `EmergencyAlertNotification`,
+  `AgencyDispatchNotification`, `AgencyConfirmationNotification`. **Notifikasi balik ke PELAPOR
+  (`ReportStatusUpdatedNotification`) tidak termasuk**, jadi lonceng warga masih statis; lihat
+  #114 untuk alasan ia tidak ikut diubah di sini.
+- **Status:** FIXED 2026-09-06 (bersama #113). SISA: verifikasi di browser dengan Reverb hidup.
+
+### #114 — `ReportStatusUpdatedNotification` tak disiarkan, jadi lonceng PELAPOR tetap statis (OPEN)
+
+- **Prioritas:** P3 — satu peran (warga pelapor) tidak ikut menikmati perbaikan #46.
+- **Ditemukan:** 2026-09-06 saat mengerjakan #46.
+- **Isi:** `via()` memulangkan `[FcmChannel::class, 'database']` — tanpa `'broadcast'`. Di
+  ponsel gejalanya tertutup push FCM; di web & desktop loncengnya diam.
+- **Kenapa TIDAK diubah begitu saja** (sengaja di-surface, bukan dikerjakan diam-diam):
+  `toArray()`/`toFcm()` notifikasi ini **tidak memuat `alert_stage`**, dan keputusan TASK_50
+  berbunyi *payload tak dikenal TETAP sirine* (gagal berisik lebih aman untuk layanan
+  kebakaran). Aplikasi desktop (.exe) mendengar di channel yang sama. Karena `store()` selalu
+  menulis `auth()->id()`, laporan yang diketik operator lewat telepon ber-`user_id` operator
+  itu sendiri — jadi menambahkan `'broadcast'` di sini akan membuat **.exe milik operator
+  membunyikan SIRINE pada setiap transisi status laporan yang ia ketik sendiri**. Perbaikannya
+  karena itu bukan satu kata: ia menuntut penanda tahap sendiri (mis. `alert_stage` =
+  `report_status`) plus penyesuaian di wrapper desktop, yaitu perubahan di luar repo ini.
+- **Status:** OPEN — menunggu keputusan user.
+
+### #115 — Prop `trails` dihitung tiap kali halaman detail dibuka tapi tak pernah dipakai (OPEN)
+
+- **Prioritas:** P3 — pemborosan, bukan kesalahan yang terlihat pengguna.
+- **Ditemukan:** 2026-09-06 saat memetakan prop mana yang perlu dimuat ulang untuk #113.
+- **Isi:** `ReportController::show()` menyusun `$trails` (query `tracking_logs` untuk seluruh
+  responder aktif, dikelompokkan & dipetakan) dan mengirimnya sebagai prop, tetapi
+  `grep -rn "trails" resources/js/` **nihil** — tak ada satu pun pemakai di seluruh frontend.
+  Jejak yang sudah dilalui memang sengaja tidak digambar di peta (lihat komentar
+  `drawResponderRoute` di `Show.jsx`: hanya rute DI DEPAN yang digambar), jadi kemungkinan
+  besar ia sisa desain sebelumnya.
+- **Dampak:** satu query + pemetaan koleksi pada tiap pembukaan halaman detail dan pada tiap
+  reload realtime; ukurannya tumbuh bersama panjang `tracking_logs` sebuah insiden.
+- **Kenapa tidak dihapus di sini:** aturan emas #6, dan menghapus prop = memastikan lebih dulu
+  tak ada wrapper/klien lain yang membacanya.
+- **Status:** OPEN.

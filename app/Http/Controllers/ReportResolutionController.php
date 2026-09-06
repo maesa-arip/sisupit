@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ReportRecordChanged;
 use App\Models\Report;
 use App\Models\ReportResolution;
 use App\Models\ReportVictim;
@@ -202,6 +203,12 @@ class ReportResolutionController extends Controller
 
         $label = $validated['status'] === 'final' ? 'final' : 'sementara';
 
+        // Halaman detail yang sedang terbuka pihak lain ikut menampilkan entri baru ini
+        // tanpa refresh (#113). Yang paling dirugikan sebelumnya justru alur normalnya:
+        // petugas mengisi entri `sementara`, lalu admin - satu-satunya yang boleh
+        // mem-final-kannya sejak TASK_49 - menatap layar yang masih kosong.
+        broadcast(new ReportRecordChanged($report->id));
+
         return to_route('reports.show', $report->id)
             ->with('success', "Berita acara ($label) berhasil disimpan.");
     }
@@ -231,6 +238,8 @@ class ReportResolutionController extends Controller
             // Baris korban & foto ikut terhapus lewat cascade FK.
             $resolution->delete();
         });
+
+        broadcast(new ReportRecordChanged($report->id));
 
         return back()->with('success', 'Entri berita acara dihapus.');
     }

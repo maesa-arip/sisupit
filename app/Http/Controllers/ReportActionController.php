@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\TenantLevel;
 use App\Events\IncidentLocationCorrected;
 use App\Events\ReportFeedChanged;
+use App\Events\ReportRecordChanged;
 use App\Events\ReportStatusChanged;
 use App\Events\ResponderLocationUpdated;
 use App\Events\ResponderRosterChanged;
@@ -387,6 +388,11 @@ class ReportActionController extends Controller
             ->where('agency_id', $request->agency_id)
             ->delete();
 
+        // Tanpa ini baris OPD yang sudah dicabut tetap terbaca di layar petugas sampai ia
+        // memuat ulang halaman — dan sebuah permintaan bantuan yang sebenarnya sudah
+        // dibatalkan adalah hal yang paling mahal untuk salah dibaca (#113).
+        broadcast(new ReportRecordChanged($report->id));
+
         return back()->with('success', 'OPD dilepas dari insiden.');
     }
 
@@ -439,6 +445,11 @@ class ReportActionController extends Controller
         // dari akunnya, operator & petugas di lokasi tidak pernah tahu listrik sudah padam,
         // padahal merekalah yang menunggu kabar itu untuk boleh menyemprot air.
         $this->notifyConfirmation($report, $pivot, $user);
+        // Notifikasi di atas membangunkan orangnya; siaran ini membetulkan LAYARNYA. Tanpa
+        // keduanya, petugas yang sedang membuka halaman insiden justru membaca "menunggu
+        // konfirmasi" pada baris yang barusan dikonfirmasi PLN, dan itulah keadaan yang
+        // seluruh fitur ini ada untuk mengabarkannya (#113).
+        broadcast(new ReportRecordChanged($report->id));
 
         return back()->with('success', 'Konfirmasi dicatat: '.$pivot->confirmation_label);
     }
@@ -551,6 +562,15 @@ class ReportActionController extends Controller
             if ($accounts->isNotEmpty()) {
                 Notification::send($accounts, new AgencyDispatchNotification($report, $pivot));
             }
+        }
+
+        // Panel "OPD Terkait" di halaman detail yang sedang terbuka orang lain ikut terisi
+        // tanpa refresh (#113). Sengaja disiarkan DI SINI, bukan di kedua pemanggilnya:
+        // approve() & notifyAgencies() sama-sama lewat sini, dan pemanggil ketiga kelak tak
+        // perlu ingat menyiarkannya sendiri. Nol baris baru = tak ada yang berubah, jadi
+        // tak ada yang perlu dimuat ulang di layar siapa pun.
+        if ($attached > 0) {
+            broadcast(new ReportRecordChanged($report->id));
         }
 
         return $attached;

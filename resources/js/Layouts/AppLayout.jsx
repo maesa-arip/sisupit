@@ -86,6 +86,33 @@ export default function AppLayout({ title, children }) {
 		};
 	}, [auth]);
 
+	/**
+	 * Lonceng notifikasi real-time (FINDINGS #46). `notifications` &
+	 * `unread_notifications_count` datang dari shared prop Inertia, jadi angkanya hanya
+	 * berubah saat pengguna berpindah halaman atau me-refresh — padahal payloadnya MEMANG
+	 * sudah disiarkan sejak dulu (`via()` ketiga kelas notifikasi memuat 'broadcast'),
+	 * cuma tak ada yang mendengarkannya. Di ponsel gejalanya tertutup push FCM; di desktop
+	 * lonceng itu diam sampai halaman diganti.
+	 *
+	 * Baru bisa dikerjakan sekarang: sampai #55 diperbaiki (2026-08-11) endpoint
+	 * /broadcasting/auth belum terdaftar, sehingga listener apa pun akan gagal di tahap
+	 * otorisasi tanpa gejala.
+	 *
+	 * Yang disiarkan tidak dipakai apa adanya — ia cuma aba-aba, isi loncengnya tetap
+	 * diambil ulang dari server (pola yang sama dengan halaman detail insiden), supaya
+	 * daftar yang tampil selalu yang memang berhak dilihat akun ini.
+	 */
+	useEffect(() => {
+		if (!auth?.id || !window.Echo) return;
+
+		const channelName = `App.Models.User.${auth.id}`;
+		window.Echo.private(channelName).notification(() => {
+			router.reload({ only: ['notifications', 'unread_notifications_count'] });
+		});
+
+		return () => window.Echo.leave(channelName);
+	}, [auth?.id]);
+
 	// useEffect(() => {
 	//     if (!auth) return;
 
