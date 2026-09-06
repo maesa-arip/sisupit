@@ -28,7 +28,7 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 
 ```
 Task aktif   : HALAMAN DETAIL INSIDEN AUTO-UPDATE PENUH (#113) + LONCENG REAL-TIME (#46).
-                SELESAI (kode) 2026-09-06, BELUM DI-COMMIT & BELUM DIDEPLOY.
+                SELESAI & TERDEPLOY 2026-09-06 @145b3d5a ke prod/staging/dev.
                 Laporan user: "di reports/show masih ada yang belum auto update harus refresh
                 manual, lihat di semua role", lalu "lonceng #46 sekalian, update laporan juga
                 disiarkan".
@@ -87,6 +87,37 @@ Task aktif   : HALAMAN DETAIL INSIDEN AUTO-UPDATE PENUH (#113) + LONCENG REAL-TI
                 Test 398 -> 406 passed (1562 assertions), Pint PASS (302 berkas), prettier PASS,
                 npm run build lulus. TANPA migrasi, TANPA perubahan route/skema/otorisasi,
                 TANPA permukaan channel baru.
+                DEPLOY 2026-09-06 @145b3d5a, ff dari 0f27a6d9, urutan dev -> staging -> prod.
+                TIGA commit: 14bd8529 petir glyph #106 (pekerjaan sesi sebelumnya yang belum
+                ter-commit, ikut naik) + c2afa38f kode #113/#46 + 145b3d5a aset build.
+                Ketiga branch (main/staging/dev) didorong ke commit yang sama.
+                DEPLOY PALING SEDERHANA: `git status --short database/migrations/ routes/
+                composer.json composer.lock config/` KOSONG, jadi TANPA migrasi, TANPA cadangan
+                DB (nol sentuhan DB), TANPA composer install, TANPA rebuild route cache - cukup
+                `git pull` + `chown`. 0 migrasi pending di ketiga env sebelum & sesudah.
+                REVERB SENGAJA TIDAK DI-RESTART: `routes/channels.php` tak berubah, dan Reverb
+                cuma merelai payload per nama channel - ia tak perlu mengenal kelas event baru.
+                `opcache.validate_timestamps=1` di ketiga env, jadi php-fpm juga tak perlu
+                di-reload; diperiksa, bukan diasumsikan.
+                VERIFIKASI: kelas `ReportRecordChanged` autoload di ketiga env & channelnya
+                `private-report-tracking.{id}`; keenam titik siaran terhitung utuh di ketiganya
+                (3 di ReportActionController, 2 di ReportResolutionController, 1 di
+                ReportController); bundel LIVE `Show-DUMNIE0W.js` memuat `ReportRecordChanged`
+                DAN daftar reload `reportAgencies","resolutions`, bundel LIVE
+                `AppLayout-Dx0TdjlM.js` memuat listener `App.Models.User` &
+                `unread_notifications_count` - jadi yang diperiksa PERILAKUNYA di bundel yang
+                benar-benar disajikan, bukan cuma nama berkasnya; bundel LAMA Show-Yi6mAzJQ.js
+                & AppLayout-C8wK1Szq.js 404 di ketiganya; ketiga domain / & /hydrants 200; POST
+                /broadcasting/auth 403 (terdaftar & menolak yang tak berhak); nginx/php8.2-fpm/
+                reverb/reverb-staging/reverb-dev active; 0 berkas root-owned pasca-chown.
+                DATA PROD UTUH: 89 users / 38 reports / 51 hydrants / 37 pelibatan OPD / 1
+                berita acara - SAMA PERSIS pra-pull & pasca-pull.
+                LOG: 0 ERROR baru dari deploy ini. Satu-satunya ERROR prod hari ini (04:06)
+                adalah "Writing to directory /var/www/.config/psysh is not writable" dari
+                percobaan `php artisan tinker --execute` SAYA sendiri saat mengambil cacah data
+                (gotcha TASK_49 terulang) - bukan dari aplikasi; sesudahnya cacahnya diambil
+                lewat `mysql -N -e`. ERROR terakhir staging/dev tetap 2026-09-02 06:01 = queue
+                worker "Connection refused" lama.
                 SISA: verifikasi di browser dengan Reverb hidup (butuh dua jendela + akun
                 berbeda peran) - khususnya konfirmasi OPD, entri berita acara, dan lonceng.
                PETIR BRAND JADI IKON NAVIGASI MOBILE - slot "Lapor" di bilah bawah memakai

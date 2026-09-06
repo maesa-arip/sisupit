@@ -2719,6 +2719,18 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
   penjaga regresi, bukan bukti bug. Dua di antaranya membaca BERKAS JSX, sebab di situlah
   sifatnya hidup: daftar event yang didengar, daftar prop yang dimuat ulang, dan larangan
   kembalinya `only: ['report']`.
+- **Terdeploy 2026-09-06 @145b3d5a** ke prod/staging/dev (ff dari `0f27a6d9`, urutan dev →
+  staging → prod), bersama #106. Tanpa migrasi/route/composer, jadi cukup `git pull` + `chown`;
+  **Reverb sengaja tidak di-restart** (`routes/channels.php` tak berubah, dan Reverb hanya
+  merelai payload per nama channel — ia tak perlu mengenal kelas event baru), dan php-fpm tak
+  perlu di-reload karena `opcache.validate_timestamps=1` di ketiga env (diperiksa, bukan
+  diasumsikan). Verifikasi yang paling meyakinkan bukan nama berkas bundelnya melainkan
+  ISINYA: bundel LIVE `Show-DUMNIE0W.js` memuat `ReportRecordChanged` **dan** daftar reload
+  `reportAgencies","resolutions`, dan `AppLayout-Dx0TdjlM.js` memuat listener
+  `App.Models.User` + `unread_notifications_count`. Keenam titik siaran terhitung utuh di
+  ketiga env lewat skrip bootstrap Laravel. Data prod tidak berubah (89 users / 38 reports /
+  37 pelibatan OPD / 1 berita acara, sama persis pra & pasca). SISA: verifikasi di browser
+  dengan Reverb hidup.
 
 ### #46 — Lonceng notifikasi tidak pernah update sendiri — FIXED 2026-09-06
 
@@ -2734,7 +2746,8 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
   `AgencyDispatchNotification`, `AgencyConfirmationNotification`. **Notifikasi balik ke PELAPOR
   (`ReportStatusUpdatedNotification`) tidak termasuk**, jadi lonceng warga masih statis; lihat
   #114 untuk alasan ia tidak ikut diubah di sini.
-- **Status:** FIXED 2026-09-06 (bersama #113). SISA: verifikasi di browser dengan Reverb hidup.
+- **Status:** FIXED 2026-09-06 (bersama #113), TERDEPLOY @145b3d5a ke prod/staging/dev. SISA:
+  verifikasi di browser dengan Reverb hidup.
 
 ### #114 — `ReportStatusUpdatedNotification` tak disiarkan, jadi lonceng PELAPOR tetap statis (OPEN)
 
