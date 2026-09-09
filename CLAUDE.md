@@ -28,7 +28,7 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 
 ```
 Task aktif   : BILAH BAWAH MOBILE - IKON DIPERBESAR & TEKS DIRAMPINGKAN. SELESAI (kode)
-                2026-09-09 di branch `feat/mobile-bottom-nav-liquid-glass`. BELUM DI-COMMIT KE
+                2026-09-09 di branch `feat/mobile-bottom-nav`. BELUM DI-COMMIT KE
                 main, BELUM DIDEPLOY, BELUM DIVERIFIKASI DI PONSEL.
                 Permintaan user mula-mula: "tambahkan liquid glass ... dan buat ada animasi
                 geser saat ke menu lainnya, jangan langsung koding di main". Itu DIKERJAKAN
