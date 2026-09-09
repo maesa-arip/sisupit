@@ -44,31 +44,58 @@ Task aktif   : BILAH BAWAH MOBILE - IKON DIPERBESAR & TEKS DIRAMPINGKAN. SELESAI
                 tweak di bawah dipasang). Bentuknya ada di riwayat sesi ini saja - TIDAK
                 diarsipkan ke `docs/example/sepakat/`, sebab folder itu hanya untuk bentuk yang
                 benar-benar disepakati.
-                YANG BERLAKU SEKARANG, dua baris kelas saja: ikon slot 16px -> 20px
-                (`h-4 w-4` -> `h-5 w-5`) dan tebal huruf turun SATU tingkat di ketiga keadaan
-                (aktif semibold -> medium, dua lainnya medium -> normal). Bedanya sengaja tetap
-                satu tingkat, bukan nol: tebal huruf masih ikut menandai slot aktif bersama warna
-                & ikon padat.
-                TINGGI BILAH TIDAK BERUBAH (`h-16`) - 20px ikon + 8px jarak + 16px baris label =
-                44px di dalam 64px. Itu yang membuat KETIGA angka terikat di berkas lain tak
-                perlu disentuh (`AppLayout` `pb-[calc(5rem+...)]`, tombol Kirim
+                YANG BERLAKU SEKARANG (tiga permintaan user berturut-turut di sesi yang sama:
+                "iconnya lebih besar dan teksnya lebih slim", lalu "hurufnya juga buat lebih
+                kecil, dan untuk icon lapor buat agar lebih besar dari yang lain, tapi buat agar
+                tetap harmonis"):
+                  - ikon slot 16px -> **20px** (`h-4 w-4` -> `h-5 w-5`)
+                  - slot "Lapor" **24px** (`h-6 w-6`) - satu-satunya yang berbeda
+                  - label 12px -> **11px** (`text-xs` -> `text-[11px]`)
+                  - tebal huruf turun SATU tingkat di ketiga keadaan (aktif semibold -> medium,
+                    dua lainnya medium -> normal). Sengaja tetap satu tingkat, bukan nol: tebal
+                    huruf masih ikut menandai slot aktif bersama warna & ikon padat.
+                BARIS IKON DIPATOK 24px (`h-6`) UNTUK KELIMA SLOT dan itu yang membuat
+                pembesaran "Lapor" tetap harmonis: slot diisi `justify-center`, jadi tanpa baris
+                bertinggi tetap ikon yang 4px lebih tinggi MENDORONG labelnya turun ~2px dan satu
+                label berdiri tidak sebaris dengan empat tetangganya - tanpa galat, hanya terbaca
+                sebagai tata letak yang meleset. Ukuran per slot dikirim lewat prop OPSIONAL
+                `iconClassName` (menimpa bawaan lewat twMerge), diteruskan NavItem MAUPUN
+                PanelTrigger - satu jalur untuk kelima slot seperti `iconActive`, bukan cabang
+                khusus untuk satu slot (larangan yang sama dengan PENGECUALIAN_ATURAN #3, dan
+                jalur khusus untuk satu slot persis yang membuat #106 hidup lama).
+                KENAPA "Lapor" LEBIH BESAR ITU BUKAN #106 KEMBALI: penonjolannya lewat UKURAN,
+                bukan bidang maupun warna sendiri - warnanya tetap ikut kelas slotnya. #106
+                berakar pada latar merah PERMANEN yang membuat slot itu tampak aktif di setiap
+                halaman. Ini justru MEMBAYAR KEMBALI harga yang dicatat sendiri oleh docblock
+                berkas itu saat bentuk minimalis disepakati 2026-09-01 ("slot Lapor kehilangan
+                seluruh penonjolan tetapnya ... di aplikasi darurat harganya tidak sepele").
+                Sekaligus menjawab catatan lama bahwa petir brand terbaca lebih RAMPING dari
+                tetangganya: bentuknya memang sempit (rasio ~0,44 lawan ~1,0 milik ikon persegi),
+                jadi pada 24px lebarnya baru ~10,5px - masih lebih ramping dari ikon 20px
+                persegi, dan itulah yang membuatnya terbaca seimbang.
+                TINGGI BILAH TIDAK BERUBAH (`h-16`) - baris ikon 24px + jarak 8px + baris label
+                16px = 48px di dalam 64px. Itu yang membuat KETIGA angka terikat di berkas lain
+                tak perlu disentuh (`AppLayout` `pb-[calc(5rem+...)]`, tombol Kirim
                 `Front/Reports/Create.jsx` `bottom-[calc(4rem+...)]`, `FloatingPanel
-                bottom-[72px]`). Kalau ikon kelak melewati 24px, ketiganya WAJIB dihitung ulang
-                bersamaan - mengubah salah satu sendirian membuat konten & tombol kirim laporan
-                darurat tertutup bilah tanpa galat apa pun.
+                bottom-[72px]`). Ikon yang melewati 24px akan menuntut baris ikon dinaikkan, dan
+                ketiganya WAJIB dihitung ulang bersamaan - mengubah salah satu sendirian membuat
+                konten & tombol kirim laporan darurat tertutup bilah tanpa galat apa pun.
                 Ikon 16px itu sendiri hasil pengukuran `Menu 6.png` (21px : pitch 102px = 20,6%
-                dinormalkan ke layar 390px), jadi 20px SENGAJA menyimpang dari referensi itu atas
-                permintaan user; docblock & SKILL.md sudah diluruskan. Ketebalan garis ikon TETAP
-                1,75 - ia bukan pembeda aktif (#72).
+                dinormalkan ke layar 390px), jadi angka-angka ini SENGAJA menyimpang dari
+                referensi itu atas permintaan user; docblock & SKILL.md sudah diluruskan.
+                Ketebalan garis ikon TETAP 1,75 - ia bukan pembeda aktif (#72).
                 Test 406 passed (1562 assertions), SAMA PERSIS dengan baseline - tak ada penjaga
                 baru ditambahkan sebab ukuran & tebal huruf adalah preferensi yang memang bisa
                 disetel ulang; kesepuluh penjaga navigasi lama (MobileNavIconGlyphTest +
                 MobileNavParityTest) hijau. Pint & prettier PASS, npm run build lulus & bundel
-                `AppLayout-Ct_SFJYQ.js` dibuktikan memuat `h-5 w-5` dan NOL sisa liquid glass.
+                `AppLayout-BAdeIwOe.js` dibuktikan memuat `h-6 w-6`, `text-[11px]`, baris ikon
+                `flex h-6`, dan NOL sisa liquid glass.
                 NOL perubahan server: tanpa migrasi, route, skema, controller, sentuhan DB.
-                SISA: verifikasi visual di ponsel/APK (khususnya apakah `font-normal` masih
-                cukup terbaca di 12px pada layar terang), lalu commit ke main & deploy
-                (frontend saja).
+                SISA: verifikasi visual di ponsel/APK - khususnya apakah label 11px
+                ber-`font-normal` masih cukup terbaca di layar terang (dua penurunan sekaligus,
+                ukuran DAN tebal, jadi inilah yang paling mungkin kelewat batas), dan apakah
+                selisih 20px vs 24px sudah terbaca "menonjol tapi harmonis". Lalu commit ke main
+                & deploy (frontend saja).
                HALAMAN DETAIL INSIDEN AUTO-UPDATE PENUH (#113) + LONCENG REAL-TIME (#46).
                 SELESAI & TERDEPLOY 2026-09-06 @145b3d5a ke prod/staging/dev.
                 Laporan user: "di reports/show masih ada yang belum auto update harus refresh

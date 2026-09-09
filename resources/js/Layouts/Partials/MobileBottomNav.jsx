@@ -37,10 +37,14 @@ import { buildNavSections, flattenNavItems, resolveAbilities } from './navItems'
  *
  * Karena tak ada lagi bidang berwarna permanen, temuan #106 ("logo merah seperti aktif
  * terus") tertutup dengan sendirinya di model ini: satu-satunya yang merah adalah slot yang
- * sedang dibuka. Konsekuensi yang harus disadari: slot "Lapor" kehilangan seluruh penonjolan
- * tetapnya - ia sama rata dengan empat tujuan lain. Itu memang harga bentuk minimalis, dan
- * di aplikasi darurat harganya tidak sepele; kalau kelak dianggap terlalu mahal, sepakat 1
- * atau kapsul-dengan-tombol-tengah adalah dua jalan yang sudah terbukti jalan.
+ * sedang dibuka. Konsekuensinya waktu itu: slot "Lapor" kehilangan seluruh penonjolan tetapnya
+ * dan jadi sama rata dengan empat tujuan lain - harga yang di aplikasi darurat tidak sepele,
+ * disadari & diterima saat menyepakatinya.
+ * HARGA ITU DIBAYAR KEMBALI 2026-09-09 (permintaan user): slot "Lapor" kini berikon 24px
+ * sementara empat tetangganya 20px. Penonjolannya lewat UKURAN saja - bukan bidang, bukan warna
+ * sendiri, bukan tombol melayang - sehingga bentuk minimalisnya utuh dan #106 tidak mungkin
+ * kembali lewat pintu ini. Kalau kelak dirasa masih kurang, sepakat 1 atau
+ * kapsul-dengan-tombol-tengah adalah dua jalan yang sudah terbukti jalan.
  *
  * ISI (keputusan user 2026-08-19, TASK_31): daftar menunya TIDAK ditulis di sini. Kedua
  * popover dibangun dari `buildNavSections()` - sumber yang sama dengan sidebar desktop.
@@ -88,12 +92,17 @@ import { buildNavSections, flattenNavItems, resolveAbilities } from './navItems'
  *
  * UKURAN. Mula-mula diukur dari `Menu 6.png` (ikon 21px : pitch slot 102px = 20,6%) lalu
  * dinormalkan ke layar 390px jadi ikon 16px. Sejak 2026-09-09 (permintaan user, "buat iconnya
- * lebih besar dan teksnya lebih slim") angkanya: ikon **20px** (`h-5 w-5`), label 12px
- * (`text-xs`) ber-`font-normal`/`font-medium` (lihat `slotClass`), jarak ikon-label 8px
- * (`gap-2`), bilah 64px (`h-16`). Ikon 20px + jarak 8px + baris label 16px = 44px di dalam
- * bilah 64px, jadi TINGGI BILAH TIDAK IKUT BERUBAH - dan itu memang yang menjaga ketiga angka
- * di berkas lain (lihat di bawah) tetap sah tanpa disentuh. Kalau ikonnya kelak dinaikkan lagi
- * melewati 24px, ketiga angka itu harus dihitung ulang bersamaan.
+ * lebih besar dan teksnya lebih slim", lalu "hurufnya juga buat lebih kecil, dan untuk icon
+ * lapor buat agar lebih besar dari yang lain") angkanya: ikon **20px** (`h-5 w-5`) KECUALI slot
+ * "Lapor" yang **24px** (`h-6 w-6`), label **11px** (`text-[11px]`) ber-`font-normal`/
+ * `font-medium` (lihat `slotClass`), jarak ikon-label 8px (`gap-2`), bilah 64px (`h-16`).
+ * BARIS IKON DIPATOK 24px (`h-6`) untuk KELIMA slot - lihat `SlotContent`. Itu bukan hiasan:
+ * tanpanya ikon Lapor yang lebih tinggi akan mendorong labelnya turun sendirian dan satu label
+ * berdiri tidak sebaris dengan empat tetangganya.
+ * Baris ikon 24px + jarak 8px + baris label 16px = 48px di dalam bilah 64px, jadi TINGGI BILAH
+ * TIDAK IKUT BERUBAH - dan itu memang yang menjaga ketiga angka di berkas lain (lihat di bawah)
+ * tetap sah tanpa disentuh. Ikon yang melewati 24px akan menabrak angka-angka itu: ia menuntut
+ * baris ikon dinaikkan, dan ketiganya harus dihitung ulang bersamaan.
  * Ketebalan garis ikon TETAP 1,75 - ia bukan pembeda aktif (#72) dan tidak ikut disetel di
  * sini; yang "lebih slim" adalah TEKSnya.
  * Referensi `Menu 6.png` membedakan aktif lewat ikon PADAT vs garis, dan sejak 2026-09-06 itu
@@ -293,10 +302,25 @@ export default function MobileBottomNav({ auth }) {
 					    desktop tetap IconFlame untuk "Lapor Darurat!", jadi satu menu memakai dua
 					    ikon di dua permukaan - kalau itu tak dikehendaki, ubah `report.create` di
 					    navItems.js, jangan tambahkan paku kedua di sini. */}
+					{/* IKONNYA LEBIH BESAR DARI EMPAT TETANGGANYA - 24px lawan 20px (permintaan
+					    user 2026-09-09). Ini MENGEMBALIKAN penonjolan tetap yang hilang saat
+					    bentuk minimalis disepakati 2026-09-01; docblock berkas ini sendiri sudah
+					    mencatat kehilangan itu sebagai harga yang "di aplikasi darurat tidak
+					    sepele". Yang penting: penonjolannya lewat UKURAN, bukan lewat bidang atau
+					    warna sendiri - jadi ia TIDAK mengulang #106, yang akarnya slot ini punya
+					    latar merah permanen sehingga tampak aktif di setiap halaman. Warnanya
+					    tetap ikut kelas slotnya seperti empat lainnya.
+					    Ukuran ini juga menjawab catatan lama bahwa petir brand terbaca lebih
+					    RAMPING dari tetangganya: bentuknya memang sempit (rasio ~0,44 lawan ~1,0
+					    milik ikon persegi), jadi pada tinggi yang sama ia menutup lebih sedikit
+					    bidang. Pada 24px lebarnya baru sekitar 10,5px - masih lebih ramping dari
+					    ikon 20px persegi, dan itulah yang membuat pembesaran ini terbaca
+					    seimbang, bukan menonjol berlebihan. */}
 					<NavItem
 						href={itemByKey('report.create')?.url ?? route('front.reports.create')}
 						icon={BrandBoltIcon}
 						iconActive={BrandBoltIconFilled}
+						iconClassName="h-6 w-6"
 						label="Lapor"
 						active={isReportActive}
 						ariaLabel="Lapor Darurat"
@@ -382,7 +406,7 @@ export default function MobileBottomNav({ auth }) {
  * supaya keduanya mustahil berbeda rupa. Penanda aktif = kotak solid merah `rounded-xl`,
  * dialek yang sama dengan <NavLink/> di sidebar.
  */
-function SlotContent({ icon: Icon, iconActive: IconActive, label, active }) {
+function SlotContent({ icon: Icon, iconActive: IconActive, label, active, iconClassName }) {
 	// Slot aktif memakai kembaran PADAT bila ada. `iconActive` opsional dan luruh rapi ke glyph
 	// garis kalau tak diberikan - itu yang menyelamatkan slot tamu "Masuk", yang ikonnya datang
 	// dari navItems.js dan tak punya kembaran padat di @tabler. Ikon padat @tabler MEMBUANG prop
@@ -390,10 +414,22 @@ function SlotContent({ icon: Icon, iconActive: IconActive, label, active }) {
 	// mengirimnya ke keduanya aman dan pemanggilnya tak perlu tahu ia sedang memegang yang mana.
 	const Glyph = active && IconActive ? IconActive : Icon;
 
+	// BARIS IKON BERTINGGI TETAP (`h-6`), dan inilah yang menjaga bilah tetap harmonis begitu
+	// satu slot boleh berikon lebih besar (permintaan user 2026-09-09: "untuk icon lapor buat
+	// agar lebih besar dari yang lain, tapi buat agar tetap harmonis"). Tanpa baris ini, slot
+	// diisi `justify-center` sehingga ikon yang 4px lebih tinggi MENDORONG labelnya turun ~2px
+	// dan satu label berdiri tidak sebaris dengan empat tetangganya - tak ada galat, hanya
+	// terbaca sebagai tata letak yang meleset. Dengan tinggi baris dipatok, ikon sebesar apa pun
+	// (sampai 24px) duduk di tengah baris yang sama dan kelima label tetap satu garis.
+	// `iconClassName` OPSIONAL dan menimpa ukuran bawaan lewat twMerge - bentuk yang sama dengan
+	// `iconActive` yang juga opsional, jadi ini SATU jalur untuk kelima slot, bukan cabang khusus
+	// untuk salah satunya (larangan yang sama dengan PENGECUALIAN_ATURAN #3).
 	return (
 		<>
-			<Glyph className="h-5 w-5" stroke={1.75} />
-			<span className="max-w-full truncate text-xs leading-4">{label}</span>
+			<span className="flex h-6 items-center justify-center">
+				<Glyph className={cn('h-5 w-5', iconClassName)} stroke={1.75} />
+			</span>
+			<span className="max-w-full truncate text-[11px] leading-4">{label}</span>
 		</>
 	);
 }
@@ -426,7 +462,7 @@ const slotClass = (active, open = false) =>
 				: 'font-normal text-muted-foreground hover:text-foreground',
 	);
 
-function NavItem({ href, icon, iconActive, label, active, ariaLabel }) {
+function NavItem({ href, icon, iconActive, label, active, ariaLabel, iconClassName }) {
 	return (
 		<Link
 			href={href}
@@ -434,12 +470,18 @@ function NavItem({ href, icon, iconActive, label, active, ariaLabel }) {
 			aria-current={active ? 'page' : undefined}
 			className={slotClass(active)}
 		>
-			<SlotContent icon={icon} iconActive={iconActive} label={label} active={active} />
+			<SlotContent
+				icon={icon}
+				iconActive={iconActive}
+				label={label}
+				active={active}
+				iconClassName={iconClassName}
+			/>
 		</Link>
 	);
 }
 
-function PanelTrigger({ icon, iconActive, label, active, open, onClick }) {
+function PanelTrigger({ icon, iconActive, label, active, open, onClick, iconClassName }) {
 	return (
 		<button
 			type="button"
@@ -448,7 +490,13 @@ function PanelTrigger({ icon, iconActive, label, active, open, onClick }) {
 			aria-expanded={open}
 			className={slotClass(active, open)}
 		>
-			<SlotContent icon={icon} iconActive={iconActive} label={label} active={active} />
+			<SlotContent
+				icon={icon}
+				iconActive={iconActive}
+				label={label}
+				active={active}
+				iconClassName={iconClassName}
+			/>
 		</button>
 	);
 }
