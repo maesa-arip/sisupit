@@ -86,10 +86,19 @@ import { buildNavSections, flattenNavItems, resolveAbilities } from './navItems'
  * itu yang menyelamatkan slot tamu "Masuk" (`IconLogin2`, tanpa kembaran padat), satu-satunya
  * slot yang tidak memadat.
  *
- * UKURAN, dari `Menu 6.png` yang diukur (ikon 21px : pitch slot 102px = 20,6%) lalu
- * dinormalkan ke layar 390px: ikon 16px (`h-4 w-4`), label 12px (`text-xs`), jarak ikon-label
- * 8px (`gap-2`), bilah 64px (`h-16`). Referensi membedakan aktif lewat ikon PADAT vs garis;
- * itu sengaja TIDAK ditiru - lihat alasannya di `slotClass`.
+ * UKURAN. Mula-mula diukur dari `Menu 6.png` (ikon 21px : pitch slot 102px = 20,6%) lalu
+ * dinormalkan ke layar 390px jadi ikon 16px. Sejak 2026-09-09 (permintaan user, "buat iconnya
+ * lebih besar dan teksnya lebih slim") angkanya: ikon **20px** (`h-5 w-5`), label 12px
+ * (`text-xs`) ber-`font-normal`/`font-medium` (lihat `slotClass`), jarak ikon-label 8px
+ * (`gap-2`), bilah 64px (`h-16`). Ikon 20px + jarak 8px + baris label 16px = 44px di dalam
+ * bilah 64px, jadi TINGGI BILAH TIDAK IKUT BERUBAH - dan itu memang yang menjaga ketiga angka
+ * di berkas lain (lihat di bawah) tetap sah tanpa disentuh. Kalau ikonnya kelak dinaikkan lagi
+ * melewati 24px, ketiga angka itu harus dihitung ulang bersamaan.
+ * Ketebalan garis ikon TETAP 1,75 - ia bukan pembeda aktif (#72) dan tidak ikut disetel di
+ * sini; yang "lebih slim" adalah TEKSnya.
+ * Referensi `Menu 6.png` membedakan aktif lewat ikon PADAT vs garis, dan sejak 2026-09-06 itu
+ * MEMANG ditiru (lihat paragraf di atas) - kalimat lama di sini yang menyatakan sebaliknya
+ * sudah tidak benar sejak hari itu.
  *
  * DUA angka di luar berkas ini terikat pada tinggi bilah - mengubahnya sendirian membuat
  * konten & tombol kirim laporan darurat tertutup bilah, tanpa galat apa pun:
@@ -383,7 +392,7 @@ function SlotContent({ icon: Icon, iconActive: IconActive, label, active }) {
 
 	return (
 		<>
-			<Glyph className="h-4 w-4" stroke={1.75} />
+			<Glyph className="h-5 w-5" stroke={1.75} />
 			<span className="max-w-full truncate text-xs leading-4">{label}</span>
 		</>
 	);
@@ -405,11 +414,16 @@ const slotClass = (active, open = false) =>
 		// bisa seragam. Lihat PENGECUALIAN_ATURAN #3.
 		// Ketebalan garis tetap TIDAK dipakai sebagai pembeda: itu persis yang dicabut
 		// FINDINGS #72 karena ikon terlihat bergetar tiap pindah halaman.
+		// TEBAL HURUF DITURUNKAN SATU TINGKAT di ketiga keadaan (permintaan user 2026-09-09,
+		// "teksnya lebih slim"): semibold -> medium untuk yang aktif, medium -> normal untuk
+		// dua keadaan lain. Bedanya SATU tingkat, bukan nol - tebal huruf masih ikut menandai
+		// slot aktif bersama warna & ikon padat, dan menyamakan ketiganya akan menyisakan
+		// penanda yang lebih sedikit daripada yang sudah disepakati.
 		active
-			? 'font-semibold text-destructive'
+			? 'font-medium text-destructive'
 			: open
-				? 'bg-accent font-medium text-foreground'
-				: 'font-medium text-muted-foreground hover:text-foreground',
+				? 'bg-accent font-normal text-foreground'
+				: 'font-normal text-muted-foreground hover:text-foreground',
 	);
 
 function NavItem({ href, icon, iconActive, label, active, ariaLabel }) {

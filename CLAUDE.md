@@ -27,7 +27,49 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : HALAMAN DETAIL INSIDEN AUTO-UPDATE PENUH (#113) + LONCENG REAL-TIME (#46).
+Task aktif   : BILAH BAWAH MOBILE - IKON DIPERBESAR & TEKS DIRAMPINGKAN. SELESAI (kode)
+                2026-09-09 di branch `feat/mobile-bottom-nav-liquid-glass`. BELUM DI-COMMIT KE
+                main, BELUM DIDEPLOY, BELUM DIVERIFIKASI DI PONSEL.
+                Permintaan user mula-mula: "tambahkan liquid glass ... dan buat ada animasi
+                geser saat ke menu lainnya, jangan langsung koding di main". Itu DIKERJAKAN
+                lalu DIBATALKAN user di sesi yang sama ("kembalikan seperti sebelumnya, tidak
+                jadi pakai ini, tapi buat iconnya lebih besar dan teksnya lebih slim").
+                YANG DIBATALKAN, supaya sesi berikutnya tak mengira ia hilang karena kelalaian:
+                bilah tembus `bg-card/80` + `backdrop-blur-md`, komponen `ActiveSlotGlass` (satu
+                kotak kaca `inset-2` yang meluncur antar slot lewat translateX berkelipatan
+                `w-1/5`, tanpa pengukuran DOM), pencabutan `bg-accent` dari keadaan "panel
+                terbuka", `MobileNavActiveGlassTest` (4 test, keempatnya sudah dibuktikan MERAH),
+                entri PENGECUALIAN_ATURAN #4, dan pembaruan SKILL.md yang menyertainya. Semuanya
+                dipulihkan BYTE-EXACT (md5 `MobileBottomNav.jsx` dicocokkan dengan HEAD sebelum
+                tweak di bawah dipasang). Bentuknya ada di riwayat sesi ini saja - TIDAK
+                diarsipkan ke `docs/example/sepakat/`, sebab folder itu hanya untuk bentuk yang
+                benar-benar disepakati.
+                YANG BERLAKU SEKARANG, dua baris kelas saja: ikon slot 16px -> 20px
+                (`h-4 w-4` -> `h-5 w-5`) dan tebal huruf turun SATU tingkat di ketiga keadaan
+                (aktif semibold -> medium, dua lainnya medium -> normal). Bedanya sengaja tetap
+                satu tingkat, bukan nol: tebal huruf masih ikut menandai slot aktif bersama warna
+                & ikon padat.
+                TINGGI BILAH TIDAK BERUBAH (`h-16`) - 20px ikon + 8px jarak + 16px baris label =
+                44px di dalam 64px. Itu yang membuat KETIGA angka terikat di berkas lain tak
+                perlu disentuh (`AppLayout` `pb-[calc(5rem+...)]`, tombol Kirim
+                `Front/Reports/Create.jsx` `bottom-[calc(4rem+...)]`, `FloatingPanel
+                bottom-[72px]`). Kalau ikon kelak melewati 24px, ketiganya WAJIB dihitung ulang
+                bersamaan - mengubah salah satu sendirian membuat konten & tombol kirim laporan
+                darurat tertutup bilah tanpa galat apa pun.
+                Ikon 16px itu sendiri hasil pengukuran `Menu 6.png` (21px : pitch 102px = 20,6%
+                dinormalkan ke layar 390px), jadi 20px SENGAJA menyimpang dari referensi itu atas
+                permintaan user; docblock & SKILL.md sudah diluruskan. Ketebalan garis ikon TETAP
+                1,75 - ia bukan pembeda aktif (#72).
+                Test 406 passed (1562 assertions), SAMA PERSIS dengan baseline - tak ada penjaga
+                baru ditambahkan sebab ukuran & tebal huruf adalah preferensi yang memang bisa
+                disetel ulang; kesepuluh penjaga navigasi lama (MobileNavIconGlyphTest +
+                MobileNavParityTest) hijau. Pint & prettier PASS, npm run build lulus & bundel
+                `AppLayout-Ct_SFJYQ.js` dibuktikan memuat `h-5 w-5` dan NOL sisa liquid glass.
+                NOL perubahan server: tanpa migrasi, route, skema, controller, sentuhan DB.
+                SISA: verifikasi visual di ponsel/APK (khususnya apakah `font-normal` masih
+                cukup terbaca di 12px pada layar terang), lalu commit ke main & deploy
+                (frontend saja).
+               HALAMAN DETAIL INSIDEN AUTO-UPDATE PENUH (#113) + LONCENG REAL-TIME (#46).
                 SELESAI & TERDEPLOY 2026-09-06 @145b3d5a ke prod/staging/dev.
                 Laporan user: "di reports/show masih ada yang belum auto update harus refresh
                 manual, lihat di semua role", lalu "lonceng #46 sekalian, update laporan juga
