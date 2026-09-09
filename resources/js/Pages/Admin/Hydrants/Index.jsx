@@ -3,14 +3,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
-import {
-	capacityLabel,
-	debitLabel,
-	facilityStatusIsFaulty,
-	facilityStatusLabel,
-	MAP_TILE_URL,
-	waterPressureLabel,
-} from '@/lib/utils';
+import { capacityLabel, facilityStatusIsFaulty, facilityStatusLabel, MAP_TILE_URL } from '@/lib/utils';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
 	IconAlertTriangle,
@@ -25,6 +18,18 @@ import {
 } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import { HydrantTabs, hydrantVariant, tenantWilayah } from './variants';
+
+/**
+ * Keterangan tambahan pada kartu yang hanya dimiliki hydrant WARGA: kapasitas tampungan &
+ * banjar pengelolanya. Pada hydrant resmi keduanya undefined dan tersaring sendiri, jadi
+ * gerbangnya tetap bentuk data - bukan `if (variant === 'warga')`.
+ *
+ * Dipisah dari JSX supaya daftarnya tidak ditulis dua kali (sekali untuk memutuskan tampil,
+ * sekali untuk dirangkai); dua salinan daftar yang sama persis adalah bentuk yang paling
+ * gampang menyimpang saat kelak ada kolom ketiga.
+ */
+const metaTambahan = (hydrant) =>
+	[capacityLabel(hydrant.capacity_liter), hydrant.banjar?.name].filter(Boolean).join(' · ');
 
 export default function Index({ variant = 'resmi', counts = {}, hydrants, summary = [], filters, tenant_location }) {
 	const v = hydrantVariant(variant);
@@ -264,22 +269,53 @@ export default function Index({ variant = 'resmi', counts = {}, hydrants, summar
 													<p className="mt-0.5 truncate text-xs text-muted-foreground">
 														{hydrant.address}
 													</p>
-													<p className="mt-0.5 truncate text-[11px] text-muted-foreground">
-														{[
-															facilityStatusLabel(hydrant.status),
-															// Kolom air berbeda per jenis: hydrant resmi punya tekanan
-															// & debit, hydrant warga punya kapasitas volume. Yang tak
-															// ada pada baris ini bernilai undefined → tersaring sendiri.
-															waterPressureLabel(hydrant.water_pressure),
-															debitLabel(hydrant.debit_lpm),
-															capacityLabel(hydrant.capacity_liter),
-															// Hanya ada pada hydrant warga; pada hydrant resmi bernilai
-															// undefined dan tersaring sendiri seperti kolom air di atas.
-															hydrant.banjar?.name,
-														]
-															.filter(Boolean)
-															.join(' · ')}
-													</p>
+													{/* Status berpill seperti /hydrants (permintaan user 2026-09-09), TAPI warnanya
+															dipilih `facilityStatusIsFaulty()` dan BUKAN `status === 'Aktif'` yang dipakai
+															halaman publik itu: halaman ini juga melayani hydrant warga, yang statusnya
+															"Belum/Sudah Modifikasi", jadi perbandingan literal itu akan memerahkan SELURUH
+															hydrant warga padahal tak ada yang rusak (FINDINGS #76). Pill sengaja TIDAK
+															`whitespace-nowrap` seperti di /hydrants - label warga "Terdaftar Belum
+															Dimodifikasi" tiga kali lebih panjang dan kolom ini cuma ~1/3 layar. */}
+													<div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+														<span
+															className={`rounded border px-2 py-0.5 text-xs font-semibold ${
+																facilityStatusIsFaulty(hydrant.status)
+																	? 'border-destructive/30 bg-destructive/10 text-destructive'
+																	: 'border-info/30 bg-info/10 text-info'
+															}`}
+														>
+															{facilityStatusLabel(hydrant.status)}
+														</span>
+														{/* Kondisi air SELALU disebut selama jenisnya memang punya kolom itu, termasuk
+																saat kosong. Bentuk lama memakai `waterPressureLabel()` di dalam
+																`.filter(Boolean)`, dan helper itu memulangkan null untuk nilai kosong -
+																sehingga medannya HILANG tanpa jejak dari kartu, bukan terbaca "belum diisi".
+																Seluruh 51 hydrant di dev kosong, jadi praktis tak ada yang pernah melihat
+																medan ini ada. Digerbangi `v.showWaterPressure` (DATA di ./variants.jsx),
+																bukan `variant === 'warga'`: tabel hydrant warga memang tak punya kolomnya
+																sejak 2026-08-21, jadi di sana "belum didata" akan jadi tuduhan yang salah.
+																Katanya mengikuti label formnya sendiri ("Kondisi Air"), bukan
+																`waterPressureLabel()` yang berbunyi "Tekanan Keras" - helper itu tetap utuh
+																dan tetap dipakai /admin/pumps. */}
+														{v.showWaterPressure && (
+															<span
+																className={`text-[11px] ${hydrant.water_pressure ? 'font-medium text-foreground' : 'italic text-muted-foreground'}`}
+															>
+																{hydrant.water_pressure
+																	? `Kondisi air: ${hydrant.water_pressure}`
+																	: 'Kondisi air belum didata'}
+															</span>
+														)}
+														{/* Debit (lpm) SENGAJA tidak ditampilkan di sini (permintaan user 2026-09-09);
+																kolomnya tetap ada di form & tetap tampil di /admin/pumps. Kapasitas &
+																banjar hanya ada pada hydrant warga - pada hydrant resmi bernilai undefined
+																dan tersaring sendiri. */}
+														{metaTambahan(hydrant) && (
+															<span className="truncate text-[11px] text-muted-foreground">
+																{metaTambahan(hydrant)}
+															</span>
+														)}
+													</div>
 												</div>
 												<div
 													className="flex shrink-0 gap-1"

@@ -2,12 +2,6 @@ import HeaderTitle from '@/Components/HeaderTitle';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from '@/Components/ui/dropdown-menu';
 import { Input } from '@/Components/ui/input';
 import UseFilter from '@/hooks/UseFilter';
 import AppLayout from '@/Layouts/AppLayout';
@@ -19,7 +13,6 @@ import {
 	IconCircleCheck,
 	IconClipboardPlus,
 	IconClock,
-	IconDotsVertical,
 	IconEye,
 	IconFileSpreadsheet,
 	IconMapPin,
@@ -246,28 +239,25 @@ export default function Index(props) {
 					subtitle={props.page_settings.subtitle}
 					icon={IconClipboardPlus}
 				/>
-				{/* Export dipindah ke menu sekunder (kebab) agar tak bersaing dgn aksi triase.
-				    Hanya untuk verifikator (admin) — pemantau tak punya rute admin.reports.export. */}
+				{/* Export TAMPIL LANGSUNG sebagai tombol, bukan di balik kebab ⋮ (permintaan user
+				    2026-09-09). Dulu ia sengaja disembunyikan di menu sekunder (TASK_37 kluster C) supaya
+				    tak bersaing dengan aksi triase; peran itu kini dipegang banner merah "menunggu
+				    verifikasi" tepat di bawah, jadi tombol outline kecil di pojok tak lagi menyainginya.
+				    Bentuknya menyalin tombol kepala halaman tetangga (Admin/Pumps & Admin/Hydrants);
+				    tetap <a>, bukan <Link> Inertia, sebab ini unduhan berkas. Filter yang sedang aktif
+				    ikut terbawa supaya isi berkas sama dengan daftar yang terlihat.
+				    Hanya untuk verifikator (admin) - pemantau tak punya rute admin.reports.export. */}
 				{canExport && (
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button variant="outline" size="icon" className="h-9 w-9" aria-label="Menu lainnya">
-								<IconDotsVertical className="size-4" />
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
-							<DropdownMenuItem asChild>
-								<a
-									href={route('admin.reports.export', {
-										search: params?.search,
-										status: params?.status,
-									})}
-								>
-									<IconFileSpreadsheet className="size-4" /> Export Excel
-								</a>
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
+					<Button size="sm" variant="outline" asChild>
+						<a
+							href={route('admin.reports.export', {
+								search: params?.search,
+								status: params?.status,
+							})}
+						>
+							<IconFileSpreadsheet className="mr-1.5 h-4 w-4" /> Export Excel
+						</a>
+					</Button>
 				)}
 			</div>
 

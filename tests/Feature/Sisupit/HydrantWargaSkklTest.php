@@ -230,3 +230,43 @@ it('keeps the hydrant sidebar entry active while the citizen hydrant tab is open
     expect(file_get_contents(resource_path('js/Layouts/Partials/navItems.js')))
         ->toContain("startsWith('/admin/hydrant-warga')");
 });
+
+/**
+ * Kartu di /admin/hydrants (2026-09-09, permintaan user): status berpill seperti halaman publik
+ * /hydrants, dan kondisi air SELALU disebut.
+ *
+ * Keduanya hidup HANYA di berkas JSX, jadi penjaganya membaca sumbernya. Komentar dibuang lebih
+ * dulu - berkas itu MENJELASKAN kenapa `status === 'Aktif'` dilarang di sana, dan penjaga yang
+ * tersandung penjelasannya sendiri akan dimatikan orang berikutnya (pelajaran #108).
+ */
+$adminHydrantCard = function () {
+    $source = file_get_contents(resource_path('js/Pages/Admin/Hydrants/Index.jsx'));
+
+    return preg_replace(['#/\*.*?\*/#s', '#//[^
+]*#'], '', $source);
+};
+
+// Halaman publik /hydrants memilih warna dengan `status === 'Aktif'` dan itu benar DI SANA: ia
+// hanya menampilkan hydrant resmi, yang statusnya cuma dua. Halaman admin melayani DUA kosakata,
+// jadi menyalin perbandingan itu ke sini akan memerahkan SELURUH hydrant warga padahal tak ada
+// yang rusak - persis FINDINGS #76, yang gejalanya nol: tak ada galat, warnanya saja yang bohong.
+it('colours the admin hydrant card by fault, never by a literal Aktif comparison', function () use ($adminHydrantCard) {
+    $source = $adminHydrantCard();
+
+    expect($source)->toContain('facilityStatusIsFaulty(hydrant.status)')
+        ->and($source)->not->toContain("=== 'Aktif'")
+        ->and($source)->not->toContain("!== 'Aktif'");
+});
+
+// Kondisi air (`water_pressure`) sudah lama dirender, tapi lewat `waterPressureLabel()` di dalam
+// `.filter(Boolean)` - dan helper itu memulangkan null saat kolomnya kosong, sehingga medannya
+// HILANG dari kartu alih-alih terbaca "belum diisi". Seluruh 51 hydrant di dev kosong, jadi
+// praktis tak ada yang pernah tahu medan itu ada. Gerbangnya wajib `showWaterPressure` (DATA di
+// variants.jsx) sebab tabel hydrant warga memang tak punya kolomnya sejak 2026-08-21.
+it('always names the water condition on official hydrant cards, including when it is empty', function () use ($adminHydrantCard) {
+    $source = $adminHydrantCard();
+
+    expect($source)->toContain('Kondisi air belum didata')
+        ->and($source)->toContain('v.showWaterPressure &&')
+        ->and($source)->not->toContain("variant === 'warga'");
+});

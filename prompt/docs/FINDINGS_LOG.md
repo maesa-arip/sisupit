@@ -2781,3 +2781,77 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **Kenapa tidak dihapus di sini:** aturan emas #6, dan menghapus prop = memastikan lebih dulu
   tak ada wrapper/klien lain yang membacanya.
 - **Status:** OPEN.
+
+---
+
+### #116 — Export Excel keluar dari kebab ⋮ di Verifikasi Laporan (BUKAN temuan; keputusan user yang MEMBALIK keputusan #37 kluster C)
+
+- **Bukan bug.** Dicatat supaya sesi berikutnya yang membaca #37 kluster C ("Export Excel
+  dipindah ke menu kebab ⋮") tidak mengembalikannya ke kebab sebagai "perbaikan".
+- **Permintaan user 2026-09-09:** "di admin/reports tombol export excel langsung munculkan
+  tanpa perlu klik titik tiga". Ditanyakan lebih dulu apakah kebabnya dibuang seluruhnya;
+  **user menjawab "ya lanjutkan, buang kebabnya"**.
+- **Kenapa alasan lamanya sudah gugur.** Kebab itu lahir 2026-07-11 supaya Export tidak
+  bersaing dengan aksi triase. Yang memegang peran "aksi dominan" di kepala halaman itu kini
+  bukan lagi tombol mana pun melainkan **spanduk merah "X laporan menunggu verifikasi"** yang
+  duduk tepat di bawahnya (lahir di kluster C yang sama) — jadi tombol outline `size="sm"` di
+  pojok kanan tidak lagi menyainginya.
+- **Yang ikut mati & dibuang:** kebab itu isinya **cuma satu item**, sehingga seluruh
+  `DropdownMenu` beserta impor `IconDotsVertical` dan impor `@/Components/ui/dropdown-menu`
+  jadi kode mati di berkas itu. Ini juga menghapus satu-satunya pemakaian `DropdownMenu` di
+  `Pages/Admin/Reports/` (kluster C dulu mencatatnya sebagai pemakaian DropdownMenu pertama di
+  `Pages/`); komponennya sendiri tetap dipakai halaman lain, jangan ikut dihapus.
+- **Yang TIDAK berubah:** gerbang `canExport` (pemantau/pejabat/relawan tetap tak melihat
+  tombolnya — mereka memang tak punya rute `admin.reports.export`), parameter `search` &
+  `status` yang ikut terbawa supaya isi berkas sama dengan daftar yang terlihat, dan seluruh
+  sisi server (`ReportsExport`, route, otorisasi) — nol sentuhan.
+- **Bentuknya menyalin tetangga**, bukan bentuk baru: `<Button size="sm" variant="outline"
+  asChild>` + ikon `mr-1.5 h-4 w-4`, pola kepala halaman `Admin/Pumps/Index.jsx` &
+  `Admin/Hydrants/Index.jsx`. Tetap `<a href>` dan **bukan** `<Link>` Inertia — ini unduhan
+  berkas, bukan kunjungan halaman.
+- **Berkas:** `resources/js/Pages/Admin/Reports/Index.jsx`; alasannya juga tertulis sebagai
+  komentar di atas bloknya. `prompt/docs/CHECKLIST_UJI_MANUAL_PER_PERAN.md` §7.2 ikut
+  dibetulkan (barisnya dulu berbunyi "Menu kebab → Export Excel terunduh").
+- **Status:** SELESAI (kode) 2026-09-09; belum di-commit & belum dideploy.
+
+---
+
+### #117 — Kondisi air hydrant tak pernah terlihat di daftar admin: helper memulangkan null, `.filter(Boolean)` membuangnya (FIXED)
+
+- **Prioritas:** P2 - medan survei yang tak pernah diisi karena tak pernah terlihat.
+- **Ditemukan:** 2026-09-09, dari permintaan user "pada admin/hydrants munculkan kondisi air".
+- **Gejalanya menyesatkan:** kodenya SUDAH merender kondisi air (`Admin/Hydrants/Index.jsx`
+  memanggil `waterPressureLabel(hydrant.water_pressure)`), jadi pembacaan sepintas akan
+  menyimpulkan "sudah ada, tak ada yang perlu dikerjakan". Yang sebenarnya terjadi: helper itu
+  memulangkan **null** untuk kolom kosong, dan nilainya dirangkai lewat
+  `[...].filter(Boolean).join(' · ')` - sehingga medan yang kosong **lenyap tanpa jejak** dari
+  kartu alih-alih terbaca "belum diisi".
+- **Skalanya:** di DB dev **0 dari 51** hydrant mengisi `water_pressure` (dan 0 mengisi
+  `debit_lpm`). Jadi praktis TIDAK ADA satu pun kartu yang pernah menampilkannya sejak kolom itu
+  lahir di TASK_30 - dan karena tak terlihat, tak ada yang tahu ada yang harus diisi. Bentuk yang
+  sama dengan #94/#90: yang berbahaya bukan datanya kosong, melainkan **layar yang tidak
+  mengatakan bahwa ia kosong**.
+- **Fix:** kartu selalu menyebut kondisi air selama jenis hydrantnya memang punya kolom itu;
+  yang kosong berbunyi *"Kondisi air belum didata"* (italic, redup). Digerbangi
+  `v.showWaterPressure` - DATA di `Admin/Hydrants/variants.jsx` - dan **bukan**
+  `variant === 'warga'`: tabel `hydrant_wargas` tak punya kolom itu sejak TASK_33, jadi di sana
+  "belum didata" adalah tuduhan yang salah, bukan pengingat.
+- **Kosakatanya mengikuti FORM** ("Kondisi Air"), bukan `waterPressureLabel()` yang berbunyi
+  "Tekanan Keras". Helpernya TIDAK diubah dan tetap dipakai `/admin/pumps` - mengubahnya akan
+  menyeret halaman SKKL yang tidak diminta.
+- **Ikutan, permintaan user pada percakapan yang sama:** status di kartu kini **pill berwarna**
+  meniru `/hydrants`, dan **debit (lpm) tidak lagi ditampilkan** di kartu ini (kolomnya tetap ada
+  di form dan tetap tampil di `/admin/pumps`).
+- **JEBAKAN YANG DIHINDARI, dan ini bagian terpentingnya:** pill di `/hydrants` memilih warnanya
+  dengan `hydrant.status === 'Aktif'`. Itu benar DI SANA - halaman publik hanya menampilkan
+  hydrant resmi, yang statusnya cuma dua. Halaman admin melayani **dua kosakata status**, jadi
+  menyalin perbandingan itu akan memerahkan **seluruh hydrant warga** ("Terdaftar Belum/Sudah
+  Dimodifikasi") padahal tak satu pun rusak - persis **#76**, yang gejalanya nol: tak ada galat,
+  warnanya saja yang berbohong. Karena itu warnanya dipilih `facilityStatusIsFaulty()`.
+- **Penjaga:** dua test di `HydrantWargaSkklTest` yang membaca berkas JSX (komentarnya dibuang
+  lebih dulu - berkas itu MENJELASKAN larangan `status === 'Aktif'`, dan penjaga yang tersandung
+  penjelasannya sendiri akan dimatikan orang berikutnya, pelajaran #108). Yang menjaga kondisi air
+  dibuktikan **MERAH** terhadap berkas sebelum perubahan; yang menjaga hukum warna hijau sejak
+  awal (= penjaga regresi, bukan bukti bug) sehingga dibuktikan merah lewat **sabotase**. Berkas
+  dipulihkan byte-exact, md5 dicocokkan.
+- **Status:** FIXED 2026-09-09 (kode); belum di-commit & belum dideploy.

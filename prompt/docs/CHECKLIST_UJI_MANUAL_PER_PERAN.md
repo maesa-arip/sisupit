@@ -385,7 +385,8 @@ Admin melihat semua yang dilihat Pusat Komando, **plus** wewenang verifikasi & s
 - [ ] Memilih chip **Ditolak** benar-benar memuat laporan berstatus ditolak, berlencana **"Ditolak"** & berpin sesuai — bukan mengaku "Laporan Terverifikasi"
 - [ ] Pencarian & paginasi jalan
 - [ ] Peta sebaran + legenda cocok dengan daftar
-- [ ] Menu kebab → **Export Excel** terunduh
+- [ ] Tombol **Export Excel** tampil langsung di kepala halaman (tanpa kebab ⋮) & berkasnya terunduh
+- [ ] Export mengikuti filter yang sedang aktif (pilih chip **Ditolak** lalu export → isinya hanya laporan ditolak)
 - [ ] Berkas Excel: 35 kolom, label status memakai kosakata kanonik, alasan penolakan ikut, identitas/KTP korban **tidak** ikut
 
 ### 7.3 Verifikasi & broadcast satu laporan
@@ -434,7 +435,11 @@ Admin melihat semua yang dilihat Pusat Komando, **plus** wewenang verifikasi & s
 - [ ] Menggeser pin ke desa lain → pilihan banjar ikut dikosongkan (tidak tersimpan lintas desa)
 - [ ] Banjar tampil di daftar hydrant warga
 - [ ] Edit & hapus berhasil
-- [ ] Status berbunyi **"Berfungsi / Tidak Berfungsi"**
+- [ ] Status berbunyi **"Berfungsi / Tidak Berfungsi"**, dan di kartu daftar ia berbentuk **pill berwarna** seperti di `/hydrants` (biru berfungsi, merah tidak berfungsi)
+- [ ] Tab **Hydrant Warga**: pill status TIDAK merah untuk "Terdaftar Belum/Sudah Dimodifikasi" - merah hanya untuk yang benar-benar tidak berfungsi (FINDINGS #76)
+- [ ] Tab **Hydrant**: tiap kartu menyebut **Kondisi air**; yang belum diisi berbunyi *"Kondisi air belum didata"* (bukan hilang tanpa jejak)
+- [ ] Tab **Hydrant Warga**: kartu TIDAK menyebut kondisi air sama sekali (tabelnya memang tak punya kolom itu)
+- [ ] Debit (**lpm**) tidak lagi tampil di kartu `/admin/hydrants`; kolomnya tetap bisa diisi di form dan tetap tampil di `/admin/pumps`
 
 ### 7.7 Manajemen SKKL — `/admin/pumps`
 
