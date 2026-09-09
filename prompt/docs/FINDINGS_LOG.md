@@ -2917,8 +2917,10 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
   md5 dicocokkan). Yang pertama tidak mengadu konstanta dengan konstanta melainkan **menarik
   kedua angka lewat regex dari dua berkas berbeda lalu mengadunya** - pelajaran #79, test yang
   cuma mengulang angka yang sama di dua tempat tidak menjaga apa pun.
-- **Status:** FIXED (kode) 2026-09-09. BELUM di-commit & BELUM dideploy. Frontend saja: tanpa
-  migrasi, route, skema, controller, atau sentuhan DB.
+- **Status:** FIXED, TERDEPLOY 2026-09-09 @d1c8cf8e ke prod/staging/dev. Frontend saja: tanpa
+  migrasi, route, skema, controller, atau sentuhan DB. Bundel live keempat dashboard
+  diperiksa memuat NOL `-mx-4` dan NOL `sticky` - bukti kedua pencabutan putaran ketiga
+  benar-benar sampai ke produksi, bukan cuma nama berkasnya yang berganti.
 - **SISA:** verifikasi visual di ponsel/APK untuk keempat peran - khususnya apakah baris daftar
   yang memuat StatusBadge + pil aksi + tanda panah masih lega di layar 360px, dan apakah petak
   statistik 2 kolom terbaca saat angkanya tiga digit.
@@ -3074,4 +3076,5 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   penjaga yang cuma mencari substring, dan itu kelemahan yang sama yang membuat temuan ini
   hidup lama. Dibuktikan MERAH lewat sabotase yang benar (`scrollbar-width: auto`); berkas
   dipulihkan byte-exact, md5 dicocokkan.
-- **Status:** FIXED 2026-09-09 (kode). BELUM di-commit & BELUM dideploy.
+- **Status:** FIXED, TERDEPLOY 2026-09-09 @d1c8cf8e. CSS live `app-CaSe-7cE.css` diperiksa
+  memuat `.no-scrollbar` di ketiga environment.

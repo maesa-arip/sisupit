@@ -27,9 +27,8 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : KEEMPAT DASHBOARD DIROMBAK JADI LAYAR APLIKASI DI PONSEL (#118). SELESAI
-                (kode) 2026-09-09 di branch `feat/mobile-bottom-nav`. BELUM DI-COMMIT & BELUM
-                DIDEPLOY.
+Task aktif   : KEEMPAT DASHBOARD DIROMBAK JADI LAYAR APLIKASI DI PONSEL (#118) + #120.
+                SELESAI & TERDEPLOY 2026-09-09 @d1c8cf8e ke prod/staging/dev.
                 Laporan user: "perbaiki tampilan dashboardnya, sekarang versi mobile masih
                 seperti versi desktop hanya dilayar kecil saja tidak seperti tampilan aplikasi
                 native mobile".
@@ -225,6 +224,34 @@ Task aktif   : KEEMPAT DASHBOARD DIROMBAK JADI LAYAR APLIKASI DI PONSEL (#118). 
                 perubahan RUPA, alasan teknis yang rapi bukan bukti apa pun sampai user melihatnya
                 di layar - sodorkan bentuknya lebih dulu, dan tahan diri dari mengunci alasannya
                 di komentar sebelum bentuk itu benar-benar diterima.
+                DEPLOY 2026-09-09 @d1c8cf8e, ff dari 92cfd9d0, urutan dev -> staging -> prod.
+                DUA commit: 90632ede kode (12 berkas, +1383/-660) + d1c8cf8e aset build (175
+                berkas). Keempat ref didorong ke commit yang sama: main/staging/dev +
+                feat/mobile-bottom-nav.
+                DEPLOY PALING SEDERHANA: `git diff --stat 92cfd9d0..d1c8cf8e` atas
+                database/migrations/, routes/, composer.json, composer.lock, config/, bootstrap/
+                KOSONG - jadi TANPA migrasi, TANPA cadangan DB (nol sentuhan DB), TANPA composer
+                install, TANPA rebuild route/config cache, TANPA restart Reverb; cukup
+                `git pull` + `chown`. `opcache.validate_timestamps` = On di server (DIPERIKSA,
+                bukan diasumsikan), jadi php-fpm juga tak perlu di-reload. 0 migrasi pending di
+                ketiga env sebelum & sesudah.
+                CATATAN: `bootstrap/ssr` TIDAK ikut ter-commit - ia di-gitignore, sama seperti
+                commit aset build sebelumnya. Yang ter-track hanya `public/build`, dan itulah
+                yang dibaca produksi (deploy tak menjalankan build di server).
+                VERIFIKASI, dan yang diperiksa PERILAKUNYA di bundel yang benar-benar disajikan -
+                bukan cuma nama berkasnya: keempat bundel dashboard BARU 200 & keempat bundel
+                LAMA 404 di ketiga domain (Dashboard-NEjJwQNx/gIjySeCC/Crq3MYyD/4B4XuNjq.js vs
+                DyL87BQp/qGo_4pd4/DYpT7-dr/r_9o8Eqz.js); CSS live app-CaSe-7cE.css memuat
+                `.no-scrollbar` (bukti #120 mendarat); keempat bundel dashboard prod memuat NOL
+                `-mx-4` dan NOL `sticky` (bukti kedua pencabutan putaran ketiga benar-benar
+                sampai); bundel admin memuat "Selesai Bulan Ini" (kartu keempat).
+                Ketiga domain / & /hydrants 200, prod /pumps 200, POST /broadcasting/auth 403;
+                nginx/php8.2-fpm/reverb/reverb-staging/reverb-dev active; 0 berkas root-owned
+                pasca-chown di ketiga env.
+                DATA PROD UTUH: 89 users / 38 reports / 51 hydrants / 6 pompas / 326 banjars -
+                SAMA PERSIS pra-pull & pasca-pull (deploy ini nol sentuhan DB).
+                LOG: 0 baris ERROR bertanggal 2026-09-09 di ketiga env. ERROR terakhir prod tetap
+                2026-09-06 04:06 = gotcha psysh sesi sebelumnya, bukan dari deploy ini.
                 SISA: verifikasi visual di ponsel/APK untuk KEEMPAT peran - khususnya apakah
                 baris daftar yang memuat StatusBadge + pil aksi + tanda panah masih lega di
                 layar 360px, dan apakah petak statistik 2 kolom terbaca saat angkanya tiga
