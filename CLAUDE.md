@@ -27,9 +27,91 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : BILAH BAWAH MOBILE - IKON DIPERBESAR & TEKS DIRAMPINGKAN. SELESAI (kode)
-                2026-09-09 di branch `feat/mobile-bottom-nav`. BELUM DI-COMMIT KE
-                main, BELUM DIDEPLOY, BELUM DIVERIFIKASI DI PONSEL.
+Task aktif   : DUA PERBAIKAN LAYAR ADMIN - EXPORT EXCEL KELUAR DARI KEBAB (#116) & KARTU
+                HYDRANT MENYEBUT KONDISI AIR (#117). SELESAI & TERDEPLOY 2026-09-09 @c6b3483c
+                ke prod/staging/dev.
+                (A) #116, permintaan user: "di admin/reports tombol export excel langsung
+                munculkan tanpa perlu klik titik tiga". MEMBALIK keputusan #37 kluster C
+                ("Export dipindah ke menu kebab agar tak bersaing dgn aksi triase"), dan
+                pembalikannya sah karena alasan lamanya sudah GUGUR: peran "aksi dominan" di
+                kepala halaman itu kini dipegang SPANDUK MERAH "X laporan menunggu verifikasi"
+                yang lahir di kluster C yang sama dan duduk tepat di bawahnya - tombol outline
+                kecil di pojok kanan tidak menyainginya. Kebab itu isinya CUMA SATU item, jadi
+                seluruh DropdownMenu + impor IconDotsVertical + impor ui/dropdown-menu jadi
+                kode mati dan ikut dibuang; ini sekaligus menghapus satu-satunya pemakaian
+                DropdownMenu di Pages/Admin/Reports/. Gerbang canExport, parameter
+                search/status, dan sisi server NOL tersentuh.
+                (B) #117, permintaan user: "pada admin/hydrants munculkan kondisi air, dan
+                untuk teks berfungsi buat seperti pada /hydrants".
+                YANG MENENTUKAN BENTUKNYA, dan gampang salah dibaca: kondisi air SUDAH
+                dirender sejak TASK_30 - waterPressureLabel(hydrant.water_pressure) memang ada
+                di berkas itu. Yang membuatnya tak pernah terlihat: helper itu memulangkan
+                NULL untuk kolom kosong, lalu .filter(Boolean).join(' . ') membuangnya -
+                sehingga medannya LENYAP TANPA JEJAK alih-alih terbaca "belum diisi". Di DB
+                dev 0 DARI 51 hydrant mengisinya (0 juga untuk debit_lpm), jadi praktis tak
+                ada satu pun kartu yang pernah menampilkannya sejak kolomnya lahir - dan
+                karena tak terlihat, tak ada yang tahu ada yang harus diisi. Bentuk yang sama
+                dengan #94/#90: yang berbahaya bukan datanya kosong, melainkan LAYAR YANG
+                TIDAK MENGATAKAN BAHWA IA KOSONG.
+                Kini kartu selalu menyebutnya; yang kosong berbunyi "Kondisi air belum
+                didata". Digerbangi v.showWaterPressure (DATA di variants.jsx) dan BUKAN
+                variant === 'warga' - hydrant_wargas memang tak punya kolom itu sejak TASK_33,
+                jadi di tab warga "belum didata" akan jadi tuduhan yang salah.
+                Kosakatanya mengikuti LABEL FORMNYA SENDIRI ("Kondisi Air"), bukan
+                waterPressureLabel() yang berbunyi "Tekanan Keras"; helpernya TIDAK diubah dan
+                tetap dipakai /admin/pumps.
+                IKUTAN atas permintaan user di percakapan yang sama: status jadi PILL BERWARNA
+                meniru /hydrants, dan DEBIT (lpm) TIDAK LAGI DITAMPILKAN di kartu ini (kolomnya
+                tetap ada di form & tetap tampil di /admin/pumps). Kapasitas (liter) & banjar
+                TETAP - "500 lpm" yang user minta hilang itu debit hydrant resmi, sedangkan
+                kapasitas adalah medan wajib yang menopang rekap air desa.
+                JEBAKAN YANG DIHINDARI, bagian terpenting: pill di /hydrants memilih warnanya
+                dengan status === 'Aktif'. Itu BENAR DI SANA - halaman publik hanya menampilkan
+                hydrant resmi, yang statusnya cuma dua. Halaman admin melayani DUA kosakata
+                status, jadi menyalin perbandingan itu akan MEMERAHKAN SELURUH hydrant warga
+                ("Terdaftar Belum/Sudah Dimodifikasi") padahal tak satu pun rusak - persis #76,
+                yang gejalanya nol: tak ada galat, warnanya saja yang berbohong. Warnanya
+                karena itu dipilih facilityStatusIsFaulty().
+                Penjaga: DUA test JSX baru di HydrantWargaSkklTest (komentar dibuang lebih
+                dulu - berkasnya sendiri MENJELASKAN larangan status === 'Aktif', dan penjaga
+                yang tersandung penjelasannya sendiri akan dimatikan orang berikutnya,
+                pelajaran #108). Yang menjaga kondisi air dibuktikan MERAH terhadap berkas
+                sebelum perubahan; yang menjaga hukum warna hijau sejak awal (= penjaga
+                regresi, bukan bukti bug) sehingga dibuktikan merah lewat SABOTASE. Berkas
+                dipulihkan byte-exact, md5 dicocokkan.
+                Test 406 -> 408 passed (1568 assertions), Pint PASS (302 berkas), prettier
+                PASS, npm run build lulus. TANPA migrasi, route, skema, otorisasi, sentuhan DB.
+                DEPLOY 2026-09-09 @c6b3483c, ff dari 9205bad9, urutan dev -> staging -> prod.
+                DUA commit: 38064674 kode + c6b3483c aset build; ketiga branch didorong ke
+                commit yang sama. IKUT NAIK di rentang yang sama: ketiga commit BILAH BAWAH
+                MOBILE di bawah (0f39ebdc, 297f1d1a, 01268a41) - user memilih itu setelah
+                disodori pilihan "hanya dua perbaikan ini" vs "semuanya", BERIKUT catatan
+                bahwa bilah bawah itu belum pernah diuji di ponsel.
+                DEPLOY PALING SEDERHANA: diff 9205bad9..c6b3483c atas database/migrations/,
+                routes/, composer.json, composer.lock, config/, bootstrap/ KOSONG - jadi TANPA
+                migrasi, TANPA cadangan DB (nol sentuhan DB), TANPA composer install, TANPA
+                rebuild route cache, TANPA restart Reverb; cukup `git pull` + `chown`.
+                0 migrasi pending di ketiga env sebelum & sesudah.
+                VERIFIKASI: bundel LIVE Index-DcTEab9c.js memuat "Kondisi air belum didata"
+                dan NOL " lpm"; bundel LIVE Index-CMr-H1eK.js memuat "Export Excel" dan NOL
+                aria-label "Menu lainnya" milik kebab - jadi yang diperiksa PERILAKUNYA di
+                bundel yang benar-benar disajikan, bukan cuma nama berkasnya. Bundel LAMA
+                Index-DULbVLhL.js & Index-BtC8qzQk.js 404 di prod; ketiga domain / & /hydrants
+                200; POST /broadcasting/auth 403; nginx/php8.2-fpm/reverb/reverb-staging/
+                reverb-dev active; 0 berkas root-owned pasca-chown.
+                DATA PROD UTUH: 89 users / 38 reports / 51 hydrants / 6 pompas / 326 banjars /
+                1 berita acara - SAMA PERSIS pra-pull & pasca-pull.
+                LOG: 0 baris ERROR bertanggal 2026-09-09 di ketiga env (47 baris prod hari itu
+                semuanya production.INFO). ERROR terakhir prod tetap 2026-09-06 04:06 = gotcha
+                psysh sesi sebelumnya; staging/dev tetap 2026-09-02 06:01 = queue worker lama.
+                SISA: verifikasi visual di browser - tombol Export di kanan judul
+                /admin/reports, dan di /admin/hydrants pill status + "Kondisi air belum didata"
+                di tab Hydrant serta TIDAK adanya baris kondisi air di tab Hydrant Warga.
+               BILAH BAWAH MOBILE - IKON DIPERBESAR & TEKS DIRAMPINGKAN. SELESAI (kode)
+                2026-09-09 di branch `feat/mobile-bottom-nav`, TERDEPLOY 2026-09-09 @c6b3483c
+                ke prod/staging/dev (ikut naik bersama #116/#117 atas keputusan user).
+                MASIH BELUM DIVERIFIKASI DI PONSEL - itu sisa terpenting dari entri ini, dan
+                kini ia sudah hidup di produksi.
                 Permintaan user mula-mula: "tambahkan liquid glass ... dan buat ada animasi
                 geser saat ke menu lainnya, jangan langsung koding di main". Itu DIKERJAKAN
                 lalu DIBATALKAN user di sesi yang sama ("kembalikan seperti sebelumnya, tidak
@@ -94,8 +176,9 @@ Task aktif   : BILAH BAWAH MOBILE - IKON DIPERBESAR & TEKS DIRAMPINGKAN. SELESAI
                 SISA: verifikasi visual di ponsel/APK - khususnya apakah label 11px
                 ber-`font-normal` masih cukup terbaca di layar terang (dua penurunan sekaligus,
                 ukuran DAN tebal, jadi inilah yang paling mungkin kelewat batas), dan apakah
-                selisih 20px vs 24px sudah terbaca "menonjol tapi harmonis". Lalu commit ke main
-                & deploy (frontend saja).
+                selisih 20px vs 24px sudah terbaca "menonjol tapi harmonis". Commit & deploy
+                SUDAH dilakukan 2026-09-09 (@c6b3483c) - jadi verifikasi ponsel itu kini
+                dilakukan LANGSUNG DI PRODUKSI, bukan sebelum rilis.
                HALAMAN DETAIL INSIDEN AUTO-UPDATE PENUH (#113) + LONCENG REAL-TIME (#46).
                 SELESAI & TERDEPLOY 2026-09-06 @145b3d5a ke prod/staging/dev.
                 Laporan user: "di reports/show masih ada yang belum auto update harus refresh

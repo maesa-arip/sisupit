@@ -2812,7 +2812,8 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **Berkas:** `resources/js/Pages/Admin/Reports/Index.jsx`; alasannya juga tertulis sebagai
   komentar di atas bloknya. `prompt/docs/CHECKLIST_UJI_MANUAL_PER_PERAN.md` §7.2 ikut
   dibetulkan (barisnya dulu berbunyi "Menu kebab → Export Excel terunduh").
-- **Status:** SELESAI (kode) 2026-09-09; belum di-commit & belum dideploy.
+- **Status:** SELESAI, TERDEPLOY 2026-09-09 @c6b3483c ke prod/staging/dev (ff dari 9205bad9,
+  urutan dev -> staging -> prod; tanpa migrasi & nol sentuhan DB).
 
 ---
 
@@ -2854,4 +2855,5 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
   dibuktikan **MERAH** terhadap berkas sebelum perubahan; yang menjaga hukum warna hijau sejak
   awal (= penjaga regresi, bukan bukti bug) sehingga dibuktikan merah lewat **sabotase**. Berkas
   dipulihkan byte-exact, md5 dicocokkan.
-- **Status:** FIXED 2026-09-09 (kode); belum di-commit & belum dideploy.
+- **Status:** FIXED, TERDEPLOY 2026-09-09 @c6b3483c ke prod/staging/dev. Bundel live
+  `Index-DcTEab9c.js` diperiksa memuat "Kondisi air belum didata" dan NOL " lpm".
