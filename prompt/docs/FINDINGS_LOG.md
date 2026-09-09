@@ -2857,3 +2857,221 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
   dipulihkan byte-exact, md5 dicocokkan.
 - **Status:** FIXED, TERDEPLOY 2026-09-09 @c6b3483c ke prod/staging/dev. Bundel live
   `Index-DcTEab9c.js` diperiksa memuat "Kondisi air belum didata" dan NOL " lpm".
+
+### #118 — Keempat dashboard adalah halaman desktop yang dikecilkan, bukan layar aplikasi (FIXED)
+
+- **Prioritas:** P2 - rupa, bukan kebenaran data. Tapi ia mengenai layar PERTAMA yang dilihat
+  setiap peran, di perangkat yang paling banyak dipakai (APK WebView).
+- **Ditemukan:** 2026-09-09, laporan user: *"perbaiki tampilan dashboardnya, sekarang versi
+  mobile masih seperti versi desktop hanya dilayar kecil saja tidak seperti tampilan aplikasi
+  native mobile"*.
+- **Akarnya BUKAN satu halaman melainkan satu KEBIASAAN yang terulang empat kali.** Ada EMPAT
+  dashboard - `Pages/Dashboard.jsx` (warga/relawan), `Pages/Admin/Dashboard.jsx` (admin &
+  pejabat), `Pages/Petugas/Dashboard.jsx`, `Pages/Opd/Dashboard.jsx` - dan keempatnya membungkus
+  daftarnya dengan **kartu berbingkai**. Di ponsel bingkai itu duduk DI DALAM padding halaman
+  `p-4` milik `AppLayout`, menghasilkan bingkai-di-dalam-bingkai; aplikasi native menempelkan
+  daftarnya ke tepi layar dan memisahkan barisnya dengan garis rambut. Karena kebiasaannya sama
+  di empat berkas, memperbaiki satu per satu akan melahirkan empat dialek.
+- **Yang paling mahal, di `Admin/Dashboard.jsx`:** kepala halaman berupa KARTU berbingkai
+  (`rounded-2xl border p-5`) berisi `h1 text-2xl` + badge + tombol selebar layar - blok itu
+  sendiri memakan sepertiga layar ponsel sebelum ada satu data pun; lalu tiga StatCard
+  `grid-cols-1` ber-`p-5`, angka `text-3xl`, kotak ikon `p-3.5 rounded-2xl` menumpuk vertikal,
+  sehingga **daftar insiden baru terlihat setelah menggulir melewati seluruh statistik**.
+- **Ikutan yang ikut ketahuan & ikut dibetulkan:** baris laporan di `Admin/Dashboard.jsx`
+  menaruh `<Link>` DI DALAM `<Link>` (jangkar bersarang, HTML tak sah) demi membuat seluruh
+  barisnya bisa diketuk; `Pages/Dashboard.jsx` & `Pages/Petugas/Dashboard.jsx` membungkus diri
+  dengan `mx-auto max-w-7xl` padahal `AppLayout` sudah memberi max-width DAN padding (container
+  bertumpuk, gema bentuk yang sama di `InfoShell` yang dibetulkan TASK_41); dan baris daftar
+  memakai `border-t` DI DALAM satu baris untuk memisahkan status dari isinya, sehingga di ponsel
+  **satu insiden terbaca sebagai dua entri**.
+- **Fix:** satu primitif bersama `resources/js/Components/AppSection.jsx` (`AppGreeting`,
+  `AppSection`, `AppList`, `AppListRow`, `AppEmpty`) yang dipakai KEEMPAT dashboard. Daftar
+  menempel tepi layar di ponsel (`-mx-4`) dan kembali jadi kartu berbingkai mulai `md`; baris
+  ber-`min-h-[64px]` + `active:` (di WebView tak ada kursor yang bisa hover, jadi tanpa keadaan
+  aktif sebuah ketukan terasa tidak tercatat); statistik admin jadi petak 2 kolom. **Desktop nol
+  berubah** - seluruhnya lewat breakpoint `md`, tidak ada pohon render kedua.
+- **Kenapa satu primitif, bukan empat perbaikan:** dua daftar untuk satu konsep persis yang
+  melahirkan **#71/#53** (sembilan menu desktop hilang di ponsel selama enam hari tanpa satu pun
+  gejala). Empat salinan chrome daftar akan menyimpang dengan cara yang sama.
+- **Keputusan user yang membentuknya** (disodori lebih dulu berikut harganya): bentuk *full-bleed
+  ala app* (bukan sekadar kartu diringkas); statistik *petak 2 kolom* dan **BUKAN gulir mendatar**
+  - di aplikasi darurat angka "Darurat Aktif" tak boleh bisa tersembunyi di luar layar; dan footer
+  legal *diringkas tapi tautannya tetap ada*.
+- **YANG SENGAJA TIDAK DISEMBUNYIKAN:** footer `AppLayout` diringkas di ponsel (jarak & huruf
+  lebih kecil, tautan naik ke atas lewat `flex-col-reverse`) tapi kelima tautan legalnya TETAP.
+  Sejak seksi nav "Bantuan & Legal" dihapus 2026-08-28, footer itu **satu-satunya** jalan ke
+  S&K/Privasi/Bantuan - menyembunyikannya di ponsel akan membuat halaman-halaman itu tak
+  terjangkau sama sekali dari perangkat yang paling banyak dipakai, tanpa satu pun galat.
+- **Ajakan bertindak petugas IKUT MENGECIL, tidak dihilangkan:** pil "Tanggapi" merah adalah
+  sinyal urgensi dashboard petugas (TASK_51 poin d). Menyembunyikannya di ponsel akan mencabut
+  sinyal itu persis di perangkat yang dibawa ke lapangan, jadi ia dikecilkan (`h-7`/10px) bukan
+  disingkirkan.
+- **ANGKA BARU YANG TERIKAT DI DUA BERKAS, dan ini yang paling gampang menyimpang kelak:**
+  `-mx-4` pada `AppList` HARUS sama besar dengan padding halaman `p-4` di `AppLayout`. Mengubah
+  salah satunya sendirian membuat daftar menonjol keluar layar (halaman ikut bisa digulir
+  mendatar) atau menyisakan celah di tepi - tanpa galat, tanpa test merah, hanya tata letak yang
+  meleset. Bentuk kegagalan yang sama dengan tinggi bilah bawah yang terikat di tiga berkas.
+  Pemakaian KEDUA ada di peta taktis `Petugas/Dashboard.jsx` (berkomentar merujuk aturan ini).
+- **Penjaga:** `tests/Feature/Sisupit/DashboardMobileShellTest.php` BARU (3 test, KETIGANYA
+  dibuktikan MERAH lewat sabotase; `AppLayout.jsx` & `Opd/Dashboard.jsx` dipulihkan byte-exact,
+  md5 dicocokkan). Yang pertama tidak mengadu konstanta dengan konstanta melainkan **menarik
+  kedua angka lewat regex dari dua berkas berbeda lalu mengadunya** - pelajaran #79, test yang
+  cuma mengulang angka yang sama di dua tempat tidak menjaga apa pun.
+- **Status:** FIXED (kode) 2026-09-09. BELUM di-commit & BELUM dideploy. Frontend saja: tanpa
+  migrasi, route, skema, controller, atau sentuhan DB.
+- **SISA:** verifikasi visual di ponsel/APK untuk keempat peran - khususnya apakah baris daftar
+  yang memuat StatusBadge + pil aksi + tanda panah masih lega di layar 360px, dan apakah petak
+  statistik 2 kolom terbaca saat angkanya tiga digit.
+
+**PUTARAN KEDUA (permintaan user hari yang sama: "coba tampilan full seperti native yang kamu
+tawarkan sebelumnya").** Putaran pertama baru memenuhi satu dari tiga hal yang saya tawarkan
+sendiri di opsi "Rombak jadi layar app" - *"kepala sticky ringkas, kartu ringkasan bergulir
+mendatar, seksi tanpa chrome"* - yaitu yang terakhir. Dua sisanya dipasang di sini, dan user
+memilihnya dari tiga tingkat cakupan berikut harganya.
+
+- **KEPALA MENYUSUT.** Sapaan penuh diganti BARIS RINGKAS (`h-11`) yang menempel di bawah header
+  begitu digulir. Barisnya `fixed`, BUKAN `sticky`, dan sentinelnya `absolute`: keduanya di luar
+  aliran, jadi memunculkannya tidak menggeser satu piksel pun konten di bawahnya. Bentuk `sticky`
+  yang menyusut akan **memendekkan dirinya sendiri saat menempel dan menyentak konten di bawahnya
+  ke atas** - itu sebabnya bentuk itu tidak dipakai. Dipicu `IntersectionObserver` atas sentinel,
+  bukan listener `scroll` (tak ada pekerjaan per-frame).
+- **JUDUL SEKSI LENGKET** (`STICKY_TOP`), pita mikro berhuruf besar yang menempel persis di bawah
+  baris ringkas - daftar panjang tidak lagi kehilangan judulnya begitu digulir.
+- **TIGA ANGKA YANG WAJIB SEJALAN, dan inilah bagian yang paling gampang rusak diam-diam:**
+  `HEADER_PX` (64, tinggi header AppLayout) + `COMPACT_PX` (44, tinggi baris ringkas) =
+  `STICKY_TOP` (`top-[6.75rem]` = 108px). Kalau `STICKY_TOP` lebih kecil, judul seksi tersembunyi
+  DI BALIK baris ringkas; kalau lebih besar, ada pita latar kosong menganga di atasnya. Keduanya
+  tanpa galat. Ambang munculnya baris ringkas SENGAJA disamakan dengan tempat judul seksi
+  menempel - kalau berbeda, ada jendela puluhan piksel saat judul seksi sudah menempel sementara
+  baris ringkasnya belum ada, dan yang terlihat justru pita kosong itu.
+- **STATISTIK ADMIN JADI GULIR MENDATAR**, membalik pilihan "petak 2 kolom" di putaran pertama.
+  Yang membuat pembalikannya sah: alasan penolakan lamanya (angka "Darurat Aktif" tak boleh bisa
+  tersembunyi di luar layar) **DIBAYAR, bukan diabaikan** - kartu itu DIKUNCI `sticky left-4`
+  sehingga ia tetap terlihat betapa pun barisnya digeser. Kartu terkunci karena itu WAJIB
+  berlatar buram; kartu di belakangnya benar-benar lewat di bawahnya.
+- **KARTU KEEMPAT "Selesai Bulan Ini" dipasang.** `resolved_this_month` SUDAH dihitung
+  `DashboardController` sejak dulu tapi tak pernah ada kartu yang menampilkannya - nilai yang
+  dihitung lalu dibuang tiap kali halaman dibuka (bentuk ringan #115). Barisnya kini memang butuh
+  isi keempat, dan datanya sudah terlanjur dibayar.
+- **`BLEED` jadi KONSTANTA.** Margin negatif tadinya ditulis ulang di tiga tempat (AppList, peta
+  taktis petugas, baris statistik). Kini satu konstanta, dan dashboard mana pun DILARANG
+  menulisnya sendiri - salinan yang tersebar persis yang membuat angka terikat menyimpang tanpa
+  ketahuan. Dijaga test tersendiri yang MEMBUANG KOMENTAR lebih dulu: berkas yang menjelaskan
+  larangan ini menyebut `-mx-4` di komentarnya sendiri, dan penjaga yang tersandung penjelasannya
+  sendiri akan dimatikan orang berikutnya (pelajaran #108, terulang persis di sini).
+- **OPD PINDAH dari `HeaderTitle` ke `AppGreeting`**, dan itu BUKAN kerapian: tempat judul seksi
+  menempel sudah memperhitungkan tinggi baris ringkas, jadi satu-satunya layar yang tidak punya
+  baris itu akan menyisakan pita latar kosong setinggi 44px di atas judul seksinya yang sedang
+  menempel. `HeaderTitle` tetap hidup dan dipakai halaman lain.
+- **Tombol "Buka Insiden" di OPD dicabut**: seluruh barisnya kini satu jangkar, dan tanda panah di
+  ujung sudah menyatakan hal yang sama dengan sasaran sentuh yang jauh lebih besar.
+- **Temuan ikutan #120 (FIXED di sini):** `no-scrollbar` ternyata tidak pernah didefinisikan di
+  mana pun. Lihat entrinya di bawah.
+- **Penjaga bertambah** jadi 6 test di `DashboardMobileShellTest`. Dua di antaranya sempat LOLOS
+  dari sabotase pertama karena assertion-nya mencari SUBSTRING (`.no-scrollbar` cocok dengan
+  `.no-scrollbar-DISABLED`; `<AppGreeting` cocok dengan `<AppGreetingX`) - keduanya diperketat
+  jadi regex yang menuntut blok aturan / batas kata, lalu dibuktikan merah lewat sabotase yang
+  benar. **Sabotase yang "gagal memerahkan" bukan bukti kodenya benar, melainkan bukti penjaganya
+  longgar.**
+- Test 411 -> 414 passed. Pint PASS (303 berkas), prettier PASS, `npm run build` lulus (client +
+  SSR), dan kelas-kelas baru dibuktikan BENAR-BENAR terpancar ke CSS produksi
+  (`top-[6.75rem]`, `no-scrollbar`, `snap-start`) - konstanta string bisa saja luput dari
+  pemindaian Tailwind, dan kalau itu terjadi judul seksi diam-diam tidak akan menempel.
+
+**PUTARAN KETIGA - DUA BENTUK DICABUT ATAS KOREKSI USER (hari yang sama).** User: *"scrollnya
+menumpuk, tampilannya tidak bagus, dan jangan ada tampilan yang full kanan kiri harus tetap ada
+margin atau padding"*. Dua keputusan yang lahir dari sini MEMBALIK inti putaran pertama & kedua,
+dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu kelalaian:
+
+- **TIDAK ADA LAGI YANG MENEMPEL TEPI LAYAR.** Seluruh margin negatif (`-mx-4`) dicabut: daftar
+  kembali jadi kartu berbingkai bersudut membulat di SEMUA ukuran layar, peta taktis petugas
+  kembali bermargin, dan baris statistik tidak lagi bocor ke tepi. Konstanta `BLEED` ikut hilang
+  bersamanya. Ini membatalkan alasan teknis yang sempat ditulis panjang ("bingkai-di-dalam-bingkai",
+  "aplikasi native menempelkan daftarnya ke tepi") - alasan itu tidak salah secara teori, tapi
+  hasilnya di layar sungguhan tidak disukai, dan itu yang menentukan.
+- **TIDAK ADA LAGI PITA YANG MENEMPEL SAAT DIGULIR.** Sapaan yang menyusut jadi baris ringkas
+  `fixed` DAN judul seksi yang ikut lengket - keduanya dicabut, berikut `AppGreeting.compact`,
+  `STICKY_TOP`, `HEADER_PX`, `COMPACT_PX`, sentinel, dan `IntersectionObserver`-nya. AKARNYA:
+  header `AppLayout` sendiri SUDAH `sticky`, jadi menambahkan dua pita lengket lagi menghasilkan
+  TIGA lapis yang bertumpuk - layar termakan dan gulir terasa berlapis. **Satu pita lengket per
+  layar sudah cukup, dan pita itu milik AppLayout.**
+- **GULIR MENDATAR STATISTIK DICABUT**, kembali ke petak 2 kolom (yang memang pilihan pertama
+  user). Gulir mendatar bersarang di dalam gulir vertikal ikut menyumbang rasa "menumpuk" itu,
+  dan di layar darurat angka yang harus digeser dulu untuk terlihat adalah angka yang bisa
+  terlewat. Kartu keempat "Selesai Bulan Ini" TETAP - ia mengisi petak 2x2 dengan rapi.
+- **PELAJARAN YANG LAYAK DIINGAT:** tiga putaran dalam satu hari, dan yang dua kali dibatalkan
+  justru bagian yang paling banyak saya beri pembenaran teknis. Untuk perubahan RUPA, alasan
+  teknis yang rapi bukan bukti apa pun sampai user melihatnya di layar; sodorkan bentuknya lebih
+  dulu dan tahan diri dari mengunci alasannya di komentar sebelum ia benar-benar diterima.
+- **Penjaga berubah arah**: `DashboardMobileShellTest` kini justru MELARANG margin negatif
+  mendatar dan MELARANG `sticky`/`fixed` di kerangka dashboard - dua test yang menjaga
+  PENCABUTAN, bukan pemasangannya. Keduanya dibuktikan MERAH lewat sabotase; `AppSection.jsx`
+  dipulihkan byte-exact (md5 dicocokkan). Test di berkas itu 6 -> 5.
+- Yang TETAP dari putaran pertama: kepala halaman tanpa bingkai kartu di ponsel, label seksi
+  mikro, baris daftar `min-h-[64px]` + umpan balik `active:`, keadaan kosong seragam, `<hr>` &
+  container ganda yang sudah dicabut, footer yang diringkas, dan #120 (`no-scrollbar`).
+
+### #119 — Riwayat laporan warga membaca `report.address` mentah, padahal kartu di layar yang SAMA memakai `alamatLaporan()` (OPEN)
+
+- **Prioritas:** P2 - baris "di mana" bisa kosong untuk laporan yang sebenarnya punya alamat.
+- **Ditemukan:** 2026-09-09 saat merombak dashboard (#118). Barisnya dipindahkan APA ADANYA ke
+  `AppListRow`, **tidak** dibetulkan diam-diam (aturan emas #6).
+- **Buktinya ada di satu berkas yang sama.** `Pages/Dashboard.jsx:176` (daftar "Riwayat Laporan
+  Saya") menulis `{report.address || 'Lokasi Terdeteksi'}`, sementara `Components/ReportCard.jsx:124`
+  - kartu feed yang dirender oleh halaman yang SAMA, beberapa piksel di bawahnya - memakai
+  `alamatLaporan(report)`. Dua perlakuan untuk hal yang sama dalam satu layar.
+- **Kenapa itu keliru sejak TASK_49:** `reports.address` bukan lagi "alamat laporan" melainkan
+  **patokan yang DIKETIK warga**, dan patokan itu SAH KOSONG (kebakaran itu darurat-first).
+  Alamat hasil mesin tinggal di kolom terpisah `reports.geo_address`. CONVENTIONS menuliskannya
+  tegas: *"Untuk baris ringkas 'di mana' pakai `Report::alamatTampil()` / `alamatLaporan()`,
+  jangan `address` langsung"*.
+- **Gejalanya senyap dan menyesatkan:** laporan yang warganya tidak mengetik patokan - dan di
+  prod itu bukan kasus langka, 8 dari 22 laporan pada TASK_49 - berbunyi **"Lokasi Terdeteksi"**
+  di riwayatnya sendiri, padahal `geo_address` miliknya berisi alamat yang sesungguhnya. Jadi
+  cadangannya bukan "tidak tahu" melainkan sebuah KLAIM yang lebih miskin dari data yang ada
+  (bentuk #90/#94 lagi).
+- **Fix yang diusulkan:** ganti jadi `alamatLaporan(report)`, satu baris. Perlu diperiksa lebih
+  dulu apakah `myReports` dari `DashboardController` memang ikut mengirim `geo_address` - kalau
+  tidak, helpernya akan jatuh ke cadangan yang sama dan perbaikannya harus menyertakan kolom itu
+  di prop-nya. **Itu sebabnya ini tidak dikerjakan sekaligus: ia bisa menyentuh sisi server,**
+  sedangkan #118 nol perubahan server.
+- **Blast radius yang perlu ikut disisir:** cari pemakaian `\.address` lain di `resources/js/`
+  yang dipakai sebagai baris "di mana" - #118 hanya memindahkan satu, tidak menyensusnya.
+- **Status:** OPEN, menunggu keputusan user.
+
+### #120 — `no-scrollbar` dipakai di lima berkas tapi tidak pernah didefinisikan di mana pun (FIXED)
+
+- **Prioritas:** P3 - kosmetik, tapi bentuknya persis kelas kegagalan yang sudah dua kali
+  menagih waktu di repo ini.
+- **Ditemukan:** 2026-09-09 saat memasang baris kartu ringkasan yang digulir mendatar (#118
+  putaran kedua). Ketahuan karena saya memeriksa apakah kelas-kelas baru benar-benar
+  terpancar ke CSS produksi - bukan dari gejala.
+- **Faktanya:** `no-scrollbar` dipakai di LIMA berkas - `Layouts/Partials/Sidebar.jsx`,
+  `Layouts/Partials/MobileBottomNav.jsx` (popover), `Pages/Dashboard.jsx` (tab relawan),
+  `Pages/Monitoring/Map.jsx`, dan `Components/AppSection.jsx` - tetapi **tidak ada satu pun
+  definisinya**: bukan utility bawaan Tailwind, tidak ada di `tailwind.config.js`, tidak ada
+  plugin, tidak ada di `resources/css/app.css`. Dibuktikan dengan mencari `.no-scrollbar` di
+  bundel CSS produksi: **0 kecocokan**.
+- **Kenapa tak pernah ketahuan:** sama persis dengan `fles-wrap` (#109) - **salah/tidak-ada
+  nama kelas TIDAK PERNAH BERGALAT**. Tailwind diam, build hijau, kelasnya terbaca benar di
+  DOM, dan satu-satunya akibatnya adalah batang gulir yang tetap terlihat. Di WebView Android
+  batang gulir bersifat sementara (muncul saat digulir lalu memudar), jadi di perangkat yang
+  paling banyak dipakai gejalanya nyaris tak terasa. Itulah yang membuatnya bertahan lama.
+- **Kenapa baru sekarang penting:** baris kartu ringkasan dashboard admin kini DIGULIR
+  MENDATAR, dan batang gulir mendatar yang menetap di bawah kartu statistik adalah salah satu
+  hal yang paling cepat membocorkan bahwa sebuah layar itu halaman web, bukan aplikasi -
+  yaitu persis keluhan yang sedang dikerjakan (#118).
+- **Fix:** blok `@layer utilities` di `resources/css/app.css` (`scrollbar-width: none` +
+  `-ms-overflow-style: none` + `::-webkit-scrollbar { display: none }`).
+- **EFEK SAMPING YANG DISENGAJA & HARUS DISADARI:** definisi ini otomatis ikut berlaku untuk
+  KEEMPAT pemakai lama, jadi batang gulir di sidebar, popover bilah bawah, tab relawan, dan
+  Peta Pemantauan kini benar-benar hilang. Itu memang yang sejak awal dimaksudkan keempat
+  berkas itu - tapi tampilannya BERUBAH di empat permukaan sekaligus, bukan hanya di
+  dashboard.
+- **Penjaga:** `DashboardMobileShellTest::it actually defines the no-scrollbar utility it uses`.
+  Ia menuntut **BLOK ATURANNYA** lewat regex, bukan sekadar nama kelasnya muncul - percobaan
+  sabotase pertama (mengganti nama jadi `.no-scrollbar-DISABLED`) LOLOS dari versi awal
+  penjaga yang cuma mencari substring, dan itu kelemahan yang sama yang membuat temuan ini
+  hidup lama. Dibuktikan MERAH lewat sabotase yang benar (`scrollbar-width: auto`); berkas
+  dipulihkan byte-exact, md5 dicocokkan.
+- **Status:** FIXED 2026-09-09 (kode). BELUM di-commit & BELUM dideploy.

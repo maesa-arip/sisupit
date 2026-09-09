@@ -1,3 +1,4 @@
+import { AppEmpty, AppGreeting, AppList, AppListRow, AppSection } from '@/Components/AppSection';
 import ReportCard from '@/Components/ReportCard';
 import StatusBadge from '@/Components/StatusBadge';
 import { Badge } from '@/Components/ui/badge';
@@ -160,143 +161,111 @@ export default function Dashboard(props) {
 	};
 
 	const RenderMyHistory = () => (
-		<div className="space-y-4">
-			<h2 className="flex items-center gap-2 px-1 text-lg font-bold tracking-tight text-foreground">
-				<IconHistory className="h-5 w-5 text-muted-foreground" />
-				Riwayat Laporan Saya
-			</h2>
-			<Card className="overflow-hidden rounded-xl border border-border bg-card shadow-none">
-				<CardContent className="p-0">
-					<div className="flex flex-col divide-y divide-border">
-						{myReports && myReports.length > 0 ? (
-							myReports.map((report) => (
-								<Link
-									key={report.id}
-									href={route('reports.show', report.id)}
-									className="group flex flex-col justify-between p-4 transition-colors duration-200 hover:bg-muted sm:flex-row sm:items-center"
-								>
-									<div className="min-w-0 flex-1 pr-4">
-										<h4 className="truncate text-sm font-bold text-foreground transition-colors group-hover:text-destructive">
-											{report.title}
-										</h4>
-										<div className="mt-1 flex flex-col gap-1 text-xs font-medium text-muted-foreground sm:flex-row sm:items-center sm:gap-2.5">
-											<span className="flex items-center gap-1.5 truncate">
-												<IconMapPin className="h-3.5 w-3.5 shrink-0" />{' '}
-												<span className="truncate">
-													{report.address || 'Lokasi Terdeteksi'}
-												</span>
-											</span>
-											<span className="hidden text-muted-foreground/60 sm:inline">•</span>
-											<span className="flex shrink-0 items-center gap-1.5">
-												<IconClock className="h-3.5 w-3.5 shrink-0" />{' '}
-												{new Date(report.created_at).toLocaleDateString('id-ID', {
-													day: 'numeric',
-													month: 'short',
-													year: 'numeric',
-													hour: '2-digit',
-													minute: '2-digit',
-												})}
-											</span>
-										</div>
-									</div>
-									<div className="mt-3 flex shrink-0 items-center justify-between gap-4 sm:mt-0 sm:justify-end">
-										<StatusBadge status={report.status} />
-										<div className="flex h-8 w-8 items-center justify-center rounded-lg border border-transparent bg-transparent shadow-none transition-colors group-hover:border-border group-hover:bg-card">
-											<IconChevronRight className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-destructive" />
-										</div>
-									</div>
-								</Link>
-							))
-						) : (
-							<div className="flex flex-col items-center justify-center bg-muted/50 px-4 py-10 text-center">
-								<div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-none">
-									<IconHistory className="h-6 w-6" stroke={1.5} />
-								</div>
-								<h3 className="text-sm font-bold text-foreground">Belum ada riwayat</h3>
-								<p className="mt-1 max-w-[250px] text-xs font-medium text-muted-foreground">
-									Laporan kejadian darurat yang Anda buat akan muncul di sini.
-								</p>
-							</div>
-						)}
-					</div>
-				</CardContent>
-			</Card>
-		</div>
+		<AppSection title="Riwayat Laporan Saya" icon={IconHistory}>
+			<AppList>
+				{myReports && myReports.length > 0 ? (
+					myReports.map((report) => (
+						<AppListRow
+							key={report.id}
+							href={route('reports.show', report.id)}
+							title={report.title}
+							meta={
+								<>
+									<span className="flex min-w-0 items-center gap-1.5">
+										<IconMapPin className="h-3.5 w-3.5 shrink-0" />
+										<span className="truncate">{report.address || 'Lokasi Terdeteksi'}</span>
+									</span>
+									<span className="text-muted-foreground/60">•</span>
+									<span className="flex shrink-0 items-center gap-1.5">
+										<IconClock className="h-3.5 w-3.5 shrink-0" />
+										{new Date(report.created_at).toLocaleDateString('id-ID', {
+											day: 'numeric',
+											month: 'short',
+											year: 'numeric',
+											hour: '2-digit',
+											minute: '2-digit',
+										})}
+									</span>
+								</>
+							}
+							trailing={<StatusBadge status={report.status} />}
+						/>
+					))
+				) : (
+					<AppEmpty
+						icon={IconHistory}
+						title="Belum ada riwayat"
+						description="Laporan kejadian darurat yang Anda buat akan muncul di sini."
+					/>
+				)}
+			</AppList>
+		</AppSection>
 	);
 
 	const RenderRadarFeed = () => (
-		<div className="space-y-4">
-			<div className="flex flex-col gap-4">
-				<h2 className="flex items-center gap-2 text-lg font-bold tracking-tight text-foreground">
-					<IconCheckupList className="h-5 w-5 text-muted-foreground" />
-					{isRelawan ? 'Radar Insiden' : 'Kejadian di Sekitar'}
-				</h2>
-
-				{isRelawan && (
-					<div className="no-scrollbar flex space-x-1 overflow-x-auto rounded-lg border border-border bg-muted p-1 shadow-none">
-						<button
-							onClick={() => setActiveTab('menunggu')}
-							className={cn(
-								'flex w-full items-center justify-center gap-2 rounded-md px-3 py-2 text-xs font-bold outline-none transition-colors',
-								activeTab === 'menunggu'
-									? 'border border-border bg-card text-destructive'
-									: 'border border-transparent text-muted-foreground hover:text-foreground',
-							)}
-						>
-							<IconAlertCircle className="h-4 w-4" stroke={activeTab === 'menunggu' ? 2 : 1.5} /> Butuh
-							Respons
-						</button>
-						<button
-							onClick={() => setActiveTab('tugas_saya')}
-							className={cn(
-								'flex w-full items-center justify-center gap-2 rounded-md px-3 py-2 text-xs font-bold outline-none transition-colors',
-								activeTab === 'tugas_saya'
-									? 'border border-border bg-card text-foreground'
-									: 'border border-transparent text-muted-foreground hover:text-foreground',
-							)}
-						>
-							<IconUserCheck className="h-4 w-4" stroke={activeTab === 'tugas_saya' ? 2 : 1.5} /> Tugas
-							Saya
-						</button>
-						<button
-							onClick={() => setActiveTab('semua')}
-							className={cn(
-								'flex w-full items-center justify-center gap-2 rounded-md px-3 py-2 text-xs font-bold outline-none transition-colors',
-								activeTab === 'semua'
-									? 'border border-border bg-card text-foreground'
-									: 'border border-transparent text-muted-foreground hover:text-foreground',
-							)}
-						>
-							<IconCheckupList className="h-4 w-4" stroke={activeTab === 'semua' ? 2 : 1.5} /> Semua
-							Laporan
-						</button>
-					</div>
-				)}
-			</div>
+		<AppSection title={isRelawan ? 'Radar Insiden' : 'Kejadian di Sekitar'} icon={IconCheckupList}>
+			{isRelawan && (
+				<div className="no-scrollbar flex space-x-1 overflow-x-auto rounded-lg border border-border bg-muted p-1 shadow-none">
+					<button
+						onClick={() => setActiveTab('menunggu')}
+						className={cn(
+							'flex w-full items-center justify-center gap-2 rounded-md px-3 py-2 text-xs font-bold outline-none transition-colors',
+							activeTab === 'menunggu'
+								? 'border border-border bg-card text-destructive'
+								: 'border border-transparent text-muted-foreground hover:text-foreground',
+						)}
+					>
+						<IconAlertCircle className="h-4 w-4" stroke={activeTab === 'menunggu' ? 2 : 1.5} /> Butuh
+						Respons
+					</button>
+					<button
+						onClick={() => setActiveTab('tugas_saya')}
+						className={cn(
+							'flex w-full items-center justify-center gap-2 rounded-md px-3 py-2 text-xs font-bold outline-none transition-colors',
+							activeTab === 'tugas_saya'
+								? 'border border-border bg-card text-foreground'
+								: 'border border-transparent text-muted-foreground hover:text-foreground',
+						)}
+					>
+						<IconUserCheck className="h-4 w-4" stroke={activeTab === 'tugas_saya' ? 2 : 1.5} /> Tugas Saya
+					</button>
+					<button
+						onClick={() => setActiveTab('semua')}
+						className={cn(
+							'flex w-full items-center justify-center gap-2 rounded-md px-3 py-2 text-xs font-bold outline-none transition-colors',
+							activeTab === 'semua'
+								? 'border border-border bg-card text-foreground'
+								: 'border border-transparent text-muted-foreground hover:text-foreground',
+						)}
+					>
+						<IconCheckupList className="h-4 w-4" stroke={activeTab === 'semua' ? 2 : 1.5} /> Semua Laporan
+					</button>
+				</div>
+			)}
 
 			{displayedReports.length === 0 ? (
-				<div className="mt-4 flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 p-12 text-center shadow-none">
-					<div className="mb-4 rounded-full border border-border bg-muted p-4">
-						<IconShieldCheck className="h-8 w-8 text-muted-foreground" stroke={1.5} />
-					</div>
-					<h3 className="text-sm font-bold text-foreground">
-						{activeTab === 'menunggu'
-							? 'Kondisi Terkendali'
-							: activeTab === 'tugas_saya'
-								? 'Belum Ada Tugas'
-								: 'Data Kosong'}
-					</h3>
-					<p className="mt-1 max-w-sm text-xs font-medium text-muted-foreground">
-						{activeTab === 'menunggu'
-							? 'Tidak ada laporan baru di sekitar yang membutuhkan respons.'
-							: activeTab === 'tugas_saya'
-								? 'Anda belum mengambil tugas penyelamatan apa pun saat ini.'
-								: 'Tidak ada data laporan tersedia.'}
-					</p>
+				<div className="rounded-xl border border-dashed border-border bg-muted/50">
+					<AppEmpty
+						icon={IconShieldCheck}
+						title={
+							activeTab === 'menunggu'
+								? 'Kondisi Terkendali'
+								: activeTab === 'tugas_saya'
+									? 'Belum Ada Tugas'
+									: 'Data Kosong'
+						}
+						description={
+							activeTab === 'menunggu'
+								? 'Tidak ada laporan baru di sekitar yang membutuhkan respons.'
+								: activeTab === 'tugas_saya'
+									? 'Anda belum mengambil tugas penyelamatan apa pun saat ini.'
+									: 'Tidak ada data laporan tersedia.'
+						}
+					/>
 				</div>
 			) : (
 				<>
-					<div className="mt-2 grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
+					<div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
 						{displayedReports.map((report) => (
 							<ReportCard
 								key={report.id}
@@ -309,12 +278,12 @@ export default function Dashboard(props) {
 						))}
 					</div>
 					{nextPageUrl && activeTab !== 'tugas_saya' && (
-						<div className="flex w-full justify-center pb-8 pt-4">
+						<div className="flex w-full justify-center pt-4">
 							<Button
 								variant="outline"
 								onClick={handleLoadMore}
 								disabled={isLoadingMore}
-								className="flex h-8 items-center gap-2 rounded-md border border-border bg-card px-5 text-[10px] font-bold uppercase tracking-wider text-foreground/80 shadow-none transition-colors hover:bg-muted"
+								className="flex h-10 items-center gap-2 rounded-md border border-border bg-card px-5 text-[10px] font-bold uppercase tracking-wider text-foreground/80 shadow-none transition-colors hover:bg-muted sm:h-8"
 							>
 								{isLoadingMore ? (
 									<>
@@ -330,34 +299,38 @@ export default function Dashboard(props) {
 					)}
 				</>
 			)}
-		</div>
+		</AppSection>
 	);
 
 	return (
-		<div className="mx-auto flex w-full max-w-7xl flex-col space-y-6 pb-32">
-			<div>
-				<h1 className="text-2xl font-bold tracking-tight text-foreground">Halo, {firstName}!</h1>
-				<div className="mt-2 flex flex-wrap items-center gap-2">
-					<Badge
-						variant="outline"
-						className={cn(
-							'rounded-md border border-border px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest shadow-none',
-							isRelawan ? 'bg-foreground text-background' : 'bg-muted text-foreground/80',
-						)}
-					>
-						<IconShieldCheck className="mr-1 h-3.5 w-3.5" stroke={2.5} />{' '}
-						{isRelawan ? 'Relawan Siaga' : 'Warga Umum'}
-					</Badge>
-					<span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-						<IconMapPin className="h-3.5 w-3.5 text-destructive" /> Layanan Darurat Sisupit
-					</span>
-				</div>
-			</div>
+		<div className="flex w-full flex-col space-y-5 pb-32 md:space-y-6">
+			{/* Pembungkus `mx-auto max-w-7xl` dicabut: AppLayout sudah memberi max-width DAN
+			    padding halaman, jadi yang kedua cuma menumpuk. */}
+			<AppGreeting
+				title={`Halo, ${firstName}!`}
+				meta={
+					<>
+						<Badge
+							variant="outline"
+							className={cn(
+								'rounded-md border border-border px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest shadow-none',
+								isRelawan ? 'bg-foreground text-background' : 'bg-muted text-foreground/80',
+							)}
+						>
+							<IconShieldCheck className="mr-1 h-3.5 w-3.5" stroke={2.5} />{' '}
+							{isRelawan ? 'Relawan Siaga' : 'Warga Umum'}
+						</Badge>
+						<span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+							<IconMapPin className="h-3.5 w-3.5 text-destructive" /> Layanan Darurat Sisupit
+						</span>
+					</>
+				}
+			/>
 
-			{/* CTA UTAMA: LAPOR DARURAT — aksi inti yang harus paling menonjol bagi warga */}
+			{/* CTA UTAMA: LAPOR DARURAT - aksi inti yang harus paling menonjol bagi warga */}
 			<Link
 				href={route('front.reports.create')}
-				className="group flex items-center justify-between gap-3 rounded-xl border border-destructive bg-destructive p-4 text-destructive-foreground shadow-none transition-colors hover:bg-destructive/90"
+				className="group flex items-center justify-between gap-3 rounded-xl border border-destructive bg-destructive p-4 text-destructive-foreground shadow-none transition-colors hover:bg-destructive/90 active:bg-destructive/90"
 			>
 				<div className="flex items-center gap-3">
 					<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-destructive-foreground/30 bg-destructive-foreground/10">
@@ -378,85 +351,81 @@ export default function Dashboard(props) {
 			    peran relawan kini hanya diberikan admin lewat /admin/users. Jangan hidupkan
 			    lagi tanpa menanyakan user. */}
 			{isRelawan && (
-				<div className="w-full">
-					<Card
-						className={cn(
-							'overflow-hidden rounded-xl border shadow-none transition-colors',
-							isStandby ? 'border-destructive bg-destructive/10' : 'border-border bg-card',
-						)}
-					>
-						<CardContent className="flex flex-col justify-between gap-3 p-4 sm:flex-row sm:items-center">
-							<div className="flex items-center gap-3">
-								<div
+				<Card
+					className={cn(
+						'overflow-hidden rounded-xl border shadow-none transition-colors',
+						isStandby ? 'border-destructive bg-destructive/10' : 'border-border bg-card',
+					)}
+				>
+					<CardContent className="flex flex-col justify-between gap-3 p-4 sm:flex-row sm:items-center">
+						<div className="flex items-center gap-3">
+							<div
+								className={cn(
+									'flex h-10 w-10 shrink-0 items-center justify-center rounded-md border',
+									isStandby
+										? 'border-destructive/30 bg-card text-destructive'
+										: 'border-border bg-muted text-muted-foreground',
+								)}
+							>
+								<IconRadar className="h-5 w-5" stroke={1.5} />
+							</div>
+							<div>
+								<h3
 									className={cn(
-										'flex h-10 w-10 shrink-0 items-center justify-center rounded-md border',
-										isStandby
-											? 'border-destructive/30 bg-card text-destructive'
-											: 'border-border bg-muted text-muted-foreground',
+										'text-sm font-bold',
+										isStandby ? 'text-destructive' : 'text-foreground',
 									)}
 								>
-									<IconRadar className="h-5 w-5" stroke={1.5} />
-								</div>
-								<div>
-									<h3
-										className={cn(
-											'text-sm font-bold',
-											isStandby ? 'text-destructive' : 'text-foreground',
-										)}
-									>
-										Mode Kesiapan
-									</h3>
-									<p
-										className={cn(
-											'mt-0.5 text-xs font-medium',
-											isStandby ? 'text-destructive/80' : 'text-muted-foreground',
-										)}
-									>
-										{isStandby
-											? 'Anda menerima notifikasi insiden sesuai wilayah & aturan siaran.'
-											: 'Anda tidak menerima notifikasi insiden sampai siaga diaktifkan kembali.'}
-									</p>
-								</div>
+									Mode Kesiapan
+								</h3>
+								<p
+									className={cn(
+										'mt-0.5 text-xs font-medium',
+										isStandby ? 'text-destructive/80' : 'text-muted-foreground',
+									)}
+								>
+									{isStandby
+										? 'Anda menerima notifikasi insiden sesuai wilayah & aturan siaran.'
+										: 'Anda tidak menerima notifikasi insiden sampai siaga diaktifkan kembali.'}
+								</p>
 							</div>
-							<Button
-								variant={isStandby ? 'default' : 'outline'}
-								disabled={isTogglingStandby}
-								className={cn(
-									'h-8 w-full shrink-0 rounded-md px-4 text-[10px] font-bold uppercase tracking-wider shadow-none transition-colors sm:w-auto',
-									isStandby
-										? 'border border-destructive bg-destructive text-destructive-foreground hover:bg-destructive/90'
-										: 'border-border bg-card text-foreground/80 hover:bg-muted',
-								)}
-								onClick={handleToggleStandby}
-							>
-								{isTogglingStandby ? (
-									<IconLoader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-								) : (
-									<IconPower className="mr-1.5 h-3.5 w-3.5" />
-								)}
-								{/* Label = KEADAAN, bukan ajakan (permintaan user 2026-08-26). Dulu berbunyi
-							    'Siaga Aktif' saat menyala tapi 'Mulai Siaga' saat mati — satu keadaan
+						</div>
+						<Button
+							variant={isStandby ? 'default' : 'outline'}
+							disabled={isTogglingStandby}
+							className={cn(
+								'h-10 w-full shrink-0 rounded-md px-4 text-[10px] font-bold uppercase tracking-wider shadow-none transition-colors sm:h-8 sm:w-auto',
+								isStandby
+									? 'border border-destructive bg-destructive text-destructive-foreground hover:bg-destructive/90'
+									: 'border-border bg-card text-foreground/80 hover:bg-muted',
+							)}
+							onClick={handleToggleStandby}
+						>
+							{isTogglingStandby ? (
+								<IconLoader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+							) : (
+								<IconPower className="mr-1.5 h-3.5 w-3.5" />
+							)}
+							{/* Label = KEADAAN, bukan ajakan (permintaan user 2026-08-26). Dulu berbunyi
+							    'Siaga Aktif' saat menyala tapi 'Mulai Siaga' saat mati - satu keadaan
 							    dibaca sebagai status, satunya sebagai perintah, sehingga tak jelas mana
 							    yang sedang berlaku. Kini keduanya simetris. */}
-								{isStandby ? 'Siaga' : 'Non Aktif'}
-							</Button>
-						</CardContent>
-					</Card>
-				</div>
+							{isStandby ? 'Siaga' : 'Non Aktif'}
+						</Button>
+					</CardContent>
+				</Card>
 			)}
 
-			<hr className="border-border" />
-
+			{/* Pemisah `<hr>` antar-seksi dicabut: tiap seksi kini membawa labelnya sendiri
+			    (AppSection), dan garis mendatar selebar halaman adalah idiom dokumen. */}
 			{isRelawan ? (
 				<>
 					<RenderRadarFeed />
-					<hr className="border-border pt-4" />
 					<RenderMyHistory />
 				</>
 			) : (
 				<>
 					<RenderMyHistory />
-					<hr className="border-border pt-4" />
 					<RenderRadarFeed />
 				</>
 			)}

@@ -109,3 +109,24 @@
 		@apply bg-background text-foreground;
 	}
 }
+
+@layer utilities {
+	/* `no-scrollbar` DIPAKAI di lima berkas (Sidebar, popover MobileBottomNav, tab relawan
+	   Dashboard, Monitoring/Map, AppSection) tapi TIDAK PERNAH DIDEFINISIKAN di mana pun -
+	   bukan utility Tailwind, bukan plugin, bukan kelas kustom. Jadi selama ini ia tidak
+	   melakukan apa-apa: tak ada galat, build hijau, kelasnya terbaca benar di DOM, hanya
+	   batang gulir yang tetap terlihat (keluarga yang sama dengan `fles-wrap`, #109).
+	   Gejalanya nyaris tak terasa di WebView Android karena batang gulirnya memang sementara
+	   - itu sebabnya ia bertahan lama. Diberi definisi 2026-09-09 (#120) karena baris kartu
+	   ringkasan yang digulir mendatar di dashboard benar-benar bergantung padanya: batang
+	   gulir mendatar di bawah kartu statistik langsung membocorkan bahwa ini halaman web.
+	   Definisi ini otomatis ikut berlaku untuk keempat pemakai lama - dan di sana ia memang
+	   yang sejak awal dimaksudkan. */
+	.no-scrollbar {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+	}
+	.no-scrollbar::-webkit-scrollbar {
+		display: none;
+	}
+}

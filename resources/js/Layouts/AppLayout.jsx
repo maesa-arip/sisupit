@@ -327,12 +327,19 @@ export default function AppLayout({ title, children }) {
 
 					{/* FOOTER — tautan legal di sini adalah jaring pengaman yang muncul di SEMUA
 					    ukuran layar, tak bergantung sidebar maupun Sheet menu. */}
-					<footer className="mt-auto w-full shrink-0 border-t border-border px-4 py-6 lg:px-8">
-						<div className="flex flex-col items-center gap-3 lg:flex-row lg:justify-between">
-							<p className="text-center text-xs font-medium text-muted-foreground lg:text-left">
+					<footer className="mt-auto w-full shrink-0 border-t border-border px-4 py-4 lg:px-8 lg:py-6">
+						{/* Di ponsel footer ini diringkas (jarak & huruf lebih kecil) dan tautannya
+						    naik ke ATAS lewat `flex-col-reverse` - baris hak cipta jadi cetak halus di
+						    bawahnya. Kelima tautan legal SENGAJA tidak disembunyikan: sejak seksi nav
+						    "Bantuan & Legal" dihapus 2026-08-28 footer inilah SATU-SATUNYA jalan ke
+						    halaman S&K/Privasi/Bantuan, jadi menyembunyikannya di ponsel akan membuat
+						    halaman-halaman itu tak terjangkau sama sekali dari perangkat yang justru
+						    paling banyak dipakai (keputusan user 2026-09-09). */}
+						<div className="flex flex-col-reverse items-center gap-2 lg:flex-row lg:justify-between lg:gap-3">
+							<p className="text-center text-[11px] font-medium text-muted-foreground/80 lg:text-left lg:text-xs">
 								&copy; {new Date().getFullYear()} Sisupit. Dikembangkan oleh {penyediaNama}.
 							</p>
-							<nav className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+							<nav className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 lg:gap-x-4 lg:gap-y-2">
 								{[
 									{ href: route('info.help'), label: 'Pusat Bantuan' },
 									{ href: route('info.terms'), label: 'Syarat & Ketentuan' },
@@ -343,7 +350,7 @@ export default function AppLayout({ title, children }) {
 									<Link
 										key={item.href}
 										href={item.href}
-										className="text-xs font-medium text-muted-foreground transition-colors hover:text-destructive"
+										className="text-[11px] font-medium text-muted-foreground transition-colors hover:text-destructive lg:text-xs"
 									>
 										{item.label}
 									</Link>
