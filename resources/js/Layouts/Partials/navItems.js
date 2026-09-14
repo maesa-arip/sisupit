@@ -15,6 +15,7 @@ import {
 	IconLogin2,
 	IconLogout,
 	IconMapSearch,
+	IconMessages,
 	IconRoute,
 	IconSettings,
 	IconShieldLock,
@@ -94,6 +95,10 @@ export function resolveAbilities(auth) {
 export function buildNavSections({ auth, url = '' }) {
 	const { isSuperadmin, isAdminOrSuperadmin, isStaff, isCommandCenter, isLoggedIn } = resolveAbilities(auth);
 	const startsWith = (path) => url.startsWith(path);
+	// Forum Warga menyala per kabupaten (TASK_54). Nilainya dihitung SERVER
+	// (ForumThread::enabledFor, sama dengan gerbang route-nya) - jangan diturunkan dari peran di
+	// sini, atau menu muncul di kabupaten yang forumnya mati dan berujung 404.
+	const forumEnabled = Boolean(auth?.forum_enabled ?? auth?.user?.forum_enabled);
 
 	const sections = [
 		{
@@ -114,6 +119,13 @@ export function buildNavSections({ auth, url = '' }) {
 					icon: IconMapSearch,
 					url: route('front.monitoring.map'),
 					active: startsWith('/peta-pemantauan'),
+				},
+				forumEnabled && {
+					key: 'forum',
+					title: 'Forum Warga',
+					icon: IconMessages,
+					url: route('forum.index'),
+					active: startsWith('/forum'),
 				},
 			],
 		},
@@ -241,6 +253,13 @@ export function buildNavSections({ auth, url = '' }) {
 							icon: IconHomeCog,
 							url: route('admin.banjars.index'),
 							active: startsWith('/admin/banjars'),
+						},
+						forumEnabled && {
+							key: 'admin.forum',
+							title: 'Moderasi Forum',
+							icon: IconMessages,
+							url: route('admin.forum.index'),
+							active: startsWith('/admin/forum'),
 						},
 						// SEMENTARA DISEMBUNYIKAN (keputusan user 2026-06-29): menu "Kelola Armada"
 						// disembunyikan selaras dengan panel Pengerahan Armada di Show.jsx.

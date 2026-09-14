@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\ForumThread;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
@@ -29,6 +30,9 @@ class UserSingleResource extends JsonResource
             'avatar' => $this->avatar ? Storage::url($this->avatar) : null,
             'ktp' => $this->ktp ? Storage::url($this->ktp) : null,
             'role' => $this->getRoleNames(),
+            // Menu forum hanya muncul bila forum dinyalakan untuk kabupaten akun ini (TASK_54).
+            // Dibaca navItems.js; dihitung server supaya menu & gerbang route satu aturan.
+            'forum_enabled' => ForumThread::enabledFor($this->resource),
         ];
     }
 }

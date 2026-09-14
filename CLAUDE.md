@@ -27,7 +27,47 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : KEEMPAT DASHBOARD DIROMBAK JADI LAYAR APLIKASI DI PONSEL (#118) + #120.
+Task aktif   : FORUM TANYA JAWAB WARGA PER KABUPATEN (TASK_54, prompt/tasks/TASK_54_forum_tanya_jawab_warga.md).
+                SELESAI (kode) 2026-09-14. DI-COMMIT di branch `feat/forum-warga` (bercabang dari
+                `feat/mobile-bottom-nav` @d2b77228), SENGAJA BELUM masuk `main` & BELUM dideploy -
+                keputusan user: forum belum akan dirilis. JANGAN merge ke main/staging/dev tanpa
+                persetujuan user. Merge kelak: aset public/build akan bentrok bila main sudah punya
+                build lain -> build ulang sesudah merge, jangan pilih salah satu sisi.
+                Keputusan user: komunitas warga, satu ruang per kabupaten, pertanyaan warga MENUNGGU
+                admin (pra-moderasi), "Jawaban Resmi Damkar" ADMIN SAJA, tanpa foto, wajib login.
+                YANG MENGIKAT: (a) forum_threads hanya menyimpan province+city dari AKUN - desa
+                penulis yang ikut disimpan membuat Tenantable (#60) menyembunyikan pertanyaannya dari
+                desa lain sekabupaten tanpa galat; (b) ForumNotification via() = database SAJA -
+                FCM/broadcast dengan payload tak dikenal = SIRINE di APK & .exe (TASK_50);
+                (c) forum menyala per tenant lewat tenants.features (Tenant::FEATURES, checkbox
+                /admin/tenants) dibaca dari city_code AKUN; mati = 404 + menu absen.
+                Test 415 -> 431 passed (1731), ForumTest 16; 4 penjaga dibuktikan MERAH lewat
+                sabotase (berkas pulih md5). Pint/prettier/build lulus. Migrasi aditif sudah di DB
+                dev LOKAL. S&K naik 2.0 -> 2.1 (klausul Forum Warga) - tanggal berlaku WAJIB
+                disesuaikan saat deploy & ditinjau hukum. Temuan BARU #121 OPEN (lonceng tak
+                menavigasi). Pekerjaan sesi lain di working tree yang sama (kondisi air /hydrants)
+                sudah di-commit TERPISAH di `feat/mobile-bottom-nav` (df5c772c + build d2b77228),
+                tanpa forum. SISA: keputusan rilis, lalu merge + deploy (migrate + centang fitur
+                per kabupaten).
+                ADENDUM #122 (2026-09-14, FIXED): user menyalakan forum Denpasar lalu melapor
+                "ajukan pertanyaan tidak tersimpan, tidak ada error apa2, hanya diam". SERVER
+                BENAR - keempat kirimannya ditolak `min:10` pada JUDUL (dibuktikan dari access log
+                Nginx: 302 kembali ke form + selisih respons TEPAT 54 byte = galat judul; 419 = +32
+                dan galat isi = +51 tidak cocok). Pesan galatnya ADA tapi TERTUTUP HEADER STICKY
+                di ponsel (elementFromPoint di Chrome 390x844 = logo di <header>): form dikirim
+                preserveScroll, onError sengaja tanpa toast selama ada galat per isian, dan batas
+                minimal tak disebut (penghitung cuma "4/150"). FIX di lib/forum.js: FORUM_LIMITS +
+                lengthHint() ("4/150 · min. 10") + announceFormErrors() (toast + gulir ke TENGAH +
+                fokus; `start` akan menaruhnya kembali di bawah header), dipakai Forum/Create.jsx
+                DAN form balasan Forum/Show.jsx. NOL perubahan server. Penjaga: 2 test JSX di
+                ForumTest - angka min/max DITARIK dari ForumThreadRequest & diadu (pelajaran #79);
+                dibuktikan MERAH lewat 4 sabotase, pulih byte-exact. Diverifikasi di browser
+                ponsel sesudah fix. Test 431 -> 433 passed (1753). Data uji di DB lokal dihapus.
+                DUA TEMUAN IKUTAN DICATAT SAJA (keputusan user): #123 limiter forum menghitung
+                kiriman yang GAGAL validasi + 429 tampil sebagai modal halaman galat mentah; #124
+                cabang 419 di bootstrap/app.php tanpa `type` -> `toast[null]` TypeError -> SEMUA
+                form diam tanpa pesan saat sesi kedaluwarsa.
+               KEEMPAT DASHBOARD DIROMBAK JADI LAYAR APLIKASI DI PONSEL (#118) + #120.
                 SELESAI & TERDEPLOY 2026-09-09 @d1c8cf8e ke prod/staging/dev.
                 Laporan user: "perbaiki tampilan dashboardnya, sekarang versi mobile masih
                 seperti versi desktop hanya dilayar kecil saja tidak seperti tampilan aplikasi
@@ -2251,7 +2291,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-09-09: 413 passed, 1600 assertions.
+Test      : php artisan test            (baseline 2026-09-14: 433 passed, 1753 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

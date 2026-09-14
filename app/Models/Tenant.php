@@ -26,6 +26,17 @@ class Tenant extends Model
 {
     use HasFile;
 
+    /** Forum Tanya Jawab Warga (TASK_54). */
+    public const FEATURE_FORUM = 'forum';
+
+    /**
+     * Daftar putih kunci `features` beserta labelnya. Kolomnya json bebas sejak TASK_19; tanpa
+     * daftar ini kunci salah ketik tersimpan diam-diam dan fiturnya tak pernah menyala.
+     */
+    public const FEATURES = [
+        self::FEATURE_FORUM => 'Forum Tanya Jawab Warga',
+    ];
+
     protected $guarded = [];
 
     protected $casts = [

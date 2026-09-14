@@ -3078,3 +3078,99 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   dipulihkan byte-exact, md5 dicocokkan.
 - **Status:** FIXED, TERDEPLOY 2026-09-09 @d1c8cf8e. CSS live `app-CaSe-7cE.css` diperiksa
   memuat `.no-scrollbar` di ketiga environment.
+
+### #121 — Lonceng notifikasi web hanya menandai-baca, tak pernah membawa ke halaman yang dikabarkan (OPEN)
+
+- **Prioritas:** P3 - kegunaan, bukan keamanan.
+- **Ditemukan:** 2026-09-14 saat membuat notifikasi Forum Warga (TASK_54). Bukan dari gejala.
+- **Faktanya:** tiap baris di lonceng `AppLayout.jsx` hanya memanggil `notifications.read`
+  (`router.post`) lalu diam. `HandleInertiaRequests` memang meneruskan `report_id`, tapi tak
+  ada satu pun pembacanya di layar - jadi "Pertanyaan Anda dibalas" atau kabar status laporan
+  harus dicari sendiri oleh penggunanya. Notifikasi forum membawa `forum_thread_id` di
+  `data`, tapi kunci itu bahkan belum diteruskan ke prop lonceng.
+- **Kenapa tidak dikerjakan di TASK_54:** menyentuh perilaku lonceng untuk SEMUA jenis
+  notifikasi (laporan, OPD, darurat) - aturan emas #6. Fix-nya kecil: teruskan tujuan
+  (`report_id` / `forum_thread_id`) dari `HandleInertiaRequests`, lalu kunjungi halaman itu
+  sesudah tandai-baca.
+- **Status:** OPEN
+
+### #122 — Pertanyaan forum ditolak tanpa satu pun tanda di layar: galat judul tertutup header sticky (FIXED)
+
+- **Prioritas:** P1 untuk fitur forum - warga yang ditolak tak tahu bahwa ia ditolak, apalagi sebabnya.
+- **Ditemukan:** 2026-09-14, laporan user sesudah menyalakan forum Denpasar: "saat coba ajukan
+  pertanyaan tidak berhasil disimpan, tidak ada error apa2 hanya diam saja".
+- **Yang BUKAN penyebab, dan gampang dikira:** sisi server benar. Reproduksi lewat kernel Laravel
+  sungguhan (DB lokal, dalam transaksi yang di-rollback) menunjukkan kiriman sah langsung tersimpan
+  dan judul pendek kembali dengan galat `title`. CSRF juga bukan penyebabnya.
+- **Buktinya dari percobaan user sendiri, bukan dugaan:** access log Nginx Laragon mencatat keempat
+  POST `/forum/tanya` (14:27-14:28) dijawab 302 KEMBALI ke form, dan respons halaman sesudahnya
+  lebih besar TEPAT 54 byte dari sebelum mengirim. Itu persis panjang
+  `"title":"Judul pertanyaan minimal berisi 10 karakter."`; dua kemungkinan lain tidak cocok
+  (galat isi = +51, flash 419 = +32). Jadi judulnya kurang dari 10 karakter (`ForumThreadRequest`
+  `min:10`).
+- **Kenapa tak terlihat - tiga lapis, semuanya di `Forum/Create.jsx`:**
+  1. Batas minimal tak disebut di mana pun; penghitungnya cuma "4/150", seolah hanya ada batas maksimal.
+  2. Pesan galat hanya dirender tepat di bawah isian judul, sedangkan form dikirim dengan
+     `preserveScroll` sehingga layar tetap di posisi tombol Kirim. Di Chrome headless 390x844 pesan
+     itu berada di y=14-30 px dan `elementFromPoint` di titik itu memulangkan logo di dalam
+     `<header>` sticky - pesannya ADA di DOM tapi TERTUTUP.
+  3. `onError` sengaja memunculkan toast HANYA bila tak ada galat per isian, jadi galat judul tak
+     memberi satu pun tanda di area yang sedang dilihat.
+  Bentuk yang sama dengan #105: penolakan mendarat di tempat yang tidak sedang dilihat pengguna.
+- **Fix:** `lib/forum.js` mendapat `FORUM_LIMITS` + `lengthHint()` (penghitung jadi
+  "4/150 · min. 10") dan `announceFormErrors(errors, { kunciGalat: idElemen })` yang memunculkan
+  toast galat pertama (sonner berada di atas header) lalu menggulir isiannya ke TENGAH layar dan
+  memfokuskannya - bukan `start`, yang akan menaruhnya kembali di bawah header. Dipakai form
+  pertanyaan DAN form balasan (`Forum/Show.jsx`, yang punya pola `onError` sama; textarea-nya kini
+  ber-`id="reply-body"`). Sisi server NOL perubahan.
+- **Diverifikasi di browser sungguhan sesudah fix (390x844):** toast "Judul pertanyaan minimal
+  berisi 10 karakter." muncul, fokus di `#title`, isian terlihat di y=326 dan tidak tertutup;
+  kiriman sah & kiriman lewat dialog kata darurat tetap tersimpan dengan toast. Data uji yang
+  sempat tercipta di DB lokal dihapus (0 thread, 0 notifikasi forum tersisa).
+- **Penjaga:** dua test JSX di `ForumTest` - (a) kedua form wajib memanggil `announceFormErrors`
+  di `onError`, bentuk lama `!errs.title`/`!errs.body` dilarang, setiap id yang disebut wajib
+  benar-benar dirender, dan pengumumnya wajib `toast.error` + `scrollIntoView` ber-`block:'center'`;
+  (b) angka `FORUM_LIMITS` DITARIK dan diadu dengan `min:`/`max:` di `ForumThreadRequest` (bukan
+  ditulis ulang di test - pelajaran #79), serta penghitung wajib menyebut `min.`. Dibuktikan MERAH
+  lewat empat sabotase (berkas lama, min layar 10->5, guliran `start`, id dicabut); berkas pulih
+  byte-exact, md5 dicocokkan.
+- **Status:** FIXED 2026-09-14 (kode), bagian dari TASK_54 yang belum di-commit & belum dideploy.
+
+### #123 — Limiter forum (429) menghitung kiriman yang GAGAL, dan penolakannya tampil sebagai modal halaman galat mentah (OPEN)
+
+- **Prioritas:** P2.
+- **Ditemukan:** 2026-09-14 saat mereproduksi #122; akun uji terkena 429 pada kiriman ke-6 dalam sejam.
+- **Dua masalah:**
+  1. `throttle:forum-thread` (5/jam) dan `forum-reply` (20/jam) dipasang sebagai middleware
+     route, jadi hitungannya naik pada SETIAP POST - termasuk yang ditolak validasi. Warga yang
+     empat kali salah karena judul terlalu pendek (persis kasus #122) tinggal punya satu percobaan
+     sampai jendela sejamnya habis.
+  2. 429 bukan respons Inertia dan tidak diteruskan Inertia 2.0.3 ke `onError`, jadi yang tampil
+     adalah modal berisi halaman galat mentah (dibuktikan: satu `<iframe>` di DOM). Komentar lama
+     di `Forum/Create.jsx` yang menyatakan "429 ... tetap diberi tahu lewat toast" keliru; komentar
+     itu sudah diluruskan di #122. `bootstrap/app.php` juga tidak memetakan 429 di produksi (hanya
+     500/503/404/403).
+- **Arah fix (belum dikerjakan, keputusan user 2026-09-14: dicatat saja):** hitung limiter di
+  controller hanya untuk kiriman yang lolos validasi (`RateLimiter::hit` sesudah validasi) dan
+  kembalikan galat validasi berbahasa Indonesia alih-alih 429 mentah; atau tangani 429 lewat
+  penangan global Inertia (`router.on('invalid')`) - yang kedua menyentuh semua halaman.
+- **Status:** OPEN
+
+### #124 — 419 (sesi/CSRF kedaluwarsa) membuat SEMUA form diam tanpa pesan (OPEN)
+
+- **Prioritas:** P2 - lintas aplikasi, bukan hanya forum.
+- **Ditemukan:** 2026-09-14 saat menelusuri #122 (sempat jadi tersangka, lalu dibuktikan bukan
+  penyebab #122 lewat selisih byte).
+- **Mekanismenya:** `bootstrap/app.php` membalas 419 dengan `back()->with(['message' => ...])`
+  TANPA `type`. Bagi Inertia, redirect balik tanpa galat adalah SUKSES, sehingga `onSuccess`
+  berjalan dan pola wajib repo ini `toast[flash.type](flash.message)` menjadi `toast[null](...)`
+  -> TypeError di dalam callback. Hasilnya: tak ada toast, tak ada galat terlihat, dan data tidak
+  tersimpan. `flash_message` dari `HandleInertiaRequests` juga SELALU berupa objek, jadi penjaga
+  `if (flash)` di tiap form tak pernah menyaringnya.
+- **Blast radius:** setiap form yang mengikuti pola toast di CONVENTIONS (puluhan berkas), setiap
+  kali sesi berakhir di tengah pengisian - termasuk form lapor darurat bila halamannya dibiarkan
+  terbuka lama.
+- **Arah fix (belum dikerjakan, keputusan user 2026-09-14: dicatat saja):** sertakan
+  `'type' => 'error'` (dan pesan berbahasa Indonesia) di cabang 419 `bootstrap/app.php`. Satu
+  baris, tapi mengubah perilaku semua form, jadi butuh task sendiri beserta penjaganya.
+- **Status:** OPEN

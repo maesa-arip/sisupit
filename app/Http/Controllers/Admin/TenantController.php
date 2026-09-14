@@ -58,6 +58,7 @@ class TenantController extends Controller
             'cities' => [],
             'app_base_domain' => $this->baseDomain(),
             'editions' => TenantEdition::options(),
+            'feature_options' => $this->featureOptions(),
             'page_settings' => [
                 'title' => 'Tambah Instansi / Kabupaten',
                 'subtitle' => 'Daftarkan kabupaten/kota baru. Klik simpan setelah selesai.',
@@ -99,6 +100,7 @@ class TenantController extends Controller
                 : [],
             'app_base_domain' => $this->baseDomain(),
             'editions' => TenantEdition::options(),
+            'feature_options' => $this->featureOptions(),
             'page_settings' => [
                 'title' => 'Edit Instansi / Kabupaten',
                 'subtitle' => 'Perbarui identitas publik kabupaten ini. Klik simpan setelah selesai.',
@@ -158,6 +160,12 @@ class TenantController extends Controller
             Cache::forget("tenant:city:{$code}");
         }
         Tenant::flushResolutionCache();
+    }
+
+    /** Pilihan fitur per kabupaten, dari daftar putih Tenant::FEATURES (TASK_54). */
+    private function featureOptions(): array
+    {
+        return collect(Tenant::FEATURES)->map(fn ($label, $value) => ['value' => $value, 'label' => $label])->values()->all();
     }
 
     private function baseDomain(): string

@@ -196,6 +196,14 @@
   lama `only: ['report']` tak pernah sentuh, dan daftar yang berbeda-beda membuat sinyal yang
   datang belakangan membatalkan permintaan yang lebih lengkap (Inertia hanya menerbangkan satu
   kunjungan pada satu waktu). Dijaga `ReportDetailRealtimeTest`.
+- **Notifikasi BARU yang bukan panggilan darurat = `via() ['database']` saja** (TASK_54). Wrapper
+  Android memilih channel SUARA dari payload FCM dan hanya mengenali tahap yang sudah ada
+  (`alert_stage` TASK_50, `type: report_status`); aturan TASK_50 "payload tak dikenal TETAP sirine"
+  berlaku juga di .exe yang mendengar Reverb (`broadcast`). Jadi menambahkan `FcmChannel` atau
+  `'broadcast'` ke notifikasi jenis baru (forum, pengumuman, dst.) = ponsel warga & layar Pusat
+  Komando BERSIRINE karena hal yang bukan kejadian. Kalau notifikasi baru memang butuh push,
+  itu tahap baru + rilis kedua wrapper, bukan satu baris `via()`. Patokan & penjaga:
+  `app/Notifications/ForumNotification.php`, `ForumTest`.
 - Role check: **selalu** `hasRole()`/`hasAnyRole()` dari Spatie Permission, bukan kolom
   string manual. `User::role([...])` bisa melempar `RoleDoesNotExist` di DB belum ter-seed
   (lihat workaround di `HomeController`).

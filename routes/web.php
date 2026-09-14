@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AgencyController as AdminAgencyController;
 use App\Http\Controllers\Admin\BanjarController as AdminBanjarController;
+use App\Http\Controllers\Admin\ForumModerationController as AdminForumModerationController;
 use App\Http\Controllers\Admin\HydrantController as AdminHydrantController;
 use App\Http\Controllers\Admin\HydrantWargaController as AdminHydrantWargaController;
 use App\Http\Controllers\Admin\PompaController as AdminPompaController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\Api\GeocodeController;
 use App\Http\Controllers\Api\RouteController;
 use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Front\ForumController;
 use App\Http\Controllers\Front\HydrantController;
 use App\Http\Controllers\Front\MonitoringMapController;
 use App\Http\Controllers\Front\PompaController;
@@ -85,6 +87,34 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/', 'index')->name('index');
             Route::get('/export', 'export')->name('export');
         });
+
+        // Moderasi Forum Tanya Jawab Warga (TASK_54). Wilayah dipegang Tenantable ForumThread.
+        Route::prefix('forum')->name('forum.')->controller(AdminForumModerationController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/threads/{thread}/approve', 'approve')->name('threads.approve');
+            Route::post('/threads/{thread}/hide', 'hideThread')->name('threads.hide');
+            Route::post('/threads/{thread}/restore', 'restoreThread')->name('threads.restore');
+            Route::post('/threads/{thread}/pin', 'pin')->name('threads.pin');
+            Route::post('/posts/{post}/hide', 'hidePost')->name('posts.hide');
+            Route::post('/posts/{post}/restore', 'restorePost')->name('posts.restore');
+            Route::post('/flags/{type}/{id}/dismiss', 'dismissFlags')->whereIn('type', ['thread', 'post'])->whereNumber('id')->name('flags.dismiss');
+        });
+    });
+
+    // Forum Tanya Jawab Warga per kabupaten (TASK_54). Wajib login (keputusan user 2026-09-14):
+    // Tenantable tidak menyaring tamu, jadi forum yang terbuka untuk tamu akan membuka seluruh
+    // kabupaten ke publik. Gerbang fitur per kabupaten dicek di controller (404 bila mati).
+    Route::prefix('forum')->name('forum.')->controller(ForumController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/tanya', 'create')->name('create');
+        Route::post('/tanya', 'store')->middleware('throttle:forum-thread')->name('store');
+        Route::get('/{thread}', 'show')->whereNumber('thread')->name('show');
+        Route::delete('/{thread}', 'destroyThread')->name('destroy');
+        Route::post('/{thread}/balas', 'reply')->middleware('throttle:forum-reply')->name('reply');
+        Route::post('/{thread}/lapor', 'flagThread')->middleware('throttle:forum-reply')->name('flag');
+        Route::post('/{thread}/balasan/{post}/terbaik', 'accept')->name('posts.accept');
+        Route::post('/{thread}/balasan/{post}/lapor', 'flagPost')->middleware('throttle:forum-reply')->name('posts.flag');
+        Route::delete('/{thread}/balasan/{post}', 'destroyPost')->name('posts.destroy');
     });
 });
 
