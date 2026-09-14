@@ -206,6 +206,22 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 												<span className="max-w-[80px] truncate border-l border-border pl-1.5 text-[10px] font-medium text-muted-foreground sm:max-w-none sm:pl-2">
 													Hydrant {hydrant.type}
 												</span>
+												{/* Kondisi air, sekata dengan kartu /admin/hydrants (permintaan user
+														2026-09-14). SELALU disebut, termasuk saat kosong: medan yang lenyap tanpa
+														jejak tak pernah memberi tahu siapa pun bahwa ada yang belum diisi (#117).
+														Tanpa gerbang varian - halaman ini hanya memuat hydrant resmi, yang memang
+														punya kolomnya. */}
+												<span
+													className={`border-l border-border pl-1.5 text-[10px] sm:pl-2 ${
+														hydrant.water_pressure
+															? 'font-medium text-foreground'
+															: 'italic text-muted-foreground'
+													}`}
+												>
+													{hydrant.water_pressure
+														? `Kondisi air: ${hydrant.water_pressure}`
+														: 'Kondisi air belum didata'}
+												</span>
 											</div>
 										</div>
 

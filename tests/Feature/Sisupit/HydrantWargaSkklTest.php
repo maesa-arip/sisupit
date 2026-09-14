@@ -270,3 +270,29 @@ it('always names the water condition on official hydrant cards, including when i
         ->and($source)->toContain('v.showWaterPressure &&')
         ->and($source)->not->toContain("variant === 'warga'");
 });
+
+/**
+ * Kondisi air di halaman publik /hydrants (2026-09-14, permintaan user: "munculkan tekanan air
+ * seperti di admin/hydrants").
+ *
+ * Front\HydrantController menyusun tiap baris lewat DAFTAR KUNCI eksplisit, bukan model utuh -
+ * jadi kolom yang tak disebut di sana tak pernah sampai ke browser, dan menambah baris di JSX
+ * saja akan membuat SETIAP kartu berbunyi "belum didata" walau datanya terisi. Karena itu
+ * penjaganya dua: payload sungguhan, lalu kartunya.
+ */
+it('sends the water condition of official hydrants to the public hydrant page', function () {
+    $this->actingAs($this->admin)->post('/admin/hydrants', $this->officialPayload);
+
+    $row = $this->get('/hydrants')->viewData('page')['props']['hydrants']['data'][0];
+
+    expect($row)->toHaveKey('water_pressure')
+        ->and($row['water_pressure'])->toBe('Sedang');
+});
+
+it('always names the water condition on public hydrant cards, including when it is empty', function () {
+    $source = preg_replace(['#/\*.*?\*/#s', '#//[^
+]*#'], '', file_get_contents(resource_path('js/Pages/Hydrants/Index.jsx')));
+
+    expect($source)->toContain('Kondisi air belum didata')
+        ->and($source)->toMatch('/`Kondisi air: \$\{hydrant\.water_pressure\}`/');
+});

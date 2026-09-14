@@ -60,6 +60,9 @@ class HydrantController extends Controller
                 'description' => $hydrant->description,
                 'status' => $hydrant->status ?? 'Aktif',
                 'type' => $hydrant->type ?? 'Stick',
+                // Dikirim apa adanya (null = belum didata). Jangan diberi cadangan seperti
+                // `status`/`type` di atas: kartu harus bisa mengatakan bahwa ia kosong.
+                'water_pressure' => $hydrant->water_pressure,
                 'distance' => isset($hydrant->distance) ? number_format($hydrant->distance, 1).' km' : '-',
                 'lat' => $hydrant->lat,
                 'lng' => $hydrant->lng,
