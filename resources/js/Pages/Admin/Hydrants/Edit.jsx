@@ -10,7 +10,14 @@ import { Textarea } from '@/Components/ui/textarea';
 // PERBAIKAN: Hanya mengimport Combobox tunggal sesuai komponen baru kita
 import { Combobox } from '@/Components/ui/combobox';
 import AppLayout from '@/Layouts/AppLayout';
-import { alamatTerbaca, facilityStatusLabel, jurisdictionMismatch, MAP_TILE_URL } from '@/lib/utils';
+import {
+	alamatTerbaca,
+	facilityStatusLabel,
+	jurisdictionMismatch,
+	MAP_TILE_URL,
+	roleLabel,
+	timeAgo,
+} from '@/lib/utils';
 import { Head, Link, useForm } from '@inertiajs/react';
 import {
 	IconAlertTriangle,
@@ -19,6 +26,7 @@ import {
 	IconCurrentLocation,
 	IconDeviceFloppy,
 	IconDroplet,
+	IconHistory,
 	IconInfoCircle,
 	IconLoader2,
 	IconLock,
@@ -75,6 +83,8 @@ export default function Edit({
 	districts,
 	admin_level,
 	admin_region_names,
+	// Riwayat suntingan (hydrant_logs), terbaru dulu. Hanya hydrant resmi yang mengirimnya.
+	logs,
 }) {
 	// Form yang sama melayani hydrant resmi & hydrant warga; `variant` menentukan judul,
 	// route simpan, dan apakah debit air wajib. Lihat ./variants.jsx.
@@ -779,6 +789,8 @@ export default function Edit({
 							</form>
 						</CardContent>
 					</Card>
+
+					{logs && <HydrantHistory logs={logs} />}
 				</div>
 
 				<div className="relative flex h-[500px] w-full flex-col overflow-hidden rounded-2xl border bg-accent lg:h-[calc(100vh-140px)] lg:flex-1">
@@ -797,6 +809,70 @@ export default function Edit({
 				</div>
 			</div>
 		</div>
+	);
+}
+
+/**
+ * Riwayat suntingan satu hydrant: siapa (nama + peran SAAT itu), kapan, dan kolom mana dari
+ * nilai apa ke nilai apa. Datanya snapshot dari server (HydrantLog), jadi nama & peran tetap
+ * terbaca walau akunnya kelak dihapus atau berganti peran.
+ */
+function HydrantHistory({ logs }) {
+	return (
+		<Card className="border-border shadow-none">
+			<CardContent className="p-5">
+				<div className="mb-3 flex items-center gap-1.5">
+					<IconHistory className="h-4 w-4 text-teal-600 dark:text-teal" />
+					<h3 className="text-sm font-bold text-foreground">Riwayat Perubahan</h3>
+				</div>
+
+				{/* Hydrant yang terakhir disentuh sebelum riwayat ini ada tidak punya satu baris pun.
+				    Dikatakan terang-terangan supaya kosongnya tidak terbaca "belum pernah diubah". */}
+				{logs.length === 0 ? (
+					<p className="text-xs text-muted-foreground">
+						Belum ada perubahan yang tercatat. Riwayat mulai dicatat sejak 22 Sep 2026.
+					</p>
+				) : (
+					<ol className="flex flex-col divide-y divide-border">
+						{logs.map((log) => (
+							<li key={log.id} className="py-2.5 first:pt-0 last:pb-0">
+								<p className="text-xs text-foreground">
+									<span className="font-semibold">{log.user_name}</span>
+									{log.user_role && (
+										<span className="text-muted-foreground"> ({roleLabel(log.user_role)})</span>
+									)}
+									<span className="text-muted-foreground">
+										{' '}
+										{log.action === 'dibuat' ? 'menambahkan hydrant ini' : 'mengubah'}
+									</span>
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									{timeAgo(log.created_at)} ·{' '}
+									{new Date(log.created_at).toLocaleString('id-ID', {
+										dateStyle: 'medium',
+										timeStyle: 'short',
+									})}
+								</p>
+								{log.changes?.length > 0 && (
+									<ul className="mt-1.5 flex flex-col gap-1">
+										{log.changes.map((change) => (
+											<li key={change.field} className="text-[11px] leading-relaxed">
+												<span className="font-medium text-foreground">{change.label}:</span>{' '}
+												<span className="text-muted-foreground line-through">
+													{change.old ?? 'kosong'}
+												</span>{' '}
+												<span className="text-muted-foreground">-&gt;</span>{' '}
+												<span className="text-foreground">{change.new ?? 'kosong'}</span>
+											</li>
+										))}
+									</ul>
+								)}
+							</li>
+						))}
+					</ol>
+				)}
+			</CardContent>
+		</Card>
 	);
 }
 

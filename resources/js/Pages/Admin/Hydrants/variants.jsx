@@ -157,12 +157,19 @@ export const hydrantVariant = (variant) => HYDRANT_VARIANTS[variant] ?? HYDRANT_
  *
  * `counts` ditempel inline dalam kurung, bukan sebagai baris kedua — menambah informasi
  * "ini dua kumpulan data" tanpa menambah tinggi.
+ *
+ * `showWarga` dibaca dari prop server `can.warga`: petugas boleh menyunting hydrant resmi tapi
+ * tidak punya akses ke hydrant warga (2026-09-22), jadi tabnya tidak dirender - tab yang selalu
+ * berakhir 403 terbaca sebagai fitur rusak. Tinggal satu jenis = tak ada yang perlu dipilih,
+ * baris tombolnya ikut hilang dan hanya kalimat penjelasnya yang tersisa.
  */
-export function HydrantTabs({ active, counts = {}, target = 'index' }) {
+export function HydrantTabs({ active, counts = {}, target = 'index', showWarga = true }) {
+	const entries = Object.entries(HYDRANT_VARIANTS).filter(([key]) => showWarga || key !== 'warga');
+
 	return (
 		<div>
-			<div className="flex flex-wrap items-center gap-2">
-				{Object.entries(HYDRANT_VARIANTS).map(([key, config]) => {
+			<div className={entries.length > 1 ? 'flex flex-wrap items-center gap-2' : 'hidden'}>
+				{entries.map(([key, config]) => {
 					const isActive = active === key;
 					const count = counts?.[key];
 

@@ -27,7 +27,26 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : KEEMPAT DASHBOARD DIROMBAK JADI LAYAR APLIKASI DI PONSEL (#118) + #120.
+Task aktif   : PETUGAS BOLEH TAMBAH & EDIT HYDRANT + RIWAYAT SUNTINGAN (TASK_59,
+                prompt/tasks/TASK_59_petugas_edit_hydrant_log.md). SELESAI (kode) 2026-09-22 di
+                branch `deploy/hydrant-log` (di-cherry-pick ke atas main @d2b77228 TANPA TASK_54/55/56 -
+                keputusan user: hanya fitur ini yang naik; asalnya feat/hydrant-log-petugas).
+                Keputusan user: petugas TAMBAH + EDIT (hapus tetap admin), HYDRANT RESMI SAJA
+                (hydrant warga tak dibuka untuk petugas & tanpa log), "dibuat oleh" ikut dicatat.
+                YANG MENGIKAT: (a) route index/create/store/edit/update di grup BARU
+                role:petugas|admin|superadmin, destroy tetap grup admin + re-check di controller;
+                (b) hak layar dari prop server `can` (delete/warga), bukan peran di JSX (#101);
+                (c) hydrant_logs append-only, penyunting di-SNAPSHOT (nama+peran), wilayah
+                dicatat sebagai NAMA; (d) diff WAJIB menyaring nilai yang sama secara angka -
+                Eloquent membandingkan kolom tanpa cast sebagai STRING, "-8.69" vs "-8.6900"
+                akan menulis "Titik Lokasi" palsu di tiap simpan (ditemukan test); (e) log
+                ditulis dari controller, bukan model event (seeder/artisan tak tercatat);
+                (f) entri menu satu konstanta `hydrantAdminItem` untuk admin & petugas.
+                Test 487 -> 499 passed (2099), HydrantEditLogTest 12; EMPAT sabotase MERAH,
+                dicek `cmp` terpasang, pulih byte-exact. Pint/prettier/build lulus. Migrasi aditif
+                DONE di DB dev LOKAL, BELUM di VPS. SISA: verifikasi manual §6, deploy = kode +
+                `php artisan migrate` BERSAMAAN.
+               KEEMPAT DASHBOARD DIROMBAK JADI LAYAR APLIKASI DI PONSEL (#118) + #120.
                 SELESAI & TERDEPLOY 2026-09-09 @d1c8cf8e ke prod/staging/dev.
                 Laporan user: "perbaiki tampilan dashboardnya, sekarang versi mobile masih
                 seperti versi desktop hanya dilayar kecil saja tidak seperti tampilan aplikasi
@@ -2251,7 +2270,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-09-09: 413 passed, 1600 assertions.
+Test      : php artisan test            (baseline 2026-09-22: 427 passed, 1712 assertions (basis main @d2b77228) - +12 TASK_59.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

@@ -62,6 +62,8 @@ export function resolveRoles(auth) {
  *   - isAdminOrSuperadmin → seluruh /admin/* (routes/web.php & routes/admin.php).
  *     Petugas TIDAK punya akses ke sana; ia bekerja lewat dashboard taktis + aksi di
  *     halaman detail laporan. Menyertakan petugas di sini hanya melahirkan link 403.
+ *     SATU pengecualian: /admin/hydrants (tambah & sunting hydrant resmi, 2026-09-22) -
+ *     entrinya diberikan ke petugas lewat `isStaff` di seksi Administrasi.
  *   - isStaff            → Pusat Komando (daftar relawan)
  *   - isCommandCenter    → Pusat Komando + pejabat pemantau (peta pemantauan)
  */
@@ -94,6 +96,21 @@ export function resolveAbilities(auth) {
 export function buildNavSections({ auth, url = '' }) {
 	const { isSuperadmin, isAdminOrSuperadmin, isStaff, isCommandCenter, isLoggedIn } = resolveAbilities(auth);
 	const startsWith = (path) => url.startsWith(path);
+
+	// Satu-satunya menu /admin/* yang juga milik PETUGAS (2026-09-22: petugas boleh menambah &
+	// menyunting hydrant resmi). Ditulis sekali lalu dipakai di kedua cabang seksi Administrasi,
+	// supaya admin dan petugas tak memegang dua salinan entri yang kelak menyimpang.
+	const hydrantAdminItem = {
+		key: 'admin.hydrants',
+		title: 'Manajemen Hydrant',
+		icon: IconFireHydrant,
+		url: route('admin.hydrants.index'),
+		// `/admin/hydrant-warga` WAJIB ikut: kedua jenis hydrant tampil sebagai
+		// satu menu bertab (lihat Admin/Hydrants/variants.jsx), jadi tanpa ini
+		// sidebar tak menyorot apa pun saat tab Hydrant Warga dibuka — seolah
+		// pengguna sedang berada di luar menu mana pun.
+		active: startsWith('/admin/facilities') || startsWith('/admin/hydrants') || startsWith('/admin/hydrant-warga'),
+	};
 
 	const sections = [
 		{
@@ -200,20 +217,7 @@ export function buildNavSections({ auth, url = '' }) {
 							url: route('admin.reports.index'),
 							active: startsWith('/admin/reports'),
 						},
-						{
-							key: 'admin.hydrants',
-							title: 'Manajemen Hydrant',
-							icon: IconFireHydrant,
-							url: route('admin.hydrants.index'),
-							// `/admin/hydrant-warga` WAJIB ikut: kedua jenis hydrant tampil sebagai
-							// satu menu bertab (lihat Admin/Hydrants/variants.jsx), jadi tanpa ini
-							// sidebar tak menyorot apa pun saat tab Hydrant Warga dibuka — seolah
-							// pengguna sedang berada di luar menu mana pun.
-							active:
-								startsWith('/admin/facilities') ||
-								startsWith('/admin/hydrants') ||
-								startsWith('/admin/hydrant-warga'),
-						},
+						hydrantAdminItem,
 						{
 							key: 'admin.pumps',
 							title: 'Manajemen SKKL',
@@ -264,7 +268,9 @@ export function buildNavSections({ auth, url = '' }) {
 							active: startsWith('/admin/announcements'),
 						},
 					]
-				: [],
+				: isStaff
+					? [hydrantAdminItem]
+					: [],
 		},
 		{
 			key: 'kontrol-akses',

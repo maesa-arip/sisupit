@@ -50,6 +50,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Rute tunggal se-arah untuk memisahkan view dashboard secara otomatis
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // Hydrant resmi: PETUGAS ikut boleh melihat, menambah, dan menyunting (2026-09-22).
+    // URL & nama route tetap admin.hydrants.* supaya halaman React tidak bercabang. Hapus tetap
+    // di grup admin di bawah; hydrant warga tidak dibuka untuk petugas. Setiap tambah/sunting
+    // meninggalkan jejak di hydrant_logs (HydrantLog).
+    Route::middleware(['role:petugas|admin|superadmin'])->prefix('admin')->name('admin.')->group(function () {
+        Route::resource('hydrants', AdminHydrantController::class)->only(['index', 'create', 'store', 'edit', 'update']);
+    });
+
     // Grup Administrasi Multi-Tenant khusus Admin ke bawah tetap aman di sini
     Route::middleware(['role:admin|superadmin'])->prefix('admin')->name('admin.')->group(function () {
 
@@ -59,7 +67,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             })->name('index');
         });
 
-        Route::resource('hydrants', AdminHydrantController::class)->except(['show']);
+        Route::resource('hydrants', AdminHydrantController::class)->only(['destroy']);
         // Hydrant swadaya warga — tabel & route sendiri, tapi dirender komponen halaman yang
         // SAMA dengan hydrant resmi (prop `variant`) supaya bagi pengguna keduanya terasa satu
         // kesatuan bertab. Pemisahan tabelnya = pengecualian aturan yang disetujui user,

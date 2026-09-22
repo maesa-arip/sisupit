@@ -3,7 +3,14 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
-import { capacityLabel, facilityStatusIsFaulty, facilityStatusLabel, MAP_TILE_URL } from '@/lib/utils';
+import {
+	capacityLabel,
+	facilityStatusIsFaulty,
+	facilityStatusLabel,
+	MAP_TILE_URL,
+	roleLabel,
+	timeAgo,
+} from '@/lib/utils';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
 	IconAlertTriangle,
@@ -11,6 +18,7 @@ import {
 	IconDroplet,
 	IconEdit,
 	IconFireHydrant,
+	IconHistory,
 	IconMapPinFilled,
 	IconPlus,
 	IconSearch,
@@ -31,7 +39,17 @@ import { HydrantTabs, hydrantVariant, tenantWilayah } from './variants';
 const metaTambahan = (hydrant) =>
 	[capacityLabel(hydrant.capacity_liter), hydrant.banjar?.name].filter(Boolean).join(' · ');
 
-export default function Index({ variant = 'resmi', counts = {}, hydrants, summary = [], filters, tenant_location }) {
+export default function Index({
+	variant = 'resmi',
+	counts = {},
+	hydrants,
+	summary = [],
+	filters,
+	tenant_location,
+	// Dari server (HydrantController::abilities). Halaman hydrant warga tak mengirimnya dan
+	// hanya terbuka untuk admin, jadi bawaannya "semua boleh".
+	can = { delete: true, warga: true },
+}) {
 	const v = hydrantVariant(variant);
 	// Keterangan hydrant resmi menyebut pemiliknya, jadi nama wilayahnya ikut tenant yang
 	// sedang dibuka — bukan dipaku "Kota Denpasar" yang akan terbaca juga oleh admin Badung.
@@ -159,7 +177,7 @@ export default function Index({ variant = 'resmi', counts = {}, hydrants, summar
 				</Button>
 			</div>
 
-			<HydrantTabs active={variant} counts={counts} />
+			<HydrantTabs active={variant} counts={counts} showWarga={can.warga} />
 
 			<div className="flex w-full flex-col items-start gap-5 lg:flex-row lg:gap-6">
 				<div className="flex w-full shrink-0 flex-col gap-4 lg:w-5/12 xl:w-1/3">
@@ -316,6 +334,27 @@ export default function Index({ variant = 'resmi', counts = {}, hydrants, summar
 															</span>
 														)}
 													</div>
+													{/* Jejak suntingan terakhir (hydrant_logs). Hanya hydrant resmi yang punya
+															riwayat; hydrant warga dan hydrant lama yang belum pernah disentuh sejak
+															riwayat ada tidak membawa `latest_log`, jadi barisnya tidak muncul -
+															bukan diisi nama tebakan. */}
+													{hydrant.latest_log && (
+														<p className="mt-1 flex items-center gap-1 truncate text-[11px] text-muted-foreground">
+															<IconHistory className="h-3 w-3 shrink-0" />
+															<span className="truncate">
+																{hydrant.latest_log.action === 'dibuat'
+																	? 'Ditambahkan'
+																	: 'Terakhir diedit'}{' '}
+																oleh{' '}
+																<span className="font-medium text-foreground">
+																	{hydrant.latest_log.user_name}
+																</span>
+																{hydrant.latest_log.user_role &&
+																	` (${roleLabel(hydrant.latest_log.user_role)})`}{' '}
+																· {timeAgo(hydrant.latest_log.created_at)}
+															</span>
+														</p>
+													)}
 												</div>
 												<div
 													className="flex shrink-0 gap-1"
@@ -331,14 +370,16 @@ export default function Index({ variant = 'resmi', counts = {}, hydrants, summar
 															<IconEdit className="h-4 w-4" />
 														</Link>
 													</Button>
-													<Button
-														variant="ghost"
-														size="icon"
-														onClick={() => setHydrantToDelete(hydrant.id)}
-														className="h-8 w-8 text-muted-foreground hover:text-destructive"
-													>
-														<IconTrash className="h-4 w-4" />
-													</Button>
+													{can.delete && (
+														<Button
+															variant="ghost"
+															size="icon"
+															onClick={() => setHydrantToDelete(hydrant.id)}
+															className="h-8 w-8 text-muted-foreground hover:text-destructive"
+														>
+															<IconTrash className="h-4 w-4" />
+														</Button>
+													)}
 												</div>
 											</div>
 											<div className="mt-1 flex items-center justify-center gap-1 rounded-md bg-teal-50 py-1.5 text-[10px] font-bold text-teal-600 dark:bg-teal/10 dark:text-teal lg:hidden">

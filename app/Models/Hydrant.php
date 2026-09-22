@@ -30,6 +30,21 @@ class Hydrant extends Model
         'debit_lpm' => 'integer',
     ];
 
+    /** Riwayat suntingan, terbaru dulu. Lihat HydrantLog. */
+    public function logs()
+    {
+        return $this->hasMany(HydrantLog::class)->latest('id');
+    }
+
+    /**
+     * Baris riwayat terakhir untuk "Terakhir diedit oleh ..." di kartu daftar. Bernama
+     * latestLog (JSON `latest_log`), tidak bertabrakan dengan kolom mana pun.
+     */
+    public function latestLog()
+    {
+        return $this->hasOne(HydrantLog::class)->latestOfMany('id');
+    }
+
     // 3. Relasi ke wilayah
     public function province()
     {
