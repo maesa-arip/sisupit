@@ -44,6 +44,14 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perHour(20)->by($request->user()?->id ?: $request->ip());
         });
 
+        // Email Dinas (TASK_56). Batasnya longgar — surat resmi memang jarang, dan menahan
+        // kiriman yang sah di tengah kejadian lebih mahal daripada risiko spam dari akun staf
+        // yang identitasnya sudah diketahui. Yang menjaga penyalahgunaan di sini bukan limiter
+        // melainkan daftar putih penerima (MailSendRequest).
+        RateLimiter::for('mail-send', function ($request) {
+            return Limit::perHour(30)->by($request->user()?->id ?: $request->ip());
+        });
+
         if (! App::environment([
             'local',
             'testing',

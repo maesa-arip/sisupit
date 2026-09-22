@@ -27,7 +27,72 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : LAPORAN GANDA UNTUK SATU KEJADIAN - LAPIS 1 & 2 (TASK_55,
+Task aktif   : EMAIL DINAS DI DALAM SISUPIT - SLICE 1 (TASK_56,
+                prompt/tasks/TASK_56_email_dinas_daftar_putih.md). SELESAI (kode) 2026-09-22,
+                BELUM di-commit & BELUM dideploy. Permintaan user: komputer operator akan
+                dikunci hanya untuk Sisupit, jadi email & WhatsApp harus bisa ditangani dari
+                dalam aplikasi, "tidak bisa kirim email selain email yang di daftarkan".
+                DIPECAH TIGA TASK (aturan emas #6): TASK_56 email (ini), TASK_57 WhatsApp
+                (DITUNDA atas keputusan user 2026-09-22), TASK_58 penguncian komputer (TODO,
+                paling akhir). Urutannya mengikat: email dipakai dulu, baru dikunci.
+                DIBANGUN SEBAGAI HALAMAN WEB, BUKAN FITUR ELECTRON - `.exe` sudah memuat
+                sisupit.com, jadi NOL perubahan wrapper & satu perbaikan tiba lewat `git pull`
+                ke .exe + APK + browser sekaligus (pelajaran #108; rilis wrapper di repo ini
+                mahal: versionCode, artifactName yang mengubah URL unduhan, SmartScreen).
+                DELAPAN KEPUTUSAN USER: penerima = PEJABAT (perorangan) -> tabel `mail_contacts`
+                TERSENDIRI dan itu BUKAN "daftar kedua" yang dilarang #110/#71 (agencies mendata
+                ORGANISASI penanganan insiden, ini mendata ORANG; memaksanya jadi satu membuat
+                nama pejabat muncul sebagai instansi yang bisa dimintai bantuan saat kebakaran
+                lewat Agency::recommendedIdsFor); pengirim = petugas|admin|superadmin; SATU
+                KOTAK SURAT PER KABUPATEN, alamatnya diminta ke tiap kota dan alamat itu yang
+                dipakai; kredensialnya DIISI ADMIN KABUPATEN SENDIRI di /admin/email (superadmin
+                tetap pemegang saklar tenants.features); lampiran boleh tapi dibatasi & dicatat
+                (slice 3, belum).
+                YANG MENGIKAT: (a) DUA JALUR EMAIL TAK BOLEH TERCAMPUR - `.env` (MAIL_*) milik
+                email SISTEM (verifikasi pendaftaran & reset password, TIDAK berubah), surat
+                dinas lewat mailer BERNAMA per tenant `dinas_{id}`; nama ber-id itu wajib sebab
+                MailManager menyimpan mailer per NAMA, dan satu nama bersama membuat proses yang
+                melayani dua kabupaten (queue worker) mengirim surat kabupaten kedua dari kotak
+                surat kabupaten pertama TANPA GALAT; (b) BUKAN Mail::build() meski itu paling
+                ringkas - MailFake tak punya build(), jadi jalur kirim yang memakainya mustahil
+                diuji, dan jalur kirim yang tak bisa diuji adalah jalur yang gerbangnya jebol
+                diam-diam; (c) gerbang penerima = DAFTAR PUTIH satu tabel, satu Form Request
+                (MailSendRequest) untuk tulis baru/balas/teruskan, dan gerbang peran + 404
+                diletakkan di authorize() BUKAN cuma controller - FormRequest divalidasi SEBELUM
+                controller, terbukti lewat test: POST ke fitur mati dijawab galat validasi (302)
+                alih-alih 404, yang mengaku endpoint-nya ada sekaligus membocorkan cara kerja
+                daftar putihnya; (d) password kotak surat TAK PERNAH dikirim ke layar (hanya
+                `has_password`), kolom kosong = JANGAN UBAH (kalau terbalik, menyimpan perubahan
+                nama pengirim menghapus passwordnya dan fiturnya baru mati di kiriman
+                berikutnya), alamat pengirim DIKUNCI ke akun (mail_username = mail_from_address;
+                Gmail menulis ulang From yang tak cocok dengan akunnya), tenant yang disunting
+                ditentukan city_code AKUN tak pernah dari request (#1 P0); (e) tiap percobaan
+                kirim BERHASIL MAUPUN GAGAL meninggalkan satu baris mail_messages (append-only,
+                pengirim & penerima di-SNAPSHOT: user_id nullOnDelete + sender_name, sebab
+                menghapus akun tak boleh membuat jejak audit berbunyi "tidak tercatat").
+                YANG TIDAK BISA DIJANJIKAN, sudah tertulis di §1.1 file task: "email tidak semua
+                bisa login" TIDAK bisa ditegakkan Sisupit - yang menentukan siapa memegang
+                password. Syarat mutlaknya password tidak dibagikan ke PETUGAS; admin tetap bisa
+                membuka kotak surat dari luar Sisupit, jadi jaminannya BERLAPIS PERAN, bukan
+                mutlak.
+                Test 472 -> 485 passed (1986 assertions); ENAM sabotase dibuktikan MERAH, berkas
+                pulih byte-exact. PELAJARAN SABOTASE: dua sabotase pertama tampak "gagal
+                memerahkan" padahal TIDAK PERNAH TERPASANG (\Q...\E di perl tetap menginterpolasi
+                $var jadi string kosong) - sabotase yang gagal terpasang tampak PERSIS seperti
+                penjaga yang bekerja; sejak itu tiap sabotase diverifikasi `cmp` lebih dulu.
+                Pint PASS (14 berkas), prettier PASS, npm run build lulus & keenam halaman baru
+                dibuktikan ada di manifest + string kuncinya ada di bundel produksi.
+                TIGA MIGRASI ADITIF sudah dijalankan di DB dev LOKAL (0 pending), BELUM di VPS.
+                `.env` TIDAK disentuh sama sekali. TEMUAN BARU #129 OPEN (sengaja tak dikerjakan):
+                `->with('success', ...)` + `page.props.flash` tak pernah sampai ke layar - kunci
+                `flash` tidak pernah di-share, jadi toast di halaman admin lama diam tanpa gejala.
+                SISA: kredensial kotak surat dari tiap kota + kesepakatan §1.1, uji SMTP sungguhan
+                di staging, verifikasi visual 6 layar, nyalakan fitur per kabupaten, commit
+                (terpisah dari TASK_54 & TASK_55) + deploy = kode + `php artisan migrate`
+                BERSAMAAN. Slice 2 (kotak masuk IMAP - BUTUH PERSETUJUAN DEPENDENSI BARU, mengubah
+                composer.lock sehingga deploy wajib `composer install`) & slice 3 (lampiran)
+                belum dikerjakan.
+               LAPORAN GANDA UNTUK SATU KEJADIAN - LAPIS 1 & 2 (TASK_55,
                 prompt/tasks/TASK_55_laporan_ganda_satu_kejadian.md). SELESAI (kode) 2026-09-14,
                 BELUM di-commit & BELUM dideploy. User: "banyak yang melapor padahal 1 kejadian",
                 memilih lapis 1+2 dan "setuju semua" atas K1-K5 (radius 500 m / 120 menit sebagai
@@ -2309,7 +2374,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-09-14: 472 passed, 1930 assertions.
+Test      : php artisan test            (baseline 2026-09-22: 485 passed, 1986 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

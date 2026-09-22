@@ -5,6 +5,8 @@ use App\Http\Controllers\Admin\BanjarController as AdminBanjarController;
 use App\Http\Controllers\Admin\ForumModerationController as AdminForumModerationController;
 use App\Http\Controllers\Admin\HydrantController as AdminHydrantController;
 use App\Http\Controllers\Admin\HydrantWargaController as AdminHydrantWargaController;
+use App\Http\Controllers\Admin\MailContactController as AdminMailContactController;
+use App\Http\Controllers\Admin\MailSettingController as AdminMailSettingController;
 use App\Http\Controllers\Admin\PompaController as AdminPompaController;
 use App\Http\Controllers\Admin\PosPemadamController as AdminPosPemadamController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
@@ -18,6 +20,7 @@ use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Front\ForumController;
 use App\Http\Controllers\Front\HydrantController;
+use App\Http\Controllers\Front\MailController;
 use App\Http\Controllers\Front\MonitoringMapController;
 use App\Http\Controllers\Front\PompaController;
 use App\Http\Controllers\Front\PosPemadamController;
@@ -74,6 +77,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('units', AdminUnitController::class)->except(['show']);
         // Master OPD/instansi terkait (TASK_27) — ter-scope wilayah via Tenantable.
         Route::resource('agencies', AdminAgencyController::class)->except(['show']);
+
+        // Email Dinas (TASK_56). DUA hal berbeda yang sengaja dipisah:
+        //  - Daftar Penerima = daftar putih yang dibaca gerbang kirim. Hanya admin yang boleh
+        //    mengubahnya; petugas boleh MENGIRIM tapi tidak menambah orang yang bisa dikirimi.
+        //  - Pengaturan kotak surat diisi ADMIN kabupaten sendiri (K8) — bukan superadmin,
+        //    bukan `.env`. Tenant yang disunting ditentukan city_code AKUN di controller.
+        // `mail-contacts/tarik-opd` didaftarkan SEBELUM resource supaya tidak terbaca sebagai
+        // {mail_contact} (alasan yang sama dengan `banjars/require`).
+        Route::post('mail-contacts/tarik-opd', [AdminMailContactController::class, 'tarikDariAgency'])->name('mail-contacts.tarik-opd');
+        Route::resource('mail-contacts', AdminMailContactController::class)->except(['show']);
+        Route::get('email', [AdminMailSettingController::class, 'edit'])->name('mail-settings.edit');
+        Route::put('email', [AdminMailSettingController::class, 'update'])->name('mail-settings.update');
+        Route::post('email/uji', [AdminMailSettingController::class, 'test'])->name('mail-settings.test');
         // Master banjar (2026-08-26) — satuan komunitas di BAWAH desa. Dipakai form hydrant
         // warga & layar Lengkapi Profil; diisi lewat CRUD ini atau perintah
         // `php artisan sisupit:import-banjar`.
@@ -115,6 +131,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/{thread}/balasan/{post}/terbaik', 'accept')->name('posts.accept');
         Route::post('/{thread}/balasan/{post}/lapor', 'flagPost')->middleware('throttle:forum-reply')->name('posts.flag');
         Route::delete('/{thread}/balasan/{post}', 'destroyPost')->name('posts.destroy');
+    });
+
+    // Email Dinas (TASK_56) — surat keluar dari kotak surat Damkar kabupaten ke pejabat.
+    // Gerbang peran (petugas|admin|superadmin) + ketersediaan kotak surat dicek di controller
+    // (404 bila fitur mati atau kredensial belum diisi); penerima dijaga MailSendRequest.
+    Route::prefix('email')->name('mail.')->controller(MailController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/tulis', 'create')->name('create');
+        Route::post('/tulis', 'store')->middleware('throttle:mail-send')->name('store');
     });
 });
 

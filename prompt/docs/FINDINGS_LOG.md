@@ -3242,3 +3242,26 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Yang sudah ditutup di TASK_55:** HANYA `digabung`, sebab menyelesaikan laporan anak memutus
   tautannya dari induk. Status lain sengaja tidak disentuh (aturan emas #6).
 - **Status:** OPEN
+
+### #129 — `->with('success', ...)` tak pernah sampai ke layar: toast diam di enam halaman admin (OPEN)
+
+- **Prioritas:** P3 (kosmetik, tapi senyap total).
+- **Ditemukan:** 2026-09-22 (TASK_56), saat memilih pola flash untuk halaman Email Dinas.
+- **Mekanismenya:** repo ini punya DUA pola flash yang tampak setara, dan hanya satu yang bekerja.
+  - Yang BENAR: helper PHP `flashMessage($pesan, $tipe)` menulis session `message` + `type`;
+    `HandleInertiaRequests` membagikannya sebagai prop `flash_message`; layar membacanya lewat
+    `flashMessage(success)` di `lib/utils.js` lalu `toast[flash.type](flash.message)`. Dipakai
+    Forum (TASK_54) dan halaman-halaman baru.
+  - Yang TIDAK: `return redirect()->...->with('success', '...')` di controller, dibaca di layar
+    sebagai `page.props.flash?.success`. **Kunci `flash` tidak pernah di-share** oleh
+    `HandleInertiaRequests` - `share()` hanya memancarkan `flash_message`. Jadi `page.props.flash`
+    selalu `undefined`, cabang toast-nya tak pernah jalan.
+- **Gejalanya nol:** tidak ada galat, aksinya benar-benar berhasil, datanya tersimpan - hanya
+  toast konfirmasinya yang tak pernah muncul. Bentuk yang sama dengan `fles-wrap` (#109) dan
+  `no-scrollbar` (#120): yang tidak ada tidak pernah bergalat.
+- **Sebarannya:** `Admin\AgencyController` (+ `Admin/Agencies/{Create,Edit,Index}.jsx`) adalah
+  yang diperiksa langsung; pola `->with('success'` dipakai beberapa controller admin lain, jadi
+  perbaikannya = satu sapuan tersendiri, bukan tambalan satu halaman.
+- **Sengaja TIDAK dikerjakan di TASK_56** (aturan emas #6): task itu memakai pola yang benar untuk
+  halaman barunya dan tidak menyentuh halaman lama.
+- **Status:** OPEN

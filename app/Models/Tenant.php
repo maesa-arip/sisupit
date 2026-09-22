@@ -29,12 +29,16 @@ class Tenant extends Model
     /** Forum Tanya Jawab Warga (TASK_54). */
     public const FEATURE_FORUM = 'forum';
 
+    /** Email Dinas (TASK_56). */
+    public const FEATURE_MAIL = 'email_dinas';
+
     /**
      * Daftar putih kunci `features` beserta labelnya. Kolomnya json bebas sejak TASK_19; tanpa
      * daftar ini kunci salah ketik tersimpan diam-diam dan fiturnya tak pernah menyala.
      */
     public const FEATURES = [
         self::FEATURE_FORUM => 'Forum Tanya Jawab Warga',
+        self::FEATURE_MAIL => 'Email Dinas',
     ];
 
     protected $guarded = [];
@@ -42,6 +46,10 @@ class Tenant extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'features' => 'array',
+        // Password kotak surat dinas (TASK_56). Cast `encrypted` = ciphertext di DB; kolomnya
+        // TEXT karena ciphertext jauh lebih panjang dari passwordnya.
+        'mail_password' => 'encrypted',
+        'mail_verified_at' => 'datetime',
     ];
 
     /**
@@ -71,6 +79,99 @@ class Tenant extends Model
         }
 
         return in_array($key, (array) ($this->features ?? []), true);
+    }
+
+    /**
+     * Kotak surat dinas tenant ini sudah siap dipakai? (TASK_56)
+     *
+     * Kelima kolom ini wajib terisi. Tenant yang fiturnya menyala tapi kotak suratnya belum
+     * diisi diperlakukan SAMA dengan fitur mati (route 404, menu absen) — layar kirim yang
+     * muncul tapi selalu gagal terbaca sebagai bug, bukan sebagai "belum disetel"
+     * (pelajaran TASK_45/#94).
+     */
+    public function hasMailbox(): bool
+    {
+        $attributes = $this->getAttributes();
+
+        foreach (['mail_from_address', 'mail_host', 'mail_port', 'mail_username', 'mail_password'] as $kolom) {
+            if (blank($attributes[$kolom] ?? null)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Nama mailer runtime kotak surat kabupaten ini.
+     *
+     * BER-ID TENANT, dan itu bukan hiasan: MailManager MENYIMPAN mailer yang sudah dibuat
+     * per NAMA. Satu nama bersama ("dinas") berarti proses yang melayani dua kabupaten —
+     * queue worker, atau dua request beruntun di php-fpm yang sama — memakai ulang kredensial
+     * kabupaten yang lebih dulu memakainya, sehingga surat kabupaten kedua terkirim dari
+     * kotak surat kabupaten pertama TANPA satu pun galat.
+     */
+    public function mailerName(): string
+    {
+        return 'dinas_'.$this->getKey();
+    }
+
+    /**
+     * Konfigurasi mailer RUNTIME untuk kotak surat kabupaten ini. Didaftarkan ke
+     * `mail.mailers.{mailerName}` lalu dipakai lewat Mail::mailer(), BUKAN mailer bawaan.
+     *
+     * Surat dinas TIDAK BOLEH lewat mailer bawaan: `.env` adalah alamat SISTEM (verifikasi
+     * pendaftaran & reset password), dan surat resmi Damkar yang terkirim dari alamat sistem
+     * Sisupit bukan cacat kosmetik — penerimanya pejabat. Lihat TASK_56 §1.2.
+     *
+     * Mailer BERNAMA, bukan Mail::build(): `Mail::fake()` (MailFake) tidak punya build(),
+     * sehingga jalur kirim yang memakainya mustahil diuji — dan jalur kirim yang tak bisa
+     * diuji adalah jalur yang gerbangnya akan diam-diam jebol. Mendaftarkan mailer BARU juga
+     * tidak menyentuh `mail.default` maupun `mail.mailers.smtp`, jadi email sistem tetap utuh.
+     */
+    public function mailerConfig(): array
+    {
+        return [
+            'transport' => 'smtp',
+            'host' => $this->mail_host,
+            'port' => (int) $this->mail_port,
+            'encryption' => $this->mail_encryption ?: null,
+            'username' => $this->mail_username,
+            'password' => $this->mail_password,
+            'timeout' => 15,
+        ];
+    }
+
+    /**
+     * Tenant yang kotak suratnya dipakai akun ini, atau null bila Email Dinas tak tersedia
+     * untuknya (fitur mati, atau kotak surat belum diisi).
+     *
+     * Dibaca dari `city_code` AKUN — bukan subdomain, bukan parameter request. Pola yang sama
+     * dengan ForumThread::enabledFor(). Akun tanpa kabupaten (termasuk superadmin nasional)
+     * mendapat null: mengirim surat dinas menuntut kotak surat milik sebuah kabupaten, dan
+     * tidak ada kabupaten yang "default" untuk itu.
+     *
+     * SENGAJA TIDAK memakai forCity(): fungsi itu meng-cache tenant selamanya, sehingga admin
+     * yang baru memperbarui kredensialnya akan terus mengirim lewat kredensial lama sampai
+     * cache dibuang — gagal yang tak akan pernah ia hubungkan dengan perubahannya sendiri.
+     * Mengirim surat juga bukan jalur panas (beberapa per hari), jadi satu query itu murah.
+     */
+    public static function mailboxFor(?User $user): ?self
+    {
+        if (! $user || ! $user->city_code) {
+            return null;
+        }
+
+        $tenant = self::tryQuery(fn () => self::query()
+            ->where('city_code', $user->city_code)
+            ->where('is_active', true)
+            ->first());
+
+        if (! $tenant || ! $tenant->hasFeature(self::FEATURE_MAIL) || ! $tenant->hasMailbox()) {
+            return null;
+        }
+
+        return $tenant;
     }
 
     /**

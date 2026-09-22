@@ -207,3 +207,28 @@
 - Role check: **selalu** `hasRole()`/`hasAnyRole()` dari Spatie Permission, bukan kolom
   string manual. `User::role([...])` bisa melempar `RoleDoesNotExist` di DB belum ter-seed
   (lihat workaround di `HomeController`).
+- **Email keluar punya DUA jalur yang tak boleh tercampur** (TASK_56). `.env` (`MAIL_*`) adalah
+  **email SISTEM** — verifikasi pendaftaran & reset password bawaan Laravel, atas nama Sisupit,
+  satu untuk seluruh aplikasi. **Email DINAS** (surat ke pejabat) memakai kotak surat milik
+  KABUPATEN, kredensialnya di baris `tenants` (password ber-cast `encrypted`, kolom TEXT karena
+  ciphertext jauh lebih panjang dari passwordnya), dikirim lewat **mailer BERNAMA per tenant**
+  (`Tenant::mailerName()` = `dinas_{id}`, didaftarkan runtime ke `mail.mailers.*` lalu dipakai
+  `Mail::mailer(...)`). Tiga hal yang mengikat: (a) **jangan pernah `Mail::to()`/`Mail::send()`**
+  di `app/` — itu mailer bawaan, dan surat resmi Damkar yang terkirim dari alamat sistem Sisupit
+  bukan cacat kosmetik sebab penerimanya pejabat; (b) nama mailer WAJIB ber-id tenant, sebab
+  MailManager menyimpan mailer per NAMA dan satu nama bersama membuat proses yang melayani dua
+  kabupaten (queue worker, dua request beruntun di php-fpm yang sama) memakai ulang kredensial
+  kabupaten yang lebih dulu — surat kabupaten kedua terkirim dari kotak surat kabupaten pertama
+  tanpa satu pun galat; (c) **bukan `Mail::build()`** meski itu bentuk paling ringkas —
+  `MailFake` tidak punya `build()`, jadi jalur kirim yang memakainya mustahil diuji, dan jalur
+  kirim yang tak bisa diuji adalah jalur yang gerbangnya akan diam-diam jebol. Dijaga
+  `MailAllowlistTest` (13 test), yang menguji KEDUA arah pemisahan itu dalam satu test.
+- **Penerima email dinas = DAFTAR PUTIH, satu tabel, satu Form Request** (TASK_56). Gerbangnya
+  `mail_contacts` (ter-`Tenantable`); `agencies.email` tetap sekadar detail kontak instansi dan
+  **tidak memberi izin kirim** — dua sumber untuk satu gerbang berarti dua cara mencabut izin.
+  `MailSendRequest` dipakai tulis baru, BALAS, dan TERUSKAN; menyalin aturannya ke jalur kedua =
+  dua aturan yang akan menyimpang. Gerbang peran & ketersediaan kotak surat diletakkan di
+  `authorize()`, **bukan hanya di controller**: FormRequest divalidasi SEBELUM method controller,
+  jadi gerbang yang cuma ada di controller membuat POST ke fitur yang mati dijawab galat
+  validasi (302) alih-alih 404 — jawaban yang mengaku endpoint-nya ada sekaligus membocorkan
+  cara kerja daftar putihnya. Terbukti saat dikerjakan, bukan teori.
