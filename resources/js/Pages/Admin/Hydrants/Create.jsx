@@ -79,6 +79,7 @@ export default function Create({
 	districts,
 	admin_level,
 	admin_region_names,
+	can,
 }) {
 	// Hydrant resmi & hydrant warga memakai form yang SAMA; `variant` menentukan judul, route
 	// simpan, dan apakah debit air wajib. Lihat ./variants.jsx.
@@ -442,7 +443,7 @@ export default function Create({
 			<div className="mb-2 flex flex-col items-start justify-between gap-y-4 lg:flex-row lg:items-center">
 				<div className="flex flex-col gap-3">
 					<HeaderTitle title={v.createTitle} subtitle={v.createSubtitle} icon={IconDroplet} />
-					<HydrantTabs active={variant} target="create" />
+					<HydrantTabs active={variant} target="create" showWarga={can?.warga ?? true} />
 				</div>
 				<Button variant="secondary" size="sm" asChild>
 					<Link href={route(v.routes.index)}>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Hydrant;
+use App\Models\HydrantLog;
 use App\Models\HydrantWarga;
 use App\Traits\ResolvesFacilityJurisdiction;
 use Illuminate\Http\Request;
@@ -30,7 +31,7 @@ class HydrantController extends Controller
             $query->where('status', $request->status);
         }
 
-        $hydrants = $query->latest()->paginate(10)->withQueryString();
+        $hydrants = $query->with('latestLog')->latest()->paginate(10)->withQueryString();
 
         return Inertia::render('Admin/Hydrants/Index', [
             // Halaman ini melayani DUA route (hydrant resmi & hydrant warga) dengan komponen
@@ -39,10 +40,12 @@ class HydrantController extends Controller
             // Jumlah KEDUA daftar dikirim supaya tab bisa menampilkan angkanya. Ini yang
             // paling cepat memberi tahu pengguna bahwa keduanya dataset berbeda, bukan
             // sekadar filter. Ter-scope Tenantable, jadi angkanya sesuai wilayah admin.
-            'counts' => [
+            // Petugas tak punya akses ke hydrant warga, jadi jumlahnya pun tak dikirim.
+            'counts' => array_filter([
                 'resmi' => Hydrant::count(),
-                'warga' => HydrantWarga::count(),
-            ],
+                'warga' => $this->abilities()['warga'] ? HydrantWarga::count() : null,
+            ], fn ($count) => $count !== null),
+            'can' => $this->abilities(),
             'hydrants' => $hydrants,
             'filters' => $request->only(['search', 'status']),
             'tenant_location' => $this->getTenantDefaultLocation(),
@@ -67,6 +70,7 @@ class HydrantController extends Controller
 
         return Inertia::render('Admin/Hydrants/Create', [
             'variant' => 'resmi',
+            'can' => $this->abilities(),
             'tenant_location' => $this->getTenantDefaultLocation(),
             'provinces' => $provinces,
             'cities' => $cities,
@@ -85,7 +89,10 @@ class HydrantController extends Controller
     {
         $validated = $this->validateData($request);
 
-        Hydrant::create($this->withJurisdictionCodes($validated, $request));
+        DB::transaction(function () use ($validated, $request) {
+            $hydrant = Hydrant::create($this->withJurisdictionCodes($validated, $request));
+            HydrantLog::record($hydrant, HydrantLog::ACTION_CREATED);
+        });
 
         return redirect()->route('admin.hydrants.index')->with('success', 'Hydrant berhasil ditambahkan.');
     }
@@ -118,6 +125,8 @@ class HydrantController extends Controller
         return Inertia::render('Admin/Hydrants/Edit', [
             'variant' => 'resmi',
             'hydrant' => $hydrant,
+            'logs' => $hydrant->logs()->limit(50)->get(),
+            'can' => $this->abilities(),
             'hydrant_province' => $hydrantProvinceCode,
             'tenant_location' => $this->getTenantDefaultLocation(),
             'provinces' => $provinces,
@@ -137,13 +146,27 @@ class HydrantController extends Controller
     {
         $validated = $this->validateData($request);
 
-        $hydrant->update($this->withJurisdictionCodes($validated, $request));
+        DB::transaction(function () use ($hydrant, $validated, $request) {
+            $before = $hydrant->getAttributes();
+            $hydrant->update($this->withJurisdictionCodes($validated, $request));
+
+            // Simpan tanpa perubahan apa pun tidak meninggalkan jejak: riwayat yang dipenuhi
+            // baris kosong menenggelamkan suntingan yang sungguhan.
+            $changes = HydrantLog::diff($before, $hydrant->getChanges());
+            if ($changes !== []) {
+                HydrantLog::record($hydrant, HydrantLog::ACTION_UPDATED, $changes);
+            }
+        });
 
         return redirect()->route('admin.hydrants.index')->with('success', 'Data Hydrant berhasil diperbarui.');
     }
 
     public function destroy(Hydrant $hydrant)
     {
+        // Route-nya sudah di grup admin|superadmin; dicek ulang di sini karena resource ini
+        // kini dipecah ke dua grup peran, dan grup route yang keliru pernah terjadi (#1).
+        abort_unless(auth()->user()->hasAnyRole(['admin', 'superadmin']), 403);
+
         $hydrant->delete();
 
         return redirect()->back()->with('success', 'Hydrant berhasil dihapus.');
@@ -172,6 +195,18 @@ class HydrantController extends Controller
             'district_code' => 'nullable|string',
             'village_code' => 'nullable|string',
         ]);
+    }
+
+    /**
+     * Hak akses halaman hydrant untuk pengguna saat ini, dikirim sebagai prop `can` supaya
+     * layar tak menulis daftar peran sendiri (#101). Petugas (sejak 2026-09-22) boleh melihat,
+     * menambah, dan menyunting hydrant resmi; menghapus dan hydrant warga tetap milik admin.
+     */
+    private function abilities(): array
+    {
+        $isAdmin = auth()->user()->hasAnyRole(['admin', 'superadmin']);
+
+        return ['delete' => $isAdmin, 'warga' => $isAdmin];
     }
 
     private function getTenantDefaultLocation()
