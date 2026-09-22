@@ -142,6 +142,12 @@ class ReportActionController extends Controller
             abort(403, 'Insiden yang sudah selesai tidak dapat ditolak.');
         }
 
+        // Laporan yang digabung bukan kejadian yang berdiri sendiri (TASK_55). Menolaknya
+        // mengirim "Ditolak" ke pelapor yang laporannya justru benar; pisahkan dulu.
+        if ($report->status === Report::STATUS_DIGABUNG) {
+            abort(403, 'Laporan yang sudah digabung tidak dapat ditolak. Pisahkan dulu dari kejadiannya.');
+        }
+
         $report->update([
             'status' => 'ditolak',
             'rejected_reason' => $request->reason,
@@ -159,6 +165,128 @@ class ReportActionController extends Controller
         return back()->with('success', 'Laporan ditandai ditolak dan diarsipkan.');
     }
 
+    // 1c. Laporan ganda (TASK_55, lapis 2). Satu kebakaran dilaporkan banyak orang; admin
+    // menyatakan laporan mentah ini KEJADIAN YANG SAMA dengan laporan lain. Mesin hanya
+    // mengusulkan (Report::cariKandidatDuplikat) - tak ada penggabungan otomatis.
+    //
+    // ADMIN SAJA, sepasang dengan approve()/reject(): "ini bukan kejadian terpisah" adalah sisi
+    // lain keputusan verifikasi. Daftar perannya harus sama dengan $isVerifier di
+    // ReportController::show, yang mengirim `canMerge` ke layar.
+    //
+    // `into_id` WAJIB dikirim, tidak diambil dari kolom usulan: admin boleh tahu lebih banyak
+    // daripada mesin (mis. induk yang sebenarnya 700 m jauhnya, di luar radius).
+    public function merge(Request $request, $id)
+    {
+        $user = auth()->user();
+        if (! $user->hasAnyRole(['admin', 'superadmin'])) {
+            abort(403, 'Akses Ditolak.');
+        }
+
+        $request->validate(['into_id' => 'required|integer']);
+
+        // withoutGlobalScopes() pada KEDUA laporan diganti pemeriksaan wilayah pada KEDUANYA
+        // (ATURAN EMAS #7). Memeriksa satu sisi saja = menarik laporan wilayah lain ke insiden
+        // milik sendiri, atau sebaliknya.
+        $report = Report::withoutGlobalScopes()->findOrFail($id);
+        $induk = Report::withoutGlobalScopes()->findOrFail($request->into_id);
+        $this->ensureWithinJurisdiction($report, $user);
+        $this->ensureWithinJurisdiction($induk, $user);
+
+        if ($report->id === $induk->id) {
+            abort(403, 'Laporan tidak dapat digabung ke dirinya sendiri.');
+        }
+        // Hanya laporan MENTAH yang digabung. Laporan yang sudah diverifikasi sudah menyiarkan
+        // sirine & mungkin sudah punya responder; menggabungkannya diam-diam memutus mereka.
+        if ($report->status !== 'TERLAPOR') {
+            abort(403, 'Hanya laporan yang belum diverifikasi yang dapat digabung.');
+        }
+        if (! in_array($induk->status, Report::STATUS_INDUK_DUPLIKAT, true)) {
+            abort(403, 'Kejadian tujuan sudah ditutup, ditolak, atau digabung.');
+        }
+        // Tanpa rantai: induk selalu kejadian yang berdiri sendiri. Laporan yang sudah punya
+        // laporan tergabung akan membawa anak-anaknya ke tempat yang tak terlihat siapa pun.
+        if (Report::withoutGlobalScopes()->where('merged_into_id', $report->id)->exists()) {
+            abort(403, 'Laporan ini sudah menjadi kejadian induk bagi laporan lain.');
+        }
+
+        DB::transaction(function () use ($report, $induk, $user) {
+            $report->update([
+                'status' => Report::STATUS_DIGABUNG,
+                'merged_into_id' => $induk->id,
+                'merged_by' => $user->id,
+                'merged_at' => now(),
+                'duplicate_candidate_of_id' => null,
+            ]);
+
+            // Usulan lain yang menunjuk laporan ini dipindah ke induknya. Tanpa itu admin
+            // diminta menggabung ke laporan yang justru sudah digabung - aksi yang selalu 403.
+            Report::withoutGlobalScopes()
+                ->where('duplicate_candidate_of_id', $report->id)
+                ->update(['duplicate_candidate_of_id' => $induk->id]);
+        });
+
+        $this->notifyReporter($report, 'merged');
+        broadcast(new ReportStatusChanged($report->id, Report::STATUS_DIGABUNG));
+        broadcast(ReportFeedChanged::for($report, Report::STATUS_DIGABUNG));
+        // Panel "Laporan terkait" di halaman induk yang sedang terbuka.
+        broadcast(new ReportRecordChanged($induk->id));
+
+        return back()->with('success', 'Laporan digabung ke kejadian "'.$induk->title.'".');
+    }
+
+    // 1d. Membatalkan penggabungan yang keliru: laporan kembali ke antrean sebagai laporan masuk.
+    // Nada triase TIDAK dikirim ulang - yang memisahkan adalah admin yang sedang melihatnya.
+    public function unmerge($id)
+    {
+        $user = auth()->user();
+        if (! $user->hasAnyRole(['admin', 'superadmin'])) {
+            abort(403, 'Akses Ditolak.');
+        }
+
+        $report = Report::withoutGlobalScopes()->findOrFail($id);
+        $this->ensureWithinJurisdiction($report, $user);
+
+        if ($report->status !== Report::STATUS_DIGABUNG) {
+            abort(403, 'Laporan ini tidak sedang digabung.');
+        }
+
+        $indukId = $report->merged_into_id;
+
+        $report->update([
+            'status' => 'TERLAPOR',
+            'merged_into_id' => null,
+            'merged_by' => null,
+            'merged_at' => null,
+        ]);
+
+        broadcast(new ReportStatusChanged($report->id, 'TERLAPOR'));
+        broadcast(ReportFeedChanged::for($report, 'TERLAPOR'));
+        if ($indukId) {
+            broadcast(new ReportRecordChanged($indukId));
+        }
+
+        return back()->with('success', 'Laporan dipisahkan dan kembali ke antrean verifikasi.');
+    }
+
+    // 1e. "Bukan kejadian yang sama": buang usulan mesin, laporannya tidak berubah.
+    public function dismissDuplicate($id)
+    {
+        $user = auth()->user();
+        if (! $user->hasAnyRole(['admin', 'superadmin'])) {
+            abort(403, 'Akses Ditolak.');
+        }
+
+        $report = Report::withoutGlobalScopes()->findOrFail($id);
+        $this->ensureWithinJurisdiction($report, $user);
+
+        $report->update(['duplicate_candidate_of_id' => null]);
+
+        broadcast(new ReportRecordChanged($report->id));
+        broadcast(ReportFeedChanged::for($report));
+
+        return back()->with('success', 'Usulan laporan ganda diabaikan.');
+    }
+
     // 2. Saat Relawan / Petugas merespons panggilan (Tombol "Meluncur")
     public function takeAction($id)
     {
@@ -171,7 +299,9 @@ class ReportActionController extends Controller
         $this->ensureWithinJurisdiction($report, $user);
 
         // Tak bisa merespons insiden yang sudah ditutup/ditolak.
-        if (in_array($report->status, ['resolved', 'ditolak'], true)) {
+        // `digabung` (TASK_55): responder yang meluncur ke laporan anak tak terlihat oleh siapa pun
+        // yang memantau insiden induknya.
+        if (in_array($report->status, ['resolved', 'ditolak', Report::STATUS_DIGABUNG], true)) {
             abort(403, 'Insiden ini sudah ditutup.');
         }
 
@@ -282,7 +412,9 @@ class ReportActionController extends Controller
 
         $report = Report::withoutGlobalScopes()->findOrFail($id);
         $this->ensureWithinJurisdiction($report, auth()->user());
-        if (in_array($report->status, ['resolved', 'ditolak'], true)) {
+        // `digabung` (TASK_55): responder yang meluncur ke laporan anak tak terlihat oleh siapa pun
+        // yang memantau insiden induknya.
+        if (in_array($report->status, ['resolved', 'ditolak', Report::STATUS_DIGABUNG], true)) {
             abort(403, 'Insiden ini sudah ditutup.');
         }
 
@@ -353,7 +485,9 @@ class ReportActionController extends Controller
         $report = Report::withoutGlobalScopes()->findOrFail($id);
         $this->ensureWithinJurisdiction($report, auth()->user());
 
-        if (in_array($report->status, ['resolved', 'ditolak'], true)) {
+        // `digabung` (TASK_55): responder yang meluncur ke laporan anak tak terlihat oleh siapa pun
+        // yang memantau insiden induknya.
+        if (in_array($report->status, ['resolved', 'ditolak', Report::STATUS_DIGABUNG], true)) {
             abort(403, 'Insiden ini sudah ditutup.');
         }
 
@@ -586,7 +720,9 @@ class ReportActionController extends Controller
 
         $report = Report::withoutGlobalScopes()->findOrFail($id);
 
-        if (in_array($report->status, ['resolved', 'ditolak'], true)) {
+        // `digabung` (TASK_55): responder yang meluncur ke laporan anak tak terlihat oleh siapa pun
+        // yang memantau insiden induknya.
+        if (in_array($report->status, ['resolved', 'ditolak', Report::STATUS_DIGABUNG], true)) {
             abort(403, 'Insiden ini sudah ditutup.');
         }
 
@@ -641,6 +777,12 @@ class ReportActionController extends Controller
         // Pastikan hanya petugas/admin yang bisa selesaikan
         if (! auth()->user()->hasAnyRole(['petugas', 'admin', 'superadmin'])) {
             abort(403, 'Akses Ditolak.');
+        }
+
+        // Laporan yang digabung diselesaikan lewat induknya (TASK_55). Menutupnya sendiri
+        // menulis `resolved` di atas `digabung` dan memutus tautannya dari hitungan & rekap.
+        if ($report->status === Report::STATUS_DIGABUNG) {
+            abort(403, 'Laporan yang sudah digabung diselesaikan lewat kejadian induknya.');
         }
 
         $actorId = auth()->id();
@@ -816,11 +958,37 @@ class ReportActionController extends Controller
      * Kirim notifikasi balik ke PELAPOR (FCM + lonceng web) saat status laporannya berubah.
      * Lewati jika laporan tak punya pelapor (data lama) atau bila aktornya adalah pelapor
      * itu sendiri (mis. petugas yang melapor lalu memproses sendiri — hindari notif ke diri).
+     *
+     * Laporan ganda (TASK_55): pelapor laporan yang DIGABUNG ke insiden ini ikut dikabari.
+     * Tanpa itu mereka tak pernah tahu kejadiannya diverifikasi atau selesai, dan laporan yang
+     * tak pernah dijawab terbaca sebagai laporan yang diabaikan (pelajaran TASK_45/#94).
+     * Notifikasinya dibangun atas laporan ANAK milik mereka sendiri, bukan induknya: tautannya
+     * membuka halaman yang memang boleh mereka buka - halaman induk memuat identitas & telepon
+     * pelapor lain, dan bagi mereka itu 403. Satu orang yang melapor dua kali cukup dikabari
+     * sekali. Layar anak yang sedang terbuka ikut diberi aba-aba supaya status induk yang
+     * ditampilkannya tidak basi.
      */
     private function notifyReporter(Report $report, string $event): void
     {
+        $sudahDikabari = [auth()->id()];
+
         if ($report->user && $report->user_id !== auth()->id()) {
             $report->user->notify(new ReportStatusUpdatedNotification($report, $event));
+            $sudahDikabari[] = $report->user_id;
+        }
+
+        $anakGabungan = Report::withoutGlobalScopes()
+            ->with('user')
+            ->where('merged_into_id', $report->id)
+            ->get();
+
+        foreach ($anakGabungan as $anak) {
+            broadcast(new ReportRecordChanged($anak->id));
+
+            if ($anak->user && ! in_array($anak->user_id, $sudahDikabari, true)) {
+                $anak->user->notify(new ReportStatusUpdatedNotification($anak, $event));
+                $sudahDikabari[] = $anak->user_id;
+            }
         }
     }
 }

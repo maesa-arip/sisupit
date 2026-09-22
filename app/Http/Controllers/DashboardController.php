@@ -224,7 +224,7 @@ class DashboardController extends Controller
             $myTasks = Report::withoutGlobalScopes()
                 ->with(['helpers.user'])
                 ->whereHas('helpers', fn ($q) => $q->where('user_id', $user->id))
-                ->where('status', '!=', 'ditolak')
+                ->whereNotIn('status', ['ditolak', Report::STATUS_DIGABUNG])
                 ->latest('created_at')
                 ->get();
         }
@@ -234,7 +234,9 @@ class DashboardController extends Controller
         // terbatas ke wilayah (desa/kecamatan/kabupaten/provinsi) milik warga yang melihat,
         // konsisten dengan $nearbyEmergencies di atas.
         $reportsFeed = Report::with(['helpers.user'])
-            ->where('status', '!=', 'ditolak') // laporan ditolak tak tampil di radar/feed publik
+            // Laporan ditolak & laporan ganda yang sudah digabung (TASK_55) tak tampil di
+            // radar/feed publik - yang digabung akan terbaca sebagai kejadian kedua.
+            ->whereNotIn('status', ['ditolak', Report::STATUS_DIGABUNG])
             ->latest('created_at')
             ->paginate(request()->load ?? 6)
             ->withQueryString();

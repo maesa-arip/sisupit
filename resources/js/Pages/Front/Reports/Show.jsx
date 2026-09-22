@@ -26,6 +26,7 @@ import {
 	IconPlus,
 	IconRadar,
 	IconShieldCheck,
+	IconStack2,
 	IconTrash,
 	IconTruck,
 	IconUser,
@@ -213,6 +214,29 @@ export default function ReportShow(props) {
 	// Petugas di wilayah laporan yang melihat laporan mentah: ia BUKAN pemverifikasi, jadi
 	// yang ditampilkan bukan tombol melainkan keadaan "sedang ditunggu".
 	const isAwaitingAdmin = isStaffOrAdmin && !canVerify;
+	// Laporan ganda (TASK_55). Gerbang aksinya prop SERVER dengan alasan yang sama dengan
+	// `canVerify` di atas. `duplicateCandidate` = usulan mesin atas laporan mentah ini,
+	// `mergedReports` = laporan lain yang sudah digabung KE insiden ini, `mergedIncident` =
+	// keadaan induk bila laporan INI yang digabung (tanpa id bagi pelapor - halaman induk
+	// memuat identitas pelapor lain).
+	const canMerge = props.canMerge || false;
+	const duplicateCandidate = props.duplicateCandidate || null;
+	const mergedReports = props.mergedReports || [];
+	const mergedIncident = props.mergedIncident || null;
+	const [isMerging, setIsMerging] = useState(false);
+	// Insiden yang sedang berjalan di alur respons: bukan laporan mentah, bukan yang ditolak,
+	// dan bukan laporan ganda yang sudah digabung - responder yang meluncur ke laporan anak tak
+	// terlihat oleh siapa pun yang memantau insiden induknya (server menolaknya juga).
+	const isInResponseFlow = !['TERLAPOR', 'ditolak', 'digabung'].includes(reportStatus);
+
+	const postDuplicateAction = (routeName, reportId, data, message) => {
+		setIsMerging(true);
+		router.post(route(routeName, reportId), data, {
+			preserveScroll: true,
+			onSuccess: () => toast.success(message),
+			onFinish: () => setIsMerging(false),
+		});
+	};
 
 	useEffect(() => {
 		setOfficerList(props.report.officers || []);
@@ -237,7 +261,9 @@ export default function ReportShow(props) {
 	 * adalah prop TERPISAH, dan bentuk lama `only: ['report']` tak pernah menyentuh keduanya.
 	 */
 	const reloadIncident = () => {
-		router.reload({ only: ['report', 'reportAgencies', 'resolutions'] });
+		router.reload({
+			only: ['report', 'reportAgencies', 'resolutions', 'duplicateCandidate', 'mergedReports', 'mergedIncident'],
+		});
 	};
 
 	// Seberapa boleh pin ini dipercaya (TASK_52, #104). Dibaca dari `incidentLocation` supaya
@@ -281,6 +307,12 @@ export default function ReportShow(props) {
 				};
 			case 'ditolak':
 				return { label: 'Ditolak', color: 'bg-muted text-muted-foreground border-border' };
+			// TASK_55, sewarna Components/StatusBadge.jsx.
+			case 'digabung':
+				return {
+					label: 'Digabung',
+					color: 'border-dashed border-muted-foreground/40 bg-muted/40 text-foreground',
+				};
 			default:
 				return { label: status, color: 'bg-muted text-muted-foreground border-border' };
 		}
@@ -991,6 +1023,158 @@ export default function ReportShow(props) {
 				)}
 			</div>
 
+			{/* --- LAPORAN INI SUDAH DIGABUNG (TASK_55) --- */}
+			{/* Ditaruh di ATAS, bukan di kolom kanan: di ponsel kolom kanan baru terlihat setelah
+			    peta, dan pelapor yang laporannya berbunyi "Digabung" harus langsung tahu bahwa
+			    laporannya DITERIMA, bukan dibuang. */}
+			{reportStatus === 'digabung' && (
+				<Card className="rounded-xl border border-border bg-card shadow-none">
+					<CardContent className="flex flex-col gap-4 p-4 sm:p-5 md:flex-row md:items-center md:justify-between">
+						<div className="flex items-start gap-3">
+							<div className="mt-0.5 shrink-0 rounded-lg bg-muted p-2 text-foreground/80">
+								<IconStack2 className="h-5 w-5" />
+							</div>
+							<div className="min-w-0 space-y-2">
+								<h3 className="text-sm font-bold text-foreground">Laporan Digabung</h3>
+								<p className="max-w-xl text-xs leading-relaxed text-muted-foreground">
+									Kejadian ini sudah dilaporkan sebelumnya, jadi laporan ini digabung dengan laporan
+									tersebut supaya penanganannya tercatat di satu insiden. Perkembangannya tetap
+									dikabarkan ke pelapor.
+								</p>
+								{mergedIncident && (
+									<div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+										<span>Status kejadian:</span>
+										<Badge
+											variant="outline"
+											className={cn(
+												'whitespace-nowrap rounded-md px-2 py-0.5 font-bold shadow-none',
+												getReportStatus(mergedIncident.status).color,
+											)}
+										>
+											{getReportStatus(mergedIncident.status).label}
+										</Badge>
+									</div>
+								)}
+							</div>
+						</div>
+						<div className="flex w-full shrink-0 flex-col gap-2 sm:flex-row md:w-auto">
+							{mergedIncident?.id && (
+								<Button asChild variant="outline" size="sm" className="h-9">
+									<Link href={route('reports.show', mergedIncident.id)}>
+										Buka {reportNumber(mergedIncident)}
+									</Link>
+								</Button>
+							)}
+							{canMerge && (
+								<Button
+									variant="ghost"
+									size="sm"
+									disabled={isMerging}
+									onClick={() =>
+										postDuplicateAction(
+											'reports.unmerge',
+											report.id,
+											{},
+											'Laporan dipisahkan dan kembali ke antrean verifikasi.',
+										)
+									}
+									className="h-9 gap-1.5 text-xs font-bold text-muted-foreground"
+								>
+									<IconArrowBackUp className="h-4 w-4" /> Pisahkan
+								</Button>
+							)}
+						</div>
+					</CardContent>
+				</Card>
+			)}
+
+			{/* --- KEMUNGKINAN LAPORAN GANDA (TASK_55) --- */}
+			{/* Usulan MESIN, bukan keputusan. Ditaruh DI ATAS panel Broadcast: itu gerbang terakhir
+			    sebelum sirine berbunyi di seluruh wilayah, dan laporan ganda yang lolos ke sana
+			    melahirkan dua misi untuk satu kebakaran. Menggabungkan bisa dibatalkan (Pisahkan),
+			    jadi tanpa dialog konfirmasi. */}
+			{reportStatus === 'TERLAPOR' && canMerge && duplicateCandidate && (
+				<Card className="rounded-xl border border-warning/30 bg-warning/5 shadow-none">
+					<CardContent className="flex flex-col gap-4 p-4 sm:p-5 md:flex-row md:items-center md:justify-between">
+						<div className="flex items-start gap-3">
+							<div className="mt-0.5 shrink-0 rounded-lg bg-warning/15 p-2 text-warning">
+								<IconStack2 className="h-5 w-5" />
+							</div>
+							<div className="min-w-0 space-y-2">
+								<h3 className="text-sm font-bold text-foreground">Kemungkinan Laporan Ganda</h3>
+								<p className="max-w-xl text-xs leading-relaxed text-muted-foreground">
+									Ada laporan kebakaran lain yang masih aktif
+									{duplicateCandidate.distance_m != null
+										? ` sekitar ${duplicateCandidate.distance_m} m`
+										: ''}{' '}
+									dari titik ini. Bila ini kejadian yang sama, gabungkan supaya tim tidak menerima dua
+									misi untuk satu kebakaran. Bila berbeda, abaikan usulan ini lalu verifikasi seperti
+									biasa.
+								</p>
+								<Link
+									href={route('reports.show', duplicateCandidate.id)}
+									className="flex flex-col rounded-lg border border-border bg-card p-3 text-xs transition-colors hover:bg-accent"
+								>
+									<span className="flex flex-wrap items-center gap-2">
+										<span className="font-mono font-semibold text-muted-foreground">
+											{reportNumber(duplicateCandidate)}
+										</span>
+										<Badge
+											variant="outline"
+											className={cn(
+												'whitespace-nowrap rounded-md px-2 py-0.5 font-bold shadow-none',
+												getReportStatus(duplicateCandidate.status).color,
+											)}
+										>
+											{getReportStatus(duplicateCandidate.status).label}
+										</Badge>
+									</span>
+									<span className="mt-1 font-semibold text-foreground">
+										{duplicateCandidate.title}
+									</span>
+									{duplicateCandidate.address && (
+										<span className="mt-0.5 line-clamp-2 text-muted-foreground">
+											{alamatTerbaca(duplicateCandidate.address)}
+										</span>
+									)}
+								</Link>
+							</div>
+						</div>
+						<div className="flex w-full shrink-0 flex-col gap-2 md:w-auto">
+							<Button
+								disabled={isMerging}
+								onClick={() =>
+									postDuplicateAction(
+										'reports.merge',
+										report.id,
+										{ into_id: duplicateCandidate.id },
+										'Laporan digabung ke kejadian yang sama.',
+									)
+								}
+								className="h-11 gap-1.5 text-xs font-bold uppercase tracking-wider"
+							>
+								<IconStack2 className="h-4 w-4" /> Gabungkan
+							</Button>
+							<Button
+								variant="outline"
+								disabled={isMerging}
+								onClick={() =>
+									postDuplicateAction(
+										'reports.dismiss-duplicate',
+										report.id,
+										{},
+										'Usulan laporan ganda diabaikan.',
+									)
+								}
+								className="h-9 text-xs font-bold"
+							>
+								Bukan kejadian yang sama
+							</Button>
+						</div>
+					</CardContent>
+				</Card>
+			)}
+
 			{/* --- 🛡️ PANEL VERIFIKASI (ADMIN SAJA sejak TASK_51) --- */}
 			{reportStatus === 'TERLAPOR' && canVerify && (
 				<Card className="rounded-xl border border-border bg-card shadow-none">
@@ -1278,7 +1462,70 @@ export default function ReportShow(props) {
 						</Card>
 					)}
 
-					{reportStatus !== 'TERLAPOR' && reportStatus !== 'ditolak' && (isRelawan || isStaffOrAdmin) && (
+					{/* Laporan TERKAIT (TASK_55): laporan lain yang digabung ke insiden ini. Foto &
+					    keterangan pelapor ke-2, ke-3, dst. adalah bukti tambahan - tanpa daftar ini
+					    semuanya hilang dari pandangan begitu digabung. */}
+					{mergedReports.length > 0 && (
+						<Card className="rounded-xl border border-border bg-card shadow-none">
+							<CardContent className="space-y-3 p-4 sm:p-5">
+								<h2 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-foreground">
+									<IconStack2 className="h-4 w-4 text-muted-foreground" /> Laporan Terkait (
+									{mergedReports.length})
+								</h2>
+								<p className="text-xs leading-relaxed text-muted-foreground">
+									Laporan warga lain atas kejadian yang sama.
+								</p>
+								<ul className="divide-y divide-border">
+									{mergedReports.map((terkait) => (
+										<li key={terkait.id} className="flex items-center justify-between gap-2 py-2">
+											<Link href={route('reports.show', terkait.id)} className="min-w-0 flex-1">
+												<p className="font-mono text-[11px] font-semibold text-muted-foreground">
+													{reportNumber(terkait)}
+												</p>
+												<p className="truncate text-sm font-semibold text-foreground">
+													{terkait.reporter || terkait.title}
+												</p>
+												<p className="text-[11px] text-muted-foreground">
+													{[
+														new Date(terkait.created_at).toLocaleTimeString('id-ID', {
+															hour: '2-digit',
+															minute: '2-digit',
+														}),
+														terkait.photos_count > 0
+															? `${terkait.photos_count} foto`
+															: 'Tanpa foto',
+														terkait.distance_m != null ? `±${terkait.distance_m} m` : null,
+													]
+														.filter(Boolean)
+														.join(' · ')}
+												</p>
+											</Link>
+											{canMerge && (
+												<Button
+													variant="ghost"
+													size="sm"
+													disabled={isMerging}
+													onClick={() =>
+														postDuplicateAction(
+															'reports.unmerge',
+															terkait.id,
+															{},
+															'Laporan dipisahkan dan kembali ke antrean verifikasi.',
+														)
+													}
+													className="h-8 shrink-0 gap-1 px-2 text-xs font-bold text-muted-foreground"
+												>
+													<IconArrowBackUp className="h-3.5 w-3.5" /> Pisahkan
+												</Button>
+											)}
+										</li>
+									))}
+								</ul>
+							</CardContent>
+						</Card>
+					)}
+
+					{isInResponseFlow && (isRelawan || isStaffOrAdmin) && (
 						<Card className="rounded-xl border border-border bg-card shadow-none">
 							<CardContent className="space-y-4 p-4 sm:p-5">
 								<h2 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-foreground">
@@ -1408,6 +1655,7 @@ export default function ReportShow(props) {
 						isStaffOrAdmin &&
 						reportStatus !== 'TERLAPOR' &&
 						reportStatus !== 'ditolak' &&
+						reportStatus !== 'digabung' &&
 						reportStatus !== 'resolved' && (
 							<Card className="rounded-xl border border-border bg-card shadow-none">
 								<CardContent className="space-y-3 p-4 sm:p-5">
@@ -1510,7 +1758,10 @@ export default function ReportShow(props) {
 					    (kabel terbakar → PLN), jadi mengunci pilihannya di detik verifikasi saja akan
 					    mendorong operator kembali ke WA pribadi — kebiasaan yang hendak digantikan. */}
 					{(reportAgencies.length > 0 ||
-						(canManageAgencies && reportStatus !== 'TERLAPOR' && reportStatus !== 'ditolak')) && (
+						(canManageAgencies &&
+							reportStatus !== 'TERLAPOR' &&
+							reportStatus !== 'ditolak' &&
+							reportStatus !== 'digabung')) && (
 						<Card className="rounded-xl border border-border bg-card shadow-none">
 							<CardContent className="space-y-3 p-4 sm:p-5">
 								<h2 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-foreground">
@@ -1608,6 +1859,7 @@ export default function ReportShow(props) {
 								{canManageAgencies &&
 									reportStatus !== 'TERLAPOR' &&
 									reportStatus !== 'ditolak' &&
+									reportStatus !== 'digabung' &&
 									reportStatus !== 'resolved' &&
 									(addableAgencies.length > 0 ? (
 										<div className="flex flex-col gap-2 border-t border-border pt-2 sm:flex-row">

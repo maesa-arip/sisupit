@@ -236,6 +236,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Rute Taktis (Custom Actions) Laporan
     Route::post('/reports/{report}/approve', [ReportActionController::class, 'approve'])->name('reports.approve');
     Route::post('/reports/{report}/reject', [ReportActionController::class, 'reject'])->name('reports.reject');
+    // Laporan ganda (TASK_55) - admin saja, gerbangnya di controller seperti approve/reject.
+    Route::post('/reports/{report}/merge', [ReportActionController::class, 'merge'])->name('reports.merge');
+    Route::post('/reports/{report}/unmerge', [ReportActionController::class, 'unmerge'])->name('reports.unmerge');
+    Route::post('/reports/{report}/dismiss-duplicate', [ReportActionController::class, 'dismissDuplicate'])->name('reports.dismiss-duplicate');
     Route::post('/reports/{report}/take-action', [ReportActionController::class, 'takeAction'])->name('reports.take-action');
     Route::post('/reports/{report}/cancel-response', [ReportActionController::class, 'cancelResponse'])->name('reports.cancel-response');
 

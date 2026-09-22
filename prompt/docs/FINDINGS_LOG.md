@@ -3174,3 +3174,71 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   `'type' => 'error'` (dan pesan berbahasa Indonesia) di cabang 419 `bootstrap/app.php`. Satu
   baris, tapi mengubah perilaku semua form, jadi butuh task sendiri beserta penjaganya.
 - **Status:** OPEN
+
+### #125 — Satu kebakaran = banyak laporan tanpa relasi: nada triase berulang, antrean ganda, satu-satunya jalan keluar "Tolak" (FIXED, TASK_55 lapis 1 & 2)
+
+- **Prioritas:** P2.
+- **Sumber:** pertanyaan user 2026-09-14 ("jika ada kejadian kebakaran maka akan banyak yang
+  melapor ... padahal itu 1 kejadian"), lalu "ya buatkan TASK_55, lapis 1 dan 2 dulu" dan
+  "setuju semua" atas lima keputusan K1-K5.
+- **Keadaan sebelumnya:** nol mekanisme deteksi. Tiap laporan membunyikan `STAGE_REPORT_INCOMING`
+  ke Pusat Komando, antrean Verifikasi Laporan berisi belasan baris untuk satu kejadian, dan satu-
+  satunya cara menyingkirkan yang ganda adalah `reject()` - pelapor jujur menerima "Ditolak" dan
+  rekap mencatatnya sebagai laporan yang ditolak.
+- **Fix:** lapis 1 = server MENGUSULKAN (`Report::cariKandidatDuplikat`, kolom
+  `duplicate_candidate_of_id`, usulan tanpa nada triase); lapis 2 = admin memutuskan (merge/unmerge/
+  dismiss-duplicate, status BARU `digabung`). Rincian di ARCHITECTURE_MAP (Workflow Respons) &
+  file task. Lapis 3 (pemberitahuan di form lapor warga) SENGAJA ditunda.
+- **Tiga hal yang mengikat & gampang dirusak sesi berikutnya:**
+  1. **Status, bukan kolom saja.** Penanda berupa kolom menuntut sebelas penyaring ingat
+     `whereNull('merged_into_id')`; status baru otomatis keluar dari daftar putih. Harganya:
+     setiap penyaring DAFTAR HITAM wajib menyebut `digabung` (CONVENTIONS, baris Status/enum).
+  2. **`reports.lat`/`lng` bertipe STRING** sejak tabel lahir. Kotak koordinat `whereBetween` di SQL
+     sempat dipasang dan TIDAK PERNAH menemukan kandidat (SQLite membandingkan teks) - tanpa galat.
+     Jangan pasang kotak SQL lagi tanpa CAST; saringan kabupaten+status+jendela sudah cukup sempit.
+  3. **Notifikasi pelapor anak dibangun atas laporan ANAK**, bukan induk: `action_url` induk = 403
+     bagi mereka (halaman itu memuat identitas pelapor lain).
+- **Penjaga:** `ReportDuplicateMergeTest` BARU (38 test) + 1 test di `ReportStatusDictionaryTest`.
+  Sembilan sabotase dibuktikan MERAH karena alasan yang benar, berkas pulih byte-exact (md5).
+- **Status:** FIXED (kode) 2026-09-14, belum di-commit & belum dideploy.
+
+### #126 — `ReportStatusDictionaryTest` menolak laporan sebagai PETUGAS, jadi penjaga `ditolak` hijau tanpa pernah menulis `ditolak` (FIXED)
+
+- **Prioritas:** P3 (penjaga, bukan perilaku produksi).
+- **Ditemukan:** 2026-09-14 saat memperluas berkas itu untuk `digabung` (TASK_55).
+- **Mekanismenya:** test pertama berkas itu menolak laporan lewat endpoint sungguhan lalu menuntut
+  kedua kamus layar mengenal status yang BENAR-BENAR tertulis. Aktornya petugas. Sejak TASK_51
+  (2026-08-31) `reject()` admin saja, jadi permintaannya berhenti di 403, kolomnya tetap `TERLAPOR` -
+  status yang memang dikenal kedua kamus - dan test hijau tanpa pernah menyentuh `ditolak`.
+  TASK_51 memindahkan aktor approve/reject di enam berkas test; berkas ini terlewat.
+- **Fix:** aktor jadi admin + `expect($ditulis)->toBe('ditolak')` supaya test yang tak pernah
+  sampai ke status yang dijaganya tak bisa hijau lagi.
+- **Status:** FIXED 2026-09-14
+
+### #127 — `ReportCard.jsx` punya tangga status sendiri yang hanya mengenal `resolved`/`handling` (OPEN)
+
+- **Prioritas:** P2.
+- **Ditemukan:** 2026-09-14 saat memeriksa semua kamus status untuk `digabung` (TASK_55).
+- **Mekanismenya:** `getStatusConfig()` memeriksa `resolved`, lalu `handling || hasHelpers`, lalu
+  cabang terakhir berbunyi **"Laporan Masuk" merah berkedip**. Laporan `pending` (sudah
+  diverifikasi, sirine sudah berbunyi, belum ada yang meluncur) di feed dashboard warga/relawan
+  karena itu tampil sebagai laporan mentah - cabang terakhir sebuah tangga adalah KLAIM (#90/#94).
+  Kartu ini tidak tercantum di daftar kamus yang dijaga `ReportStatusDictionaryTest`.
+- **Tidak berdampak pada TASK_55:** feed & tugas relawan yang dirender kartu ini disaring server
+  dari `digabung` (dikunci test), dan riwayat pelapor memakai `StatusBadge` kanonik.
+- **Arah fix (belum dikerjakan):** baca label & warna dari `Components/StatusBadge.jsx` alih-alih
+  tangga sendiri; pertahankan penanda "ada responder" sebagai keterangan terpisah, bukan status.
+- **Status:** OPEN
+
+### #128 — `resolve()` tanpa gerbang status: laporan mentah & yang ditolak bisa "diselesaikan" (OPEN)
+
+- **Prioritas:** P2.
+- **Ditemukan:** 2026-09-14 (TASK_55), saat menambah gerbang `digabung` ke aksi-aksi insiden.
+- **Mekanismenya:** `ReportActionController::resolve()` hanya memeriksa peran. Lima aksi tetangganya
+  menolak `resolved`/`ditolak`, tapi `resolve()` menulis `status = resolved` di atas `TERLAPOR`
+  maupun `ditolak`, memindahkan laporan hoaks ke hitungan "Selesai" & rekap. Tak terjangkau lewat
+  UI (tombolnya hanya di panel tindakan yang tak tampil untuk kedua status itu) - lubang tanpa
+  pintu, bentuk #102 (yang juga mencatat `resolve()` tanpa `ensureWithinJurisdiction()`).
+- **Yang sudah ditutup di TASK_55:** HANYA `digabung`, sebab menyelesaikan laporan anak memutus
+  tautannya dari induk. Status lain sengaja tidak disentuh (aturan emas #6).
+- **Status:** OPEN

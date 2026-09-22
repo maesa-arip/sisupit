@@ -45,6 +45,9 @@ class ReportStatusUpdatedNotification extends Notification implements ShouldQueu
             'en_route' => ['title' => 'Bantuan dalam perjalanan', 'body' => 'Responder sedang menuju lokasi "'.$this->report->title.'".'],
             'arrived' => ['title' => 'Responder tiba di lokasi', 'body' => 'Tim telah sampai di lokasi "'.$this->report->title.'".'],
             'resolved' => ['title' => 'Insiden selesai ditangani', 'body' => 'Laporan "'.$this->report->title.'" telah dinyatakan selesai.'],
+            // TASK_55. Kalimatnya sengaja menegaskan laporannya DITERIMA, bukan dibuang: pelapor
+            // jujur yang hanya membaca "digabung" bisa mengira laporannya dianggap salah.
+            'merged' => ['title' => 'Laporan Anda diterima', 'body' => 'Kejadian "'.$this->report->title.'" sudah dilaporkan warga lain dan sedang diproses. Laporan Anda digabungkan, dan perkembangannya tetap dikabarkan ke Anda.'],
             default => ['title' => 'Status laporan diperbarui', 'body' => $this->report->title],
         };
     }

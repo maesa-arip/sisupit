@@ -20,17 +20,18 @@ import {
 	IconPhone,
 	IconPhoto,
 	IconSearch,
+	IconStack2,
 	IconUser,
 } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 
 // 'aktif' dulu & jadi default triase (laporan yang masih perlu tindakan). 'Semua' tetap ada.
-const STATUS_OPTIONS = ['aktif', 'Semua', 'TERLAPOR', 'pending', 'handling', 'resolved', 'ditolak'];
+const STATUS_OPTIONS = ['aktif', 'Semua', 'TERLAPOR', 'pending', 'handling', 'resolved', 'ditolak', 'digabung'];
 
 // Status yang TIDAK PERNAH sampai ke pemantau (pejabat/relawan): ReportController::index
-// menyaringnya di server (whereNotIn TERLAPOR/ditolak). Chip yang selalu memulangkan daftar
-// kosong terbaca sebagai bug, jadi keduanya dibuang dari pill DAN legenda bagi pemantau.
-const MONITOR_HIDDEN_STATUSES = ['TERLAPOR', 'ditolak'];
+// menyaringnya di server (whereNotIn TERLAPOR/ditolak/digabung). Chip yang selalu memulangkan
+// daftar kosong terbaca sebagai bug, jadi ketiganya dibuang dari pill DAN legenda bagi pemantau.
+const MONITOR_HIDDEN_STATUSES = ['TERLAPOR', 'ditolak', 'digabung'];
 
 // Metadata status kejadian (badge + pin peta + titik legenda). Warna selaras Peta Pemantauan,
 // KECUALI "Penanganan" yang memakai teal (permintaan produk). Gaya kartu/pill/paginasi
@@ -83,6 +84,14 @@ const STATUS_META = {
 		dot: 'bg-muted-foreground',
 		ring: 'bg-muted text-muted-foreground',
 	},
+	// Laporan ganda yang digabung ke kejadian lain (TASK_55), sewarna Components/StatusBadge.jsx.
+	digabung: {
+		label: 'Digabung',
+		badge: 'border-dashed border-muted-foreground/40 bg-muted/40 text-foreground',
+		pin: 'text-muted-foreground/60',
+		dot: 'bg-muted-foreground/60',
+		ring: 'bg-muted/40 text-muted-foreground',
+	},
 };
 
 // 'aktif' = filter gabungan (TERLAPOR+pending+handling), bukan status nyata — tidak lagi
@@ -96,10 +105,11 @@ const FILTER_LABEL = {
 	handling: STATUS_META.handling.label,
 	resolved: STATUS_META.resolved.label,
 	ditolak: STATUS_META.ditolak.label,
+	digabung: STATUS_META.digabung.label,
 };
 
-// Urutan legenda peta = urutan alur insiden, ditutup 'ditolak' (jalan buntu, bukan tahap).
-const LEGEND_STATUSES = ['TERLAPOR', 'pending', 'handling', 'resolved', 'ditolak'];
+// Urutan legenda peta = urutan alur insiden, ditutup 'ditolak' & 'digabung' (jalan keluar, bukan tahap).
+const LEGEND_STATUSES = ['TERLAPOR', 'pending', 'handling', 'resolved', 'ditolak', 'digabung'];
 
 const markerStyle = (status) => STATUS_META[status] || STATUS_META.pending;
 
@@ -397,6 +407,21 @@ export default function Index(props) {
 													{!hasCoords && (
 														<MetaChip icon={IconMapPin} tone="warn">
 															Tanpa titik
+														</MetaChip>
+													)}
+													{/* Laporan ganda (TASK_55). Usulan mesin, BUKAN keputusan: laporannya
+													    tetap di antrean dan diputuskan admin di halaman detail. Jarak
+													    dihitung server. */}
+													{isUrgent && report.candidate_of && (
+														<MetaChip icon={IconStack2} tone="warn">
+															Kemungkinan sama dengan {reportNumber(report.candidate_of)}
+															{report.candidate_distance_m != null &&
+																` · ±${report.candidate_distance_m} m`}
+														</MetaChip>
+													)}
+													{report.merged_children_count > 0 && (
+														<MetaChip icon={IconStack2} tone="muted">
+															{report.merged_children_count} laporan terkait
 														</MetaChip>
 													)}
 												</div>

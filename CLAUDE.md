@@ -27,7 +27,25 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : FORUM TANYA JAWAB WARGA PER KABUPATEN (TASK_54, prompt/tasks/TASK_54_forum_tanya_jawab_warga.md).
+Task aktif   : LAPORAN GANDA UNTUK SATU KEJADIAN - LAPIS 1 & 2 (TASK_55,
+                prompt/tasks/TASK_55_laporan_ganda_satu_kejadian.md). SELESAI (kode) 2026-09-14,
+                BELUM di-commit & BELUM dideploy. User: "banyak yang melapor padahal 1 kejadian",
+                memilih lapis 1+2 dan "setuju semua" atas K1-K5 (radius 500 m / 120 menit sebagai
+                Setting, 0 = mati; kebakaran saja; gabung = ADMIN saja; usulan TANPA nada triase;
+                penanda = status `digabung` + merged_into_id). Lapis 3 (form warga) DITUNDA.
+                YANG MENGIKAT: (a) mesin hanya MENGUSULKAN (duplicate_candidate_of_id), tak ada
+                auto-merge; (b) status `digabung` wajib disebut di setiap penyaring DAFTAR HITAM
+                (!= 'ditolak', whereNotIn, in_array gerbang aksi, JSX) - lihat CONVENTIONS;
+                (c) reports.lat/lng STRING - kotak whereBetween diam-diam tak cocok apa pun;
+                (d) notifikasi pelapor anak dibangun atas laporan ANAK (induk 403 bagi mereka).
+                Test 433 -> 472 passed (1930), ReportDuplicateMergeTest 38; penjaga dibuktikan MERAH
+                lewat sabotase karena alasan yang benar (pulih md5). GOTCHA: `php` di `bash script.sh`
+                = PHP tanpa SQLite (alias php.bat hanya di shell interaktif) -> merah palsu.
+                Pint/prettier/build lulus. Migrasi aditif DONE di DB dev LOKAL. Temuan: #125 FIXED,
+                #126 FIXED (penjaga ditolak kosong sejak TASK_51), #127 & #128 OPEN.
+                SISA: verifikasi manual §6, commit (terpisah dari TASK_54 & sesi kondisi air),
+                deploy = kode + `php artisan migrate` BERSAMAAN.
+               FORUM TANYA JAWAB WARGA PER KABUPATEN (TASK_54, prompt/tasks/TASK_54_forum_tanya_jawab_warga.md).
                 SELESAI (kode) 2026-09-14. DI-COMMIT di branch `feat/forum-warga` (bercabang dari
                 `feat/mobile-bottom-nav` @d2b77228), SENGAJA BELUM masuk `main` & BELUM dideploy -
                 keputusan user: forum belum akan dirilis. JANGAN merge ke main/staging/dev tanpa
@@ -2291,7 +2309,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-09-14: 433 passed, 1753 assertions.
+Test      : php artisan test            (baseline 2026-09-14: 472 passed, 1930 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

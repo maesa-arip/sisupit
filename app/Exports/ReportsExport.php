@@ -49,7 +49,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
     private const HEADER_ROW = 6;
 
     /** Kolom terakhir yang dipakai tabel (disesuaikan dengan jumlah heading). */
-    private const LAST_COLUMN = 'AI';
+    private const LAST_COLUMN = 'AJ';
 
     /**
      * Label status. WAJIB seiring dengan kamus kanonik di layar
@@ -64,6 +64,9 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
         'handling' => 'Penanganan',
         'resolved' => 'Selesai',
         'ditolak' => 'Ditolak',
+        // Laporan ganda yang digabung ke kejadian lain (TASK_55). Nomor induknya di kolom
+        // "Digabung ke", supaya rekap bisa menghitung KEJADIAN, bukan cuma laporan.
+        'digabung' => 'Digabung',
     ];
 
     /**
@@ -112,6 +115,8 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
                 'resolutions:id,report_id,status,kerugian,created_at',
                 'resolutions.victims:id,report_resolution_id',
                 'photos:id,report_id',
+                // Induk laporan ganda (TASK_55) - cukup id & tahun untuk nomor LP-nya.
+                'mergedInto:id,created_at',
             ])
             ->filter($this->filters)
             ->when($status && $status !== 'Semua', fn ($query) => $status === 'aktif'
@@ -168,6 +173,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             'Berita Acara',
             'Taksiran Kerugian',
             'Jml. Korban',
+            'Digabung ke',
         ];
     }
 
@@ -236,6 +242,9 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             $this->resolutionLabel($report),
             optional($resolution)->kerugian ?: '-',
             $resolution ? $resolution->victims->count() : 0,
+            // Kolom TERAKHIR, bukan di sebelah Status: menyisipkannya di tengah menggeser seluruh
+            // huruf kolom sesudahnya, dan rekap lama yang dibaca dengan rumus Excel ikut meleset.
+            $report->mergedInto ? $this->reportNumber($report->mergedInto) : '-',
         ];
     }
 
@@ -277,6 +286,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             'AG' => 16,  // Berita Acara
             'AH' => 18,  // Taksiran Kerugian
             'AI' => 11,  // Jml Korban
+            'AJ' => 16,  // Digabung ke
         ];
     }
 

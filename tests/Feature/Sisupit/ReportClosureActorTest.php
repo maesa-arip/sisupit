@@ -137,5 +137,6 @@ it('keeps the export headings, row values, and column widths the same length', f
 
     expect(count($row))->toBe(count($headings));
     expect(count($widths))->toBe(count($headings));
-    expect(array_key_last($widths))->toBe('AI');
+    // AI -> AJ: kolom "Digabung ke" (TASK_55).
+    expect(array_key_last($widths))->toBe('AJ');
 });

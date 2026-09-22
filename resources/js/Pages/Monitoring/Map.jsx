@@ -60,6 +60,15 @@ const REPORT_STATUS = [
 		dot: 'bg-muted-foreground',
 		badge: 'bg-muted text-muted-foreground border-border',
 	},
+	// Laporan ganda yang digabung (TASK_55). Pinnya berdiri di dekat kejadian induk dan akan
+	// terbaca sebagai kebakaran KEDUA, jadi tersembunyi bawaan (lihat reportHidden).
+	{
+		key: 'digabung',
+		label: 'Digabung',
+		marker: 'bg-muted-foreground/60',
+		dot: 'bg-muted-foreground/60',
+		badge: 'border-dashed border-muted-foreground/40 bg-muted/40 text-foreground',
+	},
 ];
 const REPORT_META = Object.fromEntries(REPORT_STATUS.map((s) => [s.key, s]));
 
@@ -127,7 +136,7 @@ export default function MonitoringMap({ layers }) {
 	// Kejadian yang tampil pertama kali = yang masih berjalan (Laporan Masuk,
 	// Laporan Terverifikasi, Penanganan). 'Selesai' & 'ditolak' disembunyikan,
 	// tetap bisa dinyalakan lewat chip status.
-	const [reportHidden, setReportHidden] = useState(() => new Set(['ditolak', 'resolved']));
+	const [reportHidden, setReportHidden] = useState(() => new Set(['ditolak', 'resolved', 'digabung']));
 	const [hydrantHidden, setHydrantHidden] = useState(() => new Set());
 	const [stationHidden, setStationHidden] = useState(() => new Set());
 	const [pumpHidden, setPumpHidden] = useState(() => new Set());

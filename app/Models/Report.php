@@ -66,6 +66,25 @@ class Report extends Model
      */
     public const JARAK_PELAPOR_MAKS_M = 300;
 
+    /**
+     * Laporan yang admin nyatakan sebagai kejadian YANG SAMA dengan laporan lain (TASK_55).
+     *
+     * STATUS, bukan cuma kolom `merged_into_id`, dan alasannya mengikat: laporan aktif disaring
+     * lewat daftar PUTIH status di banyak tempat (Darurat Aktif, misi petugas, antrean, ekspor),
+     * sehingga status baru otomatis keluar dari hitungan itu. Penanda berupa kolom saja menuntut
+     * SETIAP penyaring ingat `whereNull('merged_into_id')`, dan yang terlupa menghitung satu
+     * kebakaran dua kali tanpa galat. Yang wajib diingat dengan status ini tinggal penyaring
+     * daftar HITAM (`!= 'ditolak'` dan kawan-kawannya) - lihat CONVENTIONS.md.
+     *
+     * Seperti `ditolak`, ia BUKAN tahap alur melainkan jalan keluar darinya: laporan yang
+     * digabung tak pernah diverifikasi, ditangani, atau diselesaikan sendiri. Bedanya dari
+     * `ditolak`: pelapornya TIDAK salah, dan ia tetap dikabari perkembangan induknya.
+     */
+    public const STATUS_DIGABUNG = 'digabung';
+
+    /** Status yang masih bisa menjadi induk sebuah laporan ganda. */
+    public const STATUS_INDUK_DUPLIKAT = ['TERLAPOR', 'pending', 'handling'];
+
     protected $fillable = [
         'user_id',
         'name',
@@ -85,6 +104,11 @@ class Report extends Model
         'location_accuracy_m',
         'reporter_distance_m',
         'status',
+        // Laporan ganda (TASK_55). Kandidat ditulis mesin, sisanya ditulis admin.
+        'duplicate_candidate_of_id',
+        'merged_into_id',
+        'merged_by',
+        'merged_at',
         'rejected_reason',
         'rejected_at',
         'rejected_by',
@@ -100,6 +124,7 @@ class Report extends Model
     protected $casts = [
         'rejected_at' => 'datetime',
         'resolved_at' => 'datetime',
+        'merged_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
@@ -126,6 +151,32 @@ class Report extends Model
     public function rejector(): BelongsTo
     {
         return $this->belongsTo(User::class, 'rejected_by');
+    }
+
+    /**
+     * Laporan ganda (TASK_55). Nama relasinya sengaja tidak sama dengan nama kolom mana pun
+     * (alasan yang sama dengan `resolver`): `mergedBy` akan menimpa kolom `merged_by` di JSON.
+     * Keempatnya tetap tunduk pada Tenantable - staf yang tak berwenang atas laporan induknya
+     * memang tidak boleh melihatnya, dan tak akan bisa menggabungkan ke sana.
+     */
+    public function candidateOf(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'duplicate_candidate_of_id');
+    }
+
+    public function mergedInto(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'merged_into_id');
+    }
+
+    public function mergedChildren(): HasMany
+    {
+        return $this->hasMany(self::class, 'merged_into_id');
+    }
+
+    public function merger(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'merged_by');
     }
 
     /**
@@ -233,6 +284,68 @@ class Report extends Model
             'location_source' => $meter <= self::JARAK_PELAPOR_MAKS_M ? 'gps_pelapor' : 'ditandai_manual',
             'reporter_distance_m' => $meter,
         ];
+    }
+
+    /**
+     * Laporan aktif yang kemungkinan besar KEJADIAN YANG SAMA dengan laporan baru ini
+     * (TASK_55, lapis 1). Hanya MENGUSULKAN - yang menggabungkan tetap admin, sebab dua
+     * kebakaran berdekatan yang keliru digabung berarti unit kedua tak pernah berangkat, jauh
+     * lebih mahal daripada duplikat yang dibiarkan.
+     *
+     * Aturannya (keputusan user 2026-09-14): kebakaran saja (+ laporan tanpa jenis, yang lahir
+     * dari klien lama/telepon), satu kabupaten, status yang masih bisa jadi induk, belum
+     * digabung ke laporan lain (usulan selalu menunjuk INDUK, supaya tak ada rantai), dalam
+     * jendela waktu & radius dari Setting. Terdekat menang; seri = yang lebih dulu dilaporkan.
+     *
+     * withoutGlobalScopes(): dipanggil saat WARGA melapor, dan scope Tenantable miliknya
+     * menyaring menurut wilayah akun pelapor, bukan wilayah kejadian. Tidak ada data yang
+     * dipulangkan ke pengguna dari sini; batasnya diganti `city_code` laporan itu sendiri
+     * (ATURAN EMAS #7). Jarak dihitung di PHP (alasan #64, lihat asalTitikDari()).
+     */
+    public static function cariKandidatDuplikat(self $baru): ?self
+    {
+        $radius = (int) Setting::getValue(Setting::KEY_DUPLIKAT_RADIUS_M, (string) Setting::DEFAULT_DUPLIKAT_RADIUS_M);
+        $jendela = (int) Setting::getValue(Setting::KEY_DUPLIKAT_JENDELA_MENIT, (string) Setting::DEFAULT_DUPLIKAT_JENDELA_MENIT);
+
+        $isKebakaran = $baru->incident_type === null || in_array($baru->incident_type, self::FIRE_INCIDENT_TYPES, true);
+
+        if ($radius <= 0 || $jendela <= 0 || ! $isKebakaran || ! $baru->city_code || $baru->lat === null || $baru->lng === null) {
+            return null;
+        }
+
+        $lat = (float) $baru->lat;
+        $lng = (float) $baru->lng;
+
+        // SENGAJA tanpa kotak lat/lng di SQL: kolom `lat`/`lng` bertipe STRING sejak tabel ini
+        // lahir, sehingga `whereBetween` membandingkan TEKS (SQLite) atau mengonversi diam-diam
+        // (MySQL) - kotak itu sempat dicoba dan tak pernah menemukan satu kandidat pun, tanpa
+        // galat. Saringan kabupaten + status aktif + jendela waktu sudah menyisakan segelintir
+        // baris; jaraknya dihitung di PHP.
+        return self::withoutGlobalScopes()
+            ->whereKeyNot($baru->getKey())
+            ->where('city_code', $baru->city_code)
+            ->whereIn('status', self::STATUS_INDUK_DUPLIKAT)
+            ->whereNull('merged_into_id')
+            ->where(fn ($q) => $q->whereNull('incident_type')->orWhereIn('incident_type', self::FIRE_INCIDENT_TYPES))
+            ->where('created_at', '>=', now()->subMinutes($jendela))
+            ->whereNotNull('lat')
+            ->whereNotNull('lng')
+            ->get()
+            ->map(fn (self $r) => [$r, self::jarakMeter($lat, $lng, (float) $r->lat, (float) $r->lng)])
+            ->filter(fn (array $pair) => $pair[1] <= $radius)
+            ->sortBy([fn ($a, $b) => $a[1] <=> $b[1], fn ($a, $b) => $a[0]->id <=> $b[0]->id])
+            ->map(fn (array $pair) => $pair[0])
+            ->first();
+    }
+
+    /** Jarak (meter, dibulatkan) dari laporan ini ke laporan lain - dihitung server, bukan klien. */
+    public function jarakMeterKe(self $lain): ?int
+    {
+        if ($this->lat === null || $this->lng === null || $lain->lat === null || $lain->lng === null) {
+            return null;
+        }
+
+        return (int) round(self::jarakMeter((float) $this->lat, (float) $this->lng, (float) $lain->lat, (float) $lain->lng));
     }
 
     /** Jarak dua titik di permukaan bumi (meter). */

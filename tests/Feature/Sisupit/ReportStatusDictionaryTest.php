@@ -51,15 +51,56 @@ it('names the status a rejection really writes, in both incident map dictionarie
         'village_code' => '5171012006',
     ]);
 
-    $petugas = User::factory()->create(['village_code' => '5171012006']);
-    $petugas->assignRole('petugas');
+    // ADMIN, bukan petugas: sejak TASK_51 petugas tak boleh menolak, sehingga dengan petugas
+    // penolakannya berhenti di 403, kolomnya tetap TERLAPOR (yang memang dikenal kedua kamus),
+    // dan test ini hijau tanpa pernah menyentuh `ditolak` - penjaga yang menjaga hal yang salah.
+    $admin = User::factory()->create(['village_code' => '5171012006']);
+    $admin->assignRole('admin');
 
-    $this->actingAs($petugas)->post("/reports/{$report->id}/reject", ['reason' => 'Laporan ganda']);
+    $this->actingAs($admin)->post("/reports/{$report->id}/reject", ['reason' => 'Laporan ganda']);
 
     $ditulis = $report->refresh()->status;
 
-    expect($statusMetaKeys())->toContain($ditulis)
+    expect($ditulis)->toBe('ditolak')
+        ->and($statusMetaKeys())->toContain($ditulis)
         ->and($reportStatusKeys())->toContain($ditulis);
+});
+
+// TASK_55. Status `digabung` lahir di endpoint penggabungan, dan KEEMPAT kamus layar + kamus
+// ekspor harus mengenalnya. Tanpa entri, cadangan `|| STATUS_META.pending` membuat laporan
+// ganda yang sudah digabung berlencana "Laporan Terverifikasi" - persis bentuk #94.
+it('names the status a merge really writes, in every status dictionary', function () use ($statusMetaKeys, $reportStatusKeys) {
+    $reporter = User::factory()->create(['village_code' => '5171012006']);
+    $reporter->assignRole('warga');
+
+    $buat = fn () => Report::create([
+        'user_id' => $reporter->id,
+        'title' => 'Kebakaran rumah warga',
+        'address' => 'Jl. Pemogan No. 1',
+        'lat' => '-8.6500',
+        'lng' => '115.2200',
+        'status' => 'TERLAPOR',
+        'village_code' => '5171012006',
+    ]);
+    $induk = $buat();
+    $anak = $buat();
+
+    $admin = User::factory()->create(['village_code' => '5171012006']);
+    $admin->assignRole('admin');
+
+    $this->actingAs($admin)->post("/reports/{$anak->id}/merge", ['into_id' => $induk->id]);
+
+    $ditulis = $anak->refresh()->status;
+    $labels = (new ReflectionClass(ReportsExport::class))->getConstant('STATUS_LABELS');
+    $badge = file_get_contents(resource_path('js/Components/StatusBadge.jsx'));
+    $show = file_get_contents(resource_path('js/Pages/Front/Reports/Show.jsx'));
+
+    expect($ditulis)->toBe(Report::STATUS_DIGABUNG)
+        ->and($statusMetaKeys())->toContain($ditulis)
+        ->and($reportStatusKeys())->toContain($ditulis)
+        ->and($labels)->toHaveKey($ditulis)
+        ->and($badge)->toMatch('/^\t'.$ditulis.': \{ label:/m')
+        ->and($show)->toMatch("/case '".$ditulis."':/");
 });
 
 // Kamus ekspor sudah lengkap sejak TASK_39 dan dipakai untuk dokumen yang dibaca pimpinan.
@@ -149,5 +190,7 @@ it('hides the raw and rejected chips from monitors, matching what the server sen
 
     expect($block)->not->toBeEmpty()
         ->and($block[1])->toContain("'TERLAPOR'")
-        ->and($block[1])->toContain("'ditolak'");
+        ->and($block[1])->toContain("'ditolak'")
+        // TASK_55: server ikut menyaring laporan yang digabung dari pemantau.
+        ->and($block[1])->toContain("'digabung'");
 });

@@ -2,6 +2,7 @@ import HeaderTitle from '@/Components/HeaderTitle';
 import InputError from '@/Components/InputError';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
+import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import AppLayout from '@/Layouts/AppLayout';
@@ -15,6 +16,8 @@ export default function Edit(props) {
 		notify_level_petugas: props.settings.notify_level_petugas,
 		notify_level_relawan: props.settings.notify_level_relawan,
 		notify_level_pejabat: props.settings.notify_level_pejabat,
+		duplikat_radius_m: props.settings.duplikat_radius_m,
+		duplikat_jendela_menit: props.settings.duplikat_jendela_menit,
 	});
 
 	const onHandleSubmit = (e) => {
@@ -82,6 +85,48 @@ export default function Edit(props) {
 							'Tingkat Siaran Pejabat',
 							errors.notify_level_pejabat,
 						)}
+						{/* Laporan ganda (TASK_55). */}
+						<div className="space-y-4 border-t border-border pt-6">
+							<div>
+								<h3 className="text-sm font-bold text-foreground">Deteksi Laporan Ganda</h3>
+								<p className="mt-1 text-sm text-muted-foreground">
+									Laporan kebakaran baru dalam radius dan rentang waktu ini dari laporan yang masih
+									aktif diusulkan sebagai kejadian yang sama. Usulan tidak membunyikan notifikasi
+									laporan masuk lagi, dan admin yang memutuskan menggabungkannya. Isi 0 untuk
+									mematikan deteksi.
+								</p>
+							</div>
+							<div className="grid gap-4 sm:grid-cols-2">
+								<div className="grid w-full items-center gap-1.5">
+									<Label htmlFor="duplikat_radius_m">Radius (meter)</Label>
+									<Input
+										id="duplikat_radius_m"
+										type="number"
+										inputMode="numeric"
+										min={0}
+										max={5000}
+										value={data.duplikat_radius_m}
+										onChange={(e) => setData('duplikat_radius_m', e.target.value)}
+									/>
+									{errors.duplikat_radius_m && <InputError message={errors.duplikat_radius_m} />}
+								</div>
+								<div className="grid w-full items-center gap-1.5">
+									<Label htmlFor="duplikat_jendela_menit">Rentang waktu (menit)</Label>
+									<Input
+										id="duplikat_jendela_menit"
+										type="number"
+										inputMode="numeric"
+										min={0}
+										max={1440}
+										value={data.duplikat_jendela_menit}
+										onChange={(e) => setData('duplikat_jendela_menit', e.target.value)}
+									/>
+									{errors.duplikat_jendela_menit && (
+										<InputError message={errors.duplikat_jendela_menit} />
+									)}
+								</div>
+							</div>
+						</div>
 						<div className="flex justify-end gap-x-2">
 							<Button type="submit" variant="orange" size="sm" disabled={processing}>
 								Simpan
