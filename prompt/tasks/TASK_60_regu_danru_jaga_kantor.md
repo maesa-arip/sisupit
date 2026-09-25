@@ -114,7 +114,7 @@ Spatie**; admin yang membuat regu & menunjuk danru; satu petugas hanya di satu r
 - Relawan, petugas tanpa regu, dan seluruh alur verifikasi: nol perubahan.
 - **SENGAJA DI LUAR SCOPE** (bisa membaca kolom yang kini sudah ada tanpa migrasi tambahan):
   ~~nama regu di kartu misi dashboard petugas~~ (DIKERJAKAN, lihat §8), popup marker di peta detail/Peta Pemantauan, ~~kolom
-  regu di Export Excel~~ (DIKERJAKAN, lihat §9) & tim atensi berita acara, notifikasi ke anggota saat regunya meluncur
+  regu di Export Excel~~ (DIKERJAKAN, lihat §9) & ~~tim atensi berita acara~~ (DIKERJAKAN, lihat §10), notifikasi ke anggota saat regunya meluncur
   (notifikasi baru = keputusan tahap suara TASK_50, bukan satu baris `via()`).
 
 ## 6. Verifikasi
@@ -183,3 +183,22 @@ Permintaan user: "tampilkan nama regu juga di export excel".
 - Penjaga: 1 test di `ReguTest` (14 total) yang mengunduh xlsx sungguhan & membaca selnya, termasuk
   snapshot sesudah rename. Sabotase `regu_name` dicabut dari eager load dibuktikan MERAH (`cmp`),
   pulih byte-exact. Test 510 -> 511 passed (2261). Pint lulus. Tanpa frontend, tanpa migrasi.
+
+## 10. Adendum 2026-09-25 - nama regu di berita acara
+
+Permintaan user: "tampilkan nama regu juga di berita acara".
+
+- `ReportResolutionController::create()`: isian awal "Tim yang atensi di TKP" kini
+  mengelompokkan petugas beregu di bawah nama regunya - "Regu A (Ketut, Wayan)" - berkurung
+  seperti penanda "(OPD)" yang sudah ada (TASK_45). Petugas tanpa regu tetap disebut perorangan;
+  armada, relawan, dan OPD tidak berubah. Nama regu dari SNAPSHOT `report_officers.regu_name`:
+  dokumen resmi menyebut regu saat kejadian, bukan nama regu hari ini.
+- Hanya ISIAN AWAL: berita acara append-only, entri yang sudah tersimpan tidak berubah, dan
+  petugas tetap bebas menyunting teksnya sebelum menyimpan. Entri berikutnya yang dibuka dari
+  entri lama memakai `tim_atensi` entri lama (perilaku yang sudah ada) - regu baru terlihat di
+  berita acara yang dibuat sesudah fitur ini.
+- Yang Jaga di Kantor SENGAJA tidak disebut - kolom itu "tim yang atensi di TKP", dan orang yang
+  tinggal di kantor bukan bagian darinya.
+- Penjaga: 1 test di `ReguTest` (15 total), termasuk snapshot sesudah rename. Sabotase (kembali
+  ke nama petugas polos) dibuktikan MERAH (`cmp`), pulih byte-exact. Test 511 -> 512 passed
+  (2273). Pint lulus. Tanpa frontend, tanpa migrasi.

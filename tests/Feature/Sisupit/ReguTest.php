@@ -259,6 +259,21 @@ it('writes the regu that took action, with its headcount, into the excel export'
         ->and($cells)->not->toContain('Regu Alfa (2 orang)');
 });
 
+it('groups the regu members under the regu name in the berita acara team prefill', function () {
+    $this->actingAs($this->anggota1)->post(route('reports.take-action', $this->report));
+    $this->actingAs($this->anggota2)->post(route('reports.take-action', $this->report));
+    $perorangan = ($this->petugas)(['name' => 'Nyoman Perorangan']);
+    $this->actingAs($perorangan)->post(route('reports.take-action', $this->report));
+
+    // Snapshot: rename sesudahnya tak boleh mengubah isi dokumen resmi.
+    $this->actingAs($this->admin)
+        ->put(route('regu.update', $this->regu), ['name' => 'Regu Alfa', 'leader_id' => $this->danru->id]);
+
+    $this->actingAs($this->danru)->get(route('reports.resolution.create', $this->report))
+        ->assertInertia(fn ($page) => $page
+            ->where('prefill.tim_atensi', 'Nyoman Perorangan, Regu A (Ketut Anggota, Wayan Anggota)'));
+});
+
 it('shows no regu on the petugas dashboard for a petugas without one', function () {
     $tanpaRegu = ($this->petugas)();
 
