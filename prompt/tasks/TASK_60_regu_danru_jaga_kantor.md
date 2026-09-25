@@ -113,8 +113,8 @@ Spatie**; admin yang membuat regu & menunjuk danru; satu petugas hanya di satu r
 - `report_jaga_kantor` tak dibaca peta, GPS, `resolve()`, Export Excel, dashboard - sengaja.
 - Relawan, petugas tanpa regu, dan seluruh alur verifikasi: nol perubahan.
 - **SENGAJA DI LUAR SCOPE** (bisa membaca kolom yang kini sudah ada tanpa migrasi tambahan):
-  ~~nama regu di kartu misi dashboard petugas~~ (DIKERJAKAN, lihat §8), popup marker di peta detail/Peta Pemantauan, kolom
-  regu di Export Excel & tim atensi berita acara, notifikasi ke anggota saat regunya meluncur
+  ~~nama regu di kartu misi dashboard petugas~~ (DIKERJAKAN, lihat §8), popup marker di peta detail/Peta Pemantauan, ~~kolom
+  regu di Export Excel~~ (DIKERJAKAN, lihat §9) & tim atensi berita acara, notifikasi ke anggota saat regunya meluncur
   (notifikasi baru = keputusan tahap suara TASK_50, bukan satu baris `via()`).
 
 ## 6. Verifikasi
@@ -165,3 +165,21 @@ Permintaan user: "tampilkan nama regu juga di dashboard petugas".
 - Penjaga: 2 test di `ReguTest` (13 total). Sabotase `->unique()` dicabut dibuktikan MERAH
   (cek `cmp`), pulih byte-exact. Test 508 -> 510 passed (2256). Pint/prettier/build lulus.
   NOL migrasi baru.
+
+## 9. Adendum 2026-09-25 - nama regu di Export Excel
+
+Permintaan user: "tampilkan nama regu juga di export excel".
+
+- `ReportsExport`: kolom BARU **AK "Regu Meluncur"**, isi "Regu A (3 orang), Regu B (2 orang)"
+  (urut nama; petugas tanpa regu tidak disebut, `-` bila tak ada regu). Dibaca dari SNAPSHOT
+  `report_officers.regu_name` (kolom itu ditambahkan ke eager load `officers`), jadi rekap lama
+  tetap menyebut nama regu SAAT ITU walau regunya di-rename/dihapus.
+- Ditaruh di UJUNG, sesuai aturan yang sudah tertulis di kolom "Digabung ke": menyisipkan di
+  tengah menggeser huruf semua kolom sesudahnya dan rekap lama yang dibaca rumus Excel meleset.
+  Keempat tempat naik bersama: heading, `map()`, `columnWidths()` (AK = 30), `LAST_COLUMN`
+  AJ -> AK; penjaga panjang tiga daftar di `ReportClosureActorTest` ikut ke AK.
+- SENGAJA TIDAK ikut: siapa yang Jaga di Kantor (nama petugas yang tidak berangkat) - tak diminta,
+  dan xlsx gampang berpindah tangan. Bila dikehendaki, jadi kolom AL tersendiri.
+- Penjaga: 1 test di `ReguTest` (14 total) yang mengunduh xlsx sungguhan & membaca selnya, termasuk
+  snapshot sesudah rename. Sabotase `regu_name` dicabut dari eager load dibuktikan MERAH (`cmp`),
+  pulih byte-exact. Test 510 -> 511 passed (2261). Pint lulus. Tanpa frontend, tanpa migrasi.

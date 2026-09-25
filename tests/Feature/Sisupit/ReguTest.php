@@ -239,6 +239,26 @@ it('names the regu that took action on each mission of the petugas dashboard', f
             ->where('myRegu.is_leader', true));
 });
 
+it('writes the regu that took action, with its headcount, into the excel export', function () {
+    $this->actingAs($this->anggota1)->post(route('reports.take-action', $this->report));
+    $this->actingAs($this->anggota2)->post(route('reports.take-action', $this->report));
+    $perorangan = ($this->petugas)();
+    $this->actingAs($perorangan)->post(route('reports.take-action', $this->report));
+
+    // Snapshot: rename sesudahnya tak boleh mengubah rekap.
+    $this->actingAs($this->admin)
+        ->put(route('regu.update', $this->regu), ['name' => 'Regu Alfa', 'leader_id' => $this->danru->id]);
+
+    $path = $this->actingAs($this->admin)->get('/admin/reports/export')->baseResponse->getFile()->getPathname();
+    $cells = collect(\PhpOffice\PhpSpreadsheet\IOFactory::load($path)->getActiveSheet()->toArray())
+        ->flatten()->filter()->values()->all();
+
+    // Petugas tanpa regu tidak menambah hitungan regu mana pun.
+    expect($cells)->toContain('Regu Meluncur')
+        ->and($cells)->toContain('Regu A (2 orang)')
+        ->and($cells)->not->toContain('Regu Alfa (2 orang)');
+});
+
 it('shows no regu on the petugas dashboard for a petugas without one', function () {
     $tanpaRegu = ($this->petugas)();
 

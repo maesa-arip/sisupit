@@ -49,7 +49,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
     private const HEADER_ROW = 6;
 
     /** Kolom terakhir yang dipakai tabel (disesuaikan dengan jumlah heading). */
-    private const LAST_COLUMN = 'AJ';
+    private const LAST_COLUMN = 'AK';
 
     /**
      * Label status. WAJIB seiring dengan kamus kanonik di layar
@@ -97,7 +97,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
                 // ditutup sebelum kolomnya ada mengirim null dan tercetak "-".
                 'resolver:id,name',
                 'rejector:id,name',
-                'officers:id,report_id,dispatched_at,arrived_at,finished_at',
+                'officers:id,report_id,regu_name,dispatched_at,arrived_at,finished_at',
                 'helpers:id,report_id,started_at,arrived_at,finished_at',
                 'province:code,name',
                 'city:code,name',
@@ -174,6 +174,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             'Taksiran Kerugian',
             'Jml. Korban',
             'Digabung ke',
+            'Regu Meluncur',
         ];
     }
 
@@ -245,7 +246,22 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             // Kolom TERAKHIR, bukan di sebelah Status: menyisipkannya di tengah menggeser seluruh
             // huruf kolom sesudahnya, dan rekap lama yang dibaca dengan rumus Excel ikut meleset.
             $report->mergedInto ? $this->reportNumber($report->mergedInto) : '-',
+            // Regu yang meluncur (TASK_60), dari SNAPSHOT nama regu di baris responder - rekap
+            // lama tetap menyebut nama regu saat itu walau regunya kemudian di-rename/dihapus.
+            // Ditaruh di UJUNG dengan alasan yang sama dengan kolom di atasnya.
+            $this->reguSummary($report),
         ];
+    }
+
+    /** "Regu A (3 orang), Regu B (2 orang)" - petugas tanpa regu tidak ikut disebut di sini. */
+    private function reguSummary($report): string
+    {
+        return $report->officers
+            ->filter(fn ($officer) => $officer->regu_name)
+            ->countBy('regu_name')
+            ->sortKeys()
+            ->map(fn ($jumlah, $nama) => "{$nama} ({$jumlah} orang)")
+            ->implode(', ') ?: '-';
     }
 
     public function columnWidths(): array
@@ -287,6 +303,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             'AH' => 18,  // Taksiran Kerugian
             'AI' => 11,  // Jml Korban
             'AJ' => 16,  // Digabung ke
+            'AK' => 30,  // Regu Meluncur
         ];
     }
 
