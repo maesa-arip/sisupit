@@ -113,7 +113,7 @@ Spatie**; admin yang membuat regu & menunjuk danru; satu petugas hanya di satu r
 - `report_jaga_kantor` tak dibaca peta, GPS, `resolve()`, Export Excel, dashboard - sengaja.
 - Relawan, petugas tanpa regu, dan seluruh alur verifikasi: nol perubahan.
 - **SENGAJA DI LUAR SCOPE** (bisa membaca kolom yang kini sudah ada tanpa migrasi tambahan):
-  ~~nama regu di kartu misi dashboard petugas~~ (DIKERJAKAN, lihat §8), popup marker di peta detail/Peta Pemantauan, ~~kolom
+  ~~nama regu di kartu misi dashboard petugas~~ (DIKERJAKAN, lihat §8), popup marker di peta detail/~~Peta Pemantauan~~ (DIKERJAKAN, lihat §11), ~~kolom
   regu di Export Excel~~ (DIKERJAKAN, lihat §9) & ~~tim atensi berita acara~~ (DIKERJAKAN, lihat §10), notifikasi ke anggota saat regunya meluncur
   (notifikasi baru = keputusan tahap suara TASK_50, bukan satu baris `via()`).
 
@@ -202,3 +202,21 @@ Permintaan user: "tampilkan nama regu juga di berita acara".
 - Penjaga: 1 test di `ReguTest` (15 total), termasuk snapshot sesudah rename. Sabotase (kembali
   ke nama petugas polos) dibuktikan MERAH (`cmp`), pulih byte-exact. Test 511 -> 512 passed
   (2273). Pint lulus. Tanpa frontend, tanpa migrasi.
+
+## 11. Adendum 2026-09-25 - nama regu di Peta Pemantauan
+
+Permintaan user: "tampilkan nama regu juga di peta pemantauan".
+
+- `MonitoringMapController`: tiap `layers.reports[]` membawa `regus` (SNAPSHOT
+  `report_officers.regu_name`, unik & terurut) - sumber yang sama dengan detail, dashboard
+  petugas, Export Excel, berita acara.
+- `Monitoring/Map.jsx`: popup marker kejadian menambah baris berikon "Regu A, Regu B meluncur" di
+  bawah jam, hanya bila ada regu. Nama regu DI-ESCAPE (`escapeHtml` lokal) sebab popup Leaflet
+  adalah HTML mentah (`innerHTML`).
+- TEMUAN BARU **#131 (P1, OPEN)**: popup yang sama - dan tiga popup lain - menyisipkan teks
+  WARGA (`title`, alamat) mentah = stored XSS ke layar staf. Sengaja TIDAK diperbaiki di sini
+  (aturan emas #6); dilaporkan ke user.
+- Marker di peta detail insiden (`Show.jsx`) tidak diubah: manifesnya sudah per regu.
+- Penjaga: 2 test di `ReguTest` (17 total) - data sampai ke peta & escape di popup. Dua sabotase
+  (server tak mengirim regu; escape dicabut) dibuktikan MERAH (`cmp`), pulih byte-exact.
+  Test 512 -> 514 passed (2291). Pint/prettier/build lulus. Tanpa migrasi.

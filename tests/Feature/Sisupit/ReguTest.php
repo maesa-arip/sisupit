@@ -274,6 +274,25 @@ it('groups the regu members under the regu name in the berita acara team prefill
             ->where('prefill.tim_atensi', 'Nyoman Perorangan, Regu A (Ketut Anggota, Wayan Anggota)'));
 });
 
+it('sends the regu that took action to the monitoring map', function () {
+    $this->actingAs($this->anggota1)->post(route('reports.take-action', $this->report));
+    $this->actingAs($this->anggota2)->post(route('reports.take-action', $this->report));
+
+    $this->actingAs($this->admin)->get(route('front.monitoring.map'))
+        ->assertInertia(fn ($page) => $page
+            ->where('layers.reports.0.id', $this->report->id)
+            ->where('layers.reports.0.regus', ['Regu A']));
+});
+
+// Popup Leaflet adalah HTML mentah (innerHTML). Nama regu diketik admin, jadi tanpa escape ia
+// bisa menyisipkan markup ke layar semua staf yang membuka peta.
+it('escapes the regu names before they enter the leaflet popup html', function () {
+    $source = file_get_contents(resource_path('js/Pages/Monitoring/Map.jsx'));
+
+    expect($source)->toContain('regus.map(escapeHtml)')
+        ->and($source)->toMatch("/'<': '&lt;'/");
+});
+
 it('shows no regu on the petugas dashboard for a petugas without one', function () {
     $tanpaRegu = ($this->petugas)();
 

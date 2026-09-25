@@ -204,6 +204,18 @@ export default function MonitoringMap({ layers }) {
 				${extra}
 				<span class="inline-flex rounded-md border border-border bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">${facilityStatusLabel(status)}</span>`);
 
+		// Baris "regu yang meluncur" di popup kejadian (TASK_60), kosong bila belum ada regu.
+		// Nama regu diketik admin lalu masuk ke HTML mentah popup Leaflet, jadi WAJIB di-escape.
+		const escapeHtml = (text) =>
+			String(text).replace(
+				/[&<>"']/g,
+				(ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch],
+			);
+		const reguLine = (regus) =>
+			regus?.length
+				? `<div class="flex items-center gap-1.5 font-semibold text-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0"><path d="M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0 -3 -3.85"/></svg><span>${regus.map(escapeHtml).join(', ')} meluncur</span></div>`
+				: '';
+
 		const allMarkers = [];
 
 		// --- Kejadian ---
@@ -230,6 +242,7 @@ export default function MonitoringMap({ layers }) {
 					<div class="space-y-1 text-[11px] font-medium text-muted-foreground">
 						<div class="flex items-start gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mt-px shrink-0"><path d="M12 21s-6-5.686-6-10a6 6 0 1 1 12 0c0 4.314-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg><span>${r.location || 'Lokasi tidak tersedia'}</span></div>
 						<div class="flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>${r.time || ''}</span></div>
+						${reguLine(r.regus)}
 					</div>
 					<span class="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-bold ${meta.badge}">${meta.label}</span>
 					<a href="${detailUrl}" data-report-detail="${r.id}" class="flex h-9 w-full items-center justify-center gap-2 rounded-md bg-destructive text-xs font-semibold !text-destructive-foreground no-underline shadow-sm hover:bg-destructive/90">

@@ -3265,3 +3265,32 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Sengaja TIDAK dikerjakan di TASK_56** (aturan emas #6): task itu memakai pola yang benar untuk
   halaman barunya dan tidak menyentuh halaman lama.
 - **Status:** OPEN
+
+### #131 — Popup kejadian di Peta Pemantauan menyisipkan teks WARGA mentah ke HTML: stored XSS ke layar staf (OPEN)
+
+- **Prioritas:** P1 (keamanan). Penulisnya warga mana pun yang login; korbannya admin/petugas/
+  pejabat yang membuka Peta Pemantauan - akun berwenang verifikasi & kelola.
+- **Ditemukan:** 2026-09-25 (TASK_60 adendum Peta Pemantauan), saat menambah baris nama regu ke
+  popup yang sama. (#130 dipakai pekerjaan sesi lain yang belum di-commit di working tree utama.)
+- **Mekanismenya:** `resources/js/Pages/Monitoring/Map.jsx` merangkai popup Leaflet sebagai
+  STRING HTML lalu `bindPopup(html)` - Leaflet memasangnya lewat `innerHTML`. Di dalamnya
+  `${r.title}` & `${r.location}` disisipkan tanpa escape. `title` diketik warga di form lapor
+  (`ReportRequest`: `required|min:3|max:255|string`, tanpa penyaringan HTML), `location` =
+  `alamatTampil()` = `geo_address` ?: `address` (patokan yang juga diketik warga). Judul seperti
+  `<img src=x onerror=...>` karena itu berjalan di browser staf, dengan sesi & token CSRF mereka.
+- **Kenapa tak terlihat:** di React teks selalu di-escape otomatis, jadi pola ini aman di SEMUA
+  layar lain; popup Leaflet satu-satunya tempat repo ini menulis HTML sebagai string. Popup
+  fasilitas (`facilityPopup`) berbentuk sama tapi isinya ditulis admin.
+- **Yang SUDAH aman:** nama regu yang ditambahkan TASK_60 di-escape (`escapeHtml` lokal di berkas
+  itu, dijaga `ReguTest`).
+- **Perbaikan yang diusulkan (belum dikerjakan, aturan emas #6):** pakai `escapeHtml` yang sama
+  untuk `r.title`, `r.location`, dan isian popup fasilitas; pindahkan helper ke `lib/utils.js`
+  bila ada pemakai kedua; tambahkan test JSX yang melarang `${r.title}` mentah.
+- **Bentuk yang sama DIKONFIRMASI di tiga tempat lain** (grep `bindPopup(` 2026-09-25):
+  `Pages/Admin/Reports/Index.jsx:222` (`report.title` + `alamatLaporan(report)` - teks warga),
+  `Pages/Petugas/Dashboard.jsx:115` (`mission.title` - teks warga), dan
+  `Pages/Front/Reports/Show.jsx:846` (`${name}` = nama akun responder, diketik pemilik akun).
+  Popup fasilitas admin (FireStations/Hydrants/Pumps) & `UserLeafletMap.jsx:216` belum diperiksa
+  isinya. Perbaikannya = satu helper escape bersama di `lib/utils.js` + satu penjaga yang
+  menyapu seluruh `bindPopup(` - bukan tambalan per halaman (bentuk #71).
+- **Status:** OPEN
