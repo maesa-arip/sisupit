@@ -224,3 +224,26 @@ it('reads the jaga kantor button from the server prop, not from roles in the pag
         ->and($source)->toContain("route('reports.stay-at-base'")
         ->and($source)->toContain("route('reports.cancel-stay'");
 });
+
+it('names the regu that took action on each mission of the petugas dashboard', function () {
+    $this->actingAs($this->anggota1)->post(route('reports.take-action', $this->report));
+    $this->actingAs($this->anggota2)->post(route('reports.take-action', $this->report));
+
+    // Dua anggota regu yang sama = satu nama regu, bukan dua.
+    $this->actingAs($this->danru)->get(route('dashboard'))
+        ->assertInertia(fn ($page) => $page
+            ->component('Petugas/Dashboard')
+            ->where('activeMissions.0.id', $this->report->id)
+            ->where('activeMissions.0.regus', ['Regu A'])
+            ->where('myRegu.name', 'Regu A')
+            ->where('myRegu.is_leader', true));
+});
+
+it('shows no regu on the petugas dashboard for a petugas without one', function () {
+    $tanpaRegu = ($this->petugas)();
+
+    $this->actingAs($tanpaRegu)->get(route('dashboard'))
+        ->assertInertia(fn ($page) => $page
+            ->where('myRegu', null)
+            ->where('activeMissions.0.regus', []));
+});

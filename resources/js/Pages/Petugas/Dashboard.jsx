@@ -17,6 +17,8 @@ import {
 	IconRadar,
 	IconRoute,
 	IconShieldCheck,
+	IconShieldHalf,
+	IconUsers,
 } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -31,7 +33,13 @@ function distanceKm(lat1, lng1, lat2, lng2) {
 	return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-export default function PetugasDashboard({ auth, activeMissions = [], pendingResolutions = [], feed_channel = null }) {
+export default function PetugasDashboard({
+	auth,
+	activeMissions = [],
+	pendingResolutions = [],
+	myRegu = null,
+	feed_channel = null,
+}) {
 	const user = auth.user;
 
 	// Misi baru muncul / selesai di wilayah penugasan — peta taktis & antrian berita acara
@@ -141,6 +149,14 @@ export default function PetugasDashboard({ auth, activeMissions = [], pendingRes
 							<IconMapPin className="h-3.5 w-3.5 text-destructive md:h-4 md:w-4" /> Wilayah Yurisdiksi
 							Anda
 						</span>
+						{/* Regu milik petugas ini (TASK_60) - tidak tampil bila belum beregu. */}
+						{myRegu && (
+							<span className="flex items-center gap-1.5 text-xs font-semibold text-foreground md:text-sm">
+								<IconShieldHalf className="h-3.5 w-3.5 text-destructive md:h-4 md:w-4" />
+								{myRegu.name}
+								{myRegu.is_leader && ' - Danru'}
+							</span>
+						)}
 					</>
 				}
 			/>
@@ -253,6 +269,18 @@ export default function PetugasDashboard({ auth, activeMissions = [], pendingRes
 														? mission.distKm.toFixed(1)
 														: Math.round(mission.distKm)}{' '}
 													km
+												</span>
+											</>
+										)}
+										{/* Regu yang sudah meluncur ke insiden ini (TASK_60). */}
+										{mission.regus?.length > 0 && (
+											<>
+												<span className="text-muted-foreground/60">•</span>
+												<span className="flex min-w-0 items-center gap-1.5 font-semibold text-foreground">
+													<IconUsers className="h-3.5 w-3.5 shrink-0" />
+													<span className="truncate">
+														{mission.regus.join(', ')} meluncur
+													</span>
 												</span>
 											</>
 										)}

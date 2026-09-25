@@ -113,7 +113,7 @@ Spatie**; admin yang membuat regu & menunjuk danru; satu petugas hanya di satu r
 - `report_jaga_kantor` tak dibaca peta, GPS, `resolve()`, Export Excel, dashboard - sengaja.
 - Relawan, petugas tanpa regu, dan seluruh alur verifikasi: nol perubahan.
 - **SENGAJA DI LUAR SCOPE** (bisa membaca kolom yang kini sudah ada tanpa migrasi tambahan):
-  nama regu di kartu misi dashboard petugas, popup marker di peta detail/Peta Pemantauan, kolom
+  ~~nama regu di kartu misi dashboard petugas~~ (DIKERJAKAN, lihat §8), popup marker di peta detail/Peta Pemantauan, kolom
   regu di Export Excel & tim atensi berita acara, notifikasi ke anggota saat regunya meluncur
   (notifikasi baru = keputusan tahap suara TASK_50, bukan satu baris `via()`).
 
@@ -146,3 +146,22 @@ Spatie**; admin yang membuat regu & menunjuk danru; satu petugas hanya di satu r
   `regus` di halaman detail - tanpa migrasi, halaman detail insiden 500). `npm run build` +
   commit `public/build` terpisah sebelum pull di server (deploy tak membangun aset).
 - Rollback: revert commit + `php artisan migrate:rollback --step=1` (down() dibuktikan jalan di MySQL).
+
+## 8. Adendum 2026-09-25 - nama regu di dashboard petugas
+
+Permintaan user: "tampilkan nama regu juga di dashboard petugas".
+
+- `DashboardController` (jalur petugas): tiap `activeMissions[]` membawa `regus` = nama regu
+  yang sudah meluncur ke insiden itu, dari SNAPSHOT `report_officers.regu_name` (unik, terurut) -
+  sumber yang sama dengan manifes halaman detail. Prop BARU `myRegu` = `{name, is_leader}` regu
+  milik petugas yang login, `null` bila belum beregu.
+- `Petugas/Dashboard.jsx`: baris meta tiap misi menambah "• Regu A, Regu B meluncur" (hanya bila
+  ada); kepala halaman menambah "Regu A - Danru" di sebelah "Wilayah Yurisdiksi Anda".
+- BATAS YANG DITERIMA: dashboard dimuat ulang oleh `ReportFeedChanged`, yang disiarkan
+  `takeAction()` hanya saat responder PERTAMA meluncur (pending -> handling). Regu kedua yang
+  bergabung ke insiden yang sudah `handling` baru terlihat saat dashboard dimuat ulang/transisi
+  berikutnya. Menyiarkan ulang tiap klik = memperluas siaran satu kabupaten penuh, keputusan
+  tersendiri.
+- Penjaga: 2 test di `ReguTest` (13 total). Sabotase `->unique()` dicabut dibuktikan MERAH
+  (cek `cmp`), pulih byte-exact. Test 508 -> 510 passed (2256). Pint/prettier/build lulus.
+  NOL migrasi baru.
