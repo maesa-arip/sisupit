@@ -29,6 +29,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InfoController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReguController;
 use App\Http\Controllers\ReportActionController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportHelperController;
@@ -169,6 +170,14 @@ Route::controller(HomeController::class)->group(function () {
 Route::middleware(['auth', 'verified', 'role:petugas|admin|superadmin'])->group(function () {
     Route::get('/relawan', [RelawanController::class, 'index'])->name('front.volunteers.index');
     Route::get('/relawan/{id}', [RelawanController::class, 'show'])->name('front.volunteers.show');
+
+    // Regu & Danru (TASK_60). Grup ini hanya gerbang PERTAMA: membuat/mengubah/menghapus regu =
+    // admin, mengatur anggota = admin ATAU danru regu itu sendiri - dicek ulang di ReguController.
+    Route::get('/regu', [ReguController::class, 'index'])->name('regu.index');
+    Route::post('/regu', [ReguController::class, 'store'])->name('regu.store');
+    Route::put('/regu/{regu}', [ReguController::class, 'update'])->name('regu.update');
+    Route::delete('/regu/{regu}', [ReguController::class, 'destroy'])->name('regu.destroy');
+    Route::put('/regu/{regu}/anggota', [ReguController::class, 'syncMembers'])->name('regu.members');
 });
 
 // Peta Pemantauan terpadu (semua layer) — Pusat Komando + pejabat pemantau,
@@ -275,6 +284,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/reports/{report}/dismiss-duplicate', [ReportActionController::class, 'dismissDuplicate'])->name('reports.dismiss-duplicate');
     Route::post('/reports/{report}/take-action', [ReportActionController::class, 'takeAction'])->name('reports.take-action');
     Route::post('/reports/{report}/cancel-response', [ReportActionController::class, 'cancelResponse'])->name('reports.cancel-response');
+    // Regu (TASK_60): anggota regu memilih tinggal di kantor alih-alih meluncur. Petugas saja,
+    // tepat satu per regu per kejadian - gerbangnya di controller seperti take-action.
+    Route::post('/reports/{report}/jaga-kantor', [ReportActionController::class, 'stayAtBase'])->name('reports.stay-at-base');
+    Route::delete('/reports/{report}/jaga-kantor', [ReportActionController::class, 'cancelStay'])->name('reports.cancel-stay');
 
     // Pengerahan unit/armada ke insiden (TASK_09)
     Route::post('/reports/{report}/dispatch-unit', [ReportActionController::class, 'dispatchUnit'])->name('reports.dispatch-unit');

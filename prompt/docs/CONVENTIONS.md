@@ -197,6 +197,14 @@
   lama `only: ['report']` tak pernah sentuh, dan daftar yang berbeda-beda membuat sinyal yang
   datang belakangan membatalkan permintaan yang lebih lengkap (Inertia hanya menerbangkan satu
   kunjungan pada satu waktu). Dijaga `ReportDetailRealtimeTest`.
+- **Pilihan "tidak berangkat" BUKAN status responder** (TASK_60). "Jaga di Kantor" anggota regu
+  disimpan di tabel sendiri `report_jaga_kantor`, bukan sebagai `status` baru di `report_officers`.
+  Tabel responder dibaca peta, pelacakan GPS, hitungan "masih ada responder aktif"
+  (`cancelResponse`), dan `resolve()` yang menimpa semuanya jadi `finished` - status baru di sana
+  wajib disebut di setiap penyaring daftar hitam (pelajaran TASK_55 `digabung`), dan satu yang
+  tertinggal menggambar orang yang tinggal di kantor sebagai marker di TKP tanpa galat. Nama regu di
+  catatan insiden selalu SNAPSHOT (`report_officers.regu_name`, `report_jaga_kantor.regu_name`),
+  bukan dibaca dari `regus` hari ini. Dijaga `ReguTest`.
 - **Notifikasi BARU yang bukan panggilan darurat = `via() ['database']` saja** (TASK_54). Wrapper
   Android memilih channel SUARA dari payload FCM dan hanya mengenali tahap yang sudah ada
   (`alert_stage` TASK_50, `type: report_status`); aturan TASK_50 "payload tak dikenal TETAP sirine"

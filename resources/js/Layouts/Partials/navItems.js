@@ -21,6 +21,7 @@ import {
 	IconMessages,
 	IconRoute,
 	IconSettings,
+	IconShieldHalf,
 	IconShieldLock,
 	IconSpeakerphone,
 	IconUser,
@@ -173,6 +174,15 @@ export function buildNavSections({ auth, url = '' }) {
 							icon: IconHistory,
 							url: route('front.reports.index', { filter: 'mine' }),
 							active: startsWith('/reports') && !startsWith('/reports/create'),
+						},
+						// Regu & Danru (TASK_60). Petugas melihat regunya (danru mengatur anggotanya),
+						// admin mengelola semua regu - satu halaman, hak tombolnya dari server.
+						isStaff && {
+							key: 'regu',
+							title: 'Regu & Danru',
+							icon: IconShieldHalf,
+							url: route('regu.index'),
+							active: startsWith('/regu'),
 						},
 						// Surat keluar ke pejabat (TASK_56). Hanya petugas ke atas (K5), dan hanya bila
 						// kabupatennya punya kotak surat yang sudah disetel adminnya.

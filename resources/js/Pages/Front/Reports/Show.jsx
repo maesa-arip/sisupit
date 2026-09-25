@@ -12,6 +12,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import {
 	IconAlertCircle,
 	IconArrowBackUp,
+	IconBuilding,
 	IconBuildingCommunity,
 	IconCheck,
 	IconChevronLeft,
@@ -224,6 +225,14 @@ export default function ReportShow(props) {
 	const mergedReports = props.mergedReports || [];
 	const mergedIncident = props.mergedIncident || null;
 	const [isMerging, setIsMerging] = useState(false);
+	// Regu & Danru (TASK_60). `reguRoster` = regu yang benar-benar meluncur/jaga kantor di
+	// kejadian ini (dari snapshot, bukan keanggotaan hari ini); `myRegu` = regu penonton bila ia
+	// petugas beregu. Tombol "Jaga di Kantor" dibaca dari prop SERVER `canStayAtBase` - syaratnya
+	// (tepat satu per regu, belum meluncur, wilayah) hanya server yang tahu (#101).
+	const reguRoster = props.reguRoster || [];
+	const myRegu = props.myRegu || null;
+	const canStayAtBase = props.canStayAtBase || false;
+	const reguKeyOf = (o) => (o.regu_id ? `id:${o.regu_id}` : o.regu_name ? `nama:${o.regu_name}` : null);
 	// Insiden yang sedang berjalan di alur respons: bukan laporan mentah, bukan yang ditolak,
 	// dan bukan laporan ganda yang sudah digabung - responder yang meluncur ke laporan anak tak
 	// terlihat oleh siapa pun yang memantau insiden induknya (server menolaknya juga).
@@ -262,7 +271,17 @@ export default function ReportShow(props) {
 	 */
 	const reloadIncident = () => {
 		router.reload({
-			only: ['report', 'reportAgencies', 'resolutions', 'duplicateCandidate', 'mergedReports', 'mergedIncident'],
+			only: [
+				'report',
+				'reportAgencies',
+				'resolutions',
+				'duplicateCandidate',
+				'mergedReports',
+				'mergedIncident',
+				'reguRoster',
+				'myRegu',
+				'canStayAtBase',
+			],
 		});
 	};
 
@@ -342,6 +361,19 @@ export default function ReportShow(props) {
 	};
 
 	const currentStatus = getReportStatus(reportStatus);
+
+	// Satu baris petugas di Manifes Responden - dipakai baris beregu maupun perorangan (TASK_60).
+	const renderOfficerRow = (officer) => {
+		const stat = getResponderStatus(officer.status);
+		return (
+			<div key={officer.id} className="flex items-center justify-between gap-3 p-3.5 text-xs">
+				<div className="min-w-0 flex-1 truncate font-bold text-foreground">{officer.user?.name}</div>
+				<Badge className={cn('rounded-md border px-2 py-0.5 text-xs font-semibold shadow-none', stat.color)}>
+					{stat.label}
+				</Badge>
+			</div>
+		);
+	};
 
 	// -----------------------------------------------------------------
 	// AKSI OPERASIONAL
@@ -450,6 +482,32 @@ export default function ReportShow(props) {
 				onFinish: () => setIsActionLoading(false),
 			},
 		);
+	};
+
+	// Pilihan kedua anggota regu (TASK_60): tinggal di kantor. Tepat satu per regu per kejadian;
+	// yang kalah cepat menerima galat `jaga_kantor` dari server, jadi ditampilkan sebagai toast.
+	const handleStayAtBase = () => {
+		setIsActionLoading(true);
+		router.post(
+			route('reports.stay-at-base', report.id),
+			{},
+			{
+				preserveScroll: true,
+				onSuccess: () => toast.success('Anda tercatat Jaga di Kantor.'),
+				onError: (errors) => toast.error(errors.jaga_kantor || 'Gagal mencatat Jaga di Kantor.'),
+				onFinish: () => setIsActionLoading(false),
+			},
+		);
+	};
+
+	const handleCancelStay = () => {
+		setIsActionLoading(true);
+		router.delete(route('reports.cancel-stay', report.id), {
+			preserveScroll: true,
+			onSuccess: () => toast.success('Pilihan Jaga di Kantor dibatalkan.'),
+			onError: () => toast.error('Gagal membatalkan Jaga di Kantor.'),
+			onFinish: () => setIsActionLoading(false),
+		});
 	};
 
 	const handleArrive = () => {
@@ -1542,20 +1600,62 @@ export default function ReportShow(props) {
 								) : (
 									<>
 										{/* 👇 TOMBOL TAKTIS (Dengan Warna Solid Semantik) 👇 */}
-										{!myRecord ? (
-											<Button
-												onClick={handleTakeAction}
-												disabled={isActionLoading}
-												className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-destructive text-xs font-bold uppercase tracking-wider text-destructive-foreground shadow-none transition-colors hover:bg-destructive/90"
-											>
-												{isActionLoading ? (
-													<IconLoader2 className="h-4 w-4 animate-spin" />
-												) : (
-													<>
-														<IconFlag className="h-4 w-4" /> Meluncur ke Lokasi
-													</>
+										{!myRecord && myRegu?.i_stay ? (
+											// Anggota regu yang memilih tinggal (TASK_60): bukan responder, jadi
+											// tak ada tombol Tiba/Koreksi - cukup keadaannya & jalan membatalkan.
+											<>
+												<div className="flex items-center justify-center gap-2 rounded-lg border border-border bg-muted p-3 text-center text-xs font-bold text-foreground">
+													<IconBuilding className="h-4 w-4" /> Anda Jaga di Kantor -{' '}
+													{myRegu.name}
+												</div>
+												<Button
+													onClick={handleCancelStay}
+													disabled={isActionLoading}
+													variant="outline"
+													className="mt-2 flex h-10 w-full items-center justify-center gap-2 rounded-lg border-border text-xs font-bold uppercase tracking-wider text-muted-foreground shadow-none transition-colors hover:bg-muted hover:text-foreground"
+												>
+													<IconX className="h-4 w-4" /> Batal Jaga Kantor
+												</Button>
+											</>
+										) : !myRecord ? (
+											<div className="space-y-2">
+												{myRegu && officerList.some((o) => reguKeyOf(o) === myRegu.key) && (
+													<p className="rounded-lg border border-warning/20 bg-warning/10 p-3 text-xs font-bold leading-relaxed text-warning">
+														{myRegu.name} sudah meluncur. Pilih keberangkatan Anda sendiri.
+													</p>
 												)}
-											</Button>
+												<div className={cn('grid gap-2', canStayAtBase && 'grid-cols-2')}>
+													<Button
+														onClick={handleTakeAction}
+														disabled={isActionLoading}
+														className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-destructive text-xs font-bold uppercase tracking-wider text-destructive-foreground shadow-none transition-colors hover:bg-destructive/90"
+													>
+														{isActionLoading ? (
+															<IconLoader2 className="h-4 w-4 animate-spin" />
+														) : (
+															<>
+																<IconFlag className="h-4 w-4" /> Meluncur
+																{!canStayAtBase && ' ke Lokasi'}
+															</>
+														)}
+													</Button>
+													{canStayAtBase && (
+														<Button
+															onClick={handleStayAtBase}
+															disabled={isActionLoading}
+															variant="outline"
+															className="flex h-12 w-full items-center justify-center gap-2 rounded-lg border-border text-xs font-bold uppercase tracking-wider text-foreground shadow-none transition-colors hover:bg-muted"
+														>
+															<IconBuilding className="h-4 w-4" /> Jaga di Kantor
+														</Button>
+													)}
+												</div>
+												{myRegu?.stay_taken_by && (
+													<p className="text-center text-[11px] text-muted-foreground">
+														{myRegu.stay_taken_by} sudah Jaga di Kantor untuk {myRegu.name}.
+													</p>
+												)}
+											</div>
 										) : myRecord.status === 'en_route' ? (
 											<>
 												<Button
@@ -1930,28 +2030,51 @@ export default function ReportShow(props) {
 							<div className="flex items-center gap-2 bg-muted p-3 text-xs font-bold uppercase text-muted-foreground">
 								<IconFiretruck className="h-4 w-4" /> Damkar
 							</div>
-							{officerList.length > 0 ? (
-								officerList.map((officer) => {
-									const stat = getResponderStatus(officer.status);
-									return (
-										<div
-											key={officer.id}
-											className="flex items-center justify-between gap-3 p-3.5 text-xs"
-										>
-											<div className="min-w-0 flex-1 truncate font-bold text-foreground">
-												{officer.user?.name}
-											</div>
-											<Badge
-												className={cn(
-													'rounded-md border px-2 py-0.5 text-xs font-semibold shadow-none',
-													stat.color,
+							{officerList.length > 0 || reguRoster.length > 0 ? (
+								<>
+									{/* Per regu (TASK_60): nama regu yang meluncur di depan, anggotanya
+									    di bawahnya - tiap orang tetap satu baris karena tiap orang
+									    menekan tombolnya sendiri. */}
+									{reguRoster.map((regu) => {
+										const anggota = officerList.filter((o) => reguKeyOf(o) === regu.key);
+										return (
+											<div key={regu.key} className="divide-y divide-border">
+												<div className="flex items-center justify-between gap-3 bg-muted/40 px-3.5 py-2.5 text-xs">
+													<div className="min-w-0 flex-1">
+														<div className="truncate font-black text-foreground">
+															{regu.name}
+														</div>
+														{regu.leader && (
+															<div className="truncate text-[11px] text-muted-foreground">
+																Danru: {regu.leader}
+															</div>
+														)}
+													</div>
+													<span className="shrink-0 text-[11px] font-bold text-muted-foreground">
+														{anggota.length} meluncur
+													</span>
+												</div>
+												{anggota.map(renderOfficerRow)}
+												{regu.stay && (
+													<div className="flex items-center justify-between gap-3 p-3.5 text-xs">
+														<div className="min-w-0 flex-1 truncate font-bold text-foreground">
+															{regu.stay}
+														</div>
+														<Badge className="rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground shadow-none">
+															Jaga di Kantor
+														</Badge>
+													</div>
 												)}
-											>
-												{stat.label}
-											</Badge>
-										</div>
-									);
-								})
+												{regu.pending.length > 0 && (
+													<div className="p-3.5 text-[11px] leading-relaxed text-muted-foreground">
+														Belum memilih: {regu.pending.join(', ')}
+													</div>
+												)}
+											</div>
+										);
+									})}
+									{officerList.filter((o) => !reguKeyOf(o)).map(renderOfficerRow)}
+								</>
 							) : (
 								<div className="p-4 text-center text-xs text-muted-foreground">-</div>
 							)}

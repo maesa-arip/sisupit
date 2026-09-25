@@ -10,8 +10,10 @@ use App\Events\ReportStatusChanged;
 use App\Events\ResponderLocationUpdated;
 use App\Events\ResponderRosterChanged;
 use App\Models\Agency;
+use App\Models\Regu;
 use App\Models\Report;
 use App\Models\ReportAgency;
+use App\Models\ReportJagaKantor;
 use App\Models\ReportUnit;
 use App\Models\Setting; // <-- Wajib ditambahkan
 use App\Models\TrackingLog;
@@ -21,6 +23,7 @@ use App\Notifications\AgencyConfirmationNotification;
 use App\Notifications\AgencyDispatchNotification;
 use App\Notifications\EmergencyAlertNotification;
 use App\Notifications\ReportStatusUpdatedNotification;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -310,6 +313,17 @@ class ReportActionController extends Controller
         $table = $isPetugas ? 'report_officers' : 'report_helpers';
         $timeColumn = $isPetugas ? 'dispatched_at' : 'started_at';
 
+        // Regu (TASK_60): petugas beregu meluncur ATAS NAMA regunya, dan nama regu itu di-snapshot
+        // ke barisnya sendiri - tiap anggota tetap wajib menekan tombolnya sendiri, jadi daftar
+        // "siapa saja dari regu ini yang benar-benar berangkat" terbentuk dari klik masing-masing,
+        // bukan dari satu klik danru yang mengklaim seluruh anggotanya. Petugas tanpa regu tetap
+        // meluncur perorangan seperti sebelumnya.
+        $regu = $isPetugas ? Regu::milik($user) : null;
+        if ($regu && ReportJagaKantor::where('report_id', $report->id)->where('user_id', $user->id)->exists()) {
+            abort(403, 'Anda tercatat Jaga di Kantor untuk kejadian ini. Batalkan dulu bila akan meluncur.');
+        }
+        $reguColumns = $regu ? ['regu_id' => $regu->id, 'regu_name' => $regu->name] : [];
+
         // Apakah transisi pending -> handling benar terjadi pada panggilan ini (responder
         // pertama). Dipakai agar notifikasi ke pelapor TIDAK spam tiap responder bergabung.
         $becameHandling = false;
@@ -317,7 +331,7 @@ class ReportActionController extends Controller
         // viewer lain memuat ulang manifes + marker peta secara real-time.
         $rosterChanged = false;
 
-        DB::transaction(function () use ($report, $user, $table, $timeColumn, &$becameHandling, &$rosterChanged) {
+        DB::transaction(function () use ($report, $user, $table, $timeColumn, $reguColumns, &$becameHandling, &$rosterChanged) {
             // Mencegah Double Insert
             $exists = DB::table($table)->where('report_id', $report->id)->where('user_id', $user->id)->lockForUpdate()->exists();
 
@@ -325,6 +339,7 @@ class ReportActionController extends Controller
                 DB::table($table)->insert([
                     'report_id' => $report->id,
                     'user_id' => $user->id,
+                    ...$reguColumns,
                     'status' => 'en_route',
                     $timeColumn => now(),
                     'created_at' => now(),
@@ -399,6 +414,79 @@ class ReportActionController extends Controller
         broadcast(new ResponderRosterChanged($report->id));
 
         return back()->with('success', 'Keberangkatan dibatalkan.');
+    }
+
+    // 2b-2. Anggota regu memilih TINGGAL di kantor untuk kejadian ini (Tombol "Jaga di Kantor",
+    // TASK_60). Keputusan user: TEPAT SATU orang per regu per kejadian, siapa pun yang lebih dulu
+    // menekannya. Petugas saja, dan hanya yang beregu - tanpa regu tak ada yang "ditinggal jaga".
+    public function stayAtBase($id)
+    {
+        $user = auth()->user();
+        if (! $user->hasRole('petugas')) {
+            abort(403, 'Akses Ditolak.');
+        }
+
+        $report = Report::withoutGlobalScopes()->findOrFail($id);
+        $this->ensureWithinJurisdiction($report, $user);
+
+        // Daftar hitam yang sama dengan takeAction() - keduanya pilihan atas panggilan yang sama.
+        if (in_array($report->status, ['resolved', 'ditolak', Report::STATUS_DIGABUNG], true)) {
+            abort(403, 'Insiden ini sudah ditutup.');
+        }
+
+        $regu = Regu::milik($user);
+        if (! $regu) {
+            abort(403, 'Anda belum tergabung dalam regu mana pun.');
+        }
+
+        if (DB::table('report_officers')->where('report_id', $report->id)->where('user_id', $user->id)->exists()) {
+            abort(403, 'Anda sudah meluncur ke kejadian ini. Batalkan keberangkatan dulu bila akan jaga kantor.');
+        }
+
+        $penuh = ['jaga_kantor' => 'Regu Anda sudah punya satu anggota yang jaga kantor untuk kejadian ini.'];
+
+        $sudahAda = ReportJagaKantor::where('report_id', $report->id)->where('regu_id', $regu->id)->first();
+        if ($sudahAda) {
+            return (int) $sudahAda->user_id === (int) $user->id ? back() : back()->withErrors($penuh);
+        }
+
+        // Dua anggota yang menekan bersamaan bisa sama-sama lolos pemeriksaan di atas;
+        // UNIQUE(report_id, regu_id) yang memutuskan siapa yang lebih dulu.
+        try {
+            ReportJagaKantor::create([
+                'report_id' => $report->id,
+                'regu_id' => $regu->id,
+                'regu_name' => $regu->name,
+                'user_id' => $user->id,
+            ]);
+        } catch (UniqueConstraintViolationException) {
+            return back()->withErrors($penuh);
+        }
+
+        // Manifes regu di layar orang lain ikut berubah (siapa tinggal, siapa belum memilih).
+        broadcast(new ResponderRosterChanged($report->id));
+
+        return back()->with('success', 'Anda tercatat Jaga di Kantor.');
+    }
+
+    // 2b-3. Membatalkan pilihan Jaga di Kantor (salah tekan, atau ternyata ikut berangkat).
+    public function cancelStay($id)
+    {
+        $user = auth()->user();
+        if (! $user->hasRole('petugas')) {
+            abort(403, 'Akses Ditolak.');
+        }
+
+        $report = Report::withoutGlobalScopes()->findOrFail($id);
+
+        // Gerbangnya keanggotaan: hanya baris milik sendiri yang bisa dihapus.
+        if (! ReportJagaKantor::where('report_id', $report->id)->where('user_id', $user->id)->delete()) {
+            abort(403, 'Anda tidak tercatat Jaga di Kantor untuk kejadian ini.');
+        }
+
+        broadcast(new ResponderRosterChanged($report->id));
+
+        return back()->with('success', 'Pilihan Jaga di Kantor dibatalkan.');
     }
 
     // 2c. Pusat Komando mengerahkan UNIT/armada ke insiden (TASK_09).

@@ -8,8 +8,10 @@ use App\Events\ReportFeedChanged;
 use App\Events\ReportRecordChanged;
 use App\Http\Requests\ReportRequest;
 use App\Models\Agency;
+use App\Models\Regu;
 use App\Models\Report;
 use App\Models\ReportAgency;
+use App\Models\ReportJagaKantor;
 use App\Models\ReportResolution;
 use App\Models\Setting;
 use App\Models\Tenant;
@@ -365,6 +367,8 @@ class ReportController extends Controller
             ->groupBy('user_id')
             ->map(fn ($points) => $points->map(fn ($p) => ['lat' => (float) $p->lat, 'lng' => (float) $p->lng])->values());
 
+        [$reguRoster, $myRegu, $canStayAtBase] = $this->reguManifest($report, $user, $isStaff || $isPejabat);
+
         // Berita Acara / Laporan Kegiatan Penyelamatan (FINDINGS #39) — staf saja.
         // Append-only: banyak entri (sementara/final), terbaru dulu. KTP korban TIDAK
         // dikirim sebagai path (PII); hanya URL route bergerbang saat foto tersedia.
@@ -435,7 +439,92 @@ class ReportController extends Controller
             'mergedIncident' => $mergedIncident,
             // Dipakai frontend untuk menampilkan tombol konfirmasi pada baris instansinya sendiri.
             'myAgencyId' => $isAgencyPartner ? $user->agency_id : null,
+            // Regu & Danru (TASK_60). Tombol "Jaga di Kantor" dibaca dari `canStayAtBase` -
+            // syaratnya sama dengan ReportActionController::stayAtBase(), dihitung di sini supaya
+            // layar tak menawarkan tombol yang berakhir 403.
+            'reguRoster' => $reguRoster,
+            'myRegu' => $myRegu,
+            'canStayAtBase' => $canStayAtBase,
         ]);
+    }
+
+    /**
+     * Manifes per regu untuk halaman detail (TASK_60).
+     *
+     * Kelompoknya diturunkan dari SNAPSHOT di baris responder (`report_officers.regu_id` +
+     * `regu_name`) dan `report_jaga_kantor`, bukan dari keanggotaan regu hari ini: yang
+     * ditampilkan adalah regu yang BENAR-BENAR meluncur ke kejadian ini, dan riwayat tak boleh
+     * berubah saat regu diganti namanya atau anggotanya pindah. Kunci `id:<regu_id>`, atau
+     * `nama:<regu_name>` bila regunya sudah dihapus (regu_id null, namanya tetap).
+     *
+     * Siapa yang jaga kantor & siapa yang BELUM memilih hanya untuk staf/pejabat - daftar itu
+     * menyebut nama petugas yang tidak berangkat, bukan urusan pelapor. "Belum memilih" dibaca
+     * dari keanggotaan regu SAAT INI dan hanya selama insiden belum ditutup.
+     *
+     * @return array{0: array, 1: ?array, 2: bool}
+     */
+    private function reguManifest(Report $report, User $user, bool $canSeeRoster): array
+    {
+        $keyOf = fn ($reguId, $name) => $reguId ? 'id:'.$reguId : 'nama:'.$name;
+
+        $stays = ReportJagaKantor::with('user:id,name')->where('report_id', $report->id)->get();
+
+        $groups = [];
+        foreach ($report->officers as $officer) {
+            if (! $officer->regu_name) {
+                continue;
+            }
+            $key = $keyOf($officer->regu_id, $officer->regu_name);
+            $groups[$key] ??= ['regu_id' => $officer->regu_id, 'name' => $officer->regu_name];
+        }
+        foreach ($stays as $stay) {
+            $key = $keyOf($stay->regu_id, $stay->regu_name);
+            $groups[$key] ??= ['regu_id' => $stay->regu_id, 'name' => $stay->regu_name];
+        }
+
+        $isOpen = ! in_array($report->status, ['resolved', 'ditolak', Report::STATUS_DIGABUNG], true);
+        $regus = Regu::withoutGlobalScope('tenant')
+            ->with(['leader:id,name', 'members:id,name'])
+            ->whereIn('id', collect($groups)->pluck('regu_id')->filter())
+            ->get()
+            ->keyBy('id');
+
+        $roster = [];
+        foreach ($groups as $key => $group) {
+            $regu = $group['regu_id'] ? $regus->get($group['regu_id']) : null;
+            $stay = $stays->first(fn ($s) => $keyOf($s->regu_id, $s->regu_name) === $key);
+            $chosen = $report->officers->pluck('user_id')->push(optional($stay)->user_id)->filter();
+
+            $roster[] = [
+                'key' => $key,
+                'name' => $group['name'],
+                'leader' => $regu?->leader?->name,
+                'stay' => $canSeeRoster && $stay ? optional($stay->user)->name : null,
+                'pending' => $canSeeRoster && $isOpen && $regu
+                    ? $regu->members->whereNotIn('id', $chosen)->sortBy('name')->pluck('name')->values()
+                    : [],
+            ];
+        }
+
+        $myRegu = null;
+        $canStayAtBase = false;
+        if ($user->hasRole('petugas') && ($own = Regu::milik($user))) {
+            $ownStay = $stays->firstWhere('regu_id', $own->id);
+            $isOfficer = $report->officers->contains('user_id', $user->id);
+
+            $myRegu = [
+                'name' => $own->name,
+                'key' => $keyOf($own->id, $own->name),
+                'is_leader' => $own->isLeader($user),
+                'i_stay' => $ownStay && (int) $ownStay->user_id === (int) $user->id,
+                'stay_taken_by' => $ownStay ? optional($ownStay->user)->name : null,
+            ];
+            // Syarat yang sama persis dengan stayAtBase(): wilayah, insiden masih terbuka, belum
+            // meluncur, dan regunya belum punya orang yang jaga kantor.
+            $canStayAtBase = $isOpen && ! $isOfficer && ! $ownStay && $user->withinReportJurisdiction($report);
+        }
+
+        return [$roster, $myRegu, $canStayAtBase];
     }
 
     // =========================================================================

@@ -27,7 +27,24 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : PETUGAS BOLEH TAMBAH & EDIT HYDRANT + RIWAYAT SUNTINGAN (TASK_59,
+Task aktif   : REGU & DANRU - MELUNCUR ATAS NAMA REGU + SATU ANGGOTA JAGA DI KANTOR (TASK_60,
+                prompt/tasks/TASK_60_regu_danru_jaga_kantor.md). SELESAI (kode) 2026-09-25 di
+                branch `feat/regu-danru` (worktree .claude/worktrees/regu-danru, dari
+                feat/hydrant-log-petugas @4814de6f - ikut membawa TASK_54/55/56/59). BELUM dideploy.
+                Keputusan user: dua tombol "Meluncur" | "Jaga di Kantor" (usul user sendiri), TEPAT
+                SATU jaga kantor per regu per kejadian, anggota mana pun boleh memulai, anggota regu
+                PETUGAS SAJA. YANG MENGIKAT: (a) danru = regus.leader_id, BUKAN peran Spatie;
+                (b) tiap anggota menekan sendiri - klik satu orang tak pernah mengklaim anggota lain;
+                nama regu di-SNAPSHOT ke report_officers.regu_name; (c) jaga kantor = tabel
+                report_jaga_kantor, BUKAN status responder (lihat CONVENTIONS), UNIQUE(report_id,
+                regu_id); (d) siapa jaga kantor & siapa belum memilih hanya untuk staf/pejabat;
+                (e) tombol dari prop server canStayAtBase + 3 prop regu ikut SATU daftar
+                reloadIncident (#113). Test 497 -> 508 passed (2223), ReguTest 11; TIGA sabotase
+                MERAH (dicek `cmp` terpasang), pulih byte-exact. Pint/prettier/build lulus. Migrasi
+                aditif DONE di MySQL dev LOKAL (up/rollback/up), BELUM di VPS. SISA: verifikasi
+                manual §6, build + commit public/build, deploy = kode + `php artisan migrate`
+                BERSAMAAN (tanpa migrasi halaman detail insiden 500).
+               PETUGAS BOLEH TAMBAH & EDIT HYDRANT + RIWAYAT SUNTINGAN (TASK_59,
                 prompt/tasks/TASK_59_petugas_edit_hydrant_log.md). SELESAI (kode) 2026-09-22 di
                 branch `feat/hydrant-log-petugas` (dari feat/laporan-ganda-atas-forum @c181b7d0,
                 jadi ikut membawa TASK_54/55/56 yang juga belum di main). BELUM dideploy.
@@ -2393,7 +2410,8 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-09-22: 499 passed, 2099 assertions - +2 #130, +12 TASK_59.
+Test      : php artisan test            (baseline 2026-09-25 di feat/regu-danru: 508 passed, 2223 assertions - +11 TASK_60;
+            working tree utama 499/2099 termasuk +2 #130 yang belum di-commit.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)
