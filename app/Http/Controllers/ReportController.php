@@ -646,11 +646,16 @@ class ReportController extends Controller
             // SOP ANTI HOAX: Notifikasi AWAL HANYA ke PUSAT KOMANDO (Petugas/Admin),
             // disiarkan sesuai tingkat wilayah yang dikonfigurasi admin (cascade naik dari desa laporan).
             // Batasnya per kabupaten laporan (TASK_62) - satu fungsi untuk semua titik siaran.
+            // Petugas dipilih dari wilayah EFEKTIF-nya (TASK_63) - wilayah yang sama dengan data
+            // yang ia lihat saat membuka notifikasinya.
             $petugasCeiling = Tenant::petugasNotifyLevel($report->city_code);
-            $commandCenterUsers = User::role(['petugas', 'admin', 'superadmin'])
+            $commandCenterUsers = User::role(['admin', 'superadmin'])
                 ->notifiableForReport($report, $petugasCeiling)
-                ->whereNot('id', auth()->id())
-                ->get();
+                ->get()
+                ->concat(User::petugasRecipientsFor($report))
+                ->unique('id')
+                ->reject(fn (User $u) => $u->id === auth()->id())
+                ->values();
             // Usulan duplikat TIDAK membunyikan nada triase lagi (keputusan user 2026-09-14):
             // lima belas pelapor untuk satu kebakaran = lima belas bunyi, dan bunyi yang
             // bertubi-tubi melatih orang mengabaikannya (alasan TASK_50). Laporannya tetap

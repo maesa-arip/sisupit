@@ -115,6 +115,11 @@ it('does not widen report visibility, because reports always carry full region c
         'province_code' => '51', 'city_code' => '5171', 'district_code' => '517103', 'village_code' => '5171032002',
     ]);
 
+    // Tingkat setelan petugas disebut EKSPLISIT = kecamatan (TASK_63): sejak wilayah efektif,
+    // petugas diperluas sampai tingkat setelannya (bawaan Kabupaten) dan itu DISENGAJA. Yang
+    // dijaga test ini lain - bahwa aturan baris-NULL Tenantable sendiri tak melebarkan laporan.
+    \App\Models\Setting::setValue(\App\Models\Setting::KEY_NOTIFY_LEVEL_PETUGAS, \App\Enums\TenantLevel::KECAMATAN->value);
+
     $this->actingAs(denpasarStaff([
         'province_code' => '51', 'city_code' => '5171', 'district_code' => '517101', 'village_code' => null,
     ]));

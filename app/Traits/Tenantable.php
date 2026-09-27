@@ -17,12 +17,10 @@ trait Tenantable
                     return;
                 }
 
-                $codes = array_filter([
-                    'province_code' => $user->province_code,
-                    'city_code' => $user->city_code,
-                    'district_code' => $user->district_code,
-                    'village_code' => $user->village_code,
-                ]);
+                // Wilayah EFEKTIF, bukan kolom akun mentah (TASK_63): bagi petugas ia diperluas
+                // sampai tingkat setelan kabupatennya, supaya data yang tampil sama dengan
+                // wilayah yang membangunkannya lewat notifikasi. Peran lain = kolom akun apa adanya.
+                $codes = array_filter($user->effectiveJurisdictionCodes());
 
                 // User login TANPA kode wilayah sama sekali & BUKAN superadmin → JANGAN beri
                 // akses nasional. Ini bug nyata: akun Google/pendaftar yang belum melengkapi

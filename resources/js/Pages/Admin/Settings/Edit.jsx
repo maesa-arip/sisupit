@@ -68,8 +68,10 @@ export default function Edit(props) {
 						<p className="text-sm text-muted-foreground">
 							Notifikasi laporan selalu dimulai dari desa lokasi laporan, lalu disiarkan naik ke tingkat
 							di atasnya sampai batas yang dipilih di sini. Petugas, relawan, dan pejabat bisa diatur
-							dengan batas yang berbeda. Tingkat petugas di sini adalah BAWAAN: admin tiap kabupaten bisa
-							menggantinya untuk kabupatennya sendiri lewat menu Notifikasi Petugas.
+							dengan batas yang berbeda. Tingkat petugas juga menentukan DATA yang tampil bagi petugas
+							(dashboard, daftar, detail, fasilitas): akun petugas yang lebih sempit diperluas sampai
+							tingkat ini. Nilai di sini adalah BAWAAN; admin tiap kabupaten bisa menggantinya untuk
+							kabupatennya sendiri lewat menu Jangkauan Petugas.
 						</p>
 						{renderLevelSelect(
 							'notify_level_petugas',

@@ -101,8 +101,18 @@
   kabupaten) -> setelan global superadmin -> Kabupaten. Titik siaran baru untuk petugas WAJIB
   memanggilnya, jangan membaca `Setting::KEY_NOTIFY_LEVEL_PETUGAS` langsung - rumus kedua membuat
   setelan kabupaten diabaikan diam-diam untuk jalur itu saja. Relawan & pejabat tetap global.
-  Setelan ini TIDAK melebarkan akun petugas berlevel desa (itu soal wilayah akun). Dijaga
-  `TenantNotifyLevelPetugasTest`.
+  Dijaga `TenantNotifyLevelPetugasTest`.
+- **Wilayah akses & notifikasi PETUGAS = `User::effectiveJurisdictionCodes()`, BUKAN kolom akun
+  mentah** (TASK_63, keluhan user 2026-09-28 "percuma notif kota/kabupaten tapi di dashboard data
+  yang muncul beda"). Akun petugas murni DIPERLUAS sampai tingkat setelan kabupatennya (boleh
+  sampai provinsi lewat setelan global, keputusan user) - hanya memperluas, tak pernah
+  menyempitkan, dan tak dilakukan bila akun tak punya kode di tingkat tujuan (rantai tak lengkap
+  = akses bisa hilang). `Tenantable`, `withinReportJurisdiction`, `narrowestJurisdictionColumn`/
+  `reportFeedChannel`, kartu Profil, dan `User::petugasRecipientsFor()` (penerima notifikasi
+  petugas di KETIGA titik siaran) semuanya membacanya - kode baru yang membatasi akses petugas
+  WAJIB lewat fungsi-fungsi itu, jangan membaca `$user->village_code` dkk. langsung, atau layar
+  itu akan menyimpang dari notifikasinya. Dijaga `PetugasWilayahEfektifTest` (sifat inti:
+  dibangunkan ⇔ terlihat, di setiap tingkat).
 
 - **Kode wilayah akun (`users.province_code`..`village_code`) bagi petugas/staf = wilayah
   TUGAS, bukan tempat tinggal; tempat tinggal = `users.address` ("Alamat Tinggal", teks

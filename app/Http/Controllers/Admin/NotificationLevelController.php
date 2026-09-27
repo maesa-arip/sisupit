@@ -33,8 +33,8 @@ class NotificationLevelController extends Controller
 
         return Inertia::render('Admin/NotificationLevel/Edit', [
             'page_settings' => [
-                'title' => 'Notifikasi Petugas',
-                'subtitle' => 'Atur sampai tingkat wilayah mana notifikasi laporan dikirim ke petugas di kabupaten Anda',
+                'title' => 'Jangkauan Petugas',
+                'subtitle' => 'Atur sampai tingkat wilayah mana petugas di kabupaten Anda menerima notifikasi dan melihat data',
                 'action' => route('admin.notification-level.update'),
             ],
             'notify_level_petugas' => $tenant->notify_level_petugas ?? '',
@@ -59,7 +59,7 @@ class NotificationLevelController extends Controller
 
         $tenant->update(['notify_level_petugas' => $validated['notify_level_petugas'] ?? null]);
 
-        flashMessage('Tingkat notifikasi petugas disimpan.');
+        flashMessage('Jangkauan petugas disimpan.');
 
         return redirect()->route('admin.notification-level.edit');
     }

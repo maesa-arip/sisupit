@@ -73,7 +73,6 @@ class ReportActionController extends Controller
             // Siaran ke petugas, relawan, & pejabat disiarkan terpisah, masing-masing pakai tingkat
             // wilayah sendiri (petugas: per kabupaten laporan, TASK_62; relawan & pejabat: Setting
             // global _RELAWAN / _PEJABAT), cascade naik dari desa laporan.
-            $petugasCeiling = Tenant::petugasNotifyLevel($report->city_code);
             $relawanCeiling = TenantLevel::from(
                 Setting::getValue(Setting::KEY_NOTIFY_LEVEL_RELAWAN, TenantLevel::DESA->value)
             );
@@ -81,7 +80,10 @@ class ReportActionController extends Controller
                 Setting::getValue(Setting::KEY_NOTIFY_LEVEL_PEJABAT, TenantLevel::KABUPATEN->value)
             );
 
-            $petugasResponders = User::role('petugas')->notifiableForReport($report, $petugasCeiling)->whereNot('id', auth()->id())->get();
+            // Petugas dari wilayah EFEKTIF-nya (TASK_63): yang dibangunkan = yang bisa membukanya.
+            $petugasResponders = User::petugasRecipientsFor($report)
+                ->reject(fn (User $u) => $u->id === auth()->id())
+                ->values();
             // Relawan yang menonaktifkan siaga tidak ikut disiarkan notifikasi insiden.
             $relawanResponders = User::role('relawan')->where('is_standby', true)->notifiableForReport($report, $relawanCeiling)->whereNot('id', auth()->id())->get();
             // Pejabat MEMANTAU, tidak merespons — tapi dulu ia satu-satunya peran yang tak pernah
@@ -706,7 +708,9 @@ class ReportActionController extends Controller
             Setting::getValue(Setting::KEY_NOTIFY_LEVEL_RELAWAN, TenantLevel::DESA->value)
         );
 
-        $commandCenter = User::role(['admin', 'petugas'])->notifiableForReport($report, $petugasCeiling)->get();
+        // Admin tetap aturan lama; petugas dari wilayah EFEKTIF-nya (TASK_63).
+        $commandCenter = User::role('admin')->notifiableForReport($report, $petugasCeiling)->get()
+            ->concat(User::petugasRecipientsFor($report));
         $relawan = User::role('relawan')->where('is_standby', true)
             ->notifiableForReport($report, $relawanCeiling)->get();
 

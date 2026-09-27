@@ -51,25 +51,31 @@ class ProfileController extends Controller
      */
     private function resolveJurisdiction(\App\Models\User $user): array
     {
+        // Wilayah EFEKTIF (TASK_63): bagi petugas yang diperluas sampai tingkat setelan
+        // kabupatennya, kartu ini harus menyebut jangkauan yang benar-benar berlaku - bukan desa
+        // akunnya, yang tak lagi membatasi apa pun. Peran lain = kolom akun apa adanya.
+        $codes = $user->effectiveJurisdictionCodes();
+        $name = fn (string $column, string $relation) => $codes[$column] ? optional($user->{$relation})->name : null;
+
         $levels = [
-            ['label' => 'Provinsi', 'name' => optional($user->province)->name],
-            ['label' => 'Kabupaten/Kota', 'name' => optional($user->city)->name],
-            ['label' => 'Kecamatan', 'name' => optional($user->district)->name],
-            ['label' => 'Desa/Kelurahan', 'name' => optional($user->village)->name],
+            ['label' => 'Provinsi', 'name' => $name('province_code', 'province')],
+            ['label' => 'Kabupaten/Kota', 'name' => $name('city_code', 'city')],
+            ['label' => 'Kecamatan', 'name' => $name('district_code', 'district')],
+            ['label' => 'Desa/Kelurahan', 'name' => $name('village_code', 'village')],
         ];
 
-        $scopeLevel = $user->village_code ? 'Desa/Kelurahan'
-            : ($user->district_code ? 'Kecamatan'
-            : ($user->city_code ? 'Kabupaten/Kota'
-            : ($user->province_code ? 'Provinsi'
+        $scopeLevel = $codes['village_code'] ? 'Desa/Kelurahan'
+            : ($codes['district_code'] ? 'Kecamatan'
+            : ($codes['city_code'] ? 'Kabupaten/Kota'
+            : ($codes['province_code'] ? 'Provinsi'
             : ($user->hasRole('superadmin') ? 'Nasional' : 'Belum diisi'))));
 
         // Nama wilayah pada level terspesifik (= cakupan kewenangan). Mis. cakupan desa →
         // nama desa, cakupan kecamatan → nama kecamatan, dst.
-        $scopeName = optional($user->village)->name
-            ?? optional($user->district)->name
-            ?? optional($user->city)->name
-            ?? optional($user->province)->name;
+        $scopeName = $name('village_code', 'village')
+            ?? $name('district_code', 'district')
+            ?? $name('city_code', 'city')
+            ?? $name('province_code', 'province');
 
         return [
             // Makna kode wilayah akun berbeda per peran (TASK_61): peran yang wilayahnya

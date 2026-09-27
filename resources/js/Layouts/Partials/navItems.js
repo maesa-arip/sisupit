@@ -308,7 +308,7 @@ export function buildNavSections({ auth, url = '' }) {
 						},
 						notifyLevelEditable && {
 							key: 'admin.notification-level',
-							title: 'Notifikasi Petugas',
+							title: 'Jangkauan Petugas',
 							icon: IconBellCog,
 							url: route('admin.notification-level.edit'),
 							active: startsWith('/admin/notifikasi-petugas'),

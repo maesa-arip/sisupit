@@ -53,20 +53,23 @@ export default function Edit(props) {
 				<CardContent className="p-6">
 					<form className="space-y-6" onSubmit={onHandleSubmit}>
 						<div className="space-y-2 text-sm text-muted-foreground">
+							{/* TASK_63: setelan ini mengatur notifikasi DAN data yang tampil - satu wilayah
+							    untuk keduanya, supaya yang membangunkan petugas selalu bisa ia buka. */}
 							<p>
-								Notifikasi laporan di{' '}
-								{props.nama_instansi ? <b>{props.nama_instansi}</b> : 'kabupaten Anda'} selalu dikirim
-								ke petugas yang wilayah akunnya di desa lokasi laporan, lalu naik ke petugas berwilayah
-								kecamatan dan kota/kabupaten sampai batas yang dipilih di sini.
+								Tingkat ini menentukan jangkauan petugas di{' '}
+								{props.nama_instansi ? <b>{props.nama_instansi}</b> : 'kabupaten Anda'}: notifikasi
+								laporan yang ia terima DAN data yang tampil di dashboard, daftar laporan, halaman
+								detail, serta daftar fasilitas. Keduanya selalu sama, jadi laporan yang membangunkan
+								petugas pasti bisa ia buka.
 							</p>
 							<p>
-								Batas ini tidak melebarkan jangkauan akun petugas yang wilayahnya diatur sampai desa:
-								akun seperti itu hanya menerima laporan dari desanya sendiri. Agar petugas menerima
-								laporan se-kota, atur wilayah akunnya ke tingkat kota/kabupaten di Manajemen Pengguna.
+								Contoh: bila dipilih Kota/Kabupaten, petugas yang akunnya terdaftar di satu desa ikut
+								menerima dan melihat laporan se-kota. Akun petugas yang wilayahnya sudah lebih luas dari
+								pilihan ini tetap melihat data sesuai akunnya.
 							</p>
 						</div>
 						<div className="grid w-full items-center gap-1.5">
-							<Label htmlFor="notify_level_petugas">Tingkat Siaran Petugas</Label>
+							<Label htmlFor="notify_level_petugas">Jangkauan Petugas</Label>
 							<Select
 								value={data.notify_level_petugas}
 								onValueChange={(value) => setData('notify_level_petugas', value)}

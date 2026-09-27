@@ -8,6 +8,7 @@ use App\Enums\TenantLevel;
 use App\Enums\UserGender;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -155,13 +156,106 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function narrowestJurisdictionColumn(): ?string
     {
+        $codes = $this->effectiveJurisdictionCodes();
+
         foreach (['village_code', 'district_code', 'city_code', 'province_code'] as $column) {
-            if ($this->{$column}) {
+            if ($codes[$column]) {
                 return $column;
             }
         }
 
         return null;
+    }
+
+    /** Cache per objek - Tenantable memanggil effectiveJurisdictionCodes() di SETIAP query. */
+    private ?array $effectiveCodesCache = null;
+
+    /**
+     * Wilayah yang BERLAKU untuk akses & notifikasi akun ini (TASK_63). SUMBER TUNGGAL bagi
+     * Tenantable, withinReportJurisdiction, narrowestJurisdictionColumn/reportFeedChannel, dan
+     * petugasRecipientsFor - supaya yang membangunkan petugas (notifikasi) dan yang ia lihat saat
+     * membukanya (dashboard, daftar, detail, aksi) selalu wilayah yang SAMA. Keluhan user
+     * 2026-09-28: "percuma notif kota/kabupaten tapi waktu di klik di dashboard list data yang
+     * muncul beda".
+     *
+     * Bagi PETUGAS murni, wilayah akun DIPERLUAS sampai tingkat setelan kabupatennya
+     * (Tenant::petugasNotifyLevel - pilihan admin kabupaten, lalu global superadmin, boleh
+     * sampai provinsi atas keputusan user). Hanya MEMPERLUAS: kolom yang lebih sempit dari
+     * tingkat itu dikosongkan, tak pernah ada kode yang ditambahkan, dan akun yang sudah lebih
+     * luas tetap seperti akunnya. Peran lain (termasuk akun petugas yang juga admin/pejabat)
+     * memakai wilayah akunnya apa adanya. Kolom di DB TIDAK diubah.
+     *
+     * @return array{province_code: ?string, city_code: ?string, district_code: ?string, village_code: ?string}
+     */
+    public function effectiveJurisdictionCodes(): array
+    {
+        if ($this->effectiveCodesCache !== null) {
+            return $this->effectiveCodesCache;
+        }
+
+        $codes = [
+            'province_code' => $this->province_code,
+            'city_code' => $this->city_code,
+            'district_code' => $this->district_code,
+            'village_code' => $this->village_code,
+        ];
+
+        if ($this->hasRole('petugas') && ! $this->hasAnyRole(['superadmin', 'admin', 'pejabat', 'opd'])) {
+            $level = Tenant::petugasNotifyLevel($this->city_code);
+            $keep = match ($level) {
+                TenantLevel::PROVINSI => ['province_code'],
+                TenantLevel::KABUPATEN => ['province_code', 'city_code'],
+                TenantLevel::KECAMATAN => ['province_code', 'city_code', 'district_code'],
+                TenantLevel::DESA => array_keys($codes),
+            };
+            // Hanya diperluas bila akun PUNYA kode di tingkat tujuan. Akun yang rantai kodenya
+            // tak lengkap (mis. hanya village_code) akan kehilangan SELURUH wilayahnya kalau
+            // dipotong - perluasan tak boleh pernah membuat akses hilang; akun itu tetap
+            // memakai wilayahnya apa adanya.
+            if ($codes[end($keep)]) {
+                foreach (array_keys($codes) as $column) {
+                    if (! in_array($column, $keep, true)) {
+                        $codes[$column] = null;
+                    }
+                }
+            }
+        }
+
+        return $this->effectiveCodesCache = $codes;
+    }
+
+    /**
+     * Petugas yang dibangunkan untuk laporan ini (TASK_63) - SATU aturan untuk laporan masuk,
+     * broadcast verifikasi, dan konfirmasi OPD, diturunkan dari wilayah efektif yang SAMA dengan
+     * data yang akan mereka lihat saat membuka notifikasinya.
+     *
+     * Aturannya: laporan berada di wilayah efektif petugas, DAN wilayah efektif itu tidak lebih
+     * luas dari tingkat setelannya. Syarat kedua mempertahankan perilaku lama bagi akun yang
+     * memang lebih luas dari setelan (mis. akun kota saat setelan Desa, akun provinsi saat
+     * setelan Kabupaten): datanya tetap sesuai akun, tapi tidak dibangunkan - persis seperti
+     * sebelum wilayah efektif ada. Petugas tanpa kode wilayah sama sekali tetap ikut (jaring
+     * pengaman staf nasional, #56).
+     *
+     * Kandidatnya seluruh petugas lalu disaring di PHP: tingkat setelan berbeda per kabupaten
+     * petugas, dan menuliskannya sebagai SQL = rumus kedua yang bisa menyimpang dari
+     * effectiveJurisdictionCodes(). Jumlah petugas satu instalasi kecil (puluhan).
+     */
+    public static function petugasRecipientsFor(Report $report): Collection
+    {
+        return self::role('petugas')->get()->filter(function (User $petugas) use ($report) {
+            if (! $petugas->province_code && ! $petugas->city_code && ! $petugas->district_code && ! $petugas->village_code) {
+                return true;
+            }
+
+            if (! $petugas->withinReportJurisdiction($report)) {
+                return false;
+            }
+
+            $codes = $petugas->effectiveJurisdictionCodes();
+            $effective = TenantLevel::forCodes($codes['province_code'], $codes['city_code'], $codes['district_code'], $codes['village_code']);
+
+            return $effective && $effective->rank() >= Tenant::petugasNotifyLevel($petugas->city_code)->rank();
+        })->values();
     }
 
     public function withinReportJurisdiction(Report $report): bool
@@ -177,7 +271,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return false;
         }
 
-        return $this->{$column} === $report->{$column};
+        return $this->effectiveJurisdictionCodes()[$column] === $report->{$column};
     }
 
     /**
@@ -227,7 +321,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return $this->hasAnyRole(self::STAFF_ROLES) ? 'reports.all' : null;
         }
 
-        return 'reports.'.str_replace('_code', '', $column).'.'.$this->{$column};
+        return 'reports.'.str_replace('_code', '', $column).'.'.$this->effectiveJurisdictionCodes()[$column];
     }
 
     public function socialAccounts()
