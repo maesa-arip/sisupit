@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\HydrantController as AdminHydrantController;
 use App\Http\Controllers\Admin\HydrantWargaController as AdminHydrantWargaController;
 use App\Http\Controllers\Admin\MailContactController as AdminMailContactController;
 use App\Http\Controllers\Admin\MailSettingController as AdminMailSettingController;
+use App\Http\Controllers\Admin\NotificationLevelController as AdminNotificationLevelController;
 use App\Http\Controllers\Admin\PompaController as AdminPompaController;
 use App\Http\Controllers\Admin\PosPemadamController as AdminPosPemadamController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
@@ -99,6 +100,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('email', [AdminMailSettingController::class, 'edit'])->name('mail-settings.edit');
         Route::put('email', [AdminMailSettingController::class, 'update'])->name('mail-settings.update');
         Route::post('email/uji', [AdminMailSettingController::class, 'test'])->name('mail-settings.test');
+        // Tingkat siaran notifikasi petugas PER KABUPATEN (TASK_62). Kabupatennya dari city_code
+        // AKUN admin berlevel kabupaten (dicek di controller), tak pernah dari request.
+        Route::get('notifikasi-petugas', [AdminNotificationLevelController::class, 'edit'])->name('notification-level.edit');
+        Route::put('notifikasi-petugas', [AdminNotificationLevelController::class, 'update'])->name('notification-level.update');
         // Master banjar (2026-08-26) — satuan komunitas di BAWAH desa. Dipakai form hydrant
         // warga & layar Lengkapi Profil; diisi lewat CRUD ini atau perintah
         // `php artisan sisupit:import-banjar`.

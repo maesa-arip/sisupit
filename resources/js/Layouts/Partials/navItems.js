@@ -1,5 +1,6 @@
 import {
 	IconAddressBook,
+	IconBellCog,
 	IconBuildingCommunity,
 	IconClipboardPlus,
 	IconDashboard,
@@ -109,6 +110,9 @@ export function buildNavSections({ auth, url = '' }) {
 	// (TASK_56). Nilainya dihitung SERVER lewat Tenant::mailboxFor - fungsi yang sama yang
 	// menggerbangi route & MailSendRequest, supaya menu tak pernah menawarkan 404.
 	const mailEnabled = Boolean(auth?.mail_enabled ?? auth?.user?.mail_enabled);
+	// Tingkat notifikasi petugas per kabupaten (TASK_62) - hanya admin BERLEVEL KABUPATEN. Dihitung
+	// SERVER lewat Tenant::notifyLevelEditableBy, gerbang yang sama dengan route-nya.
+	const notifyLevelEditable = Boolean(auth?.notify_level_editable ?? auth?.user?.notify_level_editable);
 
 	// Satu-satunya menu /admin/* yang juga milik PETUGAS (2026-09-22: petugas boleh menambah &
 	// menyunting hydrant resmi). Ditulis sekali lalu dipakai di kedua cabang seksi Administrasi,
@@ -301,6 +305,13 @@ export function buildNavSections({ auth, url = '' }) {
 							icon: IconMailCog,
 							url: route('admin.mail-settings.edit'),
 							active: startsWith('/admin/email'),
+						},
+						notifyLevelEditable && {
+							key: 'admin.notification-level',
+							title: 'Notifikasi Petugas',
+							icon: IconBellCog,
+							url: route('admin.notification-level.edit'),
+							active: startsWith('/admin/notifikasi-petugas'),
 						},
 						forumEnabled && {
 							key: 'admin.forum',

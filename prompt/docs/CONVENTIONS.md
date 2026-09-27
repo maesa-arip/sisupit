@@ -96,6 +96,14 @@
 
 ## Keputusan teknis terkunci
 
+- **Batas siaran notifikasi PETUGAS dibaca HANYA lewat `Tenant::petugasNotifyLevel($report->city_code)`**
+  (TASK_62, 2026-09-27): pilihan admin kabupaten laporan (`tenants.notify_level_petugas`, desa s/d
+  kabupaten) -> setelan global superadmin -> Kabupaten. Titik siaran baru untuk petugas WAJIB
+  memanggilnya, jangan membaca `Setting::KEY_NOTIFY_LEVEL_PETUGAS` langsung - rumus kedua membuat
+  setelan kabupaten diabaikan diam-diam untuk jalur itu saja. Relawan & pejabat tetap global.
+  Setelan ini TIDAK melebarkan akun petugas berlevel desa (itu soal wilayah akun). Dijaga
+  `TenantNotifyLevelPetugasTest`.
+
 - **Kode wilayah akun (`users.province_code`..`village_code`) bagi petugas/staf = wilayah
   TUGAS, bukan tempat tinggal; tempat tinggal = `users.address` ("Alamat Tinggal", teks
   bebas)** - TASK_61, keputusan user 2026-09-27 (petugas tinggal di Badung, bertugas di

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Enums\MessageType;
-use App\Enums\TenantLevel;
 use App\Events\ReportFeedChanged;
 use App\Events\ReportRecordChanged;
 use App\Http\Requests\ReportRequest;
@@ -13,7 +12,6 @@ use App\Models\Report;
 use App\Models\ReportAgency;
 use App\Models\ReportJagaKantor;
 use App\Models\ReportResolution;
-use App\Models\Setting;
 use App\Models\Tenant;
 use App\Models\TrackingLog;
 use App\Models\Unit;
@@ -647,9 +645,8 @@ class ReportController extends Controller
 
             // SOP ANTI HOAX: Notifikasi AWAL HANYA ke PUSAT KOMANDO (Petugas/Admin),
             // disiarkan sesuai tingkat wilayah yang dikonfigurasi admin (cascade naik dari desa laporan).
-            $petugasCeiling = TenantLevel::from(
-                Setting::getValue(Setting::KEY_NOTIFY_LEVEL_PETUGAS, TenantLevel::KABUPATEN->value)
-            );
+            // Batasnya per kabupaten laporan (TASK_62) - satu fungsi untuk semua titik siaran.
+            $petugasCeiling = Tenant::petugasNotifyLevel($report->city_code);
             $commandCenterUsers = User::role(['petugas', 'admin', 'superadmin'])
                 ->notifiableForReport($report, $petugasCeiling)
                 ->whereNot('id', auth()->id())

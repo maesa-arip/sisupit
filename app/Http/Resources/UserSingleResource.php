@@ -42,6 +42,9 @@ class UserSingleResource extends JsonResource
             // gerbang route & MailSendRequest — menu yang memakai aturannya sendiri akan
             // menyimpang dan melahirkan tautan yang selalu berakhir 404 (bentuk #94).
             'mail_enabled' => Tenant::mailboxFor($this->resource) !== null,
+            // Menu "Notifikasi Petugas" hanya bagi admin BERLEVEL KABUPATEN (TASK_62). Fungsi yang
+            // SAMA dengan gerbang controller-nya, supaya menu tak pernah menawarkan 404.
+            'notify_level_editable' => Tenant::notifyLevelEditableBy($this->resource) !== null,
         ];
     }
 }

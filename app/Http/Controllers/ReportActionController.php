@@ -16,6 +16,7 @@ use App\Models\ReportAgency;
 use App\Models\ReportJagaKantor;
 use App\Models\ReportUnit;
 use App\Models\Setting; // <-- Wajib ditambahkan
+use App\Models\Tenant;
 use App\Models\TrackingLog;
 use App\Models\Unit;
 use App\Models\User;
@@ -70,10 +71,9 @@ class ReportActionController extends Controller
             $report->update(['status' => 'pending']);
 
             // Siaran ke petugas, relawan, & pejabat disiarkan terpisah, masing-masing pakai tingkat
-            // wilayah sendiri (Setting::KEY_NOTIFY_LEVEL_PETUGAS / _RELAWAN / _PEJABAT), cascade naik dari desa laporan.
-            $petugasCeiling = TenantLevel::from(
-                Setting::getValue(Setting::KEY_NOTIFY_LEVEL_PETUGAS, TenantLevel::KABUPATEN->value)
-            );
+            // wilayah sendiri (petugas: per kabupaten laporan, TASK_62; relawan & pejabat: Setting
+            // global _RELAWAN / _PEJABAT), cascade naik dari desa laporan.
+            $petugasCeiling = Tenant::petugasNotifyLevel($report->city_code);
             $relawanCeiling = TenantLevel::from(
                 Setting::getValue(Setting::KEY_NOTIFY_LEVEL_RELAWAN, TenantLevel::DESA->value)
             );
@@ -681,7 +681,7 @@ class ReportActionController extends Controller
      * TASK_49 atas permintaan user):
      *
      *  1. Pusat Komando yang menaungi laporan — dipilih dengan scope & tingkat siaran yang
-     *     SAMA dengan siaran petugas saat approve() (Setting::KEY_NOTIFY_LEVEL_PETUGAS),
+     *     SAMA dengan siaran petugas saat approve() (Tenant::petugasNotifyLevel, per kabupaten),
      *     supaya "seberapa luas Pusat Komando sebuah laporan" tetap satu jawaban di seluruh
      *     aplikasi, bukan angka baru yang dipaku di sini.
      *  2. Relawan siaga di wilayah laporan — memakai tingkatnya SENDIRI
@@ -701,9 +701,7 @@ class ReportActionController extends Controller
      */
     private function notifyConfirmation(Report $report, ReportAgency $pivot, User $actor): void
     {
-        $petugasCeiling = TenantLevel::from(
-            Setting::getValue(Setting::KEY_NOTIFY_LEVEL_PETUGAS, TenantLevel::KABUPATEN->value)
-        );
+        $petugasCeiling = Tenant::petugasNotifyLevel($report->city_code);
         $relawanCeiling = TenantLevel::from(
             Setting::getValue(Setting::KEY_NOTIFY_LEVEL_RELAWAN, TenantLevel::DESA->value)
         );

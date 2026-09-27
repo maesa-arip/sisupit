@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\TenantEdition;
+use App\Enums\TenantLevel;
 use App\Traits\HasFile;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -140,6 +141,71 @@ class Tenant extends Model
             'password' => $this->mail_password,
             'timeout' => 15,
         ];
+    }
+
+    /**
+     * Tingkat siaran petugas yang boleh dipilih ADMIN KABUPATEN (TASK_62, keputusan user
+     * 2026-09-27). Provinsi sengaja tidak ada: laporan satu kabupaten yang membangunkan akun
+     * staf tingkat provinsi adalah keputusan lintas kabupaten, jadi tetap di setelan global
+     * superadmin.
+     */
+    public const NOTIFY_LEVELS_PETUGAS = [
+        TenantLevel::DESA,
+        TenantLevel::KECAMATAN,
+        TenantLevel::KABUPATEN,
+    ];
+
+    /**
+     * Batas siaran notifikasi PETUGAS untuk laporan di kabupaten ini (TASK_62). SATU-SATUNYA
+     * tempat batas itu ditentukan - laporan masuk, broadcast verifikasi, dan konfirmasi OPD
+     * semuanya memanggil fungsi ini, supaya tak ada rumus kedua yang menyimpang.
+     *
+     * Urutan: pilihan admin kabupaten laporan -> setelan global superadmin -> Kabupaten.
+     * Kabupaten yang belum menyimpan pilihan (kolom NULL) mengikuti global persis seperti
+     * sebelum setelan per kabupaten ada. Nilai tersimpan yang bukan pilihan sah diabaikan
+     * (jatuh ke global), bukan dipakai apa adanya.
+     *
+     * SENGAJA TIDAK memakai forCity(): cache selamanya di sana akan membuat pilihan admin baru
+     * berlaku setelah cache dibuang - perubahan yang tak ia lihat efeknya.
+     */
+    public static function petugasNotifyLevel(?string $cityCode): TenantLevel
+    {
+        $pilihan = $cityCode ? self::tryQuery(fn () => self::query()
+            ->where('city_code', $cityCode)
+            ->where('is_active', true)
+            ->value('notify_level_petugas')) : null;
+
+        $level = TenantLevel::tryFrom((string) $pilihan);
+        if ($level && in_array($level, self::NOTIFY_LEVELS_PETUGAS, true)) {
+            return $level;
+        }
+
+        return TenantLevel::tryFrom((string) Setting::getValue(Setting::KEY_NOTIFY_LEVEL_PETUGAS))
+            ?? TenantLevel::KABUPATEN;
+    }
+
+    /**
+     * Kabupaten yang tingkat siaran petugasnya boleh disunting akun ini, atau null (TASK_62).
+     * Dipakai route DAN menu (lewat UserSingleResource) supaya menu tak pernah menawarkan 404.
+     *
+     * Syaratnya admin/superadmin BERLEVEL KABUPATEN: city_code terisi, kecamatan & desa kosong.
+     * Admin kecamatan/desa tidak boleh mengubah setelan seluruh kabupaten. Kabupatennya dari
+     * city_code AKUN, tak pernah dari request (pola MailSettingController, FINDINGS #1).
+     */
+    public static function notifyLevelEditableBy(?User $user): ?self
+    {
+        if (! $user
+            || ! $user->hasAnyRole(['admin', 'superadmin'])
+            || blank($user->city_code)
+            || filled($user->district_code)
+            || filled($user->village_code)) {
+            return null;
+        }
+
+        return self::tryQuery(fn () => self::query()
+            ->where('city_code', $user->city_code)
+            ->where('is_active', true)
+            ->first());
     }
 
     /**

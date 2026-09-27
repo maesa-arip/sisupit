@@ -375,7 +375,10 @@ role:admin|superadmin   : /admin/mail-contacts/* (resource, Daftar Penerima) +
                            didaftarkan SEBELUM resource, sepola banjars/require),
                            /admin/email [GET/PUT] + POST /admin/email/uji (pengaturan kotak
                            surat kabupaten, TASK_56 K8 — tenant yang disunting ditentukan
-                           city_code AKUN, tak pernah dari request)
+                           city_code AKUN, tak pernah dari request),
+                           /admin/notifikasi-petugas [GET/PUT] (tingkat siaran notifikasi PETUGAS
+                           per kabupaten, TASK_62 - hanya admin BERLEVEL KABUPATEN lewat
+                           Tenant::notifyLevelEditableBy; lainnya 404)
 ```
 
 ## Test
