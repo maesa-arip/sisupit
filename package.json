@@ -4,6 +4,7 @@
 	"scripts": {
 		"build": "vite build && vite build --ssr",
 		"dev": "vite",
+		"dev:all": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dev.ps1",
 		"format": "prettier --write ."
 	},
 	"devDependencies": {

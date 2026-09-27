@@ -2415,7 +2415,10 @@ Test      : php artisan test            (baseline 2026-09-25 di feat/regu-danru:
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)
-Run (dev) : composer dev
+Run (dev) : npm run dev:all   (scripts/dev.ps1 - Docker Nominatim/OSRM/tile + reverb + queue + vite;
+            web & MySQL tetap milik Laragon, hanya diperiksa; proses yang sudah jalan dilewati.
+            `composer dev` TIDAK cocok di mesin Windows ini: pail butuh pcntl, serve beda origin
+            dari APP_URL, dan Reverb tak ikut)
 Lint      : vendor/bin/pint  /  npm run format (auto-fix, BUKAN check-only — tidak ada di CI)
 ```
 
