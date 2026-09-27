@@ -15,7 +15,7 @@
 | Penanganan error | `try/catch` per-method di controller (bukan exception handler terpusat khusus), pesan ke user via `flashMessage(MessageType::ERROR->message(error: $e->getMessage()))` — **menampilkan `$e->getMessage()` mentah ke user**, bukan pesan ramah generik | `app/Http/Controllers/Admin/UserController.php:213-224` (`store_relawan` catch block) |
 | Flash message | Helper `flashMessage($message, $type='success')` (BUKAN `session()->flash()` langsung) → di-share ke frontend lewat prop Inertia `flash_message` (dipetakan dari session key `message`/`type`, nama berbeda dari helpernya — lihat anti-pola) | `app/Helpers/helpers.php:5-10`; `app/Http/Middleware/HandleInertiaRequests.php:44-47` |
 | Penamaan | snake_case untuk nama method controller non-standar (`store_relawan`, `store_detail_user`) berdampingan dengan camelCase resource standar (`store`, `update`) — **tidak konsisten** | `app/Http/Controllers/Admin/UserController.php:213,230` |
-| Status/enum | **Campuran**: `Report::status` adalah string mentah (`'TERLAPOR'`, `'pending'`, `'handling'`, `'resolved'`, `'ditolak'`) — TIDAK pakai PHP enum, padahal enum lain (`MessageType`, `TenantLevel`, `UserGender`) sudah ada dan dipakai konsisten. **Saat menambah status baru, perbarui SEMUA peta status**: `Components/StatusBadge.jsx` (kamus kanonik), StatusBadge lokal `Reports/Index.jsx`, `getReportStatus` di `Reports/Show.jsx`, `getStatusConfig` di `ReportCard.jsx`, `STATUS_META`+`STATUS_OPTIONS` di `Admin/Reports/Index.jsx`, `REPORT_STATUS` di `Monitoring/Map.jsx`, `ReportsExport::STATUS_LABELS`, + filter feed (`ReportController::index`, `DashboardController`). Dua yang terakhir di daftar frontend itu **tidak pernah ikut** saat `ditolak` lahir (#24) dan baru menyusul 2026-08-27 (#94): karena keduanya bercadangan `|| STATUS_META.pending`, status yang tak dikenal tidak tampil apa adanya melainkan **MENGAKU jadi status lain** (kuning "Laporan Terverifikasi") — tanpa galat. Dijaga `ReportStatusDictionaryTest` | `app/Enums/TenantLevel.php` (enum yang benar) vs `app/Http/Controllers/ReportActionController.php:29` (string mentah) |
+| Status/enum | **Campuran**: `Report::status` adalah string mentah (`'TERLAPOR'`, `'pending'`, `'handling'`, `'resolved'`, `'ditolak'`, `'digabung'`) — TIDAK pakai PHP enum, padahal enum lain (`MessageType`, `TenantLevel`, `UserGender`) sudah ada dan dipakai konsisten. **Saat menambah status baru, perbarui SEMUA peta status**: `Components/StatusBadge.jsx` (kamus kanonik), StatusBadge lokal `Reports/Index.jsx`, `getReportStatus` di `Reports/Show.jsx`, `getStatusConfig` di `ReportCard.jsx`, `STATUS_META`+`STATUS_OPTIONS` di `Admin/Reports/Index.jsx`, `REPORT_STATUS` di `Monitoring/Map.jsx`, `ReportsExport::STATUS_LABELS`, + filter feed (`ReportController::index`, `DashboardController`). Dua yang terakhir di daftar frontend itu **tidak pernah ikut** saat `ditolak` lahir (#24) dan baru menyusul 2026-08-27 (#94): karena keduanya bercadangan `|| STATUS_META.pending`, status yang tak dikenal tidak tampil apa adanya melainkan **MENGAKU jadi status lain** (kuning "Laporan Terverifikasi") — tanpa galat. Dijaga `ReportStatusDictionaryTest`. **Status yang BUKAN tahap alur** (`ditolak`, dan sejak TASK_55 `digabung` = laporan ganda yang admin gabungkan ke kejadian lain): penyaring berbentuk DAFTAR PUTIH (`whereIn(['pending','handling','TERLAPOR'])`) otomatis benar, tapi penyaring berbentuk **DAFTAR HITAM** (`!= 'ditolak'`, `whereNotIn(['TERLAPOR','ditolak'])`, `in_array(..., ['resolved','ditolak'])` di gerbang aksi, `reportStatus !== 'ditolak'` di JSX) WAJIB ikut menyebut status baru - kalau tidak, laporan `digabung` muncul di feed publik/pemantau sebagai kebakaran KEDUA dan responder bisa meluncur ke laporan anak yang tak dipantau siapa pun. Daftar lengkap tempatnya ada di `prompt/tasks/TASK_55_laporan_ganda_satu_kejadian.md` §3.3 | `app/Enums/TenantLevel.php` (enum yang benar) vs `app/Http/Controllers/ReportActionController.php:29` (string mentah) |
 | Upload file | Trait `HasFile` (`upload_file`/`update_file`/`delete_file`), disk `public` — bukan logic upload manual | `app/Traits/HasFile.php` |
 | Scope query reusable | `scopeFilter()` dan `scopeSorting()` di model untuk pencarian/sorting dari query string (`search`, `field`, `direction`) | model mana pun dengan listing admin, mis. `app/Models/Hydrant.php` |
 | Rate limit aksi sensitif | `RateLimiter::for()` di `AppServiceProvider::boot()` — saat ini hanya **satu** limiter: `report-create` (5/10menit per user/IP) | `app/Providers/AppServiceProvider.php:34-36` |
@@ -197,6 +197,57 @@
   lama `only: ['report']` tak pernah sentuh, dan daftar yang berbeda-beda membuat sinyal yang
   datang belakangan membatalkan permintaan yang lebih lengkap (Inertia hanya menerbangkan satu
   kunjungan pada satu waktu). Dijaga `ReportDetailRealtimeTest`.
+- **Popup Leaflet = HTML MENTAH: setiap nilai data WAJIB `escapeHtml()`** (#131).
+  `bindPopup(string)` memasang string lewat `innerHTML`, jadi di sinilah - satu-satunya tempat
+  repo ini menulis HTML sebagai string - perlindungan escape otomatis React tidak berlaku. Judul &
+  alamat laporan diketik warga, nama relawan diketik pemilik akun, hydrant warga didata warga;
+  data mentah di popup = stored XSS ke browser staf. Helper-nya satu: `lib/escape-html.js`
+  (sengaja bukan `lib/utils.js`, berkas itu ber-byte NUL #93). Aturannya TANPA pengecualian
+  "cuma ditulis admin" - pengecualian adalah yang dilanggar. Nilai cadangan ditaruh di dalam
+  panggilan: `escapeHtml(x || '-')`. Konstanta kode sendiri (kelas warna, SVG ikon, kamus status)
+  boleh disisipkan langsung dan didaftar di `POPUP_SAFE_EXPRESSIONS`. Dijaga
+  `LeafletPopupEscapeTest`, yang memindai tiap `bindPopup(` di `resources/js`.
+- **Pilihan "tidak berangkat" BUKAN status responder** (TASK_60). "Jaga di Kantor" anggota regu
+  disimpan di tabel sendiri `report_jaga_kantor`, bukan sebagai `status` baru di `report_officers`.
+  Tabel responder dibaca peta, pelacakan GPS, hitungan "masih ada responder aktif"
+  (`cancelResponse`), dan `resolve()` yang menimpa semuanya jadi `finished` - status baru di sana
+  wajib disebut di setiap penyaring daftar hitam (pelajaran TASK_55 `digabung`), dan satu yang
+  tertinggal menggambar orang yang tinggal di kantor sebagai marker di TKP tanpa galat. Nama regu di
+  catatan insiden selalu SNAPSHOT (`report_officers.regu_name`, `report_jaga_kantor.regu_name`),
+  bukan dibaca dari `regus` hari ini. Dijaga `ReguTest`.
+- **Notifikasi BARU yang bukan panggilan darurat = `via() ['database']` saja** (TASK_54). Wrapper
+  Android memilih channel SUARA dari payload FCM dan hanya mengenali tahap yang sudah ada
+  (`alert_stage` TASK_50, `type: report_status`); aturan TASK_50 "payload tak dikenal TETAP sirine"
+  berlaku juga di .exe yang mendengar Reverb (`broadcast`). Jadi menambahkan `FcmChannel` atau
+  `'broadcast'` ke notifikasi jenis baru (forum, pengumuman, dst.) = ponsel warga & layar Pusat
+  Komando BERSIRINE karena hal yang bukan kejadian. Kalau notifikasi baru memang butuh push,
+  itu tahap baru + rilis kedua wrapper, bukan satu baris `via()`. Patokan & penjaga:
+  `app/Notifications/ForumNotification.php`, `ForumTest`.
 - Role check: **selalu** `hasRole()`/`hasAnyRole()` dari Spatie Permission, bukan kolom
   string manual. `User::role([...])` bisa melempar `RoleDoesNotExist` di DB belum ter-seed
   (lihat workaround di `HomeController`).
+- **Email keluar punya DUA jalur yang tak boleh tercampur** (TASK_56). `.env` (`MAIL_*`) adalah
+  **email SISTEM** — verifikasi pendaftaran & reset password bawaan Laravel, atas nama Sisupit,
+  satu untuk seluruh aplikasi. **Email DINAS** (surat ke pejabat) memakai kotak surat milik
+  KABUPATEN, kredensialnya di baris `tenants` (password ber-cast `encrypted`, kolom TEXT karena
+  ciphertext jauh lebih panjang dari passwordnya), dikirim lewat **mailer BERNAMA per tenant**
+  (`Tenant::mailerName()` = `dinas_{id}`, didaftarkan runtime ke `mail.mailers.*` lalu dipakai
+  `Mail::mailer(...)`). Tiga hal yang mengikat: (a) **jangan pernah `Mail::to()`/`Mail::send()`**
+  di `app/` — itu mailer bawaan, dan surat resmi Damkar yang terkirim dari alamat sistem Sisupit
+  bukan cacat kosmetik sebab penerimanya pejabat; (b) nama mailer WAJIB ber-id tenant, sebab
+  MailManager menyimpan mailer per NAMA dan satu nama bersama membuat proses yang melayani dua
+  kabupaten (queue worker, dua request beruntun di php-fpm yang sama) memakai ulang kredensial
+  kabupaten yang lebih dulu — surat kabupaten kedua terkirim dari kotak surat kabupaten pertama
+  tanpa satu pun galat; (c) **bukan `Mail::build()`** meski itu bentuk paling ringkas —
+  `MailFake` tidak punya `build()`, jadi jalur kirim yang memakainya mustahil diuji, dan jalur
+  kirim yang tak bisa diuji adalah jalur yang gerbangnya akan diam-diam jebol. Dijaga
+  `MailAllowlistTest` (13 test), yang menguji KEDUA arah pemisahan itu dalam satu test.
+- **Penerima email dinas = DAFTAR PUTIH, satu tabel, satu Form Request** (TASK_56). Gerbangnya
+  `mail_contacts` (ter-`Tenantable`); `agencies.email` tetap sekadar detail kontak instansi dan
+  **tidak memberi izin kirim** — dua sumber untuk satu gerbang berarti dua cara mencabut izin.
+  `MailSendRequest` dipakai tulis baru, BALAS, dan TERUSKAN; menyalin aturannya ke jalur kedua =
+  dua aturan yang akan menyimpang. Gerbang peran & ketersediaan kotak surat diletakkan di
+  `authorize()`, **bukan hanya di controller**: FormRequest divalidasi SEBELUM method controller,
+  jadi gerbang yang cuma ada di controller membuat POST ke fitur yang mati dijawab galat
+  validasi (302) alih-alih 404 — jawaban yang mengaku endpoint-nya ada sekaligus membocorkan
+  cara kerja daftar putihnya. Terbukti saat dikerjakan, bukan teori.

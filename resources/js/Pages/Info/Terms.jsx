@@ -176,6 +176,18 @@ export default function Terms({ instansi, legal }) {
 							penanganan kejadian, dokumentasi berita acara, serta rekapitulasi statistik yang tidak
 							mengidentifikasi perorangan.
 						</p>
+						<p>
+							<b>Forum Warga.</b> Pertanyaan dan balasan di forum dapat dibaca pengguna lain di
+							kabupaten/kota yang sama. Karena itu:
+						</p>
+						<Bullets
+							items={[
+								'Forum bukan kanal pelaporan. Kejadian darurat wajib dilaporkan lewat menu Lapor Darurat atau telepon, sebab tulisan di forum tidak diteruskan ke petugas.',
+								'Dilarang menulis informasi yang Anda ketahui atau patut duga keliru (hoaks), menyerang orang atau kelompok, berpromosi, atau menyebarkan data pribadi orang lain (nomor telepon, alamat rumah, foto korban).',
+								`Pertanyaan baru ditinjau admin ${penyelenggara} sebelum tayang. Admin berhak menyembunyikan tulisan yang melanggar ketentuan ini tanpa pemberitahuan lebih dulu; penulis tetap dapat melihat tulisan beserta alasannya.`,
+								`Tanda "Jawaban Resmi Damkar" hanya melekat pada jawaban admin ${penyelenggara}. Balasan pengguna lain adalah pendapat pribadi penulisnya.`,
+							]}
+						/>
 					</Section>
 
 					<Section number="9" title="Hak kekayaan intelektual atas Aplikasi">

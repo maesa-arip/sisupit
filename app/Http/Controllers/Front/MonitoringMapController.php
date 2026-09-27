@@ -25,7 +25,11 @@ class MonitoringMapController extends Controller
     {
         // Kejadian: semua status (termasuk 'ditolak' yang diarsipkan, bukan dihapus)
         // dengan koordinat valid. Difilter per status di klien.
+        //
+        // `regus` = regu yang meluncur ke kejadian itu (TASK_60), dari SNAPSHOT nama regu di baris
+        // responder - sumber yang sama dengan halaman detail, dashboard petugas, & Export Excel.
         $reports = Report::whereNotNull('lat')->whereNotNull('lng')
+            ->with(['officers' => fn ($q) => $q->whereNotNull('regu_name')->select('id', 'report_id', 'regu_name')])
             ->latest('created_at')
             ->get()
             ->map(fn (Report $report) => [
@@ -36,6 +40,7 @@ class MonitoringMapController extends Controller
                 'status' => $report->status,
                 'lat' => (float) $report->lat,
                 'lng' => (float) $report->lng,
+                'regus' => $report->officers->pluck('regu_name')->unique()->sort()->values(),
             ])->values();
 
         // Layer hydrant = hydrant resmi (tabel `hydrants`). Hydrant swadaya warga punya

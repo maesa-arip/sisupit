@@ -3,6 +3,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
+import { escapeHtml } from '@/lib/escape-html';
 import {
 	capacityLabel,
 	facilityStatusIsFaulty,
@@ -98,7 +99,7 @@ export default function Index({
 					});
 					const marker = window.L.marker([lat, lng], { icon: customIcon }).addTo(markersLayerRef.current);
 					marker.bindPopup(
-						`<b>${hydrant.name}</b><br><span class="text-xs text-muted-foreground">${hydrant.address}</span>`,
+						`<b>${escapeHtml(hydrant.name)}</b><br><span class="text-xs text-muted-foreground">${escapeHtml(hydrant.address)}</span>`,
 					);
 					bounds.push([lat, lng]);
 				}

@@ -12,6 +12,9 @@ const STATUS_CONFIG = {
 	handling: { label: 'Penanganan', className: 'bg-success/10 text-success border-success/30' },
 	resolved: { label: 'Selesai', className: 'bg-info/10 text-info border-info/30' },
 	ditolak: { label: 'Ditolak', className: 'bg-muted text-muted-foreground border-border' },
+	// Laporan ganda yang digabung ke kejadian lain (TASK_55). Netral seperti `ditolak` tapi
+	// BUKAN abu yang sama: pelapornya tidak salah. Garis putus-putus = tertaut, bukan berdiri sendiri.
+	digabung: { label: 'Digabung', className: 'border-dashed border-muted-foreground/40 bg-muted/40 text-foreground' },
 };
 
 export default function StatusBadge({ status, className }) {

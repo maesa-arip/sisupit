@@ -23,7 +23,7 @@ const fotoUrl = (path) => {
 };
 
 export default function Form(props) {
-	const { tenant, provinces, page_settings, app_base_domain, editions } = props;
+	const { tenant, provinces, page_settings, app_base_domain, editions, feature_options = [] } = props;
 
 	const { data, setData, post, processing, errors, reset } = useForm({
 		subdomain: tenant?.subdomain || '',
@@ -39,6 +39,10 @@ export default function Form(props) {
 		edition: tenant?.edition || 'sewa',
 		pejabat_foto: null,
 		is_active: tenant ? Boolean(tenant.is_active) : true,
+		features: tenant?.features || [],
+		// FormData membuang array kosong; penanda ini membuat "semua fitur dimatikan" tetap
+		// tersimpan. Lihat TenantRequest::prepareForValidation.
+		features_sent: true,
 		_method: page_settings.method,
 	});
 
@@ -279,6 +283,36 @@ export default function Form(props) {
 								GPS), bukan tenant ini.
 							</p>
 						</div>
+
+						{feature_options.length > 0 && (
+							<div className="grid w-full gap-2">
+								<Label>Fitur Tambahan</Label>
+								{feature_options.map((feature) => (
+									<div key={feature.value} className="flex items-center gap-2">
+										<Checkbox
+											id={`feature-${feature.value}`}
+											checked={data.features.includes(feature.value)}
+											onCheckedChange={(checked) =>
+												setData(
+													'features',
+													checked
+														? [...data.features, feature.value]
+														: data.features.filter((item) => item !== feature.value),
+												)
+											}
+										/>
+										<Label htmlFor={`feature-${feature.value}`} className="font-normal">
+											{feature.label}
+										</Label>
+									</div>
+								))}
+								<p className="text-xs text-muted-foreground">
+									Forum Tanya Jawab Warga hanya muncul bagi akun di kabupaten ini, dan dimoderasi
+									admin kabupaten ini.
+								</p>
+								{errors.features && <InputError message={errors.features} />}
+							</div>
+						)}
 
 						<div className="flex items-center gap-2">
 							<Checkbox

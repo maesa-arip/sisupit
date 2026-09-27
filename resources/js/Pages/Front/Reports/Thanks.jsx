@@ -20,6 +20,11 @@ const STEPS = ['Laporan Masuk', 'Terverifikasi', 'Penanganan', 'Selesai'];
 // jadi ditampilkan sebagai keterangan tersendiri, bukan sebagai langkah kelima.
 const STATUS_DITOLAK = 'ditolak';
 
+// `digabung` (TASK_55) juga bukan tahap: laporannya digabung ke laporan warga lain atas
+// kejadian yang sama. Kalimatnya menegaskan laporannya DITERIMA - pelapor jujur yang hanya
+// membaca "digabung" bisa mengira laporannya dianggap salah.
+const STATUS_DIGABUNG = 'digabung';
+
 // Warna per tahap mengikuti kamus status kanonik (StatusBadge): Laporan Masuk merah,
 // Terverifikasi kuning, Penanganan hijau, Selesai biru — jangan diseragamkan jadi satu warna,
 // itu memutus hubungan visual dengan badge & peta.
@@ -60,6 +65,7 @@ export default function ReportThanks({ report, pejabat, namaInstansi, teleponDar
 	}, [report.id]);
 
 	const isDitolak = status === STATUS_DITOLAK;
+	const isDigabung = status === STATUS_DIGABUNG;
 	const currentStep = STEP_STATUS.indexOf(status);
 
 	return (
@@ -82,7 +88,9 @@ export default function ReportThanks({ report, pejabat, namaInstansi, teleponDar
 						<div className="flex items-start gap-3">
 							<IconShieldCheckFilled className="mt-0.5 h-8 w-8 shrink-0 text-success" />
 							<div>
-								<CardTitle className="text-xl font-bold tracking-tight text-foreground">Sinyal Darurat Diterima</CardTitle>
+								<CardTitle className="text-xl font-bold tracking-tight text-foreground">
+									Sinyal Darurat Diterima
+								</CardTitle>
 								<CardDescription className="mt-1.5 text-sm text-muted-foreground">
 									Pusat Komando telah menerima laporan Anda. Petugas/relawan terdekat sedang
 									dikoordinasikan untuk segera meluncur ke lokasi.
@@ -96,7 +104,9 @@ export default function ReportThanks({ report, pejabat, namaInstansi, teleponDar
 							<dl className="grid grid-cols-1 gap-4 rounded-lg bg-muted/50 p-4 sm:grid-cols-2">
 								<div className="space-y-1">
 									<dt className="text-xs font-medium text-muted-foreground">Nomor Laporan</dt>
-									<dd className="font-mono text-sm font-bold tracking-tight text-foreground">{reportNumber(report)}</dd>
+									<dd className="font-mono text-sm font-bold tracking-tight text-foreground">
+										{reportNumber(report)}
+									</dd>
 								</div>
 								<div className="space-y-1">
 									<dt className="text-xs font-medium text-muted-foreground">Waktu Kejadian</dt>
@@ -119,6 +129,11 @@ export default function ReportThanks({ report, pejabat, namaInstansi, teleponDar
 								<p className="text-xs leading-relaxed text-muted-foreground">
 									Laporan ini ditandai tidak dapat ditindaklanjuti oleh Pusat Komando. Bila keadaan
 									daruratnya masih berlangsung, segera telepon Damkar.
+								</p>
+							) : isDigabung ? (
+								<p className="text-xs leading-relaxed text-muted-foreground">
+									Kejadian ini sudah dilaporkan warga lain dan sedang diproses Pusat Komando. Laporan
+									Anda digabungkan dengannya, dan perkembangannya tetap dikabarkan ke Anda.
 								</p>
 							) : (
 								<ol className="flex items-start">
@@ -171,7 +186,11 @@ export default function ReportThanks({ report, pejabat, namaInstansi, teleponDar
 								</Button>
 
 								{telHref && (
-									<Button asChild variant="destructive" className="h-12 flex-1 text-base font-semibold">
+									<Button
+										asChild
+										variant="destructive"
+										className="h-12 flex-1 text-base font-semibold"
+									>
 										<a href={telHref}>
 											<IconPhoneCall className="mr-2 h-5 w-5" />
 											Telepon Damkar Sekarang

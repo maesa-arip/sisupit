@@ -50,8 +50,20 @@ class ReportResolutionController extends Controller
         // OPD diberi penanda "(OPD)" karena berita acara ini dokumen resmi yang dibaca pihak
         // lain: tanpa penanda, mitra luar tak bisa dibedakan dari armada & personel Damkar
         // sendiri (keputusan user 2026-08-27).
+        //
+        // Petugas beregu dikelompokkan di bawah NAMA REGU-nya (TASK_60): "Regu A (Made, Ketut)",
+        // berkurung seperti penanda "(OPD)". Namanya dari SNAPSHOT report_officers.regu_name -
+        // dokumen resmi menyebut regu saat kejadian, bukan nama regu hari ini. Petugas tanpa
+        // regu tetap disebut perorangan.
+        $petugas = $report->officers
+            ->groupBy(fn ($officer) => $officer->regu_name ?? '')
+            ->sortKeys()
+            ->flatMap(fn ($rows, $regu) => $regu === ''
+                ? $rows->pluck('user.name')
+                : [$regu.' ('.$rows->pluck('user.name')->filter()->implode(', ').')']);
+
         $timAtensi = $report->reportUnits->pluck('unit.name')
-            ->merge($report->officers->pluck('user.name'))
+            ->merge($petugas)
             ->merge($report->helpers->pluck('user.name'))
             ->merge($report->reportAgencies->pluck('agency_name')->filter()->map(fn ($name) => $name.' (OPD)'))
             ->filter()

@@ -26,7 +26,14 @@ class ReportController extends Controller
         $reports = Report::query()
             // `resolver` = siapa yang menutup insiden (FINDINGS #88). Hanya nama; baris yang
             // belum/tidak ditutup mengirim null dan dibaca layar sebagai "tidak tercatat".
-            ->with(['user:id,name', 'resolver:id,name'])
+            ->with([
+                'user:id,name',
+                'resolver:id,name',
+                // Usulan laporan ganda (TASK_55). Tunduk Tenantable: induk di luar wilayah admin
+                // tak ikut termuat, dan barisnya cukup tampil tanpa label usulan.
+                'candidateOf:id,title,lat,lng,status,created_at',
+            ])
+            ->withCount('mergedChildren')
             ->filter($request->only(['search']))
             ->when($status !== 'Semua', function ($query) use ($status) {
                 // 'aktif' = laporan yang masih berjalan (belum selesai/ditolak), selaras dgn
@@ -39,7 +46,16 @@ class ReportController extends Controller
             })
             ->latest('created_at')
             ->paginate($request->load ?? 10)
-            ->withQueryString();
+            ->withQueryString()
+            // Jarak ke induk usulan dihitung SERVER (TASK_52: klien tidak menghitung jarak).
+            ->through(function (Report $report) {
+                $report->setAttribute(
+                    'candidate_distance_m',
+                    $report->candidateOf ? $report->jarakMeterKe($report->candidateOf) : null
+                );
+
+                return $report;
+            });
 
         return inertia('Admin/Reports/Index', [
             'reports' => $reports,

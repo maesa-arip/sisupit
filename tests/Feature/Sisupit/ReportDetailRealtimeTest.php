@@ -189,7 +189,16 @@ it('reloads the separate incident props together, not just report', function () 
         expect($source)->toContain("channel.listen('{$event}'");
     }
 
-    expect($source)->toContain("router.reload({ only: ['report', 'reportAgencies', 'resolutions'] })");
+    // Isi daftarnya dibaca, bukan dicocokkan sebagai satu string: TASK_55 menambah tiga prop
+    // laporan ganda (panel usulan, laporan terkait, keadaan induk) yang juga berubah lewat
+    // ReportRecordChanged/ReportStatusChanged, dan prettier memecah daftar yang lebih panjang.
+    preg_match_all('/const reloadIncident = \(\) => \{\s*router\.reload\(\{\s*only: \[([^\]]*)\]/', $source, $daftar);
+    expect($daftar[1])->toHaveCount(1);
+    // TASK_60 menambah tiga prop regu yang berubah lewat ResponderRosterChanged (meluncur, jaga
+    // kantor) - tanpa ketiganya manifes regu & tombol Jaga di Kantor di layar orang lain basi.
+    foreach (['report', 'reportAgencies', 'resolutions', 'duplicateCandidate', 'mergedReports', 'mergedIncident', 'reguRoster', 'myRegu', 'canStayAtBase'] as $prop) {
+        expect($daftar[1][0])->toContain("'{$prop}'");
+    }
     // Daftar yang lebih sempit membuat sinyal yang datang belakangan membatalkan permintaan
     // yang lebih lengkap (Inertia hanya menerbangkan satu kunjungan pada satu waktu).
     expect($source)->not->toContain("only: ['report'] }");

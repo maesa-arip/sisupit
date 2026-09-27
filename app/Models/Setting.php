@@ -28,6 +28,20 @@ class Setting extends Model
     // repo ini praktis selalu berjurisdiksi kota/kabupaten.
     public const KEY_NOTIFY_LEVEL_PEJABAT = 'notify_level_pejabat';
 
+    /**
+     * Deteksi laporan ganda (TASK_55): laporan kebakaran dalam radius & jendela waktu ini
+     * diusulkan sebagai kejadian yang sama. SETTING, bukan konstanta: 500 m / 120 menit adalah
+     * tebakan awal (keputusan user 2026-09-14) yang harus bisa disetel setelah melihat data
+     * nyata tanpa deploy. Radius 0 = deteksi MATI - saklar darurat bila usulannya mengganggu.
+     */
+    public const KEY_DUPLIKAT_RADIUS_M = 'duplikat_radius_m';
+
+    public const KEY_DUPLIKAT_JENDELA_MENIT = 'duplikat_jendela_menit';
+
+    public const DEFAULT_DUPLIKAT_RADIUS_M = 500;
+
+    public const DEFAULT_DUPLIKAT_JENDELA_MENIT = 120;
+
     protected $fillable = ['key', 'value'];
 
     public static function getValue(string $key, ?string $default = null): ?string

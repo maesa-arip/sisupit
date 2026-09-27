@@ -8,8 +8,10 @@ use App\Events\ReportFeedChanged;
 use App\Events\ReportRecordChanged;
 use App\Http\Requests\ReportRequest;
 use App\Models\Agency;
+use App\Models\Regu;
 use App\Models\Report;
 use App\Models\ReportAgency;
+use App\Models\ReportJagaKantor;
 use App\Models\ReportResolution;
 use App\Models\Setting;
 use App\Models\Tenant;
@@ -69,7 +71,8 @@ class ReportController extends Controller
             // JALUR 2: Tab "Semua Laporan" (Sembunyikan TERLAPOR & ditolak dari Publik/Relawan;
             // laporan ditolak hanya terlihat staff di arsip + pemilik di Riwayat Saya)
             if (! $user->hasAnyRole(['admin', 'superadmin', 'petugas'])) {
-                $query->whereNotIn('status', ['TERLAPOR', 'ditolak']);
+                // `digabung` (TASK_55): laporan ganda bukan kejadian yang berdiri sendiri.
+                $query->whereNotIn('status', ['TERLAPOR', 'ditolak', Report::STATUS_DIGABUNG]);
             }
         }
 
@@ -102,7 +105,7 @@ class ReportController extends Controller
         $reports = Report::query()
             ->with('user:id,name')
             ->filter(request()->only(['search']))
-            ->whereNotIn('status', ['TERLAPOR', 'ditolak'])
+            ->whereNotIn('status', ['TERLAPOR', 'ditolak', Report::STATUS_DIGABUNG])
             ->when($status !== 'Semua', function ($query) use ($status) {
                 if ($status === 'aktif') {
                     $query->whereIn('status', ['pending', 'handling']);
@@ -211,7 +214,7 @@ class ReportController extends Controller
         // sebelum memutuskan meluncur (alur respons disatukan di halaman detail). Ter-scope
         // yurisdiksi sama dgn radar dashboard; insiden yang sudah ditolak tidak ditampilkan.
         $isRelawanInArea = $user->hasRole('relawan')
-            && $report->status !== 'ditolak'
+            && ! in_array($report->status, ['ditolak', Report::STATUS_DIGABUNG], true)
             && $user->withinReportJurisdiction($report);
 
         // Akun OPD (TASK_27) boleh membuka insiden yang instansinya DIMINTA membantu — dan
@@ -287,6 +290,65 @@ class ReportController extends Controller
                 ]);
         }
 
+        // Laporan ganda (TASK_55). Tiga keadaan, tiga prop:
+        // - duplicateCandidate: laporan mentah ini DIUSULKAN mesin sebagai kejadian yang sama
+        //   dengan laporan lain. Hanya bila verifier memang bisa menggabungkannya - usulan ke
+        //   laporan di luar wilayahnya adalah tombol yang selalu 403.
+        // - mergedReports: laporan-laporan yang sudah digabung ke insiden ini (staf & pejabat).
+        // - mergedIncident: laporan ini sudah digabung; keadaan induknya. Pelapor anak TIDAK
+        //   diberi id induk: halaman itu memuat identitas & telepon pelapor lain dan bagi dia 403.
+        $duplicateCandidate = null;
+        if ($isVerifier && $report->status === 'TERLAPOR' && $report->duplicate_candidate_of_id) {
+            $kandidat = Report::withoutGlobalScopes()->find($report->duplicate_candidate_of_id);
+            if ($kandidat && $user->withinReportJurisdiction($kandidat)) {
+                $duplicateCandidate = [
+                    'id' => $kandidat->id,
+                    'title' => $kandidat->title,
+                    'status' => $kandidat->status,
+                    'created_at' => $kandidat->created_at,
+                    'address' => $kandidat->alamatTampil(),
+                    'distance_m' => $report->jarakMeterKe($kandidat),
+                ];
+            }
+        }
+
+        $mergedReports = [];
+        if ($isStaff || $isPejabat) {
+            $mergedReports = Report::withoutGlobalScopes()
+                ->with('user:id,name')
+                ->withCount('photos')
+                ->where('merged_into_id', $report->id)
+                ->orderBy('created_at')
+                ->get()
+                ->map(fn (Report $anak) => [
+                    'id' => $anak->id,
+                    'title' => $anak->title,
+                    'created_at' => $anak->created_at,
+                    'reporter' => $anak->name ?: optional($anak->user)->name,
+                    'photos_count' => $anak->photos_count ?: ($anak->photo ? 1 : 0),
+                    'description' => $anak->description,
+                    'distance_m' => $report->jarakMeterKe($anak),
+                ]);
+        }
+
+        $mergedIncident = null;
+        if ($report->merged_into_id && ($induk = Report::withoutGlobalScopes()->find($report->merged_into_id))) {
+            $bolehBukaInduk = $user->hasAnyRole(['admin', 'superadmin', 'petugas', 'pejabat'])
+                && $user->withinReportJurisdiction($induk);
+
+            $mergedIncident = [
+                'id' => $bolehBukaInduk ? $induk->id : null,
+                'created_at' => $bolehBukaInduk ? $induk->created_at : null,
+                'title' => $bolehBukaInduk ? $induk->title : null,
+                'status' => $induk->status,
+                'merged_at' => $report->merged_at,
+            ];
+        }
+
+        if (! $isStaff && ! $isPejabat) {
+            $report->makeHidden(['duplicate_candidate_of_id', 'merged_into_id', 'merged_by']);
+        }
+
         // Jejak yang sudah ditempuh tiap responder yang masih aktif (belum selesai),
         // diurutkan kronologis agar bisa digambar sebagai garis rute berurutan di peta
         // (sesuai desain tracking_logs). Titik 'koreksi_lokasi' bukan jejak responder,
@@ -304,6 +366,8 @@ class ReportController extends Controller
             ->get(['user_id', 'lat', 'lng'])
             ->groupBy('user_id')
             ->map(fn ($points) => $points->map(fn ($p) => ['lat' => (float) $p->lat, 'lng' => (float) $p->lng])->values());
+
+        [$reguRoster, $myRegu, $canStayAtBase] = $this->reguManifest($report, $user, $isStaff || $isPejabat);
 
         // Berita Acara / Laporan Kegiatan Penyelamatan (FINDINGS #39) — staf saja.
         // Append-only: banyak entri (sementara/final), terbaru dulu. KTP korban TIDAK
@@ -367,9 +431,100 @@ class ReportController extends Controller
             'canRemoveAgencies' => $isVerifier,
             // Panel verifikasi (Broadcast Misi & Tolak laporan) di halaman detail.
             'canVerify' => $isVerifier,
+            // Laporan ganda (TASK_55). `canMerge` = gerbang Gabungkan/Bukan sama/Pisahkan;
+            // sama dengan ReportActionController::merge(), jadi turunannya $isVerifier.
+            'canMerge' => $isVerifier,
+            'duplicateCandidate' => $duplicateCandidate,
+            'mergedReports' => $mergedReports,
+            'mergedIncident' => $mergedIncident,
             // Dipakai frontend untuk menampilkan tombol konfirmasi pada baris instansinya sendiri.
             'myAgencyId' => $isAgencyPartner ? $user->agency_id : null,
+            // Regu & Danru (TASK_60). Tombol "Jaga di Kantor" dibaca dari `canStayAtBase` -
+            // syaratnya sama dengan ReportActionController::stayAtBase(), dihitung di sini supaya
+            // layar tak menawarkan tombol yang berakhir 403.
+            'reguRoster' => $reguRoster,
+            'myRegu' => $myRegu,
+            'canStayAtBase' => $canStayAtBase,
         ]);
+    }
+
+    /**
+     * Manifes per regu untuk halaman detail (TASK_60).
+     *
+     * Kelompoknya diturunkan dari SNAPSHOT di baris responder (`report_officers.regu_id` +
+     * `regu_name`) dan `report_jaga_kantor`, bukan dari keanggotaan regu hari ini: yang
+     * ditampilkan adalah regu yang BENAR-BENAR meluncur ke kejadian ini, dan riwayat tak boleh
+     * berubah saat regu diganti namanya atau anggotanya pindah. Kunci `id:<regu_id>`, atau
+     * `nama:<regu_name>` bila regunya sudah dihapus (regu_id null, namanya tetap).
+     *
+     * Siapa yang jaga kantor & siapa yang BELUM memilih hanya untuk staf/pejabat - daftar itu
+     * menyebut nama petugas yang tidak berangkat, bukan urusan pelapor. "Belum memilih" dibaca
+     * dari keanggotaan regu SAAT INI dan hanya selama insiden belum ditutup.
+     *
+     * @return array{0: array, 1: ?array, 2: bool}
+     */
+    private function reguManifest(Report $report, User $user, bool $canSeeRoster): array
+    {
+        $keyOf = fn ($reguId, $name) => $reguId ? 'id:'.$reguId : 'nama:'.$name;
+
+        $stays = ReportJagaKantor::with('user:id,name')->where('report_id', $report->id)->get();
+
+        $groups = [];
+        foreach ($report->officers as $officer) {
+            if (! $officer->regu_name) {
+                continue;
+            }
+            $key = $keyOf($officer->regu_id, $officer->regu_name);
+            $groups[$key] ??= ['regu_id' => $officer->regu_id, 'name' => $officer->regu_name];
+        }
+        foreach ($stays as $stay) {
+            $key = $keyOf($stay->regu_id, $stay->regu_name);
+            $groups[$key] ??= ['regu_id' => $stay->regu_id, 'name' => $stay->regu_name];
+        }
+
+        $isOpen = ! in_array($report->status, ['resolved', 'ditolak', Report::STATUS_DIGABUNG], true);
+        $regus = Regu::withoutGlobalScope('tenant')
+            ->with(['leader:id,name', 'members:id,name'])
+            ->whereIn('id', collect($groups)->pluck('regu_id')->filter())
+            ->get()
+            ->keyBy('id');
+
+        $roster = [];
+        foreach ($groups as $key => $group) {
+            $regu = $group['regu_id'] ? $regus->get($group['regu_id']) : null;
+            $stay = $stays->first(fn ($s) => $keyOf($s->regu_id, $s->regu_name) === $key);
+            $chosen = $report->officers->pluck('user_id')->push(optional($stay)->user_id)->filter();
+
+            $roster[] = [
+                'key' => $key,
+                'name' => $group['name'],
+                'leader' => $regu?->leader?->name,
+                'stay' => $canSeeRoster && $stay ? optional($stay->user)->name : null,
+                'pending' => $canSeeRoster && $isOpen && $regu
+                    ? $regu->members->whereNotIn('id', $chosen)->sortBy('name')->pluck('name')->values()
+                    : [],
+            ];
+        }
+
+        $myRegu = null;
+        $canStayAtBase = false;
+        if ($user->hasRole('petugas') && ($own = Regu::milik($user))) {
+            $ownStay = $stays->firstWhere('regu_id', $own->id);
+            $isOfficer = $report->officers->contains('user_id', $user->id);
+
+            $myRegu = [
+                'name' => $own->name,
+                'key' => $keyOf($own->id, $own->name),
+                'is_leader' => $own->isLeader($user),
+                'i_stay' => $ownStay && (int) $ownStay->user_id === (int) $user->id,
+                'stay_taken_by' => $ownStay ? optional($ownStay->user)->name : null,
+            ];
+            // Syarat yang sama persis dengan stayAtBase(): wilayah, insiden masih terbuka, belum
+            // meluncur, dan regunya belum punya orang yang jaga kantor.
+            $canStayAtBase = $isOpen && ! $isOfficer && ! $ownStay && $user->withinReportJurisdiction($report);
+        }
+
+        return [$roster, $myRegu, $canStayAtBase];
     }
 
     // =========================================================================
@@ -474,6 +629,22 @@ class ReportController extends Controller
                 $report->photos()->create(['path' => $path]);
             }
 
+            // Laporan ganda (TASK_55, lapis 1): satu kebakaran dilihat banyak orang. Server
+            // hanya MENGUSULKAN "kemungkinan sama dengan #X" - admin yang memutuskan. Galat
+            // apa pun di sini ditelan: laporannya sudah tersimpan, dan deteksi yang rusak tak
+            // boleh membuat warga melihat "gagal melapor" untuk laporan darurat yang sebenarnya
+            // sudah masuk (paling buruk: ia dianggap bukan usulan dan berbunyi seperti biasa).
+            $kandidatDuplikat = null;
+            try {
+                $kandidatDuplikat = Report::cariKandidatDuplikat($report);
+                if ($kandidatDuplikat) {
+                    $report->update(['duplicate_candidate_of_id' => $kandidatDuplikat->id]);
+                }
+            } catch (Throwable $e) {
+                report($e);
+                $kandidatDuplikat = null;
+            }
+
             // SOP ANTI HOAX: Notifikasi AWAL HANYA ke PUSAT KOMANDO (Petugas/Admin),
             // disiarkan sesuai tingkat wilayah yang dikonfigurasi admin (cascade naik dari desa laporan).
             $petugasCeiling = TenantLevel::from(
@@ -483,7 +654,11 @@ class ReportController extends Controller
                 ->notifiableForReport($report, $petugasCeiling)
                 ->whereNot('id', auth()->id())
                 ->get();
-            if ($commandCenterUsers->isNotEmpty()) {
+            // Usulan duplikat TIDAK membunyikan nada triase lagi (keputusan user 2026-09-14):
+            // lima belas pelapor untuk satu kebakaran = lima belas bunyi, dan bunyi yang
+            // bertubi-tubi melatih orang mengabaikannya (alasan TASK_50). Laporannya tetap
+            // muncul live di antrean lewat ReportFeedChanged di bawah, berlabel usulan + jarak.
+            if ($commandCenterUsers->isNotEmpty() && ! $kandidatDuplikat) {
                 // STAGE_REPORT_INCOMING: laporan ini BELUM diverifikasi siapa pun, jadi ia
                 // tidak boleh berbunyi & berbunyi-nama sama dengan panggilan meluncur. Sirine
                 // untuk sesuatu yang bisa saja hoaks melatih petugas mengabaikan sirine, dan

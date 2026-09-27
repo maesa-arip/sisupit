@@ -1,5 +1,6 @@
 import { Button } from '@/Components/ui/button';
 import AppLayout from '@/Layouts/AppLayout';
+import { escapeHtml } from '@/lib/escape-html';
 import { cn, facilityStatusLabel, MAP_TILE_URL, NOMOR_DARURAT_NASIONAL } from '@/lib/utils';
 import { Head, router } from '@inertiajs/react';
 import {
@@ -59,6 +60,15 @@ const REPORT_STATUS = [
 		marker: 'bg-muted-foreground',
 		dot: 'bg-muted-foreground',
 		badge: 'bg-muted text-muted-foreground border-border',
+	},
+	// Laporan ganda yang digabung (TASK_55). Pinnya berdiri di dekat kejadian induk dan akan
+	// terbaca sebagai kebakaran KEDUA, jadi tersembunyi bawaan (lihat reportHidden).
+	{
+		key: 'digabung',
+		label: 'Digabung',
+		marker: 'bg-muted-foreground/60',
+		dot: 'bg-muted-foreground/60',
+		badge: 'border-dashed border-muted-foreground/40 bg-muted/40 text-foreground',
 	},
 ];
 const REPORT_META = Object.fromEntries(REPORT_STATUS.map((s) => [s.key, s]));
@@ -127,7 +137,7 @@ export default function MonitoringMap({ layers }) {
 	// Kejadian yang tampil pertama kali = yang masih berjalan (Laporan Masuk,
 	// Laporan Terverifikasi, Penanganan). 'Selesai' & 'ditolak' disembunyikan,
 	// tetap bisa dinyalakan lewat chip status.
-	const [reportHidden, setReportHidden] = useState(() => new Set(['ditolak', 'resolved']));
+	const [reportHidden, setReportHidden] = useState(() => new Set(['ditolak', 'resolved', 'digabung']));
 	const [hydrantHidden, setHydrantHidden] = useState(() => new Set());
 	const [stationHidden, setStationHidden] = useState(() => new Set());
 	const [pumpHidden, setPumpHidden] = useState(() => new Set());
@@ -187,13 +197,20 @@ export default function MonitoringMap({ layers }) {
 		const popupShell = (inner) => `<div class="font-sans w-[210px] space-y-1.5">${inner}</div>`;
 		const facilityPopup = (title, address, status, extra = '') =>
 			popupShell(`
-				<h4 class="m-0 text-[13px] font-bold leading-snug text-foreground">${title}</h4>
+				<h4 class="m-0 text-[13px] font-bold leading-snug text-foreground">${escapeHtml(title)}</h4>
 				<div class="flex items-start gap-1.5 text-[11px] font-medium text-muted-foreground">
 					<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mt-px shrink-0"><path d="M12 21s-6-5.686-6-10a6 6 0 1 1 12 0c0 4.314-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg>
-					<span>${address || 'Alamat tidak tersedia'}</span>
+					<span>${escapeHtml(address || 'Alamat tidak tersedia')}</span>
 				</div>
 				${extra}
-				<span class="inline-flex rounded-md border border-border bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">${facilityStatusLabel(status)}</span>`);
+				<span class="inline-flex rounded-md border border-border bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">${escapeHtml(facilityStatusLabel(status))}</span>`);
+
+		// Baris "regu yang meluncur" di popup kejadian (TASK_60), kosong bila belum ada regu.
+		// Nama regu masuk ke HTML mentah popup Leaflet, jadi WAJIB di-escape (#131).
+		const reguLine = (regus) =>
+			regus?.length
+				? `<div class="flex items-center gap-1.5 font-semibold text-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0"><path d="M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0 -3 -3.85"/></svg><span>${regus.map(escapeHtml).join(', ')} meluncur</span></div>`
+				: '';
 
 		const allMarkers = [];
 
@@ -217,13 +234,14 @@ export default function MonitoringMap({ layers }) {
 				// font-semibold, shadow-sm, ikon 16px stroke-2) supaya sebentuk dengan tombol
 				// di halaman lain — bukan label mungil huruf kapital seperti sebelumnya.
 				const html = popupShell(`
-					<h4 class="m-0 text-[13px] font-bold leading-snug text-foreground">${r.title}</h4>
+					<h4 class="m-0 text-[13px] font-bold leading-snug text-foreground">${escapeHtml(r.title)}</h4>
 					<div class="space-y-1 text-[11px] font-medium text-muted-foreground">
-						<div class="flex items-start gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mt-px shrink-0"><path d="M12 21s-6-5.686-6-10a6 6 0 1 1 12 0c0 4.314-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg><span>${r.location || 'Lokasi tidak tersedia'}</span></div>
-						<div class="flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>${r.time || ''}</span></div>
+						<div class="flex items-start gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mt-px shrink-0"><path d="M12 21s-6-5.686-6-10a6 6 0 1 1 12 0c0 4.314-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg><span>${escapeHtml(r.location || 'Lokasi tidak tersedia')}</span></div>
+						<div class="flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>${escapeHtml(r.time)}</span></div>
+						${reguLine(r.regus)}
 					</div>
 					<span class="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-bold ${meta.badge}">${meta.label}</span>
-					<a href="${detailUrl}" data-report-detail="${r.id}" class="flex h-9 w-full items-center justify-center gap-2 rounded-md bg-destructive text-xs font-semibold !text-destructive-foreground no-underline shadow-sm hover:bg-destructive/90">
+					<a href="${escapeHtml(detailUrl)}" data-report-detail="${escapeHtml(r.id)}" class="flex h-9 w-full items-center justify-center gap-2 rounded-md bg-destructive text-xs font-semibold !text-destructive-foreground no-underline shadow-sm hover:bg-destructive/90">
 						Lihat Detail
 						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
 					</a>`);
@@ -264,7 +282,7 @@ export default function MonitoringMap({ layers }) {
 				d.name,
 				d.address,
 				d.status,
-				`<div class="text-[11px] font-medium text-muted-foreground">Jenis: ${d.type || '-'}</div>`,
+				`<div class="text-[11px] font-medium text-muted-foreground">Jenis: ${escapeHtml(d.type || '-')}</div>`,
 			),
 		);
 		facilityLayer('stations', stations, stationHidden, GLYPH.station, (d) =>
@@ -272,7 +290,7 @@ export default function MonitoringMap({ layers }) {
 				d.name,
 				d.address,
 				d.status,
-				`<div class="text-[11px] font-medium text-muted-foreground">${d.type || 'Pos'} • Telp: ${d.phone || NOMOR_DARURAT_NASIONAL}</div>`,
+				`<div class="text-[11px] font-medium text-muted-foreground">${escapeHtml(d.type || 'Pos')} • Telp: ${escapeHtml(d.phone || NOMOR_DARURAT_NASIONAL)}</div>`,
 			),
 		);
 		facilityLayer('pumps', pumps, pumpHidden, GLYPH.pump, (d) =>
@@ -280,7 +298,7 @@ export default function MonitoringMap({ layers }) {
 				d.name,
 				d.address,
 				d.status,
-				`<div class="text-[11px] font-medium text-muted-foreground">Jenis: ${d.type || '-'}</div>`,
+				`<div class="text-[11px] font-medium text-muted-foreground">Jenis: ${escapeHtml(d.type || '-')}</div>`,
 			),
 		);
 
@@ -289,12 +307,20 @@ export default function MonitoringMap({ layers }) {
 		if (visible.volunteers) {
 			volunteers.forEach((d) => {
 				if (volunteerHidden.has(d.status)) return;
+				// Nama relawan diketik pemilik akunnya sendiri - semua nilai data di-escape (#131).
+				const statusClass =
+					d.status === 'Siaga'
+						? 'bg-volunteer/10 text-volunteer border-volunteer/30'
+						: 'bg-muted text-muted-foreground border-border';
+				const skillsLine = d.skills?.length
+					? `<div class="text-[11px] font-medium text-muted-foreground">Keahlian: ${escapeHtml(d.skills.join(', '))}</div>`
+					: '';
 				const html = popupShell(`
-					<h4 class="m-0 text-[13px] font-bold leading-snug text-foreground">${d.name}</h4>
-					<div class="flex items-start gap-1.5 text-[11px] font-medium text-muted-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mt-px shrink-0"><path d="M12 21s-6-5.686-6-10a6 6 0 1 1 12 0c0 4.314-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg><span>${d.area || '-'}</span></div>
-					${d.skills?.length ? `<div class="text-[11px] font-medium text-muted-foreground">Keahlian: ${d.skills.join(', ')}</div>` : ''}
+					<h4 class="m-0 text-[13px] font-bold leading-snug text-foreground">${escapeHtml(d.name)}</h4>
+					<div class="flex items-start gap-1.5 text-[11px] font-medium text-muted-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mt-px shrink-0"><path d="M12 21s-6-5.686-6-10a6 6 0 1 1 12 0c0 4.314-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg><span>${escapeHtml(d.area || '-')}</span></div>
+					${skillsLine}
 					<div class="text-[10px] italic text-muted-foreground/80">Posisi perkiraan (pusat wilayah)</div>
-					<span class="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-bold ${d.status === 'Siaga' ? 'bg-volunteer/10 text-volunteer border-volunteer/30' : 'bg-muted text-muted-foreground border-border'}">${d.status}</span>`);
+					<span class="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-bold ${statusClass}">${escapeHtml(d.status)}</span>`);
 				const m = window.L.marker([d.lat, d.lng], {
 					icon: glyphIcon(volunteerColor(d.status), GLYPH.volunteer),
 				}).bindPopup(html);

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Enums\TenantEdition;
+use App\Models\Tenant;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -30,6 +31,16 @@ class TenantRequest extends FormRequest
         if (! $this->filled('edition')) {
             $this->merge([
                 'edition' => TenantEdition::SEWA->value,
+            ]);
+        }
+
+        // Form tenant dikirim sebagai FormData, dan FormData TIDAK memuat array kosong - jadi
+        // mematikan fitur terakhir akan terbaca sebagai "tak mengirim features" dan fiturnya
+        // tetap menyala tanpa galat. Penanda ini membuat "semua dicentang lepas" tersimpan
+        // sebagai []. Pemanggil yang tak mengirimnya (skrip, test lama) tak menyentuh kolomnya.
+        if ($this->boolean('features_sent')) {
+            $this->merge([
+                'features' => array_values((array) $this->input('features', [])),
             ]);
         }
     }
@@ -61,7 +72,7 @@ class TenantRequest extends FormRequest
             'penanggung_jawab_data' => ['nullable', 'string', 'max:255'],
             'edition' => ['required', Rule::enum(TenantEdition::class)],
             'features' => ['nullable', 'array'],
-            'features.*' => ['string', 'max:50'],
+            'features.*' => ['string', Rule::in(array_keys(Tenant::FEATURES))],
             'is_active' => ['required', 'boolean'],
         ];
     }

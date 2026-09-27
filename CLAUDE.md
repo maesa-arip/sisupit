@@ -27,10 +27,49 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : PETUGAS BOLEH TAMBAH & EDIT HYDRANT + RIWAYAT SUNTINGAN (TASK_59,
+Task aktif   : SEMUA BRANCH FITUR DI-MERGE KE `main` 2026-09-27 (permintaan user "merge ke main
+                semua") - main LOKAL, BELUM di-push & BELUM dideploy. Yang naik: feat/regu-danru
+                (membawa TASK_54 forum [keputusan tahan forum DICABUT user lewat perintah ini;
+                forum & email tetap MATI per kabupaten sampai dicentang di /admin/tenants],
+                TASK_55, TASK_56, TASK_59, TASK_60, #131, dev:all) + TASK_61 di bawah.
+                feat/email-dinas SENGAJA TIDAK di-merge: TASK_56-nya sudah masuk lewat
+                c181b7d0, dan versi lepas-forum itu hanya berisi baris LAMA (penyaring tanpa
+                `digabung`, S&K 2.0) - merge-nya akan menarik kembali kode usang. Perubahan
+                BELUM ter-commit di folder utama (#130: ReportController, FINDINGS_LOG,
+                ReportBroadcastFailureTest) TIDAK ikut - milik sesi lain. DEPLOY main ini WAJIB
+                `php artisan migrate` BERSAMAAN (migrasi TASK_54/55/56/60 belum ada di VPS;
+                tanpa migrasi halaman detail insiden 500) + cadangan DB lebih dulu + S&K 2.1
+                (tanggal berlaku disesuaikan) + centang fitur per kabupaten bila dikehendaki.
+               WILAYAH AKUN = WILAYAH TUGAS BAGI PETUGAS + ISIAN ALAMAT TINGGAL (TASK_61,
+                prompt/tasks/TASK_61_wilayah_tugas_alamat_tinggal.md). SELESAI (kode) 2026-09-27,
+                commit 6a76f6bd, di-merge ke main. Pemicu: petugas tinggal di Badung, bertugas di
+                Damkar Denpasar. Keputusan user: alamat tinggal = users.address YANG SUDAH ADA
+                (tanpa migrasi), diisi pemilik akun + admin. YANG MENGIKAT: kartu profil
+                "Wilayah Tugas"/"Wilayah Domisili" dari prop server jurisdiction.kind
+                (CENTRALLY_MANAGED_ROLES), alamat tinggal TAK BOLEH menggeser kode wilayah.
+                ProfileAlamatTinggalTest 7, tiga sabotase MERAH, pulih byte-exact.
+               REGU & DANRU - MELUNCUR ATAS NAMA REGU + SATU ANGGOTA JAGA DI KANTOR (TASK_60,
+                prompt/tasks/TASK_60_regu_danru_jaga_kantor.md). SELESAI (kode) 2026-09-25 di
+                branch `feat/regu-danru` (worktree .claude/worktrees/regu-danru, dari
+                feat/hydrant-log-petugas @4814de6f - ikut membawa TASK_54/55/56/59). BELUM dideploy.
+                Keputusan user: dua tombol "Meluncur" | "Jaga di Kantor" (usul user sendiri), TEPAT
+                SATU jaga kantor per regu per kejadian, anggota mana pun boleh memulai, anggota regu
+                PETUGAS SAJA. YANG MENGIKAT: (a) danru = regus.leader_id, BUKAN peran Spatie;
+                (b) tiap anggota menekan sendiri - klik satu orang tak pernah mengklaim anggota lain;
+                nama regu di-SNAPSHOT ke report_officers.regu_name; (c) jaga kantor = tabel
+                report_jaga_kantor, BUKAN status responder (lihat CONVENTIONS), UNIQUE(report_id,
+                regu_id); (d) siapa jaga kantor & siapa belum memilih hanya untuk staf/pejabat;
+                (e) tombol dari prop server canStayAtBase + 3 prop regu ikut SATU daftar
+                reloadIncident (#113). Test 497 -> 514 passed (2291), ReguTest 17 (termasuk adendum Peta Pemantauan [+temuan XSS #131, FIXED 2026-09-27 lewat lib/escape-html.js + LeafletPopupEscapeTest di 8 pemanggil bindPopup], berita acara, dashboard petugas & kolom AK "Regu Meluncur" di Export Excel); TIGA sabotase
+                MERAH (dicek `cmp` terpasang), pulih byte-exact. Pint/prettier/build lulus. Migrasi
+                aditif DONE di MySQL dev LOKAL (up/rollback/up), BELUM di VPS. SISA: verifikasi
+                manual §6, build + commit public/build, deploy = kode + `php artisan migrate`
+                BERSAMAAN (tanpa migrasi halaman detail insiden 500).
+               PETUGAS BOLEH TAMBAH & EDIT HYDRANT + RIWAYAT SUNTINGAN (TASK_59,
                 prompt/tasks/TASK_59_petugas_edit_hydrant_log.md). SELESAI (kode) 2026-09-22 di
-                branch `deploy/hydrant-log` (di-cherry-pick ke atas main @d2b77228 TANPA TASK_54/55/56 -
-                keputusan user: hanya fitur ini yang naik; asalnya feat/hydrant-log-petugas).
+                branch `feat/hydrant-log-petugas` (dari feat/laporan-ganda-atas-forum @c181b7d0).
+                TERDEPLOY 2026-09-23 @8dc43af6 SENDIRIAN lewat cherry-pick (branch
+                `deploy/hydrant-log`, tanpa TASK_54/55/56 - keputusan user saat itu).
                 Keputusan user: petugas TAMBAH + EDIT (hapus tetap admin), HYDRANT RESMI SAJA
                 (hydrant warga tak dibuka untuk petugas & tanpa log), "dibuat oleh" ikut dicatat.
                 YANG MENGIKAT: (a) route index/create/store/edit/update di grup BARU
@@ -46,6 +85,129 @@ Task aktif   : PETUGAS BOLEH TAMBAH & EDIT HYDRANT + RIWAYAT SUNTINGAN (TASK_59,
                 dicek `cmp` terpasang, pulih byte-exact. Pint/prettier/build lulus. Migrasi aditif
                 DONE di DB dev LOKAL, BELUM di VPS. SISA: verifikasi manual §6, deploy = kode +
                 `php artisan migrate` BERSAMAAN.
+               EMAIL DINAS DI DALAM SISUPIT - SLICE 1 (TASK_56,
+                prompt/tasks/TASK_56_email_dinas_daftar_putih.md). SELESAI (kode) 2026-09-22,
+                BELUM di-commit & BELUM dideploy. Permintaan user: komputer operator akan
+                dikunci hanya untuk Sisupit, jadi email & WhatsApp harus bisa ditangani dari
+                dalam aplikasi, "tidak bisa kirim email selain email yang di daftarkan".
+                DIPECAH TIGA TASK (aturan emas #6): TASK_56 email (ini), TASK_57 WhatsApp
+                (DITUNDA atas keputusan user 2026-09-22), TASK_58 penguncian komputer (TODO,
+                paling akhir). Urutannya mengikat: email dipakai dulu, baru dikunci.
+                DIBANGUN SEBAGAI HALAMAN WEB, BUKAN FITUR ELECTRON - `.exe` sudah memuat
+                sisupit.com, jadi NOL perubahan wrapper & satu perbaikan tiba lewat `git pull`
+                ke .exe + APK + browser sekaligus (pelajaran #108; rilis wrapper di repo ini
+                mahal: versionCode, artifactName yang mengubah URL unduhan, SmartScreen).
+                DELAPAN KEPUTUSAN USER: penerima = PEJABAT (perorangan) -> tabel `mail_contacts`
+                TERSENDIRI dan itu BUKAN "daftar kedua" yang dilarang #110/#71 (agencies mendata
+                ORGANISASI penanganan insiden, ini mendata ORANG; memaksanya jadi satu membuat
+                nama pejabat muncul sebagai instansi yang bisa dimintai bantuan saat kebakaran
+                lewat Agency::recommendedIdsFor); pengirim = petugas|admin|superadmin; SATU
+                KOTAK SURAT PER KABUPATEN, alamatnya diminta ke tiap kota dan alamat itu yang
+                dipakai; kredensialnya DIISI ADMIN KABUPATEN SENDIRI di /admin/email (superadmin
+                tetap pemegang saklar tenants.features); lampiran boleh tapi dibatasi & dicatat
+                (slice 3, belum).
+                YANG MENGIKAT: (a) DUA JALUR EMAIL TAK BOLEH TERCAMPUR - `.env` (MAIL_*) milik
+                email SISTEM (verifikasi pendaftaran & reset password, TIDAK berubah), surat
+                dinas lewat mailer BERNAMA per tenant `dinas_{id}`; nama ber-id itu wajib sebab
+                MailManager menyimpan mailer per NAMA, dan satu nama bersama membuat proses yang
+                melayani dua kabupaten (queue worker) mengirim surat kabupaten kedua dari kotak
+                surat kabupaten pertama TANPA GALAT; (b) BUKAN Mail::build() meski itu paling
+                ringkas - MailFake tak punya build(), jadi jalur kirim yang memakainya mustahil
+                diuji, dan jalur kirim yang tak bisa diuji adalah jalur yang gerbangnya jebol
+                diam-diam; (c) gerbang penerima = DAFTAR PUTIH satu tabel, satu Form Request
+                (MailSendRequest) untuk tulis baru/balas/teruskan, dan gerbang peran + 404
+                diletakkan di authorize() BUKAN cuma controller - FormRequest divalidasi SEBELUM
+                controller, terbukti lewat test: POST ke fitur mati dijawab galat validasi (302)
+                alih-alih 404, yang mengaku endpoint-nya ada sekaligus membocorkan cara kerja
+                daftar putihnya; (d) password kotak surat TAK PERNAH dikirim ke layar (hanya
+                `has_password`), kolom kosong = JANGAN UBAH (kalau terbalik, menyimpan perubahan
+                nama pengirim menghapus passwordnya dan fiturnya baru mati di kiriman
+                berikutnya), alamat pengirim DIKUNCI ke akun (mail_username = mail_from_address;
+                Gmail menulis ulang From yang tak cocok dengan akunnya), tenant yang disunting
+                ditentukan city_code AKUN tak pernah dari request (#1 P0); (e) tiap percobaan
+                kirim BERHASIL MAUPUN GAGAL meninggalkan satu baris mail_messages (append-only,
+                pengirim & penerima di-SNAPSHOT: user_id nullOnDelete + sender_name, sebab
+                menghapus akun tak boleh membuat jejak audit berbunyi "tidak tercatat").
+                YANG TIDAK BISA DIJANJIKAN, sudah tertulis di §1.1 file task: "email tidak semua
+                bisa login" TIDAK bisa ditegakkan Sisupit - yang menentukan siapa memegang
+                password. Syarat mutlaknya password tidak dibagikan ke PETUGAS; admin tetap bisa
+                membuka kotak surat dari luar Sisupit, jadi jaminannya BERLAPIS PERAN, bukan
+                mutlak.
+                Test 472 -> 485 passed (1986 assertions); ENAM sabotase dibuktikan MERAH, berkas
+                pulih byte-exact. PELAJARAN SABOTASE: dua sabotase pertama tampak "gagal
+                memerahkan" padahal TIDAK PERNAH TERPASANG (\Q...\E di perl tetap menginterpolasi
+                $var jadi string kosong) - sabotase yang gagal terpasang tampak PERSIS seperti
+                penjaga yang bekerja; sejak itu tiap sabotase diverifikasi `cmp` lebih dulu.
+                Pint PASS (14 berkas), prettier PASS, npm run build lulus & keenam halaman baru
+                dibuktikan ada di manifest + string kuncinya ada di bundel produksi.
+                TIGA MIGRASI ADITIF sudah dijalankan di DB dev LOKAL (0 pending), BELUM di VPS.
+                `.env` TIDAK disentuh sama sekali. TEMUAN BARU #129 OPEN (sengaja tak dikerjakan):
+                `->with('success', ...)` + `page.props.flash` tak pernah sampai ke layar - kunci
+                `flash` tidak pernah di-share, jadi toast di halaman admin lama diam tanpa gejala.
+                SISA: kredensial kotak surat dari tiap kota + kesepakatan §1.1, uji SMTP sungguhan
+                di staging, verifikasi visual 6 layar, nyalakan fitur per kabupaten, commit
+                (terpisah dari TASK_54 & TASK_55) + deploy = kode + `php artisan migrate`
+                BERSAMAAN. Slice 2 (kotak masuk IMAP - BUTUH PERSETUJUAN DEPENDENSI BARU, mengubah
+                composer.lock sehingga deploy wajib `composer install`) & slice 3 (lampiran)
+                belum dikerjakan.
+               LAPORAN GANDA UNTUK SATU KEJADIAN - LAPIS 1 & 2 (TASK_55,
+                prompt/tasks/TASK_55_laporan_ganda_satu_kejadian.md). SELESAI (kode) 2026-09-14,
+                BELUM di-commit & BELUM dideploy. User: "banyak yang melapor padahal 1 kejadian",
+                memilih lapis 1+2 dan "setuju semua" atas K1-K5 (radius 500 m / 120 menit sebagai
+                Setting, 0 = mati; kebakaran saja; gabung = ADMIN saja; usulan TANPA nada triase;
+                penanda = status `digabung` + merged_into_id). Lapis 3 (form warga) DITUNDA.
+                YANG MENGIKAT: (a) mesin hanya MENGUSULKAN (duplicate_candidate_of_id), tak ada
+                auto-merge; (b) status `digabung` wajib disebut di setiap penyaring DAFTAR HITAM
+                (!= 'ditolak', whereNotIn, in_array gerbang aksi, JSX) - lihat CONVENTIONS;
+                (c) reports.lat/lng STRING - kotak whereBetween diam-diam tak cocok apa pun;
+                (d) notifikasi pelapor anak dibangun atas laporan ANAK (induk 403 bagi mereka).
+                Test 433 -> 472 passed (1930), ReportDuplicateMergeTest 38; penjaga dibuktikan MERAH
+                lewat sabotase karena alasan yang benar (pulih md5). GOTCHA: `php` di `bash script.sh`
+                = PHP tanpa SQLite (alias php.bat hanya di shell interaktif) -> merah palsu.
+                Pint/prettier/build lulus. Migrasi aditif DONE di DB dev LOKAL. Temuan: #125 FIXED,
+                #126 FIXED (penjaga ditolak kosong sejak TASK_51), #127 & #128 OPEN.
+                SISA: verifikasi manual §6, commit (terpisah dari TASK_54 & sesi kondisi air),
+                deploy = kode + `php artisan migrate` BERSAMAAN.
+               FORUM TANYA JAWAB WARGA PER KABUPATEN (TASK_54, prompt/tasks/TASK_54_forum_tanya_jawab_warga.md).
+                SELESAI (kode) 2026-09-14. DI-COMMIT di branch `feat/forum-warga` (bercabang dari
+                `feat/mobile-bottom-nav` @d2b77228), SENGAJA BELUM masuk `main` & BELUM dideploy -
+                keputusan user: forum belum akan dirilis. JANGAN merge ke main/staging/dev tanpa
+                persetujuan user. Merge kelak: aset public/build akan bentrok bila main sudah punya
+                build lain -> build ulang sesudah merge, jangan pilih salah satu sisi.
+                Keputusan user: komunitas warga, satu ruang per kabupaten, pertanyaan warga MENUNGGU
+                admin (pra-moderasi), "Jawaban Resmi Damkar" ADMIN SAJA, tanpa foto, wajib login.
+                YANG MENGIKAT: (a) forum_threads hanya menyimpan province+city dari AKUN - desa
+                penulis yang ikut disimpan membuat Tenantable (#60) menyembunyikan pertanyaannya dari
+                desa lain sekabupaten tanpa galat; (b) ForumNotification via() = database SAJA -
+                FCM/broadcast dengan payload tak dikenal = SIRINE di APK & .exe (TASK_50);
+                (c) forum menyala per tenant lewat tenants.features (Tenant::FEATURES, checkbox
+                /admin/tenants) dibaca dari city_code AKUN; mati = 404 + menu absen.
+                Test 415 -> 431 passed (1731), ForumTest 16; 4 penjaga dibuktikan MERAH lewat
+                sabotase (berkas pulih md5). Pint/prettier/build lulus. Migrasi aditif sudah di DB
+                dev LOKAL. S&K naik 2.0 -> 2.1 (klausul Forum Warga) - tanggal berlaku WAJIB
+                disesuaikan saat deploy & ditinjau hukum. Temuan BARU #121 OPEN (lonceng tak
+                menavigasi). Pekerjaan sesi lain di working tree yang sama (kondisi air /hydrants)
+                sudah di-commit TERPISAH di `feat/mobile-bottom-nav` (df5c772c + build d2b77228),
+                tanpa forum. SISA: keputusan rilis, lalu merge + deploy (migrate + centang fitur
+                per kabupaten).
+                ADENDUM #122 (2026-09-14, FIXED): user menyalakan forum Denpasar lalu melapor
+                "ajukan pertanyaan tidak tersimpan, tidak ada error apa2, hanya diam". SERVER
+                BENAR - keempat kirimannya ditolak `min:10` pada JUDUL (dibuktikan dari access log
+                Nginx: 302 kembali ke form + selisih respons TEPAT 54 byte = galat judul; 419 = +32
+                dan galat isi = +51 tidak cocok). Pesan galatnya ADA tapi TERTUTUP HEADER STICKY
+                di ponsel (elementFromPoint di Chrome 390x844 = logo di <header>): form dikirim
+                preserveScroll, onError sengaja tanpa toast selama ada galat per isian, dan batas
+                minimal tak disebut (penghitung cuma "4/150"). FIX di lib/forum.js: FORUM_LIMITS +
+                lengthHint() ("4/150 · min. 10") + announceFormErrors() (toast + gulir ke TENGAH +
+                fokus; `start` akan menaruhnya kembali di bawah header), dipakai Forum/Create.jsx
+                DAN form balasan Forum/Show.jsx. NOL perubahan server. Penjaga: 2 test JSX di
+                ForumTest - angka min/max DITARIK dari ForumThreadRequest & diadu (pelajaran #79);
+                dibuktikan MERAH lewat 4 sabotase, pulih byte-exact. Diverifikasi di browser
+                ponsel sesudah fix. Test 431 -> 433 passed (1753). Data uji di DB lokal dihapus.
+                DUA TEMUAN IKUTAN DICATAT SAJA (keputusan user): #123 limiter forum menghitung
+                kiriman yang GAGAL validasi + 429 tampil sebagai modal halaman galat mentah; #124
+                cabang 419 di bootstrap/app.php tanpa `type` -> `toast[null]` TypeError -> SEMUA
+                form diam tanpa pesan saat sesi kedaluwarsa.
                KEEMPAT DASHBOARD DIROMBAK JADI LAYAR APLIKASI DI PONSEL (#118) + #120.
                 SELESAI & TERDEPLOY 2026-09-09 @d1c8cf8e ke prod/staging/dev.
                 Laporan user: "perbaiki tampilan dashboardnya, sekarang versi mobile masih
@@ -2270,11 +2432,15 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-09-22: 427 passed, 1712 assertions (basis main @d2b77228) - +12 TASK_59.
+Test      : php artisan test            (baseline 2026-09-27 di main hasil merge semua branch: BASELINE_MERGE_TBD;
+            #130 yang belum di-commit di folder utama menambah +2 bila kelak ikut.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)
-Run (dev) : composer dev
+Run (dev) : npm run dev:all   (scripts/dev.ps1 - Docker Nominatim/OSRM/tile + reverb + queue + vite;
+            web & MySQL tetap milik Laragon, hanya diperiksa; proses yang sudah jalan dilewati.
+            `composer dev` TIDAK cocok di mesin Windows ini: pail butuh pcntl, serve beda origin
+            dari APP_URL, dan Reverb tak ikut)
 Lint      : vendor/bin/pint  /  npm run format (auto-fix, BUKAN check-only — tidak ada di CI)
 ```
 

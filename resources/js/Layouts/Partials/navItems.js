@@ -1,4 +1,5 @@
 import {
+	IconAddressBook,
 	IconBuildingCommunity,
 	IconClipboardPlus,
 	IconDashboard,
@@ -14,9 +15,13 @@ import {
 	IconLockAccess,
 	IconLogin2,
 	IconLogout,
+	IconMail,
+	IconMailCog,
 	IconMapSearch,
+	IconMessages,
 	IconRoute,
 	IconSettings,
+	IconShieldHalf,
 	IconShieldLock,
 	IconSpeakerphone,
 	IconUser,
@@ -96,6 +101,14 @@ export function resolveAbilities(auth) {
 export function buildNavSections({ auth, url = '' }) {
 	const { isSuperadmin, isAdminOrSuperadmin, isStaff, isCommandCenter, isLoggedIn } = resolveAbilities(auth);
 	const startsWith = (path) => url.startsWith(path);
+	// Forum Warga menyala per kabupaten (TASK_54). Nilainya dihitung SERVER
+	// (ForumThread::enabledFor, sama dengan gerbang route-nya) - jangan diturunkan dari peran di
+	// sini, atau menu muncul di kabupaten yang forumnya mati dan berujung 404.
+	const forumEnabled = Boolean(auth?.forum_enabled ?? auth?.user?.forum_enabled);
+	// Email Dinas menyala per kabupaten DAN menuntut kotak suratnya sudah disetel admin
+	// (TASK_56). Nilainya dihitung SERVER lewat Tenant::mailboxFor - fungsi yang sama yang
+	// menggerbangi route & MailSendRequest, supaya menu tak pernah menawarkan 404.
+	const mailEnabled = Boolean(auth?.mail_enabled ?? auth?.user?.mail_enabled);
 
 	// Satu-satunya menu /admin/* yang juga milik PETUGAS (2026-09-22: petugas boleh menambah &
 	// menyunting hydrant resmi). Ditulis sekali lalu dipakai di kedua cabang seksi Administrasi,
@@ -132,6 +145,13 @@ export function buildNavSections({ auth, url = '' }) {
 					url: route('front.monitoring.map'),
 					active: startsWith('/peta-pemantauan'),
 				},
+				forumEnabled && {
+					key: 'forum',
+					title: 'Forum Warga',
+					icon: IconMessages,
+					url: route('forum.index'),
+					active: startsWith('/forum'),
+				},
 			],
 		},
 		{
@@ -155,6 +175,25 @@ export function buildNavSections({ auth, url = '' }) {
 							url: route('front.reports.index', { filter: 'mine' }),
 							active: startsWith('/reports') && !startsWith('/reports/create'),
 						},
+						// Regu & Danru (TASK_60). Petugas melihat regunya (danru mengatur anggotanya),
+						// admin mengelola semua regu - satu halaman, hak tombolnya dari server.
+						isStaff && {
+							key: 'regu',
+							title: 'Regu & Danru',
+							icon: IconShieldHalf,
+							url: route('regu.index'),
+							active: startsWith('/regu'),
+						},
+						// Surat keluar ke pejabat (TASK_56). Hanya petugas ke atas (K5), dan hanya bila
+						// kabupatennya punya kotak surat yang sudah disetel adminnya.
+						isStaff &&
+							mailEnabled && {
+								key: 'mail',
+								title: 'Email Dinas',
+								icon: IconMail,
+								url: route('mail.index'),
+								active: startsWith('/email'),
+							},
 					]
 				: [],
 		},
@@ -245,6 +284,30 @@ export function buildNavSections({ auth, url = '' }) {
 							icon: IconHomeCog,
 							url: route('admin.banjars.index'),
 							active: startsWith('/admin/banjars'),
+						},
+						// Daftar Penerima = daftar putih gerbang kirim Email Dinas (TASK_56). Sengaja TANPA
+						// syarat mailEnabled: daftarnya justru perlu diisi SEBELUM kotak suratnya siap, dan
+						// menu yang baru muncul setelah semuanya selesai tak pernah menolong menyelesaikannya.
+						{
+							key: 'admin.mail-contacts',
+							title: 'Daftar Penerima Email',
+							icon: IconAddressBook,
+							url: route('admin.mail-contacts.index'),
+							active: startsWith('/admin/mail-contacts'),
+						},
+						{
+							key: 'admin.mail-settings',
+							title: 'Pengaturan Email Dinas',
+							icon: IconMailCog,
+							url: route('admin.mail-settings.edit'),
+							active: startsWith('/admin/email'),
+						},
+						forumEnabled && {
+							key: 'admin.forum',
+							title: 'Moderasi Forum',
+							icon: IconMessages,
+							url: route('admin.forum.index'),
+							active: startsWith('/admin/forum'),
 						},
 						// SEMENTARA DISEMBUNYIKAN (keputusan user 2026-06-29): menu "Kelola Armada"
 						// disembunyikan selaras dengan panel Pengerahan Armada di Show.jsx.

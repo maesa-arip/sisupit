@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Agency;
 use App\Models\Hydrant;
+use App\Models\Regu;
 use App\Models\Report;
 use App\Models\User;
 use Inertia\Inertia;
@@ -87,16 +88,24 @@ class DashboardController extends Controller
                 $queryMissions->where($column, $levelCode);
             }
 
-            $activeMissions = $queryMissions->orderBy('created_at', 'desc')->get()->map(fn ($report) => [
-                'id' => $report->id,
-                'title' => $report->title,
-                'location' => $report->alamatTampil(),
-                'lat' => $report->lat,
-                'lng' => $report->lng,
-                'time' => $report->created_at->diffForHumans(),
-                'created_at' => $report->created_at,
-                'status' => $report->status,
-            ]);
+            // Regu yang sedang meluncur ke tiap misi (TASK_60) dibaca dari SNAPSHOT di baris
+            // responder, sama dengan manifes halaman detail - bukan dari keanggotaan regu hari ini.
+            $activeMissions = $queryMissions
+                ->with(['officers' => fn ($q) => $q->whereNotNull('regu_name')->select('id', 'report_id', 'regu_name')])
+                ->orderBy('created_at', 'desc')->get()->map(fn ($report) => [
+                    'id' => $report->id,
+                    'title' => $report->title,
+                    'location' => $report->alamatTampil(),
+                    'lat' => $report->lat,
+                    'lng' => $report->lng,
+                    'time' => $report->created_at->diffForHumans(),
+                    'created_at' => $report->created_at,
+                    'status' => $report->status,
+                    'regus' => $report->officers->pluck('regu_name')->unique()->sort()->values(),
+                ]);
+
+            // Regu milik petugas yang login - ditampilkan di kepala dashboard.
+            $myRegu = Regu::milik($user);
 
             // Antrian pasca-insiden: laporan yang SUDAH selesai ditangani tapi berita acara
             // (Laporan Kegiatan Penyelamatan) BELUM DIBUAT SAMA SEKALI. Setelah resolve(),
@@ -130,6 +139,7 @@ class DashboardController extends Controller
             return Inertia::render('Petugas/Dashboard', [
                 'activeMissions' => $activeMissions->toArray(),
                 'pendingResolutions' => $pendingResolutions->toArray(),
+                'myRegu' => $myRegu ? ['name' => $myRegu->name, 'is_leader' => $myRegu->isLeader($user)] : null,
                 'feed_channel' => $user->reportFeedChannel(),
             ]);
         }
@@ -224,7 +234,7 @@ class DashboardController extends Controller
             $myTasks = Report::withoutGlobalScopes()
                 ->with(['helpers.user'])
                 ->whereHas('helpers', fn ($q) => $q->where('user_id', $user->id))
-                ->where('status', '!=', 'ditolak')
+                ->whereNotIn('status', ['ditolak', Report::STATUS_DIGABUNG])
                 ->latest('created_at')
                 ->get();
         }
@@ -234,7 +244,9 @@ class DashboardController extends Controller
         // terbatas ke wilayah (desa/kecamatan/kabupaten/provinsi) milik warga yang melihat,
         // konsisten dengan $nearbyEmergencies di atas.
         $reportsFeed = Report::with(['helpers.user'])
-            ->where('status', '!=', 'ditolak') // laporan ditolak tak tampil di radar/feed publik
+            // Laporan ditolak & laporan ganda yang sudah digabung (TASK_55) tak tampil di
+            // radar/feed publik - yang digabung akan terbaca sebagai kejadian kedua.
+            ->whereNotIn('status', ['ditolak', Report::STATUS_DIGABUNG])
             ->latest('created_at')
             ->paginate(request()->load ?? 6)
             ->withQueryString();

@@ -99,7 +99,7 @@ class SimulateResponders extends Command
             return $report;
         }
 
-        $report = $query->whereNotIn('status', ['resolved'])
+        $report = $query->whereNotIn('status', ['resolved', 'ditolak', Report::STATUS_DIGABUNG])
             ->whereNotNull('lat')->whereNotNull('lng')
             ->latest('id')->first();
 

@@ -49,7 +49,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
     private const HEADER_ROW = 6;
 
     /** Kolom terakhir yang dipakai tabel (disesuaikan dengan jumlah heading). */
-    private const LAST_COLUMN = 'AI';
+    private const LAST_COLUMN = 'AL';
 
     /**
      * Label status. WAJIB seiring dengan kamus kanonik di layar
@@ -64,6 +64,9 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
         'handling' => 'Penanganan',
         'resolved' => 'Selesai',
         'ditolak' => 'Ditolak',
+        // Laporan ganda yang digabung ke kejadian lain (TASK_55). Nomor induknya di kolom
+        // "Digabung ke", supaya rekap bisa menghitung KEJADIAN, bukan cuma laporan.
+        'digabung' => 'Digabung',
     ];
 
     /**
@@ -94,7 +97,10 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
                 // ditutup sebelum kolomnya ada mengirim null dan tercetak "-".
                 'resolver:id,name',
                 'rejector:id,name',
-                'officers:id,report_id,dispatched_at,arrived_at,finished_at',
+                'officers:id,report_id,regu_name,dispatched_at,arrived_at,finished_at',
+                // Anggota regu yang tinggal di kantor (TASK_60) - nama regu dari snapshot barisnya.
+                'jagaKantor:id,report_id,regu_name,user_id',
+                'jagaKantor.user:id,name',
                 'helpers:id,report_id,started_at,arrived_at,finished_at',
                 'province:code,name',
                 'city:code,name',
@@ -112,6 +118,8 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
                 'resolutions:id,report_id,status,kerugian,created_at',
                 'resolutions.victims:id,report_resolution_id',
                 'photos:id,report_id',
+                // Induk laporan ganda (TASK_55) - cukup id & tahun untuk nomor LP-nya.
+                'mergedInto:id,created_at',
             ])
             ->filter($this->filters)
             ->when($status && $status !== 'Semua', fn ($query) => $status === 'aktif'
@@ -168,6 +176,9 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             'Berita Acara',
             'Taksiran Kerugian',
             'Jml. Korban',
+            'Digabung ke',
+            'Regu Meluncur',
+            'Jaga di Kantor',
         ];
     }
 
@@ -236,7 +247,30 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             $this->resolutionLabel($report),
             optional($resolution)->kerugian ?: '-',
             $resolution ? $resolution->victims->count() : 0,
+            // Kolom TERAKHIR, bukan di sebelah Status: menyisipkannya di tengah menggeser seluruh
+            // huruf kolom sesudahnya, dan rekap lama yang dibaca dengan rumus Excel ikut meleset.
+            $report->mergedInto ? $this->reportNumber($report->mergedInto) : '-',
+            // Regu yang meluncur (TASK_60), dari SNAPSHOT nama regu di baris responder - rekap
+            // lama tetap menyebut nama regu saat itu walau regunya kemudian di-rename/dihapus.
+            // Ditaruh di UJUNG dengan alasan yang sama dengan kolom di atasnya.
+            $this->reguSummary($report),
+            // Petugas yang jaga kantor, per regu (TASK_60). Ujung lagi, alasan yang sama.
+            $report->jagaKantor
+                ->sortBy('regu_name')
+                ->map(fn ($row) => (optional($row->user)->name ?: '-').' ('.$row->regu_name.')')
+                ->implode(', ') ?: '-',
         ];
+    }
+
+    /** "Regu A (3 orang), Regu B (2 orang)" - petugas tanpa regu tidak ikut disebut di sini. */
+    private function reguSummary($report): string
+    {
+        return $report->officers
+            ->filter(fn ($officer) => $officer->regu_name)
+            ->countBy('regu_name')
+            ->sortKeys()
+            ->map(fn ($jumlah, $nama) => "{$nama} ({$jumlah} orang)")
+            ->implode(', ') ?: '-';
     }
 
     public function columnWidths(): array
@@ -277,6 +311,9 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             'AG' => 16,  // Berita Acara
             'AH' => 18,  // Taksiran Kerugian
             'AI' => 11,  // Jml Korban
+            'AJ' => 16,  // Digabung ke
+            'AK' => 30,  // Regu Meluncur
+            'AL' => 30,  // Jaga di Kantor
         ];
     }
 

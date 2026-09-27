@@ -2,8 +2,11 @@
 
 use App\Http\Controllers\Admin\AgencyController as AdminAgencyController;
 use App\Http\Controllers\Admin\BanjarController as AdminBanjarController;
+use App\Http\Controllers\Admin\ForumModerationController as AdminForumModerationController;
 use App\Http\Controllers\Admin\HydrantController as AdminHydrantController;
 use App\Http\Controllers\Admin\HydrantWargaController as AdminHydrantWargaController;
+use App\Http\Controllers\Admin\MailContactController as AdminMailContactController;
+use App\Http\Controllers\Admin\MailSettingController as AdminMailSettingController;
 use App\Http\Controllers\Admin\PompaController as AdminPompaController;
 use App\Http\Controllers\Admin\PosPemadamController as AdminPosPemadamController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
@@ -15,7 +18,9 @@ use App\Http\Controllers\Api\GeocodeController;
 use App\Http\Controllers\Api\RouteController;
 use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Front\ForumController;
 use App\Http\Controllers\Front\HydrantController;
+use App\Http\Controllers\Front\MailController;
 use App\Http\Controllers\Front\MonitoringMapController;
 use App\Http\Controllers\Front\PompaController;
 use App\Http\Controllers\Front\PosPemadamController;
@@ -24,6 +29,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InfoController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReguController;
 use App\Http\Controllers\ReportActionController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportHelperController;
@@ -80,6 +86,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('units', AdminUnitController::class)->except(['show']);
         // Master OPD/instansi terkait (TASK_27) — ter-scope wilayah via Tenantable.
         Route::resource('agencies', AdminAgencyController::class)->except(['show']);
+
+        // Email Dinas (TASK_56). DUA hal berbeda yang sengaja dipisah:
+        //  - Daftar Penerima = daftar putih yang dibaca gerbang kirim. Hanya admin yang boleh
+        //    mengubahnya; petugas boleh MENGIRIM tapi tidak menambah orang yang bisa dikirimi.
+        //  - Pengaturan kotak surat diisi ADMIN kabupaten sendiri (K8) — bukan superadmin,
+        //    bukan `.env`. Tenant yang disunting ditentukan city_code AKUN di controller.
+        // `mail-contacts/tarik-opd` didaftarkan SEBELUM resource supaya tidak terbaca sebagai
+        // {mail_contact} (alasan yang sama dengan `banjars/require`).
+        Route::post('mail-contacts/tarik-opd', [AdminMailContactController::class, 'tarikDariAgency'])->name('mail-contacts.tarik-opd');
+        Route::resource('mail-contacts', AdminMailContactController::class)->except(['show']);
+        Route::get('email', [AdminMailSettingController::class, 'edit'])->name('mail-settings.edit');
+        Route::put('email', [AdminMailSettingController::class, 'update'])->name('mail-settings.update');
+        Route::post('email/uji', [AdminMailSettingController::class, 'test'])->name('mail-settings.test');
         // Master banjar (2026-08-26) — satuan komunitas di BAWAH desa. Dipakai form hydrant
         // warga & layar Lengkapi Profil; diisi lewat CRUD ini atau perintah
         // `php artisan sisupit:import-banjar`.
@@ -93,6 +112,43 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/', 'index')->name('index');
             Route::get('/export', 'export')->name('export');
         });
+
+        // Moderasi Forum Tanya Jawab Warga (TASK_54). Wilayah dipegang Tenantable ForumThread.
+        Route::prefix('forum')->name('forum.')->controller(AdminForumModerationController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/threads/{thread}/approve', 'approve')->name('threads.approve');
+            Route::post('/threads/{thread}/hide', 'hideThread')->name('threads.hide');
+            Route::post('/threads/{thread}/restore', 'restoreThread')->name('threads.restore');
+            Route::post('/threads/{thread}/pin', 'pin')->name('threads.pin');
+            Route::post('/posts/{post}/hide', 'hidePost')->name('posts.hide');
+            Route::post('/posts/{post}/restore', 'restorePost')->name('posts.restore');
+            Route::post('/flags/{type}/{id}/dismiss', 'dismissFlags')->whereIn('type', ['thread', 'post'])->whereNumber('id')->name('flags.dismiss');
+        });
+    });
+
+    // Forum Tanya Jawab Warga per kabupaten (TASK_54). Wajib login (keputusan user 2026-09-14):
+    // Tenantable tidak menyaring tamu, jadi forum yang terbuka untuk tamu akan membuka seluruh
+    // kabupaten ke publik. Gerbang fitur per kabupaten dicek di controller (404 bila mati).
+    Route::prefix('forum')->name('forum.')->controller(ForumController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/tanya', 'create')->name('create');
+        Route::post('/tanya', 'store')->middleware('throttle:forum-thread')->name('store');
+        Route::get('/{thread}', 'show')->whereNumber('thread')->name('show');
+        Route::delete('/{thread}', 'destroyThread')->name('destroy');
+        Route::post('/{thread}/balas', 'reply')->middleware('throttle:forum-reply')->name('reply');
+        Route::post('/{thread}/lapor', 'flagThread')->middleware('throttle:forum-reply')->name('flag');
+        Route::post('/{thread}/balasan/{post}/terbaik', 'accept')->name('posts.accept');
+        Route::post('/{thread}/balasan/{post}/lapor', 'flagPost')->middleware('throttle:forum-reply')->name('posts.flag');
+        Route::delete('/{thread}/balasan/{post}', 'destroyPost')->name('posts.destroy');
+    });
+
+    // Email Dinas (TASK_56) — surat keluar dari kotak surat Damkar kabupaten ke pejabat.
+    // Gerbang peran (petugas|admin|superadmin) + ketersediaan kotak surat dicek di controller
+    // (404 bila fitur mati atau kredensial belum diisi); penerima dijaga MailSendRequest.
+    Route::prefix('email')->name('mail.')->controller(MailController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/tulis', 'create')->name('create');
+        Route::post('/tulis', 'store')->middleware('throttle:mail-send')->name('store');
     });
 });
 
@@ -114,6 +170,14 @@ Route::controller(HomeController::class)->group(function () {
 Route::middleware(['auth', 'verified', 'role:petugas|admin|superadmin'])->group(function () {
     Route::get('/relawan', [RelawanController::class, 'index'])->name('front.volunteers.index');
     Route::get('/relawan/{id}', [RelawanController::class, 'show'])->name('front.volunteers.show');
+
+    // Regu & Danru (TASK_60). Grup ini hanya gerbang PERTAMA: membuat/mengubah/menghapus regu =
+    // admin, mengatur anggota = admin ATAU danru regu itu sendiri - dicek ulang di ReguController.
+    Route::get('/regu', [ReguController::class, 'index'])->name('regu.index');
+    Route::post('/regu', [ReguController::class, 'store'])->name('regu.store');
+    Route::put('/regu/{regu}', [ReguController::class, 'update'])->name('regu.update');
+    Route::delete('/regu/{regu}', [ReguController::class, 'destroy'])->name('regu.destroy');
+    Route::put('/regu/{regu}/anggota', [ReguController::class, 'syncMembers'])->name('regu.members');
 });
 
 // Peta Pemantauan terpadu (semua layer) — Pusat Komando + pejabat pemantau,
@@ -214,8 +278,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Rute Taktis (Custom Actions) Laporan
     Route::post('/reports/{report}/approve', [ReportActionController::class, 'approve'])->name('reports.approve');
     Route::post('/reports/{report}/reject', [ReportActionController::class, 'reject'])->name('reports.reject');
+    // Laporan ganda (TASK_55) - admin saja, gerbangnya di controller seperti approve/reject.
+    Route::post('/reports/{report}/merge', [ReportActionController::class, 'merge'])->name('reports.merge');
+    Route::post('/reports/{report}/unmerge', [ReportActionController::class, 'unmerge'])->name('reports.unmerge');
+    Route::post('/reports/{report}/dismiss-duplicate', [ReportActionController::class, 'dismissDuplicate'])->name('reports.dismiss-duplicate');
     Route::post('/reports/{report}/take-action', [ReportActionController::class, 'takeAction'])->name('reports.take-action');
     Route::post('/reports/{report}/cancel-response', [ReportActionController::class, 'cancelResponse'])->name('reports.cancel-response');
+    // Regu (TASK_60): anggota regu memilih tinggal di kantor alih-alih meluncur. Petugas saja,
+    // tepat satu per regu per kejadian - gerbangnya di controller seperti take-action.
+    Route::post('/reports/{report}/jaga-kantor', [ReportActionController::class, 'stayAtBase'])->name('reports.stay-at-base');
+    Route::delete('/reports/{report}/jaga-kantor', [ReportActionController::class, 'cancelStay'])->name('reports.cancel-stay');
 
     // Pengerahan unit/armada ke insiden (TASK_09)
     Route::post('/reports/{report}/dispatch-unit', [ReportActionController::class, 'dispatchUnit'])->name('reports.dispatch-unit');
