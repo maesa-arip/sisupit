@@ -3,6 +3,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
+import { escapeHtml } from '@/lib/escape-html';
 import { facilityStatusLabel, MAP_TILE_URL } from '@/lib/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
@@ -64,7 +65,7 @@ export default function Index({ stations, filters, tenant_location }) {
 					});
 					const marker = window.L.marker([lat, lng], { icon: customIcon }).addTo(markersLayerRef.current);
 					marker.bindPopup(
-						`<b>${station.name}</b><br><span class="text-xs text-muted-foreground">${station.address}</span>`,
+						`<b>${escapeHtml(station.name)}</b><br><span class="text-xs text-muted-foreground">${escapeHtml(station.address)}</span>`,
 					);
 					bounds.push([lat, lng]);
 				}

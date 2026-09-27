@@ -4,6 +4,7 @@ import { Badge } from '@/Components/ui/badge';
 import { Card, CardContent } from '@/Components/ui/card';
 import useReportFeed from '@/hooks/use-report-feed';
 import AppLayout from '@/Layouts/AppLayout';
+import { escapeHtml } from '@/lib/escape-html';
 import { cn, GEO_OPTIONS, MAP_TILE_URL, reportNumber } from '@/lib/utils';
 import { Head, router } from '@inertiajs/react';
 import {
@@ -112,7 +113,9 @@ export default function PetugasDashboard({
 
 			const marker = window.L.marker([lat, lng], { icon: incidentIcon })
 				.addTo(map)
-				.bindPopup(`<div class="text-xs font-bold text-destructive font-sans">⚠️ ${mission.title}</div>`);
+				.bindPopup(
+					`<div class="text-xs font-bold text-destructive font-sans">⚠️ ${escapeHtml(mission.title)}</div>`,
+				);
 			markers.push(marker);
 		});
 

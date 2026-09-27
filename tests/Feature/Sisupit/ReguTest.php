@@ -289,8 +289,9 @@ it('sends the regu that took action to the monitoring map', function () {
 it('escapes the regu names before they enter the leaflet popup html', function () {
     $source = file_get_contents(resource_path('js/Pages/Monitoring/Map.jsx'));
 
+    // Helper-nya bersama sejak #131 (lib/escape-html.js, dijaga LeafletPopupEscapeTest).
     expect($source)->toContain('regus.map(escapeHtml)')
-        ->and($source)->toMatch("/'<': '&lt;'/");
+        ->and($source)->toContain("import { escapeHtml } from '@/lib/escape-html';");
 });
 
 it('shows no regu on the petugas dashboard for a petugas without one', function () {

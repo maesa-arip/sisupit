@@ -197,6 +197,16 @@
   lama `only: ['report']` tak pernah sentuh, dan daftar yang berbeda-beda membuat sinyal yang
   datang belakangan membatalkan permintaan yang lebih lengkap (Inertia hanya menerbangkan satu
   kunjungan pada satu waktu). Dijaga `ReportDetailRealtimeTest`.
+- **Popup Leaflet = HTML MENTAH: setiap nilai data WAJIB `escapeHtml()`** (#131).
+  `bindPopup(string)` memasang string lewat `innerHTML`, jadi di sinilah - satu-satunya tempat
+  repo ini menulis HTML sebagai string - perlindungan escape otomatis React tidak berlaku. Judul &
+  alamat laporan diketik warga, nama relawan diketik pemilik akun, hydrant warga didata warga;
+  data mentah di popup = stored XSS ke browser staf. Helper-nya satu: `lib/escape-html.js`
+  (sengaja bukan `lib/utils.js`, berkas itu ber-byte NUL #93). Aturannya TANPA pengecualian
+  "cuma ditulis admin" - pengecualian adalah yang dilanggar. Nilai cadangan ditaruh di dalam
+  panggilan: `escapeHtml(x || '-')`. Konstanta kode sendiri (kelas warna, SVG ikon, kamus status)
+  boleh disisipkan langsung dan didaftar di `POPUP_SAFE_EXPRESSIONS`. Dijaga
+  `LeafletPopupEscapeTest`, yang memindai tiap `bindPopup(` di `resources/js`.
 - **Pilihan "tidak berangkat" BUKAN status responder** (TASK_60). "Jaga di Kantor" anggota regu
   disimpan di tabel sendiri `report_jaga_kantor`, bukan sebagai `status` baru di `report_officers`.
   Tabel responder dibaca peta, pelacakan GPS, hitungan "masih ada responder aktif"

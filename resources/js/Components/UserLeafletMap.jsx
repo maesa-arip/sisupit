@@ -1,3 +1,4 @@
+import { escapeHtml } from '@/lib/escape-html';
 import { facilityStatusIsFaulty, facilityStatusLabel, GEO_OPTIONS, MAP_TILE_URL } from '@/lib/utils';
 import { useEffect, useRef } from 'react';
 
@@ -209,17 +210,19 @@ const UserLeafletMap = ({
 					// "Aktif" di peta dan "Berfungsi" di kartu di sebelahnya — persis keluhan
 					// yang melahirkan facilityStatusLabel (TASK_30).
 					const statusText = facilityStatusLabel(marker.status);
+					// Semua nilai data di-escape: popup Leaflet adalah HTML mentah (#131).
+					// `&bull;` sengaja tetap entitas - itu markup kita, bukan data.
 					const labelText = isPosPemadam
-						? `${statusText} &bull; ${marker.vehicle_count} Armada`
-						: `${statusText} &bull; ${marker.type || 'Pompa'}`;
+						? `${escapeHtml(statusText)} &bull; ${escapeHtml(marker.vehicle_count)} Armada`
+						: `${escapeHtml(statusText)} &bull; ${escapeHtml(marker.type || 'Pompa')}`;
 
 					window.L.marker([lat, lng], { icon: customIcon }).addTo(markersLayerRef.current).bindPopup(`
                             <div style="font-family: sans-serif; min-width: 180px;">
                                 <div class="${titleColorClass}" style="font-size: 10px; font-weight: bold; text-transform: uppercase;">
                                     ${labelText}
                                 </div>
-                                <h4 class="text-foreground" style="margin: 4px 0; font-size: 14px; font-weight: bold;">${marker.name}</h4>
-                                <p class="text-muted-foreground" style="margin: 0; font-size: 12px; line-height: 1.4;">${marker.address}</p>
+                                <h4 class="text-foreground" style="margin: 4px 0; font-size: 14px; font-weight: bold;">${escapeHtml(marker.name)}</h4>
+                                <p class="text-muted-foreground" style="margin: 0; font-size: 12px; line-height: 1.4;">${escapeHtml(marker.address)}</p>
                             </div>
                         `);
 				}

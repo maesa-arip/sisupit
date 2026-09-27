@@ -3,6 +3,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
+import { escapeHtml } from '@/lib/escape-html';
 import { debitLabel, facilityStatusIsFaulty, facilityStatusLabel, MAP_TILE_URL, waterPressureLabel } from '@/lib/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
@@ -82,7 +83,7 @@ export default function Index({ pumps, filters, tenant_location }) {
 					});
 					const marker = window.L.marker([lat, lng], { icon: customIcon }).addTo(markersLayerRef.current);
 					marker.bindPopup(
-						`<b>${pump.name}</b><br><span class="text-xs text-muted-foreground">${pump.address}</span>`,
+						`<b>${escapeHtml(pump.name)}</b><br><span class="text-xs text-muted-foreground">${escapeHtml(pump.address)}</span>`,
 					);
 					bounds.push([lat, lng]);
 				}

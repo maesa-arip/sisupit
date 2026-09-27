@@ -7,6 +7,7 @@ import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
+import { escapeHtml } from '@/lib/escape-html';
 import { alamatTerbaca, asalTitikLaporan, cn, GEO_OPTIONS, MAP_TILE_URL, reportNumber } from '@/lib/utils';
 import { Head, Link, router } from '@inertiajs/react';
 import {
@@ -843,7 +844,7 @@ export default function ReportShow(props) {
 				}),
 			})
 				.addTo(map)
-				.bindPopup(`<div class="text-xs font-bold">${name}</div>`);
+				.bindPopup(`<div class="text-xs font-bold">${escapeHtml(name)}</div>`);
 
 			markersRef.current[userId] = marker;
 			return marker;

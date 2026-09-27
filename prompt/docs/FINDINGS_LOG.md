@@ -3266,7 +3266,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   halaman barunya dan tidak menyentuh halaman lama.
 - **Status:** OPEN
 
-### #131 — Popup kejadian di Peta Pemantauan menyisipkan teks WARGA mentah ke HTML: stored XSS ke layar staf (OPEN)
+### #131 — Popup kejadian di Peta Pemantauan menyisipkan teks WARGA mentah ke HTML: stored XSS ke layar staf (FIXED)
 
 - **Prioritas:** P1 (keamanan). Penulisnya warga mana pun yang login; korbannya admin/petugas/
   pejabat yang membuka Peta Pemantauan - akun berwenang verifikasi & kelola.
@@ -3293,4 +3293,18 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   Popup fasilitas admin (FireStations/Hydrants/Pumps) & `UserLeafletMap.jsx:216` belum diperiksa
   isinya. Perbaikannya = satu helper escape bersama di `lib/utils.js` + satu penjaga yang
   menyapu seluruh `bindPopup(` - bukan tambalan per halaman (bentuk #71).
-- **Status:** OPEN
+- **FIX (2026-09-27, branch `feat/regu-danru`, permintaan user):** helper BERSAMA
+  `resources/js/lib/escape-html.js` (`escapeHtml`; berkas sendiri, bukan `lib/utils.js` yang
+  memuat byte NUL #93) dipakai di SETIAP nilai data popup di KEDELAPAN pemanggil `bindPopup(`:
+  Monitoring/Map.jsx (kejadian, fasilitas, relawan - termasuk nama & keahlian relawan, jenis &
+  telepon fasilitas), Admin/Reports/Index.jsx, Petugas/Dashboard.jsx, Front/Reports/Show.jsx,
+  Admin/{FireStations,Hydrants,Pumps}/Index.jsx, Components/UserLeafletMap.jsx. Nilai cadangan
+  ditaruh DI DALAM panggilan (`escapeHtml(x || '-')`) supaya tampilan tak berubah.
+- **Penjaga:** `LeafletPopupEscapeTest` - memindai tiap template string BERTAG HTML di berkas
+  yang memanggil `bindPopup(`; tiap `${...}` wajib `escapeHtml(...)` atau terdaftar di daftar
+  izin (konstanta warna/ikon/kamus status & potongan yang sudah di-escape). Dijalankan terhadap
+  versi pra-perbaikan, ia menangkap 29 sisipan mentah; sabotase (`report.title` mentah lagi)
+  dibuktikan MERAH, pulih byte-exact. BATASNYA: template TANPA tag (mis. `labelText` di
+  UserLeafletMap, dirangkai lalu disisipkan) tidak dipindai - isinya sudah di-escape dan namanya
+  ada di daftar izin; jangan menambah data mentah ke sana.
+- **Status:** FIXED

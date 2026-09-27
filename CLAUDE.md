@@ -39,7 +39,7 @@ Task aktif   : REGU & DANRU - MELUNCUR ATAS NAMA REGU + SATU ANGGOTA JAGA DI KAN
                 report_jaga_kantor, BUKAN status responder (lihat CONVENTIONS), UNIQUE(report_id,
                 regu_id); (d) siapa jaga kantor & siapa belum memilih hanya untuk staf/pejabat;
                 (e) tombol dari prop server canStayAtBase + 3 prop regu ikut SATU daftar
-                reloadIncident (#113). Test 497 -> 514 passed (2291), ReguTest 17 (termasuk adendum Peta Pemantauan [+temuan XSS #131 OPEN], berita acara, dashboard petugas & kolom AK "Regu Meluncur" di Export Excel); TIGA sabotase
+                reloadIncident (#113). Test 497 -> 514 passed (2291), ReguTest 17 (termasuk adendum Peta Pemantauan [+temuan XSS #131, FIXED 2026-09-27 lewat lib/escape-html.js + LeafletPopupEscapeTest di 8 pemanggil bindPopup], berita acara, dashboard petugas & kolom AK "Regu Meluncur" di Export Excel); TIGA sabotase
                 MERAH (dicek `cmp` terpasang), pulih byte-exact. Pint/prettier/build lulus. Migrasi
                 aditif DONE di MySQL dev LOKAL (up/rollback/up), BELUM di VPS. SISA: verifikasi
                 manual §6, build + commit public/build, deploy = kode + `php artisan migrate`
@@ -2410,7 +2410,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-09-25 di feat/regu-danru: 514 passed, 2291 assertions - +17 TASK_60;
+Test      : php artisan test            (baseline 2026-09-25 di feat/regu-danru: 518 passed, 2305 assertions - +17 TASK_60, +2 #131, +2 #130 [BELUM di-commit; tanpa #130 = 516];
             working tree utama 499/2099 termasuk +2 #130 yang belum di-commit.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau

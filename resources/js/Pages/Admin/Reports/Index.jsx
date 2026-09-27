@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import UseFilter from '@/hooks/UseFilter';
 import AppLayout from '@/Layouts/AppLayout';
+import { escapeHtml } from '@/lib/escape-html';
 import { alamatLaporan, cn, MAP_TILE_URL, reportNumber, timeAgo } from '@/lib/utils';
 import { Link } from '@inertiajs/react';
 import {
@@ -220,7 +221,7 @@ export default function Index(props) {
 					});
 					const marker = window.L.marker([lat, lng], { icon: customIcon }).addTo(markersLayerRef.current);
 					marker.bindPopup(
-						`<b>${report.title ?? 'Laporan'}</b><br><span class="text-xs text-muted-foreground">${alamatLaporan(report) || '-'}</span>`,
+						`<b>${escapeHtml(report.title ?? 'Laporan')}</b><br><span class="text-xs text-muted-foreground">${escapeHtml(alamatLaporan(report) || '-')}</span>`,
 					);
 					bounds.push([lat, lng]);
 				}
