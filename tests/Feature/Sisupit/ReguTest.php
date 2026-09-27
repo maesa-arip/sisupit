@@ -244,6 +244,7 @@ it('writes the regu that took action, with its headcount, into the excel export'
     $this->actingAs($this->anggota2)->post(route('reports.take-action', $this->report));
     $perorangan = ($this->petugas)();
     $this->actingAs($perorangan)->post(route('reports.take-action', $this->report));
+    $this->actingAs($this->danru)->post(route('reports.stay-at-base', $this->report));
 
     // Snapshot: rename sesudahnya tak boleh mengubah rekap.
     $this->actingAs($this->admin)
@@ -256,7 +257,10 @@ it('writes the regu that took action, with its headcount, into the excel export'
     // Petugas tanpa regu tidak menambah hitungan regu mana pun.
     expect($cells)->toContain('Regu Meluncur')
         ->and($cells)->toContain('Regu A (2 orang)')
-        ->and($cells)->not->toContain('Regu Alfa (2 orang)');
+        ->and($cells)->not->toContain('Regu Alfa (2 orang)')
+        // Yang jaga kantor: nama petugas + regunya saat itu, di kolom sendiri.
+        ->and($cells)->toContain('Jaga di Kantor')
+        ->and($cells)->toContain('Danru Made (Regu A)');
 });
 
 it('groups the regu members under the regu name in the berita acara team prefill', function () {

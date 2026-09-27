@@ -178,8 +178,8 @@ Permintaan user: "tampilkan nama regu juga di export excel".
   tengah menggeser huruf semua kolom sesudahnya dan rekap lama yang dibaca rumus Excel meleset.
   Keempat tempat naik bersama: heading, `map()`, `columnWidths()` (AK = 30), `LAST_COLUMN`
   AJ -> AK; penjaga panjang tiga daftar di `ReportClosureActorTest` ikut ke AK.
-- SENGAJA TIDAK ikut: siapa yang Jaga di Kantor (nama petugas yang tidak berangkat) - tak diminta,
-  dan xlsx gampang berpindah tangan. Bila dikehendaki, jadi kolom AL tersendiri.
+- ~~SENGAJA TIDAK ikut: siapa yang Jaga di Kantor~~ - DIKERJAKAN atas permintaan user 2026-09-27 sebagai
+  kolom AL, lihat §12.
 - Penjaga: 1 test di `ReguTest` (14 total) yang mengunduh xlsx sungguhan & membaca selnya, termasuk
   snapshot sesudah rename. Sabotase `regu_name` dicabut dari eager load dibuktikan MERAH (`cmp`),
   pulih byte-exact. Test 510 -> 511 passed (2261). Pint lulus. Tanpa frontend, tanpa migrasi.
@@ -220,3 +220,20 @@ Permintaan user: "tampilkan nama regu juga di peta pemantauan".
 - Penjaga: 2 test di `ReguTest` (17 total) - data sampai ke peta & escape di popup. Dua sabotase
   (server tak mengirim regu; escape dicabut) dibuktikan MERAH (`cmp`), pulih byte-exact.
   Test 512 -> 514 passed (2291). Pint/prettier/build lulus. Tanpa migrasi.
+
+## 12. Adendum 2026-09-27 - petugas Jaga di Kantor di Export Excel
+
+Permintaan user: "tambahkan nama petugas jaga kantor di export excel" (membalik catatan §9 bahwa
+kolom ini sengaja tak ikut - keputusannya kini milik user).
+
+- `ReportsExport`: kolom BARU **AL "Jaga di Kantor"**, isi "Wayan (Regu A), Made (Regu B)" (urut
+  nama regu; `-` bila tak ada). Nama regu dari SNAPSHOT `report_jaga_kantor.regu_name`, nama
+  petugas dari akunnya. Ditaruh di UJUNG (aturan berkas: kolom baru tak boleh menggeser huruf
+  kolom lama). Keempat tempat naik bersama; `LAST_COLUMN` AK -> AL; penjaga panjang tiga daftar di
+  `ReportClosureActorTest` ikut ke AL.
+- `Report::jagaKantor()` BARU (hasMany `ReportJagaKantor`) - supaya dimuat sekali per ekspor, bukan
+  satu query per baris.
+- Penjaga: test ekspor `ReguTest` diperluas (danru memilih Jaga di Kantor -> sel "Danru Made
+  (Regu A)", bertahan sesudah regu di-rename). Sabotase (nama petugas diganti `-`) dibuktikan
+  MERAH (`cmp`), pulih byte-exact. Test tetap 518 passed, 2305 -> 2307 assertions. Pint lulus.
+  Tanpa frontend, tanpa migrasi.

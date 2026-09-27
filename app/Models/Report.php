@@ -192,6 +192,12 @@ class Report extends Model
         return $this->hasMany(ReportOfficer::class, 'report_id', 'id');
     }
 
+    /** Anggota regu yang memilih "Jaga di Kantor" untuk kejadian ini (TASK_60) - bukan responder. */
+    public function jagaKantor(): HasMany
+    {
+        return $this->hasMany(ReportJagaKantor::class, 'report_id', 'id');
+    }
+
     // Galeri foto laporan (FINDINGS #17). Kolom `photo` lama tetap = foto sampul.
     public function photos(): HasMany
     {

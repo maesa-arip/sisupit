@@ -49,7 +49,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
     private const HEADER_ROW = 6;
 
     /** Kolom terakhir yang dipakai tabel (disesuaikan dengan jumlah heading). */
-    private const LAST_COLUMN = 'AK';
+    private const LAST_COLUMN = 'AL';
 
     /**
      * Label status. WAJIB seiring dengan kamus kanonik di layar
@@ -98,6 +98,9 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
                 'resolver:id,name',
                 'rejector:id,name',
                 'officers:id,report_id,regu_name,dispatched_at,arrived_at,finished_at',
+                // Anggota regu yang tinggal di kantor (TASK_60) - nama regu dari snapshot barisnya.
+                'jagaKantor:id,report_id,regu_name,user_id',
+                'jagaKantor.user:id,name',
                 'helpers:id,report_id,started_at,arrived_at,finished_at',
                 'province:code,name',
                 'city:code,name',
@@ -175,6 +178,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             'Jml. Korban',
             'Digabung ke',
             'Regu Meluncur',
+            'Jaga di Kantor',
         ];
     }
 
@@ -250,6 +254,11 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             // lama tetap menyebut nama regu saat itu walau regunya kemudian di-rename/dihapus.
             // Ditaruh di UJUNG dengan alasan yang sama dengan kolom di atasnya.
             $this->reguSummary($report),
+            // Petugas yang jaga kantor, per regu (TASK_60). Ujung lagi, alasan yang sama.
+            $report->jagaKantor
+                ->sortBy('regu_name')
+                ->map(fn ($row) => (optional($row->user)->name ?: '-').' ('.$row->regu_name.')')
+                ->implode(', ') ?: '-',
         ];
     }
 
@@ -304,6 +313,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             'AI' => 11,  // Jml Korban
             'AJ' => 16,  // Digabung ke
             'AK' => 30,  // Regu Meluncur
+            'AL' => 30,  // Jaga di Kantor
         ];
     }
 
