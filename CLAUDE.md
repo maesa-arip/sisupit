@@ -2433,6 +2433,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
 Test      : php artisan test            (baseline 2026-09-27 di main hasil merge semua branch: 523 passed, 2360 assertions = 516 feat/regu-danru + 7 TASK_61;
+            + TASK_62 notifikasi petugas per kabupaten = 531 passed, 2419 assertions;
             #130 yang belum di-commit di folder utama menambah +2 bila kelak ikut.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
