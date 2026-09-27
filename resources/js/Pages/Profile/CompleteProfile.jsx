@@ -207,6 +207,12 @@ export default function CompleteProfile({ provinces, user, banjar_required = fal
 					<CardDescription className="text-sm leading-relaxed text-muted-foreground">
 						Sebelum melanjutkan, mohon lengkapi nomor HP dan wilayah domisili Anda sampai tingkat desa. Data
 						ini dipakai untuk menentukan jangkauan notifikasi darurat di sekitar Anda.
+						{/* Pendaftar selalu mulai sebagai warga; petugas dikecualikan dari layar ini
+						    (CENTRALLY_MANAGED_ROLES), jadi kalimatnya umum, bukan per peran (TASK_61). */}
+						<span className="mt-2 block">
+							Bila Anda kelak diangkat menjadi petugas, wilayah akun akan diganti admin menjadi wilayah
+							tugas Anda. Alamat tinggal bisa dicatat terpisah di halaman Profil.
+						</span>
 					</CardDescription>
 				</CardHeader>
 				<CardContent>

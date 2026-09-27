@@ -19,6 +19,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 		name: user.name ?? '',
 		email: user.email ?? '',
 		phone: user.phone ?? '',
+		address: user.address ?? '',
 		ktp: null,
 		_method: 'patch',
 	});
@@ -67,7 +68,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 					<div>
 						<CardTitle className="text-base font-semibold text-foreground">Informasi Profil</CardTitle>
 						<CardDescription className="mt-1 text-sm text-muted-foreground">
-							Perbarui informasi akun dan alamat email Anda di sini.
+							Perbarui informasi akun, alamat email, dan alamat tinggal Anda di sini.
 						</CardDescription>
 					</div>
 				</div>
@@ -119,6 +120,27 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 								className="h-10 rounded-md border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive"
 							/>
 							{errors.phone && <InputError message={errors.phone} />}
+						</div>
+
+						{/* Alamat tinggal (TASK_61) sengaja TERPISAH dari kode wilayah akun: bagi petugas,
+						    wilayah akun = wilayah TUGAS (mis. tinggal di Badung, bertugas di Denpasar). */}
+						<div className="space-y-1.5">
+							<Label htmlFor="address" className="text-sm font-medium text-foreground">
+								Alamat Tinggal
+							</Label>
+							<Input
+								id="address"
+								name="address"
+								value={data.address}
+								onChange={onHandleChange}
+								autoComplete="street-address"
+								placeholder="Jalan, nomor rumah, desa, kabupaten"
+								className="h-10 rounded-md border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive"
+							/>
+							<p className="text-xs text-muted-foreground">
+								Hanya catatan. Tidak mengubah wilayah akun maupun notifikasi yang Anda terima.
+							</p>
+							{errors.address && <InputError message={errors.address} />}
 						</div>
 
 						{/* --- REVISI: BAGIAN KTP --- */}
