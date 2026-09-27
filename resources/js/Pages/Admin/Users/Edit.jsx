@@ -179,8 +179,28 @@ export default function Edit(props) {
 							/>
 							{errors.phone && <InputError message={errors.phone} />}
 						</div>
+						{/* Alamat tinggal TERPISAH dari wilayah akun (TASK_61): bagi petugas, wilayah
+						    akun = wilayah TUGAS, bukan tempat tinggalnya. */}
+						<div className="grid w-full items-center gap-1.5">
+							<Label htmlFor="address">Alamat Tinggal</Label>
+							<Input
+								name="address"
+								id="address"
+								value={data.address}
+								type="text"
+								placeholder="Jalan, nomor rumah, desa, kabupaten"
+								onChange={onHandleChange}
+							/>
+							{errors.address && <InputError message={errors.address} />}
+						</div>
 						<div className="flex flex-col gap-4 rounded-lg border border-border bg-accent/30 p-4">
-							<h4 className="text-xs font-bold uppercase text-muted-foreground">Wilayah Penugasan</h4>
+							<h4 className="text-xs font-bold uppercase text-muted-foreground">Wilayah Akun</h4>
+							<p className="text-xs leading-relaxed text-muted-foreground">
+								Bagi petugas, isi dengan wilayah TUGAS (wilayah damkar tempat ia bertugas), bukan tempat
+								tinggalnya - wilayah ini menentukan laporan dan notifikasi yang ia terima. Tempat
+								tinggal dicatat di isian Alamat Tinggal. Bagi warga dan relawan, isi dengan wilayah
+								tempat tinggal.
+							</p>
 							<p className="text-xs leading-relaxed text-muted-foreground">{getHelperText()}</p>
 
 							<div className="grid gap-1.5">

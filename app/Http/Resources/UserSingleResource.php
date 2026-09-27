@@ -20,6 +20,9 @@ class UserSingleResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'phone' => $this->phone,
+            // Alamat TINGGAL (teks bebas, TASK_61) - terpisah dari kode wilayah akun, yang bagi
+            // petugas/staf berarti wilayah TUGAS. Dibaca form Informasi Profil.
+            'address' => $this->address,
             'province_code' => $this->province_code,
             'city_code' => $this->city_code,
             'district_code' => $this->district_code,

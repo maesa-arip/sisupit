@@ -96,6 +96,14 @@
 
 ## Keputusan teknis terkunci
 
+- **Kode wilayah akun (`users.province_code`..`village_code`) bagi petugas/staf = wilayah
+  TUGAS, bukan tempat tinggal; tempat tinggal = `users.address` ("Alamat Tinggal", teks
+  bebas)** - TASK_61, keputusan user 2026-09-27 (petugas tinggal di Badung, bertugas di
+  Denpasar). Alamat tinggal TIDAK BOLEH ikut menggeser kode wilayah: kode itulah satu-satunya
+  dasar laporan, notifikasi & aksi lapangan. Layar yang menyebut wilayah akun membaca
+  `jurisdiction.kind` (`tugas` untuk `User::CENTRALLY_MANAGED_ROLES`, `domisili` lainnya) dari
+  server - jangan menyusun daftar peran sendiri di JSX (#101). Dijaga `ProfileAlamatTinggalTest`.
+
 - **`ReportActionController` memakai `DB::table()` mentah untuk `report_officers`/
   `report_helpers`, BUKAN model Eloquent `ReportOfficer`/`ReportHelper`** — disengaja
   demi `lockForUpdate()` (konkurensi). Dikonfirmasi user 2026-06-25, lihat

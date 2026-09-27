@@ -72,6 +72,11 @@ class ProfileController extends Controller
             ?? optional($user->province)->name;
 
         return [
+            // Makna kode wilayah akun berbeda per peran (TASK_61): peran yang wilayahnya
+            // DITETAPKAN ADMIN (CENTRALLY_MANAGED_ROLES - daftar yang sama yang dikecualikan dari
+            // layar Lengkapi Profil) memakainya sebagai wilayah TUGAS, bukan tempat tinggal.
+            // Dikirim dari server supaya layar tak menyusun daftar perannya sendiri (#101).
+            'kind' => $user->hasAnyRole(\App\Models\User::CENTRALLY_MANAGED_ROLES) ? 'tugas' : 'domisili',
             'levels' => array_values(array_filter($levels, fn ($level) => ! empty($level['name']))),
             'scope' => [
                 'level' => $scopeLevel,
@@ -90,6 +95,9 @@ class ProfileController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'nullable|string|max:20',
+            // Alamat tinggal, teks bebas (TASK_61). Hanya catatan: TIDAK mengubah kode wilayah
+            // akun, yang menentukan laporan & notifikasi (bagi petugas = wilayah tugas).
+            'address' => 'nullable|string|max:255',
             'ktp' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 

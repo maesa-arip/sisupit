@@ -118,12 +118,21 @@ export default function Edit(props) {
 					<div className="rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6">
 						<div className="flex items-center justify-between gap-3">
 							<h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-foreground">
-								<IconMapPin size={18} className="text-muted-foreground" /> Yurisdiksi Akun
+								<IconMapPin size={18} className="text-muted-foreground" />{' '}
+								{props.jurisdiction.kind === 'tugas' ? 'Wilayah Tugas' : 'Wilayah Domisili'}
 							</h3>
 							<span className="shrink-0 rounded-md border border-border bg-muted px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
 								{props.jurisdiction.scope.level}
 							</span>
 						</div>
+
+						{/* Kode wilayah akun bagi petugas/staf = tempat BERTUGAS, bukan tempat tinggal
+						    (TASK_61). Tempat tinggal dicatat terpisah di isian Alamat Tinggal. */}
+						<p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+							{props.jurisdiction.kind === 'tugas'
+								? 'Wilayah tempat Anda bertugas, ditetapkan admin. Wilayah ini menentukan laporan dan notifikasi yang Anda terima. Tempat tinggal Anda dicatat terpisah di isian Alamat Tinggal.'
+								: 'Wilayah tempat tinggal Anda. Wilayah ini menentukan notifikasi darurat di sekitar Anda.'}
+						</p>
 
 						{props.jurisdiction.scope.name && (
 							<p className="mt-3 text-base font-semibold capitalize text-foreground">
