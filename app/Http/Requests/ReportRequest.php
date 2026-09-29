@@ -137,10 +137,11 @@ class ReportRequest extends FormRequest
                 'min:0',
             ],
             // Galeri foto (FINDINGS #17). Darurat-first (Kluster A): opsional untuk kebakaran
-            // (jangan paksa warga mendekati api), WAJIB hanya untuk darurat non-kebakaran
-            // ('lainnya') saat membuat. Pada update (PUT) opsional. Kolom `photo` lama = sampul.
+            // (jangan paksa warga mendekati api). Dulu WAJIB untuk darurat non-kebakaran
+            // ('lainnya'); SEMENTARA opsional juga (keputusan user 2026-09-29) - deskripsi &
+            // patokan TETAP wajib untuknya. Pada update (PUT) opsional. Kolom `photo` lama = sampul.
             'photos' => [
-                $isOtherEmergency ? 'required' : 'nullable',
+                'nullable',
                 'array',
                 'max:6',
             ],

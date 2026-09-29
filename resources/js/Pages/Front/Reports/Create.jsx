@@ -96,7 +96,7 @@ const FIRE_INCIDENT_TYPES = [
 
 // Tab NON KEBAKARAN hanya punya SATU jenis, jadi tak ada tombol pilihan: membuka tabnya
 // sudah menentukan jenisnya dan warga langsung mengetik kejadiannya. Di sinilah server
-// mewajibkan foto/deskripsi/patokan (ReportRequest) karena petugas butuh konteks lebih.
+// mewajibkan deskripsi/patokan (ReportRequest; foto sementara opsional) karena petugas butuh konteks lebih.
 const NON_FIRE_INCIDENT_TYPE = { value: 'lainnya', title: '' };
 
 const INCIDENT_TAB = { fire: 'kebakaran', nonFire: 'non_kebakaran' };
@@ -662,13 +662,14 @@ export default function Create(props) {
 
 	const onHandleChange = (e) => setData(e.target.name, e.target.value);
 
-	// Darurat non-kebakaran → detail (foto/deskripsi/patokan) wajib. 'kebakaran_lainnya'
+	// Darurat non-kebakaran → deskripsi/patokan wajib (foto sementara opsional). 'kebakaran_lainnya'
 	// SENGAJA tidak ikut: ia kebakaran, jadi tetap darurat-first — yang membedakannya cuma
 	// judul yang diketik sendiri. Aturan yang sama dipegang server di ReportRequest.
 	const isOther = data.incident_type === NON_FIRE_INCIDENT_TYPE.value;
 	// Judul teks bebas dipakai dua keadaan: darurat non-kebakaran & kebakaran "Lainnya".
 	const needsFreeTitle = isOther || data.incident_type === 'kebakaran_lainnya';
-	// Foto wajib untuk 'lainnya' (paksa buka); kebakaran collapsible; buka bila sudah ada foto.
+	// 'lainnya': seksi foto selalu terbuka (sementara OPSIONAL, keputusan user 2026-09-29);
+	// kebakaran collapsible; buka bila sudah ada foto.
 	const photoExpanded = isOther || showPhotoSection || data.photos.length > 0;
 
 	const selectIncidentType = (type) => {
@@ -1260,7 +1261,7 @@ export default function Create(props) {
 									{isOther ? (
 										<Label className="text-sm font-medium text-foreground/80">
 											Foto Bukti Kejadian{' '}
-											<span className="font-normal text-muted-foreground">(Wajib)</span>
+											<span className="font-normal text-muted-foreground">(Opsional)</span>
 										</Label>
 									) : (
 										<button
@@ -1288,7 +1289,7 @@ export default function Create(props) {
 									<p className="mt-2 flex items-start gap-1.5 text-[13px] text-muted-foreground">
 										<IconAlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
 										{isOther
-											? 'Sertakan foto agar petugas menilai situasi. Tetap utamakan keselamatan Anda.'
+											? 'Foto opsional, tapi membantu petugas menilai situasi. Tetap utamakan keselamatan Anda.'
 											: 'Foto opsional. Jangan mendekat ke api hanya untuk mengambil foto.'}
 									</p>
 

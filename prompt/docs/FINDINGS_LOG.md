@@ -3701,3 +3701,17 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Prioritas:** P3. Ditemukan saat #147. `config/app.php` default 'id' dan `lang/id/validation.php`
   ada, tapi `.env` prod menimpanya dengan `en` (.env.example juga `en`). Fix = ubah .env ketiga env
   + `config:cache` bila aktif; menunggu keputusan user (mengubah SEMUA pesan validasi sekaligus).
+
+### #149 — SEMENTARA: menu "Jangkauan Petugas" disembunyikan & foto laporan non-kebakaran opsional (KEPUTUSAN USER, 2026-09-29)
+
+- **Bukan bug** - dua pelonggaran sementara atas permintaan user ("sementara hide dulu
+  /admin/notifikasi-petugas dan sementara buat laporan non kebakaran bisa tanpa foto").
+- (a) Menu "Jangkauan Petugas" disembunyikan lewat konstanta `SHOW_NOTIFY_LEVEL_MENU = false` di
+  `Layouts/Partials/navItems.js`. Route, controller, gerbang `Tenant::notifyLevelEditableBy`, dan
+  plafon per kabupaten yang SUDAH tersimpan TETAP berlaku - yang hilang hanya jalan masuk menunya.
+  URL langsung masih terbuka bagi admin kabupaten. Kembalikan = ubah ke `true`.
+- (b) `ReportRequest` `photos` kini `nullable` juga untuk `incident_type = 'lainnya'`. Deskripsi &
+  patokan TETAP wajib untuk non-kebakaran (`$isOtherEmergency` masih dipakai `$detailRule`). Form
+  lapor: label foto non-kebakaran "(Opsional)", seksi foto tetap terbuka. Penjaga dibalik di
+  `ReportMultiPhotoTest` (lainnya tanpa foto TERSIMPAN; tanpa deskripsi/patokan DITOLAK).
+  Mengembalikan kewajiban = `$isOtherEmergency ? 'required' : 'nullable'` + label + test.

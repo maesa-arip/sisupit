@@ -378,7 +378,9 @@ role:admin|superadmin   : /admin/mail-contacts/* (resource, Daftar Penerima) +
                            city_code AKUN, tak pernah dari request),
                            /admin/notifikasi-petugas [GET/PUT] (tingkat siaran notifikasi PETUGAS
                            per kabupaten, TASK_62 - hanya admin BERLEVEL KABUPATEN lewat
-                           Tenant::notifyLevelEditableBy; lainnya 404)
+                           Tenant::notifyLevelEditableBy; lainnya 404. MENUNYA SEMENTARA
+                           DISEMBUNYIKAN 2026-09-29 lewat SHOW_NOTIFY_LEVEL_MENU di navItems.js;
+                           route tetap hidup)
 ```
 
 ## Test

@@ -75,8 +75,9 @@ it('allows creating a fire report without any photo (photo optional for kebakara
     expect($report->photo)->toBeNull();
 });
 
-it('requires a photo for a non-fire emergency (incident_type = lainnya)', function () {
-    // Untuk darurat non-kebakaran ('lainnya') petugas butuh konteks lebih → foto wajib.
+it('accepts a non-fire emergency (incident_type = lainnya) without a photo, but still requires description and patokan', function () {
+    // SEMENTARA (keputusan user 2026-09-29): foto non-kebakaran opsional. Deskripsi &
+    // patokan TETAP wajib - petugas tetap butuh konteks, hanya fotonya yang dilonggarkan.
     Notification::fake();
     Storage::fake('public');
 
@@ -86,7 +87,18 @@ it('requires a photo for a non-fire emergency (incident_type = lainnya)', functi
     $this->actingAs($citizen)->post('/reports/create', [
         ...$this->payload,
         'incident_type' => 'lainnya',
-    ])->assertSessionHasErrors('photos');
-
+        'description' => '',
+        'address' => '',
+    ])->assertSessionHasErrors(['description', 'address'])
+        ->assertSessionDoesntHaveErrors('photos');
     expect(Report::withoutGlobalScopes()->count())->toBe(0);
+
+    $this->actingAs($citizen)->post('/reports/create', [
+        ...$this->payload,
+        'incident_type' => 'lainnya',
+    ])->assertSessionHasNoErrors();
+
+    $report = Report::withoutGlobalScopes()->first();
+    expect($report)->not->toBeNull();
+    expect($report->photos()->count())->toBe(0);
 });

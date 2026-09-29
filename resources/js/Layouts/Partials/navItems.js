@@ -112,6 +112,10 @@ export function buildNavSections({ auth, url = '' }) {
 	const mailEnabled = Boolean(auth?.mail_enabled ?? auth?.user?.mail_enabled);
 	// Tingkat notifikasi petugas per kabupaten (TASK_62) - hanya admin BERLEVEL KABUPATEN. Dihitung
 	// SERVER lewat Tenant::notifyLevelEditableBy, gerbang yang sama dengan route-nya.
+	// SEMENTARA DISEMBUNYIKAN (keputusan user 2026-09-29): menu "Jangkauan Petugas"
+	// (/admin/notifikasi-petugas) tidak ditampilkan. Route, controller & gerbang server
+	// tetap utuh - ubah ke true untuk menampilkannya lagi.
+	const SHOW_NOTIFY_LEVEL_MENU = false;
 	const notifyLevelEditable = Boolean(auth?.notify_level_editable ?? auth?.user?.notify_level_editable);
 
 	// Satu-satunya menu /admin/* yang juga milik PETUGAS (2026-09-22: petugas boleh menambah &
@@ -306,13 +310,14 @@ export function buildNavSections({ auth, url = '' }) {
 							url: route('admin.mail-settings.edit'),
 							active: startsWith('/admin/email'),
 						},
-						notifyLevelEditable && {
-							key: 'admin.notification-level',
-							title: 'Jangkauan Petugas',
-							icon: IconBellCog,
-							url: route('admin.notification-level.edit'),
-							active: startsWith('/admin/notifikasi-petugas'),
-						},
+						SHOW_NOTIFY_LEVEL_MENU &&
+							notifyLevelEditable && {
+								key: 'admin.notification-level',
+								title: 'Jangkauan Petugas',
+								icon: IconBellCog,
+								url: route('admin.notification-level.edit'),
+								active: startsWith('/admin/notifikasi-petugas'),
+							},
 						forumEnabled && {
 							key: 'admin.forum',
 							title: 'Moderasi Forum',
