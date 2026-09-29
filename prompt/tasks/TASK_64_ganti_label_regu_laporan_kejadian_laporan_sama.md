@@ -6,7 +6,7 @@
 | Severity | P3 |
 | Tipe | fitur kecil (teks UI) |
 | Sumber | permintaan user 2026-09-29 (satu pesan berisi 11 permintaan; dipecah TASK_64-68) |
-| Status | DONE |
+| Status | DONE & TERDEPLOY 2026-09-30 @66b8ee52 ke dev/staging/prod |
 
 ---
 

@@ -6,7 +6,7 @@
 | Severity | P3 |
 | Tipe | fitur kecil + DEPENDENSI BARU |
 | Sumber | permintaan user 2026-09-29 (dipecah TASK_64-68) |
-| Status | DONE (kode) |
+| Status | DONE & TERDEPLOY 2026-09-30 @66b8ee52 ke dev/staging/prod; composer install dijalankan di ketiga env |
 
 ---
 

@@ -101,6 +101,17 @@ php artisan config:cache && php artisan route:cache && php artisan view:cache
 systemctl restart reverb-staging
 ```
 
+**Skrip bantu `/root/deploy-env.sh <dir> <branch> <backupdir>`** (cadangan DB -> pull -> migrate ->
+cache -> queue:restart -> chown) **TIDAK menjalankan `composer install`** (FINDINGS #153). Bila rilis
+mengubah `composer.lock`: `git pull` + `COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev
+--optimize-autoloader` LEBIH DULU, baru skripnya (pull-nya jadi no-op; cadangan tetap sebelum migrasi).
+
+**Menerbitkan APK:** `public/apk/sisupit.apk` DI-TRACK git. Build `gradlew assembleDebug` (JAVA_HOME =
+jbr Android Studio), naikkan `versionCode` + `versionName`, periksa `aapt2 dump badging` & SERTIFIKAT
+sama dengan versi sebelumnya (`apksigner verify --print-certs`; beda sertifikat = tak bisa di-update),
+salin ke `public/apk/sisupit.apk`, commit, lalu `git pull` + `chown` di ketiga env. Cadangkan APK lama
+di `/root/backup-apk-*` dulu.
+
 ## Batas ukuran upload (FINDINGS #132)
 
 Tiga lapis harus berurutan, kalau tidak upload foto dijawab **413**:

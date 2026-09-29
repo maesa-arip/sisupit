@@ -9,7 +9,9 @@
 ```
 Stack     : PHP 8.2.26, Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3,
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission ^6.17,
-            laravolt/indonesia ^0.41 (data wilayah), Reverb ^1.0 (WebSocket)
+            laravolt/indonesia ^0.41 (data wilayah), Reverb ^1.0 (WebSocket),
+            maatwebsite/excel (Export Excel), barryvdh/laravel-dompdf ^3.1 (PDF Laporan
+            Kejadian, TASK_68 - deploy yang mengubah composer.lock WAJIB composer install)
 Build     : npm run build            (vite build && vite build --ssr) — lihat package.json:5
 Test      : php artisan test         (Pest) — status saat onboarding: 65 passed (164 assertions), 44.5s
 Run (dev) : composer dev             (php artisan serve + queue:listen + pail + npm run dev, concurrently) — composer.json:71-74
@@ -291,6 +293,8 @@ salah saat menyentuhnya:
 | ReportHelper | belongsTo Report, User; fillable: location_lat, location_lng, status | Dipakai sebagai Eloquent di `ReportHelperController`, tapi sebagai raw table di `ReportActionController` — sama seperti di atas |
 | TrackingLog | belongsTo Report, User | Append-only (riwayat GPS), tidak ada update/delete |
 | Hydrant, Pompa, PosPemadam | relasi wilayah (province/city/district/village); Pompa & PosPemadam pakai SoftDeletes | Ketiganya kini pakai `Tenantable`+kolom wilayah. Pompa/PosPemadam: kolom GPS aslinya `lat`/`lng` (BUKAN `location_lat/lng` — `$fillable` lama salah, sudah diperbaiki ke `$guarded=[]`, FINDINGS #23). **Hydrant (TASK_30)** dapat `water_pressure` (`Keras`/`Sedang`/`Kecil`, nullable = belum disurvei) dan `debit_lpm` (liter/menit, opsional — angkanya dipegang PDAM). Satuan `debit_lpm` sengaja sama dengan `pompas.capacity_lpm` supaya rekap per desa bisa menjumlahkan keduanya tanpa konversi. **Sejak TASK_33 `hydrant_wargas` TIDAK lagi ikut** — angkanya `capacity_liter` (simpanan) dan liter tak boleh dijumlahkan dengan liter/menit, jadi `Admin\PompaController::waterSummary` (dulu `debitSummary`) mengirim DUA pasang angka per desa, dipisahkan kunci `water_metric` dari `toSkklRow()` (bukan `source`). Keduanya juga mengirim `unknown_debit`/`unknown_capacity` agar total tak dibaca sebagai angka pasti padahal ia batas bawah |
+| ReportAlpha | — (snapshot) | Tabel `report_alpha` (TASK_66): anggota regu yang ikut dipanggil (minimal satu anggota regunya Meluncur/Jaga di Kantor) tapi tak memilih keduanya sampai `resolve()`. Regu & nama di-SNAPSHOT, UNIQUE(report_id, user_id), `recordFor()` idempoten. DATA INTERNAL admin/superadmin (prop `alphaMembers`, kolom Export AM) |
+| ReportResolutionLog | belongsTo ReportResolution | Tabel `report_resolution_logs` (TASK_67): riwayat perubahan satu entri Laporan Kejadian. Pola `HydrantLog`: append-only, `UPDATED_AT = null`, penyunting di-snapshot, `changes` = [{field,label,old,new}] dari `ReportResolution::snapshot()` + baris eksplisit untuk KTP diganti & foto ditambah/dihapus |
 | HydrantLog | belongsTo Hydrant (cascadeOnDelete), User (nullOnDelete) | Riwayat tambah/sunting hydrant RESMI (TASK_59, tabel `hydrant_logs`). APPEND-ONLY; penyunting di-SNAPSHOT (`user_name`, `user_role` = peran tertinggi saat itu) supaya riwayat tetap terbaca walau akun dihapus. `changes` = `[{field,label,old,new}]` HANYA kolom yang benar-benar berubah - wilayah sebagai NAMA (#78), lat+lng jadi satu entri "Titik Lokasi", nilai yang sama secara angka disaring (Eloquent membandingkan kolom tanpa cast sebagai string). Ditulis eksplisit dari `Admin\HydrantController` store/update, BUKAN model event. Tanpa `Tenantable` - ia hanya dibaca lewat hydrant-nya. `Hydrant::logs()` / `latestLog()` |
 | HydrantWarga | relasi wilayah; `Tenantable`, `$guarded=[]` | Tandon/groundtank swadaya warga (TASK_30, tabel `hydrant_wargas`). Tabelnya terpisah dari `hydrants` — pengecualian aturan yang disetujui user, lihat `prompt/docs/PENGECUALIAN_ATURAN.md` #1. **Sejak TASK_33 (2026-08-21) kosakatanya SENGAJA berbeda**, bukan lagi kembaran: `type` = Sumber Air (`HydrantWarga::WATER_SOURCES` = Tandon/Groundtank), `status` = `HydrantWarga::STATUSES` (Belum/Sudah Modifikasi — yang ditanya bukan "rusak atau tidak" melainkan apakah mulutnya sudah bisa dihisap mobil pemadam), `capacity_liter` = simpanan air dalam LITER dan **WAJIB** di `HydrantWargaController` (rekap air desa berdiri di atasnya). Kolom `water_pressure` & `debit_lpm` sudah dibuang di sini. `toSkklRow()` membuatnya berdampingan dengan `Pompa` di daftar/peta SKKL: `source` = `hydrant_warga`, `water_metric` = `capacity` (penentu angkanya boleh dijumlahkan dengan angka mana) |
 | Setting | tidak ada relasi (key-value cache, `Setting::getValue/setValue`) | Global, bukan per-tenant — dipakai untuk `KEY_NOTIFY_LEVEL_PETUGAS`/`_RELAWAN` |
@@ -329,8 +333,10 @@ auth+verified           : /dashboard, /reports/* (CRUD milik sendiri + approve/r
                            agencies/confirm (OPD terkait TASK_27 — notify & remove = Pusat Komando
                            dalam yurisdiksi; confirm juga boleh dari akun OPD yang bersangkutan,
                            otorisasi dicek di controller)/arrive/resolve/update-location/
-                           correct-location/resolution[create,store,destroy]/victims/{v}/ktp
-                           — 4 terakhir = Berita Acara FINDINGS #39, staf+yurisdiksi), /profile/*,
+                           correct-location/resolution[create(?status=sementara|final),store,
+                           destroy]/victims/{v}/ktp/resolution/{r}/pdf
+                           — 5 terakhir = Laporan Kejadian FINDINGS #39/#151: store = upsert entri
+                           aktif, final & hapus final = admin, pdf = gerbang baca staf+pejabat), /profile/*,
                            /complete-profile, /volunteer/register, /profile/standby
                            (siaga notifikasi relawan & pejabat — User::STANDBY_ROLES),
                            /helpers/create, /users/relawan/{user}, /users/detail/{user}
@@ -344,7 +350,8 @@ role:petugas|admin|superadmin : /regu [GET/POST], /regu/{regu} [PUT/DELETE], /re
                            (TASK_60 - buat/ubah/hapus = admin, anggota = admin ATAU danru regu itu,
                            dicek ulang di ReguController). POST|DELETE /reports/{report}/jaga-kantor
                            (reports.stay-at-base / reports.cancel-stay, grup auth+verified, petugas
-                           beregu saja - dicek di ReportActionController)
+                           beregu saja - dicek di ReportActionController). take-action & jaga-kantor
+                           menerima `lat`/`lng`/`accuracy` OPSIONAL (TASK_66; nilai rusak = kosong)
 role:petugas|admin|superadmin : /admin/hydrants index/create/store/edit/update (TASK_59 — petugas
                            boleh tambah & sunting hydrant RESMI; tiap tambah/sunting tercatat di
                            hydrant_logs). DELETE /admin/hydrants/{id} tetap di grup admin di bawah.
@@ -356,7 +363,8 @@ role:admin|superadmin   : /admin/users/*, /admin/facilities (dead, no view),
                            /admin/banjars/* (resource, 2026-08-26 — master banjar) +
                            POST /admin/banjars/require (saklar "warga wajib pilih banjar",
                            ditolak server bila master masih kosong),
-                           /admin/reports/*
+                           /admin/reports/* (export: `status`, `search`, `from`/`to` = tanggal WITA
+                           inklusif, TASK_65)
 role:superadmin (admin.php): /admin/announcements/*, /admin/roles/*, /admin/permissions/*,
                            /admin/assign-permissions/*, /admin/route-accesses/* (FINDINGS #21)
 role:superadmin         : /admin/settings (GET/PUT)

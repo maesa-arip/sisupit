@@ -6,7 +6,7 @@
 | Severity | P2 |
 | Tipe | fitur kecil + bugfix (APK) |
 | Sumber | permintaan user 2026-09-29 (dipecah TASK_64-68) |
-| Status | DONE (kode); APK 1.1.4 dibangun, BELUM diterbitkan |
+| Status | DONE & TERDEPLOY 2026-09-30 @66b8ee52 ke dev/staging/prod; APK 1.1.4 terbit @af2c51b5 |
 
 ---
 

@@ -3715,3 +3715,76 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   lapor: label foto non-kebakaran "(Opsional)", seksi foto tetap terbuka. Penjaga dibalik di
   `ReportMultiPhotoTest` (lainnya tanpa foto TERSIMPAN; tanpa deskripsi/patokan DITOLAK).
   Mengembalikan kewajiban = `$isOtherEmergency ? 'required' : 'nullable'` + label + test.
+
+
+### #150 — "Atur Anggota" /regu: tarikan ke bawah memuat ulang halaman di APK, bukan menggulir daftar (FIXED)
+
+- **Prioritas:** P2. **Laporan user 2026-09-29:** "Scroll di atur anggota regu saat tarik kebawah bukan
+  datanya yang scroll tapi pagenya jadi sering malah ke refresh di webview".
+- **Akar di APK, bukan halaman.** `MainActivity` membungkus WebView dengan `SwipeRefreshLayout` TANPA
+  pemeriksaan gulir anak: layout itu hanya bertanya `WebView.canScrollVertically(-1)` - posisi gulir
+  HALAMAN. Selama halaman di puncak, SETIAP tarikan ke bawah (termasuk di dalam daftar dialog yang
+  masih bisa digulir ke atas) direbut jadi muat ulang, sebelum gestur sampai ke halaman. Karena itu
+  CSS `overscroll-behavior` (sudah lama ada di `html, body`) TIDAK bisa menolong. Ikutan di halaman:
+  yang bergulir seluruh `DialogContent` (80+ petugas prod), bukan daftarnya.
+- **Fix dua sisi (TASK_65):** `ui/dialog.jsx` memasang `PullToRefreshLock` DI DALAM
+  `DialogPrimitive.Content` (hanya terpasang selama dialog terbuka; di `DialogContent` sendiri ia ikut
+  berjalan saat tertutup) yang memanggil `AndroidBridge.setPullToRefreshEnabled(false/true)` secara
+  OPSIONAL, berhitung untuk dialog bertumpuk. APK 1.1.4/vc6 menambah method itu + menyalakan refresh
+  lagi di `onPageFinished`. Daftar anggota bergulir sendiri (`max-h-[45vh] overflow-y-auto
+  overscroll-contain`). APK lama tak terpengaruh (panggilan dilewati).
+- **YANG MENGIKAT:** berlaku untuk SEMUA `Dialog` (bukan AlertDialog/Sheet/Popover). Dialog baru yang
+  bergulir tak perlu apa-apa lagi. Penjaga `DialogPullToRefreshTest` (sabotase MERAH).
+- **Status:** FIXED 2026-09-30; kode @66b8ee52, APK 1.1.4 terbit @af2c51b5 (sertifikat = 1.1.3).
+  SISA: uji di ponsel lewat jalur UPDATE.
+
+### #151 — Laporan Kejadian bukan lagi append-only: satu entri sementara + satu final, bisa disunting, berriwayat (KEPUTUSAN USER, 2026-09-29)
+
+- **Bukan bug** - membalik keputusan #39 atas permintaan user ("Laporan Kejadian sementara cuma ada 1
+  dan bisa di edit petugas lain, cuma catat apa apa yg berubah"); user memilih "1 sementara + 1 final
+  terpisah" dari tiga bentuk. Nama layar "Laporan Kegiatan Penyelamatan" -> "Laporan Kejadian" (TASK_64).
+- **Yang ditemukan saat mengerjakannya:** bentuk append-only diam-diam MEMBUANG KTP korban & foto saat
+  entri final dibuat dari sementara - prefill hanya membawa teks, jadi entri final kehilangan berkas
+  kecuali diunggah ulang.
+- **Bentuk baru (TASK_67):** entri AKTIF = terbaru per status (`activeEntry()`); entri ganda lama tetap
+  sebagai "Arsip", tanpa migrasi data. `store()` = upsert di bawah `lockForUpdate()` laporan. Korban/foto
+  dari entri lain DISALIN berikut SALINAN berkasnya (bukan path bersama); berkas dihapus SESUDAH
+  transaksi. Riwayat `report_resolution_logs` (pola `hydrant_logs`). Hapus entri FINAL = admin saja
+  (ikutan wajib: tanpa itu petugas bisa menghilangkan final beserta riwayatnya).
+- **PDF (TASK_68):** `reports.resolution.pdf`, dompdf di server (dialog cetak tak ada di APK WebView),
+  gerbang baca staf + pejabat, TANPA KTP (alasan sama dengan Export Excel).
+- **Penjaga:** `ReportResolutionSingleEntryTest` (8), `LaporanKejadianPdfTest` (4).
+- **Status:** TERDEPLOY 2026-09-30 @66b8ee52.
+
+### #152 — Tombol hitam bertulisan putih: token `--primary` hitam + varian `orange` yang ternyata hitam (FIXED)
+
+- **Prioritas:** P3. **Laporan user 2026-09-30:** "masih ada tombol dengan warna hitam dan teks putih,
+  ganti semua tombol itu".
+- **Akar:** `--primary` = `220.9 39.3% 11%` (hitam kebiruan; mode gelap malah putih bertulisan hitam),
+  dibaca varian Button `default` DAN `orange` - nama varian `orange` menyesatkan, isinya
+  `from-primary via-primary to-primary`. Ikut hitam: checkbox/switch/radio, badge, kalender, pagination &
+  chip aktif. Tujuh tombol/chip lain menulis `bg-foreground text-background` sendiri sehingga tak
+  terjangkau token. Inventaris: 75 titik di 50 berkas (pemindai skrip, diperiksa tangan).
+- **Fix:** user memilih MERAH BRAND dari tiga opsi sesudah diberi tahu harganya: `--primary` =
+  `--destructive` di kedua mode (nilai lama di komentar app.css), tujuh hardcode -> `bg-primary`,
+  lencana "Relawan Siaga" -> `bg-volunteer`. **PENGECUALIAN_ATURAN #4** (menekuk "merah solid = darurat
+  saja"). Cincin fokus `--ring` sengaja tetap gelap.
+- **Penjaga:** `ButtonBrandColorTest` (token primary = destructive, diadu nilai lawan nilai; tak ada
+  tombol/chip berlatar hitam + teks putih buatan sendiri). Sabotase token lama MERAH.
+- **Status:** FIXED & TERDEPLOY 2026-09-30 @cec5c164. SISA: cek visual di ponsel/APK.
+
+### #153 — `/root/deploy-env.sh` di VPS tidak menjalankan `composer install` (OPEN)
+
+- **Prioritas:** P3 (operasional). Ditemukan saat deploy TASK_64-68 (paket dompdf baru). Skrip itu:
+  cadangan DB -> `git pull` -> `migrate` -> route/config cache -> `queue:restart` -> `chown`. Rilis yang
+  mengubah `composer.lock` lewat skrip ini saja = kelas paket baru tak ada (tombol PDF 500) tanpa
+  galat saat deploy. Deploy 09-30 menjalankan `git pull` + `composer install --no-dev` LEBIH DULU,
+  baru skripnya. Fix = tambah `composer install --no-dev --optimize-autoloader` sesudah `git pull`
+  di skrip (bila `composer.lock` berubah); menunggu keputusan user karena menyentuh server.
+
+### #154 — "Tiba" seregu tanpa jejak siapa yang menandainya (OPEN)
+
+- **Prioritas:** P3. Sejak TASK_66 satu anggota menekan Tiba = anggota regu yang sama & masih `en_route`
+  ikut `arrived` (keputusan user). `report_officers` tak menyimpan SIAPA yang menandai, jadi anggota
+  yang sebenarnya tertinggal tercatat tiba tanpa bisa ditelusuri. Fix = kolom `arrived_by` nullable
+  (migrasi kecil) + tampil di manifes; menunggu keputusan user.

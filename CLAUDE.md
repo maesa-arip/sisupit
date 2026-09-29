@@ -31,7 +31,7 @@ Task aktif   : TOMBOL MERAH BRAND (2026-09-30), TERDEPLOY @cec5c164 ke dev -> st
                 frontend saja). User: "masih ada tombol dengan warna hitam dan teks putih, ganti semua" -> pilih
                 MERAH BRAND. Token --primary = --destructive (terang & gelap) + 7 tombol/chip hardcode
                 bg-foreground -> bg-primary, lencana Relawan Siaga -> bg-volunteer. PENGECUALIAN_ATURAN #4,
-                dijaga ButtonBrandColorTest. Test 612 passed (2925). SISA: cek visual di ponsel/APK.
+                dijaga ButtonBrandColorTest. Test 612 passed (2925). FINDINGS #152. SISA: cek visual di ponsel/APK.
                11 PERMINTAAN USER 2026-09-29 -> TASK_64..68. SELESAI & TERDEPLOY 2026-09-30 @66b8ee52 ke dev ->
                 staging -> prod (git pull + composer install [dompdf] + migrate 2 aditif DONE, 0 pending, route
                 cache dibangun ulang, queue:restart; cadangan DB /root/backup-predeploy-20260929-2015; data prod
@@ -47,7 +47,9 @@ Task aktif   : TOMBOL MERAH BRAND (2026-09-30), TERDEPLOY @cec5c164 ke dev -> st
                 (migrasi): 1 entri sementara + 1 final, bisa disunting, riwayat report_resolution_logs, hapus
                 final = admin. TASK_68: PDF dompdf (DEPENDENSI BARU -> deploy WAJIB composer install), tanpa
                 KTP. Test 583 -> 610 passed (2918). DEPLOY = kode + composer install + php artisan migrate
-                (2 migrasi aditif) + build. Rincian di prompt/tasks/TASK_64..68.
+                (2 migrasi aditif) + build. Rincian di prompt/tasks/TASK_64..68. FINDINGS #150 (refresh APK,
+                FIXED), #151 (Laporan Kejadian bukan append-only, keputusan user), #153 OPEN (deploy-env.sh
+                tanpa composer install), #154 OPEN (Tiba seregu tanpa jejak penanda).
                DUA PELONGGARAN SEMENTARA (#149). SELESAI & TERDEPLOY 2026-09-29 @28f7ad4c ke dev ->
                 staging -> prod (git pull + chown; tanpa migrasi/route). (a) Menu "Jangkauan Petugas"
                 (/admin/notifikasi-petugas) disembunyikan lewat SHOW_NOTIFY_LEVEL_MENU=false di navItems.js -

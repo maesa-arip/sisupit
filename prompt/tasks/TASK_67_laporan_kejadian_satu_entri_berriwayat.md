@@ -6,7 +6,7 @@
 | Severity | P2 |
 | Tipe | perubahan perilaku (membalik append-only FINDINGS #39) + skema aditif |
 | Sumber | permintaan user 2026-09-29 (dipecah TASK_64-68) |
-| Status | DONE (kode); migrasi DONE di MySQL dev LOKAL, BELUM di VPS |
+| Status | DONE & TERDEPLOY 2026-09-30 @66b8ee52 ke dev/staging/prod (migrasi DONE di ketiga env, 0 pending) |
 
 ---
 
