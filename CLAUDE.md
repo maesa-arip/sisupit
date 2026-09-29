@@ -27,7 +27,9 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : 502 PROFIL + #153 + #154 (2026-09-30). #155: "upstream sent too big header" - header Link
+Task aktif   : SEMENTARA sembunyikan menu admin "Daftar Penerima Email" & "Pengaturan Email Dinas" (#156,
+                2026-09-30) lewat SHOW_MAIL_ADMIN_MENU=false di navItems.js; route & data tetap. BELUM di-commit.
+               502 PROFIL + #153 + #154 (2026-09-30). #155: "upstream sent too big header" - header Link
                 preload ~4 KB + cookie > buffer FastCGI 4 KB. Buffer Nginx ketiga vhost dinaikkan (32k) LANGSUNG
                 di server + AddLinkHeadersForPreloadedAssets dicabut dari bootstrap/app.php. #153: deploy-env.sh
                 menjalankan composer install bila composer.lock berubah, salinan resmi deploy/deploy-env.sh.

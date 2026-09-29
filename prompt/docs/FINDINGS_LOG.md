@@ -3828,3 +3828,15 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   jadi ia tetap hijau walau middleware dipasang lagi (dibuktikan sabotase) - penjaga yang tak bisa merah
   tidak menjaga apa pun.
 - **Status:** FIXED 2026-09-30.
+
+### #156 — SEMENTARA: menu admin "Daftar Penerima Email" & "Pengaturan Email Dinas" disembunyikan (KEPUTUSAN USER, 2026-09-30)
+
+- **Bukan bug** - permintaan user: "sementara hide menu daftar penerima email dan pengaturan email dinas".
+- Keduanya digerbangi konstanta `SHOW_MAIL_ADMIN_MENU = false` di `Layouts/Partials/navItems.js`
+  (pola `SHOW_NOTIFY_LEVEL_MENU` #149), jadi hilang dari sidebar DAN popover "Menu" ponsel sekaligus.
+- Yang TIDAK berubah: route `/admin/mail-contacts` & `/admin/email` + controller + gerbang peran,
+  daftar putih penerima & kredensial kotak surat yang sudah tersimpan, dan menu "Email Dinas" milik
+  pengirim (tetap tampil bila fitur kabupaten menyala & kotak surat sudah disetel - `mailEnabled`).
+  URL langsung masih terbuka bagi admin.
+- **Mengembalikan:** ubah konstanta ke `true` + `npm run build`.
+

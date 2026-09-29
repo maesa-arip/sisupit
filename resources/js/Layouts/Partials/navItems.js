@@ -116,6 +116,11 @@ export function buildNavSections({ auth, url = '' }) {
 	// (/admin/notifikasi-petugas) tidak ditampilkan. Route, controller & gerbang server
 	// tetap utuh - ubah ke true untuk menampilkannya lagi.
 	const SHOW_NOTIFY_LEVEL_MENU = false;
+	// SEMENTARA DISEMBUNYIKAN (keputusan user 2026-09-30, FINDINGS #156): menu admin "Daftar Penerima
+	// Email" (/admin/mail-contacts) & "Pengaturan Email Dinas" (/admin/email). Route, controller,
+	// daftar putih & kredensial yang tersimpan TETAP utuh; menu "Email Dinas" milik pengirim (digerbangi
+	// mailEnabled) TIDAK ikut disembunyikan. Ubah ke true untuk menampilkannya lagi.
+	const SHOW_MAIL_ADMIN_MENU = false;
 	const notifyLevelEditable = Boolean(auth?.notify_level_editable ?? auth?.user?.notify_level_editable);
 
 	// Satu-satunya menu /admin/* yang juga milik PETUGAS (2026-09-22: petugas boleh menambah &
@@ -296,14 +301,14 @@ export function buildNavSections({ auth, url = '' }) {
 						// Daftar Penerima = daftar putih gerbang kirim Email Dinas (TASK_56). Sengaja TANPA
 						// syarat mailEnabled: daftarnya justru perlu diisi SEBELUM kotak suratnya siap, dan
 						// menu yang baru muncul setelah semuanya selesai tak pernah menolong menyelesaikannya.
-						{
+						SHOW_MAIL_ADMIN_MENU && {
 							key: 'admin.mail-contacts',
 							title: 'Daftar Penerima Email',
 							icon: IconAddressBook,
 							url: route('admin.mail-contacts.index'),
 							active: startsWith('/admin/mail-contacts'),
 						},
-						{
+						SHOW_MAIL_ADMIN_MENU && {
 							key: 'admin.mail-settings',
 							title: 'Pengaturan Email Dinas',
 							icon: IconMailCog,
