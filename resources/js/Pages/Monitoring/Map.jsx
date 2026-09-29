@@ -532,7 +532,7 @@ export default function MonitoringMap({ layers }) {
 					<Button
 						type="button"
 						onClick={() => setPanelOpen((v) => !v)}
-						className="rounded-xl bg-foreground text-background shadow-sm hover:bg-foreground/90 lg:hidden"
+						className="rounded-xl bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 lg:hidden"
 						size="sm"
 					>
 						<IconAdjustmentsHorizontal className="mr-1.5 h-4 w-4" /> Filter

@@ -130,7 +130,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 										onClick={() => applyFilter('status', 'Semua')}
 										className={`whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
 											activeStatus === 'Semua'
-												? 'border-transparent bg-foreground text-background'
+												? 'border-transparent bg-primary text-primary-foreground'
 												: 'border-border bg-card text-foreground/80 hover:bg-muted'
 										}`}
 									>
@@ -141,7 +141,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 										onClick={() => applyFilter('status', 'Aktif')}
 										className={`whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
 											activeStatus === 'Aktif'
-												? 'border-transparent bg-foreground text-background'
+												? 'border-transparent bg-primary text-primary-foreground'
 												: 'border-border bg-card text-foreground/80 hover:bg-muted'
 										}`}
 									>
@@ -152,7 +152,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 										onClick={() => applyFilter('status', 'Perbaikan')}
 										className={`whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
 											activeStatus === 'Perbaikan'
-												? 'border-transparent bg-foreground text-background'
+												? 'border-transparent bg-primary text-primary-foreground'
 												: 'border-border bg-card text-foreground/80 hover:bg-muted'
 										}`}
 									>
@@ -274,7 +274,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 										preserveScroll
 										className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
 											link.active
-												? 'bg-foreground text-background'
+												? 'bg-primary text-primary-foreground'
 												: 'border border-border bg-card text-foreground/80 hover:bg-muted'
 										} ${!link.url && 'pointer-events-none cursor-not-allowed opacity-50'}`}
 										dangerouslySetInnerHTML={{ __html: link.label }}

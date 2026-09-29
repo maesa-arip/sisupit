@@ -220,7 +220,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 						{/* Pejabat bersifat read-only (pemantau) — sembunyikan aksi input insiden */}
 						{!isPejabat && (
 							<Button
-								className="h-12 w-full rounded-xl bg-foreground text-background hover:bg-foreground/90 md:h-10 md:w-auto"
+								className="h-12 w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 md:h-10 md:w-auto"
 								asChild
 							>
 								<Link href="/reports/create">

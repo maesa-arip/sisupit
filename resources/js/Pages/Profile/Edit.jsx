@@ -210,7 +210,7 @@ export default function Edit(props) {
 							<Button
 								onClick={handleSaveSkills}
 								disabled={isSavingSkills}
-								className="h-9 shrink-0 rounded-md border border-transparent bg-foreground px-4 text-sm font-medium text-background transition-colors hover:bg-foreground/90"
+								className="h-9 shrink-0 rounded-md border border-transparent bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
 							>
 								{isSavingSkills ? (
 									<IconLoader2 className="mr-1.5 h-4 w-4 animate-spin" />

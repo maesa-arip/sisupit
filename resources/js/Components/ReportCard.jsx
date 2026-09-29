@@ -183,7 +183,7 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 						) : isMyTask ? (
 							<Link
 								href={route('reports.show', report.id)}
-								className="flex h-10 w-full items-center justify-center rounded-md border border-transparent bg-foreground text-[10px] font-bold uppercase tracking-wider text-primary-foreground shadow-none transition-colors hover:bg-foreground/90"
+								className="flex h-10 w-full items-center justify-center rounded-md border border-transparent bg-primary text-[10px] font-bold uppercase tracking-wider text-primary-foreground shadow-none transition-colors hover:bg-primary/90"
 							>
 								Peta Operasional
 							</Link>

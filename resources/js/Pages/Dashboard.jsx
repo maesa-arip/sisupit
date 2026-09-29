@@ -314,7 +314,7 @@ export default function Dashboard(props) {
 							variant="outline"
 							className={cn(
 								'rounded-md border border-border px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest shadow-none',
-								isRelawan ? 'bg-foreground text-background' : 'bg-muted text-foreground/80',
+								isRelawan ? 'bg-volunteer text-volunteer-foreground' : 'bg-muted text-foreground/80',
 							)}
 						>
 							<IconShieldCheck className="mr-1 h-3.5 w-3.5" stroke={2.5} />{' '}

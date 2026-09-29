@@ -180,3 +180,30 @@
   `it gives every bottom-bar slot a filled twin for its active state` (kelima pasangan + kedua ikon
   yang mustahil memadat tidak boleh kembali) dan `it fills the brand bolt only while its slot is
   the active page`. Rupanya sendiri tetap harus diverifikasi visual di ponsel.
+
+---
+
+## #4 — Tombol utama (token `--primary`) memakai MERAH BRAND, sama dengan warna darurat
+
+- **Aturan yang ditekuk:** sistem warna 2026-07-11 (memori "Sistem warna", `/guideline`): *solid =
+  volume tertinggi (SOS/darurat), outline = rutin*, dan "beda urgensi lewat treatment, BUKAN hue
+  baru". Merah solid sebelumnya milik aksi darurat (Lapor, Broadcast Misi, Tolak).
+- **Keputusan:** token `--primary` = `--destructive` (#E0241B; gelap `4 74% 56%`). Semua tombol
+  varian `default` & `orange`, checkbox/switch/radio, badge bawaan, pilihan kalender, pagination &
+  chip filter aktif, serta `text-primary`/`border-primary` kini merah brand. Tujuh tombol/chip yang
+  menulis latar hitam sendiri (`bg-foreground text-background`) dialihkan ke `bg-primary`; lencana
+  "Relawan Siaga" ke `bg-volunteer` (warna relawan di sistem warna).
+- **Disetujui:** user, **2026-09-30** - keluhan "masih ada tombol dengan warna hitam dan teks putih,
+  ganti semua tombol itu", lalu memilih **Merah brand** dari tiga opsi (biru info / merah brand / abu
+  netral) SESUDAH diberi tahu harganya.
+- **Konsekuensi yang diterima:** Simpan/Tambah/Kirim kini semerah Lapor Darurat & Broadcast Misi,
+  jadi penonjolan tombol darurat tak lagi lewat warna - tinggal lewat ukuran, posisi, dan teksnya.
+  Cincin fokus (`--ring`) sengaja TIDAK diubah (tetap gelap - itu indikator fokus keyboard).
+- **Hidup di:** `resources/css/app.css` (`--primary`, berkomentar nilai lama), `ReportCard.jsx`,
+  `Admin/Dashboard.jsx`, `Monitoring/Map.jsx`, `Profile/Edit.jsx`, `Hydrants/Index.jsx`,
+  `Pumps/Index.jsx`, `Volunteers/Index.jsx`, `Dashboard.jsx`.
+- **Cara membalik:** kembalikan `--primary`/`--primary-foreground` ke nilai lama di komentar app.css
+  (terang `220.9 39.3% 11%` / `210 20% 98%`, gelap `210 20% 98%` / `220.9 39.3% 11%`) dan ubah
+  test penjaga di bawah.
+- **Test penjaga:** `tests/Feature/Sisupit/ButtonBrandColorTest.php` - token primary = destructive di
+  kedua mode, dan tak ada tombol/chip yang menulis latar hitam + teks putih sendiri.

@@ -11,7 +11,10 @@
 		--card-foreground: 224 71.4% 4.1%;
 		--popover: 0 0% 100%;
 		--popover-foreground: 224 71.4% 4.1%;
-		--primary: 220.9 39.3% 11%;
+		/* Tombol utama = MERAH BRAND (#E0241B, sama dengan --destructive), permintaan user
+		   2026-09-30: tak ada lagi tombol hitam bertulisan putih. Nilai lama: --primary 220.9 39.3% 11%
+		   (hitam kebiruan) / --primary-foreground 210 20% 98%. Lihat PENGECUALIAN_ATURAN #4. */
+		--primary: 3 79% 49%;
 		--primary-foreground: 210 20% 98%;
 		--secondary: 220 14.3% 95.9%;
 		--secondary-foreground: 220.9 39.3% 11%;
@@ -56,8 +59,10 @@
 		--card-foreground: 210 20% 98%;
 		--popover: 0 0% 8%;
 		--popover-foreground: 210 20% 98%;
-		--primary: 210 20% 98%;
-		--primary-foreground: 220.9 39.3% 11%;
+		/* Merah brand versi gelap (= --destructive gelap). Nilai lama: --primary 210 20% 98% (putih) /
+		   --primary-foreground 220.9 39.3% 11% - tombol putih bertulisan hitam. */
+		--primary: 4 74% 56%;
+		--primary-foreground: 210 20% 98%;
 		--secondary: 0 0% 12%;
 		--secondary-foreground: 210 20% 98%;
 		--muted: 0 0% 12%;

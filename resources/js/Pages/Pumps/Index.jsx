@@ -146,7 +146,7 @@ export default function Index({ pumps, filters, ...props }) {
 											onClick={() => applyFilter('status', status)}
 											className={`whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
 												activeStatus === status
-													? 'border-transparent bg-foreground text-background'
+													? 'border-transparent bg-primary text-primary-foreground'
 													: 'border-border bg-card text-foreground/80 hover:bg-muted'
 											}`}
 										>

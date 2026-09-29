@@ -267,7 +267,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 								preserveScroll
 								className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
 									link.active
-										? 'bg-foreground text-background'
+										? 'bg-primary text-primary-foreground'
 										: 'border border-border bg-card text-foreground/80 hover:bg-muted'
 								} ${!link.url && 'pointer-events-none cursor-not-allowed opacity-50'}`}
 								dangerouslySetInnerHTML={{ __html: link.label }}
