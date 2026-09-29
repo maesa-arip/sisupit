@@ -27,7 +27,9 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : "TOO MANY CONNECTION" SAAT ADMIN LAPOR = 429 LIMITER LAPORAN (#147). SELESAI 2026-09-29.
+Task aktif   : "TOO MANY CONNECTION" SAAT ADMIN LAPOR = 429 LIMITER LAPORAN (#147). SELESAI & TERDEPLOY 2026-09-29
+                @de8857d3 ke dev -> staging -> prod (ikut naik: #145 & #146). Tanpa migrasi; route cache
+                dibangun ulang; cadangan DB /root/backup-predeploy-20260929-1444*; 0 ERROR sesudahnya.
                 Bukan MySQL (0 connection error, puncak 11/150). Kiriman admin ditolak validasi TANPA pesan,
                 diketuk ulang, dan throttle:report-create menghitung kiriman gagal -> 429 mentah. Kini limiter
                 di ReportController::store (hanya laporan TERSIMPAN dihitung, petugas/admin/superadmin bebas),
@@ -35,10 +37,10 @@ Task aktif   : "TOO MANY CONNECTION" SAAT ADMIN LAPOR = 429 LIMITER LAPORAN (#14
                 Keputusan user: 2 MB PER FOTO untuk SEMUA unggahan (max:2048 + MAX_UPLOAD_BYTES klien).
                 PHP-FPM prod efektif 10M/30M lewat conf.d/99-upload-limits.ini (php -r = CLI, menyesatkan);
                 konfigurasi server TIDAK diubah. #148 OPEN: prod APP_LOCALE=en (pesan validasi Inggris).
-               PENCARIAN DI "ATUR ANGGOTA" /regu (#146). SELESAI (kode) 2026-09-29, BELUM dideploy.
+               PENCARIAN DI "ATUR ANGGOTA" /regu (#146). SELESAI 2026-09-29, TERDEPLOY @de8857d3 (bersama #147).
                 Prod punya 80+ petugas. Disaring di klien; yang disimpan tetap SELURUH selectedIds (anggota
                 yang tersembunyi oleh pencarian tak boleh ikut terlepas). Penjaga 1 test di ReguTest.
-               POP-UP DI PONSEL TAK LAGI MENEMPEL TEPI (#145). SELESAI (kode) 2026-09-29, BELUM dideploy.
+               POP-UP DI PONSEL TAK LAGI MENEMPEL TEPI (#145). SELESAI 2026-09-29, TERDEPLOY @de8857d3 (bersama #147).
                 User: "semua pop up di mobile jangan ada yang full kanan kiri, harus tetap ada space sehingga
                 tetap ada roundednya". Akar di primitif DialogContent & AlertDialogContent (w-full, baru
                 membulat mulai sm:). Kini w-[calc(100%-2rem)] + rounded-xl di semua ukuran; tambalan di kedua
