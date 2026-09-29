@@ -814,17 +814,13 @@ export default function ReportShow(props) {
 		}
 		boundsGroup.push(incidentMarker);
 
-		const renderMarker = (userId, name, type, latStr, lngStr) => {
+		// `markerKey` = user_id untuk responder perorangan, `regu:<key>` untuk satu regu (§13
+		// TASK_60). `regu` terisi = marker regu: berlabel nama regu + jumlah anggota yang meluncur,
+		// popupnya danru & daftar anggota.
+		const renderMarker = (markerKey, name, type, latStr, lngStr, regu = null) => {
 			const lat = parseFloat(latStr);
 			const lng = parseFloat(lngStr);
 			if (isNaN(lat) || isNaN(lng)) return null;
-
-			// Pakai ulang marker yang sudah ada → animasikan ke posisi baru (mulus, tidak melompat)
-			const existing = markersRef.current[userId];
-			if (existing) {
-				animateMarkerTo(existing, [lat, lng]);
-				return existing;
-			}
 
 			const iconEmoji = type === 'petugas' ? '🚒' : '🏃‍♂️';
 			const iconColor =
@@ -833,7 +829,42 @@ export default function ReportShow(props) {
 			// memantau peta ini dari jarak layar besar sambil menerima telepon, dan emoji 12 px di
 			// dalam lingkaran 28 px sulit dibedakan antara petugas dan relawan. Marker TKP
 			// (dangerIcon) sudah 36 px, jadi responder tetap tidak menenggelamkannya.
-			const htmlMarkup = `<div class="${iconColor} text-lg w-10 h-10 font-bold flex items-center justify-center rounded-full border-2 border-card shadow-none">${iconEmoji}</div>`;
+			const circle = `<div class="${iconColor} text-lg w-10 h-10 font-bold flex items-center justify-center rounded-full border-2 border-card shadow-none">${iconEmoji}</div>`;
+
+			let htmlMarkup = circle;
+			let popupHtml = `<div class="text-xs font-bold">${escapeHtml(name)}</div>`;
+			if (regu) {
+				// Label nama regu SELALU terlihat (bukan hanya di popup): 3-4 regu bisa meluncur ke
+				// satu kejadian, dan dispatcher membedakannya dari layar tanpa mengetuk satu per satu.
+				const label = `${regu.name} · ${regu.members.length}`;
+				htmlMarkup = `<div class="relative h-10 w-10">${circle}<div class="absolute left-1/2 top-full mt-1 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-card px-2 py-0.5 text-[11px] font-semibold text-foreground shadow-sm">${escapeHtml(label)}</div></div>`;
+				const memberItems = regu.members.map((o) => `<li>${escapeHtml(o.user?.name)}</li>`).join('');
+				const leaderLine = regu.leader
+					? `<div class="text-muted-foreground">Danru: ${escapeHtml(regu.leader)}</div>`
+					: '';
+				popupHtml = `<div class="space-y-1 text-xs"><div class="font-bold">${escapeHtml(regu.name)}</div>${leaderLine}<ul class="list-disc pl-4">${memberItems}</ul></div>`;
+			}
+
+			// Pakai ulang marker yang sudah ada → animasikan ke posisi baru (mulus, tidak melompat).
+			// Isi marker regu bisa berubah tanpa ia berpindah (anggota menyusul / batal), jadi
+			// ikon & popup diganti hanya bila isinya memang berbeda - setIcon membangun ulang DOM.
+			const existing = markersRef.current[markerKey];
+			if (existing) {
+				animateMarkerTo(existing, [lat, lng]);
+				if (existing._sisupitSig !== htmlMarkup + popupHtml) {
+					existing.setIcon(
+						window.L.divIcon({
+							html: htmlMarkup,
+							className: 'bg-transparent border-none',
+							iconSize: [40, 40],
+							iconAnchor: [20, 20],
+						}),
+					);
+					existing.setPopupContent(popupHtml);
+					existing._sisupitSig = htmlMarkup + popupHtml;
+				}
+				return existing;
+			}
 
 			const marker = window.L.marker([lat, lng], {
 				icon: window.L.divIcon({
@@ -844,9 +875,10 @@ export default function ReportShow(props) {
 				}),
 			})
 				.addTo(map)
-				.bindPopup(`<div class="text-xs font-bold">${escapeHtml(name)}</div>`);
+				.bindPopup(popupHtml);
+			marker._sisupitSig = htmlMarkup + popupHtml;
 
-			markersRef.current[userId] = marker;
+			markersRef.current[markerKey] = marker;
 			return marker;
 		};
 
@@ -935,25 +967,55 @@ export default function ReportShow(props) {
 			drawRouteLine(userId, color, curLat, curLng);
 		};
 
+		// SATU MARKER PER REGU (§13 TASK_60, permintaan user): satu regu bisa 8 petugas dan 3-4
+		// regu bisa meluncur ke satu kejadian - marker & rute per orang menumpuk jadi puluhan di
+		// titik yang sama (mereka satu mobil). Anggota regu dilebur jadi satu marker berlabel nama
+		// regu; posisinya GPS DANRU bila ia ikut meluncur & punya lokasi, selain itu anggota
+		// pertama yang punya lokasi. Wakilnya dipilih TETAP (bukan "yang terakhir bergerak")
+		// supaya marker tidak melompat antar-anggota. Petugas tanpa regu & relawan tetap per orang.
+		const activeMarkerKeys = new Set();
+		const reguGroups = new Map();
 		officerList.forEach((o) => {
-			const m = renderMarker(o.user_id, o.user?.name, 'petugas', o.location_lat, o.location_lng);
+			const key = reguKeyOf(o);
+			if (!key) {
+				const m = renderMarker(o.user_id, o.user?.name, 'petugas', o.location_lat, o.location_lng);
+				if (m) boundsGroup.push(m);
+				drawResponderRoute(o.user_id, 'petugas', o.status, o.location_lat, o.location_lng);
+				activeMarkerKeys.add(String(o.user_id));
+				return;
+			}
+			if (!reguGroups.has(key)) reguGroups.set(key, { name: o.regu_name, members: [] });
+			reguGroups.get(key).members.push(o);
+		});
+		reguGroups.forEach((group, key) => {
+			const info = (props.reguRoster || []).find((r) => r.key === key);
+			const located = group.members.filter(
+				(o) => !isNaN(parseFloat(o.location_lat)) && !isNaN(parseFloat(o.location_lng)),
+			);
+			const anchor =
+				located.find((o) => info?.leader_id && o.user_id === info.leader_id) || located[0] || group.members[0];
+			const markerKey = `regu:${key}`;
+			const regu = { name: info?.name || group.name, leader: info?.leader || null, members: group.members };
+			const m = renderMarker(markerKey, regu.name, 'petugas', anchor.location_lat, anchor.location_lng, regu);
 			if (m) boundsGroup.push(m);
-			drawResponderRoute(o.user_id, 'petugas', o.status, o.location_lat, o.location_lng);
+			drawResponderRoute(markerKey, 'petugas', anchor.status, anchor.location_lat, anchor.location_lng);
+			activeMarkerKeys.add(markerKey);
 		});
 		helperList.forEach((h) => {
 			const m = renderMarker(h.user_id, h.user?.name, 'relawan', h.location_lat, h.location_lng);
 			if (m) boundsGroup.push(m);
 			drawResponderRoute(h.user_id, 'relawan', h.status, h.location_lat, h.location_lng);
+			activeMarkerKeys.add(String(h.user_id));
 		});
 
-		// Hapus marker (+ cache rute) responder yang sudah tidak ada di manifes — mis. setelah
-		// "Batal Meluncur" barisnya dihapus, agar markernya tidak tertinggal di peta.
-		const activeResponderIds = new Set([...officerList.map((o) => o.user_id), ...helperList.map((h) => h.user_id)]);
-		Object.keys(markersRef.current).forEach((idStr) => {
-			if (!activeResponderIds.has(Number(idStr))) {
-				markersRef.current[idStr].remove();
-				delete markersRef.current[idStr];
-				delete routeCacheRef.current[idStr];
+		// Hapus marker (+ cache rute) yang sudah tidak ada di manifes — mis. setelah "Batal
+		// Meluncur" barisnya dihapus, atau seluruh anggota sebuah regu batal - agar markernya
+		// tidak tertinggal di peta.
+		Object.keys(markersRef.current).forEach((markerKey) => {
+			if (!activeMarkerKeys.has(markerKey)) {
+				markersRef.current[markerKey].remove();
+				delete markersRef.current[markerKey];
+				delete routeCacheRef.current[markerKey];
 			}
 		});
 
@@ -1032,6 +1094,9 @@ export default function ReportShow(props) {
 		reportStatus,
 		officerList,
 		helperList,
+		// Prop mentah, BUKAN `reguRoster` (yang ber-cadangan `|| []` = array baru tiap render
+		// dan akan menyambung ulang channel Echo di setiap render).
+		props.reguRoster,
 		isCorrectingMode,
 	]);
 

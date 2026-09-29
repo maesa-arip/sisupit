@@ -4,6 +4,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
+import { compressImage } from '@/lib/compress-image';
 import { Transition } from '@headlessui/react';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { IconCamera, IconUserEdit, IconX } from '@tabler/icons-react';
@@ -24,9 +25,18 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 		_method: 'patch',
 	});
 
-	const onHandleChange = (e) => {
+	// Tombol Simpan ditahan selama foto KTP dikompres (#132).
+	const [compressing, setCompressing] = useState(false);
+
+	const onHandleChange = async (e) => {
 		const key = e.target.name;
-		const value = e.target.type === 'file' ? e.target.files[0] : e.target.value;
+		let value = e.target.type === 'file' ? e.target.files[0] : e.target.value;
+
+		if (e.target.type === 'file' && value) {
+			setCompressing(true);
+			value = await compressImage(value);
+			setCompressing(false);
+		}
 
 		if (e.target.type === 'file' && value) {
 			setPreviewUrl(URL.createObjectURL(value));
@@ -231,7 +241,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 					<div className="flex items-center gap-4 pt-2">
 						<Button
 							className="h-9 rounded-md bg-destructive px-4 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50"
-							disabled={processing}
+							disabled={processing || compressing}
 						>
 							Simpan Perubahan
 						</Button>

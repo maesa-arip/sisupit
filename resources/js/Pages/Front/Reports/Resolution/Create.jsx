@@ -7,6 +7,7 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
+import { compressImages } from '@/lib/compress-image';
 import { Link, useForm } from '@inertiajs/react';
 import {
 	IconArrowLeft,
@@ -94,15 +95,38 @@ export default function Create(props) {
 
 	// Foto KTP korban ditampilkan seperti "Foto kejadian" (tile + preview). Simpan blob
 	// preview di objek korban; revoke saat diganti/dihapus agar tidak bocor memori.
-	const setVictimKtp = (i, file) =>
-		setData(
-			'victims',
-			data.victims.map((v, idx) => {
+	// Bentuk FUNGSIONAL (prev => ...) disengaja: pemanggilnya menunggu kompresi (#132) lebih
+	// dulu, dan array `victims` dari closure render itu sudah basi - isian korban yang diketik
+	// selama kompresi berjalan akan tertimpa tanpa galat.
+	const setVictimKtp = (i, file) => {
+		const ktpPreview = file ? URL.createObjectURL(file) : null;
+		setData((prev) => ({
+			...prev,
+			victims: prev.victims.map((v, idx) => {
 				if (idx !== i) return v;
 				if (v.ktpPreview) URL.revokeObjectURL(v.ktpPreview);
-				return { ...v, ktp: file, ktpPreview: file ? URL.createObjectURL(file) : null };
+				return { ...v, ktp: file, ktpPreview };
 			}),
-		);
+		}));
+	};
+
+	// Tombol simpan ditahan selama foto/KTP dikompres (#132), lihat Front/Reports/Create.jsx.
+	// PENGHITUNG, bukan boolean: foto kejadian & KTP korban bisa dikompres bersamaan, dan
+	// boolean akan membuka tombol saat yang pertama selesai.
+	const [compressing, setCompressing] = useState(0);
+	const withCompression = async (files) => {
+		setCompressing((n) => n + 1);
+		try {
+			return await compressImages(files);
+		} finally {
+			setCompressing((n) => n - 1);
+		}
+	};
+	const handleVictimKtp = async (i, file) => {
+		if (!file) return setVictimKtp(i, null);
+		const [compressed] = await withCompression([file]);
+		setVictimKtp(i, compressed);
+	};
 
 	// Waktu kejadian = tanggal (DatePicker shadcn) + jam terpisah, disimpan sebagai
 	// 'YYYY-MM-DDTHH:mm' (diterima validasi `date` Laravel).
@@ -115,12 +139,12 @@ export default function Create(props) {
 	};
 
 	// --- Foto kejadian ---
-	const handleAddPhotos = (e) => {
+	const handleAddPhotos = async (e) => {
 		const files = Array.from(e.target.files || []);
 		if (!files.length) return;
 
 		const room = MAX_PHOTOS - data.photos.length;
-		const accepted = files.slice(0, Math.max(0, room));
+		const accepted = await withCompression(files.slice(0, Math.max(0, room)));
 		const combined = [...data.photos, ...accepted];
 		setData('photos', combined);
 
@@ -497,7 +521,7 @@ export default function Create(props) {
 																type="file"
 																accept="image/*"
 																onChange={(e) =>
-																	setVictimKtp(i, e.target.files?.[0] || null)
+																	handleVictimKtp(i, e.target.files?.[0] || null)
 																}
 																className="sr-only"
 															/>
@@ -564,10 +588,10 @@ export default function Create(props) {
 								<Button
 									type="button"
 									onClick={() => submitWith('sementara')}
-									disabled={processing}
+									disabled={processing || compressing > 0}
 									className="flex h-11 flex-1 items-center justify-center gap-2 rounded-md bg-warning px-6 text-sm font-semibold text-warning-foreground transition-colors hover:bg-warning/90 disabled:opacity-70"
 								>
-									{processing ? (
+									{processing || compressing > 0 ? (
 										<IconLoader2 className="h-5 w-5 animate-spin" />
 									) : (
 										<IconDeviceFloppy className="h-5 w-5" />
@@ -578,10 +602,10 @@ export default function Create(props) {
 									<Button
 										type="button"
 										onClick={() => submitWith('final')}
-										disabled={processing}
+										disabled={processing || compressing > 0}
 										className="flex h-11 flex-1 items-center justify-center gap-2 rounded-md bg-success px-6 text-sm font-semibold text-success-foreground transition-colors hover:bg-success/90 disabled:opacity-70"
 									>
-										{processing ? (
+										{processing || compressing > 0 ? (
 											<IconLoader2 className="h-5 w-5 animate-spin" />
 										) : (
 											<IconShieldCheck className="h-5 w-5" />

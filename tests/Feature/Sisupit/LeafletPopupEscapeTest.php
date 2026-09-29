@@ -21,6 +21,9 @@ const POPUP_SAFE_EXPRESSIONS = [
     'meta.badge', 'meta.label',
     // Potongan HTML yang tiap nilai datanya SUDAH di-escape di tempat ia dirangkai.
     'inner', 'extra', 'skillsLine', 'labelText', 'reguLine(r.regus)', "regus.map(escapeHtml).join(', ')",
+    // Marker regu di peta detail insiden (§13 TASK_60): lingkaran ikon milik kode, baris danru &
+    // daftar anggota yang namanya di-escape per baris.
+    'circle', 'leaderLine', 'memberItems',
 ];
 
 /** Berkas JSX yang memanggil bindPopup, komentar dibuang (penjelasan larangan tak ikut dipindai). */

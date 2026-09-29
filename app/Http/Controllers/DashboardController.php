@@ -20,9 +20,11 @@ class DashboardController extends Controller
         // ====================================================================
         if ($user->hasAnyRole(['admin', 'superadmin', 'pejabat'])) {
 
-            // Relawan yang menonaktifkan siaga tidak dihitung sebagai "siaga"; petugas selalu dianggap siaga.
-            $queryHelpers = User::role(['relawan', 'petugas'])
-                ->where(fn ($q) => $q->where('is_standby', true)->orWhereDoesntHave('roles', fn ($r) => $r->where('name', 'relawan')));
+            // Kartu "Relawan Standby" = RELAWAN siaga saja, sama persis dengan daftar yang dibuka
+            // kartunya (front.volunteers.index ?status=siaga). Dulu petugas ikut dihitung ("selalu
+            // dianggap siaga"), sehingga admin Denpasar membaca 98 lalu mendapati 13 orang di
+            // daftarnya - 85 selisihnya petugas (#133, pilihan user 2026-09-29).
+            $queryHelpers = User::role('relawan')->where('is_standby', true);
             $queryHydrant = Hydrant::query();
             $queryReportsActive = Report::whereIn('status', ['pending', 'handling', 'TERLAPOR']);
             // Total laporan selesai (sepanjang waktu) — selaras dgn kartu "Total Penanganan"

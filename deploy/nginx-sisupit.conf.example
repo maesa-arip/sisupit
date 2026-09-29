@@ -44,7 +44,7 @@ server {
     ssl_ciphers         HIGH:!aNULL:!MD5;
 
     # Upload bukti foto laporan bisa besar — naikkan batas body.
-    client_max_body_size 25M;
+    client_max_body_size 32M;
 
     # =========================================================================
     # WebSocket Reverb — HARUS sebelum blok `location /` agar tidak tertelan.

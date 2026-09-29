@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import { Textarea } from '@/Components/ui/textarea';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
+import { compressImages } from '@/lib/compress-image';
 import {
 	alamatTerbaca,
 	cn,
@@ -204,6 +205,10 @@ export default function Create(props) {
 
 	// Foto disembunyikan default (collapsible) untuk kebakaran; dibuka manual/otomatis.
 	const [showPhotoSection, setShowPhotoSection] = useState(false);
+	// Selama foto dikompres (#132) tombol Kirim ditahan - tanpa itu foto yang baru dipilih
+	// belum masuk `data.photos` saat pengguna langsung mengetuk Kirim, dan laporan
+	// terkirim tanpa fotonya tanpa galat apa pun.
+	const [compressingPhotos, setCompressingPhotos] = useState(false);
 
 	const { data, setData, post, processing, errors, transform } = useForm({
 		name: auth?.name || '',
@@ -693,9 +698,13 @@ export default function Create(props) {
 
 	const MAX_PHOTOS = 6;
 
-	const handlePhotosChange = (e) => {
-		const files = Array.from(e.target.files || []);
-		if (!files.length) return;
+	const handlePhotosChange = async (e) => {
+		const picked = Array.from(e.target.files || []);
+		if (!picked.length) return;
+
+		setCompressingPhotos(true);
+		const files = await compressImages(picked.slice(0, MAX_PHOTOS - data.photos.length));
+		setCompressingPhotos(false);
 
 		const combined = [...data.photos, ...files].slice(0, MAX_PHOTOS);
 		setData('photos', combined);
@@ -1360,9 +1369,13 @@ export default function Create(props) {
 									variant="destructive"
 									size="xl"
 									className="hidden w-full font-semibold sm:inline-flex"
-									disabled={processing || locationLoading}
+									disabled={processing || locationLoading || compressingPhotos}
 								>
-									{processing ? <IconLoader2 className="animate-spin" /> : <IconSend />}
+									{processing || compressingPhotos ? (
+										<IconLoader2 className="animate-spin" />
+									) : (
+										<IconSend />
+									)}
 									{submitLabel}
 								</Button>
 							</div>
@@ -1391,9 +1404,9 @@ export default function Create(props) {
 					variant="destructive"
 					size="xl"
 					className="w-full text-base font-semibold"
-					disabled={processing || locationLoading}
+					disabled={processing || locationLoading || compressingPhotos}
 				>
-					{processing ? <IconLoader2 className="animate-spin" /> : <IconSend />}
+					{processing || compressingPhotos ? <IconLoader2 className="animate-spin" /> : <IconSend />}
 					{submitLabel}
 				</Button>
 			</div>

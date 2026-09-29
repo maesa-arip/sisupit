@@ -497,6 +497,9 @@ class ReportController extends Controller
                 'key' => $key,
                 'name' => $group['name'],
                 'leader' => $regu?->leader?->name,
+                // Peta detail menaruh marker regu di GPS danru bila ia ikut meluncur (§13
+                // TASK_60) - dicocokkan lewat id, sebab nama petugas tidak unik.
+                'leader_id' => $regu?->leader_id,
                 'stay' => $canSeeRoster && $stay ? optional($stay->user)->name : null,
                 'pending' => $canSeeRoster && $isOpen && $regu
                     ? $regu->members->whereNotIn('id', $chosen)->sortBy('name')->pluck('name')->values()
@@ -672,7 +675,16 @@ class ReportController extends Controller
             // masuk. Sebelum ini tak ada satu pun siaran saat laporan dibuat — ReportStatusChanged
             // baru lahir pada transisi BERIKUTNYA (approve/tolak), sehingga laporan masuk hanya
             // terlihat oleh yang kebetulan me-reload halamannya.
-            broadcast(ReportFeedChanged::for($report, 'TERLAPOR'));
+            // Galat siaran DITELAN (#130): ShouldBroadcastNow menembak Reverb di dalam request
+            // ini, dan saat Reverb mati/salah port ia melempar SESUDAH laporan tersimpan &
+            // Pusat Komando dikabari - warga lalu melihat "Terjadi kesalahan", mengirim ulang,
+            // dan satu kebakaran jadi beberapa laporan. Aba-aba dashboard boleh hilang;
+            // laporan darurat yang sudah masuk tidak boleh berbunyi gagal.
+            try {
+                broadcast(ReportFeedChanged::for($report, 'TERLAPOR'));
+            } catch (Throwable $e) {
+                report($e);
+            }
 
             // Redirect-saat-save ke subdomain tenant (TASK_17) agar Thanks tampil dengan
             // branding kabupaten kejadian. HANYA saat TENANT_BASE_DOMAIN di-set (produksi
@@ -835,7 +847,12 @@ class ReportController extends Controller
             // bisa saja sedang membuka halaman detailnya saat pelapor menyunting (laporan
             // masih TERLAPOR, jadi ia justru sedang ditinjau). Siarkan supaya yang meninjau
             // tidak memutuskan di atas teks & foto yang sudah tidak berlaku (#113).
-            broadcast(new ReportRecordChanged($report->id));
+            // Galat siaran DITELAN (#130): suntingannya sudah tersimpan, jangan berbunyi gagal.
+            try {
+                broadcast(new ReportRecordChanged($report->id));
+            } catch (Throwable $e) {
+                report($e);
+            }
 
             flashMessage(MessageType::UPDATED->message('Laporan'));
 

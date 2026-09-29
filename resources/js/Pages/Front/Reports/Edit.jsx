@@ -5,6 +5,7 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
+import { compressImages } from '@/lib/compress-image';
 import { flashMessage } from '@/lib/utils';
 import { Link, useForm } from '@inertiajs/react';
 import { IconArrowLeft, IconCloudUpload, IconDeviceFloppy, IconLoader2, IconX } from '@tabler/icons-react';
@@ -28,18 +29,22 @@ export default function Edit(props) {
 	const [previews, setPreviews] = useState([]); // preview foto baru
 	const previewsRef = useRef([]);
 	const fileInputPhoto = useRef(null);
+	// Tombol Simpan ditahan selama foto dikompres (#132), lihat Front/Reports/Create.jsx.
+	const [compressingPhotos, setCompressingPhotos] = useState(false);
 
 	const existingPhotos = (report.photos || []).filter((p) => !data.removed_photos.includes(p.id));
 	const totalPhotos = existingPhotos.length + data.photos.length;
 
 	const onHandleChange = (e) => setData(e.target.name, e.target.value);
 
-	const handleAddPhotos = (e) => {
+	const handleAddPhotos = async (e) => {
 		const files = Array.from(e.target.files || []);
 		if (!files.length) return;
 
 		const room = MAX_PHOTOS - totalPhotos;
-		const accepted = files.slice(0, Math.max(0, room));
+		setCompressingPhotos(true);
+		const accepted = await compressImages(files.slice(0, Math.max(0, room)));
+		setCompressingPhotos(false);
 		const combined = [...data.photos, ...accepted];
 		setData('photos', combined);
 
@@ -235,9 +240,9 @@ export default function Edit(props) {
 								<Button
 									type="submit"
 									className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-destructive px-8 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 disabled:opacity-70"
-									disabled={processing}
+									disabled={processing || compressingPhotos}
 								>
-									{processing ? (
+									{processing || compressingPhotos ? (
 										<IconLoader2 className="h-5 w-5 animate-spin" />
 									) : (
 										<IconDeviceFloppy className="h-5 w-5" />

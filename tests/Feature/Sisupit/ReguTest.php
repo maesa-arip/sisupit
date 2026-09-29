@@ -306,3 +306,34 @@ it('shows no regu on the petugas dashboard for a petugas without one', function 
             ->where('myRegu', null)
             ->where('activeMissions.0.regus', []));
 });
+
+// Peta detail insiden (§13 TASK_60, permintaan user): satu regu bisa 8 petugas dan 3-4 regu bisa
+// meluncur - satu marker per orang menumpuk puluhan marker & rute di satu titik. Marker regu
+// diletakkan di GPS danru, jadi server wajib mengirim id-nya (nama petugas tidak unik).
+it('sends the danru id of each regu so the detail map can anchor the regu marker on him', function () {
+    $this->actingAs($this->danru)->post(route('reports.take-action', $this->report));
+    $this->actingAs($this->anggota1)->post(route('reports.take-action', $this->report));
+
+    $this->actingAs($this->reporter)->get(route('reports.show', $this->report))
+        ->assertInertia(fn ($page) => $page
+            ->where('reguRoster.0.key', 'id:'.$this->regu->id)
+            ->where('reguRoster.0.leader_id', $this->danru->id)
+            ->where('report.officers.0.regu_id', $this->regu->id));
+});
+
+it('draws one marker per regu on the detail map instead of one per member', function () {
+    // Komentar dibuang dulu - berkasnya sendiri menjelaskan bentuk lama (pelajaran #108).
+    $source = preg_replace(['~/\*.*?\*/~s', '~^\s*//.*$~m'], '', file_get_contents(resource_path('js/Pages/Front/Reports/Show.jsx')));
+
+    $start = strpos($source, 'officerList.forEach((o) => {');
+    $block = substr($source, $start, strpos($source, 'helperList.forEach', $start) - $start);
+
+    // Petugas beregu tidak digambar per orang: kuncinya dibaca dulu, lalu dikumpulkan ke regunya.
+    expect($block)->toMatch('/const key = reguKeyOf\(o\);\s*if \(!key\) \{/')
+        ->and($block)->toContain('reguGroups.get(key).members.push(o)')
+        // Satu marker & satu rute per regu, berlabel & diletakkan di danru.
+        ->and($block)->toContain('const markerKey = `regu:${key}`;')
+        ->and($block)->toMatch('/renderMarker\(markerKey, [^;]*, regu\)/')
+        ->and($block)->toMatch('/drawResponderRoute\(markerKey,/')
+        ->and($block)->toContain('info?.leader_id');
+});

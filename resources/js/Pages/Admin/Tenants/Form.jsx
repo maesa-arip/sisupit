@@ -8,6 +8,7 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import AppLayout from '@/Layouts/AppLayout';
+import { compressImage } from '@/lib/compress-image';
 import { flashMessage, NOMOR_DARURAT_NASIONAL } from '@/lib/utils';
 import { Link, useForm } from '@inertiajs/react';
 import { IconArrowLeft, IconBuildingCommunity, IconInfoCircle } from '@tabler/icons-react';
@@ -24,6 +25,16 @@ const fotoUrl = (path) => {
 
 export default function Form(props) {
 	const { tenant, provinces, page_settings, app_base_domain, editions, feature_options = [] } = props;
+
+	// Tombol Simpan ditahan selama foto dikompres (#132).
+	const [compressing, setCompressing] = useState(false);
+	const setCompressedFile = async (key, file) => {
+		if (!file) return setData(key, null);
+		setCompressing(true);
+		const compressed = await compressImage(file);
+		setCompressing(false);
+		setData(key, compressed);
+	};
 
 	const { data, setData, post, processing, errors, reset } = useForm({
 		subdomain: tenant?.subdomain || '',
@@ -202,7 +213,7 @@ export default function Form(props) {
 								name="pejabat_foto"
 								id="pejabat_foto"
 								accept="image/png,image/jpeg,image/webp"
-								onChange={(e) => setData('pejabat_foto', e.target.files?.[0] ?? null)}
+								onChange={(e) => setCompressedFile('pejabat_foto', e.target.files?.[0] ?? null)}
 							/>
 							<p className="text-xs text-muted-foreground">
 								Kosongkan bila tidak ingin mengganti. JPG/PNG/WEBP, maks 2MB.
@@ -331,7 +342,7 @@ export default function Form(props) {
 									Reset
 								</Button>
 							)}
-							<Button type="submit" variant="orange" size="sm" disabled={processing}>
+							<Button type="submit" variant="orange" size="sm" disabled={processing || compressing}>
 								Simpan
 							</Button>
 						</div>

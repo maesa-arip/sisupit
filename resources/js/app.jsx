@@ -1,12 +1,28 @@
 import '../css/app.css';
 import './bootstrap';
 
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot, hydrateRoot } from 'react-dom/client';
+import { toast } from 'sonner';
 import { ThemeProvider } from './Components/ThemeProvider';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+
+// 413 = kiriman melewati batas server (#132). Datang dari DUA lapis - Nginx
+// (client_max_body_size) atau Laravel (PostTooLargeException saat PHP post_max_size
+// terlewati) - dan keduanya berupa halaman HTML, bukan respons Inertia, jadi tanpa ini
+// pengguna melihat modal galat mentah "413 Request Entity Too Large" dan isian formnya
+// terasa hilang. Ditangani di KLIEN karena ValidatePostSize berjalan SEBELUM session
+// dimulai: back()->with() di bootstrap/app.php tak bisa membawa pesannya.
+// preventDefault() pada event `invalid` mencegah modal itu; form tetap utuh di layar.
+if (typeof window !== 'undefined') {
+	router.on('invalid', (event) => {
+		if (event.detail.response?.status !== 413) return;
+		event.preventDefault();
+		toast.error('Ukuran foto terlalu besar. Kurangi jumlah foto atau pilih foto lain, lalu simpan lagi.');
+	});
+}
 
 createInertiaApp({
 	title: (title) => `${title} - ${appName}`,

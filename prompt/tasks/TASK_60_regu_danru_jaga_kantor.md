@@ -237,3 +237,36 @@ kolom ini sengaja tak ikut - keputusannya kini milik user).
   (Regu A)", bertahan sesudah regu di-rename). Sabotase (nama petugas diganti `-`) dibuktikan
   MERAH (`cmp`), pulih byte-exact. Test tetap 518 passed, 2305 -> 2307 assertions. Pint lulus.
   Tanpa frontend, tanpa migrasi.
+
+## 13. Adendum 2026-09-29 - satu marker per regu di peta detail insiden
+
+Laporan user: "saat petugas klik meluncur di maps masih muncul semua yang meluncur, belum nama
+regu saja yang muncul, karena 1 regu bisa isi 8 petugas dan yang klik meluncur bisa 3-4 regu".
+Membalik catatan §11 ("marker di peta detail tidak diubah") - 4 regu x 8 petugas = sampai 32
+marker & 32 garis rute bertumpuk di satu titik (mereka satu mobil).
+
+Keputusan user ("setuju semua"): posisi marker regu = GPS DANRU; popup memuat daftar anggota.
+
+- `ReportController::reguManifest()`: tiap regu kini membawa `leader_id` (nama petugas tak unik,
+  jadi danru dicocokkan lewat id). Hanya tambahan kunci - tanpa migrasi, tanpa otorisasi baru.
+- `Show.jsx` (effect peta): petugas BEREGU dilebur jadi SATU marker `regu:<key>` (kunci sama
+  dengan manifes, `reguKeyOf`) berlabel "Regu Garuda · 8" yang SELALU terlihat; popup = nama regu,
+  Danru, daftar anggota yang meluncur. Posisi = danru bila ia meluncur & punya lokasi, selain itu
+  anggota pertama yang punya lokasi - wakil TETAP, bukan "yang terakhir bergerak", supaya marker
+  tak melompat antar-anggota. SATU garis rute per regu (dari wakilnya, selama ia en_route) - panggilan
+  OSRM ikut turun. Petugas TANPA regu & relawan tetap per orang.
+- Marker yang dipakai ulang mengganti ikon/popup HANYA bila isinya berubah (`_sisupitSig`) -
+  anggota menyusul/batal mengubah label tanpa memindahkan marker; setIcon membangun ulang DOM.
+- Pembersihan marker basi kini per KUNCI string (user_id atau `regu:<key>`), jadi marker regu
+  hilang saat seluruh anggotanya batal meluncur.
+- Dependensi effect memakai `props.reguRoster` MENTAH, bukan `reguRoster` (cadangan `|| []` = array
+  baru tiap render = channel Echo tersambung ulang di setiap render).
+- Semua nilai data di label & popup lewat `escapeHtml` (#131); `circle`/`leaderLine`/`memberItems`
+  didaftarkan di `POPUP_SAFE_EXPRESSIONS` LeafletPopupEscapeTest (potongan yang sudah di-escape).
+- Penjaga: 2 test di `ReguTest` (19 total) - `leader_id` sampai ke layar, dan blok `officerList`
+  di peta mengelompokkan per regu (komentar dibuang dulu, pelajaran #108). TIGA sabotase (hapus
+  `leader_id`; semua petugas digambar per orang; nama regu mentah di popup) terpasang (`cmp`),
+  ketiganya MERAH, pulih byte-exact. Suite 552 passed (2516) = 543 baseline + 2 ini + 7 test sesi
+  lain yang belum di-commit. Pint/prettier/build lulus.
+- SISA: verifikasi visual dengan dua+ regu meluncur (label tak saling tutup saat dua regu
+  berdekatan; zoom jauh), lalu commit + deploy (tanpa migrasi; `git pull` + `chown`).

@@ -7,6 +7,7 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import AppLayout from '@/Layouts/AppLayout';
+import { compressImage } from '@/lib/compress-image';
 import { flashMessage } from '@/lib/utils';
 import { Link, useForm } from '@inertiajs/react';
 import { IconArrowLeft, IconLock, IconUsersGroup } from '@tabler/icons-react';
@@ -29,6 +30,16 @@ const LockedField = ({ label, value }) => (
 
 export default function Edit(props) {
 	const fileInputAvatar = useRef(null);
+	// Tombol Simpan ditahan selama foto dikompres (#132).
+	const [compressing, setCompressing] = useState(false);
+	const setCompressedFile = async (key, file) => {
+		if (!file) return setData(key, null);
+		setCompressing(true);
+		const compressed = await compressImage(file);
+		setCompressing(false);
+		setData(key, compressed);
+	};
+
 	const { data, setData, reset, post, processing, errors } = useForm({
 		name: props.user.name ?? '',
 		email: props.user.email ?? '',
@@ -298,7 +309,7 @@ export default function Edit(props) {
 								id="avatar"
 								type="file"
 								ref={fileInputAvatar}
-								onChange={(e) => setData(e.target.name, e.target.files[0])}
+								onChange={(e) => setCompressedFile(e.target.name, e.target.files[0])}
 							/>
 							{errors.avatar && <InputError message={errors.avatar} />}
 						</div>
@@ -325,7 +336,7 @@ export default function Edit(props) {
 							<Button type="button" variant="secondary" size="sm" onClick={onHandleReset}>
 								Reset
 							</Button>
-							<Button type="submit" variant="orange" size="sm" disabled={processing}>
+							<Button type="submit" variant="orange" size="sm" disabled={processing || compressing}>
 								Save
 							</Button>
 						</div>

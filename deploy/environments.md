@@ -101,6 +101,19 @@ php artisan config:cache && php artisan route:cache && php artisan view:cache
 systemctl restart reverb-staging
 ```
 
+## Batas ukuran upload (FINDINGS #132)
+
+Tiga lapis harus berurutan, kalau tidak upload foto dijawab **413**:
+Nginx `client_max_body_size 32M` >= PHP `post_max_size 30M` >= `upload_max_filesize 10M`
+>= validasi Laravel (`max:` di ReportRequest / ReportResolutionController).
+
+- Nginx: baris `client_max_body_size` ada di template, TAPI situs yang dibuat tangan (prod
+  `sisupit.com`, lahir sebelum template) sempat tak memilikinya = bawaan 1 MB. Periksa:
+  `grep -n client_max_body_size /etc/nginx/sites-available/*`.
+- PHP-FPM: `/etc/php/8.2/fpm/conf.d/99-upload-limits.ini` (php.ini tak disunting). Server baru
+  WAJIB membuat berkas ini lalu `systemctl reload php8.2-fpm`. Periksa: `php-fpm8.2 -i | grep -E 'upload_max|post_max'`.
+- Uji dari luar tanpa login: POST 24 MB ke `/login` harus 302; 31 MB = 413 berhalaman Laravel.
+
 ## Catatan keamanan
 
 - Data produksi (termasuk **PII warga**) disalin ke staging/dev atas keputusan user.
