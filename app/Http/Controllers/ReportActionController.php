@@ -928,7 +928,11 @@ class ReportActionController extends Controller
         $roleType = $user->hasRole('petugas') ? 'petugas' : 'relawan';
         $table = $roleType === 'petugas' ? 'report_officers' : 'report_helpers';
 
-        // Gunakan DB Transaction agar Update & Insert dijamin aman dan bersamaan
+        // Gunakan DB Transaction agar Update & Insert dijamin aman dan bersamaan.
+        // Argumen kedua (3) = Laravel mengulang otomatis bila MySQL memilih transaksi ini sebagai
+        // korban deadlock (#139): ping GPS beberapa responder satu insiden - kini satu regu bisa
+        // 8 petugas - saling mengunci baris induk lewat FK, dan tanpa ulang ping itu jadi 500.
+        // Aman diulang: transaksi yang kalah dibatalkan seluruhnya sebelum dicoba lagi.
         DB::transaction(function () use ($request, $report, $user, $roleType, $table) {
 
             // 1. UPDATE POSISI TERKINI (Timpa koordinat lama)
@@ -950,7 +954,7 @@ class ReportActionController extends Controller
                 'lng' => $request->lng,
                 'recorded_at' => now(),
             ]);
-        });
+        }, 3);
 
         // 3. PANIC BUTTON / SIARAN WEBSOCKET KE MAPS COMMAND CENTER
         broadcast(new ResponderLocationUpdated(

@@ -86,3 +86,14 @@ it('sends the user back to the login page when google rejects the auth code', fu
 
     $this->assertGuest();
 });
+
+// FINDINGS #138: nama penyedia yang tak dikonfigurasi harus 404, bukan 500 dari Socialite.
+it('answers 404 for an unknown social login provider instead of crashing', function () {
+    $this->get('/auth/login')->assertNotFound();
+    $this->get('/auth/login/callback')->assertNotFound();
+    $this->get('/auth/'.rawurlencode('0;url='))->assertNotFound();
+});
+
+it('still sends /auth/google to google', function () {
+    $this->get('/auth/google')->assertRedirect();
+});

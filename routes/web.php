@@ -157,8 +157,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-Route::get('/auth/{provider}', [SocialiteController::class, 'redirectToProvider']);
-Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProvideCallback']);
+// Hanya penyedia yang benar-benar dikonfigurasi (#138). Tanpa batasan, `/auth/login` & URL
+// sampah crawler sampai ke Socialite::driver() lalu jadi 500 "Driver [...] not supported".
+Route::get('/auth/{provider}', [SocialiteController::class, 'redirectToProvider'])->whereIn('provider', ['google']);
+Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProvideCallback'])->whereIn('provider', ['google']);
 // Login native dari aplikasi WebView: menerima Google ID token dari account picker HP.
 Route::post('/auth/google/native', [SocialiteController::class, 'handleNativeGoogle'])->name('google.native');
 Route::controller(HomeController::class)->group(function () {

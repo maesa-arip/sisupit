@@ -192,3 +192,17 @@ it('lets a responder who has arrived correct the incident location', function ()
     expect($this->report->lng)->toBe('115.2300');
     expect(DB::table('tracking_logs')->where('report_id', $this->report->id)->where('user_type', 'koreksi_lokasi')->exists())->toBeTrue();
 });
+
+// FINDINGS #139: ping GPS beberapa responder satu insiden bisa saling deadlock di MySQL. Transaksi
+// updateLocation WAJIB membawa jumlah percobaan ulang. Diperiksa dari kode sumber, bukan disimulasikan:
+// RefreshDatabase membungkus setiap test dalam transaksi, dan Laravel sengaja TIDAK mengulang
+// deadlock di transaksi bersarang - simulasi deadlock di sini akan merah apa pun isi kodenya.
+it('retries the responder location transaction when mysql reports a deadlock', function () {
+    $src = file_get_contents(app_path('Http/Controllers/ReportActionController.php'));
+    $start = strpos($src, 'public function updateLocation(');
+    $body = substr($src, $start, strpos($src, 'broadcast(new ResponderLocationUpdated', $start) - $start);
+
+    // Penutup transaksi tepat sesudah TrackingLog::create([...]); harus `}, N);` dengan N >= 2.
+    expect(preg_match('/TrackingLog::create\(\[.*?\]\);\s*\}\s*(?:,\s*(\d+)\s*)?\)\s*;/s', $body, $m))->toBe(1);
+    expect((int) ($m[1] ?? 1))->toBeGreaterThanOrEqual(2);
+});

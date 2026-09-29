@@ -3467,3 +3467,47 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   (sabotase pertama lewat sed TIDAK terpasang - dicek `cmp`, diulang dengan penggantian literal),
   pulih byte-exact.
 - **Status:** FIXED
+
+### #136 — php-fpm prod hanya 5 worker (`pm.max_children = 5`), penuh 13 kali pada 23 & 28 Sep (OPEN)
+
+- **Prioritas:** P1 (saat kejadian ramai, request mengantre di belakang 5 worker; halaman Pusat
+  Komando & ping GPS responder melambat tepat di saat paling dibutuhkan).
+- **Ditemukan:** 2026-09-29, pemindaian log prod. `/var/log/php8.2-fpm.log`: "server reached
+  pm.max_children setting (5)" 3x 23-Sep, 10x 28-Sep (hari 8 laporan). Pool `www` DIPAKAI BERSAMA
+  prod+staging+dev (+ aplikasi banjar) di VPS 1 vCPU / 3,9 GB (tersedia ~1,9 GB, swap terpakai
+  757 MB); rata-rata worker ~89 MB. TASK_60 (8 petugas/regu mengirim GPS) menambah beban.
+- **Usulan:** naikkan ke ~10-12 (+~0,5 GB kasus terburuk) dan pertimbangkan pool terpisah untuk
+  prod supaya staging/dev tak memakan jatah prod. Perubahan KONFIGURASI SERVER - keputusan user.
+- **Status:** OPEN
+
+### #137 — MySQL prod mati ~1 menit saat unattended-upgrades memperbarui mysql-server (OPEN)
+
+- **Prioritas:** P2. 138 baris "SQLSTATE[HY000] [2002] Connection refused" pada 2026-09-01, 09-02,
+  09-11 sekitar 06:45 UTC (14:45 WITA - jam kerja). `unattended-upgrades.log` 09-01 06:46:
+  "Packages that will be upgraded: ... mysql-server-8.0 ...". Selama restart setiap request gagal
+  (laporan warga ikut). Bukan bug aplikasi.
+- **Usulan:** keluarkan mysql-server dari pembaruan otomatis (Package-Blacklist) dan perbarui
+  manual di jendela sepi, atau geser jadwal apt-daily-upgrade ke dini hari WITA. Keputusan user.
+- **Status:** OPEN
+
+### #138 — `/auth/{provider}` menerima nama apa pun: `/auth/login` & URL sampah pemindai jadi 500 (FIXED)
+
+- **Prioritas:** P3. Log: "Driver [login] not supported" 09-26, lima "Driver [...]" berisi potongan
+  HTML/JSON 09-04 (crawler mengikuti teks halaman sebagai URL). Route tanpa batasan parameter,
+  Socialite melempar InvalidArgumentException -> 500 dan baris ERROR yang menutupi galat sungguhan.
+- **FIX (2026-09-29):** `->whereIn('provider', ['google'])` pada kedua route -> 404. Penjaga: 2 test
+  di SocialiteLoginGuardTest (`/auth/login`, callback-nya, URL sampah -> 404; `/auth/google` tetap
+  redirect), dibuktikan MERAH tanpa batasan (dicek `cmp`), pulih byte-exact.
+- **Status:** FIXED
+
+### #139 — Deadlock sesekali saat ping GPS responder (`tracking_logs`) dijawab 500 (FIXED)
+
+- **Prioritas:** P3 (sekali, 2026-09-23 02:15 UTC; akan lebih sering sejak regu 8 petugas).
+  `ReportActionController::updateLocation` menjalankan UPDATE report_officers/helpers + INSERT
+  tracking_logs dalam satu transaksi; ping bersamaan saling mengunci baris induk (FK reports).
+- **FIX (2026-09-29):** `DB::transaction($fn, 3)` di updateLocation saja (koreksi lokasi manual tak
+  disentuh). Penjaga di ReportActionAuthorizationTest MEMBACA KODE SUMBER - simulasi deadlock
+  mustahil: RefreshDatabase membungkus test dalam transaksi dan Laravel tak mengulang deadlock di
+  transaksi bersarang. Versi pertama penjaga itu merah BAHKAN dengan fix (regex menuntut `}, 3);` di
+  ujung potongan yang ternyata berakhir komentar) - diperbaiki, lalu dibuktikan hijau/merah.
+- **Status:** FIXED

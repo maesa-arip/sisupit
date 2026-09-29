@@ -2457,6 +2457,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + TASK_63 wilayah efektif petugas = 543 passed, 2461 assertions;
             + #130/#132/#133/TASK_60 §13 + #134 (2026-09-29) = 555 passed, 2523 assertions.
             + #135 callback Google tak lagi 500 (2026-09-29) = 557 passed, 2533 assertions.
+            + #138 route /auth/{provider} + #139 retry deadlock GPS = 560 passed, 2540 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)
