@@ -114,6 +114,33 @@ Nginx `client_max_body_size 32M` >= PHP `post_max_size 30M` >= `upload_max_files
   WAJIB membuat berkas ini lalu `systemctl reload php8.2-fpm`. Periksa: `php-fpm8.2 -i | grep -E 'upload_max|post_max'`.
 - Uji dari luar tanpa login: POST 24 MB ke `/login` harus 302; 31 MB = 413 berhalaman Laravel.
 
+## Queue worker (supervisor)
+
+Ketiga env memakai `QUEUE_CONNECTION=database`, jadi tiap env WAJIB punya worker sendiri - tanpa
+itu job (notifikasi siaran/lonceng, email dinas TASK_56) diam di tabel `jobs` tanpa galat apa pun.
+
+| env | program supervisor | berkas | numprocs |
+|-----|--------------------|--------|----------|
+| production | `sisupit-worker` | `/etc/supervisor/conf.d/sisupit-worker.conf` | 4 |
+| staging | `sisupit-staging-worker` | `/etc/supervisor/conf.d/sisupit-staging-worker.conf` | 1 |
+| dev | `sisupit-dev-worker` | `/etc/supervisor/conf.d/sisupit-dev-worker.conf` | 1 |
+
+Staging & dev baru ditambahkan 2026-09-29 - sebelumnya keduanya TANPA worker sejak provisioning.
+Env baru: salin berkas staging, ganti nama program & path, lalu `supervisorctl reread && supervisorctl
+update` (hanya menjalankan program baru; worker lain tak di-restart). supervisord membuat
+`worker.log` sebagai root -> `chown www-data:www-data` sesudahnya. Setelah deploy kode:
+`php artisan queue:restart` di env itu (worker membaca kode lama sampai di-restart).
+
+## Tuning server (2026-09-29)
+
+- PHP-FPM pool `www` (dipakai BERSAMA ketiga env + aplikasi banjar): `pm.max_children = 12`,
+  start 3, spare 2-5, `pm.max_requests = 500` (FINDINGS #136; dulu 5 dan penuh saat kejadian ramai).
+  Cadangan `www.conf.bak-<ts>` di folder yang sama.
+- MySQL DIKECUALIKAN dari unattended-upgrades (`/etc/apt/apt.conf.d/52sisupit-hold-mysql`,
+  FINDINGS #137) - pembaruan otomatis dulu me-restart DB ~1 menit di jam kerja. Konsekuensinya
+  pembaruan keamanan MySQL MANUAL: cadangkan DB, lalu `apt install --only-upgrade 'mysql-*'` di jam
+  sepi (dini hari WITA).
+
 ## Catatan keamanan
 
 - Data produksi (termasuk **PII warga**) disalin ke staging/dev atas keputusan user.
