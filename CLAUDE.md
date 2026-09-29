@@ -27,8 +27,22 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : SEMUA BRANCH FITUR DI-MERGE KE `main` 2026-09-27 (permintaan user "merge ke main
-                semua") - main LOKAL, BELUM di-push & BELUM dideploy. Yang naik: feat/regu-danru
+Task aktif   : JAM BERITA ACARA & EXPORT DALAM WITA (#134) + DEPLOY SEMUA. SELESAI & TERDEPLOY
+                2026-09-29 @55154552 ke dev -> staging -> prod (ff dari 8dc43af6), atas permintaan
+                user "deploy semua". Akar #134: server/APP_TIMEZONE UTC, prefill "Waktu Kejadian"
+                mencetak created_at UTC & jam ketikan petugas (WITA) disimpan mentah seolah UTC ->
+                tampil +8 jam; Export Excel mencetak UTC. Penyimpanan TETAP UTC, konversi di tepi lewat
+                config('app.local_timezone') (Asia/Makassar). Data prod BA 7/8/12 dikurangi 8 jam
+                (cadangan /root/backup-jamba-20260929-012848). Ikut naik: SELURUH isi main di bawah
+                (TASK_54/55/56/60/61/62/63, #131) + pekerjaan sesi lain yang tadinya belum ter-commit
+                (TASK_60 §13 marker regu, #130, #132, #133). 7 migrasi DONE di ketiga env, 0 pending,
+                cadangan DB penuh /root/backup-predeploy-20260929-013324; route cache (routes-v7.php)
+                AKTIF dan dibangun ulang. S&K 2.1 berlaku 2026-09-29 (config/legal.php) - isi klausul
+                forum BELUM ditinjau hukum. Forum & email tetap mati per kabupaten sampai dicentang.
+                GOTCHA: SSH VPS memutus koneksi beruntun ("connection abort"/timeout) - gabungkan
+                perintah ke sedikit koneksi dan beri jeda ~35 dtk.
+               SEMUA BRANCH FITUR DI-MERGE KE `main` 2026-09-27 (permintaan user "merge ke main
+                semua") - TERDEPLOY 2026-09-29 @55154552 (lihat entri di atas). Yang naik: feat/regu-danru
                 (membawa TASK_54 forum [keputusan tahan forum DICABUT user lewat perintah ini;
                 forum & email tetap MATI per kabupaten sampai dicentang di /admin/tenants],
                 TASK_55, TASK_56, TASK_59, TASK_60, #131, dev:all) + TASK_61 di bawah.
@@ -40,6 +54,12 @@ Task aktif   : SEMUA BRANCH FITUR DI-MERGE KE `main` 2026-09-27 (permintaan user
                 `php artisan migrate` BERSAMAAN (migrasi TASK_54/55/56/60 belum ada di VPS;
                 tanpa migrasi halaman detail insiden 500) + cadangan DB lebih dulu + S&K 2.1
                 (tanggal berlaku disesuaikan) + centang fitur per kabupaten bila dikehendaki.
+               SATU MARKER PER REGU DI PETA DETAIL INSIDEN (TASK_60 §13). SELESAI (kode) 2026-09-29,
+                BELUM di-commit & BELUM dideploy. User: 8 petugas/regu x 3-4 regu = marker & rute per
+                orang menumpuk. Kini petugas beregu = satu marker berlabel "Regu Garuda · 8" di GPS
+                DANRU (roster membawa `leader_id`), satu rute per regu, popup danru + anggota
+                (di-escape). Petugas tanpa regu & relawan tetap per orang. Tanpa migrasi.
+                Test 552 passed (2516) termasuk 7 test sesi lain yang belum di-commit.
                WILAYAH AKUN = WILAYAH TUGAS BAGI PETUGAS + ISIAN ALAMAT TINGGAL (TASK_61,
                 prompt/tasks/TASK_61_wilayah_tugas_alamat_tinggal.md). SELESAI (kode) 2026-09-27,
                 commit 6a76f6bd, di-merge ke main. Pemicu: petugas tinggal di Badung, bertugas di
@@ -2435,7 +2455,7 @@ Build     : npm run build
 Test      : php artisan test            (baseline 2026-09-27 di main hasil merge semua branch: 523 passed, 2360 assertions = 516 feat/regu-danru + 7 TASK_61;
             + TASK_62 notifikasi petugas per kabupaten = 531 passed, 2419 assertions;
             + TASK_63 wilayah efektif petugas = 543 passed, 2461 assertions;
-            #130 yang belum di-commit di folder utama menambah +2 bila kelak ikut.
+            + #130/#132/#133/TASK_60 §13 + #134 (2026-09-29) = 555 passed, 2523 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)
