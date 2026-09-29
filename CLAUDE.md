@@ -27,7 +27,13 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : COMBOBOX BERCARI + RINCIAN CALON DANRU (#143). SELESAI & TERDEPLOY 2026-09-29 @2b03b4d4
+Task aktif   : COMBOBOX DI PONSEL (#144). SELESAI & TERDEPLOY 2026-09-29 @18a335de ke dev -> staging -> prod.
+                Membuka ui/combobox di ponsel memfokuskan kolom cari -> keyboard muncul, popover berbalik ke
+                atas & terpotong di balik bilah notifikasi. Kini fokus otomatis dilewati di pointer: coarse
+                dan PopoverContent dibatasi --radix-popover-content-available-height. Berlaku ke SEMUA
+                combobox (termasuk pemilih wilayah form lapor). Penjaga ComboboxMobileTest (2, MERAH lewat
+                sabotase). SISA: uji di ponsel/APK sungguhan.
+               COMBOBOX BERCARI + RINCIAN CALON DANRU (#143). SELESAI & TERDEPLOY 2026-09-29 @2b03b4d4
                 ke dev -> staging -> prod (ff dari ebce20e1), BERSAMA #141 & #142 di bawah (commit
                 ac12cff2 / 2d0c5514 / f93c9c24 + build 2b03b4d4). Tanpa migrasi/route/config: git pull +
                 chown; 0 pending, 0 ERROR baru. Danru /regu, Instansi (Users), "Libatkan OPD lain", Pos

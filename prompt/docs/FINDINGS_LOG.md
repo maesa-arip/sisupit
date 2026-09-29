@@ -3615,4 +3615,4 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   `min-h-0` sehingga daftarnya menyusut & bergulir, termasuk saat keyboard muncul belakangan.
 - **Penjaga:** `ComboboxMobileTest` (2 test), keduanya dibuktikan MERAH lewat sabotase; berkas pulih
   byte-exact (`cmp`).
-- **Status:** FIXED 2026-09-29 (kode). Frontend saja.
+- **Status:** FIXED 2026-09-29, commit 28643f21, TERDEPLOY 2026-09-29 @18a335de ke dev -> staging -> prod (frontend saja; `git pull` + `chown`).
