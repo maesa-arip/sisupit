@@ -6,6 +6,11 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import { cn } from '@/lib/utils';
 
+// Perangkat sentuh (ponsel/APK WebView): kolom cari TIDAK difokuskan otomatis saat dibuka. Fokus
+// otomatis memunculkan keyboard, layar tinggal separuh, popover berbalik ke atas lalu terpotong di
+// balik bilah notifikasi. Di sana keyboard baru muncul saat kolom cari diketuk.
+const isTouch = () => typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
+
 export function Combobox({
 	items = [],
 	value,
@@ -51,15 +56,24 @@ export function Combobox({
 				</Button>
 			</PopoverTrigger>
 			{/* w-[var(--radix-popover-trigger-width)] memastikan lebar dropdown sama persis dengan tombolnya */}
-			<PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
-				<Command>
+			{/* Tinggi dibatasi ruang yang TERSISA di layar (menyusut saat keyboard muncul) supaya popover
+			    yang berbalik ke atas tak pernah melewati tepi layar; daftarnya yang bergulir. */}
+			<PopoverContent
+				className="flex max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] flex-col p-0"
+				align="start"
+				collisionPadding={8}
+				onOpenAutoFocus={(e) => {
+					if (isTouch()) e.preventDefault();
+				}}
+			>
+				<Command className="min-h-0">
 					<CommandInput
 						placeholder="Cari..."
 						value={query}
 						onValueChange={setQuery}
 						className="border-none shadow-none focus:ring-0"
 					/>
-					<CommandList>
+					<CommandList className="min-h-0 flex-1">
 						<CommandEmpty>
 							<div className="px-3 py-4 text-center">
 								<p className="text-sm text-muted-foreground">{emptyText}</p>
