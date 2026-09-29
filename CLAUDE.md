@@ -27,7 +27,12 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : 11 PERMINTAAN USER 2026-09-29 -> TASK_64..68. SELESAI & TERDEPLOY 2026-09-30 @66b8ee52 ke dev ->
+Task aktif   : TOMBOL MERAH BRAND (2026-09-30), TERDEPLOY @cec5c164 ke dev -> staging -> prod (git pull + chown;
+                frontend saja). User: "masih ada tombol dengan warna hitam dan teks putih, ganti semua" -> pilih
+                MERAH BRAND. Token --primary = --destructive (terang & gelap) + 7 tombol/chip hardcode
+                bg-foreground -> bg-primary, lencana Relawan Siaga -> bg-volunteer. PENGECUALIAN_ATURAN #4,
+                dijaga ButtonBrandColorTest. Test 612 passed (2925). SISA: cek visual di ponsel/APK.
+               11 PERMINTAAN USER 2026-09-29 -> TASK_64..68. SELESAI & TERDEPLOY 2026-09-30 @66b8ee52 ke dev ->
                 staging -> prod (git pull + composer install [dompdf] + migrate 2 aditif DONE, 0 pending, route
                 cache dibangun ulang, queue:restart; cadangan DB /root/backup-predeploy-20260929-2015; data prod
                 utuh 166 users/9 reports/5 BA; dompdf dirender sbg www-data OK; 0 ERROR). APK 1.1.4/vc6 TERBIT
@@ -2531,6 +2536,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + #147 limiter laporan & batas 2 MB per foto = 583 passed, 2690 assertions.
             + #149 foto non-kebakaran opsional (test dibalik, bukan ditambah) = 583 passed, 2695 assertions.
             + TASK_64..68 (2026-09-30) = 610 passed, 2918 assertions.
+            + tombol merah brand (2026-09-30) = 612 passed, 2925 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)
