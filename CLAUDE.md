@@ -27,8 +27,10 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : 11 PERMINTAAN USER 2026-09-29 -> TASK_64..68. SELESAI (kode) 2026-09-30, BELUM di-commit &
-                BELUM dideploy. TASK_64 teks: menu "Manajemen Regu", "Laporan Kejadian", "Laporan Sama" (pop-up
+Task aktif   : 11 PERMINTAAN USER 2026-09-29 -> TASK_64..68. SELESAI & TERDEPLOY 2026-09-30 @66b8ee52 ke dev ->
+                staging -> prod (git pull + composer install [dompdf] + migrate 2 aditif DONE, 0 pending, route
+                cache dibangun ulang, queue:restart; cadangan DB /root/backup-predeploy-20260929-2015; data prod
+                utuh 166 users/9 reports/5 BA; dompdf dirender sbg www-data OK; 0 ERROR). APK 1.1.4 BELUM terbit. TASK_64 teks: menu "Manajemen Regu", "Laporan Kejadian", "Laporan Sama" (pop-up
                 & berkas Export SAJA - chip/lencana tetap "Digabung"). TASK_65: tombol Telepon + WhatsApp di
                 panel verifikasi admin; rentang tanggal (WITA, inklusif) di Export; "Atur Anggota" bergulir
                 sendiri + dialog meminta APK mematikan tarik-untuk-refresh (AKARNYA SwipeRefreshLayout APK) ->
