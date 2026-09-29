@@ -3439,3 +3439,31 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Sisa pola yang sama, TIDAK dikerjakan:** `ReportResource` memformat `created_at` di server,
   tapi kelas itu tak dipakai di mana pun.
 - **Status:** FIXED
+
+### #135 — Login Google yang gagal di tahap callback dijawab halaman galat 500: `catch (Exception)` tanpa `use Exception` (FIXED)
+
+- **Prioritas:** P2 (pengguna yang batal/terganggu saat login Google melihat halaman galat server,
+  bukan kembali ke halaman masuk).
+- **Ditemukan:** 2026-09-29, saat memeriksa galat log prod `POST oauth2/v4/token 400` atas
+  permintaan user.
+- **Akar:** `SocialiteController::handleProvideCallback` membungkus `Socialite::...->user()` dengan
+  `catch (Exception $e) { return redirect()->back(); }`, tapi berkasnya ber-namespace
+  `App\Http\Controllers\Auth` dan TIDAK mengimpor `Exception`. Nama itu jadi
+  `App\Http\Controllers\Auth\Exception` - kelas yang tak ada, jadi catch-nya TAK PERNAH cocok dan
+  setiap kegagalan tukar kode naik jadi 500. PHP tidak memperingatkan catch atas kelas yang tak ada.
+- **Bukti prod:** access log 2026-09-29 01:11:48 `GET /auth/google/callback?authuser=5&code=8/...`
+  -> **500** (iPhone, browser dalam aplikasi Google/GSA; tanpa `state` dan tanpa hit `/auth/google`
+  sebelumnya dari IP itu - URL callback dibuka ulang, bukan alur login baru). Dua login Google lain
+  menit yang sama -> 302 sukses. Riwayat: 13 kejadian sejak 2025-07 ("Malformed auth code" 9,
+  "Missing required parameter: code" 4 - yang terakhir = pengguna menekan Batal di layar
+  persetujuan Google, callback datang dengan `?error=access_denied`).
+- **Konfigurasi Google TIDAK bermasalah:** client id/redirect prod benar, login normal berhasil.
+- **FIX (2026-09-29, atas persetujuan user):** tangkap `\Throwable`, catat `Log::warning`, dan
+  arahkan ke `route('login')` dengan galat `email` "Login dengan Google gagal atau dibatalkan.
+  Silakan coba lagi." - bukan `back()` (referer sesudah redirect Google tak bisa diandalkan).
+  Jalur native (`handleNativeGoogle`) sudah memakai `\Throwable` sejak awal, tidak disentuh.
+- **Penjaga:** 2 test di SocialiteLoginGuardTest (Batal & kode ditolak, Socialite di-mock - test
+  tak boleh memanggil Google sungguhan). Keduanya dibuktikan MERAH dengan `catch (Exception)` lama
+  (sabotase pertama lewat sed TIDAK terpasang - dicek `cmp`, diulang dengan penggantian literal),
+  pulih byte-exact.
+- **Status:** FIXED

@@ -8,6 +8,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;
@@ -21,11 +22,19 @@ class SocialiteController extends Controller
 
     public function handleProvideCallback($provider)
     {
+        // \Throwable, BUKAN `Exception` tanpa impor: di namespace ini nama itu berarti
+        // App\Http\Controllers\Auth\Exception - kelas yang tak ada - sehingga catch-nya tak pernah
+        // cocok dan setiap callback gagal (Batal di layar persetujuan Google, URL callback dibuka
+        // ulang, kode kedaluwarsa) jadi halaman 500 (#135). Tujuannya halaman masuk, bukan back():
+        // sesudah bolak-balik ke Google, referer tak bisa diandalkan.
         try {
-
             $user = Socialite::driver($provider)->stateless()->user();
-        } catch (Exception $e) {
-            return redirect()->back();
+        } catch (\Throwable $e) {
+            Log::warning('Login '.$provider.' gagal di callback: '.$e->getMessage());
+
+            return redirect()->route('login')->withErrors([
+                'email' => 'Login dengan Google gagal atau dibatalkan. Silakan coba lagi.',
+            ]);
         }
         // find or create user and send params user get from socialite and provider
         $authUser = $this->findOrCreateUser($user, $provider);

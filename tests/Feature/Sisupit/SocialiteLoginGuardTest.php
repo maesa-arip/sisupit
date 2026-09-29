@@ -51,3 +51,38 @@ it('still allows normal password login for an account that has a password', func
     $this->assertAuthenticated();
     $response->assertRedirect(route('dashboard', absolute: false));
 });
+
+// FINDINGS #135: callback Google yang gagal dulu jadi halaman 500 - `catch (Exception)` tanpa impor
+// menunjuk kelas yang tak ada. Dua bentuk yang benar-benar muncul di log prod: pengguna menekan
+// Batal (callback tanpa `code`) dan URL callback dibuka ulang (kode ditolak Google).
+function googleRejectsCallback(string $description): void
+{
+    $mock = Mockery::mock(\Laravel\Socialite\Two\GoogleProvider::class);
+    $mock->shouldReceive('stateless')->andReturnSelf();
+    $mock->shouldReceive('user')->andThrow(new \GuzzleHttp\Exception\ClientException(
+        $description,
+        new \GuzzleHttp\Psr7\Request('POST', 'https://www.googleapis.com/oauth2/v4/token'),
+        new \GuzzleHttp\Psr7\Response(400),
+    ));
+    \Laravel\Socialite\Facades\Socialite::shouldReceive('driver')->with('google')->andReturn($mock);
+}
+
+it('sends the user back to the login page when google login is cancelled', function () {
+    googleRejectsCallback('invalid_request: Missing required parameter: code');
+
+    $this->get('/auth/google/callback?error=access_denied')
+        ->assertRedirect(route('login'))
+        ->assertSessionHasErrors('email');
+
+    $this->assertGuest();
+});
+
+it('sends the user back to the login page when google rejects the auth code', function () {
+    googleRejectsCallback('invalid_grant: Malformed auth code.');
+
+    $this->get('/auth/google/callback?authuser=5&code=8%2Fbroken')
+        ->assertRedirect(route('login'))
+        ->assertSessionHasErrors('email');
+
+    $this->assertGuest();
+});
