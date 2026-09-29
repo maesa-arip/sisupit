@@ -91,8 +91,16 @@ class ReportController extends Controller
 
     public function export(Request $request): BinaryFileResponse
     {
+        // Rentang tanggal (TASK_65) = tanggal laporan MASUK, dibaca sebagai tanggal WITA dan
+        // keduanya inklusif. Format dikunci Y-m-d supaya tanggal yang salah ketik ditolak,
+        // bukan diam-diam ditafsirkan Carbon jadi rentang lain.
+        $request->validate([
+            'from' => ['nullable', 'date_format:Y-m-d'],
+            'to' => ['nullable', 'date_format:Y-m-d', ...($request->filled('from') ? ['after_or_equal:from'] : [])],
+        ]);
+
         return Excel::download(
-            new ReportsExport($request->only(['search', 'status'])),
+            new ReportsExport($request->only(['search', 'status', 'from', 'to'])),
             'laporan-kejadian-'.now()->format('Y-m-d-His').'.xlsx'
         );
     }

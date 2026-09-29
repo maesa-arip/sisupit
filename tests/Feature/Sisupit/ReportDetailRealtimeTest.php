@@ -196,7 +196,7 @@ it('reloads the separate incident props together, not just report', function () 
     expect($daftar[1])->toHaveCount(1);
     // TASK_60 menambah tiga prop regu yang berubah lewat ResponderRosterChanged (meluncur, jaga
     // kantor) - tanpa ketiganya manifes regu & tombol Jaga di Kantor di layar orang lain basi.
-    foreach (['report', 'reportAgencies', 'resolutions', 'duplicateCandidate', 'mergedReports', 'mergedIncident', 'reguRoster', 'myRegu', 'canStayAtBase'] as $prop) {
+    foreach (['report', 'reportAgencies', 'resolutions', 'duplicateCandidate', 'mergedReports', 'mergedIncident', 'reguRoster', 'myRegu', 'canStayAtBase', 'alphaMembers'] as $prop) {
         expect($daftar[1][0])->toContain("'{$prop}'");
     }
     // Daftar yang lebih sempit membuat sinyal yang datang belakangan membatalkan permintaan

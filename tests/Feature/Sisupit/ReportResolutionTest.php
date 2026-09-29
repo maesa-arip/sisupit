@@ -6,8 +6,9 @@ use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
-// Berita Acara / Laporan Kegiatan Penyelamatan (FINDINGS #39). Append-only: tiap simpan
-// = entri baru (sementara/final). KTP korban di disk PRIVAT, hanya lewat route bergerbang.
+// Berita Acara / Laporan Kejadian (FINDINGS #39). Sejak TASK_67: SATU entri sementara + SATU
+// entri final per kejadian, bisa disunting & berriwayat (ReportResolutionSingleEntryTest).
+// KTP korban di disk PRIVAT, hanya lewat route bergerbang.
 
 beforeEach(function () {
     $reporter = User::factory()->create();
@@ -73,7 +74,7 @@ it('lets petugas create a resolution with a victim and photo, KTP kept on the pr
     Storage::disk('public')->assertExists($photo->path);
 });
 
-it('is append-only: a final entry is added alongside the sementara one', function () {
+it('keeps the final entry separate from the sementara one', function () {
     $petugas = User::factory()->create(['village_code' => '5171012006']);
     $petugas->assignRole('petugas');
 
@@ -81,8 +82,8 @@ it('is append-only: a final entry is added alongside the sementara one', functio
         'status' => 'sementara', 'jenis_kejadian' => 'data awal',
     ])->assertRedirect();
 
-    // Entri final ditutup ADMIN sejak TASK_49 — yang dijaga test ini tetap sifat
-    // append-only-nya (entri lama tidak ditimpa), bukan siapa yang menekan tombolnya.
+    // Entri final ditutup ADMIN sejak TASK_49 — yang dijaga test ini: final tidak menimpa
+    // entri sementara (keduanya berdampingan), bukan siapa yang menekan tombolnya.
     $admin = User::factory()->create(['village_code' => '5171012006']);
     $admin->assignRole('admin');
 

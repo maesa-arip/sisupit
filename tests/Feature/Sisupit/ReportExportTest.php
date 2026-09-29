@@ -266,3 +266,74 @@ it('offers only export choices the export sheet knows how to label', function ()
         expect(array_key_exists($choice, $labels))->toBeTrue("pilihan export '{$choice}' tak punya label di ReportsExport");
     }
 });
+
+// TASK_64 (permintaan user 2026-09-29): laporan ganda yang digabung disebut "Laporan Sama" di
+// pop-up Export DAN di berkasnya - status maupun judul kolom nomor induknya. Pop-up & berkas
+// dikunci SAMA: pilihan yang berbunyi lain dari isi berkas terbaca seperti dua hal berbeda.
+it('calls a merged report "Laporan Sama" in both the export dialog and the sheet', function () {
+    $admin = User::factory()->create(['province_code' => '51']);
+    $admin->assignRole('admin');
+
+    $parent = makeReport(['title' => 'Induk', 'province_code' => '51']);
+    makeReport(['title' => 'Anak', 'province_code' => '51', 'status' => 'digabung', 'merged_into_id' => $parent->id]);
+
+    $cells = exportedCells($this->actingAs($admin)->get('/admin/reports/export?status=digabung'));
+
+    expect($cells)->toContain('Laporan Sama');
+    expect($cells)->toContain('Laporan Sama dengan');
+    expect($cells)->not->toContain('Digabung');
+    expect($cells)->not->toContain('Digabung ke');
+
+    $labels = (new ReflectionClassConstant(\App\Exports\ReportsExport::class, 'STATUS_LABELS'))->getValue();
+    preg_match('~const EXPORT_LABEL = \{(.*?)\};~s', reportsIndexJsxWithoutComments(), $m);
+    expect($m)->not->toBeEmpty();
+    expect(preg_match("~\bdigabung:\s*'([^']*)'~", $m[1], $label))->toBe(1);
+    expect($label[1])->toBe($labels['digabung']);
+});
+
+// TASK_65: Export Excel bisa dibatasi rentang tanggal laporan masuk. Tanggalnya tanggal WITA
+// (inklusif), sedangkan created_at tersimpan UTC (#134) - laporan jam 07.00 WITA tanggal 10
+// tersimpan 23.00 UTC tanggal 9, dan tetap harus ikut rentang "10 s.d. 10".
+it('limits the excel export to a date range read in local time', function () {
+    config(['app.local_timezone' => 'Asia/Makassar']);
+    $admin = User::factory()->create(['province_code' => '51']);
+    $admin->assignRole('admin');
+
+    $at = function (string $title, string $utc) {
+        $report = makeReport(['title' => $title, 'province_code' => '51']);
+        $report->created_at = \Carbon\Carbon::parse($utc, 'UTC');
+        $report->save();
+    };
+    $at('Sebelum rentang', '2026-09-09 15:59:59'); // 23.59.59 WITA tgl 9
+    $at('Pagi tanggal 10', '2026-09-09 23:00:00'); // 07.00 WITA tgl 10
+    $at('Malam tanggal 11', '2026-09-11 15:59:00'); // 23.59 WITA tgl 11
+    $at('Sesudah rentang', '2026-09-11 16:00:00'); // 00.00 WITA tgl 12
+
+    $cells = exportedCells($this->actingAs($admin)->get('/admin/reports/export?from=2026-09-10&to=2026-09-11'));
+
+    expect($cells)->toContain('Pagi tanggal 10');
+    expect($cells)->toContain('Malam tanggal 11');
+    expect($cells)->not->toContain('Sebelum rentang');
+    expect($cells)->not->toContain('Sesudah rentang');
+    expect(collect($cells)->contains(fn ($c) => str_contains((string) $c, 'Periode: 10 September 2026 s.d. 11 September 2026')))->toBeTrue();
+});
+
+it('names the full period in the header when no date range is chosen', function () {
+    $admin = User::factory()->create(['province_code' => '51']);
+    $admin->assignRole('admin');
+    makeReport(['province_code' => '51']);
+
+    $cells = exportedCells($this->actingAs($admin)->get('/admin/reports/export'));
+
+    expect(collect($cells)->contains(fn ($c) => str_contains((string) $c, 'Periode: Semua Tanggal')))->toBeTrue();
+});
+
+it('rejects a reversed or malformed export date range instead of guessing', function () {
+    $admin = User::factory()->create(['province_code' => '51']);
+    $admin->assignRole('admin');
+
+    $this->actingAs($admin)->get('/admin/reports/export?from=2026-09-11&to=2026-09-10')->assertSessionHasErrors('to');
+    $this->actingAs($admin)->get('/admin/reports/export?from=10-09-2026')->assertSessionHasErrors('from');
+    // Hanya "sampai" tanpa "dari" tetap sah.
+    $this->actingAs($admin)->get('/admin/reports/export?to=2026-09-10')->assertOk();
+});

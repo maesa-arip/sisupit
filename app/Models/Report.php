@@ -198,6 +198,24 @@ class Report extends Model
         return $this->hasMany(ReportJagaKantor::class, 'report_id', 'id');
     }
 
+    /**
+     * Nomor laporan yang dilihat pengguna (LP-2026-00042) - TIDAK disimpan, turunan `id` + tahun
+     * `created_at`. Rumus yang sama dengan `reportNumber()` di `resources/js/lib/utils.js`;
+     * dipakai Export Excel & PDF Laporan Kejadian (TASK_68) supaya nomor di kertas = di layar.
+     */
+    public static function nomorLaporan($report): string
+    {
+        $year = optional($report->created_at)->format('Y') ?: now()->format('Y');
+
+        return 'LP-'.$year.'-'.str_pad((string) $report->id, 5, '0', STR_PAD_LEFT);
+    }
+
+    // Anggota regu yang alpha pada kejadian ini (TASK_66) - data internal admin.
+    public function alphaMembers(): HasMany
+    {
+        return $this->hasMany(ReportAlpha::class, 'report_id', 'id');
+    }
+
     // Galeri foto laporan (FINDINGS #17). Kolom `photo` lama tetap = foto sampul.
     public function photos(): HasMany
     {

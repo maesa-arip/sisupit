@@ -233,6 +233,13 @@
   panggilan: `escapeHtml(x || '-')`. Konstanta kode sendiri (kelas warna, SVG ikon, kamus status)
   boleh disisipkan langsung dan didaftar di `POPUP_SAFE_EXPRESSIONS`. Dijaga
   `LeafletPopupEscapeTest`, yang memindai tiap `bindPopup(` di `resources/js`.
+- **Laporan Kejadian = SATU entri per status yang DISUNTING, bukan entri baru** (TASK_67,
+  keputusan user 2026-09-29, membalik append-only FINDINGS #39). Entri aktif = yang TERBARU per
+  status - jangan menambah kolom "aktif" kedua, dan jangan menghapus entri lama yang ganda (arsip).
+  Tiap simpan yang mengubah sesuatu = satu baris `report_resolution_logs`, ditulis dari controller
+  (pola `hydrant_logs`). Berkas (KTP/foto) yang dibawa dari entri lain DISALIN, tak pernah berbagi
+  path, dan penghapusan berkas terjadi SESUDAH transaksi. Entri final: isi/sunting/hapus = admin.
+  PDF-nya tak pernah memuat KTP. Dijaga `ReportResolutionSingleEntryTest`, `LaporanKejadianPdfTest`.
 - **Pilihan "tidak berangkat" BUKAN status responder** (TASK_60). "Jaga di Kantor" anggota regu
   disimpan di tabel sendiri `report_jaga_kantor`, bukan sebagai `status` baru di `report_officers`.
   Tabel responder dibaca peta, pelacakan GPS, hitungan "masih ada responder aktif"

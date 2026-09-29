@@ -124,11 +124,11 @@ export default function Index({ regus, candidates, can }) {
 
 	return (
 		<div className="flex h-full w-full flex-col space-y-6">
-			<Head title="Regu & Danru" />
+			<Head title="Manajemen Regu" />
 
 			<div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
 				<HeaderTitle
-					title="Regu & Danru"
+					title="Manajemen Regu"
 					subtitle="Saat meluncur, nama regu yang tampil. Tiap anggota tetap memilih sendiri: Meluncur atau Jaga di Kantor."
 					icon={IconShieldHalf}
 				/>
@@ -323,7 +323,10 @@ export default function Index({ regus, candidates, can }) {
 								Tidak ada petugas yang cocok dengan "{memberQuery.trim()}".
 							</p>
 						)}
-						<div className="space-y-1">
+						{/* Daftar bergulir SENDIRI (TASK_65): di prod 80+ petugas, dan dulu yang
+						    bergulir seluruh dialog - judul & pencarian ikut hilang ke atas. overscroll-contain
+						    supaya gulir yang mentok tidak berpindah ke halaman di belakang dialog. */}
+						<div className="max-h-[45vh] space-y-1 overflow-y-auto overscroll-contain pr-1">
 							{visibleMembers.map((c) => {
 								const inOtherRegu = c.regu_id && c.regu_id !== membersOf?.id;
 								return (
@@ -390,4 +393,4 @@ export default function Index({ regus, candidates, can }) {
 	);
 }
 
-Index.layout = (page) => <AppLayout children={page} title="Regu & Danru" />;
+Index.layout = (page) => <AppLayout children={page} title="Manajemen Regu" />;

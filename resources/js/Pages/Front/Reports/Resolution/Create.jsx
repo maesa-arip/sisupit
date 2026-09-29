@@ -35,9 +35,14 @@ export default function Create(props) {
 	// Server yang memutuskan — prop ini hanya supaya petugas tahu SEBELUM mengisi, bukan lewat
 	// 403 sesudah seluruh berita acara diketik.
 	const canFinalize = props.canFinalize ?? false;
+	// Form ini mengisi SATU entri (TASK_67): `target` = sementara/final, `isEdit` = entri itu
+	// sudah ada dan sedang disunting. Tiap kejadian hanya punya satu entri per status, dan
+	// setiap perubahan tercatat di riwayatnya.
+	const target = props.target === 'final' ? 'final' : 'sementara';
+	const isEdit = props.isEdit ?? false;
 
-	const { data, setData, post, processing, errors, transform } = useForm({
-		status: 'sementara',
+	const { data, setData, post, processing, errors } = useForm({
+		status: target,
 		jenis_kejadian: p.jenis_kejadian ?? '',
 		sumber_informasi: p.sumber_informasi ?? '',
 		occurred_at: p.occurred_at ?? '',
@@ -50,15 +55,30 @@ export default function Create(props) {
 		volume_air: p.volume_air ?? '',
 		tim_atensi: p.tim_atensi ?? '',
 		kronologi: p.kronologi ?? '',
+		// `id` = korban yang sama disunting (atau disalin dari entri status lain berikut KTP-nya);
+		// `ktp_url` = KTP yang sudah tersimpan, `remove_ktp` = minta dihapus.
 		victims: (p.victims || []).map((v) => ({
+			id: v.id ?? null,
 			nama: v.nama ?? '',
 			tanggal_lahir: v.tanggal_lahir ?? '',
 			alamat: v.alamat ?? '',
 			kondisi: v.kondisi ?? '',
 			ktp: null,
+			ktp_url: v.ktp_url ?? null,
+			remove_ktp: false,
 		})),
 		photos: [],
+		// Foto yang sudah tersimpan dan DIPERTAHANKAN - yang dihapus dari daftar ini ikut
+		// dihapus server saat disimpan.
+		keep_photo_ids: (p.photos || []).map((ph) => ph.id),
 	});
+	const savedPhotos = (p.photos || []).filter((ph) => data.keep_photo_ids.includes(ph.id));
+	const photoCount = savedPhotos.length + data.photos.length;
+	const removeSavedPhoto = (id) =>
+		setData(
+			'keep_photo_ids',
+			data.keep_photo_ids.filter((k) => k !== id),
+		);
 
 	const [previews, setPreviews] = useState([]);
 	const previewsRef = useRef([]);
@@ -69,17 +89,32 @@ export default function Create(props) {
 	// --- Korban (dinamis) ---
 	const hasReporterData = Boolean(report.reporter_name || report.reporter_address);
 	const addVictim = () =>
-		setData('victims', [...data.victims, { nama: '', tanggal_lahir: '', alamat: '', kondisi: '', ktp: null }]);
+		setData('victims', [
+			...data.victims,
+			{
+				id: null,
+				nama: '',
+				tanggal_lahir: '',
+				alamat: '',
+				kondisi: '',
+				ktp: null,
+				ktp_url: null,
+				remove_ktp: false,
+			},
+		]);
 	// Tambah korban terisi data pelapor (nama & alamat dari laporan).
 	const addVictimFromReporter = () =>
 		setData('victims', [
 			...data.victims,
 			{
+				id: null,
 				nama: report.reporter_name || '',
 				tanggal_lahir: '',
 				alamat: report.reporter_address || '',
 				kondisi: '',
 				ktp: null,
+				ktp_url: null,
+				remove_ktp: false,
 			},
 		]);
 	const removeVictim = (i) =>
@@ -145,7 +180,7 @@ export default function Create(props) {
 		const files = Array.from(e.target.files || []);
 		if (!files.length) return;
 
-		const room = MAX_PHOTOS - data.photos.length;
+		const room = MAX_PHOTOS - photoCount;
 		const accepted = await withCompression(files.slice(0, Math.max(0, room)));
 		const combined = [...data.photos, ...accepted];
 		setData('photos', combined);
@@ -167,11 +202,10 @@ export default function Create(props) {
 		setPreviews(nextPrev);
 	};
 
-	const submitWith = (status) => {
-		transform((d) => ({ ...d, status }));
+	const submit = () => {
 		post(route('reports.resolution.store', report.id), {
 			preserveScroll: true,
-			onSuccess: () => toast.success(`Berita acara (${status}) berhasil disimpan.`),
+			onSuccess: () => toast.success(`Laporan kejadian (${target}) berhasil disimpan.`),
 			onError: () => toast.error('Periksa kembali isian Anda.'),
 		});
 	};
@@ -195,12 +229,14 @@ export default function Create(props) {
 				<Card className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
 					<CardHeader className="border-b border-border bg-transparent pb-5">
 						<CardTitle className="text-lg font-semibold text-foreground">
-							Laporan Kegiatan Penyelamatan
+							{isEdit ? 'Ubah' : 'Isi'} Laporan Kejadian {target === 'final' ? 'Final' : 'Sementara'}
 						</CardTitle>
 						<CardDescription className="mt-1 text-sm text-muted-foreground">
 							{report.title ? `${report.title} - ` : ''}
-							Isi data kejadian. Simpan sebagai <b>sementara</b> dulu; entri <b>final</b> dibuat terpisah
-							setelah investigasi{canFinalize ? '' : ' dan hanya bisa ditutup admin'}.
+							{target === 'final'
+								? 'Versi final hasil investigasi, ditutup admin. '
+								: 'Data awal dari lapangan; petugas lain boleh melengkapinya. '}
+							Tiap kejadian hanya punya satu entri {target}, dan setiap perubahan tercatat di riwayatnya.
 						</CardDescription>
 					</CardHeader>
 
@@ -499,7 +535,27 @@ export default function Create(props) {
 													Foto KTP <span className="font-normal">(opsional)</span>
 												</Label>
 												<div className="mt-1.5 grid grid-cols-3 gap-3 sm:grid-cols-4">
-													{v.ktpPreview ? (
+													{!v.ktpPreview && v.ktp_url && !v.remove_ktp ? (
+														<div className="relative flex h-24 w-full flex-col items-center justify-center rounded-md border border-border bg-card text-center text-muted-foreground">
+															<IconId className="mb-1 h-5 w-5" stroke={1.5} />
+															<a
+																href={v.ktp_url}
+																target="_blank"
+																rel="noopener noreferrer"
+																className="text-[11px] font-semibold text-info hover:underline"
+															>
+																KTP tersimpan
+															</a>
+															<button
+																type="button"
+																onClick={() => updateVictim(i, 'remove_ktp', true)}
+																className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-md border border-transparent bg-card/90 text-destructive shadow-sm transition-colors hover:border-destructive/30 hover:bg-destructive/10"
+																title="Hapus foto KTP"
+															>
+																<IconX stroke={2.5} className="h-3.5 w-3.5" />
+															</button>
+														</div>
+													) : v.ktpPreview ? (
 														<div className="group relative h-24 w-full overflow-hidden rounded-md border border-border shadow-sm">
 															<img
 																src={v.ktpPreview}
@@ -540,7 +596,7 @@ export default function Create(props) {
 							{/* --- Foto kejadian --- */}
 							<div className="border-t border-border pt-5">
 								<Label className="text-sm font-medium text-foreground/80">
-									Foto Kejadian ({data.photos.length}/{MAX_PHOTOS})
+									Foto Kejadian ({photoCount}/{MAX_PHOTOS})
 								</Label>
 								<input
 									type="file"
@@ -551,6 +607,26 @@ export default function Create(props) {
 									className="sr-only"
 								/>
 								<div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3">
+									{savedPhotos.map((ph) => (
+										<div
+											key={`saved-${ph.id}`}
+											className="group relative h-32 w-full overflow-hidden rounded-md border border-border shadow-sm"
+										>
+											<img
+												src={`/storage/${ph.path}`}
+												alt="Foto kejadian tersimpan"
+												className="h-full w-full object-cover"
+											/>
+											<button
+												type="button"
+												onClick={() => removeSavedPhoto(ph.id)}
+												className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-md border border-transparent bg-card/90 text-destructive shadow-sm backdrop-blur-sm transition-colors hover:border-destructive/30 hover:bg-destructive/10"
+												title="Hapus foto"
+											>
+												<IconX stroke={2.5} className="h-4 w-4" />
+											</button>
+										</div>
+									))}
 									{previews.map((pv, i) => (
 										<div
 											key={`ph-${i}`}
@@ -571,7 +647,7 @@ export default function Create(props) {
 											</button>
 										</div>
 									))}
-									{data.photos.length < MAX_PHOTOS && (
+									{photoCount < MAX_PHOTOS && (
 										<button
 											type="button"
 											onClick={() => fileInputPhoto.current?.click()}
@@ -585,36 +661,29 @@ export default function Create(props) {
 								<InputError message={errors.photos} className="mt-1" />
 							</div>
 
-							{/* --- Aksi simpan --- */}
+							{/* --- Aksi simpan --- SATU tombol: form ini mengisi satu entri (TASK_67). */}
 							<div className="mt-5 flex flex-col gap-3 border-t border-border pt-5 sm:flex-row">
 								<Button
 									type="button"
-									onClick={() => submitWith('sementara')}
+									onClick={submit}
 									disabled={processing || compressing > 0}
-									className="flex h-11 flex-1 items-center justify-center gap-2 rounded-md bg-warning px-6 text-sm font-semibold text-warning-foreground transition-colors hover:bg-warning/90 disabled:opacity-70"
+									className={
+										target === 'final'
+											? 'flex h-11 flex-1 items-center justify-center gap-2 rounded-md bg-success px-6 text-sm font-semibold text-success-foreground transition-colors hover:bg-success/90 disabled:opacity-70'
+											: 'flex h-11 flex-1 items-center justify-center gap-2 rounded-md bg-warning px-6 text-sm font-semibold text-warning-foreground transition-colors hover:bg-warning/90 disabled:opacity-70'
+									}
 								>
 									{processing || compressing > 0 ? (
 										<IconLoader2 className="h-5 w-5 animate-spin" />
+									) : target === 'final' ? (
+										<IconShieldCheck className="h-5 w-5" />
 									) : (
 										<IconDeviceFloppy className="h-5 w-5" />
 									)}
-									Simpan sebagai Sementara
+									{isEdit ? 'Simpan Perubahan' : 'Simpan'}{' '}
+									{target === 'final' ? 'Final' : 'Sementara'}
 								</Button>
-								{canFinalize ? (
-									<Button
-										type="button"
-										onClick={() => submitWith('final')}
-										disabled={processing || compressing > 0}
-										className="flex h-11 flex-1 items-center justify-center gap-2 rounded-md bg-success px-6 text-sm font-semibold text-success-foreground transition-colors hover:bg-success/90 disabled:opacity-70"
-									>
-										{processing || compressing > 0 ? (
-											<IconLoader2 className="h-5 w-5 animate-spin" />
-										) : (
-											<IconShieldCheck className="h-5 w-5" />
-										)}
-										Simpan sebagai Final
-									</Button>
-								) : (
+								{target === 'sementara' && !canFinalize && (
 									<p className="flex flex-1 items-center justify-center gap-2 rounded-md border border-dashed border-border bg-muted/40 px-6 text-center text-[13px] text-muted-foreground">
 										<IconShieldCheck className="h-4 w-4 shrink-0" />
 										Entri final ditutup admin.
@@ -629,4 +698,4 @@ export default function Create(props) {
 	);
 }
 
-Create.layout = (page) => <AppLayout children={page} title="Laporan Kegiatan Penyelamatan" />;
+Create.layout = (page) => <AppLayout children={page} title="Laporan Kejadian" />;

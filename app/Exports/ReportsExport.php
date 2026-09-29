@@ -49,7 +49,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
     private const HEADER_ROW = 6;
 
     /** Kolom terakhir yang dipakai tabel (disesuaikan dengan jumlah heading). */
-    private const LAST_COLUMN = 'AL';
+    private const LAST_COLUMN = 'AM';
 
     /**
      * Label status. WAJIB seiring dengan kamus kanonik di layar
@@ -66,7 +66,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
         'ditolak' => 'Ditolak',
         // Laporan ganda yang digabung ke kejadian lain (TASK_55). Nomor induknya di kolom
         // "Digabung ke", supaya rekap bisa menghitung KEJADIAN, bukan cuma laporan.
-        'digabung' => 'Digabung',
+        'digabung' => 'Laporan Sama',
     ];
 
     /**
@@ -101,6 +101,8 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
                 // Anggota regu yang tinggal di kantor (TASK_60) - nama regu dari snapshot barisnya.
                 'jagaKantor:id,report_id,regu_name,user_id',
                 'jagaKantor.user:id,name',
+                // Alpha (TASK_66) - snapshot nama & regu, tak perlu menyentuh tabel users.
+                'alphaMembers:id,report_id,regu_name,user_name',
                 'helpers:id,report_id,started_at,arrived_at,finished_at',
                 'province:code,name',
                 'city:code,name',
@@ -125,6 +127,11 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             ->when($status && $status !== 'Semua', fn ($query) => $status === 'aktif'
                 ? $query->whereIn('status', ['pending', 'handling', 'TERLAPOR'])
                 : $query->where('status', $status))
+            // Rentang tanggal laporan masuk (TASK_65). Tanggalnya tanggal WITA, sedangkan
+            // created_at tersimpan UTC (#134) - batasnya dikonversi dulu, kalau tidak laporan
+            // yang masuk jam 00.00-07.59 WITA jatuh ke hari yang salah.
+            ->when($this->rangeStart(), fn ($query, $start) => $query->where('created_at', '>=', $start))
+            ->when($this->rangeEnd(), fn ($query, $end) => $query->where('created_at', '<=', $end))
             ->latest('created_at');
     }
 
@@ -176,9 +183,10 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             'Berita Acara',
             'Taksiran Kerugian',
             'Jml. Korban',
-            'Digabung ke',
+            'Laporan Sama dengan',
             'Regu Meluncur',
             'Jaga di Kantor',
+            'Alpha (Tidak Memilih)',
         ];
     }
 
@@ -259,6 +267,12 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
                 ->sortBy('regu_name')
                 ->map(fn ($row) => (optional($row->user)->name ?: '-').' ('.$row->regu_name.')')
                 ->implode(', ') ?: '-',
+            // Anggota regu yang tak memilih Meluncur/Jaga di Kantor sampai kejadian ditutup
+            // (TASK_66). Berkas ini hanya bisa diunduh admin, sama dengan audiens data alpha.
+            $report->alphaMembers
+                ->sortBy(['regu_name', 'user_name'])
+                ->map(fn ($row) => $row->user_name.' ('.$row->regu_name.')')
+                ->implode(', ') ?: '-',
         ];
     }
 
@@ -311,9 +325,10 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             'AG' => 16,  // Berita Acara
             'AH' => 18,  // Taksiran Kerugian
             'AI' => 11,  // Jml Korban
-            'AJ' => 16,  // Digabung ke
+            'AJ' => 16,  // Laporan Sama dengan
             'AK' => 30,  // Regu Meluncur
             'AL' => 30,  // Jaga di Kantor
+            'AM' => 30,  // Alpha (Tidak Memilih)
         ];
     }
 
@@ -401,11 +416,43 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             : 'Semua Status';
 
         $summary = 'Filter Status: '.$statusLabel;
+        $summary .= '  |  Periode: '.$this->periodLabel();
         if (! empty($search)) {
             $summary .= '  |  Kata Kunci: "'.$search.'"';
         }
 
         return $summary;
+    }
+
+    /** Awal rentang (00.00 WITA tanggal `from`) dalam UTC, atau null bila tak dibatasi. */
+    private function rangeStart(): ?Carbon
+    {
+        $from = $this->filters['from'] ?? null;
+
+        return $from ? Carbon::createFromFormat('Y-m-d', $from, config('app.local_timezone'))->startOfDay()->utc() : null;
+    }
+
+    /** Akhir rentang (23.59.59 WITA tanggal `to`) dalam UTC, atau null bila tak dibatasi. */
+    private function rangeEnd(): ?Carbon
+    {
+        $to = $this->filters['to'] ?? null;
+
+        return $to ? Carbon::createFromFormat('Y-m-d', $to, config('app.local_timezone'))->endOfDay()->utc() : null;
+    }
+
+    /** Rentang tanggal untuk kop - selalu disebut, "Semua Tanggal" bila tak dibatasi. */
+    private function periodLabel(): string
+    {
+        $fmt = fn (string $date) => Carbon::createFromFormat('Y-m-d', $date)->translatedFormat('d F Y');
+        $from = $this->filters['from'] ?? null;
+        $to = $this->filters['to'] ?? null;
+
+        return match (true) {
+            $from && $to => $fmt($from).' s.d. '.$fmt($to),
+            (bool) $from => 'sejak '.$fmt($from),
+            (bool) $to => 'sampai '.$fmt($to),
+            default => 'Semua Tanggal',
+        };
     }
 
     /**
@@ -419,9 +466,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
      */
     private function reportNumber($report): string
     {
-        $year = optional($report->created_at)->format('Y') ?: Carbon::now()->format('Y');
-
-        return 'LP-'.$year.'-'.str_pad((string) $report->id, 5, '0', STR_PAD_LEFT);
+        return Report::nomorLaporan($report);
     }
 
     /**

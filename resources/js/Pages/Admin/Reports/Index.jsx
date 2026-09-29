@@ -1,3 +1,4 @@
+import DatePicker from '@/Components/DatePicker';
 import HeaderTitle from '@/Components/HeaderTitle';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
@@ -132,12 +133,27 @@ const markerStyle = (status) => STATUS_META[status] || STATUS_META.pending;
 // (ReportsExport::query() menerimanya apa adanya), labelnya dari FILTER_LABEL supaya tak ada
 // kamus status ketiga. 'Semua' sengaja di urutan pertama & jadi pilihan awal.
 const EXPORT_OPTIONS = ['Semua', 'aktif', ...LEGEND_STATUSES];
-const EXPORT_LABEL = { ...FILTER_LABEL, Semua: 'Semua Laporan', aktif: 'Darurat Aktif (belum selesai)' };
+// 'digabung' berbunyi "Laporan Sama" DI POP-UP INI SAJA (permintaan user TASK_64) - chip filter &
+// lencana tetap "Digabung", jadi label STATUS_META sengaja tidak disentuh. Sejalan dengan
+// ReportsExport::STATUS_LABELS supaya pilihan di pop-up = tulisan di berkasnya.
+const EXPORT_LABEL = {
+	...FILTER_LABEL,
+	Semua: 'Semua Laporan',
+	aktif: 'Darurat Aktif (belum selesai)',
+	digabung: 'Laporan Sama',
+};
 
 function ExportDialog({ open, onOpenChange, search }) {
 	const [status, setStatus] = useState('Semua');
 	const [useSearch, setUseSearch] = useState(false);
+	// Rentang tanggal laporan masuk (TASK_65), string 'YYYY-MM-DD' dari DatePicker. Kosong =
+	// tak dibatasi di sisi itu. Tanggal WITA - server yang mengonversinya ke UTC.
+	const [from, setFrom] = useState('');
+	const [to, setTo] = useState('');
 	const keyword = (search ?? '').trim();
+	// String 'YYYY-MM-DD' bisa dibandingkan langsung. Rentang terbalik ditahan di sini karena
+	// tautan unduhan yang ditolak server hanya memantulkan halaman tanpa pesan apa pun.
+	const rangeInvalid = Boolean(from && to && to < from);
 
 	// Tiap pop-up dibuka mulai dari keadaan bersih - pilihan unduhan sebelumnya tak boleh
 	// terbawa diam-diam ke unduhan berikutnya (bentuk yang sama dengan bug yang diperbaiki).
@@ -145,12 +161,16 @@ function ExportDialog({ open, onOpenChange, search }) {
 		if (open) {
 			setStatus('Semua');
 			setUseSearch(false);
+			setFrom('');
+			setTo('');
 		}
 	}, [open]);
 
 	const href = route('admin.reports.export', {
 		status,
 		...(useSearch && keyword ? { search: keyword } : {}),
+		...(from ? { from } : {}),
+		...(to ? { to } : {}),
 	});
 
 	return (
@@ -175,6 +195,28 @@ function ExportDialog({ open, onOpenChange, search }) {
 						</Label>
 					))}
 				</RadioGroup>
+				<div className="space-y-2">
+					<Label className="text-sm font-semibold">Rentang tanggal laporan masuk</Label>
+					<div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+						<div className="space-y-1">
+							<Label htmlFor="export-from" className="text-xs font-normal text-muted-foreground">
+								Dari tanggal
+							</Label>
+							<DatePicker id="export-from" value={from} onChange={setFrom} placeholder="Awal" />
+						</div>
+						<div className="space-y-1">
+							<Label htmlFor="export-to" className="text-xs font-normal text-muted-foreground">
+								Sampai tanggal
+							</Label>
+							<DatePicker id="export-to" value={to} onChange={setTo} placeholder="Akhir" />
+						</div>
+					</div>
+					{rangeInvalid ? (
+						<p className="text-xs text-destructive">Tanggal akhir tidak boleh sebelum tanggal awal.</p>
+					) : (
+						<p className="text-xs text-muted-foreground">Kosongkan untuk mengunduh semua tanggal.</p>
+					)}
+				</div>
 				{keyword && (
 					<Label
 						htmlFor="export-search"
@@ -194,8 +236,13 @@ function ExportDialog({ open, onOpenChange, search }) {
 						Batal
 					</Button>
 					{/* <a>, bukan <Link> Inertia - ini unduhan berkas. */}
-					<Button asChild>
-						<a href={href} onClick={() => onOpenChange(false)}>
+					<Button asChild disabled={rangeInvalid}>
+						<a
+							href={rangeInvalid ? undefined : href}
+							aria-disabled={rangeInvalid}
+							className="aria-disabled:pointer-events-none aria-disabled:opacity-50"
+							onClick={() => onOpenChange(false)}
+						>
 							<IconFileSpreadsheet className="mr-1.5 h-4 w-4" /> Unduh
 						</a>
 					</Button>

@@ -10,6 +10,7 @@ use App\Models\Agency;
 use App\Models\Regu;
 use App\Models\Report;
 use App\Models\ReportAgency;
+use App\Models\ReportAlpha;
 use App\Models\ReportJagaKantor;
 use App\Models\ReportResolution;
 use App\Models\Tenant;
@@ -392,19 +393,33 @@ class ReportController extends Controller
             ->map(fn ($points) => $points->map(fn ($p) => ['lat' => (float) $p->lat, 'lng' => (float) $p->lng])->values());
 
         [$reguRoster, $myRegu, $canStayAtBase] = $this->reguManifest($report, $user, $isStaff || $isPejabat);
+        // Alpha (TASK_66): anggota regu yang tak memilih Meluncur/Jaga di Kantor sampai kejadian
+        // ditutup. DATA INTERNAL - admin/superadmin saja (keputusan user), bukan petugas/pejabat.
+        $alphaMembers = $isVerifier
+            ? ReportAlpha::where('report_id', $report->id)->orderBy('regu_name')->orderBy('user_name')
+                ->get(['regu_name', 'user_name'])
+                ->groupBy('regu_name')
+                ->map(fn ($rows, $regu) => ['regu' => $regu, 'names' => $rows->pluck('user_name')->values()])
+                ->values()
+            : [];
 
-        // Berita Acara / Laporan Kegiatan Penyelamatan (FINDINGS #39) — staf saja.
-        // Append-only: banyak entri (sementara/final), terbaru dulu. KTP korban TIDAK
+        // Berita Acara / Laporan Kejadian (FINDINGS #39) — staf saja. Sejak TASK_67 satu entri
+        // AKTIF per status (yang terbaru, `is_active`), bisa disunting & berriwayat; entri lama
+        // dari masa append-only ikut dikirim sebagai arsip. Terbaru dulu. KTP korban TIDAK
         // dikirim sebagai path (PII); hanya URL route bergerbang saat foto tersedia.
         $resolutions = [];
         if ($isStaff || $isPejabat) {
-            $resolutions = ReportResolution::with(['victims', 'photos', 'creator:id,name'])
+            $rows = ReportResolution::with(['victims', 'photos', 'creator:id,name', 'logs' => fn ($q) => $q->latest('id')])
                 ->where('report_id', $report->id)
                 ->latest('id')
-                ->get()
+                ->get();
+            $activeIds = $rows->groupBy('status')->map(fn ($group) => $group->max('id'))->values()->all();
+
+            $resolutions = $rows
                 ->map(fn ($r) => [
                     'id' => $r->id,
                     'status' => $r->status,
+                    'is_active' => in_array($r->id, $activeIds, true),
                     'jenis_kejadian' => $r->jenis_kejadian,
                     'sumber_informasi' => $r->sumber_informasi,
                     'occurred_at' => $r->occurred_at,
@@ -431,7 +446,18 @@ class ReportController extends Controller
                         'id' => $p->id,
                         'path' => $p->path,
                     ])->values(),
-                ]);
+                    'pdf_url' => route('reports.resolution.pdf', [$report->id, $r->id]),
+                    // Riwayat perubahan (TASK_67), terbaru dulu.
+                    'logs' => $r->logs->map(fn ($log) => [
+                        'id' => $log->id,
+                        'user_name' => $log->user_name,
+                        'user_role' => $log->user_role,
+                        'action' => $log->action,
+                        'changes' => $log->changes ?? [],
+                        'created_at' => $log->created_at,
+                    ])->values(),
+                ])
+                ->values();
         }
 
         return inertia('Front/Reports/Show', [
@@ -442,6 +468,8 @@ class ReportController extends Controller
             'canManageUnits' => $canManageUnits,
             'resolutions' => $resolutions,
             'canManageResolution' => $isStaff,
+            // Entri FINAL diisi/disunting/dihapus admin saja (ReportResolutionController::canFinalize).
+            'canFinalizeResolution' => $isVerifier,
             // Pejabat boleh MELIHAT berita acara (read-only), tapi tidak mengelola.
             'canViewResolution' => $isStaff || $isPejabat,
             // OPD terkait (TASK_27)
@@ -469,6 +497,7 @@ class ReportController extends Controller
             'reguRoster' => $reguRoster,
             'myRegu' => $myRegu,
             'canStayAtBase' => $canStayAtBase,
+            'alphaMembers' => $alphaMembers,
         ]);
     }
 

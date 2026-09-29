@@ -335,8 +335,8 @@ export default function PetugasDashboard({
 			{pendingResolutions.length > 0 && (
 				<AppSection title="Menunggu Berita Acara" icon={IconFileText} count={pendingResolutions.length}>
 					<p className="px-1 pt-2.5 text-xs text-muted-foreground md:pt-0 md:text-sm">
-						Insiden sudah selesai ditangani, tetapi Laporan Kegiatan Penyelamatan belum dibuat. Isi entri
-						sementaranya di sini; entri final ditutup admin.
+						Insiden sudah selesai ditangani, tetapi Laporan Kejadian belum dibuat. Isi entri sementaranya di
+						sini; entri final ditutup admin.
 					</p>
 					<AppList className="md:border-warning/30">
 						{pendingResolutions.map((item) => (

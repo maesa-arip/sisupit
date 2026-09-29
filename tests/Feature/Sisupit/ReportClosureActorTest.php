@@ -138,5 +138,6 @@ it('keeps the export headings, row values, and column widths the same length', f
     expect(count($row))->toBe(count($headings));
     expect(count($widths))->toBe(count($headings));
     // AI -> AJ: "Digabung ke" (TASK_55). AJ -> AK: "Regu Meluncur", AK -> AL: "Jaga di Kantor" (TASK_60).
-    expect(array_key_last($widths))->toBe('AL');
+    // AL -> AM: "Alpha (Tidak Memilih)" (TASK_66).
+    expect(array_key_last($widths))->toBe('AM');
 });

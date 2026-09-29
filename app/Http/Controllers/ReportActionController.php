@@ -13,6 +13,7 @@ use App\Models\Agency;
 use App\Models\Regu;
 use App\Models\Report;
 use App\Models\ReportAgency;
+use App\Models\ReportAlpha;
 use App\Models\ReportJagaKantor;
 use App\Models\ReportUnit;
 use App\Models\Setting; // <-- Wajib ditambahkan
@@ -293,7 +294,7 @@ class ReportActionController extends Controller
     }
 
     // 2. Saat Relawan / Petugas merespons panggilan (Tombol "Meluncur")
-    public function takeAction($id)
+    public function takeAction(Request $request, $id)
     {
         $user = auth()->user();
         if (! $user->hasAnyRole(['petugas', 'relawan'])) {
@@ -333,7 +334,11 @@ class ReportActionController extends Controller
         // viewer lain memuat ulang manifes + marker peta secara real-time.
         $rosterChanged = false;
 
-        DB::transaction(function () use ($report, $user, $table, $timeColumn, $reguColumns, &$becameHandling, &$rosterChanged) {
+        // Posisi saat tombol ditekan (TASK_66) - titik berangkat, terpisah dari posisi terkini.
+        $click = $this->clickLocation($request);
+        $startColumns = ['start_lat' => $click['lat'], 'start_lng' => $click['lng'], 'start_accuracy_m' => $click['accuracy_m']];
+
+        DB::transaction(function () use ($report, $user, $table, $timeColumn, $reguColumns, $startColumns, &$becameHandling, &$rosterChanged) {
             // Mencegah Double Insert
             $exists = DB::table($table)->where('report_id', $report->id)->where('user_id', $user->id)->lockForUpdate()->exists();
 
@@ -342,6 +347,7 @@ class ReportActionController extends Controller
                     'report_id' => $report->id,
                     'user_id' => $user->id,
                     ...$reguColumns,
+                    ...$startColumns,
                     'status' => 'en_route',
                     $timeColumn => now(),
                     'created_at' => now(),
@@ -421,7 +427,7 @@ class ReportActionController extends Controller
     // 2b-2. Anggota regu memilih TINGGAL di kantor untuk kejadian ini (Tombol "Jaga di Kantor",
     // TASK_60). Keputusan user: TEPAT SATU orang per regu per kejadian, siapa pun yang lebih dulu
     // menekannya. Petugas saja, dan hanya yang beregu - tanpa regu tak ada yang "ditinggal jaga".
-    public function stayAtBase($id)
+    public function stayAtBase(Request $request, $id)
     {
         $user = auth()->user();
         if (! $user->hasRole('petugas')) {
@@ -460,6 +466,8 @@ class ReportActionController extends Controller
                 'regu_id' => $regu->id,
                 'regu_name' => $regu->name,
                 'user_id' => $user->id,
+                // Posisi saat tombol ditekan (TASK_66).
+                ...$this->clickLocation($request),
             ]);
         } catch (UniqueConstraintViolationException) {
             return back()->withErrors($penuh);
@@ -800,6 +808,34 @@ class ReportActionController extends Controller
         return $attached;
     }
 
+    /**
+     * Koordinat perangkat saat tombol Meluncur / Jaga di Kantor ditekan (TASK_66). SENGAJA
+     * tidak lewat validate(): lokasi hanya pelengkap, dan nilai yang rusak/di luar jangkauan
+     * tak boleh menggagalkan tombol darurat - ia dibuang jadi kosong. Klien lama yang tak
+     * mengirimnya pun tercatat kosong.
+     *
+     * @return array{lat: ?float, lng: ?float, accuracy_m: ?int}
+     */
+    private function clickLocation(Request $request): array
+    {
+        $lat = $request->input('lat');
+        $lng = $request->input('lng');
+        $valid = is_numeric($lat) && is_numeric($lng)
+            && abs((float) $lat) <= 90 && abs((float) $lng) <= 180;
+
+        if (! $valid) {
+            return ['lat' => null, 'lng' => null, 'accuracy_m' => null];
+        }
+
+        $accuracy = $request->input('accuracy');
+
+        return [
+            'lat' => round((float) $lat, 8),
+            'lng' => round((float) $lng, 8),
+            'accuracy_m' => is_numeric($accuracy) && $accuracy >= 0 ? (int) min(round((float) $accuracy), 4294967295) : null,
+        ];
+    }
+
     // 3. Saat Relawan/Petugas Tiba di Lokasi
     public function arrive($id)
     {
@@ -825,13 +861,13 @@ class ReportActionController extends Controller
         // menutup UPDATE 0-baris diam-diam bila pemanggil bukan responder insiden ini, dan
         // membuat responder yang sudah meluncur tetap bisa menuntaskan misinya walau kode
         // wilayahnya berubah/berbeda dari kelurahan insiden.
-        $isEnRoute = DB::table($table)
+        $myRow = DB::table($table)
             ->where('report_id', $report->id)
             ->where('user_id', $user->id)
             ->where('status', 'en_route')
-            ->exists();
+            ->first();
 
-        if (! $isEnRoute) {
+        if (! $myRow) {
             abort(403, 'Hanya responder yang masih "Meluncur" di insiden ini yang bisa menandai Tiba.');
         }
 
@@ -840,9 +876,18 @@ class ReportActionController extends Controller
         $isFirstArrival = ! DB::table('report_officers')->where('report_id', $report->id)->where('status', 'arrived')->exists()
             && ! DB::table('report_helpers')->where('report_id', $report->id)->where('status', 'arrived')->exists();
 
-        DB::table($table)
+        // Satu anggota menekan Tiba = SEREGU tiba (TASK_66, permintaan user): regu berangkat
+        // dalam satu kendaraan. Yang ikut ditandai hanya anggota regu yang SAMA (dicocokkan
+        // lewat snapshot regu_id di baris responder, bukan keanggotaan hari ini) dan masih
+        // "Meluncur" - yang Jaga di Kantor atau belum menekan Meluncur tidak ikut, keputusan user.
+        $reguId = $table === 'report_officers' ? ($myRow->regu_id ?? null) : null;
+
+        $arrivedCount = DB::table($table)
             ->where('report_id', $report->id)
-            ->where('user_id', $user->id)
+            ->where('status', 'en_route')
+            ->when($reguId,
+                fn ($query) => $query->where('regu_id', $reguId),
+                fn ($query) => $query->where('user_id', $user->id))
             ->update([
                 'status' => 'arrived',
                 'arrived_at' => now(),
@@ -856,7 +901,9 @@ class ReportActionController extends Controller
         // Status responder berubah (Meluncur → Tiba) → perbarui manifes di viewer lain.
         broadcast(new ResponderRosterChanged($report->id));
 
-        return back()->with('success', 'Status Anda berhasil diupdate menjadi Tiba.');
+        return back()->with('success', $reguId && $arrivedCount > 1
+            ? "Regu {$myRow->regu_name} ({$arrivedCount} orang) ditandai Tiba."
+            : 'Status Anda berhasil diupdate menjadi Tiba.');
     }
 
     // 4. Saat Petugas Menyatakan Insiden Selesai
@@ -887,6 +934,10 @@ class ReportActionController extends Controller
                 'resolved_by' => $actorId,
                 'resolved_at' => now(),
             ]);
+
+            // Anggota regu yang tak memilih Meluncur/Jaga di Kantor sampai ditutup = alpha
+            // (TASK_66, data internal admin). Dicatat SEBELUM baris responder diubah.
+            ReportAlpha::recordFor($report);
 
             // Tandai semua relawan & petugas yang berpartisipasi menjadi selesai
             DB::table('report_officers')->where('report_id', $report->id)->update(['status' => 'finished', 'finished_at' => now()]);

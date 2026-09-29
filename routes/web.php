@@ -322,6 +322,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/reports/{report}/resolution', [ReportResolutionController::class, 'store'])->name('reports.resolution.store');
     Route::delete('/reports/{report}/resolution/{resolution}', [ReportResolutionController::class, 'destroy'])->name('reports.resolution.destroy');
     Route::get('/reports/{report}/victims/{victim}/ktp', [ReportResolutionController::class, 'ktp'])->name('reports.resolution.ktp');
+    // PDF Laporan Kejadian (TASK_68) - gerbang BACA yang sama dengan halaman detail (staf + pejabat).
+    Route::get('/reports/{report}/resolution/{resolution}/pdf', [ReportResolutionController::class, 'pdf'])->name('reports.resolution.pdf');
 });
 
 Route::middleware(['auth', 'verified'])->controller(UserController::class)->group(function () {

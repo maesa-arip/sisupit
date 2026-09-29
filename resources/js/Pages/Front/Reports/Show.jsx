@@ -13,10 +13,12 @@ import { Head, Link, router } from '@inertiajs/react';
 import {
 	IconAlertCircle,
 	IconArrowBackUp,
+	IconBrandWhatsapp,
 	IconBuilding,
 	IconBuildingCommunity,
 	IconCheck,
 	IconChevronLeft,
+	IconDownload,
 	IconFileText,
 	IconFiretruck,
 	IconFlag,
@@ -24,6 +26,7 @@ import {
 	IconLoader2,
 	IconMap,
 	IconMapPin,
+	IconPencil,
 	IconPhone,
 	IconPlus,
 	IconRadar,
@@ -78,6 +81,31 @@ function animateMarkerTo(marker, to, duration = 1500) {
 	};
 	marker._moveRaf = requestAnimationFrame(tick);
 }
+
+// Posisi perangkat saat tombol Meluncur / Jaga di Kantor ditekan (TASK_66). Ditunggu SEBENTAR
+// lalu tombol tetap jalan tanpa lokasi - aksi darurat tak boleh tertahan GPS. Penjaga waktu
+// kedua ada karena getCurrentPosition bisa tak pernah memanggil balik selama prompt izin
+// lokasi WebView belum dijawab.
+const getClickLocation = () =>
+	new Promise((resolve) => {
+		if (typeof navigator === 'undefined' || !navigator.geolocation) return resolve({});
+		const guard = setTimeout(() => resolve({}), 4000);
+		navigator.geolocation.getCurrentPosition(
+			(pos) => {
+				clearTimeout(guard);
+				resolve({
+					lat: pos.coords.latitude,
+					lng: pos.coords.longitude,
+					accuracy: Math.round(pos.coords.accuracy),
+				});
+			},
+			() => {
+				clearTimeout(guard);
+				resolve({});
+			},
+			{ enableHighAccuracy: true, timeout: 3000, maximumAge: 30000 },
+		);
+	});
 
 export default function ReportShow(props) {
 	const auth = props.auth;
@@ -216,6 +244,22 @@ export default function ReportShow(props) {
 	// Petugas di wilayah laporan yang melihat laporan mentah: ia BUKAN pemverifikasi, jadi
 	// yang ditampilkan bukan tombol melainkan keadaan "sedang ditunggu".
 	const isAwaitingAdmin = isStaffOrAdmin && !canVerify;
+	// Nomor pelapor untuk tombol Telepon & WhatsApp di panel verifikasi (TASK_65). wa.me
+	// menuntut format internasional tanpa '+'/'0' di depan (08xx -> 628xx), pola yang sama
+	// dengan Volunteers/Show.jsx. Pesan pembukanya sudah menyebut nomor laporan supaya
+	// pelapor tahu laporan mana yang sedang dikonfirmasi.
+	const reporterPhone = (() => {
+		const digits = String(report.phone ?? '').replace(/\D/g, '');
+		if (!digits) return {};
+		const wa = digits.startsWith('0') ? '62' + digits.slice(1) : digits;
+		const text = `Halo, kami dari Pusat Komando Damkar. Kami ingin mengonfirmasi laporan ${reportNumber(report)}${
+			report.title ? ` "${report.title}"` : ''
+		} yang Anda kirim lewat Sisupit.`;
+		return {
+			tel: String(report.phone).replace(/[^\d+]/g, ''),
+			whatsapp: `https://wa.me/${wa}?text=${encodeURIComponent(text)}`,
+		};
+	})();
 	// Laporan ganda (TASK_55). Gerbang aksinya prop SERVER dengan alasan yang sama dengan
 	// `canVerify` di atas. `duplicateCandidate` = usulan mesin atas laporan mentah ini,
 	// `mergedReports` = laporan lain yang sudah digabung KE insiden ini, `mergedIncident` =
@@ -233,6 +277,10 @@ export default function ReportShow(props) {
 	const reguRoster = props.reguRoster || [];
 	const myRegu = props.myRegu || null;
 	const canStayAtBase = props.canStayAtBase || false;
+	// Entri FINAL Laporan Kejadian = admin saja (TASK_67) - prop server, bukan peran di JSX.
+	const canFinalizeResolution = props.canFinalizeResolution || false;
+	// Alpha per regu (TASK_66) - kosong bagi selain admin/superadmin.
+	const alphaMembers = props.alphaMembers || [];
 	const reguKeyOf = (o) => (o.regu_id ? `id:${o.regu_id}` : o.regu_name ? `nama:${o.regu_name}` : null);
 	// Insiden yang sedang berjalan di alur respons: bukan laporan mentah, bukan yang ditolak,
 	// dan bukan laporan ganda yang sudah digabung - responder yang meluncur ke laporan anak tak
@@ -282,6 +330,7 @@ export default function ReportShow(props) {
 				'reguRoster',
 				'myRegu',
 				'canStayAtBase',
+				'alphaMembers',
 			],
 		});
 	};
@@ -472,33 +521,27 @@ export default function ReportShow(props) {
 		);
 	};
 
-	const handleTakeAction = () => {
+	const handleTakeAction = async () => {
 		setIsActionLoading(true);
-		router.post(
-			route('reports.take-action', report.id),
-			{},
-			{
-				preserveScroll: true,
-				onSuccess: () => toast.success('Meluncur ke lokasi.'),
-				onFinish: () => setIsActionLoading(false),
-			},
-		);
+		const location = await getClickLocation();
+		router.post(route('reports.take-action', report.id), location, {
+			preserveScroll: true,
+			onSuccess: () => toast.success('Meluncur ke lokasi.'),
+			onFinish: () => setIsActionLoading(false),
+		});
 	};
 
 	// Pilihan kedua anggota regu (TASK_60): tinggal di kantor. Tepat satu per regu per kejadian;
 	// yang kalah cepat menerima galat `jaga_kantor` dari server, jadi ditampilkan sebagai toast.
-	const handleStayAtBase = () => {
+	const handleStayAtBase = async () => {
 		setIsActionLoading(true);
-		router.post(
-			route('reports.stay-at-base', report.id),
-			{},
-			{
-				preserveScroll: true,
-				onSuccess: () => toast.success('Anda tercatat Jaga di Kantor.'),
-				onError: (errors) => toast.error(errors.jaga_kantor || 'Gagal mencatat Jaga di Kantor.'),
-				onFinish: () => setIsActionLoading(false),
-			},
-		);
+		const location = await getClickLocation();
+		router.post(route('reports.stay-at-base', report.id), location, {
+			preserveScroll: true,
+			onSuccess: () => toast.success('Anda tercatat Jaga di Kantor.'),
+			onError: (errors) => toast.error(errors.jaga_kantor || 'Gagal mencatat Jaga di Kantor.'),
+			onFinish: () => setIsActionLoading(false),
+		});
 	};
 
 	const handleCancelStay = () => {
@@ -518,7 +561,14 @@ export default function ReportShow(props) {
 			{},
 			{
 				preserveScroll: true,
-				onSuccess: () => toast.success('Status diperbarui: Tiba di lokasi.'),
+				// Satu ketukan menandai SEREGU tiba (TASK_66) - toast menyebutnya supaya anggota lain
+				// tak perlu menekan lagi.
+				onSuccess: () =>
+					toast.success(
+						myRecord?.regu_id
+							? 'Tiba di lokasi. Anggota regu yang meluncur ikut ditandai tiba.'
+							: 'Status diperbarui: Tiba di lokasi.',
+					),
 				onFinish: () => setIsActionLoading(false),
 			},
 		);
@@ -552,7 +602,7 @@ export default function ReportShow(props) {
 					// acara agar petugas tak perlu mencarinya lagi. Hanya untuk staf berwenang.
 					if (canManageResolution) {
 						toast.success('Insiden dinyatakan selesai.', {
-							description: 'Lengkapi Laporan Kegiatan Penyelamatan.',
+							description: 'Lengkapi Laporan Kejadian.',
 							duration: 8000,
 							action: {
 								label: 'Isi Sekarang',
@@ -1310,12 +1360,32 @@ export default function ReportShow(props) {
 							<div>
 								<h3 className="text-sm font-bold text-foreground">Verifikasi Laporan Masuk</h3>
 								<p className="mt-1 max-w-xl text-xs leading-relaxed text-muted-foreground">
-									Laporan ini belum divalidasi. Periksa bukti atau hubungi pelapor di{' '}
-									<b>
-										<a href={`tel:${report.phone}`}>{report.phone}</a>
-									</b>{' '}
+									Laporan ini belum divalidasi. Periksa bukti atau hubungi pelapor
+									{report.phone ? (
+										<>
+											{' '}
+											di <b>{report.phone}</b>
+										</>
+									) : null}{' '}
 									sebelum menugaskan armada.
 								</p>
+								{/* Konfirmasi ke pelapor: telepon biasa ATAU WhatsApp (permintaan user
+								    TASK_65) - di lapangan pelapor sering lebih cepat membalas WA daripada
+								    mengangkat telepon, dan pesan WA bisa membawa foto lokasi tambahan. */}
+								{reporterPhone.tel && (
+									<div className="mt-3 flex flex-wrap gap-2">
+										<Button asChild variant="outline" size="sm" className="h-9">
+											<a href={`tel:${reporterPhone.tel}`}>
+												<IconPhone className="mr-1.5 h-4 w-4" /> Telepon
+											</a>
+										</Button>
+										<Button asChild variant="outline" size="sm" className="h-9">
+											<a href={reporterPhone.whatsapp} target="_blank" rel="noopener noreferrer">
+												<IconBrandWhatsapp className="mr-1.5 h-4 w-4" /> WhatsApp
+											</a>
+										</Button>
+									</div>
+								)}
 								{/* Titik yang belum bisa dipercaya diangkat DI SINI, bukan cuma di kartu
 								    alamat jauh di bawah: begitu Broadcast ditekan, sirine berbunyi di
 								    seluruh wilayah dan tim berangkat ke koordinat ini. Ini gerbang
@@ -2143,6 +2213,20 @@ export default function ReportShow(props) {
 								<div className="p-4 text-center text-xs text-muted-foreground">-</div>
 							)}
 
+							{/* Alpha (TASK_66): anggota regu yang tak memilih Meluncur/Jaga di Kantor sampai
+							    kejadian ditutup. Data internal - server hanya mengirimnya ke admin. */}
+							{alphaMembers.length > 0 && (
+								<div className="space-y-1 p-3.5 text-[11px] leading-relaxed">
+									<div className="font-bold uppercase text-destructive">Alpha (tidak memilih)</div>
+									{alphaMembers.map((row) => (
+										<div key={row.regu} className="text-muted-foreground">
+											<span className="font-semibold text-foreground">{row.regu}:</span>{' '}
+											{row.names.join(', ')}
+										</div>
+									))}
+								</div>
+							)}
+
 							<div className="flex items-center gap-2 bg-muted p-3 text-xs font-bold uppercase text-muted-foreground">
 								<IconUsersGroup className="h-4 w-4" /> Relawan Sipil
 							</div>
@@ -2180,22 +2264,48 @@ export default function ReportShow(props) {
 							<CardContent className="space-y-3 p-4 sm:p-5">
 								<div className="flex items-center justify-between gap-2">
 									<h2 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-foreground">
-										<IconFileText className="h-4 w-4 text-info" /> Laporan Kegiatan Penyelamatan
+										<IconFileText className="h-4 w-4 text-info" /> Laporan Kejadian
 									</h2>
 									{canManageResolution && (
-										<Link
-											href={route('reports.resolution.create', report.id)}
-											className="inline-flex items-center gap-1 rounded-lg bg-info px-2.5 py-1.5 text-xs font-bold text-info-foreground shadow-none transition-colors hover:bg-info/90"
-										>
-											<IconPlus className="h-3.5 w-3.5" /> Buat
-										</Link>
+										<div className="flex flex-wrap justify-end gap-1.5">
+											{/* SATU entri per status (TASK_67): tombol mengisi atau menyunting entri itu. */}
+											{[
+												['sementara', true],
+												['final', canFinalizeResolution],
+											]
+												.filter(([, allowed]) => allowed)
+												.map(([status]) => {
+													const exists = resolutions.some(
+														(r) => r.is_active && r.status === status,
+													);
+													return (
+														<Link
+															key={status}
+															href={route('reports.resolution.create', {
+																report: report.id,
+																status,
+															})}
+															className="inline-flex items-center gap-1 rounded-lg bg-info px-2.5 py-1.5 text-xs font-bold text-info-foreground shadow-none transition-colors hover:bg-info/90"
+														>
+															{exists ? (
+																<IconPencil className="h-3.5 w-3.5" />
+															) : (
+																<IconPlus className="h-3.5 w-3.5" />
+															)}
+															{exists ? 'Ubah' : 'Isi'}{' '}
+															{status === 'final' ? 'Final' : 'Sementara'}
+														</Link>
+													);
+												})}
+										</div>
 									)}
 								</div>
 
 								{canManageResolution && (
 									<p className="text-[11px] leading-relaxed text-muted-foreground">
-										Data awal diisi sebagai <b>sementara</b>; setelah investigasi, buat entri{' '}
-										<b>final</b> baru (tidak menimpa yang lama) agar bisa dibandingkan.
+										Tiap kejadian punya satu entri <b>sementara</b> (petugas boleh melengkapinya)
+										dan satu entri <b>final</b> (ditutup admin). Setiap perubahan tercatat di
+										riwayatnya.
 									</p>
 								)}
 
@@ -2209,7 +2319,7 @@ export default function ReportShow(props) {
 									<div className="space-y-3">
 										{resolutions.map((r) => (
 											<div key={r.id} className="rounded-lg border border-border bg-muted/40 p-3">
-												<div className="flex items-center justify-between gap-2">
+												<div className="flex items-center gap-2">
 													<Badge
 														className={cn(
 															'rounded-md border px-2 py-0.5 text-xs font-semibold shadow-none',
@@ -2219,21 +2329,30 @@ export default function ReportShow(props) {
 														)}
 													>
 														{r.status === 'final' ? 'Final' : 'Sementara'}
+														{r.is_active ? '' : ' - Arsip'}
 													</Badge>
-													{canManageResolution && (
-														<button
-															type="button"
-															onClick={() => setResolutionToDelete(r.id)}
-															className="text-muted-foreground transition-colors hover:text-destructive"
-															aria-label="Hapus entri"
-														>
-															<IconTrash className="h-4 w-4" />
-														</button>
-													)}
+													{/* PDF Laporan Kejadian (TASK_68) - URL dari server, <a> biasa karena ini unduhan. */}
+													<a
+														href={r.pdf_url}
+														className="ml-auto inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[11px] font-semibold text-foreground transition-colors hover:bg-accent"
+													>
+														<IconDownload className="h-3.5 w-3.5" /> PDF
+													</a>
+													{canManageResolution &&
+														(r.status !== 'final' || canFinalizeResolution) && (
+															<button
+																type="button"
+																onClick={() => setResolutionToDelete(r.id)}
+																className="text-muted-foreground transition-colors hover:text-destructive"
+																aria-label="Hapus entri"
+															>
+																<IconTrash className="h-4 w-4" />
+															</button>
+														)}
 												</div>
 
 												<div className="mt-1 text-[10px] text-muted-foreground">
-													{r.creator ? `${r.creator} · ` : ''}
+													{r.creator ? `Dibuat ${r.creator} · ` : ''}
 													{fmtDateTime(r.created_at)}
 												</div>
 
@@ -2391,6 +2510,58 @@ export default function ReportShow(props) {
 															))}
 														</div>
 													</div>
+												)}
+
+												{/* Riwayat perubahan (TASK_67): siapa mengubah apa, terbaru dulu. */}
+												{r.logs?.some((log) => log.action === 'diubah') && (
+													<details className="mt-2 border-t border-border pt-2">
+														<summary className="cursor-pointer text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+															Riwayat perubahan (
+															{r.logs.filter((log) => log.action === 'diubah').length})
+														</summary>
+														<div className="mt-1.5 space-y-2">
+															{r.logs
+																.filter((log) => log.action === 'diubah')
+																.map((log) => (
+																	<div
+																		key={log.id}
+																		className="text-[11px] leading-relaxed"
+																	>
+																		<div className="text-muted-foreground">
+																			<span className="font-semibold text-foreground">
+																				{log.user_name}
+																			</span>
+																			{log.user_role ? ` (${log.user_role})` : ''}{' '}
+																			· {fmtDateTime(log.created_at)}
+																		</div>
+																		{log.changes.map((c, idx) => (
+																			<div
+																				key={idx}
+																				className="pl-2 text-foreground"
+																			>
+																				<span className="font-semibold">
+																					{c.label}:
+																				</span>{' '}
+																				{c.old !== null &&
+																				c.old !== undefined ? (
+																					<>
+																						<span className="text-muted-foreground line-through">
+																							{c.old}
+																						</span>{' '}
+																						&rarr;{' '}
+																					</>
+																				) : null}
+																				{c.new ?? (
+																					<i className="text-muted-foreground">
+																						dikosongkan
+																					</i>
+																				)}
+																			</div>
+																		))}
+																	</div>
+																))}
+														</div>
+													</details>
 												)}
 											</div>
 										))}

@@ -187,7 +187,7 @@ export function buildNavSections({ auth, url = '' }) {
 						// admin mengelola semua regu - satu halaman, hak tombolnya dari server.
 						isStaff && {
 							key: 'regu',
-							title: 'Regu & Danru',
+							title: 'Manajemen Regu',
 							icon: IconShieldHalf,
 							url: route('regu.index'),
 							active: startsWith('/regu'),

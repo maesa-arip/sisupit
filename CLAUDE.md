@@ -27,7 +27,19 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : DUA PELONGGARAN SEMENTARA (#149). SELESAI & TERDEPLOY 2026-09-29 @28f7ad4c ke dev ->
+Task aktif   : 11 PERMINTAAN USER 2026-09-29 -> TASK_64..68. SELESAI (kode) 2026-09-30, BELUM di-commit &
+                BELUM dideploy. TASK_64 teks: menu "Manajemen Regu", "Laporan Kejadian", "Laporan Sama" (pop-up
+                & berkas Export SAJA - chip/lencana tetap "Digabung"). TASK_65: tombol Telepon + WhatsApp di
+                panel verifikasi admin; rentang tanggal (WITA, inklusif) di Export; "Atur Anggota" bergulir
+                sendiri + dialog meminta APK mematikan tarik-untuk-refresh (AKARNYA SwipeRefreshLayout APK) ->
+                APK 1.1.4/vc6 DIBANGUN (bridge setPullToRefreshEnabled), BELUM diterbitkan ke public/apk.
+                TASK_66 (migrasi): koordinat saat Meluncur/Jaga di Kantor, Tiba = seregu yang sudah meluncur,
+                alpha dicatat saat ditutup (admin saja; regu yang nihil tanggapan tak dihitung). TASK_67
+                (migrasi): 1 entri sementara + 1 final, bisa disunting, riwayat report_resolution_logs, hapus
+                final = admin. TASK_68: PDF dompdf (DEPENDENSI BARU -> deploy WAJIB composer install), tanpa
+                KTP. Test 583 -> 610 passed (2918). DEPLOY = kode + composer install + php artisan migrate
+                (2 migrasi aditif) + build. Rincian di prompt/tasks/TASK_64..68.
+               DUA PELONGGARAN SEMENTARA (#149). SELESAI & TERDEPLOY 2026-09-29 @28f7ad4c ke dev ->
                 staging -> prod (git pull + chown; tanpa migrasi/route). (a) Menu "Jangkauan Petugas"
                 (/admin/notifikasi-petugas) disembunyikan lewat SHOW_NOTIFY_LEVEL_MENU=false di navItems.js -
                 route, gerbang & plafon tersimpan TETAP berlaku, URL langsung masih terbuka. (b) Foto laporan
@@ -2514,6 +2526,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + #146 pencarian Atur Anggota /regu = 576 passed, 2622 assertions.
             + #147 limiter laporan & batas 2 MB per foto = 583 passed, 2690 assertions.
             + #149 foto non-kebakaran opsional (test dibalik, bukan ditambah) = 583 passed, 2695 assertions.
+            + TASK_64..68 (2026-09-30) = 610 passed, 2918 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)
