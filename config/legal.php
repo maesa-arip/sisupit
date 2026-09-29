@@ -51,7 +51,7 @@ return [
         // 2.1 = klausul Forum Warga di bagian 8 (TASK_54). Tanggal berlakunya WAJIB disesuaikan
         // dengan tanggal deploy & ditinjau pihak hukum penyedia sebelum forum dinyalakan.
         'syarat_versi' => env('LEGAL_SYARAT_VERSI', '2.1'),
-        'syarat_berlaku' => env('LEGAL_SYARAT_BERLAKU', '2026-09-14'),
+        'syarat_berlaku' => env('LEGAL_SYARAT_BERLAKU', '2026-09-29'),
         'privasi_versi' => env('LEGAL_PRIVASI_VERSI', '1.0'),
         'privasi_berlaku' => env('LEGAL_PRIVASI_BERLAKU', '2026-08-04'),
     ],

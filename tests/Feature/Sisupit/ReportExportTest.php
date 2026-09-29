@@ -190,3 +190,20 @@ it('uses the same status wording as the verification screen', function () {
     expect($cells)->toContain('Laporan Masuk');
     expect($cells)->not->toContain('Terlapor (Belum Divalidasi)');
 });
+
+// FINDINGS #134: rekap dikirim ke pimpinan, jadi jamnya harus jam dinding (WITA) - dulu
+// dicetak UTC, 8 jam lebih awal dari layar, di bawah kop yang menulis "WITA".
+it('prints times in the local timezone instead of UTC', function () {
+    config(['app.local_timezone' => 'Asia/Makassar']);
+    $admin = User::factory()->create(['province_code' => '51']);
+    $admin->assignRole('admin');
+
+    $report = makeReport(['province_code' => '51', 'status' => 'resolved']);
+    $report->forceFill(['created_at' => '2026-09-28 22:57:00', 'resolved_at' => '2026-09-28 23:30:00'])->saveQuietly();
+
+    $cells = exportedCells($this->actingAs($admin)->get('/admin/reports/export'));
+
+    expect($cells)->toContain('29-09-2026 06:57');
+    expect($cells)->toContain('29-09-2026 07:30');
+    expect($cells)->not->toContain('28-09-2026 22:57');
+});

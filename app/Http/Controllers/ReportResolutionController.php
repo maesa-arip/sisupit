@@ -7,6 +7,7 @@ use App\Models\Report;
 use App\Models\ReportResolution;
 use App\Models\ReportVictim;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -85,7 +86,7 @@ class ReportResolutionController extends Controller
         $prefill = $latest ? [
             'jenis_kejadian' => $latest->jenis_kejadian ?: $report->title,
             'sumber_informasi' => $latest->sumber_informasi ?: $sumberInformasi,
-            'occurred_at' => optional($latest->occurred_at)->format('Y-m-d\TH:i'),
+            'occurred_at' => $this->toLocalInput($latest->occurred_at),
             'lokasi_alamat' => $latest->lokasi_alamat,
             'kelurahan' => $latest->kelurahan,
             'kecamatan' => $latest->kecamatan,
@@ -107,7 +108,7 @@ class ReportResolutionController extends Controller
             'lokasi_alamat' => $report->alamatTampil(),
             'kelurahan' => optional($report->village)->name,
             'kecamatan' => optional($report->district)->name,
-            'occurred_at' => optional($report->created_at)->format('Y-m-d\TH:i'),
+            'occurred_at' => $this->toLocalInput($report->created_at),
             'tim_atensi' => $timAtensi,
             'victims' => [],
         ];
@@ -178,7 +179,7 @@ class ReportResolutionController extends Controller
                 'status' => $validated['status'],
                 'jenis_kejadian' => $validated['jenis_kejadian'] ?? null,
                 'sumber_informasi' => $validated['sumber_informasi'] ?? null,
-                'occurred_at' => $validated['occurred_at'] ?? null,
+                'occurred_at' => $this->fromLocalInput($validated['occurred_at'] ?? null),
                 'lokasi_alamat' => $validated['lokasi_alamat'] ?? null,
                 'kelurahan' => $validated['kelurahan'] ?? null,
                 'kecamatan' => $validated['kecamatan'] ?? null,
@@ -285,6 +286,29 @@ class ReportResolutionController extends Controller
     private function canFinalize(): bool
     {
         return auth()->user()->hasAnyRole(['admin', 'superadmin']);
+    }
+
+    /**
+     * "Waktu Kejadian" untuk isian form: jam DINDING pengguna (WITA), bukan UTC.
+     *
+     * Isian tanggal+jam itu tak membawa zona waktu, jadi apa pun yang dikirim ke sini dibaca
+     * mentah oleh petugas. Dulu created_at dicetak dalam zona aplikasi (UTC): laporan yang
+     * masuk 06:57 WITA muncul di form sebagai 22:57 HARI SEBELUMNYA (temuan #134).
+     */
+    private function toLocalInput($value): ?string
+    {
+        return $value ? Carbon::parse($value)->setTimezone(config('app.local_timezone'))->format('Y-m-d\TH:i') : null;
+    }
+
+    /**
+     * Kebalikan toLocalInput(): jam yang DIKETIK petugas adalah jam dinding (WITA) dan wajib
+     * diubah ke UTC sebelum disimpan, seperti setiap timestamp lain di DB. Tanpa ini jam itu
+     * tersimpan seolah UTC lalu browser menambah 8 jam saat menampilkannya - petugas menulis
+     * 02:45, halaman detail berbunyi 10:45 (#134).
+     */
+    private function fromLocalInput(?string $value): ?Carbon
+    {
+        return $value ? Carbon::parse($value, config('app.local_timezone'))->utc() : null;
     }
 
     /**

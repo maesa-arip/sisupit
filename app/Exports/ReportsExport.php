@@ -209,7 +209,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             $this->rowNumber,
             $report->id,
             $this->reportNumber($report),
-            optional($report->created_at)->format('d-m-Y H:i'),
+            $this->localTime($report->created_at),
             self::INCIDENT_TYPE_LABELS[$report->incident_type] ?? '-',
             $report->title,
             $report->description,
@@ -225,14 +225,14 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             self::STATUS_LABELS[$report->status] ?? $report->status,
             $this->rejectionSummary($report),
             optional($report->rejector)->name ?: '-',
-            optional($respondedAt)->format('d-m-Y H:i') ?: '-',
-            optional($arrivedAt)->format('d-m-Y H:i') ?: '-',
-            optional($finishedAt)->format('d-m-Y H:i') ?: '-',
+            $this->localTime($respondedAt),
+            $this->localTime($arrivedAt),
+            $this->localTime($finishedAt),
             // "Ditutup Oleh"/"Waktu Ditutup" BUKAN pengulangan "Jam Selesai" di sebelahnya:
             // yang itu diturunkan dari finished_at responder terakhir, dua kolom ini adalah
             // saat Pusat Komando menyatakan insiden ditutup - keduanya bisa berjarak jauh.
             optional($report->resolver)->name ?: '-',
-            optional($report->resolved_at)->format('d-m-Y H:i') ?: '-',
+            $this->localTime($report->resolved_at),
             $this->humanDuration($report->created_at, $arrivedAt),
             $this->humanDuration($arrivedAt, $finishedAt),
             $report->officers->count(),
@@ -336,7 +336,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
                 $sheet->setCellValue('A1', 'PUSAT KOMANDO SISUPIT DAMKAR');
                 $sheet->setCellValue('A2', 'Laporan Data Kejadian Kebakaran & Kedaruratan');
                 $sheet->setCellValue('A3', $this->filterSummary());
-                $sheet->setCellValue('A4', 'Dicetak pada: '.Carbon::now()->translatedFormat('d F Y H:i').' WITA');
+                $sheet->setCellValue('A4', 'Dicetak pada: '.Carbon::now(config('app.local_timezone'))->translatedFormat('d F Y H:i').' WITA');
 
                 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
                 $sheet->getStyle('A2')->getFont()->setBold(true)->setSize(12);
@@ -435,7 +435,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
         }
 
         $reason = trim((string) $report->rejected_reason) ?: 'Tanpa alasan tertulis';
-        $at = $report->rejected_at ? Carbon::parse($report->rejected_at)->format('d-m-Y H:i') : null;
+        $at = $report->rejected_at ? $this->localTime($report->rejected_at) : null;
 
         return $at ? $reason.' ('.$at.')' : $reason;
     }
@@ -462,7 +462,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
                 return $label.': menunggu';
             }
 
-            return $label.': sudah - '.Carbon::parse($row->confirmed_at)->format('d-m-Y H:i');
+            return $label.': sudah - '.$this->localTime($row->confirmed_at);
         })->implode('; ');
     }
 
@@ -503,6 +503,17 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             ->filter()
             ->map(fn ($value) => $value instanceof Carbon ? $value : Carbon::parse($value))
             ->values();
+    }
+
+    /**
+     * Jam untuk dibaca MANUSIA di berkas ini: WITA, bukan UTC tempat DB menyimpannya.
+     * Dulu setiap kolom jam dicetak dalam zona aplikasi (UTC), jadi rekap yang dikirim ke
+     * pimpinan 8 jam lebih awal dari layar - sementara kop berkasnya menulis "WITA" (#134).
+     * Mengembalikan "-" bila waktunya belum ada.
+     */
+    private function localTime($value): string
+    {
+        return $value ? Carbon::parse($value)->setTimezone(config('app.local_timezone'))->format('d-m-Y H:i') : '-';
     }
 
     /**

@@ -3266,6 +3266,35 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   halaman barunya dan tidak menyentuh halaman lama.
 - **Status:** OPEN
 
+### #130 — Siaran Reverb yang gagal membuat laporan yang SUDAH TERSIMPAN berbunyi gagal: warga mengirim ulang, satu kebakaran jadi beberapa laporan (PARTIAL: store/update FIXED, 31 titik lain OPEN)
+
+- **Prioritas:** P1 (di produksi: Reverb mati sebentar = setiap laporan darurat tampak gagal).
+- **Ditemukan:** 2026-09-22, dilaporkan user saat uji lokal: "kirim laporan error ... Pusher error:
+  404 Not Found ... Apache/2.4.52 (Ubuntu) Server at localhost Port 8080".
+- **Pemicu lokal (bukan bug kode):** `.env` lokal menaruh Reverb di 8080, padahal port itu dipegang
+  container Docker `sisupit-nominatim` (`NOMINATIM_BASE_URL=http://127.0.0.1:8080`). Halaman 404
+  Apache itu milik Nominatim; Reverb tak berjalan sama sekali. Dibetulkan di `.env` lokal:
+  `REVERB_PORT=8090` + `REVERB_SERVER_PORT=8090` (tanpa yang kedua, `reverb:start` tetap
+  mencoba mengikat 8080).
+- **Bug kodenya:** seluruh event laporan `ShouldBroadcastNow`, jadi Reverb ditembak DI DALAM
+  request. `ReportController::store()` memanggil `broadcast(ReportFeedChanged...)` SESUDAH laporan
+  tersimpan & notifikasi Pusat Komando diantrekan; lemparannya jatuh ke `catch` besar yang
+  berbunyi "Terjadi kesalahan" lalu memantulkan warga ke form. Dibuktikan di DB lokal: laporan
+  #143/#144/#145 (judul sama, dua menit) dari tiga percobaan yang "gagal" - masing-masing juga
+  sudah membangunkan Pusat Komando. Notifikasi sendiri aman (`EmergencyAlertNotification` =
+  `ShouldQueue`).
+- **FIX (2026-09-22):** `broadcast()` di `store()` & `update()` dibungkus `try/catch` +
+  `report($e)` - pola yang sama dengan deteksi duplikat TASK_55 di method itu. Aba-aba dashboard
+  boleh hilang; laporan yang sudah masuk tidak boleh berbunyi gagal. Penjaga:
+  `ReportBroadcastFailureTest` (2 test, driver broadcaster yang SELALU melempar
+  BroadcastException); keduanya dibuktikan MERAH terhadap berkas lama, berkas pulih (`cmp`).
+- **MASIH OPEN:** 31 titik `broadcast()` lain berbentuk sama - `ReportActionController` (approve,
+  reject, gabung, take-action, resolve, dst.; TANPA try/catch sama sekali, jadi 500 sesudah
+  status tertulis) dan `ReportResolutionController` (2). Sengaja tidak dikerjakan (cakupan yang
+  disetujui user: store & update). Perbaikan yang layak dipertimbangkan: satu jalur siaran
+  bersama (helper/decorator broadcaster) alih-alih 33 try/catch.
+- **Status:** PARTIAL
+
 ### #131 — Popup kejadian di Peta Pemantauan menyisipkan teks WARGA mentah ke HTML: stored XSS ke layar staf (FIXED)
 
 - **Prioritas:** P1 (keamanan). Penulisnya warga mana pun yang login; korbannya admin/petugas/
@@ -3307,4 +3336,106 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   dibuktikan MERAH, pulih byte-exact. BATASNYA: template TANPA tag (mis. `labelText` di
   UserLeafletMap, dirangkai lalu disisipkan) tidak dipindai - isinya sudah di-escape dan namanya
   ada di daftar izin; jangan menambah data mentah ke sana.
+- **Status:** FIXED
+
+### #132 — Upload foto dijawab "413 Request Entity Too Large": tiga lapis batas ukuran tidak sejalan (FIXED)
+
+- **Prioritas:** P1 (di produksi hampir SETIAP upload foto ponsel gagal: laporan darurat, berita
+  acara, KTP profil).
+- **Ditemukan:** 2026-09-28, dilaporkan user: "saat upload gambar, muncul error saat klik simpan
+  413 entity too large".
+- **Dibuktikan dari luar** (POST berbagai ukuran ke `/login`, ditolak sebelum menyentuh
+  controller; halaman 413 Nginx vs "Content Too Large" Laravel membedakan lapisnya):
+  | Lapis | Produksi | Staging/dev | Aplikasi menuntut |
+  |---|---|---|---|
+  | Nginx `client_max_body_size` | **1 MB (bawaan)** | 25 MB | 6 x 4 MB laporan |
+  | PHP-FPM `post_max_size` (satu pool, bersama) | **8 MB** | 8 MB | |
+  | PHP-FPM `upload_max_filesize` | **2 MB** | 2 MB | 4-5 MB per berkas |
+  | Laravel | laporan `max:4096` x6; berita acara `max:5120` x **tak terbatas** | | |
+- **Akar:** (1) situs Nginx prod dibuat TANGAN lewat Certbot sebelum `deploy/nginx-env.conf.template`
+  ada, jadi baris 25M di template tak pernah sampai ke sana - staging/dev lolos karena lahir dari
+  template; (2) php.ini FPM tak pernah disetel sama sekali (bawaan Ubuntu); (3) form mengirim foto
+  kamera 3-8 MB apa adanya - tak ada kompresi di klien; (4) jumlah foto berita acara tak dibatasi
+  server (klien 8). Bahkan di staging/dev, foto >2 MB gagal di PHP sebelum soal 413.
+- **FIX SERVER (2026-09-28, langsung di VPS, cadangan `/root/backup-uploadlimit-20260928-153843`):**
+  Nginx prod `client_max_body_size 32M` (staging/dev 25M -> 32M, seragam); PHP-FPM lewat berkas
+  BARU `/etc/php/8.2/fpm/conf.d/99-upload-limits.ini` (php.ini TIDAK disunting):
+  `upload_max_filesize = 10M`, `post_max_size = 30M`. Pool FPM `www` satu untuk semua situs di
+  server (termasuk banjar-app) - menaikkan batas tak merugikan mereka. URUTAN WAJIB:
+  Nginx (32M) >= post_max_size (30M) >= upload_max_filesize (10M) >= validasi Laravel - dengan
+  urutan ini kiriman kebesaran ditolak LARAVEL (halaman JSON/HTML yang bisa ditangani), bukan
+  Nginx. Diverifikasi ulang dari luar di ketiga env: 24 MB lolos, 31 MB -> 413 Laravel, 34 MB ->
+  413 Nginx; `php-fpm8.2 -i` = 10M/30M.
+- **FIX REPO:** (a) `resources/js/lib/compress-image.js` BARU - sisi terpanjang 1920 px, JPEG 0,8,
+  EXIF ditegakkan, latar putih untuk PNG transparan, FAIL-OPEN ke berkas asli, berurutan (bukan
+  Promise.all - memori WebView). Dipakai KEDELAPAN input gambar: lapor, edit laporan, berita acara
+  (foto + KTP korban), KTP profil, avatar admin Users Create/Edit, foto pejabat Tenants.
+  Tombol simpan DITAHAN selama kompresi - tanpa itu foto yang baru dipilih belum masuk `data`
+  saat pengguna langsung mengetuk Kirim dan laporan terkirim tanpa foto, tanpa galat. Di berita
+  acara `setVictimKtp` jadi bentuk FUNGSIONAL `setData(prev => ...)` (closure basi setelah
+  `await` menimpa isian korban yang diketik selama kompresi) dan penandanya PENGHITUNG, bukan
+  boolean. (b) `photos` berita acara `max:8` di server (= MAX_PHOTOS form). (c) 413 ditangkap
+  di `app.jsx` lewat `router.on('invalid')` -> toast; di klien karena `ValidatePostSize`
+  berjalan SEBELUM session dimulai sehingga `back()->with()` tak bisa membawa pesan.
+  (d) Template Nginx repo 25M -> 32M.
+- **FilePond SENGAJA TIDAK dipakai** (usulan user, dibahas): FilePond sendirian tak menyelesaikan
+  413; manfaat utamanya (resize di klien) didapat helper di atas tanpa dependensi baru, sedangkan
+  mode upload asinkronnya menuntut endpoint upload-sementara + pembersihan berkas yatim + permukaan
+  otorisasi baru + uji ulang input file di WebView APK (pelajaran #108). Layak jadi task sendiri
+  bila kelak butuh progress per berkas.
+- **Penjaga:** `UploadSizeLimitTest` (4 test): batas foto berita acara ditarik dari JSX lalu diadu
+  lewat POST sungguhan; setiap input `accept="image/..."` wajib memanggil kompresor; 413 -> toast;
+  template Nginx muat laporan terbesar (jumlah x ukuran ditarik dari ReportRequest). KEEMPATNYA
+  dibuktikan MERAH lewat sabotase (terpasang dicek `cmp`), pulih byte-exact.
+- **SISA:** uji di APK/ponsel sungguhan (foto kamera, termasuk HEIC di iPhone - bila browser tak
+  bisa mendekode, fail-open mengirim aslinya); deploy frontend.
+- **Status:** FIXED (server live 2026-09-28; frontend belum dideploy)
+
+### #133 — Kartu "Relawan Standby" menghitung petugas: dashboard admin berbunyi 98, daftarnya 13 (FIXED)
+
+- **Prioritas:** P2 (angka di layar Pusat Komando menyatakan hal yang salah tentang kesiapan relawan).
+- **Ditemukan:** 2026-09-29, dilaporkan user: "admin denpasar login, di dashboard muncul daftar
+  relawan standby 98 orang, tapi saat klik muncul hanya 13 orang".
+- **Dibuktikan di DB produksi (SELECT saja):** kota 5171 punya 85 petugas (semuanya
+  `is_standby`=1) + 17 relawan (13 siaga). 98 = 85 + 13, persis. Daftar 13 BENAR.
+- **Akar:** `DashboardController::index` menghitung `User::role(['relawan','petugas'])` dengan
+  komentar "petugas selalu dianggap siaga", sedangkan kartu berlabel "Relawan Standby" dan
+  tautannya `front.volunteers.index?status=siaga` (RelawanController) hanya memuat peran relawan.
+  Dua query untuk satu kartu, masing-masing benar menurut dirinya sendiri.
+- **FIX (pilihan user: "relawan saja"):** kartu = `User::role('relawan')->where('is_standby', true)`
+  + saringan wilayah yang sama. Jumlah petugas tidak lagi tampil di kartu ini.
+- **Penjaga:** `DashboardStandbyCountTest` mengadu angka kartu dengan `volunteers.total` daftar
+  tujuannya lewat dua request sungguhan. Dibuktikan MERAH dengan query lama (5 vs 2) - sabotase
+  pertama sempat merah karena galat sintaks (`$q` terinterpolasi perl, pelajaran TASK_56), diulang
+  dengan penggantian literal; pulih byte-exact.
+- **Ikutan, TIDAK dikerjakan:** relawan siaga id 27 di prod tanpa `city_code` - tak muncul di daftar
+  admin wilayah mana pun (hanya superadmin). Daftar relawan memakai `scopeIsAdmin` (kolom mentah
+  akun) sedangkan dashboard memakai wilayah efektif TASK_63; untuk admin keduanya sama, jadi tidak
+  bergejala, tapi dua rumus untuk satu hal.
+- **Status:** FIXED (kode; belum dideploy - server saja, tanpa build/migrasi)
+
+### #134 — Jam Berita Acara selisih 8 jam dari jam laporan: form & Export Excel mencetak UTC (FIXED)
+
+- **Prioritas:** P1 (dokumen resmi berita acara & rekap pimpinan memuat jam yang salah).
+- **Ditemukan:** 2026-09-29, dilaporkan user: "ada info jam tidak sesuai lapor jam berapa dan
+  dicatat jam berapa".
+- **Dibuktikan di DB produksi:** server/PHP/MySQL/APP_TIMEZONE semuanya UTC, pengguna WITA (+8).
+  `created_at` benar (UTC, browser mengubahnya). `report_resolutions.occurred_at` rusak lewat DUA
+  jalur yang saling berlawanan: (1) prefill `ReportResolutionController::create` mencetak
+  `created_at` dalam UTC tanpa konversi - laporan #203 masuk 06:57 WITA, form menawarkan 22:57
+  HARI SEBELUMNYA; (2) jam yang DIKETIK petugas (WITA) disimpan mentah seolah UTC lalu browser
+  menambah 8 jam - laporan #202 masuk 02:44, petugas menulis 02:45, detail berbunyi 10:45.
+  Dari 5 BA prod: 2 hasil prefill (tersimpan UTC, tampil benar tapi form salah), 3 diketik
+  (tampil +8 jam). Export Excel ikut mencetak semua jam dalam UTC di bawah kop bertulisan "WITA".
+- **FIX:** penyimpanan TETAP UTC (mengganti APP_TIMEZONE akan menggeser setiap jam lama).
+  Kunci baru `config('app.local_timezone')` (env APP_LOCAL_TIMEZONE, bawaan Asia/Makassar)
+  dipakai hanya di TEPI: `toLocalInput()`/`fromLocalInput()` di ReportResolutionController dan
+  `localTime()` + kop "Dicetak pada" di ReportsExport.
+- **Data prod dibetulkan 2026-09-29** atas persetujuan user: BA 7, 8, 12 dikurangi 8 jam
+  (update bersyarat nilai lama, 3 baris). Cadangan tabel `/root/backup-jamba-20260929-012848`.
+- **Penjaga:** 2 test di ReportResolutionTest (prefill WITA; ketik WITA -> DB UTC -> form kembali
+  sama) + 1 di ReportExportTest. Ketiganya dibuktikan MERAH lewat sabotase (dicek `cmp`), pulih
+  byte-exact.
+- **Sisa pola yang sama, TIDAK dikerjakan:** `ReportResource` memformat `created_at` di server,
+  tapi kelas itu tak dipakai di mana pun.
 - **Status:** FIXED

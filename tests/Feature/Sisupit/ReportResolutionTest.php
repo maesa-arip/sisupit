@@ -308,3 +308,43 @@ it('tells the form who is allowed to finalise', function () {
         ->get("/reports/{$this->report->id}/resolution/create")
         ->assertInertia(fn ($page) => $page->where('canFinalize', true));
 });
+
+// FINDINGS #134: DB menyimpan UTC, petugas membaca & mengetik jam WITA. Isian tanggal+jam
+// tak membawa zona waktu, jadi server wajib menerjemahkannya di KEDUA arah - dulu laporan
+// yang masuk 06:57 WITA muncul di form sebagai 22:57 hari sebelumnya, dan jam 02:45 yang
+// diketik petugas tampil di halaman detail sebagai 10:45.
+it('prefills the incident time in local wall-clock time, not UTC', function () {
+    config(['app.local_timezone' => 'Asia/Makassar']);
+    $this->report->forceFill(['created_at' => '2026-09-28 22:57:53'])->saveQuietly();
+
+    $petugas = User::factory()->create(['village_code' => '5171012006']);
+    $petugas->assignRole('petugas');
+
+    $props = $this->actingAs($petugas)
+        ->get("/reports/{$this->report->id}/resolution/create")
+        ->original->getData()['page']['props'];
+
+    expect($props['prefill']['occurred_at'])->toBe('2026-09-29T06:57');
+});
+
+it('stores a typed local incident time as UTC and shows it back unchanged in the form', function () {
+    config(['app.local_timezone' => 'Asia/Makassar']);
+
+    $petugas = User::factory()->create(['village_code' => '5171012006']);
+    $petugas->assignRole('petugas');
+
+    $this->actingAs($petugas)->post("/reports/{$this->report->id}/resolution", [
+        'status' => 'sementara',
+        'occurred_at' => '2026-09-29T02:45',
+    ])->assertRedirect();
+
+    $raw = \Illuminate\Support\Facades\DB::table('report_resolutions')
+        ->where('report_id', $this->report->id)->value('occurred_at');
+    expect($raw)->toStartWith('2026-09-28 18:45');
+
+    $props = $this->actingAs($petugas)
+        ->get("/reports/{$this->report->id}/resolution/create")
+        ->original->getData()['page']['props'];
+
+    expect($props['prefill']['occurred_at'])->toBe('2026-09-29T02:45');
+});

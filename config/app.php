@@ -67,6 +67,13 @@ return [
 
     'timezone' => env('APP_TIMEZONE', 'UTC'),
 
+    // Zona waktu JAM DINDING pengguna (WITA untuk Bali). `timezone` di atas SENGAJA tetap
+    // UTC: seluruh timestamp di DB tersimpan UTC, dan mengganti nilainya menggeser setiap
+    // jam lama 8 jam. Kunci ini dipakai hanya di tepi - saat server MENCETAK jam ke manusia
+    // (Export Excel, isian form) atau MENERIMA jam yang diketik manusia (isian berita acara).
+    // Browser tak butuh ini: ia menerima ISO ber-"Z" lalu mengubahnya sendiri.
+    'local_timezone' => env('APP_LOCAL_TIMEZONE', 'Asia/Makassar'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration
