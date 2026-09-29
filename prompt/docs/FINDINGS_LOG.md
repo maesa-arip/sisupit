@@ -3526,10 +3526,14 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   (prod/staging/dev) bisa dicoba login dari mana saja; aplikasi sendiri terhubung lewat localhost.
 - **Usulan:** `ufw delete allow 3306/tcp` (dan periksa `bind-address` MySQL) kecuali ada layanan luar
   yang memang butuh akses langsung - keputusan user.
+- **Keputusan user 2026-09-29:** port 3306 SENGAJA masih dibuka dan akan DITUTUP SENDIRI oleh user.
+  Jangan ditutup oleh sesi mana pun tanpa diminta; cukup ingatkan bila relevan.
 - **Catatan SSH 2026-09-29 (bukan temuan aplikasi):** koneksi SSH dari IP kerja 103.110.184.30 di-reset
   tepat sesudah KEXINIT selama >1 jam sesudah banyak koneksi beruntun, dengan password MAUPUN kunci.
   sshd TIDAK mencatat apa pun (`journalctl -u ssh` kosong) dan ufw/iptables tak punya aturan limit/IP
   -> pemblokiran ada DI LUAR VPS (jaringan/firewall penyedia). Password auth tetap aktif
-  (50-cloud-init.conf = yes). Kunci deploy ed25519 `sisupit-deploy@NBRSBM174-20260929` dipasang di
+  (50-cloud-init.conf = yes). Diperiksa sesudah pulih (05:46 UTC): nft hanya berisi aturan bawaan
+  ufw/Docker, tak ada blocklist IP; monarx-agent = pemindai malware Hostinger, bukan firewall; user
+  memastikan tak ada firewall di panel. Blokir pulih sendiri ~3,5 jam. Kunci deploy ed25519 `sisupit-deploy@NBRSBM174-20260929` dipasang di
   /root/.ssh/authorized_keys.
 - **Status:** OPEN
