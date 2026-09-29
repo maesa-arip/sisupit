@@ -27,7 +27,13 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : "TOO MANY CONNECTION" SAAT ADMIN LAPOR = 429 LIMITER LAPORAN (#147). SELESAI & TERDEPLOY 2026-09-29
+Task aktif   : DUA PELONGGARAN SEMENTARA (#149). SELESAI & TERDEPLOY 2026-09-29 @28f7ad4c ke dev ->
+                staging -> prod (git pull + chown; tanpa migrasi/route). (a) Menu "Jangkauan Petugas"
+                (/admin/notifikasi-petugas) disembunyikan lewat SHOW_NOTIFY_LEVEL_MENU=false di navItems.js -
+                route, gerbang & plafon tersimpan TETAP berlaku, URL langsung masih terbuka. (b) Foto laporan
+                NON-kebakaran ('lainnya') kini OPSIONAL; deskripsi & patokan TETAP wajib. Penjaga dibalik di
+                ReportMultiPhotoTest. Keduanya SEMENTARA - cara mengembalikan ada di FINDINGS_LOG #149.
+               "TOO MANY CONNECTION" SAAT ADMIN LAPOR = 429 LIMITER LAPORAN (#147). SELESAI & TERDEPLOY 2026-09-29
                 @de8857d3 ke dev -> staging -> prod (ikut naik: #145 & #146). Tanpa migrasi; route cache
                 dibangun ulang; cadangan DB /root/backup-predeploy-20260929-1444*; 0 ERROR sesudahnya.
                 Bukan MySQL (0 connection error, puncak 11/150). Kiriman admin ditolak validasi TANPA pesan,
@@ -2507,6 +2513,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + #145 pop-up ponsel berjarak & membulat = 575 passed, 2615 assertions.
             + #146 pencarian Atur Anggota /regu = 576 passed, 2622 assertions.
             + #147 limiter laporan & batas 2 MB per foto = 583 passed, 2690 assertions.
+            + #149 foto non-kebakaran opsional (test dibalik, bukan ditambah) = 583 passed, 2695 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)
