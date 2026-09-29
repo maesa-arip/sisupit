@@ -27,7 +27,14 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : COMBOBOX DI PONSEL (#144). SELESAI & TERDEPLOY 2026-09-29 @18a335de ke dev -> staging -> prod.
+Task aktif   : POP-UP DI PONSEL TAK LAGI MENEMPEL TEPI (#145). SELESAI (kode) 2026-09-29, BELUM dideploy.
+                User: "semua pop up di mobile jangan ada yang full kanan kiri, harus tetap ada space sehingga
+                tetap ada roundednya". Akar di primitif DialogContent & AlertDialogContent (w-full, baru
+                membulat mulai sm:). Kini w-[calc(100%-2rem)] + rounded-xl di semua ukuran; tambalan di kedua
+                berkas Forum dicabut (persetujuan user). Pemanggil cukup atur max-w-*, JANGAN w-full/
+                rounded-none. Penjaga DialogMobileMarginTest (3, MERAH lewat sabotase). Frontend saja.
+                SISA: cek visual di ponsel/APK, deploy (git pull + chown).
+               COMBOBOX DI PONSEL (#144). SELESAI & TERDEPLOY 2026-09-29 @18a335de ke dev -> staging -> prod.
                 Membuka ui/combobox di ponsel memfokuskan kolom cari -> keyboard muncul, popover berbalik ke
                 atas & terpotong di balik bilah notifikasi. Kini fokus otomatis dilewati di pointer: coarse
                 dan PopoverContent dibatasi --radix-popover-content-available-height. Berlaku ke SEMUA
@@ -2484,6 +2491,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + #142 akun buatan admin terverifikasi + pilih peran di form = 569 passed, 2578 assertions.
             + #143 combobox bercari (Danru /regu + 4 dropdown) & rincian calon danru = 570 passed, 2601 assertions.
             + #144 combobox ponsel tanpa fokus otomatis & tinggi dibatasi layar = 572 passed, 2604 assertions.
+            + #145 pop-up ponsel berjarak & membulat = 575 passed, 2615 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

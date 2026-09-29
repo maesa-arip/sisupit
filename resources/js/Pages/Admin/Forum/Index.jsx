@@ -221,7 +221,7 @@ export default function Index({ tab, items, counts }) {
 			</div>
 
 			<Dialog open={Boolean(hideTarget)} onOpenChange={(open) => !open && closeHide()}>
-				<DialogContent className="max-w-[calc(100vw-2rem)] rounded-xl sm:max-w-lg">
+				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>Sembunyikan tulisan</DialogTitle>
 						<DialogDescription>

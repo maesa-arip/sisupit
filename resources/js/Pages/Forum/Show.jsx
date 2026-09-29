@@ -84,7 +84,7 @@ function ReasonDialog({ target, onClose, flagReasons }) {
 
 	return (
 		<Dialog open={Boolean(target)} onOpenChange={(open) => !open && close()}>
-			<DialogContent className="max-w-[calc(100vw-2rem)] rounded-xl sm:max-w-lg">
+			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>{isFlag ? 'Laporkan tulisan ini' : 'Sembunyikan tulisan ini'}</DialogTitle>
 					<DialogDescription>

@@ -3616,3 +3616,26 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Penjaga:** `ComboboxMobileTest` (2 test), keduanya dibuktikan MERAH lewat sabotase; berkas pulih
   byte-exact (`cmp`).
 - **Status:** FIXED 2026-09-29, commit 28643f21, TERDEPLOY 2026-09-29 @18a335de ke dev -> staging -> prod (frontend saja; `git pull` + `chown`).
+
+### #145 — Pop-up di ponsel menempel tepi kanan-kiri layar dengan sudut siku (FIXED)
+
+- **Prioritas:** P3 (rupa; tak ada data atau aksi yang rusak).
+- **Permintaan user 2026-09-29:** "untuk semua pop up di mobile jangan ada yang full kanan kiri,
+  harus tetap ada space sehingga tetap ada roundednya".
+- **Akar:** kedua primitif `Components/ui/dialog.jsx` (`DialogContent`) & `ui/alert-dialog.jsx`
+  (`AlertDialogContent`) - bawaan shadcn - ber-`w-full max-w-lg` dan baru membulat mulai
+  `sm:rounded-lg`. Di bawah 512px lebarnya = layar, jadi sudutnya siku & menempel tepi. Sebagian
+  pemanggil sudah menambalnya sendiri-sendiri (`max-w-[calc(100vw-2rem)] rounded-xl` di kedua
+  berkas Forum, `w-[95vw] rounded-xl` di DialogRelawan*) - tanda aturannya milik primitif.
+- **Fix:** kedua primitif `w-[calc(100%-2rem)]` (16px tiap sisi = padding halaman `p-4`) +
+  `rounded-xl` di SEMUA ukuran (radius kartu aplikasi). Pemanggil yang memberi `max-w-sm/md` tetap
+  berlaku di desktop. Tambalan di `Forum/Show.jsx` & `Admin/Forum/Index.jsx` dicabut (atas
+  persetujuan user). Yang sudah aman & tidak disentuh: modal buatan sendiri di halaman admin
+  (`fixed inset-0 ... p-4`), `Modal.jsx` (`px-4`), popover bilah bawah, popover/select/dropdown/
+  combobox. SENGAJA dikecualikan: mode layar penuh Peta Pemantauan (bukan pop-up) dan penampil foto
+  (latar transparan, tanpa kartu). Sheet & Drawer tak dipakai halaman mana pun.
+- **Penjaga:** `DialogMobileMarginTest` (3 test): kedua primitif wajib `w-[calc(100%-2rem)]` +
+  `rounded-xl` tanpa `w-full`/`sm:rounded-lg`, dan tak ada `DialogContent`/`AlertDialogContent` di
+  resources/js yang memberi `w-full`/`w-screen`/`rounded-none`/`max-w-none`. Ketiganya dibuktikan
+  MERAH lewat sabotase (primitif lama + `w-full` di dialog /regu); berkas pulih byte-exact (md5).
+- **Status:** FIXED 2026-09-29 (frontend saja).
