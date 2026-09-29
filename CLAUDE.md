@@ -27,7 +27,10 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : POP-UP DI PONSEL TAK LAGI MENEMPEL TEPI (#145). SELESAI (kode) 2026-09-29, BELUM dideploy.
+Task aktif   : PENCARIAN DI "ATUR ANGGOTA" /regu (#146). SELESAI (kode) 2026-09-29, BELUM dideploy.
+                Prod punya 80+ petugas. Disaring di klien; yang disimpan tetap SELURUH selectedIds (anggota
+                yang tersembunyi oleh pencarian tak boleh ikut terlepas). Penjaga 1 test di ReguTest.
+               POP-UP DI PONSEL TAK LAGI MENEMPEL TEPI (#145). SELESAI (kode) 2026-09-29, BELUM dideploy.
                 User: "semua pop up di mobile jangan ada yang full kanan kiri, harus tetap ada space sehingga
                 tetap ada roundednya". Akar di primitif DialogContent & AlertDialogContent (w-full, baru
                 membulat mulai sm:). Kini w-[calc(100%-2rem)] + rounded-xl di semua ukuran; tambalan di kedua
@@ -2492,6 +2495,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + #143 combobox bercari (Danru /regu + 4 dropdown) & rincian calon danru = 570 passed, 2601 assertions.
             + #144 combobox ponsel tanpa fokus otomatis & tinggi dibatasi layar = 572 passed, 2604 assertions.
             + #145 pop-up ponsel berjarak & membulat = 575 passed, 2615 assertions.
+            + #146 pencarian Atur Anggota /regu = 576 passed, 2622 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

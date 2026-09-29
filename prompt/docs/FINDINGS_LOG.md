@@ -3639,3 +3639,21 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   resources/js yang memberi `w-full`/`w-screen`/`rounded-none`/`max-w-none`. Ketiganya dibuktikan
   MERAH lewat sabotase (primitif lama + `w-full` di dialog /regu); berkas pulih byte-exact (md5).
 - **Status:** FIXED 2026-09-29 (frontend saja).
+
+### #146 — "Atur Anggota" /regu tanpa pencarian: di prod 80+ petugas harus digulir satu per satu (FIXED)
+
+- **Prioritas:** P3 (bisa dipakai, tapi lambat & mudah salah centang).
+- **Permintaan user 2026-09-29:** "untuk atur anggota buatkan juga fitur search nya karena di prod
+  petugas sudah sangat banyak sampai 80 lebih".
+- **Fix:** kolom cari di dialog Atur Anggota (`Pages/Regu/Index.jsx`), disaring di KLIEN atas prop
+  `candidates` yang memang sudah dikirim utuh - cocok ke nama, rincian (email/telepon/wilayah bagi
+  admin; danru hanya menerima nama) dan nama regu lain. Label menyebut "(N dipilih)", hasil kosong
+  berbunyi "Tidak ada petugas yang cocok", kolom dikosongkan tiap dialog dibuka. Tanpa fokus otomatis
+  (keyboard ponsel, pelajaran #144). Server NOL berubah.
+- **YANG MENGIKAT:** pencarian hanya menyaring TAMPILAN. Yang disimpan tetap seluruh `selectedIds` -
+  kalau yang dikirim hanya baris yang terlihat, anggota yang tersembunyi oleh pencarian ikut
+  TERLEPAS dari regu saat "Simpan Anggota", tanpa galat.
+- **Penjaga:** 1 test JSX di `ReguTest`; dua sabotase (simpan hanya yang terlihat; daftar tak
+  tersaring) dibuktikan MERAH, berkas pulih byte-exact (`cmp`). Sabotase pertama sempat LOLOS karena
+  `\b` cocok dengan `selectedIds.filter(...)` - assertion diperketat ke `{ member_ids: selectedIds }`.
+- **Status:** FIXED 2026-09-29 (frontend saja).

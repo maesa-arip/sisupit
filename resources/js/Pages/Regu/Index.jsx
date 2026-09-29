@@ -20,7 +20,7 @@ import { Label } from '@/Components/ui/label';
 import AppLayout from '@/Layouts/AppLayout';
 import { flashMessage } from '@/lib/utils';
 import { Head, router, useForm } from '@inertiajs/react';
-import { IconEdit, IconPlus, IconShieldHalf, IconTrash, IconUsers } from '@tabler/icons-react';
+import { IconEdit, IconPlus, IconSearch, IconShieldHalf, IconTrash, IconUsers } from '@tabler/icons-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -37,6 +37,7 @@ export default function Index({ regus, candidates, can }) {
 	const [selectedIds, setSelectedIds] = useState([]);
 	const [reguToDelete, setReguToDelete] = useState(null);
 	const [memberErrors, setMemberErrors] = useState({});
+	const [memberQuery, setMemberQuery] = useState('');
 
 	const form = useForm({ name: '', leader_id: '' });
 
@@ -66,6 +67,7 @@ export default function Index({ regus, candidates, can }) {
 
 	const openMembers = (regu) => {
 		setMemberErrors({});
+		setMemberQuery('');
 		setSelectedIds(regu.members.map((m) => m.id));
 		setMembersOf(regu);
 	};
@@ -102,6 +104,20 @@ export default function Index({ regus, candidates, can }) {
 	// Rincian pembeda untuk nama yang mirip. Hanya terisi bagi admin - server tidak mengirim
 	// email/telepon/wilayah ke danru (lihat ReguController::index).
 	const candidateDetail = (c) => [c.email, c.phone, c.wilayah].filter(Boolean).join(' . ');
+
+	// Pencarian di "Atur Anggota" (prod: 80+ petugas). Hanya MENYARING tampilan - centang tetap di
+	// `selectedIds`, jadi anggota yang tersembunyi oleh pencarian tidak ikut terlepas saat disimpan.
+	const memberCandidates = candidates.filter((c) => c.id !== membersOf?.leader?.id);
+	const memberNeedle = memberQuery.trim().toLowerCase();
+	const visibleMembers = memberNeedle
+		? memberCandidates.filter((c) =>
+				[c.name, candidateDetail(c), c.regu_name]
+					.filter(Boolean)
+					.join(' ')
+					.toLowerCase()
+					.includes(memberNeedle),
+			)
+		: memberCandidates;
 
 	// Calon danru: petugas yang belum beregu, atau yang sudah di regu yang sedang disunting.
 	const leaderOptions = candidates.filter((c) => !c.regu_id || (editing?.id && c.regu_id === editing.id));
@@ -282,41 +298,60 @@ export default function Index({ regus, candidates, can }) {
 						</div>
 					)}
 					<div className="space-y-1.5">
-						<Label>Pilih Anggota</Label>
-						{candidates.every((c) => c.id === membersOf?.leader?.id) && (
+						<Label>
+							Pilih Anggota{' '}
+							<span className="font-normal text-muted-foreground">
+								({selectedIds.filter((id) => id !== membersOf?.leader?.id).length} dipilih)
+							</span>
+						</Label>
+						{memberCandidates.length === 0 ? (
 							<p className="text-xs text-muted-foreground">Belum ada petugas lain di wilayah ini.</p>
+						) : (
+							<div className="relative">
+								<IconSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+								<Input
+									type="search"
+									value={memberQuery}
+									onChange={(e) => setMemberQuery(e.target.value)}
+									placeholder="Cari nama, email, telepon, atau wilayah..."
+									className="pl-9"
+								/>
+							</div>
+						)}
+						{memberNeedle && visibleMembers.length === 0 && (
+							<p className="py-2 text-center text-xs text-muted-foreground">
+								Tidak ada petugas yang cocok dengan "{memberQuery.trim()}".
+							</p>
 						)}
 						<div className="space-y-1">
-							{candidates
-								.filter((c) => c.id !== membersOf?.leader?.id)
-								.map((c) => {
-									const inOtherRegu = c.regu_id && c.regu_id !== membersOf?.id;
-									return (
-										<label
-											key={c.id}
-											className="flex min-h-[44px] items-center gap-3 rounded-lg border border-border px-3 py-2 text-sm has-[:disabled]:opacity-60"
-										>
-											<Checkbox
-												checked={selectedIds.includes(c.id)}
-												disabled={inOtherRegu}
-												onCheckedChange={() => toggleMember(c.id)}
-											/>
-											<span className="flex min-w-0 flex-1 flex-col">
-												<span className="truncate">{c.name}</span>
-												{candidateDetail(c) && (
-													<span className="truncate text-xs text-muted-foreground">
-														{candidateDetail(c)}
-													</span>
-												)}
-											</span>
-											{inOtherRegu && (
-												<span className="max-w-[40%] shrink-0 truncate text-xs text-muted-foreground">
-													{c.regu_name}
+							{visibleMembers.map((c) => {
+								const inOtherRegu = c.regu_id && c.regu_id !== membersOf?.id;
+								return (
+									<label
+										key={c.id}
+										className="flex min-h-[44px] items-center gap-3 rounded-lg border border-border px-3 py-2 text-sm has-[:disabled]:opacity-60"
+									>
+										<Checkbox
+											checked={selectedIds.includes(c.id)}
+											disabled={inOtherRegu}
+											onCheckedChange={() => toggleMember(c.id)}
+										/>
+										<span className="flex min-w-0 flex-1 flex-col">
+											<span className="truncate">{c.name}</span>
+											{candidateDetail(c) && (
+												<span className="truncate text-xs text-muted-foreground">
+													{candidateDetail(c)}
 												</span>
 											)}
-										</label>
-									);
-								})}
+										</span>
+										{inOtherRegu && (
+											<span className="max-w-[40%] shrink-0 truncate text-xs text-muted-foreground">
+												{c.regu_name}
+											</span>
+										)}
+									</label>
+								);
+							})}
 						</div>
 					</div>
 					<InputError message={memberErrors.member_ids} />

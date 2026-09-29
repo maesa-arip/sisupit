@@ -351,3 +351,15 @@ it('shows contact details of danru candidates to admins only, never to a danru',
         ->assertInertia(fn ($page) => $page->where('candidates', fn ($list) => collect($list)->isNotEmpty()
             && collect($list)->every(fn ($c) => ! array_key_exists('email', $c) && ! array_key_exists('phone', $c))));
 });
+
+it('lets the member dialog be searched without dropping members hidden by the search', function () {
+    // Prod punya 80+ petugas: "Atur Anggota" wajib bisa dicari. Pencarian hanya menyaring TAMPILAN -
+    // yang disimpan tetap seluruh `selectedIds`, kalau tidak anggota yang tersembunyi ikut terlepas.
+    $source = preg_replace(['~/\*.*?\*/~s', '~^\s*//.*$~m', '~\{/\*.*?\*/\}~s'], '', file_get_contents(resource_path('js/Pages/Regu/Index.jsx')));
+
+    expect($source)->toMatch('/value=\{memberQuery\}\s+onChange=\{\(e\) => setMemberQuery\(e\.target\.value\)\}/')
+        ->and($source)->toMatch('/\{visibleMembers\.map\(\(c\) =>/')
+        ->and($source)->toMatch('/checked=\{selectedIds\.includes\(c\.id\)\}/')
+        ->and($source)->toMatch('/\{ member_ids: selectedIds \}/')
+        ->and($source)->toMatch("/setMemberQuery\(''\);\s+setSelectedIds\(regu\.members/");
+});
