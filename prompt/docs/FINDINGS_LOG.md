@@ -3537,3 +3537,64 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   memastikan tak ada firewall di panel. Blokir pulih sendiri ~3,5 jam. Kunci deploy ed25519 `sisupit-deploy@NBRSBM174-20260929` dipasang di
   /root/.ssh/authorized_keys.
 - **Status:** OPEN
+
+### #141 — Isi Export Excel /admin/reports diam-diam mengikuti chip status yang aktif (FIXED)
+
+- **Prioritas:** P2 (rekap untuk pimpinan bisa tidak lengkap tanpa tanda apa pun).
+- **Laporan user 2026-09-29:** "export laporan pada /admin/reports membingungkan, karena tergantung
+  status yang di klik, jadi kalo klik semua baru export baru muncul laporan semuanya".
+- **Akar:** tombol Export (`Pages/Admin/Reports/Index.jsx`) merangkai tautannya dari `params.status`
+  + `params.search` halaman. Chip default halaman itu `aktif`, jadi unduhan tanpa klik apa pun hanya
+  berisi laporan belum-selesai; kata di kotak cari juga ikut menyaring berkas tanpa terlihat.
+- **Fix (keputusan user):** tombol membuka pop-up `ExportDialog` berisi pilihan isi berkas
+  (`EXPORT_OPTIONS` = Semua + aktif + LEGEND_STATUSES, label dari FILTER_LABEL - bukan kamus ketiga).
+  Pilihan awal SELALU "Semua Laporan" dan di-reset tiap pop-up dibuka; pencarian hanya ikut bila
+  kotak "Hanya yang cocok dengan pencarian" dicentang (default TIDAK). Server NOL berubah -
+  `ReportsExport::query()` sudah menerima nilai filter yang sama dengan chip.
+- **Penjaga:** 3 test di `ReportExportTest` (server Semua vs satu status; JSX: tautan unduh tak
+  membaca `params`, pilihan awal 'Semua'; setiap pilihan punya label di `ReportsExport::STATUS_LABELS`).
+  Kedua test JSX dibuktikan MERAH terhadap berkas lama (HEAD), test label MERAH lewat sabotase
+  pilihan palsu; berkas pulih byte-exact (`cmp`).
+- **Status:** FIXED 2026-09-29, commit ac12cff2, TERDEPLOY 2026-09-29 @2b03b4d4 ke dev -> staging -> prod (tanpa migrasi/route; `git pull` + `chown`).
+
+### #142 — Akun buatan admin lahir tanpa peran & tertahan di layar Verifikasi Email (FIXED)
+
+- **Prioritas:** P2 (petugas baru tak bisa masuk aplikasi sama sekali tanpa galat yang jelas).
+- **Pertanyaan user 2026-09-29:** "apakah sekarang saat admin tambah petugas sudah bisa dan apakah
+  perlu verif email?"
+- **Akar:** `Admin\UserController::store()` membuat akun tanpa `email_verified_at` dan tanpa peran.
+  `User` ber-`MustVerifyEmail` dan hampir semua route ber-middleware `verified`, sementara jalur ini
+  tak memicu `Registered` - email verifikasi tak pernah terkirim. Login Google juga tak menolong:
+  `SocialiteController::findOrCreateUser()` menautkan akun yang emailnya sudah ada TANPA menandai
+  emailnya terverifikasi. Peran baru bisa diberikan lewat langkah kedua (dialog "Tetapkan Peran").
+- **Fix (keputusan user: opsi A + pilihan peran di form):** akun buatan admin langsung
+  `email_verified_at = now()` (admin yang menjamin; harganya salah ketik email tak ketahuan). Form
+  Tambah Pengguna kini memilih Peran (wajib) + Tingkat Yurisdiksi / Instansi OPD. Validasinya SATU
+  aturan dengan dialog lewat `resolveRoleAssignment()` + `applyRoleAssignment()`, dijalankan SEBELUM
+  akun dibuat dan di luar try/catch Throwable (yang akan menelan ValidationException). Usulan tingkat
+  per peran (`ROLE_DEFAULT_LEVEL`) pindah ke `Pages/Admin/Users/roleLevel.js` dipakai Index & Create.
+- **Penjaga:** `AdminCreateUserTest` BARU (5 test) + 1 test di `AssignRoleDefaultLevelTest` (kedua
+  halaman memakai roleLevel.js, tanpa kamus sendiri). Sabotase membuang baris `email_verified_at`
+  memerahkan 2 test (302 ke layar verifikasi); berkas pulih byte-exact (MD5).
+- **Tidak diubah:** alur login Google untuk akun yang sudah ada (catatan saja).
+- **Status:** FIXED 2026-09-29, commit 2d0c5514, TERDEPLOY 2026-09-29 @2b03b4d4 ke dev -> staging -> prod (tanpa migrasi/route; `git pull` + `chown`).
+
+### #143 — Dropdown bercari tak menemukan apa pun saat nilainya kode, dan nama kembar tersorot bersamaan (FIXED)
+
+- **Prioritas:** P3 (pencarian mati tanpa galat; pilihan tetap bisa digulir manual).
+- **Pemicu 2026-09-29:** permintaan user menambah pencarian di dropdown Danru /regu, lalu mengubah
+  dropdown panjang lain ke combobox.
+- **Akar:** cmdk menyaring berdasarkan `value` item. (a) `Components/ComboBox.jsx` memberi `value`
+  = nilai item; di filter /volunteers nilai itu KODE wilayah, jadi mengetik "Denpasar" tak cocok apa
+  pun. (b) `Components/ui/combobox.jsx` memberi `value` = NAMA, dan cmdk memakai value sebagai
+  IDENTITAS baris, sehingga dua item bernama sama tersorot bersamaan.
+- **Fix:** ComboBox.jsx menambah `keywords={[item.label]}`. ui/combobox kini `value` = kode +
+  `keywords` = nama (+ `item.keywords` opsional), plus prop opsional `itemDescription` (baris kedua)
+  dan `modal` (WAJIB di dalam Dialog - tanpa itu roda mouse tertahan kunci gulir Dialog). Dropdown
+  yang dipindah ke ui/combobox: Danru /regu, Instansi di Users/Index & Users/Create, "Libatkan OPD
+  lain" di detail insiden, Pos Pemadam di form Armada.
+- **Rincian petugas di /regu:** `ReguController::index` mengirim email/telepon/wilayah calon HANYA
+  kepada admin - prop yang sama sampai ke danru (petugas), yang tak perlu kontak rekannya. Dikunci
+  test di `ReguTest` (dibuktikan MERAH lewat sabotase gerbang `$isAdmin`, berkas pulih `cmp`).
+- **Efek samping yang diterima:** di dropdown wilayah, mengetik ANGKA kini ikut mencocokkan kode.
+- **Status:** FIXED 2026-09-29, commit f93c9c24, TERDEPLOY 2026-09-29 @2b03b4d4 ke dev -> staging -> prod (tanpa migrasi/route; `git pull` + `chown`).

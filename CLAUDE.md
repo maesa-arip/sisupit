@@ -27,7 +27,23 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : JAM BERITA ACARA & EXPORT DALAM WITA (#134) + DEPLOY SEMUA. SELESAI & TERDEPLOY
+Task aktif   : COMBOBOX BERCARI + RINCIAN CALON DANRU (#143). SELESAI & TERDEPLOY 2026-09-29 @2b03b4d4
+                ke dev -> staging -> prod (ff dari ebce20e1), BERSAMA #141 & #142 di bawah (commit
+                ac12cff2 / 2d0c5514 / f93c9c24 + build 2b03b4d4). Tanpa migrasi/route/config: git pull +
+                chown; 0 pending, 0 ERROR baru. Danru /regu, Instansi (Users), "Libatkan OPD lain", Pos
+                Pemadam (Armada) kini ui/combobox bercari. YANG MENGIKAT: (a) ui/combobox beridentitas KODE
+                (value) + nama sebagai keywords - value = nama membuat nama kembar tersorot bersamaan;
+                (b) `modal` WAJIB bila di dalam Dialog (roda mouse tertahan kunci gulir); (c) email/telepon/
+                wilayah calon hanya dikirim ke ADMIN - prop `candidates` yang sama sampai ke danru;
+                (d) DialogContent grid-cols-[minmax(0,1fr)] bila berisi baris `truncate`, kalau tidak
+                dialog melebar & bergulir ke kanan; (e) Atur Anggota: danru di atas tanpa checkbox.
+                Ikut terbetulkan: filter wilayah /volunteers tak bisa dicari dengan nama (ComboBox.jsx).
+                SISA: cek visual /regu (dropdown Danru, dialog Atur Anggota) di desktop & ponsel.
+               POP-UP PILIHAN EXPORT EXCEL /admin/reports (#141). SELESAI 2026-09-29, TERDEPLOY
+                @2b03b4d4 (lihat entri di atas); #142 akun buatan admin terverifikasi ikut naik. Isi berkas dulu diam-diam ikut chip status aktif (default
+                'aktif'). Kini tombol membuka ExportDialog, pilihan awal SELALU "Semua Laporan", pencarian
+                ikut hanya bila dicentang. Frontend saja (server NOL berubah); deploy = git pull + chown.
+               JAM BERITA ACARA & EXPORT DALAM WITA (#134) + DEPLOY SEMUA. SELESAI & TERDEPLOY
                 2026-09-29 @55154552 ke dev -> staging -> prod (ff dari 8dc43af6), atas permintaan
                 user "deploy semua". Akar #134: server/APP_TIMEZONE UTC, prefill "Waktu Kejadian"
                 mencetak created_at UTC & jam ketikan petugas (WITA) disimpan mentah seolah UTC ->
@@ -2458,6 +2474,9 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + #130/#132/#133/TASK_60 §13 + #134 (2026-09-29) = 555 passed, 2523 assertions.
             + #135 callback Google tak lagi 500 (2026-09-29) = 557 passed, 2533 assertions.
             + #138 route /auth/{provider} + #139 retry deadlock GPS = 560 passed, 2540 assertions.
+            + #141 pop-up pilihan Export Excel /admin/reports = 563 passed, 2557 assertions.
+            + #142 akun buatan admin terverifikasi + pilih peran di form = 569 passed, 2578 assertions.
+            + #143 combobox bercari (Danru /regu + 4 dropdown) & rincian calon danru = 570 passed, 2601 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)
