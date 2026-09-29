@@ -3598,3 +3598,21 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   test di `ReguTest` (dibuktikan MERAH lewat sabotase gerbang `$isAdmin`, berkas pulih `cmp`).
 - **Efek samping yang diterima:** di dropdown wilayah, mengetik ANGKA kini ikut mencocokkan kode.
 - **Status:** FIXED 2026-09-29, commit f93c9c24, TERDEPLOY 2026-09-29 @2b03b4d4 ke dev -> staging -> prod (tanpa migrasi/route; `git pull` + `chown`).
+
+### #144 — Combobox di ponsel: keyboard langsung muncul & popover terpotong di balik bilah notifikasi (FIXED)
+
+- **Prioritas:** P2 (pilihan Danru saat membuat regu tak bisa dipakai di ponsel; kena juga semua
+  combobox lain, termasuk pemilih wilayah di form lapor).
+- **Laporan user 2026-09-29:** "saat buka dropdown keyboard langsung muncul dan dropdownnya keatas
+  tertutup melewati notification bar".
+- **Akar:** `Components/ui/combobox.jsx`. (a) Radix Popover memfokuskan elemen pertama saat terbuka =
+  kolom cari -> keyboard ponsel muncul otomatis; (b) layar tinggal separuh, popover berbalik ke atas,
+  dan tingginya TIDAK dibatasi ruang tersisa (daftar sampai 300px + kolom cari), jadi puncaknya
+  melewati tepi layar.
+- **Fix:** di perangkat sentuh (`pointer: coarse`) `onOpenAutoFocus` di-preventDefault - keyboard
+  baru muncul saat kolom cari diketuk; desktop tetap fokus otomatis. PopoverContent
+  `max-h-[var(--radix-popover-content-available-height)]` + `collisionPadding={8}`, Command/List
+  `min-h-0` sehingga daftarnya menyusut & bergulir, termasuk saat keyboard muncul belakangan.
+- **Penjaga:** `ComboboxMobileTest` (2 test), keduanya dibuktikan MERAH lewat sabotase; berkas pulih
+  byte-exact (`cmp`).
+- **Status:** FIXED 2026-09-29 (kode). Frontend saja.

@@ -2477,6 +2477,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + #141 pop-up pilihan Export Excel /admin/reports = 563 passed, 2557 assertions.
             + #142 akun buatan admin terverifikasi + pilih peran di form = 569 passed, 2578 assertions.
             + #143 combobox bercari (Danru /regu + 4 dropdown) & rincian calon danru = 570 passed, 2601 assertions.
+            + #144 combobox ponsel tanpa fokus otomatis & tinggi dibatasi layar = 572 passed, 2604 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)
