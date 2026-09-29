@@ -32,6 +32,8 @@ Task aktif   : 502 PROFIL + #153 + #154 (2026-09-30). #155: "upstream sent too b
                 di server + AddLinkHeadersForPreloadedAssets dicabut dari bootstrap/app.php. #153: deploy-env.sh
                 menjalankan composer install bila composer.lock berubah, salinan resmi deploy/deploy-env.sh.
                 #154: report_officers.arrived_by (migrasi aditif) + "Ditandai tiba oleh X". Test 614 passed.
+                TERDEPLOY @7b2dacc8 ke dev -> staging -> prod lewat deploy-env.sh BARU (migrasi DONE, 0 pending,
+                header respons 2,7 KB -> 1,1 KB, nol 502/too-big sesudahnya; cadangan /root/backup-predeploy-20260929-2337).
                TOMBOL MERAH BRAND (2026-09-30), TERDEPLOY @cec5c164 ke dev -> staging -> prod (git pull + chown;
                 frontend saja). User: "masih ada tombol dengan warna hitam dan teks putih, ganti semua" -> pilih
                 MERAH BRAND. Token --primary = --destructive (terang & gelap) + 7 tombol/chip hardcode
