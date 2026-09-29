@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/Components/ui/avatar';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/Components/ui/card';
+import { Combobox } from '@/Components/ui/combobox';
 import {
 	Dialog,
 	DialogContent,
@@ -50,6 +51,7 @@ import {
 } from '@tabler/icons-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { defaultLevelFor as defaultLevelForRank, levelOptionsFor as levelOptionsForRank } from './roleLevel';
 
 function RoleBadges({ roles }) {
 	if (!roles || roles.length === 0) {
@@ -139,29 +141,9 @@ export default function Index(props) {
 
 	const jurisdictionalRoles = props.jurisdictional_roles ?? [];
 	const isJurisdictional = (role) => jurisdictionalRoles.includes(role);
-	const rankToLevel = { 4: 'desa', 3: 'kecamatan', 2: 'kabupaten', 1: 'provinsi' };
-	// Tingkat yurisdiksi yang DIUSULKAN saat sebuah peran dipilih (permintaan user 2026-08-28:
-	// "jika memberikan role Petugas, yurisdiksi auto ke kota"). Sengaja DATA, bukan cabang `if`
-	// di dalam defaultLevelFor: menambah peran berikutnya cukup satu baris di sini.
-	//
-	// Ini USULAN, bukan kunci — admin tetap bisa menggantinya, dan dua penjaga yang sudah ada
-	// tetap berlaku lebih dulu: levelOptionsFor() menyaring tingkat yang tak dimiliki pengguna,
-	// dan `assignable_levels` dari server menolak tingkat yang lebih luas dari yurisdiksi admin
-	// itu sendiri. Kalau usulannya tidak tersedia, jatuh ke perilaku lama (tingkat terdalam).
-	// Nilainya WAJIB salah satu value enum TenantLevel — dijaga AssignRoleDefaultLevelTest,
-	// sebab tingkat yang tak dikenal tidak menimbulkan galat, dropdown-nya sekadar kosong.
-	const ROLE_DEFAULT_LEVEL = { petugas: 'kabupaten' };
-	const levelOptionsFor = (user) =>
-		(props.assignable_levels ?? []).filter((level) => level.rank <= (user?.region_level ?? 0));
-	const defaultLevelFor = (user, role) => {
-		const options = levelOptionsFor(user);
-		if (options.length === 0) return '';
-		const preferred = ROLE_DEFAULT_LEVEL[role];
-		if (preferred && options.some((option) => option.value === preferred)) return preferred;
-		const current = rankToLevel[user?.region_level];
-		if (options.some((option) => option.value === current)) return current;
-		return options.reduce((a, b) => (a.rank >= b.rank ? a : b)).value;
-	};
+	// Usulan tingkat per peran hidup di roleLevel.js, dipakai bersama form Tambah Pengguna.
+	const levelOptionsFor = (user) => levelOptionsForRank(props.assignable_levels, user?.region_level);
+	const defaultLevelFor = (user, role) => defaultLevelForRank(props.assignable_levels, user?.region_level, role);
 
 	const onSortable = (field) => {
 		setParams({
@@ -525,21 +507,17 @@ export default function Index(props) {
 								<Label htmlFor="agency_id">Instansi yang Diwakili</Label>
 								{agencies.length > 0 ? (
 									<>
-										<Select
-											value={data.agency_id}
-											onValueChange={(value) => setData('agency_id', value)}
-										>
-											<SelectTrigger id="agency_id" className="w-full">
-												<SelectValue placeholder="Pilih instansi" />
-											</SelectTrigger>
-											<SelectContent>
-												{agencies.map((agency) => (
-													<SelectItem key={agency.id} value={String(agency.id)}>
-														{agency.name}
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
+										<Combobox
+											items={agencies.map((agency) => ({
+												code: String(agency.id),
+												name: agency.name,
+											}))}
+											value={data.agency_id ? String(data.agency_id) : ''}
+											onChange={(value) => setData('agency_id', value)}
+											placeholder="Pilih instansi"
+											emptyText="Instansi tidak ditemukan."
+											modal
+										/>
 										<p className="text-xs text-muted-foreground">
 											Akun ini akan menerima permintaan bantuan yang ditujukan ke instansi
 											tersebut, dan hanya bisa mengonfirmasi tindakan atas namanya.

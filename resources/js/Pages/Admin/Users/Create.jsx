@@ -10,9 +10,10 @@ import AppLayout from '@/Layouts/AppLayout';
 import { compressImage } from '@/lib/compress-image';
 import { flashMessage } from '@/lib/utils';
 import { Link, useForm } from '@inertiajs/react';
-import { IconArrowLeft, IconLock, IconUsersGroup } from '@tabler/icons-react';
+import { IconArrowLeft, IconInfoCircle, IconLock, IconUsersGroup } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { defaultLevelFor, levelOptionsFor, regionRankOf } from './roleLevel';
 
 const LockedField = ({ label, value }) => (
 	<div className="grid gap-1.5">
@@ -54,9 +55,32 @@ export default function Create(props) {
 		city_code: props.admin_level?.city_code || '',
 		district_code: props.admin_level?.district_code || '',
 		village_code: props.admin_level?.village_code || '',
+		role: '',
+		level: '',
+		agency_id: '',
 		_method: props.page_settings.method,
 	});
 	const onHandleChange = (e) => setData(e.target.name, e.target.value);
+
+	// Peran ditetapkan langsung saat membuat akun; server memvalidasinya dengan aturan yang
+	// sama dengan dialog "Tetapkan Peran" di daftar pengguna.
+	const roles = props.roles ?? [];
+	const agencies = props.agencies ?? [];
+	const isJurisdictional = (role) => (props.jurisdictional_roles ?? []).includes(role);
+	const regionRank = regionRankOf(data);
+	const levelOptions = levelOptionsFor(props.assignable_levels, regionRank);
+
+	// Tingkat mengikuti peran DAN wilayah yang diisi: mengganti kecamatan/desa bisa membuat
+	// tingkat terpilih tak lagi tersedia, jadi usulannya dihitung ulang.
+	useEffect(() => {
+		setData(
+			'level',
+			isJurisdictional(data.role) ? defaultLevelFor(props.assignable_levels, regionRank, data.role) : '',
+		);
+	}, [data.role, regionRank]);
+
+	const onRoleChange = (value) =>
+		setData((prev) => ({ ...prev, role: value, agency_id: value === 'opd' ? prev.agency_id : '' }));
 
 	const [dynamicCities, setDynamicCities] = useState(props.cities || []);
 	const [dynamicDistricts, setDynamicDistricts] = useState(props.districts || []);
@@ -303,6 +327,89 @@ export default function Create(props) {
 								)}
 							</div>
 						</div>
+						<div className="flex flex-col gap-4 rounded-lg border border-border bg-accent/30 p-4">
+							<h4 className="text-xs font-bold uppercase text-muted-foreground">Peran</h4>
+							<div className="grid gap-1.5">
+								<Label htmlFor="role">Peran Pengguna</Label>
+								<Select value={data.role} onValueChange={onRoleChange}>
+									<SelectTrigger id="role">
+										<SelectValue placeholder="Pilih peran..." />
+									</SelectTrigger>
+									<SelectContent>
+										{roles.map((role) => (
+											<SelectItem key={role.value} value={role.value}>
+												{role.label}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+								<p className="text-xs leading-relaxed text-muted-foreground">
+									Akun yang dibuat admin langsung aktif tanpa verifikasi email. Pastikan alamat email
+									benar - lupa password dikirim ke alamat ini.
+								</p>
+								{errors.role && <InputError message={errors.role} />}
+							</div>
+
+							{isJurisdictional(data.role) && (
+								<div className="grid gap-1.5">
+									<Label htmlFor="level">Tingkat Yurisdiksi</Label>
+									{levelOptions.length > 0 ? (
+										<>
+											<Select
+												value={data.level}
+												onValueChange={(value) => setData('level', value)}
+											>
+												<SelectTrigger id="level">
+													<SelectValue placeholder="Pilih tingkat wilayah" />
+												</SelectTrigger>
+												<SelectContent>
+													{levelOptions.map((level) => (
+														<SelectItem key={level.value} value={level.value}>
+															{level.label}
+														</SelectItem>
+													))}
+												</SelectContent>
+											</Select>
+											<p className="text-xs text-muted-foreground">
+												Kode wilayah akun disesuaikan ke tingkat ini; wilayah yang lebih rinci
+												dikosongkan agar yurisdiksi tepat.
+											</p>
+										</>
+									) : (
+										<p className="flex items-start gap-2 text-xs text-muted-foreground">
+											<IconInfoCircle className="mt-0.5 size-4 shrink-0" />
+											Isi Wilayah Akun di atas lebih dulu untuk memilih tingkat yurisdiksi.
+										</p>
+									)}
+									{errors.level && <InputError message={errors.level} />}
+								</div>
+							)}
+
+							{data.role === 'opd' && (
+								<div className="grid gap-1.5">
+									<Label htmlFor="agency_id">Instansi yang Diwakili</Label>
+									{agencies.length > 0 ? (
+										<Combobox
+											items={agencies.map((agency) => ({
+												code: String(agency.id),
+												name: agency.name,
+											}))}
+											value={data.agency_id ? String(data.agency_id) : ''}
+											onChange={(value) => setData('agency_id', value)}
+											placeholder="Pilih instansi"
+											emptyText="Instansi tidak ditemukan."
+										/>
+									) : (
+										<p className="flex items-start gap-2 text-xs text-muted-foreground">
+											<IconInfoCircle className="mt-0.5 size-4 shrink-0" />
+											Belum ada OPD terdaftar di wilayah Anda. Tambahkan lebih dulu lewat
+											Manajemen OPD Terkait.
+										</p>
+									)}
+									{errors.agency_id && <InputError message={errors.agency_id} />}
+								</div>
+							)}
+						</div>
 						<div className="grid w-full items-center gap-1.5">
 							<Label htmlFor="avatar">Avatar</Label>
 							<Input
@@ -337,7 +444,18 @@ export default function Create(props) {
 							<Button type="button" variant="secondary" size="sm" onClick={onHandleReset}>
 								Reset
 							</Button>
-							<Button type="submit" variant="orange" size="sm" disabled={processing || compressing}>
+							<Button
+								type="submit"
+								variant="orange"
+								size="sm"
+								disabled={
+									processing ||
+									compressing ||
+									!data.role ||
+									(isJurisdictional(data.role) && !data.level) ||
+									(data.role === 'opd' && !data.agency_id)
+								}
+							>
 								Save
 							</Button>
 						</div>

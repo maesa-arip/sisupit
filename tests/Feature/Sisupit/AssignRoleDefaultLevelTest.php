@@ -15,8 +15,20 @@ use App\Enums\TenantLevel;
  * sebagai kamus (DATA), dan nilainya diadu dengan enum `TenantLevel` di server — bukan
  * kamus lawan kamus (pelajaran FINDINGS #79). Halaman React tidak dirender oleh Pest, jadi
  * berkas sumbernya yang dibaca (pola MobileNavParityTest / RoleLabelParityTest).
+ *
+ * Sejak form Tambah Pengguna ikut memilih peran (2026-09-29), kamusnya pindah ke
+ * roleLevel.js yang dipakai Index.jsx DAN Create.jsx - satu kamus, bukan dua.
  */
-$page = fn () => file_get_contents(resource_path('js/Pages/Admin/Users/Index.jsx'));
+$page = fn () => file_get_contents(resource_path('js/Pages/Admin/Users/roleLevel.js'));
+
+it('shares one default-level dictionary between the role dialog and the create form', function () {
+    foreach (['Index.jsx', 'Create.jsx'] as $file) {
+        $source = file_get_contents(resource_path("js/Pages/Admin/Users/{$file}"));
+
+        expect($source)->toMatch("/from '\.\/roleLevel'/");
+        expect($source)->not->toContain('ROLE_DEFAULT_LEVEL');
+    }
+});
 
 it('defaults the petugas jurisdiction to kabupaten/kota through a per-role dictionary', function () use ($page) {
     preg_match('/const ROLE_DEFAULT_LEVEL = \{(.*?)\};/s', $page(), $block);

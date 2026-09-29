@@ -79,6 +79,12 @@ class UserController extends Controller
                 'action' => route('admin.users.store'),
             ],
             'genders' => UserGender::options(),
+            // Peran dipilih langsung saat membuat akun, lewat aturan yang sama dengan dialog
+            // "Tetapkan Peran" di daftar pengguna (resolveRoleAssignment).
+            'roles' => $this->roleOptions($this->assignableRoleNames()),
+            'assignable_levels' => $this->assignableLevels(),
+            'jurisdictional_roles' => self::JURISDICTIONAL_ROLES,
+            'agencies' => Agency::where('is_active', true)->orderBy('name')->get(['id', 'name']),
             ...$this->regionFormProps($admin),
         ]);
     }
@@ -87,22 +93,40 @@ class UserController extends Controller
     {
         $admin = auth()->user();
 
+        $regionCodes = [
+            'province_code' => $admin->province_code ?? $request->province_code,
+            'city_code' => $admin->city_code ?? $request->city_code,
+            'district_code' => $admin->district_code ?? $request->district_code,
+            'village_code' => $admin->village_code ?? $request->village_code,
+        ];
+
+        // Divalidasi SEBELUM akun dibuat: peran yang ditolak tak boleh meninggalkan akun
+        // tanpa peran. Sengaja di luar try/catch di bawah - Throwable ikut menelan
+        // ValidationException sehingga galatnya tak pernah sampai ke isian form.
+        [$role, $trimmedCodes, $agencyId] = $this->resolveRoleAssignment($request, new User($regionCodes));
+
         try {
-            $user = User::create([
-                'name' => $name = $request->name,
-                'username' => usernameGenerator($name),
-                'address' => $request->address,
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'gender' => $request->gender,
-                'date_of_birth' => $request->date_of_birth,
-                'password' => Hash::make(request()->password),
-                'avatar' => $this->upload_file($request, 'avatar', 'users'),
-                'province_code' => $admin->province_code ?? $request->province_code,
-                'city_code' => $admin->city_code ?? $request->city_code,
-                'district_code' => $admin->district_code ?? $request->district_code,
-                'village_code' => $admin->village_code ?? $request->village_code,
-            ]);
+            DB::transaction(function () use ($request, $regionCodes, $role, $trimmedCodes, $agencyId) {
+                $user = User::create([
+                    'name' => $name = $request->name,
+                    'username' => usernameGenerator($name),
+                    'address' => $request->address,
+                    'email' => $request->email,
+                    'phone' => $request->phone,
+                    'gender' => $request->gender,
+                    'date_of_birth' => $request->date_of_birth,
+                    'password' => Hash::make(request()->password),
+                    'avatar' => $this->upload_file($request, 'avatar', 'users'),
+                    // Akun yang dibuat admin langsung terverifikasi: admin yang menjamin orang
+                    // & alamat emailnya. Tanpa ini akun tertahan di layar Verifikasi Email
+                    // (semua route ber-middleware `verified`), sementara email verifikasinya
+                    // tak pernah dikirim otomatis dari jalur ini. Harganya: salah ketik email
+                    // tak ketahuan - reset password ke alamat itu tak akan sampai.
+                    'email_verified_at' => now(),
+                    ...$regionCodes,
+                ]);
+                $this->applyRoleAssignment($user, $role, $trimmedCodes, $agencyId);
+            });
             flashMessage(MessageType::CREATED->message('Pengguna'));
 
             return to_route('admin.users.index');
@@ -187,6 +211,31 @@ class UserController extends Controller
         // sehingga admin hanya bisa mengubah peran pengguna di wilayahnya sendiri.
         $this->authorize('update', $user);
 
+        [$role, $regionCodes, $agencyId] = $this->resolveRoleAssignment($request, $user);
+
+        try {
+            DB::transaction(fn () => $this->applyRoleAssignment($user, $role, $regionCodes, $agencyId));
+            flashMessage("Berhasil menetapkan peran {$role} ke pengguna {$user->name}");
+
+            return to_route('admin.users.index');
+        } catch (\Throwable $e) {
+            flashMessage(MessageType::ERROR->message(error: $e->getMessage()), 'error');
+
+            return to_route('admin.users.index');
+        }
+    }
+
+    /**
+     * Validasi penetapan peran - SATU aturan untuk dialog "Tetapkan Peran" (assignRole) DAN
+     * form Tambah Pengguna (store). Jangan disalin ke pemanggil ketiga; daftar peran, tingkat
+     * yurisdiksi & instansi OPD yang ditulis dua kali akan menyimpang.
+     *
+     * $user boleh model yang BELUM tersimpan (store): yang dibaca hanya kode wilayahnya.
+     *
+     * @return array{0: string, 1: ?array, 2: ?int} [peran, kode wilayah terpangkas, agency_id]
+     */
+    private function resolveRoleAssignment(Request $request, User $user): array
+    {
         // Rule::in memakai daftar peran yang boleh diberikan admin ini — server menolak
         // upaya menetapkan peran di atas kewenangannya (mis. admin mengangkat superadmin/admin).
         $validated = $request->validate([
@@ -231,25 +280,19 @@ class UserController extends Controller
             $regionCodes = $this->trimRegionToLevel($user, $level);
         }
 
-        try {
-            DB::transaction(function () use ($user, $role, $regionCodes, $agencyId) {
-                $user->syncRoles([$role]);
-                if ($regionCodes !== null) {
-                    $user->update($regionCodes);
-                }
-                // Selalu ditulis (bukan hanya saat role `opd`) agar tautan instansi ikut lepas
-                // ketika akun dipindah ke peran lain — kalau tidak, mantan akun OPD tetap
-                // menerima permintaan bantuan instansinya.
-                $user->update(['agency_id' => $agencyId]);
-            });
-            flashMessage("Berhasil menetapkan peran {$role} ke pengguna {$user->name}");
+        return [$role, $regionCodes, $agencyId];
+    }
 
-            return to_route('admin.users.index');
-        } catch (\Throwable $e) {
-            flashMessage(MessageType::ERROR->message(error: $e->getMessage()), 'error');
-
-            return to_route('admin.users.index');
+    private function applyRoleAssignment(User $user, string $role, ?array $regionCodes, ?int $agencyId): void
+    {
+        $user->syncRoles([$role]);
+        if ($regionCodes !== null) {
+            $user->update($regionCodes);
         }
+        // Selalu ditulis (bukan hanya saat role `opd`) agar tautan instansi ikut lepas
+        // ketika akun dipindah ke peran lain — kalau tidak, mantan akun OPD tetap
+        // menerima permintaan bantuan instansinya.
+        $user->update(['agency_id' => $agencyId]);
     }
 
     /**
