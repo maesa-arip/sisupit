@@ -2,7 +2,18 @@ import HeaderTitle from '@/Components/HeaderTitle';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
+import { Checkbox } from '@/Components/ui/checkbox';
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from '@/Components/ui/dialog';
 import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
 import UseFilter from '@/hooks/UseFilter';
 import AppLayout from '@/Layouts/AppLayout';
 import { escapeHtml } from '@/lib/escape-html';
@@ -114,6 +125,86 @@ const LEGEND_STATUSES = ['TERLAPOR', 'pending', 'handling', 'resolved', 'ditolak
 
 const markerStyle = (status) => STATUS_META[status] || STATUS_META.pending;
 
+// Pilihan isi berkas Export Excel (#141). Dipilih SENDIRI di pop-up, TIDAK lagi diwarisi dari
+// chip yang sedang aktif: default chip halaman ini 'aktif', jadi dulu tombol Export diam-diam
+// mengunduh laporan belum-selesai saja dan rekap lengkap baru keluar setelah chip "Semua"
+// diklik - tanpa satu pun tanda di layar. Nilainya = nilai filter yang SAMA dengan chip
+// (ReportsExport::query() menerimanya apa adanya), labelnya dari FILTER_LABEL supaya tak ada
+// kamus status ketiga. 'Semua' sengaja di urutan pertama & jadi pilihan awal.
+const EXPORT_OPTIONS = ['Semua', 'aktif', ...LEGEND_STATUSES];
+const EXPORT_LABEL = { ...FILTER_LABEL, Semua: 'Semua Laporan', aktif: 'Darurat Aktif (belum selesai)' };
+
+function ExportDialog({ open, onOpenChange, search }) {
+	const [status, setStatus] = useState('Semua');
+	const [useSearch, setUseSearch] = useState(false);
+	const keyword = (search ?? '').trim();
+
+	// Tiap pop-up dibuka mulai dari keadaan bersih - pilihan unduhan sebelumnya tak boleh
+	// terbawa diam-diam ke unduhan berikutnya (bentuk yang sama dengan bug yang diperbaiki).
+	useEffect(() => {
+		if (open) {
+			setStatus('Semua');
+			setUseSearch(false);
+		}
+	}, [open]);
+
+	const href = route('admin.reports.export', {
+		status,
+		...(useSearch && keyword ? { search: keyword } : {}),
+	});
+
+	return (
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="max-h-[85vh] overflow-y-auto">
+				<DialogHeader>
+					<DialogTitle>Export Excel</DialogTitle>
+					<DialogDescription>Pilih laporan mana yang ingin diunduh.</DialogDescription>
+				</DialogHeader>
+				<RadioGroup value={status} onValueChange={setStatus} className="gap-2">
+					{EXPORT_OPTIONS.map((option) => (
+						<Label
+							key={option}
+							htmlFor={`export-${option}`}
+							className="flex cursor-pointer items-center gap-3 rounded-md border p-3 hover:bg-accent"
+						>
+							<RadioGroupItem value={option} id={`export-${option}`} />
+							{STATUS_META[option]?.dot && (
+								<span className={cn('h-2 w-2 rounded-full', STATUS_META[option].dot)} />
+							)}
+							<span>{EXPORT_LABEL[option] ?? option}</span>
+						</Label>
+					))}
+				</RadioGroup>
+				{keyword && (
+					<Label
+						htmlFor="export-search"
+						className="flex cursor-pointer items-start gap-3 text-sm font-normal"
+					>
+						<Checkbox
+							id="export-search"
+							checked={useSearch}
+							onCheckedChange={(checked) => setUseSearch(checked === true)}
+							className="mt-0.5"
+						/>
+						<span>Hanya yang cocok dengan pencarian &quot;{keyword}&quot;</span>
+					</Label>
+				)}
+				<DialogFooter>
+					<Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+						Batal
+					</Button>
+					{/* <a>, bukan <Link> Inertia - ini unduhan berkas. */}
+					<Button asChild>
+						<a href={href} onClick={() => onOpenChange(false)}>
+							<IconFileSpreadsheet className="mr-1.5 h-4 w-4" /> Unduh
+						</a>
+					</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
+	);
+}
+
 function StatusBadge({ status }) {
 	const active = STATUS_META[status] || STATUS_META.pending;
 	return (
@@ -178,6 +269,7 @@ export default function Index(props) {
 		: LEGEND_STATUSES.filter((s) => !MONITOR_HIDDEN_STATUSES.includes(s));
 	const [params, setParams] = useState(props.state);
 	const [activeReportId, setActiveReportId] = useState(null);
+	const [exportOpen, setExportOpen] = useState(false);
 
 	UseFilter({
 		route: route(indexRouteName),
@@ -255,20 +347,17 @@ export default function Index(props) {
 				    tak bersaing dengan aksi triase; peran itu kini dipegang banner merah "menunggu
 				    verifikasi" tepat di bawah, jadi tombol outline kecil di pojok tak lagi menyainginya.
 				    Bentuknya menyalin tombol kepala halaman tetangga (Admin/Pumps & Admin/Hydrants);
-				    tetap <a>, bukan <Link> Inertia, sebab ini unduhan berkas. Filter yang sedang aktif
-				    ikut terbawa supaya isi berkas sama dengan daftar yang terlihat.
+				    Tombol ini MEMBUKA POP-UP pilihan isi berkas (#141), tidak langsung mengunduh -
+				    dulu chip status yang sedang aktif ikut terbawa diam-diam, jadi isi berkas bergantung
+				    pada chip yang kebetulan diklik (lihat EXPORT_OPTIONS).
 				    Hanya untuk verifikator (admin) - pemantau tak punya rute admin.reports.export. */}
 				{canExport && (
-					<Button size="sm" variant="outline" asChild>
-						<a
-							href={route('admin.reports.export', {
-								search: params?.search,
-								status: params?.status,
-							})}
-						>
+					<>
+						<Button size="sm" variant="outline" onClick={() => setExportOpen(true)}>
 							<IconFileSpreadsheet className="mr-1.5 h-4 w-4" /> Export Excel
-						</a>
-					</Button>
+						</Button>
+						<ExportDialog open={exportOpen} onOpenChange={setExportOpen} search={params?.search} />
+					</>
 				)}
 			</div>
 

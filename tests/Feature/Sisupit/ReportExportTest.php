@@ -207,3 +207,62 @@ it('prints times in the local timezone instead of UTC', function () {
     expect($cells)->toContain('29-09-2026 07:30');
     expect($cells)->not->toContain('28-09-2026 22:57');
 });
+
+// FINDINGS #141: isi berkas ekspor dulu diam-diam mengikuti chip status yang sedang aktif
+// (default halaman = 'aktif'), jadi rekap lengkap baru keluar setelah chip "Semua" diklik.
+// Kini isinya dipilih di pop-up; server tetap menerima nilai filter yang sama dengan chip.
+it('exports every status when Semua is chosen and only one status when a status is chosen', function () {
+    $admin = User::factory()->create(['province_code' => '51']);
+    $admin->assignRole('admin');
+
+    makeReport(['title' => 'Masih ditangani', 'province_code' => '51', 'status' => 'handling']);
+    makeReport(['title' => 'Sudah padam', 'province_code' => '51', 'status' => 'resolved']);
+
+    $semua = exportedCells($this->actingAs($admin)->get('/admin/reports/export?status=Semua'));
+    expect($semua)->toContain('Masih ditangani');
+    expect($semua)->toContain('Sudah padam');
+
+    $selesai = exportedCells($this->actingAs($admin)->get('/admin/reports/export?status=resolved'));
+    expect($selesai)->toContain('Sudah padam');
+    expect($selesai)->not->toContain('Masih ditangani');
+});
+
+/** Index.jsx tanpa komentar - berkas itu menjelaskan bug lamanya sendiri di komentar (#108). */
+function reportsIndexJsxWithoutComments(): string
+{
+    $jsx = file_get_contents(resource_path('js/Pages/Admin/Reports/Index.jsx'));
+
+    return preg_replace(['~\{/\*.*?\*/\}~s', '~/\*.*?\*/~s', '~^\s*//.*$~m'], '', $jsx);
+}
+
+it('does not let the active status chip decide what the excel export contains', function () {
+    $jsx = reportsIndexJsxWithoutComments();
+
+    // Tautan unduh tak lagi dirangkai dari state filter halaman.
+    expect(preg_match("~route\('admin\.reports\.export',\s*\{[^}]*params~s", $jsx))->toBe(0);
+    // Pop-up pilihan ada dan pilihan awalnya "Semua", bukan chip yang sedang aktif.
+    expect(preg_match('~<ExportDialog\b~', $jsx))->toBe(1);
+    expect(preg_match("~const \[status, setStatus\] = useState\('Semua'\)~", $jsx))->toBe(1);
+});
+
+it('offers only export choices the export sheet knows how to label', function () {
+    $jsx = reportsIndexJsxWithoutComments();
+
+    preg_match('~const LEGEND_STATUSES = \[([^\]]*)\]~', $jsx, $legend);
+    preg_match('~const EXPORT_OPTIONS = \[([^\]]*)\]~', $jsx, $options);
+    expect($legend)->not->toBeEmpty();
+    expect($options)->not->toBeEmpty();
+
+    $list = fn (string $src) => array_map(fn ($v) => trim($v, " '\t\r\n"), array_filter(explode(',', $src), fn ($v) => trim($v) !== ''));
+    $choices = [];
+    foreach ($list($options[1]) as $item) {
+        $choices = $item === '...LEGEND_STATUSES' ? [...$choices, ...$list($legend[1])] : [...$choices, $item];
+    }
+
+    expect($choices[0])->toBe('Semua');
+
+    $labels = (new ReflectionClassConstant(\App\Exports\ReportsExport::class, 'STATUS_LABELS'))->getValue();
+    foreach (array_diff($choices, ['Semua']) as $choice) {
+        expect(array_key_exists($choice, $labels))->toBeTrue("pilihan export '{$choice}' tak punya label di ReportsExport");
+    }
+});
