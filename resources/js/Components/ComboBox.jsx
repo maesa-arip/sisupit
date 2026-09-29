@@ -56,6 +56,10 @@ export default function ComboBox({ items = [], selectedItem, onSelect, placehold
 								<CommandItem
 									key={index}
 									value={item.value}
+									// cmdk menyaring berdasarkan `value`; bila value berupa kode (mis. kode
+									// wilayah di filter /volunteers), mengetik nama tak cocok apa pun tanpa
+									// label sebagai kata kunci.
+									keywords={[item.label]}
 									onSelect={(value) => handleSelect(value)}
 									className="mx-0.5 my-0.5 cursor-pointer rounded-lg px-3 py-2.5 aria-selected:bg-accent aria-selected:text-accent-foreground"
 								>

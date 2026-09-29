@@ -20,12 +20,18 @@ export function Combobox({
 	emptyAction,
 	// Penanda per baris (mis. chip "usulan"). Mengembalikan node atau null.
 	itemBadge,
+	// Baris kedua per item (mis. email/wilayah petugas) supaya nama yang mirip bisa dibedakan.
+	// Mengembalikan node atau null. Teks yang juga ingin bisa DICARI dikirim lewat `item.keywords`.
+	itemDescription,
+	// WAJIB true bila dipakai di dalam Dialog: tanpanya kunci gulir Dialog menahan roda mouse
+	// pada daftar yang dirender di portal Popover.
+	modal = false,
 }) {
 	const [open, setOpen] = React.useState(false);
 	const [query, setQuery] = React.useState('');
 
 	return (
-		<Popover open={open} onOpenChange={setOpen}>
+		<Popover open={open} onOpenChange={setOpen} modal={modal}>
 			<PopoverTrigger asChild>
 				<Button
 					variant="outline"
@@ -66,7 +72,11 @@ export function Combobox({
 							{items.map((item) => (
 								<CommandItem
 									key={item.code}
-									value={item.name}
+									// Identitas baris = kode, BUKAN nama: cmdk memperlakukan value sebagai
+									// identitas, jadi dua item bernama sama dulu tersorot bersamaan. Nama tetap
+									// jadi bahan pencarian lewat keywords.
+									value={String(item.code)}
+									keywords={[item.name, ...(item.keywords ?? [])]}
 									onSelect={() => {
 										onChange(item.code === value ? '' : item.code);
 										setOpen(false);
@@ -78,7 +88,14 @@ export function Combobox({
 											value === item.code ? 'opacity-100' : 'opacity-0',
 										)}
 									/>
-									<span className="truncate">{item.name}</span>
+									{itemDescription ? (
+										<span className="flex min-w-0 flex-col">
+											<span className="truncate">{item.name}</span>
+											{itemDescription(item)}
+										</span>
+									) : (
+										<span className="truncate">{item.name}</span>
+									)}
 									{itemBadge ? itemBadge(item) : null}
 								</CommandItem>
 							))}

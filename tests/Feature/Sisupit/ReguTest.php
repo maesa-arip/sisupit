@@ -337,3 +337,17 @@ it('draws one marker per regu on the detail map instead of one per member', func
         ->and($block)->toMatch('/drawResponderRoute\(markerKey,/')
         ->and($block)->toContain('info?.leader_id');
 });
+
+it('shows contact details of danru candidates to admins only, never to a danru', function () {
+    $this->anggota1->update(['email' => 'ketut@contoh.id', 'phone' => '081234']);
+
+    $this->actingAs($this->admin)->get(route('regu.index'))
+        ->assertInertia(fn ($page) => $page->component('Regu/Index')
+            ->where('candidates', fn ($list) => collect($list)->firstWhere('id', $this->anggota1->id)['email'] === 'ketut@contoh.id'
+                && collect($list)->firstWhere('id', $this->anggota1->id)['phone'] === '081234'));
+
+    // Prop yang sama dikirim ke danru untuk dialog anggota - kontak rekan tak boleh ikut.
+    $this->actingAs($this->danru)->get(route('regu.index'))
+        ->assertInertia(fn ($page) => $page->where('candidates', fn ($list) => collect($list)->isNotEmpty()
+            && collect($list)->every(fn ($c) => ! array_key_exists('email', $c) && ! array_key_exists('phone', $c))));
+});

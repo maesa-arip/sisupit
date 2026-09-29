@@ -34,7 +34,12 @@ class ReguController extends Controller
 
         if ($isAdmin) {
             $regus = Regu::with(['leader:id,name', 'members:id,name'])->orderBy('name')->get();
-            $candidates = User::role('petugas')->isAdmin()->orderBy('name')->get(['id', 'name', 'city_code']);
+            // Kontak & wilayah ikut dimuat supaya admin bisa membedakan petugas yang bernama mirip
+            // saat memilih danru/anggota.
+            $candidates = User::role('petugas')->isAdmin()
+                ->with(['district:code,name', 'village:code,name'])
+                ->orderBy('name')
+                ->get(['id', 'name', 'email', 'phone', 'city_code', 'district_code', 'village_code']);
         } else {
             $own = Regu::milik($user)?->load(['leader:id,name', 'members:id,name']);
             $regus = collect($own ? [$own] : []);
@@ -67,6 +72,16 @@ class ReguController extends Controller
                 'name' => $c->name,
                 'regu_id' => optional($reguOf->get($c->id))->regu_id,
                 'regu_name' => optional($reguOf->get($c->id))->regu_name,
+                // Rincian pembeda HANYA untuk admin: prop yang sama dikirim ke danru (petugas), dan
+                // danru tak perlu kontak pribadi rekan sekabupatennya untuk memilih anggota.
+                ...($isAdmin ? [
+                    'email' => $c->email,
+                    'phone' => $c->phone,
+                    'wilayah' => collect([
+                        $c->village?->name ? 'Desa/Kel. '.$c->village->name : null,
+                        $c->district?->name ? 'Kec. '.$c->district->name : null,
+                    ])->filter()->implode(', ') ?: null,
+                ] : []),
             ])->values(),
             'can' => [
                 'manage' => $isAdmin,

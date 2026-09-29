@@ -2,9 +2,9 @@ import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Checkbox } from '@/Components/ui/checkbox';
+import { Combobox } from '@/Components/ui/combobox';
 import { Dialog, DialogContent } from '@/Components/ui/dialog';
 import { Label } from '@/Components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
 import { escapeHtml } from '@/lib/escape-html';
@@ -2029,21 +2029,19 @@ export default function ReportShow(props) {
 									reportStatus !== 'resolved' &&
 									(addableAgencies.length > 0 ? (
 										<div className="flex flex-col gap-2 border-t border-border pt-2 sm:flex-row">
-											<Select value={agencyToAdd} onValueChange={setAgencyToAdd}>
-												<SelectTrigger
-													aria-label="Libatkan OPD lain"
-													className="h-10 flex-1 rounded-lg border-border bg-card px-3 text-xs font-medium text-foreground shadow-none data-[placeholder]:text-muted-foreground"
-												>
-													<SelectValue placeholder="Libatkan OPD lain..." />
-												</SelectTrigger>
-												<SelectContent>
-													{addableAgencies.map((a) => (
-														<SelectItem key={a.id} value={String(a.id)} className="text-xs">
-															{a.name}
-														</SelectItem>
-													))}
-												</SelectContent>
-											</Select>
+											<div className="min-w-0 flex-1">
+												<Combobox
+													items={addableAgencies.map((a) => ({
+														code: String(a.id),
+														name: a.name,
+													}))}
+													value={agencyToAdd}
+													onChange={setAgencyToAdd}
+													placeholder="Libatkan OPD lain..."
+													emptyText="OPD tidak ditemukan."
+													className="h-10 rounded-lg border-border bg-card text-xs font-medium"
+												/>
+											</div>
 											<Button
 												onClick={handleAddAgency}
 												disabled={isAgencyProcessing || !agencyToAdd}

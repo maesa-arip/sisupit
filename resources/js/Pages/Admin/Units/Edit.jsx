@@ -2,6 +2,7 @@ import HeaderTitle from '@/Components/HeaderTitle';
 import InputError from '@/Components/InputError';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
+import { Combobox } from '@/Components/ui/combobox';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
@@ -112,22 +113,15 @@ export default function Edit({ unit, pos_options = [], type_options = [] }) {
 
 							<div className="grid gap-1.5">
 								<Label>Homebase / Pos Pemadam (Opsional)</Label>
-								<Select
-									value={data.pos_pemadam_id || 'none'}
-									onValueChange={(value) => setData('pos_pemadam_id', value === 'none' ? '' : value)}
-								>
-									<SelectTrigger className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal">
-										<SelectValue placeholder="Tanpa Pos" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="none">Tanpa Pos</SelectItem>
-										{pos_options.map((pos) => (
-											<SelectItem key={pos.id} value={String(pos.id)}>
-												{pos.name}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
+								{/* Kosong = "Tanpa Pos"; mengetuk pos yang sedang terpilih melepasnya kembali. */}
+								<Combobox
+									items={pos_options.map((pos) => ({ code: String(pos.id), name: pos.name }))}
+									value={data.pos_pemadam_id ? String(data.pos_pemadam_id) : ''}
+									onChange={(value) => setData('pos_pemadam_id', value)}
+									placeholder="Tanpa Pos"
+									emptyText="Pos tidak ditemukan."
+									className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
+								/>
 								{errors.pos_pemadam_id && <InputError message={errors.pos_pemadam_id} />}
 							</div>
 

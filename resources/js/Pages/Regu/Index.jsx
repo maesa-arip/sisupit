@@ -13,10 +13,10 @@ import {
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Checkbox } from '@/Components/ui/checkbox';
+import { Combobox } from '@/Components/ui/combobox';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import AppLayout from '@/Layouts/AppLayout';
 import { flashMessage } from '@/lib/utils';
 import { Head, router, useForm } from '@inertiajs/react';
@@ -98,6 +98,10 @@ export default function Index({ regus, candidates, can }) {
 			},
 		});
 	};
+
+	// Rincian pembeda untuk nama yang mirip. Hanya terisi bagi admin - server tidak mengirim
+	// email/telepon/wilayah ke danru (lihat ReguController::index).
+	const candidateDetail = (c) => [c.email, c.phone, c.wilayah].filter(Boolean).join(' . ');
 
 	// Calon danru: petugas yang belum beregu, atau yang sudah di regu yang sedang disunting.
 	const leaderOptions = candidates.filter((c) => !c.regu_id || (editing?.id && c.regu_id === editing.id));
@@ -189,7 +193,7 @@ export default function Index({ regus, candidates, can }) {
 
 			{/* Buat / sunting regu - admin saja */}
 			<Dialog open={editing !== null} onOpenChange={(open) => !open && setEditing(null)}>
-				<DialogContent>
+				<DialogContent className="grid-cols-[minmax(0,1fr)]">
 					<form onSubmit={submitForm} className="space-y-4">
 						<DialogHeader>
 							<DialogTitle>{editing?.id ? 'Ubah Regu' : 'Tambah Regu'}</DialogTitle>
@@ -206,18 +210,24 @@ export default function Index({ regus, candidates, can }) {
 						</div>
 						<div className="space-y-2">
 							<Label>Danru (Komandan Regu)</Label>
-							<Select value={form.data.leader_id} onValueChange={(v) => form.setData('leader_id', v)}>
-								<SelectTrigger className="data-[placeholder]:text-muted-foreground">
-									<SelectValue placeholder="Pilih petugas" />
-								</SelectTrigger>
-								<SelectContent>
-									{leaderOptions.map((c) => (
-										<SelectItem key={c.id} value={String(c.id)}>
-											{c.name}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
+							<Combobox
+								items={leaderOptions.map((c) => ({
+									code: String(c.id),
+									name: c.name,
+									keywords: [c.email, c.phone, c.wilayah].filter(Boolean),
+									detail: candidateDetail(c),
+								}))}
+								value={form.data.leader_id}
+								onChange={(v) => form.setData('leader_id', v)}
+								placeholder="Pilih petugas"
+								emptyText="Petugas tidak ditemukan."
+								itemDescription={(item) =>
+									item.detail && (
+										<span className="truncate text-xs text-muted-foreground">{item.detail}</span>
+									)
+								}
+								modal
+							/>
 							{leaderOptions.length === 0 && (
 								<p className="text-xs text-muted-foreground">
 									Tidak ada petugas yang belum beregu di wilayah Anda.
@@ -239,35 +249,75 @@ export default function Index({ regus, candidates, can }) {
 
 			{/* Atur anggota - admin atau danru regu itu */}
 			<Dialog open={membersOf !== null} onOpenChange={(open) => !open && setMembersOf(null)}>
-				<DialogContent className="max-h-[85vh] overflow-y-auto">
+				{/* grid-cols-[minmax(0,1fr)]: kolom grid DialogContent bawaannya selebar isi terpanjang,
+				    jadi baris rincian petugas yang `truncate` mendorong dialog melebar & bergulir ke kanan. */}
+				<DialogContent className="max-h-[85vh] grid-cols-[minmax(0,1fr)] overflow-y-auto">
 					<DialogHeader>
 						<DialogTitle>Anggota {membersOf?.name}</DialogTitle>
 					</DialogHeader>
 					<p className="text-xs text-muted-foreground">
 						Hanya petugas. Satu petugas hanya bisa di satu regu, dan danru selalu termasuk anggota.
 					</p>
-					<div className="space-y-1">
-						{candidates.map((c) => {
-							const isLeader = membersOf?.leader?.id === c.id;
-							const inOtherRegu = c.regu_id && c.regu_id !== membersOf?.id;
-							return (
-								<label
-									key={c.id}
-									className="flex min-h-[44px] items-center gap-3 rounded-lg border border-border px-3 py-2 text-sm has-[:disabled]:opacity-60"
-								>
-									<Checkbox
-										checked={isLeader || selectedIds.includes(c.id)}
-										disabled={isLeader || inOtherRegu}
-										onCheckedChange={() => toggleMember(c.id)}
-									/>
-									<span className="min-w-0 flex-1 truncate">{c.name}</span>
-									{isLeader && <span className="text-xs text-muted-foreground">Danru</span>}
-									{inOtherRegu && (
-										<span className="text-xs text-muted-foreground">{c.regu_name}</span>
-									)}
-								</label>
-							);
-						})}
+					{/* Danru dipisah di atas & tanpa checkbox: ia selalu anggota dan tak bisa dilepas dari
+					    sini (diganti lewat "Ubah Regu"). Rincian dari `candidates` bila ada (admin). */}
+					{membersOf?.leader && (
+						<div className="space-y-1.5">
+							<Label>Danru</Label>
+							{(() => {
+								const leader = candidates.find((c) => c.id === membersOf.leader.id) ?? membersOf.leader;
+								return (
+									<div className="flex min-h-[44px] items-center gap-3 rounded-lg border border-border bg-muted px-3 py-2 text-sm">
+										<IconShieldHalf className="size-4 shrink-0 text-muted-foreground" />
+										<span className="flex min-w-0 flex-1 flex-col">
+											<span className="truncate font-medium">{leader.name}</span>
+											{candidateDetail(leader) && (
+												<span className="truncate text-xs text-muted-foreground">
+													{candidateDetail(leader)}
+												</span>
+											)}
+										</span>
+									</div>
+								);
+							})()}
+						</div>
+					)}
+					<div className="space-y-1.5">
+						<Label>Pilih Anggota</Label>
+						{candidates.every((c) => c.id === membersOf?.leader?.id) && (
+							<p className="text-xs text-muted-foreground">Belum ada petugas lain di wilayah ini.</p>
+						)}
+						<div className="space-y-1">
+							{candidates
+								.filter((c) => c.id !== membersOf?.leader?.id)
+								.map((c) => {
+									const inOtherRegu = c.regu_id && c.regu_id !== membersOf?.id;
+									return (
+										<label
+											key={c.id}
+											className="flex min-h-[44px] items-center gap-3 rounded-lg border border-border px-3 py-2 text-sm has-[:disabled]:opacity-60"
+										>
+											<Checkbox
+												checked={selectedIds.includes(c.id)}
+												disabled={inOtherRegu}
+												onCheckedChange={() => toggleMember(c.id)}
+											/>
+											<span className="flex min-w-0 flex-1 flex-col">
+												<span className="truncate">{c.name}</span>
+												{candidateDetail(c) && (
+													<span className="truncate text-xs text-muted-foreground">
+														{candidateDetail(c)}
+													</span>
+												)}
+											</span>
+											{inOtherRegu && (
+												<span className="max-w-[40%] shrink-0 truncate text-xs text-muted-foreground">
+													{c.regu_name}
+												</span>
+											)}
+										</label>
+									);
+								})}
+						</div>
 					</div>
 					<InputError message={memberErrors.member_ids} />
 					<DialogFooter>
