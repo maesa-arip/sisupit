@@ -3468,7 +3468,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   pulih byte-exact.
 - **Status:** FIXED
 
-### #136 — php-fpm prod hanya 5 worker (`pm.max_children = 5`), penuh 13 kali pada 23 & 28 Sep (OPEN)
+### #136 — php-fpm prod hanya 5 worker (`pm.max_children = 5`), penuh 13 kali pada 23 & 28 Sep (FIXED)
 
 - **Prioritas:** P1 (saat kejadian ramai, request mengantre di belakang 5 worker; halaman Pusat
   Komando & ping GPS responder melambat tepat di saat paling dibutuhkan).
@@ -3478,9 +3478,13 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   757 MB); rata-rata worker ~89 MB. TASK_60 (8 petugas/regu mengirim GPS) menambah beban.
 - **Usulan:** naikkan ke ~10-12 (+~0,5 GB kasus terburuk) dan pertimbangkan pool terpisah untuk
   prod supaya staging/dev tak memakan jatah prod. Perubahan KONFIGURASI SERVER - keputusan user.
-- **Status:** OPEN
+- **FIX (2026-09-29, disetujui user, dijalankan user lewat konsol VPS):** www.conf dicadangkan
+  (`www.conf.bak-<ts>`), lalu max_children 5->12, start 2->3, min_spare 1->2, max_spare 3->5,
+  max_requests 500 (baru); `php-fpm8.2 -t` lolos, reload, active. RAM tersedia sesudahnya ~1,9 GB.
+  Pool terpisah untuk prod BELUM dibuat.
+- **Status:** FIXED
 
-### #137 — MySQL prod mati ~1 menit saat unattended-upgrades memperbarui mysql-server (OPEN)
+### #137 — MySQL prod mati ~1 menit saat unattended-upgrades memperbarui mysql-server (FIXED)
 
 - **Prioritas:** P2. 138 baris "SQLSTATE[HY000] [2002] Connection refused" pada 2026-09-01, 09-02,
   09-11 sekitar 06:45 UTC (14:45 WITA - jam kerja). `unattended-upgrades.log` 09-01 06:46:
@@ -3488,7 +3492,11 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   (laporan warga ikut). Bukan bug aplikasi.
 - **Usulan:** keluarkan mysql-server dari pembaruan otomatis (Package-Blacklist) dan perbarui
   manual di jendela sepi, atau geser jadwal apt-daily-upgrade ke dini hari WITA. Keputusan user.
-- **Status:** OPEN
+- **FIX (2026-09-29):** `/etc/apt/apt.conf.d/52sisupit-hold-mysql` -> `Unattended-Upgrade::Package-Blacklist
+  { "mysql-"; }` (terverifikasi lewat apt-config dump). AKIBATNYA pembaruan keamanan MySQL kini
+  MANUAL: saat itu 1 paket mysql menunggu - jalankan `apt install --only-upgrade 'mysql-*'` di jam
+  sepi (dini hari WITA), cadangkan DB lebih dulu.
+- **Status:** FIXED
 
 ### #138 — `/auth/{provider}` menerima nama apa pun: `/auth/login` & URL sampah pemindai jadi 500 (FIXED)
 
@@ -3511,3 +3519,17 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   transaksi bersarang. Versi pertama penjaga itu merah BAHKAN dengan fix (regex menuntut `}, 3);` di
   ujung potongan yang ternyata berakhir komentar) - diperbaiki, lalu dibuktikan hijau/merah.
 - **Status:** FIXED
+
+### #140 — Port MySQL 3306 terbuka ke seluruh internet di VPS (OPEN)
+
+- **Prioritas:** P1 (keamanan). `ufw status` 2026-09-29: `3306/tcp ALLOW IN Anywhere` (+v6). Ketiga DB
+  (prod/staging/dev) bisa dicoba login dari mana saja; aplikasi sendiri terhubung lewat localhost.
+- **Usulan:** `ufw delete allow 3306/tcp` (dan periksa `bind-address` MySQL) kecuali ada layanan luar
+  yang memang butuh akses langsung - keputusan user.
+- **Catatan SSH 2026-09-29 (bukan temuan aplikasi):** koneksi SSH dari IP kerja 103.110.184.30 di-reset
+  tepat sesudah KEXINIT selama >1 jam sesudah banyak koneksi beruntun, dengan password MAUPUN kunci.
+  sshd TIDAK mencatat apa pun (`journalctl -u ssh` kosong) dan ufw/iptables tak punya aturan limit/IP
+  -> pemblokiran ada DI LUAR VPS (jaringan/firewall penyedia). Password auth tetap aktif
+  (50-cloud-init.conf = yes). Kunci deploy ed25519 `sisupit-deploy@NBRSBM174-20260929` dipasang di
+  /root/.ssh/authorized_keys.
+- **Status:** OPEN
