@@ -147,7 +147,7 @@ class ReportRequest extends FormRequest
             'photos.*' => [
                 'image',
                 'mimes:png,jpg,jpeg,webp',
-                'max:4096',
+                'max:2048',
             ],
             // Id foto galeri yang dihapus saat edit (lihat ReportController::update).
             'removed_photos' => [
@@ -160,7 +160,7 @@ class ReportRequest extends FormRequest
             'photo' => [
                 'nullable',
                 'mimes:png,jpg,jpeg,webp',
-                'max:4096',
+                'max:2048',
             ],
         ];
     }

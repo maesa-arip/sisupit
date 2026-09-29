@@ -18,9 +18,11 @@ use App\Models\Unit;
 use App\Models\User;
 use App\Notifications\EmergencyAlertNotification;
 use App\Traits\HasFile;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Response;
 use Laravolt\Indonesia\Models\Province;
@@ -29,6 +31,30 @@ use Throwable;
 class ReportController extends Controller
 {
     use HasFile;
+
+    /**
+     * Pusat Komando: peran yang memasukkan laporan dari TELEPON (TASK_28). Satu daftar untuk
+     * dua keputusan - pemilih wilayah di form DAN pembebasan dari batas kirim laporan - supaya
+     * operator yang mendapat pemilih wilayah tak pernah bisa terkunci limiter saat menerima
+     * panggilan beruntun (2026-09-29: Admin Damkar Denpasar terkena 429 di tengah input).
+     */
+    private const COMMAND_CENTER_ROLES = ['petugas', 'admin', 'superadmin'];
+
+    /**
+     * Batas kirim laporan untuk selain Pusat Komando: 5 laporan TERSIMPAN per 10 menit.
+     * Dulu `throttle:report-create` di route, yang menghitung SETIAP kiriman - termasuk yang
+     * ditolak validasi - sehingga pelapor yang formnya ditolak diam-diam lalu mengetuk ulang
+     * terkunci tanpa pernah berhasil melapor sekali pun. Kini hanya laporan yang benar-benar
+     * masuk yang dihitung; perlindungan spam/hoaks tetap sama besarnya.
+     */
+    public const REPORT_LIMIT = 5;
+
+    public const REPORT_LIMIT_WINDOW_SECONDS = 600;
+
+    public static function reportLimiterKey(User $user): string
+    {
+        return 'report-create:'.$user->id;
+    }
 
     // =========================================================================
     // 1. READ & BROWSE DATA
@@ -543,7 +569,7 @@ class ReportController extends Controller
         // yurisdiksinya kabupaten) — bukan string 'Bali' yang ditulis di kode.
         // Prop ini juga GERBANG fiturnya: null untuk warga, sehingga form pelaporan warga
         // tetap darurat-first (GPS + geser pin) tanpa tambahan langkah apa pun.
-        $regionPicker = $user->hasAnyRole(['petugas', 'admin', 'superadmin']) ? [
+        $regionPicker = $user->hasAnyRole(self::COMMAND_CENTER_ROLES) ? [
             'province_code' => $user->province_code,
             'city_code' => $user->city_code,
             'district_code' => $user->district_code,
@@ -567,6 +593,20 @@ class ReportController extends Controller
 
     public function store(ReportRequest $request): RedirectResponse
     {
+        // Di LUAR try: galat 429 harus sampai ke penangan global (bootstrap/app.php), bukan
+        // ditelan catch di bawah jadi flash "Terjadi kesalahan".
+        $limiterKey = $request->user()->hasAnyRole(self::COMMAND_CENTER_ROLES)
+            ? null
+            : self::reportLimiterKey($request->user());
+
+        if ($limiterKey && RateLimiter::tooManyAttempts($limiterKey, self::REPORT_LIMIT)) {
+            throw new ThrottleRequestsException(
+                'Too Many Attempts.',
+                null,
+                ['Retry-After' => RateLimiter::availableIn($limiterKey)],
+            );
+        }
+
         try {
             // Galeri foto (FINDINGS #17): simpan semua foto; foto pertama jadi sampul
             // (kolom `photo` lama) agar feed/dashboard yang membaca report.photo tetap jalan.
@@ -628,6 +668,10 @@ class ReportController extends Controller
 
             foreach ($photoPaths as $path) {
                 $report->photos()->create(['path' => $path]);
+            }
+
+            if ($limiterKey) {
+                RateLimiter::hit($limiterKey, self::REPORT_LIMIT_WINDOW_SECONDS);
             }
 
             // Laporan ganda (TASK_55, lapis 1): satu kebakaran dilihat banyak orang. Server
@@ -696,6 +740,9 @@ class ReportController extends Controller
 
             return to_route('front.reports.thanks', $report->id);
         } catch (Throwable $e) {
+            // Dicatat (2026-09-29): dulu galat di sini hanya jadi flash lalu hilang - di log akses
+            // ia tak bisa dibedakan dari penolakan validasi, dan laravel.log kosong.
+            report($e);
             flashMessage(MessageType::ERROR->message(error: $e->getMessage()), 'error');
 
             return to_route('front.reports.create');

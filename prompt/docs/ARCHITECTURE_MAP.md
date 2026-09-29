@@ -152,7 +152,7 @@ docker/tiles/     Self-hosted basemap (TileServer-GL + tilemaker, Bali) — tile
 
 **1. Buat & approve laporan darurat**
 ```
-POST /reports/create  (throttle:report-create, 5/10menit)
+POST /reports/create  (limiter di store(): 5 laporan tersimpan/10menit; petugas/admin/superadmin bebas - #147)
   → ReportController::store (ReportRequest validasi)
   → Report::create (status default TERLAPOR/pending)
   → redirect dashboard

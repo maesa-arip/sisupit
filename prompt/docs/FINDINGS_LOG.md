@@ -3657,3 +3657,47 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   tersaring) dibuktikan MERAH, berkas pulih byte-exact (`cmp`). Sabotase pertama sempat LOLOS karena
   `\b` cocok dengan `selectedIds.filter(...)` - assertion diperketat ke `{ member_ids: selectedIds }`.
 - **Status:** FIXED 2026-09-29 (frontend saja).
+
+### #147 — "Too many connection" saat admin lapor kejadian = 429 limiter laporan, dipicu kiriman yang ditolak diam-diam (FIXED)
+
+- **Prioritas:** P1 (Pusat Komando terkunci 10 menit dari form lapor di tengah menerima telepon).
+- **Laporan user 2026-09-29:** "kenapa daritadi sering error to many connection saat admin lapor kejadian".
+- **BUKAN database.** MySQL prod: `Connection_errors_max_connections` 0, puncak 11 dari 150. Yang
+  terbaca "too many connection" adalah halaman galat mentah "429 Too Many Requests" di modal Inertia
+  (bootstrap/app.php tak menangani 429). Log Nginx 2026-09-29: 15x 429, SEMUANYA `POST /reports/create`
+  (Admin Damkar Denpasar dari ponsel + satu petugas).
+- **Akar, tiga lapis:** (1) `throttle:report-create` (5/10 menit per akun) menghitung SETIAP kiriman,
+  termasuk yang ditolak validasi; (2) kiriman admin ditolak server (302 kembali ke /reports/create;
+  ~18 kiriman, hanya 1 laporan tersimpan sepanjang hari) tanpa pesan terlihat - form tak punya
+  `onError`, galat `photos.N`/`lat`/`lng`/`phone` tak dirender, dan exception di catch `store()` tak
+  dicatat sehingga laravel.log kosong; (3) pelapor mengetuk Kirim 4-5x dalam 3-4 detik sampai 429.
+  Isian mana yang menolak kiriman admin TIDAK bisa dipulihkan (flash sesi sudah terhapus) - dugaan
+  awal "PHP upload_max_filesize 2M" KELIRU: FPM efektif 10M/30M lewat `conf.d/99-upload-limits.ini`
+  (#132); `php -r` membaca php.ini CLI, bukan FPM. Periksa lewat skrip web, bukan CLI.
+- **Fix:** (a) limiter pindah ke `ReportController::store`: hanya laporan TERSIMPAN yang dihitung
+  (`RateLimiter::hit` sesudah baris lahir), Pusat Komando (`COMMAND_CENTER_ROLES` = petugas/admin/
+  superadmin, daftar yang SAMA dengan pemilih wilayah) dibebaskan; `throttle:report-create` & limiter
+  bernamanya dicabut. (b) 429 pada permintaan Inertia -> `back()` + flash "Terlalu banyak percobaan.
+  Coba lagi dalam N menit..." (ikut membetulkan sisi tampilan #123 di forum). (c) form lapor:
+  `onError` -> toast galat pertama + gulir ke isiannya, galat `photos.N` dirender, `report($e)` di catch.
+  (d) keputusan user: SATU batas 2 MB per berkas untuk SEMUA unggahan - `ReportRequest` 4096->2048,
+  berita acara foto & KTP korban 5120->2048 (lainnya sudah 2048); klien `MAX_UPLOAD_BYTES`, kompresor
+  mencoba 1600px/0,7 lalu 1280px/0,6 bila masih >2 MB, dan berkas yang tetap >2 MB DITOLAK DI FORM
+  dengan nama berkasnya (lapor, edit laporan, berita acara). Teks "Maks. 4MB"/"up to 5MB" diluruskan.
+  Konfigurasi server TIDAK diubah: Nginx 32M >= post 30M >= upload 10M >= validasi 2 MB tetap berurutan.
+- **YANG MENGIKAT:** jangan kembalikan throttle ke route (ia menghitung kiriman gagal); pemeriksaan
+  limiter di LUAR try `store()` (catch Throwable akan menelan 429); angka 2 MB dijaga di dua sisi.
+- **Penjaga:** 4 test baru di `ReportRateLimitTest`, 3 di `UploadSizeLimitTest` (dipindai: setiap
+  aturan berkas di app/ = 2048, konstanta klien, galat per foto di form). Empat sabotase MERAH karena
+  alasan yang benar (dua sabotase pertama merah karena alasan KELIRU - nama limiter tak ada & galat
+  sintaks - lalu diulang). CATATAN: `UploadSizeLimitTest` sempat TERTIMPA `cat >`; dipulihkan dari
+  HEAD + tambahan (diff murni penambahan).
+- **Temuan ikutan #148 OPEN:** `.env` prod `APP_LOCALE=en` padahal config default 'id' & lang/id
+  lengkap - pesan validasi di prod berbahasa Inggris ("The Foto field must not be greater than...").
+- **Status:** FIXED 2026-09-29.
+
+### #148 — Prod `APP_LOCALE=en`: pesan validasi tampil berbahasa Inggris (OPEN)
+
+- **Prioritas:** P3. Ditemukan saat #147. `config/app.php` default 'id' dan `lang/id/validation.php`
+  ada, tapi `.env` prod menimpanya dengan `en` (.env.example juga `en`). Fix = ubah .env ketiga env
+  + `config:cache` bila aktif; menunggu keputusan user (mengubah SEMUA pesan validasi sekaligus).

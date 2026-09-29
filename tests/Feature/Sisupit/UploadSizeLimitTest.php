@@ -117,3 +117,53 @@ it('keeps the nginx templates large enough for the biggest allowed report', func
         expect((int) ($m[1] ?? 0))->toBeGreaterThan($neededMb);
     }
 });
+
+// ---- 2026-09-29: satu batas 2 MB per berkas (lanjutan #132) ----
+
+// Satu batas unggahan untuk SEMUA berkas (keputusan user 2026-09-29): 2 MB = upload_max_filesize
+// PHP di server. Aturan yang lebih longgar dari PHP berarti berkas ditolak PHP lebih dulu dengan
+// galat "gagal diunggah" alih-alih pesan ukuran - itu yang membuat laporan admin ditolak diam-diam.
+
+it('caps every file validation rule in app/ at 2048 KB', function () {
+    $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(base_path('app')));
+    $found = 0;
+
+    foreach ($files as $file) {
+        if ($file->getExtension() !== 'php') {
+            continue;
+        }
+        $lines = file($file->getPathname());
+        foreach ($lines as $i => $line) {
+            // Satu baris berisi aturan berkas: 'image|max:..' / 'mimes:..|max:..'.
+            if (preg_match("/'(?:[^']*\|)?(image|file|mimes:[a-z,]+)(\|[^']*)?'/", $line) && preg_match('/max:(\d+)/', $line, $m)) {
+                $found++;
+                expect((int) $m[1])->toBe(2048, $file->getFilename().':'.($i + 1));
+            }
+            // Aturan berbentuk array: cari 'max:N' di dekat 'image'/'mimes:' (maks 3 baris).
+            if (preg_match("/^\s*'(image|file|mimes:[a-z,]+)',\s*$/", $line)) {
+                $window = implode('', array_slice($lines, $i, 4));
+                if (preg_match("/'max:(\d+)'/", $window, $m)) {
+                    $found++;
+                    expect((int) $m[1])->toBe(2048, $file->getFilename().':'.($i + 1));
+                }
+            }
+        }
+    }
+
+    // Laporan (2), berita acara (2), profil, KTP, avatar user, foto pejabat tenant.
+    expect($found)->toBeGreaterThanOrEqual(8);
+});
+
+it('keeps the client-side limit equal to the server rule', function () {
+    $js = file_get_contents(resource_path('js/lib/compress-image.js'));
+
+    expect($js)->toMatch('/export const MAX_UPLOAD_BYTES = 2 \* 1024 \* 1024;/');
+});
+
+it('shows per-photo upload errors on the report form', function () {
+    $jsx = file_get_contents(resource_path('js/Pages/Front/Reports/Create.jsx'));
+
+    expect($jsx)->toContain("key.startsWith('photos.')")
+        ->and($jsx)->toMatch('/onError:\s*\(/')
+        ->and($jsx)->toContain('splitOversize(');
+});

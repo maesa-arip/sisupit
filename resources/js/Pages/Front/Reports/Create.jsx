@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import { Textarea } from '@/Components/ui/textarea';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
-import { compressImages } from '@/lib/compress-image';
+import { compressImages, oversizeMessage, splitOversize } from '@/lib/compress-image';
 import {
 	alamatTerbaca,
 	cn,
@@ -703,8 +703,11 @@ export default function Create(props) {
 		if (!picked.length) return;
 
 		setCompressingPhotos(true);
-		const files = await compressImages(picked.slice(0, MAX_PHOTOS - data.photos.length));
+		const compressed = await compressImages(picked.slice(0, MAX_PHOTOS - data.photos.length));
 		setCompressingPhotos(false);
+
+		const { accepted: files, rejected } = splitOversize(compressed);
+		if (rejected.length) toast.error(oversizeMessage(rejected));
 
 		const combined = [...data.photos, ...files].slice(0, MAX_PHOTOS);
 		setData('photos', combined);
@@ -779,6 +782,16 @@ export default function Create(props) {
 				// guard pada flash?.type, bukan sekadar objeknya (yang selalu truthy).
 				const flash = flashMessage(success);
 				if (flash?.type) toast[flash.type](flash.message);
+			},
+			// Penolakan server WAJIB bersuara (2026-09-29): tanpa ini galat pada isian yang tak
+			// punya <InputError> (photos.N, lat/lng, phone) tak terlihat sama sekali, pelapor
+			// mengetuk Kirim berulang, dan dulu setiap ketukan ikut dihitung limiter sampai 429.
+			onError: (formErrors) => {
+				const [field, message] = Object.entries(formErrors)[0] ?? [];
+				if (!message) return;
+				toast.error(message);
+				const element = document.getElementById(field.split('.')[0]);
+				element?.scrollIntoView({ block: 'center', behavior: 'smooth' });
 			},
 		});
 	};
@@ -1341,7 +1354,7 @@ export default function Create(props) {
 														Pilih foto kejadian
 													</p>
 													<p className="mb-5 mt-1 text-[13px] text-muted-foreground">
-														Format PNG/JPG/WEBP (Maks. 4MB / foto)
+														Format PNG/JPG/WEBP (Maks. 2 MB / foto)
 													</p>
 													<span className="inline-flex h-9 items-center justify-center rounded-md bg-destructive px-5 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90">
 														Jelajahi File
@@ -1351,6 +1364,12 @@ export default function Create(props) {
 										</div>
 									)}
 									{errors.photos && <InputError message={errors.photos} className="mt-1" />}
+									{/* Galat per berkas bernama photos.0, photos.1, ... - bukan `photos`. */}
+									{Object.entries(errors)
+										.filter(([key]) => key.startsWith('photos.'))
+										.map(([key, message]) => (
+											<InputError key={key} message={message} className="mt-1" />
+										))}
 								</div>
 							</div>
 

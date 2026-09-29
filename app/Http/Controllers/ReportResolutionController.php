@@ -159,12 +159,12 @@ class ReportResolutionController extends Controller
             'victims.*.tanggal_lahir' => 'nullable|date',
             'victims.*.alamat' => 'nullable|string|max:255',
             'victims.*.kondisi' => 'nullable|string|max:255',
-            'victims.*.ktp' => 'nullable|image|max:5120',
+            'victims.*.ktp' => 'nullable|image|max:2048',
             // Batas jumlah WAJIB sama dengan MAX_PHOTOS di Resolution/Create.jsx (dijaga
             // UploadSizeLimitTest). Tanpa batas, 8 foto x 5 MB + KTP korban sudah melewati
             // post_max_size server dan dijawab 413 sebelum validasi ini sempat berbicara (#132).
             'photos' => 'nullable|array|max:8',
-            'photos.*' => 'image|max:5120',
+            'photos.*' => 'image|max:2048',
         ]);
 
         // Entri FINAL adalah dokumen yang dipertanggungjawabkan keluar, jadi penutupnya admin

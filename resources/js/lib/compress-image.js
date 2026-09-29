@@ -13,6 +13,39 @@
 export const COMPRESS_MAX_SIDE = 1920;
 export const COMPRESS_QUALITY = 0.8;
 
+// Batas SATU berkas unggahan, sama untuk SEMUA form (keputusan user 2026-09-29): 2 MB =
+// `upload_max_filesize` PHP di server = aturan `max:2048` (KB) di setiap validasi berkas.
+// Berkas yang melewatinya DITOLAK PHP sebelum sampai ke aturan Laravel mana pun, dan galatnya
+// ("photos.0 failed to upload") tak pernah tampil di layar - itu sebab admin 2026-09-29
+// mengetuk Kirim berulang sampai terkena 429. Angka ini diadu dengan aturan server di
+// UploadSizeLimitTest; mengubahnya sendirian = form menerima berkas yang pasti ditolak.
+export const MAX_UPLOAD_BYTES = 2 * 1024 * 1024;
+
+// Tangga percobaan bila hasil pertama masih di atas batas: foto 12 MP berdetail tinggi (daun,
+// kerumunan) bisa tetap >2 MB pada 1920 px / 0,8.
+const FALLBACK_STEPS = [
+	{ maxSide: 1600, quality: 0.7 },
+	{ maxSide: 1280, quality: 0.6 },
+];
+
+export const formatMegabytes = (bytes) => `${(bytes / (1024 * 1024)).toFixed(1).replace('.', ',')} MB`;
+
+// Memisahkan berkas yang masih melewati batas SESUDAH dikompresi (kompresor fail-open, jadi
+// HEIC yang tak bisa di-decode tetap berkas asli 3-8 MB). Pemanggil wajib memberi tahu
+// pengguna berkas mana yang ditolak - membuangnya diam-diam sama buruknya dengan membiarkan
+// server menolaknya diam-diam.
+export function splitOversize(files) {
+	const accepted = [];
+	const rejected = [];
+	for (const file of files) (file?.size > MAX_UPLOAD_BYTES ? rejected : accepted).push(file);
+	return { accepted, rejected };
+}
+
+export function oversizeMessage(rejected) {
+	const names = rejected.map((f) => `${f.name || 'foto'} (${formatMegabytes(f.size)})`).join(', ');
+	return `Foto melebihi batas 2 MB dan tidak dilampirkan: ${names}. Pilih foto lain atau ambil ulang dengan resolusi lebih kecil.`;
+}
+
 // GIF dilewati (kanvas hanya menyimpan bingkai pertama). Selain image/* tak disentuh,
 // termasuk PDF di isian KTP profil.
 const shouldSkip = (file) => !(file instanceof Blob) || !file.type?.startsWith('image/') || file.type === 'image/gif';
@@ -39,7 +72,19 @@ const decode = async (file) => {
 	}
 };
 
-export async function compressImage(file, { maxSide = COMPRESS_MAX_SIDE, quality = COMPRESS_QUALITY } = {}) {
+export async function compressImage(file, options = {}) {
+	const first = await compressOnce(file, options);
+	if (first.size <= MAX_UPLOAD_BYTES || shouldSkip(file)) return first;
+
+	for (const step of FALLBACK_STEPS) {
+		const next = await compressOnce(file, step);
+		if (next === file) break; // tak bisa di-decode sama sekali - percobaan lain sia-sia
+		if (next.size <= MAX_UPLOAD_BYTES) return next;
+	}
+	return first;
+}
+
+async function compressOnce(file, { maxSide = COMPRESS_MAX_SIDE, quality = COMPRESS_QUALITY } = {}) {
 	if (shouldSkip(file)) return file;
 
 	try {

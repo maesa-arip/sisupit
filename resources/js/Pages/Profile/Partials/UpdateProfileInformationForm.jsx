@@ -195,7 +195,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 									}`}
 								>
 									<IconCamera className="mb-1.5 h-5 w-5 text-muted-foreground" />
-									<p className="mb-3 text-xs text-muted-foreground">PNG, JPG up to 5MB</p>
+									<p className="mb-3 text-xs text-muted-foreground">PNG/JPG, maks. 2 MB</p>
 									<label className="inline-flex h-8 cursor-pointer items-center justify-center rounded-md border border-border bg-background px-4 text-xs font-medium text-foreground transition-colors focus-within:ring-2 focus-within:ring-destructive/50 hover:bg-accent">
 										{previewUrl || user.ktp ? 'Ganti File' : 'Browse Files'}
 										<input

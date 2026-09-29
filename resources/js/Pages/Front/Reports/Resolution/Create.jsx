@@ -7,7 +7,7 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
-import { compressImages } from '@/lib/compress-image';
+import { compressImages, oversizeMessage, splitOversize } from '@/lib/compress-image';
 import { Link, useForm } from '@inertiajs/react';
 import {
 	IconArrowLeft,
@@ -117,7 +117,9 @@ export default function Create(props) {
 	const withCompression = async (files) => {
 		setCompressing((n) => n + 1);
 		try {
-			return await compressImages(files);
+			const { accepted, rejected } = splitOversize(await compressImages(files));
+			if (rejected.length) toast.error(oversizeMessage(rejected));
+			return accepted;
 		} finally {
 			setCompressing((n) => n - 1);
 		}
@@ -125,7 +127,7 @@ export default function Create(props) {
 	const handleVictimKtp = async (i, file) => {
 		if (!file) return setVictimKtp(i, null);
 		const [compressed] = await withCompression([file]);
-		setVictimKtp(i, compressed);
+		if (compressed) setVictimKtp(i, compressed);
 	};
 
 	// Waktu kejadian = tanggal (DatePicker shadcn) + jam terpisah, disimpan sebagai

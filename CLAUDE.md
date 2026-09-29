@@ -27,7 +27,15 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : PENCARIAN DI "ATUR ANGGOTA" /regu (#146). SELESAI (kode) 2026-09-29, BELUM dideploy.
+Task aktif   : "TOO MANY CONNECTION" SAAT ADMIN LAPOR = 429 LIMITER LAPORAN (#147). SELESAI 2026-09-29.
+                Bukan MySQL (0 connection error, puncak 11/150). Kiriman admin ditolak validasi TANPA pesan,
+                diketuk ulang, dan throttle:report-create menghitung kiriman gagal -> 429 mentah. Kini limiter
+                di ReportController::store (hanya laporan TERSIMPAN dihitung, petugas/admin/superadmin bebas),
+                429 Inertia -> toast Indonesia, form lapor punya onError + galat per foto, report($e) di catch.
+                Keputusan user: 2 MB PER FOTO untuk SEMUA unggahan (max:2048 + MAX_UPLOAD_BYTES klien).
+                PHP-FPM prod efektif 10M/30M lewat conf.d/99-upload-limits.ini (php -r = CLI, menyesatkan);
+                konfigurasi server TIDAK diubah. #148 OPEN: prod APP_LOCALE=en (pesan validasi Inggris).
+               PENCARIAN DI "ATUR ANGGOTA" /regu (#146). SELESAI (kode) 2026-09-29, BELUM dideploy.
                 Prod punya 80+ petugas. Disaring di klien; yang disimpan tetap SELURUH selectedIds (anggota
                 yang tersembunyi oleh pencarian tak boleh ikut terlepas). Penjaga 1 test di ReguTest.
                POP-UP DI PONSEL TAK LAGI MENEMPEL TEPI (#145). SELESAI (kode) 2026-09-29, BELUM dideploy.
@@ -2496,6 +2504,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + #144 combobox ponsel tanpa fokus otomatis & tinggi dibatasi layar = 572 passed, 2604 assertions.
             + #145 pop-up ponsel berjarak & membulat = 575 passed, 2615 assertions.
             + #146 pencarian Atur Anggota /regu = 576 passed, 2622 assertions.
+            + #147 limiter laporan & batas 2 MB per foto = 583 passed, 2690 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

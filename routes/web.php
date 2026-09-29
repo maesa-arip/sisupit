@@ -274,7 +274,9 @@ Route::middleware(['auth', 'verified'])->controller(ReportController::class)->gr
 
     Route::get('reports/show/{report}', 'show')->name('reports.show');
     Route::get('reports/create', 'create')->name('front.reports.create');
-    Route::post('reports/create', 'store')->middleware('throttle:report-create')->name('front.reports.store');
+    // Batas kirim laporan ada di ReportController::store (hanya laporan TERSIMPAN yang dihitung,
+    // Pusat Komando dibebaskan) - JANGAN kembalikan throttle:report-create ke sini.
+    Route::post('reports/create', 'store')->name('front.reports.store');
     Route::get('reports/thanks/{report}', 'thanks')->name('front.reports.thanks');
     Route::get('reports/edit/{report}', 'edit')->name('front.reports.edit');
     Route::put('reports/edit/{report}', 'update')->name('front.reports.update');

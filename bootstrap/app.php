@@ -38,6 +38,16 @@ return Application::configure(basePath: dirname(__DIR__))
                 return inertia('ErrorHandling', [
                     'status' => $response->getStatusCode(),
                 ])->toResponse($request)->setStatusCode($response->getStatusCode());
+            } elseif ($response->getStatusCode() === 429 && $request->header('X-Inertia')) {
+                // Dulu 429 tampil sebagai halaman galat mentah berbahasa Inggris di dalam modal
+                // Inertia ("Too Many Requests") - admin membacanya sebagai "too many connection"
+                // (2026-09-29). Kini kembali ke halaman asal dengan pesan yang bisa dibaca
+                // lewat flash_message, yang ditampilkan form sebagai toast.
+                $detik = (int) ($response->headers->get('Retry-After') ?: 60);
+                $menit = max(1, (int) ceil($detik / 60));
+                flashMessage("Terlalu banyak percobaan. Coba lagi dalam {$menit} menit. Dalam keadaan darurat, telepon 113.", 'error');
+
+                return back();
             } elseif ($response->getStatusCode() === 419) {
                 return back()->with([
                     'message' => 'The page expired, please try again',

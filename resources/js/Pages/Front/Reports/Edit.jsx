@@ -5,7 +5,7 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
-import { compressImages } from '@/lib/compress-image';
+import { compressImages, oversizeMessage, splitOversize } from '@/lib/compress-image';
 import { flashMessage } from '@/lib/utils';
 import { Link, useForm } from '@inertiajs/react';
 import { IconArrowLeft, IconCloudUpload, IconDeviceFloppy, IconLoader2, IconX } from '@tabler/icons-react';
@@ -43,8 +43,10 @@ export default function Edit(props) {
 
 		const room = MAX_PHOTOS - totalPhotos;
 		setCompressingPhotos(true);
-		const accepted = await compressImages(files.slice(0, Math.max(0, room)));
+		const compressed = await compressImages(files.slice(0, Math.max(0, room)));
 		setCompressingPhotos(false);
+		const { accepted, rejected } = splitOversize(compressed);
+		if (rejected.length) toast.error(oversizeMessage(rejected));
 		const combined = [...data.photos, ...accepted];
 		setData('photos', combined);
 
