@@ -892,6 +892,9 @@ class ReportActionController extends Controller
                 'status' => 'arrived',
                 'arrived_at' => now(),
                 'updated_at' => now(),
+                // Jejak penanda (#154): satu ketukan bisa menandai rekan seregu. report_helpers
+                // (relawan, selalu perorangan) tak punya kolom ini.
+                ...($table === 'report_officers' ? ['arrived_by' => $user->id] : []),
             ]);
 
         if ($isFirstArrival) {

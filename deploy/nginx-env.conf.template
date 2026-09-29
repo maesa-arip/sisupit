@@ -86,6 +86,10 @@ server {
 
     location ~ \.php$ {
         fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+        # Header respons Laravel bisa >4 KB -> "upstream sent too big header" = 502 (FINDINGS #155).
+        fastcgi_buffer_size 32k;
+        fastcgi_buffers 16 16k;
+        fastcgi_busy_buffers_size 64k;
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
         include fastcgi_params;
         fastcgi_hide_header X-Powered-By;

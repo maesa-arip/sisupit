@@ -3773,7 +3773,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   tombol/chip berlatar hitam + teks putih buatan sendiri). Sabotase token lama MERAH.
 - **Status:** FIXED & TERDEPLOY 2026-09-30 @cec5c164. SISA: cek visual di ponsel/APK.
 
-### #153 — `/root/deploy-env.sh` di VPS tidak menjalankan `composer install` (OPEN)
+### #153 — `/root/deploy-env.sh` di VPS tidak menjalankan `composer install` (FIXED)
 
 - **Prioritas:** P3 (operasional). Ditemukan saat deploy TASK_64-68 (paket dompdf baru). Skrip itu:
   cadangan DB -> `git pull` -> `migrate` -> route/config cache -> `queue:restart` -> `chown`. Rilis yang
@@ -3781,10 +3781,50 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   galat saat deploy. Deploy 09-30 menjalankan `git pull` + `composer install --no-dev` LEBIH DULU,
   baru skripnya. Fix = tambah `composer install --no-dev --optimize-autoloader` sesudah `git pull`
   di skrip (bila `composer.lock` berubah); menunggu keputusan user karena menyentuh server.
+- **Fix 2026-09-30 (permintaan user):** skrip mencatat sha1 `composer.lock` sebelum `git pull` dan
+  menjalankan `composer install --no-dev --optimize-autoloader` HANYA bila berubah (sebelum migrate,
+  sebelum chown). Salinan resminya kini ADA DI REPO: `deploy/deploy-env.sh` - dulu skrip itu hanya
+  hidup di server, jadi perbaikannya pun tak punya riwayat. Runbook `deploy/environments.md` diperbarui.
+- **Status:** FIXED 2026-09-30.
 
-### #154 — "Tiba" seregu tanpa jejak siapa yang menandainya (OPEN)
+### #154 — "Tiba" seregu tanpa jejak siapa yang menandainya (FIXED)
 
 - **Prioritas:** P3. Sejak TASK_66 satu anggota menekan Tiba = anggota regu yang sama & masih `en_route`
   ikut `arrived` (keputusan user). `report_officers` tak menyimpan SIAPA yang menandai, jadi anggota
   yang sebenarnya tertinggal tercatat tiba tanpa bisa ditelusuri. Fix = kolom `arrived_by` nullable
   (migrasi kecil) + tampil di manifes; menunggu keputusan user.
+- **Fix 2026-09-30 (permintaan user):** migrasi aditif `report_officers.arrived_by` (nullable,
+  nullOnDelete, tanpa backfill - baris lama = "tidak tercatat"). `arrive()` menulis id penekan ke
+  SETIAP baris yang ia tandai (termasuk dirinya); `report_helpers` tak ikut (relawan selalu
+  perorangan). Relasi `ReportOfficer::arriver()` - BUKAN `arrivedBy()`, supaya serialisasi
+  snake_case tak menimpa kolom `arrived_by` (pola `Report::resolver()`). Manifes menulis "Ditandai
+  tiba oleh X" di bawah nama anggota bila penandanya orang lain. Penjaga di `ReguAttendanceTest`
+  (sabotase MERAH).
+- **Status:** FIXED 2026-09-30.
+
+### #155 — Membuka Profil di VPS = 502 Bad Gateway: header respons melewati buffer FastCGI Nginx (FIXED)
+
+- **Prioritas:** P1 (halaman Profil - dan hampir pasti detail insiden - tak bisa dibuka di prod).
+- **Laporan user 2026-09-30:** "saat buka profil muncul badgateway di vps".
+- **Bukti:** `/var/log/nginx/sisupit_error.log` 23:17-23:21 UTC: `upstream sent too big header while
+  reading response header from upstream`, request `GET /profile`, dua pengguna APK. Access log: tiap
+  kali `409` (Inertia: versi aset berubah sesudah deploy -> muat ulang PENUH) lalu `502`. Kunjungan
+  Inertia (JSON) lolos; yang tumbang adalah muat PENUH - karena itu baru ketahuan sesudah deploy.
+- **Akar:** `AddLinkHeadersForPreloadedAssets` (bootstrap/app.php) memasang header `Link` yang
+  mendaftar SETIAP chunk halaman. Dihitung dari manifest: Profil 38 chunk ~4,07 KB, detail insiden 39
+  chunk ~4,15 KB (Dashboard 2,6 KB, Users/Create 3,0 KB). Ditambah cookie sesi & XSRF, header melewati
+  `fastcgi_buffer_size` bawaan Nginx 4 KB. Tak ada batas yang dilanggar di sisi aplikasi: header itu
+  tumbuh diam-diam tiap halaman bertambah impor (TASK_65/67 menambah DatePicker dll. ke berkas yang
+  dipakai bersama) sampai suatu hari melewatinya - tanpa galat saat build, test, maupun di laravel.log
+  (Nginx yang menolak, PHP sendiri sukses).
+- **Fix dua lapis:** (1) SERVER, langsung 2026-09-30: ketiga vhost sisupit mendapat
+  `fastcgi_buffer_size 32k; fastcgi_buffers 16 16k; fastcgi_busy_buffers_size 64k;` di blok PHP
+  (cadangan `sites-available/*.bak-fastcgi-*`, `nginx -t` lulus, reload; nol "too big header" sesudahnya;
+  header halaman publik terukur ~2,7 KB). Template `deploy/nginx-env.conf.template` ikut. (2) APLIKASI:
+  middleware `AddLinkHeadersForPreloadedAssets` DICABUT - tag modulepreload yang sama sudah dicetak
+  `@vite` di app.blade.php, jadi header itu mubazir.
+- **Penjaga:** `ResponseHeaderSizeTest` (statis: middleware tak boleh kembali). Test yang MENGUKUR
+  header respons sempat ditulis lalu DIBUANG: di lingkungan test Vite tak menghasilkan daftar preload,
+  jadi ia tetap hijau walau middleware dipasang lagi (dibuktikan sabotase) - penjaga yang tak bisa merah
+  tidak menjaga apa pun.
+- **Status:** FIXED 2026-09-30.

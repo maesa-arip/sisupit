@@ -159,3 +159,24 @@ it('writes the alpha members into the admin excel export', function () {
     expect($cells)->toContain('Alpha (Tidak Memilih)');
     expect($cells->contains(fn ($c) => str_contains((string) $c, 'Nyoman Anggota (Regu A)')))->toBeTrue();
 });
+
+// FINDINGS #154: satu ketukan Tiba menandai rekan seregu, jadi SIAPA yang menandainya dicatat
+// di tiap baris dan disebut di manifes bila bukan dirinya sendiri.
+it('records who pressed tiba on every row it marked, and shows it on the detail page', function () {
+    $this->actingAs($this->danru)->post(route('reports.take-action', $this->report));
+    $this->actingAs($this->anggota1)->post(route('reports.take-action', $this->report));
+
+    $this->actingAs($this->anggota1)->post(route('reports.arrive', $this->report))->assertSessionHasNoErrors();
+
+    $by = DB::table('report_officers')->where('report_id', $this->report->id)->pluck('arrived_by', 'user_id');
+    expect((int) $by[$this->danru->id])->toBe($this->anggota1->id)
+        ->and((int) $by[$this->anggota1->id])->toBe($this->anggota1->id);
+
+    $this->actingAs($this->admin)->get(route('reports.show', $this->report))
+        ->assertInertia(fn ($page) => $page->has('report.officers', 2, fn ($o) => $o->etc())
+            ->where('report.officers', fn ($officers) => collect($officers)
+                ->firstWhere('user_id', $this->danru->id)['arriver']['name'] === 'Ketut Anggota'));
+
+    $jsx = file_get_contents(resource_path('js/Pages/Front/Reports/Show.jsx'));
+    expect($jsx)->toMatch('~officer\.arrived_by !== officer\.user_id~')->toContain('Ditandai tiba oleh');
+});

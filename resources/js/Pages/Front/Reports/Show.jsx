@@ -417,7 +417,15 @@ export default function ReportShow(props) {
 		const stat = getResponderStatus(officer.status);
 		return (
 			<div key={officer.id} className="flex items-center justify-between gap-3 p-3.5 text-xs">
-				<div className="min-w-0 flex-1 truncate font-bold text-foreground">{officer.user?.name}</div>
+				<div className="min-w-0 flex-1">
+					<div className="truncate font-bold text-foreground">{officer.user?.name}</div>
+					{/* Ditandai Tiba oleh rekan seregu (TASK_66) - jejaknya disebut (#154). */}
+					{officer.arriver && officer.arrived_by !== officer.user_id && (
+						<div className="truncate text-[11px] text-muted-foreground">
+							Ditandai tiba oleh {officer.arriver.name}
+						</div>
+					)}
+				</div>
 				<Badge className={cn('rounded-md border px-2 py-0.5 text-xs font-semibold shadow-none', stat.color)}>
 					{stat.label}
 				</Badge>

@@ -21,7 +21,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\ResolveTenant::class,
             \App\Http\Middleware\HandleInertiaRequests::class,
-            \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
+            // AddLinkHeadersForPreloadedAssets SENGAJA TIDAK dipasang (FINDINGS #155): header `Link`-nya
+            // mendaftar SETIAP chunk halaman (Profil & detail insiden ~4 KB) dan, ditambah cookie sesi,
+            // melewati buffer FastCGI Nginx 4 KB -> "upstream sent too big header" = 502. Tag
+            // modulepreload yang sama sudah dicetak @vite di app.blade.php, jadi header itu mubazir.
             \App\Http\Middleware\EnsureProfileComplete::class,
         ])->validateCsrfTokens(except: [
             'payments/callback',

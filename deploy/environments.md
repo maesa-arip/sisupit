@@ -101,10 +101,14 @@ php artisan config:cache && php artisan route:cache && php artisan view:cache
 systemctl restart reverb-staging
 ```
 
-**Skrip bantu `/root/deploy-env.sh <dir> <branch> <backupdir>`** (cadangan DB -> pull -> migrate ->
-cache -> queue:restart -> chown) **TIDAK menjalankan `composer install`** (FINDINGS #153). Bila rilis
-mengubah `composer.lock`: `git pull` + `COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev
---optimize-autoloader` LEBIH DULU, baru skripnya (pull-nya jadi no-op; cadangan tetap sebelum migrasi).
+**Skrip bantu `/root/deploy-env.sh <dir> <branch> <backupdir>`** (cadangan DB -> pull ->
+`composer install` BILA `composer.lock` berubah -> migrate -> cache -> queue:restart -> chown). Salinan
+resminya `deploy/deploy-env.sh` di repo ini - ubah di repo, lalu salin ke `/root/` (FINDINGS #153; dulu
+skrip itu hanya ada di server dan tak menjalankan composer). Satu koneksi SSH per env, jangan puluhan.
+
+**Buffer FastCGI (FINDINGS #155):** tiap vhost memasang `fastcgi_buffer_size 32k; fastcgi_buffers 16 16k;
+fastcgi_busy_buffers_size 64k;` di blok PHP. Tanpanya header respons >4 KB dijawab 502 "upstream sent
+too big header" (Profil & detail insiden 2026-09-30). Template `nginx-env.conf.template` sudah memuatnya.
 
 **Menerbitkan APK:** `public/apk/sisupit.apk` DI-TRACK git. Build `gradlew assembleDebug` (JAVA_HOME =
 jbr Android Studio), naikkan `versionCode` + `versionName`, periksa `aapt2 dump badging` & SERTIFIKAT

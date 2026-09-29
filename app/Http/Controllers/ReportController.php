@@ -260,6 +260,8 @@ class ReportController extends Controller
             'resolver:id,name',
             'rejector:id,name',
             'officers.user:id,name,phone',
+            // Penanda "Tiba" bila bukan dirinya sendiri (#154).
+            'officers.arriver:id,name',
             'helpers.user:id,name,phone',
             'photos:id,report_id,path',
             'reportUnits.unit:id,name,type,status',

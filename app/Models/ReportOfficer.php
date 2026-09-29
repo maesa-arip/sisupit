@@ -18,4 +18,12 @@ class ReportOfficer extends Model
     {
         return $this->belongsTo(Report::class);
     }
+
+    // Siapa yang menekan "Tiba" untuk baris ini (#154) - bisa rekan seregu. Bernama arriver(),
+    // BUKAN arrivedBy(): model dikirim utuh ke halaman detail dan relasi diserialisasi
+    // ter-snake_case, jadi `arrived_by` akan tertimpa objek (pola Report::resolver()).
+    public function arriver()
+    {
+        return $this->belongsTo(User::class, 'arrived_by');
+    }
 }

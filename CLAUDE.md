@@ -27,7 +27,12 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : TOMBOL MERAH BRAND (2026-09-30), TERDEPLOY @cec5c164 ke dev -> staging -> prod (git pull + chown;
+Task aktif   : 502 PROFIL + #153 + #154 (2026-09-30). #155: "upstream sent too big header" - header Link
+                preload ~4 KB + cookie > buffer FastCGI 4 KB. Buffer Nginx ketiga vhost dinaikkan (32k) LANGSUNG
+                di server + AddLinkHeadersForPreloadedAssets dicabut dari bootstrap/app.php. #153: deploy-env.sh
+                menjalankan composer install bila composer.lock berubah, salinan resmi deploy/deploy-env.sh.
+                #154: report_officers.arrived_by (migrasi aditif) + "Ditandai tiba oleh X". Test 614 passed.
+               TOMBOL MERAH BRAND (2026-09-30), TERDEPLOY @cec5c164 ke dev -> staging -> prod (git pull + chown;
                 frontend saja). User: "masih ada tombol dengan warna hitam dan teks putih, ganti semua" -> pilih
                 MERAH BRAND. Token --primary = --destructive (terang & gelap) + 7 tombol/chip hardcode
                 bg-foreground -> bg-primary, lencana Relawan Siaga -> bg-volunteer. PENGECUALIAN_ATURAN #4,
@@ -2539,6 +2544,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + #149 foto non-kebakaran opsional (test dibalik, bukan ditambah) = 583 passed, 2695 assertions.
             + TASK_64..68 (2026-09-30) = 610 passed, 2918 assertions.
             + tombol merah brand (2026-09-30) = 612 passed, 2925 assertions.
+            + #154 arrived_by & #155 header Link (2026-09-30) = 614 passed, 2949 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)
