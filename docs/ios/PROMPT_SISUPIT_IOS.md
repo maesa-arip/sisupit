@@ -1,6 +1,10 @@
 # MASTER PROMPT — SisupitWebView **iOS**
 # Versi 1.0 · disusun 2026-08-11 · sumber kebenaran untuk membangun wrapper iOS
 
+> **Diperbarui di tempat lain:** kontrak web ↔ native yang TERKINI (jembatan, payload push,
+> suara bertingkat, perubahan APK sesudah 2026-08-11) ada di folder **`mobile/`** di root
+> repo ini. Bila isinya berbeda dengan dokumen ini, `mobile/` yang berlaku.
+
 > **Cara pakai:** file ini ditulis untuk ditempel utuh sebagai prompt pembuka di sesi
 > Claude Code yang berjalan di **macOS + Xcode** (build iOS tidak bisa dari Windows).
 > Isinya sengaja *self-contained* — sesi di Mac tidak punya akses ke repo Laravel ini,
