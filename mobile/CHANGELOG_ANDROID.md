@@ -67,8 +67,9 @@ iOS** sebagai daftar centang. Sisi iOS mencentang (`[x]`) saat sudah di-port.
 **Yang harus dilakukan iOS**
 - [ ] Ikutkan **`masuk.caf`** di bundle (konversi dari `aset/suara/masuk.wav`).
 - [ ] Ikutkan `sirine.caf` (dari `aset/suara/sirine.mp3`, ~24,45 dtk, < 30 dtk).
-- [ ] (Opsional sekarang) `konfirmasi.caf` - server belum mengirim `sound` untuk koordinasi,
-      lihat PARITAS celah #2.
+- [ ] Ikutkan `konfirmasi.caf` (dari `aset/suara/konfirmasi.wav`) - server mengirim
+      `sound: konfirmasi.caf` untuk notifikasi OPD sejak #158 (2026-09-30).
+- [ ] Uji kabar status ke pelapor (`type: report_status`) tampil dengan bunyi bawaan (#158).
 - [ ] Uji ketiga jenis notifikasi di **perangkat fisik** (Simulator tak andal memutar suara).
 
 ## Sebelum 1.1.2 (sudah tercakup di PROMPT_SISUPIT_IOS.md)

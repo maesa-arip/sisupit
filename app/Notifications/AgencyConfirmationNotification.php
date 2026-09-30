@@ -106,6 +106,9 @@ class AgencyConfirmationNotification extends Notification implements ShouldQueue
                             // Tanpa sirine: ini kabar koordinasi, bukan panggilan meluncur.
                             // Tetap time-sensitive karena menentukan aman/tidaknya tindakan
                             // petugas di lokasi.
+                            // Nada koordinasi, padanan konfirmasi.wav di Android (lihat
+                            // AgencyDispatchNotification) - tanpa `sound` iOS diam.
+                            'sound' => 'konfirmasi.caf',
                             'interruption-level' => 'time-sensitive',
                             'content-available' => 1,
                             'thread-id' => 'agency',

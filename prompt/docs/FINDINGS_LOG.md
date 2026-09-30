@@ -3867,3 +3867,24 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   dengan controller lama (`git show HEAD:`), test JSX MERAH dengan `Edit.jsx` lama; kedua berkas pulih
   byte-exact (md5). `ProfileTest` "user can delete their account" disesuaikan (baris tetap ada).
 - **Status:** FIXED & TERDEPLOY 2026-09-30 @43479a4e ke dev/staging/prod (deploy-env.sh; 0 pending, data utuh, bundel DeleteUserForm-CLKD0rPK.js live). Test 614 -> 619 passed (2996).
+
+### #158 — Push ke iPhone: kabar status ke pelapor tak pernah tampil & notifikasi OPD senyap (FIXED)
+
+- **Ditemukan:** 2026-09-30 saat menyusun kontrak bersama wrapper Android & iOS (`mobile/PARITAS.md`
+  celah #1 & #2), sebelum aplikasi iOS dirilis - jadi belum ada pengguna yang terdampak.
+- **Akar #1:** `ReportStatusUpdatedNotification::toFcm()` hanya mengirim `data` + blok `android`.
+  Pesan data-only tanpa `apns.payload.aps.alert` diperlakukan iOS sebagai BACKGROUND push: tak ada
+  UI, dibatasi sistem, tak terkirim bila app ditutup. Kabar "Laporan Anda divalidasi / Bantuan dalam
+  perjalanan / Selesai" tak akan pernah muncul di iPhone pelapor. Ketiga kelas notifikasi lain sudah
+  punya blok `apns` sejak TASK_26; kelas ini terlewat.
+- **Akar #2:** blok `apns` `AgencyDispatchNotification` & `AgencyConfirmationNotification` tanpa
+  kunci `sound` → iOS menampilkannya TANPA BUNYI, padahal Android memutar `konfirmasi.wav`.
+- **Fix:** status ke pelapor kini ber-`apns` (`sound: default` = padanan channel `status_update`
+  Android yang memakai nada bawaan, `interruption-level: active` - penerimanya warga biasa, tak
+  menembus Focus, `thread-id: report-status`). Kedua notifikasi OPD ber-`sound: konfirmasi.caf`;
+  selama berkas itu belum ada di bundle iOS, iOS jatuh ke bunyi bawaan (arah gagal yang aman).
+  Blok `data`/`android` NOL berubah - APK tak terpengaruh.
+- **Penjaga:** 2 test di `NotificationSoundStageTest`, keduanya MERAH terhadap ketiga berkas lama
+  (`git show HEAD:`), berkas pulih byte-exact (`cmp`).
+- **Status:** FIXED 2026-09-30 (kode). Deploy = `git pull` saja (tanpa migrasi/route/build).
+  Sisi iOS: ikutkan `konfirmasi.caf` di bundle (`mobile/aset/suara/konfirmasi.wav`).

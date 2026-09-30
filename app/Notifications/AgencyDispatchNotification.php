@@ -93,6 +93,10 @@ class AgencyDispatchNotification extends Notification implements ShouldQueue
                             ],
                             // Tanpa sirine: ini permintaan koordinasi ke instansi mitra, bukan
                             // panggilan darurat ke responder yang harus meluncur.
+                            // Nada koordinasi, padanan konfirmasi.wav di Android. Tanpa kunci
+                            // `sound` iOS menampilkan notifikasinya TANPA BUNYI (mobile/PARITAS.md
+                            // celah #2); berkas yang belum ada di bundle jatuh ke bunyi bawaan.
+                            'sound' => 'konfirmasi.caf',
                             'interruption-level' => 'time-sensitive',
                             'content-available' => 1,
                             'thread-id' => 'agency',

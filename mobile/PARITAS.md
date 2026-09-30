@@ -23,26 +23,20 @@ Terakhir diperbarui: 2026-09-30 (kolom Android dari APK 1.1.5/vc7; kolom iOS bel
 | Tombol/gesture Kembali | ✅ | ? | PERILAKU #10 |
 | Push: DARURAT bersirine | ✅ (tembus senyap, USAGE_ALARM) | ? (time-sensitive: tembus Focus, **tidak** tembus saklar senyap sampai Critical Alerts disetujui Apple) | KONTRAK §4 |
 | Push: LAPORAN MASUK nada `masuk` | ✅ | ? | KONTRAK §4 |
-| Push: KOORDINASI OPD | ✅ nada `konfirmasi` | ⚠️ senyap (celah #2) | KONTRAK §4.3 |
-| Push: STATUS ke pelapor | ✅ nada bawaan | ⚠️ **tidak muncul** (celah #1) | KONTRAK §4.3 |
+| Push: KOORDINASI OPD | ✅ nada `konfirmasi` | ? (server kirim `konfirmasi.caf` sejak #158) | KONTRAK §4.3 |
+| Push: STATUS ke pelapor | ✅ nada bawaan | ? (server kirim `apns` sejak #158) | KONTRAK §4.3 |
 | Tap notifikasi → detail laporan | ✅ | ? | KONTRAK §4.4 |
 | Hapus akun (web) terjangkau | ✅ | ? | CHANGELOG 1.1.5 |
 | Splash merah + petir | ✅ | ? | PERILAKU #13 |
 
-## Celah di SERVER yang merugikan iOS (belum dikerjakan)
+## Celah di SERVER yang merugikan iOS
 
-Dicatat di sini, sengaja **belum** diubah (satu task = satu tujuan). Kerjakan sebagai task
-tersendiri di repo web sebelum/bersama rilis iOS.
-
-1. **`ReportStatusUpdatedNotification::toFcm()` tanpa blok `apns`.** Kiriman data-only
-   tanpa `aps.alert` dianggap background push oleh iOS → kabar "Laporan Anda divalidasi /
-   Bantuan dalam perjalanan / Selesai" **tak pernah tampil** di iPhone pelapor. Fix: tambah
-   blok `apns` seperti tiga kelas lain, `interruption-level: active`, `sound: default`
-   (Android memakai nada bawaan untuk tingkat ini), tanpa `content-available` berlebih.
-2. **`AgencyDispatch/AgencyConfirmationNotification` tanpa `aps.sound`.** Tanpa kunci
-   `sound`, iOS menampilkan notifikasinya **tanpa bunyi**, padahal Android memutar
-   `konfirmasi.wav`. Fix: `'sound' => 'konfirmasi.caf'` + ikutkan berkasnya di bundle iOS
-   (arah gagal aman: nama yang belum ada di bundle = bunyi bawaan).
+1. ~~**`ReportStatusUpdatedNotification::toFcm()` tanpa blok `apns`**~~ - **FIXED 2026-09-30
+   (#158).** Kini `aps.alert` + `sound: default` + `interruption-level: active` +
+   `thread-id: report-status`.
+2. ~~**`AgencyDispatch/AgencyConfirmationNotification` tanpa `aps.sound`**~~ - **FIXED
+   2026-09-30 (#158).** Kini `sound: konfirmasi.caf`. **Sisi iOS:** ikutkan `konfirmasi.caf`
+   di bundle (sampai itu, iOS memakai bunyi bawaan).
 3. **iPad terdeteksi `android`.** `AppLayout.jsx:34` mencocokkan `iPhone|iPad|iPod`, padahal
    iPadOS 13+ ber-UA "Macintosh". Pengaruhnya hanya kolom `fcm_tokens.device_type`
    (diagnosis), bukan pengiriman - FCM memilih jalur APNs dari tokennya sendiri. Fix ringan:

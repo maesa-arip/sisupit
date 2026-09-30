@@ -131,6 +131,33 @@ it('lets the stage survive the broadcast payload that the desktop app actually r
     expect($payload['type'])->toBe(EmergencyAlertNotification::class);
 });
 
+it('shows the status update to the reporter on iOS, with the default tone', function () {
+    // mobile/PARITAS.md celah #1: pesan data-only tanpa aps.alert = background push di iOS,
+    // jadi kabar "laporan Anda divalidasi" tak pernah tampil di iPhone pelapor.
+    $payload = (new App\Notifications\ReportStatusUpdatedNotification($this->report, 'approved'))
+        ->toFcm($this->reporter)->toArray();
+
+    $aps = $payload['apns']['payload']['aps'];
+
+    expect($aps['alert']['title'])->toBe($payload['data']['title'])
+        ->and($aps['alert']['body'])->toBe($payload['data']['body'])
+        // Penerimanya warga biasa: bunyi bawaan, bukan sirine/nada tahap, tak menembus Focus.
+        ->and($aps['sound'])->toBe('default')
+        ->and($aps['interruption-level'])->toBe('active')
+        ->and($payload['apns']['headers']['apns-push-type'])->toBe('alert');
+});
+
+it('gives the OPD notifications the coordination tone on iOS instead of silence', function () {
+    // mobile/PARITAS.md celah #2: tanpa kunci `sound` iOS menampilkan notifikasinya tanpa
+    // bunyi, padahal Android memutar konfirmasi.wav.
+    foreach ([AgencyConfirmationNotification::class, AgencyDispatchNotification::class] as $kelas) {
+        $payload = (new $kelas($this->report, new App\Models\ReportAgency))
+            ->toFcm($this->reporter)->toArray();
+
+        expect($payload['apns']['payload']['aps']['sound'])->toBe('konfirmasi.caf');
+    }
+});
+
 it('delivers the OPD notifications to the desktop app as well, not only to phones', function () {
     // Konfirmasi "listrik sudah dipadamkan" adalah kabar yang paling ditunggu Pusat Komando,
     // dan Pusat Komando bekerja dari .exe — yang hanya menerima channel 'broadcast'. Tanpa

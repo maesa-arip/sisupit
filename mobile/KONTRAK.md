@@ -99,7 +99,7 @@ sudah dikomentari di `routes/api.php:11`. Jangan ditiru.)
 
 Semua kiriman adalah **DATA-ONLY** (tanpa blok `notification`) + `android.priority=high`,
 supaya `onMessageReceived` Android selalu jalan (suara per-tahap + deep-link). Untuk iOS,
-server menambahkan blok `apns` di samping blok `data` - **kecuali satu jenis, lihat 4.3**.
+server menambahkan blok `apns` di samping blok `data` untuk keempat jenis (lihat 4.3).
 
 ### 4.1 Kunci `data` (dibaca kedua platform)
 
@@ -124,8 +124,8 @@ berisik lebih aman daripada gagal diam; build lama otomatis tetap bersirine).
 
 | Tingkat | Aturan (urut) | Android: channel / suara / getar | Insisten* | iOS: `aps.sound` dari server |
 |---|---|---|---|---|
-| KOORDINASI | `type` = `agency_confirmation` / `agency_dispatch` | `coordination_v2` "Koordinasi OPD", `konfirmasi.wav`, USAGE_NOTIFICATION, IMPORTANCE_HIGH, getar 120-90-120-90-120 | tidak | **tak ada `sound`** → senyap (celah, lihat PARITAS) |
-| STATUS | `type` = `report_status` | `status_update_v2` "Status Laporan", **nada bawaan sistem**, IMPORTANCE_DEFAULT | tidak | **tak ada blok `apns` sama sekali** (celah) |
+| KOORDINASI | `type` = `agency_confirmation` / `agency_dispatch` | `coordination_v2` "Koordinasi OPD", `konfirmasi.wav`, USAGE_NOTIFICATION, IMPORTANCE_HIGH, getar 120-90-120-90-120 | tidak | `konfirmasi.caf` (sejak #158) |
+| STATUS | `type` = `report_status` | `status_update_v2` "Status Laporan", **nada bawaan sistem**, IMPORTANCE_DEFAULT | tidak | `default` (sejak #158) |
 | MASUK | `alert_stage` = `report_incoming` | `incoming_report_v2` "Laporan Masuk", `masuk.wav`, USAGE_NOTIFICATION, **tanpa bypass DND**, getar 200-150-200 | ya | `masuk.caf` |
 | DARURAT | selain itu (`dispatch` / tak dikenal) | `emergency_channel_v5` "Darurat", `sirine.mp3`, **USAGE_ALARM** (tembus mode senyap), bypass DND, getar 500-250-500 | ya | `sirine.caf` |
 
@@ -140,7 +140,7 @@ terakhir (nama salah = bunyi bawaan tanpa galat):
 ```sh
 afconvert aset/suara/sirine.mp3     sirine.caf     -d ima4 -f caff -v   # ~24,45 dtk
 afconvert aset/suara/masuk.wav      masuk.caf      -d ima4 -f caff -v
-afconvert aset/suara/konfirmasi.wav konfirmasi.caf -d ima4 -f caff -v   # untuk kelak, lihat celah #2
+afconvert aset/suara/konfirmasi.wav konfirmasi.caf -d ima4 -f caff -v
 ```
 
 ### 4.3 Blok `apns` per jenis (keadaan server saat ini)
@@ -149,8 +149,8 @@ afconvert aset/suara/konfirmasi.wav konfirmasi.caf -d ima4 -f caff -v   # untuk 
 |---|---|---|---|---|
 | `emergency` / `report_incoming` | ada | `time-sensitive` | `masuk.caf` | `emergency` |
 | `emergency` / `dispatch` | ada | `time-sensitive` | `sirine.caf` | `emergency` |
-| `agency_dispatch`, `agency_confirmation` | ada | `time-sensitive` | - | `agency` |
-| `report_status` (ke pelapor) | **TIDAK ADA** | - | - | - |
+| `agency_dispatch`, `agency_confirmation` | ada | `time-sensitive` | `konfirmasi.caf` | `agency` |
+| `report_status` (ke pelapor) | ada (sejak #158) | `active` | `default` | `report-status` |
 
 Semua yang punya `apns`: `apns-priority: 10`, `apns-push-type: alert`,
 `content-available: 1` (emergency juga `mutable-content: 1`).

@@ -71,6 +71,26 @@ class ReportStatusUpdatedNotification extends Notification implements ShouldQueu
                 'android' => [
                     'priority' => 'high',
                 ],
+                // Tanpa `apns` iOS menganggapnya background push dan tak menampilkannya
+                // (mobile/PARITAS.md celah #1). Pelapor = warga biasa, jadi meniru channel
+                // `status_update` Android: bunyi bawaan sistem, `active` (tak menembus Focus).
+                'apns' => [
+                    'headers' => [
+                        'apns-priority' => '10',
+                        'apns-push-type' => 'alert',
+                    ],
+                    'payload' => [
+                        'aps' => [
+                            'alert' => [
+                                'title' => $content['title'],
+                                'body' => $content['body'],
+                            ],
+                            'sound' => 'default',
+                            'interruption-level' => 'active',
+                            'thread-id' => 'report-status',
+                        ],
+                    ],
+                ],
             ]);
     }
 
