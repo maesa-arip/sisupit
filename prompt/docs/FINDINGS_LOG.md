@@ -3886,5 +3886,5 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   Blok `data`/`android` NOL berubah - APK tak terpengaruh.
 - **Penjaga:** 2 test di `NotificationSoundStageTest`, keduanya MERAH terhadap ketiga berkas lama
   (`git show HEAD:`), berkas pulih byte-exact (`cmp`).
-- **Status:** FIXED 2026-09-30 (kode). Deploy = `git pull` saja (tanpa migrasi/route/build).
+- **Status:** FIXED & TERDEPLOY 2026-09-30 @9988587e ke dev/staging/prod (deploy-env.sh; 0 pending, data utuh, 0 ERROR sesudah deploy). Test 619 -> 621 passed (3003).
   Sisi iOS: ikutkan `konfirmasi.caf` di bundle (`mobile/aset/suara/konfirmasi.wav`).

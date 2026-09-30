@@ -57,5 +57,5 @@ Baca `CHANGELOG_ANDROID.md` dari atas sampai entri yang sudah di-port, kerjakan 
 
 - APK **1.1.5 / versionCode 7**, targetSdk 36, sedang uji tertutup Google Play
   (12 penguji × 14 hari).
-- Web produksi @`0ed89dd5` (#157 hapus akun terdeploy).
+- Web produksi @`9988587e` (#158 push iOS status pelapor & nada OPD terdeploy).
 - iOS: sedang dikerjakan (lihat `PARITAS.md`).
