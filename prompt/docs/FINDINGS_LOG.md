@@ -3866,4 +3866,4 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Penjaga:** `tests/Feature/Sisupit/AccountDeletionTest.php` (5 test), keempat test server MERAH
   dengan controller lama (`git show HEAD:`), test JSX MERAH dengan `Edit.jsx` lama; kedua berkas pulih
   byte-exact (md5). `ProfileTest` "user can delete their account" disesuaikan (baris tetap ada).
-- **Status:** FIXED 2026-09-30. Test 614 -> 619 passed (2996).
+- **Status:** FIXED & TERDEPLOY 2026-09-30 @43479a4e ke dev/staging/prod (deploy-env.sh; 0 pending, data utuh, bundel DeleteUserForm-CLKD0rPK.js live). Test 614 -> 619 passed (2996).

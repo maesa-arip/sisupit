@@ -33,7 +33,7 @@ Task aktif   : RILIS GOOGLE PLAY (2026-09-30). Akun Play Console PRIBADI (tanpa 
                 C:\Users\Admin\backup-sisupit-wrapper\playstore\, AAB siap; rincian di memori WebView).
                 #157 FIXED: hapus akun dari Profil (#hapus-akun) = ANONIMISASI, bukan DELETE baris
                 (reports.user_id restrict, report_officers cascade); akun Google konfirmasi "HAPUS".
-                Test 619 passed. SISA: deploy web #157, SHA-1 Play App Signing ke Firebase, uji di HP.
+                Test 619 passed. #157 TERDEPLOY @43479a4e. SISA: SHA-1 Play App Signing ke Firebase, uji di HP.
                SEMENTARA sembunyikan menu admin "Daftar Penerima Email" & "Pengaturan Email Dinas" (#156,
                 2026-09-30) lewat SHOW_MAIL_ADMIN_MENU=false di navItems.js; route & data tetap. TERDEPLOY @130535ab
                 ke dev -> staging -> prod (deploy-env.sh; bundel menu live tanpa kedua menu, Email Dinas tetap).
