@@ -23,6 +23,7 @@ import {
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
+import DeleteUserForm from './Partials/DeleteUserForm';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 
@@ -282,6 +283,11 @@ export default function Edit(props) {
 						</TabsContent>
 					</Tabs>
 				</div>
+			</div>
+			{/* Syarat Google Play: hapus akun dari dalam aplikasi. Tautan web yang didaftarkan
+			    ke Play Console = /profile#hapus-akun - jangan ganti id-nya tanpa memperbarui Play. */}
+			<div id="hapus-akun" className="mt-4 scroll-mt-20">
+				<DeleteUserForm hasPassword={props.hasPassword} />
 			</div>
 			{/* --- UNDUH APLIKASI --- */}
 			{!isWebView && (

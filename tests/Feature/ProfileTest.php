@@ -64,7 +64,9 @@ test('user can delete their account', function () {
         ->assertRedirect('/');
 
     $this->assertGuest();
-    $this->assertNull($user->fresh());
+    // Dianonimkan, bukan dihapus barisnya (#157): arsip laporan tetap menunjuk akun ini.
+    $this->assertSame('Akun Dihapus', $user->fresh()->name);
+    $this->assertNull($user->fresh()->email);
 });
 
 test('correct password must be provided to delete account', function () {

@@ -27,7 +27,14 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 ## STATUS SAAT INI
 
 ```
-Task aktif   : SEMENTARA sembunyikan menu admin "Daftar Penerima Email" & "Pengaturan Email Dinas" (#156,
+Task aktif   : RILIS GOOGLE PLAY (2026-09-30). Akun Play Console PRIBADI (tanpa D-U-N-S) di
+                tawarineverywhere@gmail.com -> wajib uji tertutup 12 penguji x 14 hari. APK 1.1.5/vc7
+                (targetSdk 36, kunci unggah sisupit-upload.jks di proyek SisupitWebView + cadangan
+                C:\Users\Admin\backup-sisupit-wrapper\playstore\, AAB siap; rincian di memori WebView).
+                #157 FIXED: hapus akun dari Profil (#hapus-akun) = ANONIMISASI, bukan DELETE baris
+                (reports.user_id restrict, report_officers cascade); akun Google konfirmasi "HAPUS".
+                Test 619 passed. SISA: deploy web #157, SHA-1 Play App Signing ke Firebase, uji di HP.
+               SEMENTARA sembunyikan menu admin "Daftar Penerima Email" & "Pengaturan Email Dinas" (#156,
                 2026-09-30) lewat SHOW_MAIL_ADMIN_MENU=false di navItems.js; route & data tetap. TERDEPLOY @130535ab
                 ke dev -> staging -> prod (deploy-env.sh; bundel menu live tanpa kedua menu, Email Dinas tetap).
                502 PROFIL + #153 + #154 (2026-09-30). #155: "upstream sent too big header" - header Link
@@ -2550,6 +2557,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + TASK_64..68 (2026-09-30) = 610 passed, 2918 assertions.
             + tombol merah brand (2026-09-30) = 612 passed, 2925 assertions.
             + #154 arrived_by & #155 header Link (2026-09-30) = 614 passed, 2949 assertions.
+            + #157 hapus akun = anonimisasi (2026-09-30) = 619 passed, 2996 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

@@ -8,7 +8,10 @@ import { useForm } from '@inertiajs/react';
 import { IconAlertTriangle } from '@tabler/icons-react';
 import { useRef, useState } from 'react';
 
-export default function DeleteUserForm({ className = '' }) {
+// hasPassword dari ProfileController::edit - akun Google tak punya password, jadi
+// konfirmasinya mengetik HAPUS (server memeriksa aturan yang sama).
+export default function DeleteUserForm({ className = '', hasPassword = true }) {
+	const field = hasPassword ? 'password' : 'confirmation';
 	const [confirmingUserDeletion, setConfirmingUserDeletion] = useState(false);
 	const passwordInput = useRef();
 
@@ -21,7 +24,7 @@ export default function DeleteUserForm({ className = '' }) {
 		errors,
 		clearErrors,
 	} = useForm({
-		password: '',
+		[field]: '',
 	});
 
 	const confirmUserDeletion = () => {
@@ -55,7 +58,7 @@ export default function DeleteUserForm({ className = '' }) {
 					<div>
 						<CardTitle className="text-base font-semibold text-foreground">Hapus Akun</CardTitle>
 						<CardDescription className="mt-1 text-sm text-muted-foreground">
-							Setelah akun Anda dihapus, semua sumber daya dan datanya akan dihapus secara permanen.
+							Hapus identitas Anda dari Sisupit secara permanen.
 						</CardDescription>
 					</div>
 				</div>
@@ -64,8 +67,10 @@ export default function DeleteUserForm({ className = '' }) {
 			<CardContent className="pt-5">
 				<div className="max-w-2xl">
 					<p className="mb-5 text-sm text-muted-foreground">
-						Sebelum menghapus akun Anda, harap unduh data atau informasi apa pun yang ingin Anda simpan.
-						Proses ini tidak dapat dibatalkan.
+						Nama, email, nomor telepon, alamat, foto profil, foto KTP, dan tautan login Google Anda akan
+						dihapus, dan akun ini tidak bisa dipakai masuk lagi. Laporan kejadian yang pernah Anda kirim,
+						beserta nama & nomor kontak yang tercantum di laporan itu, tetap disimpan instansi sebagai arsip
+						penanganan resmi sesuai Kebijakan Privasi. Proses ini tidak dapat dibatalkan.
 					</p>
 
 					<Button
@@ -85,26 +90,28 @@ export default function DeleteUserForm({ className = '' }) {
 						</h2>
 
 						<p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-							Setelah akun Anda dihapus, semua sumber daya dan datanya akan dihapus secara permanen.
-							Silakan masukkan kata sandi Anda untuk mengonfirmasi bahwa Anda ingin menghapus akun Anda
-							secara permanen.
+							Identitas Anda akan dihapus permanen dan akun ini tidak bisa dipakai masuk lagi.{' '}
+							{hasPassword
+								? 'Masukkan kata sandi Anda untuk mengonfirmasi.'
+								: 'Ketik HAPUS (huruf besar) untuk mengonfirmasi.'}
 						</p>
 
 						<div className="mt-5">
-							<Label htmlFor="password" className="sr-only">
-								Password
+							<Label htmlFor={field} className="sr-only">
+								{hasPassword ? 'Password' : 'Konfirmasi'}
 							</Label>
 							<Input
-								id="password"
-								type="password"
-								name="password"
+								id={field}
+								type={hasPassword ? 'password' : 'text'}
+								name={field}
 								ref={passwordInput}
-								value={data.password}
-								onChange={(e) => setData('password', e.target.value)}
+								value={data[field]}
+								onChange={(e) => setData(field, e.target.value)}
+								autoComplete="off"
 								className="block h-10 w-full rounded-md border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive sm:w-3/4"
-								placeholder="Masukkan kata sandi Anda"
+								placeholder={hasPassword ? 'Masukkan kata sandi Anda' : 'HAPUS'}
 							/>
-							{errors.password && <InputError message={errors.password} className="mt-2" />}
+							{errors[field] && <InputError message={errors[field]} className="mt-2" />}
 						</div>
 
 						<div className="mt-8 flex justify-end gap-3">

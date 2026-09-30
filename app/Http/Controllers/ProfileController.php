@@ -10,6 +10,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -31,6 +32,8 @@ class ProfileController extends Controller
             ],
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
+            // Menentukan konfirmasi hapus akun: password, atau ketik HAPUS bagi akun Google.
+            'hasPassword' => filled($request->user()->getAuthPassword()),
             'jurisdiction' => $this->resolveJurisdiction($request->user()),
             // Banjar hanya relevan bagi akun yang punya desa. Staf kabupaten/kecamatan sengaja
             // tak berbanjar (#56), jadi kartunya tak perlu muncul sama sekali bagi mereka.
@@ -231,19 +234,66 @@ class ProfileController extends Controller
     }
 
     /**
-     * Delete the user's account.
+     * Hapus akun oleh pemiliknya (syarat Google Play: hapus akun dari dalam aplikasi).
+     *
+     * Bentuknya ANONIMISASI, bukan DELETE baris: reports.user_id tanpa onDelete (DELETE
+     * ditolak DB bagi siapa pun yang pernah melapor) dan report_officers/report_helpers
+     * cascade (jejak penanganan insiden ikut lenyap). Kebijakan Privasi & S&K memang
+     * menjanjikan data kejadian tetap diarsipkan instansi - yang dihapus identitasnya.
+     * Akun Google tak punya password, jadi konfirmasinya mengetik HAPUS.
      */
     public function destroy(Request $request): RedirectResponse
     {
-        $request->validate([
-            'password' => ['required', 'current_password'],
-        ]);
-
         $user = $request->user();
 
-        Auth::logout();
+        $request->validate(filled($user->getAuthPassword())
+            ? ['password' => ['required', 'current_password']]
+            : ['confirmation' => ['required', 'in:HAPUS']], [
+                'confirmation.required' => 'Ketik HAPUS untuk mengonfirmasi.',
+                'confirmation.in' => 'Ketik HAPUS (huruf besar) untuk mengonfirmasi.',
+            ]);
 
-        $user->delete();
+        $this->delete_file($user, 'avatar');
+        $this->delete_file($user, 'ktp');
+
+        DB::transaction(function () use ($user) {
+            DB::table('social_accounts')->where('user_id', $user->id)->delete();
+            DB::table('fcm_tokens')->where('user_id', $user->id)->delete();
+            DB::table('regu_members')->where('user_id', $user->id)->delete();
+            DB::table('regus')->where('leader_id', $user->id)->update(['leader_id' => null]);
+            DB::table('sessions')->where('user_id', $user->id)->delete();
+            if ($user->email) {
+                DB::table('password_reset_tokens')->where('email', $user->email)->delete();
+            }
+            $user->notifications()->delete();
+            $user->syncRoles([]);
+            $user->syncPermissions([]);
+
+            $user->forceFill([
+                'name' => 'Akun Dihapus',
+                'username' => 'dihapus-'.$user->id,
+                'email' => null,
+                'email_verified_at' => null,
+                'password' => null,
+                'phone' => null,
+                'avatar' => null,
+                'gender' => null,
+                'date_of_birth' => null,
+                'address' => null,
+                'ktp' => null,
+                'province_code' => null,
+                'city_code' => null,
+                'district_code' => null,
+                'village_code' => null,
+                'is_standby' => false,
+                'skills' => null,
+                'agency_id' => null,
+                'banjar_id' => null,
+                'remember_token' => null,
+            ])->save();
+        });
+
+        Auth::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

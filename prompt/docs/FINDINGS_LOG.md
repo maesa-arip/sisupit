@@ -3840,3 +3840,30 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   URL langsung masih terbuka bagi admin.
 - **Mengembalikan:** ubah konstanta ke `true` + `npm run build`.
 
+
+### #157 — Hapus akun tak terjangkau pengguna, dan kalaupun terjangkau gagal bagi pelapor & akun Google (FIXED)
+
+- **Pemicu:** persiapan rilis Google Play (2026-09-30). Play mewajibkan aplikasi yang bisa membuat
+  akun juga bisa MENGHAPUSNYA dari dalam aplikasi + tautan web. Sisupit tak punya satu pun jalan.
+- **Tiga lapis:** (a) `Profile/Partials/DeleteUserForm.jsx` bawaan Breeze ada tapi TIDAK DIPASANG di
+  halaman mana pun (komponen yatim, jadi tak ada gejala); (b) `destroy()` mewajibkan
+  `current_password`, padahal akun Google (`SocialiteController`) ber-`password` NULL - mustahil lolos;
+  (c) `$user->delete()` mentah: `reports.user_id` `constrained()` TANPA onDelete, jadi siapa pun yang
+  PERNAH MELAPOR ditolak DB (galat 500), sementara `report_officers`/`report_helpers` cascade - akun
+  petugas yang terhapus ikut menghapus jejak penanganan dari arsip insiden.
+- **Fix (keputusan user: anonimisasi):** `ProfileController::destroy()` tak lagi menghapus baris.
+  Identitas dikosongkan (nama "Akun Dihapus", username `dihapus-{id}`, email/password/telepon/alamat/
+  tgl lahir/KTP/avatar/wilayah/instansi/banjar NULL, berkas avatar & KTP dihapus), dan
+  `social_accounts`, `fcm_tokens`, `regu_members`, `sessions`, `password_reset_tokens`, notifikasi,
+  peran & permission dibersihkan; `regus.leader_id` dilepas. Baris akun tetap ada sehingga laporan &
+  jejak penanganan utuh - sesuai janji Kebijakan Privasi/S&K ("data dokumen penanganan resmi tetap
+  diarsipkan"). Konfirmasi: password bila akun punya password, ketik `HAPUS` bila tidak (prop server
+  `hasPassword`). Kartu dipasang di `Profile/Edit.jsx` di bawah jangkar **`#hapus-akun`** = tautan
+  web yang didaftarkan ke Play Console (jangan ganti id tanpa memperbarui Play).
+- **Yang TIDAK dianonimkan, disengaja:** `reports.name`/`reports.phone` (kontak yang diketik saat
+  melapor) - bagian dokumen kejadian. Teks form menyebutnya terang-terangan; jangan diganti jadi
+  "tanpa identitas Anda", itu klaim yang salah.
+- **Penjaga:** `tests/Feature/Sisupit/AccountDeletionTest.php` (5 test), keempat test server MERAH
+  dengan controller lama (`git show HEAD:`), test JSX MERAH dengan `Edit.jsx` lama; kedua berkas pulih
+  byte-exact (md5). `ProfileTest` "user can delete their account" disesuaikan (baris tetap ada).
+- **Status:** FIXED 2026-09-30. Test 614 -> 619 passed (2996).
