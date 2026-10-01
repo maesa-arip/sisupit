@@ -43,14 +43,14 @@ function DeleteRoleDialog({ role }) {
 			</AlertDialogTrigger>
 			<AlertDialogContent>
 				<AlertDialogHeader>
-					<AlertDialogTitle>Apakah anda benar benar yakin ?</AlertDialogTitle>
+					<AlertDialogTitle>Hapus data ini?</AlertDialogTitle>
 					<AlertDialogDescription>
-						Tindakan ini tidak dapat dibatalkan. Tindakan ini akan menghapus data anda secara permanen dan
-						menghapus data anda dari server kami
+						Tindakan ini tidak dapat dibatalkan. Tindakan ini akan menghapus data ini secara permanen dari
+						server.
 					</AlertDialogDescription>
 				</AlertDialogHeader>
 				<AlertDialogFooter>
-					<AlertDialogCancel>Cancel</AlertDialogCancel>
+					<AlertDialogCancel>Batal</AlertDialogCancel>
 					<AlertDialogAction
 						onClick={() =>
 							router.delete(route('admin.roles.destroy', [role]), {
@@ -63,7 +63,7 @@ function DeleteRoleDialog({ role }) {
 							})
 						}
 					>
-						Continue
+						Hapus
 					</AlertDialogAction>
 				</AlertDialogFooter>
 			</AlertDialogContent>
@@ -119,7 +119,7 @@ export default function Index(props) {
 					<div className="flex w-full flex-col gap-3 lg:flex-row lg:items-center lg:gap-4">
 						<Input
 							className="w-full lg:w-1/4"
-							placeholder="Search"
+							placeholder="Cari..."
 							value={params?.search}
 							onChange={(e) => setParams((prev) => ({ ...prev, search: e.target.value }))}
 						/>
@@ -136,7 +136,7 @@ export default function Index(props) {
 							</SelectContent>
 						</Select>
 						<Button
-							variant="red"
+							variant="ghost"
 							onClick={() => setParams(props.state)}
 							size="sm"
 							className="w-full lg:w-auto"
@@ -270,8 +270,8 @@ export default function Index(props) {
 				</CardContent>
 				<CardFooter className="flex w-full flex-col items-center justify-between border-t py-2 lg:flex-row">
 					<p className="mb-2 text-sm text-muted-foreground">
-						Menamplikan <span className="font-medium text-warning">{meta.from ?? 0}</span> dari {meta.total}{' '}
-						Peran
+						Menampilkan <span className="font-medium text-foreground">{meta.from ?? 0}</span> dari{' '}
+						{meta.total} Peran
 					</p>
 					<div className="overflow-x-auto">
 						{meta.has_pages && (

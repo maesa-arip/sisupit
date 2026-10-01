@@ -58,7 +58,7 @@ export default function Create(props) {
 								id="name"
 								value={data.name}
 								type="text"
-								placeholder="Masukan nama..."
+								placeholder="Masukkan nama..."
 								onChange={onHandleChange}
 							/>
 							{errors.name && <InputError message={errors.name} />}
@@ -90,7 +90,7 @@ export default function Create(props) {
 								className="w-full sm:w-auto"
 								onClick={onHandleReset}
 							>
-								Reset
+								Atur ulang
 							</Button>
 							<Button
 								type="submit"

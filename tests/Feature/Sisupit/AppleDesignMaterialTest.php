@@ -116,3 +116,32 @@ it('keeps user management on the grouped form and off the old gradient button va
 
     expect(appleSource('resources/js/Pages/Admin/Users/Index.jsx'))->toContain('roleLabel([role])');
 });
+
+it('keeps every admin page free of the old English and misspelled template text', function () {
+    $offenders = [];
+    $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(resource_path('js/Pages/Admin')));
+    foreach ($files as $file) {
+        if ($file->getExtension() !== 'jsx') {
+            continue;
+        }
+        $src = appleSource(substr($file->getPathname(), strlen(base_path()) + 1));
+        if (preg_match('/Menamplikan|placeholder="Search"|benar benar yakin|>\s*(Cancel|Continue|Save|Reset)\s*<|placeholder="Masukan |data anda/', $src, $m)) {
+            $offenders[] = $file->getFilename().': '.trim($m[0]);
+        }
+    }
+
+    expect($offenders)->toBe([]);
+});
+
+it('paints the coloured button variants as tinted fills, while emergency calls stay solid red', function () {
+    $button = appleSource('resources/js/Components/ui/button.jsx');
+    expect($button)->not->toContain('bg-gradient')
+        ->and($button)->toMatch("/red: 'bg-destructive\/10 text-destructive/")
+        ->and($button)->toMatch("/blue: 'bg-info\/10 text-info/")
+        ->and($button)->toMatch("/green: 'bg-success\/10 text-success/")
+        ->and($button)->toMatch("/destructive: 'bg-destructive text-destructive-foreground/");
+
+    $forum = appleSource('resources/js/Pages/Forum/Partials/ForumParts.jsx');
+    expect(preg_match_all('/<Button variant="destructive"[^>]*>\s*<Link href=\{route\(\'front\.reports\.create\'\)\}>/', $forum))->toBe(2)
+        ->and($forum)->not->toContain('variant="red"');
+});

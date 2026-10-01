@@ -59,7 +59,7 @@ export default function Create(props) {
 								id="message"
 								value={data.message}
 								type="text"
-								placeholder="Masukan pesan..."
+								placeholder="Masukkan pesan..."
 								onChange={onHandleChange}
 							/>
 							{errors.message && <InputError message={errors.message} />}
@@ -71,7 +71,7 @@ export default function Create(props) {
 								id="url"
 								value={data.url}
 								type="text"
-								placeholder="Masukan url..."
+								placeholder="Masukkan url..."
 								onChange={onHandleChange}
 							/>
 							{errors.url && <InputError message={errors.url} />}
@@ -92,10 +92,10 @@ export default function Create(props) {
 						</div>
 						<div className="flex justify-end gap-x-2">
 							<Button type="button" variant="secondary" size="sm" onClick={onHandleReset}>
-								Reset
+								Atur ulang
 							</Button>
 							<Button type="submit" variant="orange" size="sm" disabled={processing}>
-								Save
+								Simpan
 							</Button>
 						</div>
 					</form>

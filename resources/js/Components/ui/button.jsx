@@ -7,26 +7,26 @@ import { cn } from '@/lib/utils';
 // #159: `active:scale-[0.97]` = umpan balik saat jari MENEKAN, bukan saat dilepas - tanpa itu tombol
 // di ponsel baru bereaksi ketika halaman berikutnya dimuat. Dimatikan bagi prefers-reduced-motion.
 const buttonVariants = cva(
-	'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-[color,background-color,border-color,transform] duration-100 ease-out active:scale-[0.97] motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+	'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-[color,background-color,border-color,transform] duration-100 ease-out active:scale-[0.97] motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
 	{
 		variants: {
 			variant: {
-				default: 'text-primary-foreground bg-gradient-to-r from-primary via-primary to-primary',
+				default: 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90',
 				destructive: 'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
 				outline: 'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground',
 				secondary: 'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80',
 				ghost: 'hover:bg-accent hover:text-accent-foreground',
 				link: 'text-primary underline-offset-4 hover:underline',
-				orange: 'text-primary-foreground bg-gradient-to-r from-primary via-primary to-primary',
-				red: 'text-destructive-foreground bg-gradient-to-r from-destructive via-destructive to-destructive',
-				blue: 'text-info-foreground bg-gradient-to-r from-info via-info to-info',
-				green: 'text-success-foreground bg-gradient-to-r from-success via-success to-success',
-				purple: 'text-secondary-foreground bg-gradient-to-r from-secondary via-secondary to-secondary',
+				orange: 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90',
+				red: 'bg-destructive/10 text-destructive hover:bg-destructive/15',
+				blue: 'bg-info/10 text-info hover:bg-info/15',
+				green: 'bg-success/10 text-success hover:bg-success/15',
+				purple: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
 			},
 			size: {
 				default: 'h-9 px-4 py-2',
-				sm: 'h-8 rounded-md px-3 text-xs',
-				lg: 'h-10 rounded-md px-8',
+				sm: 'h-8 rounded-lg px-3 text-xs',
+				lg: 'h-10 rounded-lg px-8',
 				xl: 'h-12 rounded-xl px-8',
 				icon: 'h-9 w-9',
 			},

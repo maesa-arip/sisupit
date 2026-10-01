@@ -73,17 +73,14 @@ export default function Index(props) {
 												</AlertDialogTrigger>
 												<AlertDialogContent>
 													<AlertDialogHeader>
-														<AlertDialogTitle>
-															Apakah anda benar benar yakin ?
-														</AlertDialogTitle>
+														<AlertDialogTitle>Hapus data ini?</AlertDialogTitle>
 														<AlertDialogDescription>
 															Tindakan ini tidak dapat dibatalkan. Tindakan ini akan
-															menghapus data anda secara permanen dan menghapus data anda
-															dari server kami
+															menghapus data ini secara permanen dari server.
 														</AlertDialogDescription>
 													</AlertDialogHeader>
 													<AlertDialogFooter>
-														<AlertDialogCancel>Cancel</AlertDialogCancel>
+														<AlertDialogCancel>Batal</AlertDialogCancel>
 														<AlertDialogAction
 															onClick={() =>
 																router.delete(
@@ -101,7 +98,7 @@ export default function Index(props) {
 																)
 															}
 														>
-															Continue
+															Hapus
 														</AlertDialogAction>
 													</AlertDialogFooter>
 												</AlertDialogContent>
@@ -115,8 +112,7 @@ export default function Index(props) {
 				</CardContent>
 				<CardFooter className="flex w-full flex-col items-center justify-between border-t py-2 lg:flex-row">
 					<p className="mb-2 text-sm text-muted-foreground">
-						Menamplikan{' '}
-						<span className="font-medium text-warning">{meta.from ?? 0}</span> dari{' '}
+						Menampilkan <span className="font-medium text-foreground">{meta.from ?? 0}</span> dari{' '}
 						{meta.total} Pengumuman
 					</p>
 					<div className="overflow-x-auto">

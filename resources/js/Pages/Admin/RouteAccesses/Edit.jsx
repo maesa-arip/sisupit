@@ -87,7 +87,7 @@ export default function Edit(props) {
 								className="w-full sm:w-auto"
 								onClick={onHandleReset}
 							>
-								Reset
+								Atur ulang
 							</Button>
 							<Button
 								type="submit"

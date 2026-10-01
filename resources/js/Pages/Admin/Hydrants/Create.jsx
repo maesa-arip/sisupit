@@ -814,7 +814,7 @@ export default function Create({
 											setCurrentStep(1);
 										}}
 									>
-										Reset
+										Atur ulang
 									</Button>
 									<Button
 										type="submit"

@@ -57,7 +57,7 @@ export default function Index(props) {
 					<div className="flex w-full flex-col gap-3 lg:flex-row lg:items-center lg:gap-4">
 						<Input
 							className="w-full lg:w-1/4"
-							placeholder="Search"
+							placeholder="Cari..."
 							value={params?.search}
 							onChange={(e) => setParams((prev) => ({ ...prev, search: e.target.value }))}
 						/>
@@ -74,7 +74,7 @@ export default function Index(props) {
 							</SelectContent>
 						</Select>
 						<Button
-							variant="red"
+							variant="ghost"
 							onClick={() => setParams(props.state)}
 							size="sm"
 							className="w-full lg:w-auto"
@@ -184,8 +184,8 @@ export default function Index(props) {
 				</CardContent>
 				<CardFooter className="flex w-full flex-col items-center justify-between border-t py-2 lg:flex-row">
 					<p className="mb-2 text-sm text-muted-foreground">
-						Menamplikan <span className="font-medium text-warning">{meta.from ?? 0}</span> dari {meta.total}{' '}
-						Tetapkan Izin
+						Menampilkan <span className="font-medium text-foreground">{meta.from ?? 0}</span> dari{' '}
+						{meta.total} Tetapkan Izin
 					</p>
 					<div className="overflow-x-auto">
 						{meta.has_pages && (

@@ -43,7 +43,7 @@ export function EmergencyNotice({ className }) {
 				</div>
 			</div>
 			<div className="flex shrink-0 gap-2">
-				<Button variant="red" size="sm" asChild>
+				<Button variant="destructive" size="sm" asChild>
 					<Link href={route('front.reports.create')}>
 						<IconFlame /> Lapor Darurat
 					</Link>
@@ -72,7 +72,7 @@ export function EmergencyConfirmDialog({ open, onOpenChange, onContinue }) {
 				</AlertDialogHeader>
 				<AlertDialogFooter className="gap-2">
 					<AlertDialogCancel onClick={onContinue}>Bukan, kirim ke forum</AlertDialogCancel>
-					<Button variant="red" asChild>
+					<Button variant="destructive" asChild>
 						<Link href={route('front.reports.create')}>
 							<IconFlame /> Ya, Lapor Darurat
 						</Link>

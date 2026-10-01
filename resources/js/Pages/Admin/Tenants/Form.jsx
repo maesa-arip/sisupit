@@ -339,7 +339,7 @@ export default function Form(props) {
 						<div className="flex justify-end gap-x-2">
 							{!tenant && (
 								<Button type="button" variant="secondary" size="sm" onClick={() => reset()}>
-									Reset
+									Atur ulang
 								</Button>
 							)}
 							<Button type="submit" variant="orange" size="sm" disabled={processing || compressing}>

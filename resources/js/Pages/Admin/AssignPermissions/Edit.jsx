@@ -66,7 +66,7 @@ export default function Edit(props) {
 								id="name"
 								value={data.name}
 								type="text"
-								placeholder="Masukan nama..."
+								placeholder="Masukkan nama..."
 								onChange={onHandleChange}
 								disabled
 							/>
@@ -92,7 +92,7 @@ export default function Edit(props) {
 								className="w-full sm:w-auto"
 								onClick={onHandleReset}
 							>
-								Reset
+								Atur ulang
 							</Button>
 							<Button
 								type="submit"

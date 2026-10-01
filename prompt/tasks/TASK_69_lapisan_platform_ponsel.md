@@ -150,3 +150,26 @@ hanya rupa.
 - **Penjaga:** kasus baru di `AppleDesignMaterialTest` - ketiga halaman tanpa varian gradien & teks
   Inggris, Create/Edit memakai FormSection + SegmentedControl, Index memakai roleLabel. MERAH terhadap
   ketiga berkas lama (pulih byte-exact). Suite 643 -> 644 passed (3100).
+
+## 9. Bagian 4 — seluruh halaman admin (permintaan user 2026-10-01: "perbaiki juga halaman admin lainnya")
+
+Sekitar 50 halaman di `Pages/Admin` memakai templat CRUD yang SAMA, jadi perbaikannya dua lapis:
+1. **Primitif bersama** (berlaku ke semua halaman sekaligus, juga di luar admin):
+   - `Button`: varian gradien lama dibuang. `default`/`orange` = merah brand padat + bayangan halus;
+     `red`/`blue`/`green` = isian TINTED ala iOS (`bg-*/10 text-*`), `purple` = sekunder; radius
+     `rounded-lg`. `destructive` TETAP merah padat.
+   - `Card` `rounded-2xl border-border/70 shadow-sm`; `Table` kepala kolom huruf kecil kapital bertracking
+     di atas latar `bg-muted/40`, baris bergaris rambut; `Badge` jadi pil; `Input`/`Textarea`/`SelectTrigger`
+     `rounded-lg`.
+   - **Jebakan yang dihindari:** dua tombol "Lapor Darurat" di Forum (`ForumParts.jsx`) memakai varian
+     `red`; men-tint `red` akan memudarkan ajakan darurat. Keduanya dipindah ke `destructive` (merah padat)
+     LEBIH DULU, dan dijaga test.
+2. **Sapuan teks** (58 penggantian di 21 berkas): "Apakah anda benar benar yakin ?" -> "Hapus data ini?",
+   kalimat "menghapus data anda ... dari server kami" diluruskan, Cancel/Continue/Reset/Save ->
+   Batal/Hapus/Atur ulang/Simpan, "Menamplikan" -> "Menampilkan" (angka tak lagi kuning), "Search" ->
+   "Cari...", "Masukan" -> "Masukkan", tombol "Bersihkan" merah -> ghost.
+
+Penjaga: dua kasus baru di `AppleDesignMaterialTest` (teks lama di seluruh `Pages/Admin`; varian tinted +
+Lapor Darurat Forum tetap padat) - keduanya MERAH terhadap 26 berkas versi HEAD, pulih byte-exact.
+Suite 644 -> 646 passed (3108). Halaman yang belum disentuh per berkas (Hydrants/Pumps/FireStations dll.)
+ikut berubah lewat primitif; rombak tata letak per halaman seperti /admin/users belum dilakukan.
