@@ -10,7 +10,7 @@ import {
 	AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent } from '@/Components/ui/card';
+import { CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
@@ -98,84 +98,86 @@ export default function Index({ agencies, filters }) {
 			<div className="flex flex-col gap-3">
 				{agencies.data && agencies.data.length > 0 ? (
 					<>
-						{agencies.data.map((agency) => (
-							<Card key={agency.id} className="transition-colors hover:border-primary/40">
-								<CardContent className="flex flex-row items-start gap-3 p-3 sm:p-4">
-									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-										<IconBuildingCommunity className="h-5 w-5" />
-									</div>
-									<div className="min-w-0 flex-1">
-										<div className="flex flex-wrap items-center gap-2">
-											<h3 className="truncate text-sm font-semibold text-foreground">
-												{agency.name}
-											</h3>
-											{agency.code && (
-												<span className="shrink-0 rounded-xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
-													{agency.code}
-												</span>
+						<div className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
+							{agencies.data.map((agency) => (
+								<div key={agency.id} className="transition-colors hover:bg-muted/40 active:bg-muted">
+									<CardContent className="flex flex-row items-start gap-3 p-3 sm:p-4">
+										<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+											<IconBuildingCommunity className="h-5 w-5" />
+										</div>
+										<div className="min-w-0 flex-1">
+											<div className="flex flex-wrap items-center gap-2">
+												<h3 className="truncate text-sm font-semibold text-foreground">
+													{agency.name}
+												</h3>
+												{agency.code && (
+													<span className="shrink-0 rounded-xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
+														{agency.code}
+													</span>
+												)}
+												{!agency.is_active && (
+													<span className="shrink-0 rounded-xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
+														Nonaktif
+													</span>
+												)}
+											</div>
+
+											<p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+												{agency.category && <span>{agency.category}</span>}
+												{agency.phone && (
+													<span className="flex items-center gap-1">
+														<IconPhone className="h-3 w-3 shrink-0" /> {agency.phone}
+													</span>
+												)}
+											</p>
+
+											{/* Dua baris di bawah inilah isi "dinamis"-nya: aturan auto-centang &
+										    konfirmasi berkondisi tersimpan sebagai data, bukan sebagai kode. */}
+											{agency.default_incident_types?.length > 0 && (
+												<p className="mt-1.5 flex flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
+													<span className="font-semibold">Auto-centang:</span>
+													{agency.default_incident_types.map((t) => (
+														<span
+															key={t}
+															className="rounded border border-info/20 bg-info/10 px-1.5 py-0.5 font-medium text-info"
+														>
+															{INCIDENT_LABELS[t] || t}
+														</span>
+													))}
+												</p>
 											)}
-											{!agency.is_active && (
-												<span className="shrink-0 rounded-xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
-													Nonaktif
-												</span>
+											{agency.requires_confirmation && (
+												<p className="mt-1 flex items-start gap-1 text-[11px] font-medium text-warning">
+													<IconBolt className="mt-0.5 h-3 w-3 shrink-0" />
+													{agency.confirmation_label}
+												</p>
 											)}
 										</div>
 
-										<p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-											{agency.category && <span>{agency.category}</span>}
-											{agency.phone && (
-												<span className="flex items-center gap-1">
-													<IconPhone className="h-3 w-3 shrink-0" /> {agency.phone}
-												</span>
-											)}
-										</p>
-
-										{/* Dua baris di bawah inilah isi "dinamis"-nya: aturan auto-centang &
-										    konfirmasi berkondisi tersimpan sebagai data, bukan sebagai kode. */}
-										{agency.default_incident_types?.length > 0 && (
-											<p className="mt-1.5 flex flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
-												<span className="font-semibold">Auto-centang:</span>
-												{agency.default_incident_types.map((t) => (
-													<span
-														key={t}
-														className="rounded border border-info/20 bg-info/10 px-1.5 py-0.5 font-medium text-info"
-													>
-														{INCIDENT_LABELS[t] || t}
-													</span>
-												))}
-											</p>
-										)}
-										{agency.requires_confirmation && (
-											<p className="mt-1 flex items-start gap-1 text-[11px] font-medium text-warning">
-												<IconBolt className="mt-0.5 h-3 w-3 shrink-0" />
-												{agency.confirmation_label}
-											</p>
-										)}
-									</div>
-
-									<div className="flex shrink-0 gap-1">
-										<Button
-											variant="ghost"
-											size="icon"
-											asChild
-											className="h-8 w-8 text-muted-foreground hover:text-info"
-										>
-											<Link href={route('admin.agencies.edit', agency.id)}>
-												<IconEdit className="h-4 w-4" />
-											</Link>
-										</Button>
-										<Button
-											variant="ghost"
-											size="icon"
-											onClick={() => setAgencyToDelete(agency.id)}
-											className="h-8 w-8 text-muted-foreground hover:text-destructive"
-										>
-											<IconTrash className="h-4 w-4" />
-										</Button>
-									</div>
-								</CardContent>
-							</Card>
-						))}
+										<div className="flex shrink-0 gap-1">
+											<Button
+												variant="ghost"
+												size="icon"
+												asChild
+												className="h-8 w-8 text-muted-foreground hover:text-info"
+											>
+												<Link href={route('admin.agencies.edit', agency.id)}>
+													<IconEdit className="h-4 w-4" />
+												</Link>
+											</Button>
+											<Button
+												variant="ghost"
+												size="icon"
+												onClick={() => setAgencyToDelete(agency.id)}
+												className="h-8 w-8 text-muted-foreground hover:text-destructive"
+											>
+												<IconTrash className="h-4 w-4" />
+											</Button>
+										</div>
+									</CardContent>
+								</div>
+							))}
+						</div>
 
 						<div className="mt-2 flex flex-col items-center gap-3 border-t border-dashed border-border pt-4">
 							<span className="text-[11px] font-medium text-muted-foreground">

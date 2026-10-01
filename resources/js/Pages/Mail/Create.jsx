@@ -76,7 +76,10 @@ export default function Create({ contacts = [], mailbox }) {
 								</p>
 							</div>
 						) : (
-							<form className="space-y-5" onSubmit={onHandleSubmit}>
+							<form
+								className="divide-y divide-border/70 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:py-4"
+								onSubmit={onHandleSubmit}
+							>
 								<div className="space-y-2">
 									<Label>Penerima</Label>
 									<div className="max-h-56 space-y-1 overflow-y-auto rounded-xl border border-input p-2">
@@ -132,7 +135,7 @@ export default function Create({ contacts = [], mailbox }) {
 									{errors.body && <InputError message={errors.body} />}
 								</div>
 
-								<div className="flex justify-end gap-2 border-t border-border pt-4">
+								<div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
 									<Button className="h-11 rounded-xl" type="button" variant="ghost" asChild>
 										<Link href={route('mail.index')}>Batal</Link>
 									</Button>

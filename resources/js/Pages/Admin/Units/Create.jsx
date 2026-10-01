@@ -52,7 +52,10 @@ export default function Create({ pos_options = [], type_options = [] }) {
 				<Card className="mx-auto w-full max-w-2xl">
 					
 					<CardContent className="p-5 sm:p-6">
-						<form className="space-y-5" onSubmit={onHandleSubmit}>
+						<form
+							className="divide-y divide-border/70 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:py-4"
+							onSubmit={onHandleSubmit}
+						>
 							<div className="flex items-start gap-3 rounded-2xl border border-border/70 bg-card p-4 text-muted-foreground shadow-sm">
 								<IconInfoCircle className="mt-0.5 h-5 w-5 shrink-0" />
 								<p className="text-xs font-medium leading-relaxed">
@@ -121,7 +124,7 @@ export default function Create({ pos_options = [], type_options = [] }) {
 								{errors.pos_pemadam_id && <InputError message={errors.pos_pemadam_id} />}
 							</div>
 
-							<div className="flex justify-end gap-2 border-t border-border pt-2">
+							<div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
 								<Button className="h-11 rounded-xl" type="button" variant="ghost" asChild>
 									<Link href={route('admin.units.index')}>Batal</Link>
 								</Button>

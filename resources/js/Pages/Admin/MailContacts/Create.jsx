@@ -54,7 +54,10 @@ export default function Create() {
 				<Card className="mx-auto w-full max-w-2xl">
 					
 					<CardContent className="p-5 sm:p-6">
-						<form className="space-y-5" onSubmit={onHandleSubmit}>
+						<form
+							className="divide-y divide-border/70 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:py-4"
+							onSubmit={onHandleSubmit}
+						>
 							<div className="flex items-start gap-3 rounded-xl border border-info/20 bg-info/10 p-3 text-info">
 								<IconInfoCircle className="mt-0.5 h-5 w-5 shrink-0" />
 								<p className="text-xs font-medium leading-relaxed">
@@ -128,7 +131,7 @@ export default function Create() {
 								<span className="text-sm text-foreground">Aktif (bisa dipilih saat menulis surat)</span>
 							</label>
 
-							<div className="flex justify-end gap-2 border-t border-border pt-4">
+							<div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
 								<Button className="h-11 rounded-xl" type="button" variant="ghost" asChild>
 									<Link href={route('admin.mail-contacts.index')}>Batal</Link>
 								</Button>

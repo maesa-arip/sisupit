@@ -222,76 +222,78 @@ export default function Index({
 			<div className="flex flex-col gap-3">
 				{banjars.data && banjars.data.length > 0 ? (
 					<>
-						{banjars.data.map((banjar) => (
-							<Card key={banjar.id} className="transition-colors hover:border-primary/40">
-								<CardContent className="flex flex-row items-start gap-3 p-3 sm:p-4">
-									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-										<IconHomeCog className="h-5 w-5" />
-									</div>
-									<div className="min-w-0 flex-1">
-										<div className="flex flex-wrap items-center gap-2">
-											<h3 className="truncate text-sm font-semibold text-foreground">
-												{banjar.name}
-											</h3>
-											{banjar.jenis && (
-												<span className="shrink-0 rounded-xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
-													{JENIS_LABELS[banjar.jenis] ?? banjar.jenis}
-												</span>
-											)}
-											{banjar.status === 'usulan' && (
-												<span className="shrink-0 rounded-xl border border-warning/30 bg-warning/10 px-2 py-0.5 text-[11px] font-bold uppercase text-warning">
-													Usulan Warga
-												</span>
-											)}
-											{!banjar.is_active && (
-												<span className="shrink-0 rounded-xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
-													Nonaktif
-												</span>
-											)}
+						<div className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
+							{banjars.data.map((banjar) => (
+								<div key={banjar.id} className="transition-colors hover:bg-muted/40 active:bg-muted">
+									<CardContent className="flex flex-row items-start gap-3 p-3 sm:p-4">
+										<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+											<IconHomeCog className="h-5 w-5" />
 										</div>
-										<p className="mt-0.5 truncate text-xs text-muted-foreground">
-											{/* Kode desa TIDAK pernah dicetak sebagai judul (aturan #78): kalau
+										<div className="min-w-0 flex-1">
+											<div className="flex flex-wrap items-center gap-2">
+												<h3 className="truncate text-sm font-semibold text-foreground">
+													{banjar.name}
+												</h3>
+												{banjar.jenis && (
+													<span className="shrink-0 rounded-xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
+														{JENIS_LABELS[banjar.jenis] ?? banjar.jenis}
+													</span>
+												)}
+												{banjar.status === 'usulan' && (
+													<span className="shrink-0 rounded-xl border border-warning/30 bg-warning/10 px-2 py-0.5 text-[11px] font-bold uppercase text-warning">
+														Usulan Warga
+													</span>
+												)}
+												{!banjar.is_active && (
+													<span className="shrink-0 rounded-xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
+														Nonaktif
+													</span>
+												)}
+											</div>
+											<p className="mt-0.5 truncate text-xs text-muted-foreground">
+												{/* Kode desa TIDAK pernah dicetak sebagai judul (aturan #78): kalau
 											    namanya tak dikenal, katakan begitu apa adanya. */}
-											{banjar.village ?? 'Desa tidak dikenal'}
-											{banjar.code ? ` · ${banjar.code}` : ''}
-										</p>
-									</div>
-									<div className="flex shrink-0 gap-1">
-										{/* Menyetujui = membalik kolom status; id barisnya TIDAK berubah sehingga
+												{banjar.village ?? 'Desa tidak dikenal'}
+												{banjar.code ? ` · ${banjar.code}` : ''}
+											</p>
+										</div>
+										<div className="flex shrink-0 gap-1">
+											{/* Menyetujui = membalik kolom status; id barisnya TIDAK berubah sehingga
 										    users.banjar_id & hydrant_wargas.banjar_id yang menunjuk ke sini tetap utuh. */}
-										{banjar.status === 'usulan' && (
+											{banjar.status === 'usulan' && (
+												<Button
+													variant="ghost"
+													size="icon"
+													onClick={() => setujui(banjar.id)}
+													title="Tandai terverifikasi"
+													className="h-8 w-8 text-muted-foreground hover:text-success"
+												>
+													<IconCheck className="h-4 w-4" />
+												</Button>
+											)}
 											<Button
 												variant="ghost"
 												size="icon"
-												onClick={() => setujui(banjar.id)}
-												title="Tandai terverifikasi"
-												className="h-8 w-8 text-muted-foreground hover:text-success"
+												asChild
+												className="h-8 w-8 text-muted-foreground hover:text-info"
 											>
-												<IconCheck className="h-4 w-4" />
+												<Link href={route('admin.banjars.edit', banjar.id)}>
+													<IconEdit className="h-4 w-4" />
+												</Link>
 											</Button>
-										)}
-										<Button
-											variant="ghost"
-											size="icon"
-											asChild
-											className="h-8 w-8 text-muted-foreground hover:text-info"
-										>
-											<Link href={route('admin.banjars.edit', banjar.id)}>
-												<IconEdit className="h-4 w-4" />
-											</Link>
-										</Button>
-										<Button
-											variant="ghost"
-											size="icon"
-											onClick={() => setBanjarToDelete(banjar.id)}
-											className="h-8 w-8 text-muted-foreground hover:text-destructive"
-										>
-											<IconTrash className="h-4 w-4" />
-										</Button>
-									</div>
-								</CardContent>
-							</Card>
-						))}
+											<Button
+												variant="ghost"
+												size="icon"
+												onClick={() => setBanjarToDelete(banjar.id)}
+												className="h-8 w-8 text-muted-foreground hover:text-destructive"
+											>
+												<IconTrash className="h-4 w-4" />
+											</Button>
+										</div>
+									</CardContent>
+								</div>
+							))}
+						</div>
 
 						<div className="mt-2 flex flex-col items-center gap-3 border-t border-dashed border-border pt-4">
 							<span className="text-[11px] font-medium text-muted-foreground">

@@ -119,7 +119,9 @@ export default function Index(props) {
 				<CardHeader>
 					<div className="flex w-full flex-col gap-3 lg:flex-row lg:items-center lg:gap-4">
 						<Input
-							className="w-full lg:w-1/4"
+							className="h-10 w-full rounded-xl lg:w-1/4"
+							type="search"
+							enterKeyHint="search"
 							placeholder="Cari..."
 							value={params?.search}
 							onChange={(e) => setParams((prev) => ({ ...prev, search: e.target.value }))}
@@ -252,9 +254,12 @@ export default function Index(props) {
 							{/* Mobile: daftar kartu (tanpa tabel) */}
 							<div className="space-y-3 p-4 md:hidden">
 								{route_accesses.map((route_access, index) => (
-									<div key={index} className="overflow-hidden rounded-xl border bg-card shadow-sm">
-										<div className="flex items-center gap-3 border-b bg-muted/40 p-4">
-											<div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-background text-muted-foreground">
+									<div
+										key={index}
+										className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm"
+									>
+										<div className="flex items-center gap-3 p-4 pb-2">
+											<div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
 												<IconRoute className="size-5" />
 											</div>
 											<span className="min-w-0 truncate font-semibold leading-tight">
@@ -264,7 +269,7 @@ export default function Index(props) {
 												#{rowNumber(index)}
 											</span>
 										</div>
-										<div className="space-y-2 p-4">
+										<div className="space-y-2 px-4 pb-4">
 											<MobileInfo
 												icon={IconUserShield}
 												label="Peran"
@@ -281,10 +286,10 @@ export default function Index(props) {
 												value={route_access.created_at}
 											/>
 										</div>
-										<div className="flex items-center gap-2 border-t bg-muted/30 px-4 py-3">
+										<div className="flex items-center gap-2 border-t border-border/70 px-4 py-3">
 											<Button variant="blue" size="sm" className="flex-1" asChild>
 												<Link href={route('admin.route-accesses.edit', [route_access])}>
-													<IconPencil className="size-4" /> Edit
+													<IconPencil className="size-4" /> Ubah
 												</Link>
 											</Button>
 											<DeleteRouteAccessDialog routeAccess={route_access} />

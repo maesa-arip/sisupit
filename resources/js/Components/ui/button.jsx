@@ -24,7 +24,7 @@ const buttonVariants = cva(
 				purple: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
 			},
 			size: {
-				default: 'h-9 px-4 py-2',
+				default: 'h-10 px-4 py-2',
 				sm: 'h-8 rounded-lg px-3 text-xs',
 				lg: 'h-10 rounded-lg px-8',
 				xl: 'h-12 rounded-xl px-8',

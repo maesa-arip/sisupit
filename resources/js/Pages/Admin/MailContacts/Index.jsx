@@ -10,7 +10,7 @@ import {
 	AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent } from '@/Components/ui/card';
+import { CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
 import { flashMessage } from '@/lib/utils';
@@ -127,50 +127,52 @@ export default function Index({ contacts, filters }) {
 			<div className="flex flex-col gap-3">
 				{contacts.data && contacts.data.length > 0 ? (
 					<>
-						{contacts.data.map((contact) => (
-							<Card key={contact.id} className="transition-colors hover:border-primary/40">
-								<CardContent className="flex flex-row items-start gap-3 p-3 sm:p-4">
-									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-										<IconMail className="h-5 w-5" />
-									</div>
-									<div className="min-w-0 flex-1">
-										<div className="flex flex-wrap items-center gap-2">
-											<h3 className="truncate text-sm font-semibold text-foreground">
-												{contact.name}
-											</h3>
-											{!contact.is_active && (
-												<span className="shrink-0 rounded-xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
-													Nonaktif
-												</span>
-											)}
+						<div className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
+							{contacts.data.map((contact) => (
+								<div key={contact.id} className="transition-colors hover:bg-muted/40 active:bg-muted">
+									<CardContent className="flex flex-row items-start gap-3 p-3 sm:p-4">
+										<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+											<IconMail className="h-5 w-5" />
 										</div>
-										{(contact.jabatan || contact.instansi) && (
-											<p className="mt-0.5 truncate text-xs text-muted-foreground">
-												{[contact.jabatan, contact.instansi].filter(Boolean).join(' . ')}
+										<div className="min-w-0 flex-1">
+											<div className="flex flex-wrap items-center gap-2">
+												<h3 className="truncate text-sm font-semibold text-foreground">
+													{contact.name}
+												</h3>
+												{!contact.is_active && (
+													<span className="shrink-0 rounded-xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
+														Nonaktif
+													</span>
+												)}
+											</div>
+											{(contact.jabatan || contact.instansi) && (
+												<p className="mt-0.5 truncate text-xs text-muted-foreground">
+													{[contact.jabatan, contact.instansi].filter(Boolean).join(' . ')}
+												</p>
+											)}
+											<p className="mt-1 truncate text-xs font-medium text-foreground">
+												{contact.email}
 											</p>
-										)}
-										<p className="mt-1 truncate text-xs font-medium text-foreground">
-											{contact.email}
-										</p>
-									</div>
-									<div className="flex shrink-0 gap-1">
-										<Button variant="ghost" size="icon" asChild>
-											<Link href={route('admin.mail-contacts.edit', contact.id)}>
-												<IconEdit className="h-4 w-4" />
-											</Link>
-										</Button>
-										<Button
-											variant="ghost"
-											size="icon"
-											className="text-destructive hover:text-destructive"
-											onClick={() => setContactToDelete(contact.id)}
-										>
-											<IconTrash className="h-4 w-4" />
-										</Button>
-									</div>
-								</CardContent>
-							</Card>
-						))}
+										</div>
+										<div className="flex shrink-0 gap-1">
+											<Button variant="ghost" size="icon" asChild>
+												<Link href={route('admin.mail-contacts.edit', contact.id)}>
+													<IconEdit className="h-4 w-4" />
+												</Link>
+											</Button>
+											<Button
+												variant="ghost"
+												size="icon"
+												className="text-destructive hover:text-destructive"
+												onClick={() => setContactToDelete(contact.id)}
+											>
+												<IconTrash className="h-4 w-4" />
+											</Button>
+										</div>
+									</CardContent>
+								</div>
+							))}
+						</div>
 
 						<div className="mt-2 flex flex-col items-center justify-between gap-3 sm:flex-row">
 							<span className="text-[11px] font-medium text-muted-foreground">

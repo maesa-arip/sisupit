@@ -10,7 +10,7 @@ import {
 	AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent } from '@/Components/ui/card';
+import { CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
@@ -134,63 +134,65 @@ export default function Index({ units, filters }) {
 			<div className="flex flex-col gap-3">
 				{units.data && units.data.length > 0 ? (
 					<>
-						{units.data.map((unit) => {
-							const meta = STATUS_META[unit.status] || {
-								label: unit.status,
-								color: 'bg-muted text-muted-foreground border-border',
-							};
-							return (
-								<Card key={unit.id} className="transition-colors hover:bg-muted/40">
-									<CardContent className="flex flex-row items-center gap-3 p-3 sm:p-4">
-										<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal/10 text-teal">
-											<IconBuildingWarehouse className="h-5 w-5" />
-										</div>
-										<div className="min-w-0 flex-1">
-											<div className="flex items-center gap-2">
-												<h3 className="truncate text-sm font-semibold text-foreground">
-													{unit.name}
-												</h3>
-												<span
-													className={`shrink-0 rounded-xl border px-2 py-0.5 text-[11px] font-bold uppercase ${meta.color}`}
-												>
-													{meta.label}
-												</span>
+						<div className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
+							{units.data.map((unit) => {
+								const meta = STATUS_META[unit.status] || {
+									label: unit.status,
+									color: 'bg-muted text-muted-foreground border-border',
+								};
+								return (
+									<div key={unit.id} className="transition-colors hover:bg-muted/40 active:bg-muted">
+										<CardContent className="flex flex-row items-center gap-3 p-3 sm:p-4">
+											<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal/10 text-teal">
+												<IconBuildingWarehouse className="h-5 w-5" />
 											</div>
-											<p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
-												{unit.type}
-												{unit.pos_pemadam && (
-													<>
-														{' · '}
-														<IconMapPin className="h-3 w-3 shrink-0" />{' '}
-														{unit.pos_pemadam.name}
-													</>
-												)}
-											</p>
-										</div>
-										<div className="flex shrink-0 gap-1">
-											<Button
-												variant="ghost"
-												size="icon"
-												asChild
-												className="h-8 w-8 text-muted-foreground hover:text-info"
-											>
-												<Link href={route('admin.units.edit', unit.id)}>
-													<IconEdit className="h-4 w-4" />
-												</Link>
-											</Button>
-											<Button
-												variant="ghost"
-												size="icon"
-												onClick={() => setUnitToDelete(unit.id)}
-												className="h-8 w-8 text-muted-foreground hover:text-destructive"
-											>
-												<IconTrash className="h-4 w-4" />
-											</Button>
-										</div>
-									</CardContent>
-								</Card>
-							);
-						})}
+											<div className="min-w-0 flex-1">
+												<div className="flex items-center gap-2">
+													<h3 className="truncate text-sm font-semibold text-foreground">
+														{unit.name}
+													</h3>
+													<span
+														className={`shrink-0 rounded-xl border px-2 py-0.5 text-[11px] font-bold uppercase ${meta.color}`}
+													>
+														{meta.label}
+													</span>
+												</div>
+												<p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
+													{unit.type}
+													{unit.pos_pemadam && (
+														<>
+															{' · '}
+															<IconMapPin className="h-3 w-3 shrink-0" />{' '}
+															{unit.pos_pemadam.name}
+														</>
+													)}
+												</p>
+											</div>
+											<div className="flex shrink-0 gap-1">
+												<Button
+													variant="ghost"
+													size="icon"
+													asChild
+													className="h-8 w-8 text-muted-foreground hover:text-info"
+												>
+													<Link href={route('admin.units.edit', unit.id)}>
+														<IconEdit className="h-4 w-4" />
+													</Link>
+												</Button>
+												<Button
+													variant="ghost"
+													size="icon"
+													onClick={() => setUnitToDelete(unit.id)}
+													className="h-8 w-8 text-muted-foreground hover:text-destructive"
+												>
+													<IconTrash className="h-4 w-4" />
+												</Button>
+											</div>
+										</CardContent>
+									</div>
+								);
+							})}
+						</div>
 
 						<div className="mt-2 flex flex-col items-center gap-3 border-t border-dashed border-border pt-4">
 							<span className="text-[11px] font-medium text-muted-foreground">

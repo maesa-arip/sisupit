@@ -64,7 +64,10 @@ export default function Edit(props) {
 			</div>
 			<Card className="mx-auto w-full max-w-2xl">
 				<CardContent className="p-5 sm:p-6">
-					<form className="space-y-6" onSubmit={onHandleSubmit}>
+					<form
+						className="divide-y divide-border/70 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:py-4"
+						onSubmit={onHandleSubmit}
+					>
 						<p className="text-sm text-muted-foreground">
 							Notifikasi laporan selalu dimulai dari desa lokasi laporan, lalu disiarkan naik ke tingkat
 							di atasnya sampai batas yang dipilih di sini. Petugas, relawan, dan pejabat bisa diatur
@@ -89,7 +92,7 @@ export default function Edit(props) {
 							errors.notify_level_pejabat,
 						)}
 						{/* Laporan ganda (TASK_55). */}
-						<div className="space-y-4 border-t border-border pt-6">
+						<div className="space-y-4">
 							<div>
 								<h3 className="text-[15px] font-semibold text-foreground">Deteksi Laporan Ganda</h3>
 								<p className="mt-1 text-sm text-muted-foreground">
@@ -130,7 +133,7 @@ export default function Edit(props) {
 								</div>
 							</div>
 						</div>
-						<div className="flex justify-end gap-x-2">
+						<div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
 							<Button className="h-11 rounded-xl px-6" type="submit" disabled={processing}>
 								Simpan
 							</Button>

@@ -100,7 +100,10 @@ export default function Form(props) {
 
 			<Card className="max-w-3xl">
 				<CardContent className="p-6">
-					<form className="space-y-6" onSubmit={onHandleSubmit}>
+					<form
+						className="divide-y divide-border/70 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:py-4"
+						onSubmit={onHandleSubmit}
+					>
 						<div className="grid w-full items-center gap-1.5">
 							<Label htmlFor="subdomain">Subdomain</Label>
 							<Input
@@ -336,7 +339,7 @@ export default function Form(props) {
 							{errors.is_active && <InputError message={errors.is_active} />}
 						</div>
 
-						<div className="flex justify-end gap-x-2">
+						<div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
 							{!tenant && (
 								<Button
 									className="h-11 rounded-xl"

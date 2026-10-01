@@ -58,7 +58,10 @@ export default function Edit(props) {
 			</div>
 			<Card className="mx-auto w-full max-w-2xl">
 				<CardContent className="p-5 sm:p-6">
-					<form className="space-y-6" onSubmit={onHandleSubmit}>
+					<form
+						className="divide-y divide-border/70 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:py-4"
+						onSubmit={onHandleSubmit}
+					>
 						<div className="grid w-full items-center gap-1.5">
 							<Label htmlFor="name">Peran</Label>
 							<Input

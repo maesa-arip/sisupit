@@ -87,7 +87,10 @@ export default function Form({ banjar = null, districts = [], jenis_options = []
 
 			<Card>
 				<CardContent className="p-5 sm:p-6">
-					<form onSubmit={onSubmit} className="flex flex-col gap-5">
+					<form
+						onSubmit={onSubmit}
+						className="divide-y divide-border/70 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:py-4"
+					>
 						<div className="grid gap-1.5">
 							<Label htmlFor="name">Nama Banjar</Label>
 							<Input
@@ -190,7 +193,7 @@ export default function Form({ banjar = null, districts = [], jenis_options = []
 							Aktif (muncul di pilihan warga & form hydrant warga)
 						</label>
 
-						<div className="flex justify-end gap-2 border-t border-border pt-5">
+						<div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
 							<Button type="button" variant="ghost" asChild>
 								<Link href={route('admin.banjars.index')}>Batal</Link>
 							</Button>

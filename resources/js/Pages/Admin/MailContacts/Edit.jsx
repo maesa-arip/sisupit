@@ -54,7 +54,10 @@ export default function Edit({ contact }) {
 				<Card className="mx-auto w-full max-w-2xl">
 					
 					<CardContent className="p-5 sm:p-6">
-						<form className="space-y-5" onSubmit={onHandleSubmit}>
+						<form
+							className="divide-y divide-border/70 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:py-4"
+							onSubmit={onHandleSubmit}
+						>
 							<div className="space-y-2">
 								<Label htmlFor="name">Nama</Label>
 								<Input id="name" value={data.name} onChange={(e) => setData('name', e.target.value)} />
@@ -111,7 +114,7 @@ export default function Edit({ contact }) {
 								<span className="text-sm text-foreground">Aktif (bisa dipilih saat menulis surat)</span>
 							</label>
 
-							<div className="flex justify-end gap-2 border-t border-border pt-4">
+							<div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
 								<Button className="h-11 rounded-xl" type="button" variant="ghost" asChild>
 									<Link href={route('admin.mail-contacts.index')}>Batal</Link>
 								</Button>

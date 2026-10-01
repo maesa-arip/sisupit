@@ -51,7 +51,10 @@ export default function Edit(props) {
 			</div>
 			<Card className="mx-auto w-full max-w-2xl">
 				<CardContent className="p-5 sm:p-6">
-					<form className="space-y-6" onSubmit={onHandleSubmit}>
+					<form
+						className="divide-y divide-border/70 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:py-4"
+						onSubmit={onHandleSubmit}
+					>
 						<div className="space-y-2 text-sm text-muted-foreground">
 							{/* TASK_63: setelan ini mengatur notifikasi DAN data yang tampil - satu wilayah
 							    untuk keduanya, supaya yang membangunkan petugas selalu bisa ia buka. */}
@@ -90,7 +93,7 @@ export default function Edit(props) {
 							</Select>
 							{errors.notify_level_petugas && <InputError message={errors.notify_level_petugas} />}
 						</div>
-						<div className="flex justify-end gap-x-2">
+						<div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
 							<Button className="h-11 rounded-xl px-6" type="submit" disabled={processing}>
 								Simpan
 							</Button>

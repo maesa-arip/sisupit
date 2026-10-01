@@ -51,7 +51,10 @@ export default function Edit(props) {
 			</div>
 			<Card className="mx-auto w-full max-w-2xl">
 				<CardContent className="p-5 sm:p-6">
-					<form className="space-y-6" onSubmit={onHandleSubmit}>
+					<form
+						className="divide-y divide-border/70 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:py-4"
+						onSubmit={onHandleSubmit}
+					>
 						<div className="grid w-full items-center gap-1.5">
 							<Label htmlFor="message">Pesan</Label>
 							<Input
@@ -90,7 +93,7 @@ export default function Edit(props) {
 							</div>
 							{errors.is_active && <InputError message={errors.is_active} />}
 						</div>
-						<div className="flex justify-end gap-x-2">
+						<div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
 							<Button className="h-11 rounded-xl" type="button" variant="ghost" onClick={onHandleReset}>
 								Atur ulang
 							</Button>
