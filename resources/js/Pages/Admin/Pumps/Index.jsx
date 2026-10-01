@@ -1,13 +1,21 @@
 import HeaderTitle from '@/Components/HeaderTitle';
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from '@/Components/ui/alert-dialog';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
 import { escapeHtml } from '@/lib/escape-html';
 import { debitLabel, facilityStatusIsFaulty, facilityStatusLabel, MAP_TILE_URL, waterPressureLabel } from '@/lib/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
-	IconAlertTriangle,
 	IconArrowDown,
 	IconDroplet,
 	IconEdit,
@@ -125,31 +133,26 @@ export default function Index({ pumps, filters, tenant_location }) {
 		<div className="flex h-full w-full flex-col space-y-6">
 			<Head title="Manajemen SKKL" />
 
-			{pumpToDelete && (
-				<div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-					<div className="w-full max-w-md rounded-2xl border bg-background p-6 shadow-xl">
-						<div className="flex items-center gap-3 text-destructive">
-							<IconAlertTriangle className="h-6 w-6" />{' '}
-							<h3 className="text-lg font-bold">Hapus Data Aset?</h3>
-						</div>
-						<p className="mt-2 text-sm text-muted-foreground">
+			<AlertDialog open={!!pumpToDelete} onOpenChange={(open) => !open && setPumpToDelete(null)}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Hapus data aset ini?</AlertDialogTitle>
+						<AlertDialogDescription>
 							Menghapus aset SKKL ini akan menghilangkan koordinatnya dari peta operasional secara
 							permanen.
-						</p>
-						<div className="mt-6 flex justify-end gap-3">
-							<Button variant="ghost" onClick={() => setPumpToDelete(null)}>
-								Batal
-							</Button>
-							<Button
-								className="bg-destructive text-destructive-foreground shadow-none hover:bg-destructive/90"
-								onClick={confirmDelete}
-							>
-								Hapus Permanen
-							</Button>
-						</div>
-					</div>
-				</div>
-			)}
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel className="rounded-xl">Batal</AlertDialogCancel>
+						<AlertDialogAction
+							className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+							onClick={confirmDelete}
+						>
+							Hapus permanen
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 
 			<div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
 				<HeaderTitle
@@ -160,18 +163,14 @@ export default function Index({ pumps, filters, tenant_location }) {
 				<div className="flex flex-wrap gap-2">
 					{/* Hydrant warga didata di menunya sendiri (tab di /admin/hydrants) tapi
 					    dibaca di sini — jadi jalan pintasnya disediakan di tempat orang mencarinya. */}
-					<Button size="sm" variant="secondary" asChild>
+					<Button size="sm" variant="outline" className="h-10 rounded-full px-4" asChild>
 						<Link href={route('admin.hydrant-warga.create')}>
-							<IconPlus className="mr-1.5 h-4 w-4" /> Hydrant Warga
+							<IconPlus className="h-4 w-4" /> Hydrant Warga
 						</Link>
 					</Button>
-					<Button
-						size="sm"
-						className="border-none bg-info text-info-foreground shadow-none hover:bg-info/90"
-						asChild
-					>
+					<Button size="sm" className="h-10 rounded-full px-4" asChild>
 						<Link href={route('admin.pumps.create')}>
-							<IconPlus className="mr-1.5 h-4 w-4" /> Tambah Aset SKKL
+							<IconPlus className="h-4 w-4" /> Tambah Aset SKKL
 						</Link>
 					</Button>
 				</div>
@@ -183,9 +182,10 @@ export default function Index({ pumps, filters, tenant_location }) {
 						<form onSubmit={handleSearch} className="relative">
 							<IconSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 							<Input
-								type="text"
+								type="search"
+								enterKeyHint="search"
 								placeholder="Cari nama atau lokasi aset..."
-								className="h-10 pl-9 focus-visible:ring-info"
+								className="h-11 rounded-xl bg-card pl-9"
 								value={data.search}
 								onChange={(e) => setData('search', e.target.value)}
 							/>
@@ -201,10 +201,10 @@ export default function Index({ pumps, filters, tenant_location }) {
 									key={status}
 									type="button"
 									onClick={() => applyStatusFilter(status)}
-									className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-all ${
+									className={`h-8 rounded-full border px-3 text-xs font-semibold transition-colors active:bg-muted ${
 										data.status === status
-											? 'border-info/30 bg-info/10 text-info'
-											: 'border-input bg-transparent text-muted-foreground hover:bg-accent'
+											? 'border-primary/20 bg-primary/10 text-primary'
+											: 'border-border/70 bg-card text-muted-foreground hover:text-foreground'
 									}`}
 								>
 									{facilityStatusLabel(status)}
@@ -216,71 +216,79 @@ export default function Index({ pumps, filters, tenant_location }) {
 					<div className="flex h-[500px] flex-col gap-3 overflow-y-auto pb-4 pr-1 lg:h-[calc(100vh-240px)] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar]:w-1.5">
 						{pumps.data && pumps.data.length > 0 ? (
 							<>
-								{pumps.data.map((pump) => (
-									<Card
-										key={rowKey(pump)}
-										onClick={() => focusToPump(rowKey(pump), pump.lat, pump.lng)}
-										className={`cursor-pointer transition-colors ${activePumpId === rowKey(pump) ? 'border-info bg-info/5' : 'hover:border-info/50'}`}
-									>
-										<CardContent className="flex flex-col gap-3 p-3 sm:p-4">
-											<div className="flex flex-row items-center gap-3">
-												<div
-													className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${facilityStatusIsFaulty(pump.status) ? 'bg-destructive/10 text-destructive' : 'bg-info/10 text-info'}`}
-												>
-													<IconDroplet className="h-5 w-5" />
+								<div className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
+									{pumps.data.map((pump) => (
+										<div
+											role="button"
+											tabIndex={0}
+											key={rowKey(pump)}
+											onClick={() => focusToPump(rowKey(pump), pump.lat, pump.lng)}
+											onKeyDown={(e) =>
+												(e.key === 'Enter' || e.key === ' ') &&
+												(e.preventDefault(), focusToPump(rowKey(pump), pump.lat, pump.lng))
+											}
+											className={`cursor-pointer transition-colors active:bg-muted ${activePumpId === rowKey(pump) ? 'bg-primary/5' : 'hover:bg-muted/40'}`}
+										>
+											<div className="flex flex-col gap-2 px-4 py-3.5">
+												<div className="flex flex-row items-center gap-3">
+													<div
+														className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${facilityStatusIsFaulty(pump.status) ? 'bg-destructive/10 text-destructive' : 'bg-info/10 text-info'}`}
+													>
+														<IconDroplet className="h-5 w-5" />
+													</div>
+													<div className="w-full min-w-0 flex-1">
+														<h3
+															className={`truncate text-sm font-semibold ${activePumpId === rowKey(pump) ? 'text-primary' : 'text-foreground'}`}
+														>
+															{pump.name}
+														</h3>
+														<p className="mt-0.5 truncate text-xs text-muted-foreground">
+															{pump.type ? `${pump.type} · ` : ''}
+															{pump.address}
+														</p>
+														<p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+															{[
+																facilityStatusLabel(pump.status),
+																waterPressureLabel(pump.water_pressure),
+																debitLabel(pump.debit_lpm),
+															]
+																.filter(Boolean)
+																.join(' · ')}
+														</p>
+													</div>
+													<div
+														className="flex shrink-0 gap-1"
+														onClick={(e) => e.stopPropagation()}
+													>
+														<Button
+															variant="ghost"
+															size="icon"
+															asChild
+															className="h-8 w-8 text-muted-foreground hover:text-info"
+														>
+															<Link href={route('admin.pumps.edit', pump.id)}>
+																<IconEdit className="h-4 w-4" />
+															</Link>
+														</Button>
+														<Button
+															variant="ghost"
+															size="icon"
+															onClick={() => setPumpToDelete(pump)}
+															className="h-8 w-8 text-muted-foreground hover:text-destructive"
+														>
+															<IconTrash className="h-4 w-4" />
+														</Button>
+													</div>
 												</div>
-												<div className="w-full min-w-0 flex-1">
-													<h3
-														className={`truncate text-sm font-semibold ${activePumpId === rowKey(pump) ? 'text-info' : 'text-foreground'}`}
-													>
-														{pump.name}
-													</h3>
-													<p className="mt-0.5 truncate text-xs text-muted-foreground">
-														{pump.type ? `${pump.type} · ` : ''}
-														{pump.address}
-													</p>
-													<p className="mt-0.5 truncate text-[11px] text-muted-foreground">
-														{[
-															facilityStatusLabel(pump.status),
-															waterPressureLabel(pump.water_pressure),
-															debitLabel(pump.debit_lpm),
-														]
-															.filter(Boolean)
-															.join(' · ')}
-													</p>
-												</div>
-												<div
-													className="flex shrink-0 gap-1"
-													onClick={(e) => e.stopPropagation()}
-												>
-													<Button
-														variant="ghost"
-														size="icon"
-														asChild
-														className="h-8 w-8 text-muted-foreground hover:text-info"
-													>
-														<Link href={route('admin.pumps.edit', pump.id)}>
-															<IconEdit className="h-4 w-4" />
-														</Link>
-													</Button>
-													<Button
-														variant="ghost"
-														size="icon"
-														onClick={() => setPumpToDelete(pump)}
-														className="h-8 w-8 text-muted-foreground hover:text-destructive"
-													>
-														<IconTrash className="h-4 w-4" />
-													</Button>
+												<div className="flex items-center justify-center gap-1 rounded-lg py-1 text-[11px] font-semibold text-primary lg:hidden">
+													<IconArrowDown className="h-3 w-3" /> Lihat di peta
 												</div>
 											</div>
-											<div className="mt-1 flex items-center justify-center gap-1 rounded-md bg-info/10 py-1.5 text-[10px] font-bold text-info lg:hidden">
-												<IconArrowDown className="h-3 w-3" /> Lihat Peta Lokasi
-											</div>
-										</CardContent>
-									</Card>
-								))}
+										</div>
+									))}
+								</div>
 
-								<div className="mt-4 flex flex-col items-center gap-3 border-t border-dashed border-border pt-4">
+								<div className="mt-4 flex flex-col items-center gap-3 pt-1">
 									<span className="text-[11px] font-medium text-muted-foreground">
 										Menampilkan {pumps.from} - {pumps.to} dari {pumps.total} aset
 									</span>
@@ -293,9 +301,9 @@ export default function Index({ pumps, filters, tenant_location }) {
 														key={index}
 														href={link.url}
 														preserveScroll
-														className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
+														className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
 															link.active
-																? 'border-info bg-info text-info-foreground shadow-sm'
+																? 'border-primary bg-primary text-primary-foreground shadow-sm'
 																: 'border-input bg-background text-muted-foreground hover:bg-accent hover:text-foreground'
 														}`}
 														dangerouslySetInnerHTML={{ __html: link.label }}
@@ -303,7 +311,7 @@ export default function Index({ pumps, filters, tenant_location }) {
 												) : (
 													<span
 														key={index}
-														className="cursor-not-allowed rounded-md border border-transparent px-3 py-1.5 text-xs font-semibold text-muted-foreground opacity-50"
+														className="cursor-not-allowed rounded-lg border border-transparent px-3 py-1.5 text-xs font-semibold text-muted-foreground opacity-50"
 														dangerouslySetInnerHTML={{ __html: link.label }}
 													/>
 												),
@@ -313,7 +321,7 @@ export default function Index({ pumps, filters, tenant_location }) {
 								</div>
 							</>
 						) : (
-							<div className="rounded-xl border border-dashed border-input p-10 text-center">
+							<div className="rounded-2xl border border-border/70 bg-card p-10 text-center">
 								<span className="text-sm text-muted-foreground">Tidak ada data ditemukan.</span>
 							</div>
 						)}
@@ -324,13 +332,15 @@ export default function Index({ pumps, filters, tenant_location }) {
 					ref={mapContainerRef}
 					className="flex h-[450px] w-full scroll-mt-24 flex-col lg:h-[calc(100vh-140px)] lg:flex-1"
 				>
-					<div className="mb-3 flex items-center gap-2 px-1">
-						<IconMapPinFilled className="h-4 w-4 text-info" />
-						<h2 className="text-sm font-semibold text-foreground">Peta Sebaran Interaktif</h2>
+					<div className="mb-2 flex items-center gap-2 px-1">
+						<IconMapPinFilled className="h-4 w-4 text-muted-foreground" />
+						<h2 className="text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+							Peta sebaran
+						</h2>
 					</div>
 					<div
 						ref={mapRef}
-						className="relative z-0 h-full w-full overflow-hidden rounded-2xl border bg-accent"
+						className="relative z-0 h-full w-full overflow-hidden rounded-2xl border border-border/70 bg-accent shadow-sm"
 					></div>
 				</div>
 			</div>

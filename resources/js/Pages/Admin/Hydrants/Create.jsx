@@ -2,7 +2,6 @@ import BanjarField from '@/Components/BanjarField';
 import HeaderTitle from '@/Components/HeaderTitle';
 import InputError from '@/Components/InputError';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent } from '@/Components/ui/card';
 import { Combobox } from '@/Components/ui/combobox';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
@@ -165,7 +164,7 @@ export default function Create({
 		window.L.control.zoom({ position: 'bottomright' }).addTo(mapInstanceRef.current);
 
 		const customIcon = window.L.divIcon({
-			html: `<div class="text-teal-600 dark:text-teal"><svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
+			html: `<div class="text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
 			className: 'bg-transparent border-none drop-shadow-md',
 			iconSize: [42, 42],
 			iconAnchor: [21, 42],
@@ -427,7 +426,7 @@ export default function Create({
 				<Input
 					readOnly
 					value={value || 'Memuat...'}
-					className="border-dashed bg-accent/50 pr-10 font-medium text-muted-foreground shadow-none focus-visible:ring-0"
+					className="h-11 rounded-xl border-dashed bg-muted/50 pr-10 font-medium text-muted-foreground shadow-none focus-visible:ring-0"
 				/>
 				<IconLock className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground opacity-50" />
 			</div>
@@ -445,7 +444,7 @@ export default function Create({
 					<HeaderTitle title={v.createTitle} subtitle={v.createSubtitle} icon={IconDroplet} />
 					<HydrantTabs active={variant} target="create" showWarga={can?.warga ?? true} />
 				</div>
-				<Button variant="secondary" size="sm" asChild>
+				<Button variant="outline" size="sm" className="rounded-full" asChild>
 					<Link href={route(v.routes.index)}>
 						<IconArrowLeft className="mr-1.5 size-4" /> Kembali
 					</Link>
@@ -454,394 +453,392 @@ export default function Create({
 
 			<div className="flex w-full flex-col items-start gap-5 lg:flex-row lg:gap-6">
 				<div className="flex w-full shrink-0 flex-col gap-5 lg:w-5/12 xl:w-1/3">
-					<Card className="border-border shadow-none">
-						<CardContent className="p-6">
-							<form className="space-y-5" onSubmit={onHandleSubmit}>
-								<div className="flex items-start gap-3 rounded-md border border-teal-100 bg-teal-50 p-3 text-teal-700 dark:border-teal/30 dark:bg-teal/10 dark:text-teal">
-									<IconInfoCircle className="mt-0.5 h-5 w-5 shrink-0" />
-									<p className="text-xs font-medium leading-relaxed">{getHelperText()}</p>
-								</div>
+					<form className="space-y-5" onSubmit={onHandleSubmit}>
+						<div className="flex items-start gap-3 rounded-2xl border border-border/70 bg-card p-4 text-muted-foreground shadow-sm">
+							<IconInfoCircle className="mt-0.5 h-5 w-5 shrink-0" />
+							<p className="text-xs font-medium leading-relaxed">{getHelperText()}</p>
+						</div>
 
-								{/* ========================================================= */}
-								{/* BLOK PENCARIAN PETA (SEARCH-AS-YOU-TYPE) */}
-								{/* ========================================================= */}
-								<div className="relative grid gap-1.5">
-									<Label>
-										Cari Lokasi di Peta
-										<span className="ml-1 text-[11px] font-normal text-muted-foreground">
-											(Ketik min. 3 huruf)
-										</span>
-									</Label>
+						{/* ========================================================= */}
+						{/* BLOK PENCARIAN PETA (SEARCH-AS-YOU-TYPE) */}
+						{/* ========================================================= */}
+						<div className="relative grid gap-2 rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
+							<Label>
+								Cari Lokasi di Peta
+								<span className="ml-1 text-[11px] font-normal text-muted-foreground">
+									(Ketik min. 3 huruf)
+								</span>
+							</Label>
 
-									<div className="relative w-full">
-										{/* Ikon Kaca Pembesar (Kiri) - pointer-events-none agar tidak menghalangi klik input */}
-										<IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+							<div className="relative w-full">
+								{/* Ikon Kaca Pembesar (Kiri) - pointer-events-none agar tidak menghalangi klik input */}
+								<IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
-										<Input
-											value={searchQuery}
-											onChange={(e) => setSearchQuery(e.target.value)}
-											placeholder="Ketik jalan atau desa..."
-											// pl-9 untuk spasi kiri, pr-10 untuk spasi kanan, h-9 agar tinggi sejajar dengan Combobox
-											className="h-9 w-full pl-9 pr-10 shadow-sm focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
-										/>
+								<Input
+									value={searchQuery}
+									onChange={(e) => setSearchQuery(e.target.value)}
+									placeholder="Ketik jalan atau desa..."
+									// pl-9 untuk spasi kiri, pr-10 untuk spasi kanan, h-9 agar tinggi sejajar dengan Combobox
+									className="h-11 w-full rounded-xl pl-9 pr-10"
+								/>
 
-										{/* Spinner Loading (Kanan) - Dibungkus div flex agar rotasinya sentris sempurna */}
-										{isSearching && (
-											<div className="pointer-events-none absolute right-3 top-1/2 flex -translate-y-1/2 items-center justify-center">
-												<IconLoader2 className="h-4 w-4 animate-spin text-teal-600 dark:text-teal" />
+								{/* Spinner Loading (Kanan) - Dibungkus div flex agar rotasinya sentris sempurna */}
+								{isSearching && (
+									<div className="pointer-events-none absolute right-3 top-1/2 flex -translate-y-1/2 items-center justify-center">
+										<IconLoader2 className="h-4 w-4 animate-spin text-primary" />
+									</div>
+								)}
+							</div>
+
+							{/* Dropdown Hasil Pencarian (z-[999] agar selalu tampil paling atas) */}
+							{searchResults.length > 0 && (
+								<div className="absolute left-0 right-0 top-full z-[999] mt-1 max-h-48 overflow-y-auto rounded-lg border bg-popover text-popover-foreground shadow-xl">
+									{searchResults.map((res, idx) => (
+										<button
+											key={idx}
+											type="button"
+											onClick={() => selectSearchResult(res)}
+											className="flex w-full gap-2 border-b border-border px-3 py-2.5 text-left text-xs transition-colors last:border-0 hover:bg-accent"
+										>
+											<IconCurrentLocation className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+											<div className="min-w-0 flex-1">
+												<p className="truncate font-semibold">
+													{alamatTerbaca(res.name) ||
+														alamatTerbaca(res.display_name).split(',')[0]}
+												</p>
+												<p className="mt-0.5 truncate text-muted-foreground">
+													{alamatTerbaca(res.display_name)}
+												</p>
 											</div>
-										)}
-									</div>
-
-									{/* Dropdown Hasil Pencarian (z-[999] agar selalu tampil paling atas) */}
-									{searchResults.length > 0 && (
-										<div className="absolute left-0 right-0 top-full z-[999] mt-1 max-h-48 overflow-y-auto rounded-lg border bg-popover text-popover-foreground shadow-xl">
-											{searchResults.map((res, idx) => (
-												<button
-													key={idx}
-													type="button"
-													onClick={() => selectSearchResult(res)}
-													className="flex w-full gap-2 border-b border-border px-3 py-2.5 text-left text-xs transition-colors last:border-0 hover:bg-accent"
-												>
-													<IconCurrentLocation className="mt-0.5 h-4 w-4 shrink-0 text-teal-600 dark:text-teal" />
-													<div className="min-w-0 flex-1">
-														<p className="truncate font-semibold">
-															{alamatTerbaca(res.name) ||
-																alamatTerbaca(res.display_name).split(',')[0]}
-														</p>
-														<p className="mt-0.5 truncate text-muted-foreground">
-															{alamatTerbaca(res.display_name)}
-														</p>
-													</div>
-												</button>
-											))}
-										</div>
-									)}
+										</button>
+									))}
 								</div>
-								{/* ========================================================= */}
+							)}
+						</div>
+						{/* ========================================================= */}
 
-								<div className="flex flex-col gap-4 rounded-lg border border-border bg-accent/30 p-4">
-									<h4 className="flex items-center justify-between text-xs font-bold uppercase text-muted-foreground">
-										Area Yurisdiksi{' '}
-										{isDetecting ? (
-											<span className="flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold normal-case text-muted-foreground">
-												<IconLoader2 className="h-3 w-3 animate-spin" /> Mendeteksi wilayah...
-											</span>
-										) : (
-											currentStep === 2 && (
-												<span className="rounded-full bg-teal-100 px-2 py-0.5 text-[10px] text-teal-700 dark:bg-teal/10 dark:text-teal">
-													Auto-detected
-												</span>
-											)
-										)}
-									</h4>
+						<div className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
+							<h4 className="flex items-center justify-between text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+								Area Yurisdiksi{' '}
+								{isDetecting ? (
+									<span className="flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold normal-case text-muted-foreground">
+										<IconLoader2 className="h-3 w-3 animate-spin" /> Mendeteksi wilayah...
+									</span>
+								) : (
+									currentStep === 2 && (
+										<span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">
+											Terdeteksi otomatis
+										</span>
+									)
+								)}
+							</h4>
 
-									{jurisdictionWarning && (
-										<div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-2.5 text-destructive">
-											<IconAlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-											<p className="text-[11px] font-medium leading-relaxed">
-												Titik pin terdeteksi di luar {jurisdictionWarning.level} wilayah tugas
-												Anda ({jurisdictionWarning.name}). Data tetap akan tersimpan atas nama
-												wilayah Anda - geser pin kembali ke dalam wilayah tugas, atau abaikan
-												pesan ini bila lokasinya memang sudah benar.
-											</p>
-										</div>
-									)}
-
-									<div className="grid gap-1.5">
-										{admin_level?.province_code ? (
-											<LockedField label="Provinsi" value={admin_region_names?.province} />
-										) : (
-											<>
-												<Label>Provinsi</Label>
-												<Combobox
-													items={provinces}
-													value={data.province_code}
-													onChange={(val) =>
-														setData((prev) => ({
-															...prev,
-															province_code: val,
-															city_code: '',
-															district_code: '',
-															village_code: '',
-														}))
-													}
-													placeholder="Pilih Provinsi..."
-												/>
-											</>
-										)}
-									</div>
-
-									<div className="grid gap-1.5">
-										{admin_level?.city_code ? (
-											<LockedField label="Kabupaten / Kota" value={admin_region_names?.city} />
-										) : (
-											<>
-												<Label>Kabupaten / Kota</Label>
-												<Combobox
-													items={dynamicCities}
-													value={data.city_code}
-													disabled={!data.province_code && !admin_level?.province_code}
-													onChange={(val) =>
-														setData((prev) => ({
-															...prev,
-															city_code: val,
-															district_code: '',
-															village_code: '',
-														}))
-													}
-													placeholder="Pilih Kota/Kabupaten..."
-												/>
-												{errors.city_code && <InputError message={errors.city_code} />}
-											</>
-										)}
-									</div>
-
-									<div className="grid gap-1.5">
-										{admin_level?.district_code ? (
-											<LockedField label="Kecamatan" value={admin_region_names?.district} />
-										) : (
-											<>
-												<Label>Kecamatan</Label>
-												<Combobox
-													items={dynamicDistricts}
-													value={data.district_code}
-													disabled={!data.city_code && !admin_level?.city_code}
-													onChange={(val) =>
-														setData((prev) => ({
-															...prev,
-															district_code: val,
-															village_code: '',
-														}))
-													}
-													placeholder="Pilih Kecamatan..."
-												/>
-												{errors.district_code && <InputError message={errors.district_code} />}
-											</>
-										)}
-									</div>
-
-									<div className="grid gap-1.5">
-										{admin_level?.village_code ? (
-											<LockedField label="Kelurahan / Desa" value={admin_region_names?.village} />
-										) : (
-											<>
-												<Label>Kelurahan / Desa</Label>
-												<Combobox
-													items={villages}
-													value={data.village_code}
-													disabled={!data.district_code}
-													onChange={(val) => setData('village_code', val)}
-													placeholder="Pilih Desa/Kelurahan..."
-												/>
-												{errors.village_code && <InputError message={errors.village_code} />}
-											</>
-										)}
-									</div>
+							{jurisdictionWarning && (
+								<div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-2.5 text-destructive">
+									<IconAlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+									<p className="text-[11px] font-medium leading-relaxed">
+										Titik pin terdeteksi di luar {jurisdictionWarning.level} wilayah tugas Anda (
+										{jurisdictionWarning.name}). Data tetap akan tersimpan atas nama wilayah Anda -
+										geser pin kembali ke dalam wilayah tugas, atau abaikan pesan ini bila lokasinya
+										memang sudah benar.
+									</p>
 								</div>
+							)}
 
-								<div className="grid gap-1.5">
-									<Label htmlFor="name">Nama Fasilitas</Label>
-									<Input
-										name="name"
-										id="name"
-										value={data.name}
-										onChange={onHandleChange}
-										className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
-										placeholder="Misal: Hydrant Pasar Badung"
-									/>
-									{errors.name && <InputError message={errors.name} />}
-								</div>
+							<div className="grid gap-1.5">
+								{admin_level?.province_code ? (
+									<LockedField label="Provinsi" value={admin_region_names?.province} />
+								) : (
+									<>
+										<Label>Provinsi</Label>
+										<Combobox
+											items={provinces}
+											value={data.province_code}
+											onChange={(val) =>
+												setData((prev) => ({
+													...prev,
+													province_code: val,
+													city_code: '',
+													district_code: '',
+													village_code: '',
+												}))
+											}
+											placeholder="Pilih Provinsi..."
+										/>
+									</>
+								)}
+							</div>
 
-								<div className="grid gap-1.5">
-									<Label htmlFor="address">Alamat Lapangan</Label>
-									<Textarea
-										name="address"
-										id="address"
-										rows="2"
-										value={data.address}
-										onChange={onHandleChange}
-										className="resize-none focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
-									/>
-									{errors.address && <InputError message={errors.address} />}
-								</div>
+							<div className="grid gap-1.5">
+								{admin_level?.city_code ? (
+									<LockedField label="Kabupaten / Kota" value={admin_region_names?.city} />
+								) : (
+									<>
+										<Label>Kabupaten / Kota</Label>
+										<Combobox
+											items={dynamicCities}
+											value={data.city_code}
+											disabled={!data.province_code && !admin_level?.province_code}
+											onChange={(val) =>
+												setData((prev) => ({
+													...prev,
+													city_code: val,
+													district_code: '',
+													village_code: '',
+												}))
+											}
+											placeholder="Pilih Kota/Kabupaten..."
+										/>
+										{errors.city_code && <InputError message={errors.city_code} />}
+									</>
+								)}
+							</div>
 
-								{/* Satu kolom bila kosakata statusnya berupa kalimat (hydrant warga):
+							<div className="grid gap-1.5">
+								{admin_level?.district_code ? (
+									<LockedField label="Kecamatan" value={admin_region_names?.district} />
+								) : (
+									<>
+										<Label>Kecamatan</Label>
+										<Combobox
+											items={dynamicDistricts}
+											value={data.district_code}
+											disabled={!data.city_code && !admin_level?.city_code}
+											onChange={(val) =>
+												setData((prev) => ({
+													...prev,
+													district_code: val,
+													village_code: '',
+												}))
+											}
+											placeholder="Pilih Kecamatan..."
+										/>
+										{errors.district_code && <InputError message={errors.district_code} />}
+									</>
+								)}
+							</div>
+
+							<div className="grid gap-1.5">
+								{admin_level?.village_code ? (
+									<LockedField label="Kelurahan / Desa" value={admin_region_names?.village} />
+								) : (
+									<>
+										<Label>Kelurahan / Desa</Label>
+										<Combobox
+											items={villages}
+											value={data.village_code}
+											disabled={!data.district_code}
+											onChange={(val) => setData('village_code', val)}
+											placeholder="Pilih Desa/Kelurahan..."
+										/>
+										{errors.village_code && <InputError message={errors.village_code} />}
+									</>
+								)}
+							</div>
+						</div>
+
+						<div className="space-y-4 rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
+							<h4 className="text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+								Detail fasilitas
+							</h4>
+							<div className="grid gap-1.5">
+								<Label htmlFor="name">Nama Fasilitas</Label>
+								<Input
+									name="name"
+									id="name"
+									value={data.name}
+									onChange={onHandleChange}
+									className="h-11 rounded-xl"
+									placeholder="Misal: Hydrant Pasar Badung"
+								/>
+								{errors.name && <InputError message={errors.name} />}
+							</div>
+
+							<div className="grid gap-1.5">
+								<Label htmlFor="address">Alamat Lapangan</Label>
+								<Textarea
+									name="address"
+									id="address"
+									rows="2"
+									value={data.address}
+									onChange={onHandleChange}
+									className="resize-none rounded-xl"
+								/>
+								{errors.address && <InputError message={errors.address} />}
+							</div>
+
+							{/* Satu kolom bila kosakata statusnya berupa kalimat (hydrant warga):
 								    di kolom setengah lebar, "Terdaftar Belum Dimodifikasi" terpotong keras
 								    di dalam trigger-nya. Sebagai DATA di ./variants.jsx, sebentuk dengan
 								    baris kolom air di bawah — bukan `if (variant === 'warga')` di sini. */}
-								<div className={`grid gap-4 ${v.longStatusLabels ? 'grid-cols-1' : 'grid-cols-2'}`}>
-									<div className="grid gap-1.5">
-										<Label>{v.typeLabel}</Label>
-										{/* Terkendali (`value`), bukan `defaultValue`: tombol Reset memanggil
+							<div className={`grid gap-4 ${v.longStatusLabels ? 'grid-cols-1' : 'grid-cols-2'}`}>
+								<div className="grid gap-1.5">
+									<Label>{v.typeLabel}</Label>
+									{/* Terkendali (`value`), bukan `defaultValue`: tombol Reset memanggil
 										    reset() dan dengan defaultValue pilihan LAMA tetap terlihat
 										    sementara datanya sudah kosong — form lalu terkirim tanpa isi
 										    yang dilihat petugas. */}
-										<Select value={data.type} onValueChange={(value) => setData('type', value)}>
-											<SelectTrigger className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal">
-												<SelectValue placeholder={v.typePlaceholder} />
-											</SelectTrigger>
-											<SelectContent>
-												{v.typeOptions.map((option) => (
-													<SelectItem key={option} value={option}>
-														{option}
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
-										{errors.type && <InputError message={errors.type} />}
-									</div>
-									<div className="grid gap-1.5">
-										<Label>Status</Label>
-										<Select value={data.status} onValueChange={(value) => setData('status', value)}>
-											<SelectTrigger className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal">
-												<SelectValue placeholder="Pilih Status" />
-											</SelectTrigger>
-											<SelectContent>
-												{v.statusOptions.map((option) => (
-													<SelectItem key={option} value={option}>
-														{facilityStatusLabel(option)}
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
-										{errors.status && <InputError message={errors.status} />}
-									</div>
+									<Select value={data.type} onValueChange={(value) => setData('type', value)}>
+										<SelectTrigger className="h-11 rounded-xl">
+											<SelectValue placeholder={v.typePlaceholder} />
+										</SelectTrigger>
+										<SelectContent>
+											{v.typeOptions.map((option) => (
+												<SelectItem key={option} value={option}>
+													{option}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+									{errors.type && <InputError message={errors.type} />}
 								</div>
+								<div className="grid gap-1.5">
+									<Label>Status</Label>
+									<Select value={data.status} onValueChange={(value) => setData('status', value)}>
+										<SelectTrigger className="h-11 rounded-xl">
+											<SelectValue placeholder="Pilih Status" />
+										</SelectTrigger>
+										<SelectContent>
+											{v.statusOptions.map((option) => (
+												<SelectItem key={option} value={option}>
+													{facilityStatusLabel(option)}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+									{errors.status && <InputError message={errors.status} />}
+								</div>
+							</div>
 
-								{/* Kolom air. Hydrant resmi: tekanan (kualitatif) + debit (liter/menit).
+							{/* Kolom air. Hydrant resmi: tekanan (kualitatif) + debit (liter/menit).
 								    Hydrant warga: hanya kapasitas volume (liter) — tandon berisi air diam,
 								    tak ada tekanan yang bisa dinilai. Lihat ./variants.jsx. */}
-								<div className={`grid gap-4 ${v.showWaterPressure ? 'grid-cols-2' : 'grid-cols-1'}`}>
-									{v.showWaterPressure && (
-										<div className="grid gap-1.5">
-											<Label>Kondisi Air</Label>
-											<Select
-												value={data.water_pressure || 'BELUM'}
-												onValueChange={(value) =>
-													setData('water_pressure', value === 'BELUM' ? '' : value)
-												}
-											>
-												<SelectTrigger className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal">
-													<SelectValue placeholder="Pilih Kondisi" />
-												</SelectTrigger>
-												<SelectContent>
-													<SelectItem value="BELUM">Belum disurvei</SelectItem>
-													<SelectItem value="Keras">Tekanan Keras</SelectItem>
-													<SelectItem value="Sedang">Tekanan Sedang</SelectItem>
-													<SelectItem value="Kecil">Tekanan Kecil</SelectItem>
-												</SelectContent>
-											</Select>
-											{errors.water_pressure && <InputError message={errors.water_pressure} />}
-										</div>
-									)}
+							<div className={`grid gap-4 ${v.showWaterPressure ? 'grid-cols-2' : 'grid-cols-1'}`}>
+								{v.showWaterPressure && (
 									<div className="grid gap-1.5">
-										<Label htmlFor={v.waterField}>
-											{v.waterLabel}
-											<span className="ml-1 text-[11px] font-normal text-muted-foreground">
-												{v.waterUnit}
-											</span>
-											{v.waterRequired && <span className="ml-1 text-destructive">*</span>}
-										</Label>
-										<Input
-											type="number"
-											min="0"
-											name={v.waterField}
-											id={v.waterField}
-											value={data[v.waterField]}
-											onChange={onHandleChange}
-											className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
-											placeholder={v.waterPlaceholder}
-										/>
-										{errors[v.waterField] && <InputError message={errors[v.waterField]} />}
+										<Label>Kondisi Air</Label>
+										<Select
+											value={data.water_pressure || 'BELUM'}
+											onValueChange={(value) =>
+												setData('water_pressure', value === 'BELUM' ? '' : value)
+											}
+										>
+											<SelectTrigger className="h-11 rounded-xl">
+												<SelectValue placeholder="Pilih Kondisi" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="BELUM">Belum disurvei</SelectItem>
+												<SelectItem value="Keras">Tekanan Keras</SelectItem>
+												<SelectItem value="Sedang">Tekanan Sedang</SelectItem>
+												<SelectItem value="Kecil">Tekanan Kecil</SelectItem>
+											</SelectContent>
+										</Select>
+										{errors.water_pressure && <InputError message={errors.water_pressure} />}
 									</div>
+								)}
+								<div className="grid gap-1.5">
+									<Label htmlFor={v.waterField}>
+										{v.waterLabel}
+										<span className="ml-1 text-[11px] font-normal text-muted-foreground">
+											{v.waterUnit}
+										</span>
+										{v.waterRequired && <span className="ml-1 text-destructive">*</span>}
+									</Label>
+									<Input
+										type="number"
+										min="0"
+										name={v.waterField}
+										id={v.waterField}
+										value={data[v.waterField]}
+										onChange={onHandleChange}
+										className="h-11 rounded-xl"
+										placeholder={v.waterPlaceholder}
+									/>
+									{errors[v.waterField] && <InputError message={errors[v.waterField]} />}
 								</div>
+							</div>
 
-								{/* Banjar — hanya untuk hydrant warga (v.showBanjar di ./variants.jsx): tandon
+							{/* Banjar — hanya untuk hydrant warga (v.showBanjar di ./variants.jsx): tandon
 								    swadaya dimiliki & dirawat komunitas, sedangkan hydrant resmi milik instansi/PDAM.
 								    SELURUH perilakunya — ikut desa terpilih, dikosongkan saat desa berganti, dan
 								    mengusulkan banjar yang belum terdaftar — ada di <BanjarField/>, satu tempat untuk
 								    ketiga layar yang memakainya. Tiga salinan terpisah sudah pernah menyimpang dan
 								    itulah FINDINGS #82; jangan dipecah lagi. */}
-								{v.showBanjar && (
-									<BanjarField
-										villageCode={data.village_code}
-										value={data.banjar_id}
-										onChange={(val) => setData('banjar_id', val)}
-										error={errors.banjar_id}
-									/>
-								)}
-								<div className="grid gap-1.5">
-									<Label htmlFor="description">Catatan (Opsional)</Label>
-									<Input
-										name="description"
-										id="description"
-										value={data.description}
-										onChange={onHandleChange}
-										className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
-									/>
-								</div>
+							{v.showBanjar && (
+								<BanjarField
+									villageCode={data.village_code}
+									value={data.banjar_id}
+									onChange={(val) => setData('banjar_id', val)}
+									error={errors.banjar_id}
+								/>
+							)}
+							<div className="grid gap-1.5">
+								<Label htmlFor="description">Catatan (Opsional)</Label>
+								<Input
+									name="description"
+									id="description"
+									value={data.description}
+									onChange={onHandleChange}
+									className="h-11 rounded-xl"
+								/>
+							</div>
+						</div>
 
-								<div className="grid grid-cols-2 gap-4 border-t border-border pt-4">
-									<div className="grid gap-1.5">
-										<Label className="flex items-center gap-1 text-muted-foreground">
-											<IconLock className="h-3 w-3" /> Latitude
-										</Label>
-										<Input
-											readOnly
-											value={data.lat}
-											className="cursor-not-allowed border-dashed border-input bg-accent/50 font-mono text-muted-foreground shadow-none focus-visible:ring-0"
-										/>
-									</div>
-									<div className="grid gap-1.5">
-										<Label className="flex items-center gap-1 text-muted-foreground">
-											<IconLock className="h-3 w-3" /> Longitude
-										</Label>
-										<Input
-											readOnly
-											value={data.lng}
-											className="cursor-not-allowed border-dashed border-input bg-accent/50 font-mono text-muted-foreground shadow-none focus-visible:ring-0"
-										/>
-									</div>
-								</div>
+						<div className="grid grid-cols-2 gap-4 rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
+							<div className="grid gap-1.5">
+								<Label className="flex items-center gap-1 text-muted-foreground">
+									<IconLock className="h-3 w-3" /> Latitude
+								</Label>
+								<Input
+									readOnly
+									value={data.lat}
+									className="h-11 cursor-not-allowed rounded-xl border-dashed border-input bg-muted/50 font-mono text-muted-foreground shadow-none focus-visible:ring-0"
+								/>
+							</div>
+							<div className="grid gap-1.5">
+								<Label className="flex items-center gap-1 text-muted-foreground">
+									<IconLock className="h-3 w-3" /> Longitude
+								</Label>
+								<Input
+									readOnly
+									value={data.lng}
+									className="h-11 cursor-not-allowed rounded-xl border-dashed border-input bg-muted/50 font-mono text-muted-foreground shadow-none focus-visible:ring-0"
+								/>
+							</div>
+						</div>
 
-								<div className="flex justify-end gap-2 pt-2">
-									<Button
-										type="button"
-										variant="secondary"
-										onClick={() => {
-											reset();
-											setCurrentStep(1);
-										}}
-									>
-										Atur ulang
-									</Button>
-									<Button
-										type="submit"
-										disabled={processing}
-										className="border-transparent bg-teal-600 text-white shadow-none hover:bg-teal-700 dark:bg-teal dark:hover:bg-teal/90"
-									>
-										<IconDeviceFloppy className="mr-2 h-4 w-4" /> Simpan
-									</Button>
-								</div>
-							</form>
-						</CardContent>
-					</Card>
+						<div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
+							<Button
+								type="button"
+								variant="ghost"
+								className="h-11 rounded-xl"
+								onClick={() => {
+									reset();
+									setCurrentStep(1);
+								}}
+							>
+								Atur ulang
+							</Button>
+							<Button type="submit" disabled={processing} className="h-11 rounded-xl px-6">
+								<IconDeviceFloppy className="h-4 w-4" /> Simpan
+							</Button>
+						</div>
+					</form>
 				</div>
 
-				<div className="relative flex h-[500px] w-full flex-col overflow-hidden rounded-2xl border bg-accent lg:h-[calc(100vh-140px)] lg:flex-1">
+				<div className="relative flex h-[500px] w-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-accent shadow-sm lg:h-[calc(100vh-140px)] lg:flex-1">
 					{/* z-10 (bukan z-[400]): peta di bawahnya sudah ber-`z-0` sehingga selisih ini
 					    cukup. Nilai 400 dulu menembus SEMUA lapisan halaman — header sticky
 					    (z-40) dan dialog "Pakai Lokasi Saat Ini" (z-50) ikut tertimpa chip ini. */}
 					<div className="pointer-events-none absolute left-4 top-4 z-10">
 						<div className="flex w-full flex-wrap gap-2">
 							<div
-								className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm transition-all ${currentStep === 1 ? 'animate-pulse bg-teal-600 text-white dark:bg-teal' : 'border bg-background text-muted-foreground'}`}
+								className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm transition-all ${currentStep === 1 ? 'animate-pulse bg-primary text-primary-foreground' : 'material-thick border border-border/60 text-muted-foreground'}`}
 							>
 								<IconClick className="h-3.5 w-3.5" /> <span>1. Klik Area Peta</span>
 							</div>
 							<div
-								className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm transition-all ${currentStep === 2 ? 'bg-teal-600 text-white dark:bg-teal' : 'border bg-background text-muted-foreground'}`}
+								className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm transition-all ${currentStep === 2 ? 'bg-primary text-primary-foreground' : 'material-thick border border-border/60 text-muted-foreground'}`}
 							>
 								<IconArrowsMove className="h-3.5 w-3.5" /> <span>2. Geser Pin</span>
 							</div>

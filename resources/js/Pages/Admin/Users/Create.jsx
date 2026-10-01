@@ -1,3 +1,4 @@
+import { FormField, FormSection, LockedField, SegmentedControl, fieldInputClass } from '@/Components/GroupedForm';
 import HeaderTitle from '@/Components/HeaderTitle';
 import { Button } from '@/Components/ui/button';
 import { Combobox } from '@/Components/ui/combobox';
@@ -10,7 +11,6 @@ import { Link, useForm } from '@inertiajs/react';
 import { IconArrowLeft, IconInfoCircle, IconUsersGroup } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { FormField, FormSection, LockedField, SegmentedControl, fieldInputClass } from './Partials/UserFormParts';
 import { defaultLevelFor, levelOptionsFor, regionRankOf } from './roleLevel';
 
 export default function Create(props) {

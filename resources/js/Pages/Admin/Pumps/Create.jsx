@@ -1,7 +1,6 @@
 import HeaderTitle from '@/Components/HeaderTitle';
 import InputError from '@/Components/InputError';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent } from '@/Components/ui/card';
 import { Combobox } from '@/Components/ui/combobox';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
@@ -137,7 +136,7 @@ export default function Create({ tenant_location, provinces, cities, districts, 
 		window.L.control.zoom({ position: 'bottomright' }).addTo(mapInstanceRef.current);
 
 		const customIcon = window.L.divIcon({
-			html: `<div class="text-teal-600 dark:text-teal"><svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
+			html: `<div class="text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
 			className: 'bg-transparent border-none drop-shadow-md',
 			iconSize: [42, 42],
 			iconAnchor: [21, 42],
@@ -376,7 +375,7 @@ export default function Create({ tenant_location, provinces, cities, districts, 
 				<Input
 					readOnly
 					value={value || 'Memuat...'}
-					className="border-dashed bg-accent/50 pr-10 font-medium text-muted-foreground shadow-none focus-visible:ring-0"
+					className="h-11 rounded-xl border-dashed bg-muted/50 pr-10 font-medium text-muted-foreground shadow-none focus-visible:ring-0"
 				/>
 				<IconLock className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground opacity-50" />
 			</div>
@@ -395,7 +394,7 @@ export default function Create({ tenant_location, provinces, cities, districts, 
 					subtitle="Pendataan spasial dan teknis armada pompa pemadam."
 					icon={IconEngine}
 				/>
-				<Button variant="secondary" size="sm" asChild>
+				<Button variant="outline" size="sm" className="rounded-full" asChild>
 					<Link href={route('admin.pumps.index')}>
 						<IconArrowLeft className="mr-1.5 size-4" /> Kembali
 					</Link>
@@ -404,331 +403,326 @@ export default function Create({ tenant_location, provinces, cities, districts, 
 
 			<div className="flex w-full flex-col items-start gap-5 lg:flex-row lg:gap-6">
 				<div className="flex w-full shrink-0 flex-col gap-5 lg:w-5/12 xl:w-1/3">
-					<Card className="border-border shadow-none">
-						<CardContent className="p-6">
-							<form className="space-y-5" onSubmit={onHandleSubmit}>
-								<div className="flex items-start gap-3 rounded-md border border-teal-100 bg-teal-50 p-3 text-teal-700 dark:border-teal/30 dark:bg-teal/10 dark:text-teal">
-									<IconInfoCircle className="mt-0.5 h-5 w-5 shrink-0" />
-									<p className="text-xs font-medium leading-relaxed">{getHelperText()}</p>
-								</div>
+					<form className="space-y-5" onSubmit={onHandleSubmit}>
+						<div className="flex items-start gap-3 rounded-2xl border border-border/70 bg-card p-4 text-muted-foreground shadow-sm">
+							<IconInfoCircle className="mt-0.5 h-5 w-5 shrink-0" />
+							<p className="text-xs font-medium leading-relaxed">{getHelperText()}</p>
+						</div>
 
-								<div className="relative grid gap-1.5">
-									<Label>
-										Cari Lokasi di Peta
-										<span className="ml-1 text-[11px] font-normal text-muted-foreground">
-											(Ketik min. 3 huruf)
-										</span>
-									</Label>
+						<div className="relative grid gap-2 rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
+							<Label>
+								Cari Lokasi di Peta
+								<span className="ml-1 text-[11px] font-normal text-muted-foreground">
+									(Ketik min. 3 huruf)
+								</span>
+							</Label>
 
-									<div className="relative w-full">
-										<IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-										<Input
-											value={searchQuery}
-											onChange={(e) => setSearchQuery(e.target.value)}
-											placeholder="Ketik jalan atau desa..."
-											className="h-9 w-full pl-9 pr-10 shadow-sm focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
-										/>
-										{isSearching && (
-											<div className="pointer-events-none absolute right-3 top-1/2 flex -translate-y-1/2 items-center justify-center">
-												<IconLoader2 className="h-4 w-4 animate-spin text-teal-600 dark:text-teal" />
+							<div className="relative w-full">
+								<IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+								<Input
+									value={searchQuery}
+									onChange={(e) => setSearchQuery(e.target.value)}
+									placeholder="Ketik jalan atau desa..."
+									className="h-11 w-full rounded-xl pl-9 pr-10"
+								/>
+								{isSearching && (
+									<div className="pointer-events-none absolute right-3 top-1/2 flex -translate-y-1/2 items-center justify-center">
+										<IconLoader2 className="h-4 w-4 animate-spin text-primary" />
+									</div>
+								)}
+							</div>
+
+							{searchResults.length > 0 && (
+								<div className="absolute left-0 right-0 top-full z-[999] mt-1 max-h-48 overflow-y-auto rounded-lg border bg-popover text-popover-foreground shadow-xl">
+									{searchResults.map((res, idx) => (
+										<button
+											key={idx}
+											type="button"
+											onClick={() => selectSearchResult(res)}
+											className="flex w-full gap-2 border-b border-border px-3 py-2.5 text-left text-xs transition-colors last:border-0 hover:bg-accent"
+										>
+											<IconCurrentLocation className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+											<div className="min-w-0 flex-1">
+												<p className="truncate font-semibold">
+													{alamatTerbaca(res.name) ||
+														alamatTerbaca(res.display_name).split(',')[0]}
+												</p>
+												<p className="mt-0.5 truncate text-muted-foreground">
+													{alamatTerbaca(res.display_name)}
+												</p>
 											</div>
-										)}
-									</div>
-
-									{searchResults.length > 0 && (
-										<div className="absolute left-0 right-0 top-full z-[999] mt-1 max-h-48 overflow-y-auto rounded-lg border bg-popover text-popover-foreground shadow-xl">
-											{searchResults.map((res, idx) => (
-												<button
-													key={idx}
-													type="button"
-													onClick={() => selectSearchResult(res)}
-													className="flex w-full gap-2 border-b border-border px-3 py-2.5 text-left text-xs transition-colors last:border-0 hover:bg-accent"
-												>
-													<IconCurrentLocation className="mt-0.5 h-4 w-4 shrink-0 text-teal-600 dark:text-teal" />
-													<div className="min-w-0 flex-1">
-														<p className="truncate font-semibold">
-															{alamatTerbaca(res.name) ||
-																alamatTerbaca(res.display_name).split(',')[0]}
-														</p>
-														<p className="mt-0.5 truncate text-muted-foreground">
-															{alamatTerbaca(res.display_name)}
-														</p>
-													</div>
-												</button>
-											))}
-										</div>
-									)}
+										</button>
+									))}
 								</div>
+							)}
+						</div>
 
-								<div className="flex flex-col gap-4 rounded-lg border border-border bg-accent/30 p-4">
-									<h4 className="flex items-center justify-between text-xs font-bold uppercase text-muted-foreground">
-										Area Yurisdiksi{' '}
-										{isDetecting ? (
-											<span className="flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold normal-case text-muted-foreground">
-												<IconLoader2 className="h-3 w-3 animate-spin" /> Mendeteksi wilayah...
-											</span>
-										) : (
-											currentStep === 2 && (
-												<span className="rounded-full bg-teal-100 px-2 py-0.5 text-[10px] text-teal-700 dark:bg-teal/10 dark:text-teal">
-													Auto-detected
-												</span>
-											)
-										)}
-									</h4>
+						<div className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
+							<h4 className="flex items-center justify-between text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+								Area Yurisdiksi{' '}
+								{isDetecting ? (
+									<span className="flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold normal-case text-muted-foreground">
+										<IconLoader2 className="h-3 w-3 animate-spin" /> Mendeteksi wilayah...
+									</span>
+								) : (
+									currentStep === 2 && (
+										<span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">
+											Terdeteksi otomatis
+										</span>
+									)
+								)}
+							</h4>
 
-									{jurisdictionWarning && (
-										<div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-2.5 text-destructive">
-											<IconAlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-											<p className="text-[11px] font-medium leading-relaxed">
-												Titik pin terdeteksi di luar {jurisdictionWarning.level} wilayah tugas
-												Anda ({jurisdictionWarning.name}). Data tetap akan tersimpan atas nama
-												wilayah Anda - geser pin kembali ke dalam wilayah tugas, atau abaikan
-												pesan ini bila lokasinya memang sudah benar.
-											</p>
-										</div>
-									)}
-
-									<div className="grid gap-1.5">
-										{admin_level?.province_code ? (
-											<LockedField label="Provinsi" value={admin_region_names?.province} />
-										) : (
-											<>
-												<Label>Provinsi</Label>
-												<Combobox
-													items={provinces}
-													value={data.province_code}
-													onChange={(val) =>
-														setData((prev) => ({
-															...prev,
-															province_code: val,
-															city_code: '',
-															district_code: '',
-															village_code: '',
-														}))
-													}
-													placeholder="Pilih Provinsi..."
-												/>
-											</>
-										)}
-									</div>
-
-									<div className="grid gap-1.5">
-										{admin_level?.city_code ? (
-											<LockedField label="Kabupaten / Kota" value={admin_region_names?.city} />
-										) : (
-											<>
-												<Label>Kabupaten / Kota</Label>
-												<Combobox
-													items={dynamicCities}
-													value={data.city_code}
-													disabled={!data.province_code && !admin_level?.province_code}
-													onChange={(val) =>
-														setData((prev) => ({
-															...prev,
-															city_code: val,
-															district_code: '',
-															village_code: '',
-														}))
-													}
-													placeholder="Pilih Kota/Kabupaten..."
-												/>
-												{errors.city_code && <InputError message={errors.city_code} />}
-											</>
-										)}
-									</div>
-
-									<div className="grid gap-1.5">
-										{admin_level?.district_code ? (
-											<LockedField label="Kecamatan" value={admin_region_names?.district} />
-										) : (
-											<>
-												<Label>Kecamatan</Label>
-												<Combobox
-													items={dynamicDistricts}
-													value={data.district_code}
-													disabled={!data.city_code && !admin_level?.city_code}
-													onChange={(val) =>
-														setData((prev) => ({
-															...prev,
-															district_code: val,
-															village_code: '',
-														}))
-													}
-													placeholder="Pilih Kecamatan..."
-												/>
-												{errors.district_code && <InputError message={errors.district_code} />}
-											</>
-										)}
-									</div>
-
-									<div className="grid gap-1.5">
-										{admin_level?.village_code ? (
-											<LockedField label="Kelurahan / Desa" value={admin_region_names?.village} />
-										) : (
-											<>
-												<Label>Kelurahan / Desa</Label>
-												<Combobox
-													items={villages}
-													value={data.village_code}
-													disabled={!data.district_code}
-													onChange={(val) => setData('village_code', val)}
-													placeholder="Pilih Desa/Kelurahan..."
-												/>
-												{errors.village_code && <InputError message={errors.village_code} />}
-											</>
-										)}
-									</div>
+							{jurisdictionWarning && (
+								<div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-2.5 text-destructive">
+									<IconAlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+									<p className="text-[11px] font-medium leading-relaxed">
+										Titik pin terdeteksi di luar {jurisdictionWarning.level} wilayah tugas Anda (
+										{jurisdictionWarning.name}). Data tetap akan tersimpan atas nama wilayah Anda -
+										geser pin kembali ke dalam wilayah tugas, atau abaikan pesan ini bila lokasinya
+										memang sudah benar.
+									</p>
 								</div>
+							)}
 
-								<div className="grid gap-1.5">
-									<Label htmlFor="name">Nama Fasilitas</Label>
-									<Input
-										name="name"
-										id="name"
-										value={data.name}
-										onChange={onHandleChange}
-										className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
-										placeholder="Misal: Pompa Portable Pasar Badung"
-									/>
-									{errors.name && <InputError message={errors.name} />}
-								</div>
-
-								<div className="grid gap-1.5">
-									<Label htmlFor="address">Alamat Lapangan</Label>
-									<Textarea
-										name="address"
-										id="address"
-										rows="2"
-										value={data.address}
-										onChange={onHandleChange}
-										className="resize-none focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
-									/>
-									{errors.address && <InputError message={errors.address} />}
-								</div>
-
-								<div className="grid grid-cols-2 gap-4">
-									<div className="grid gap-1.5">
-										<Label>Jenis Pompa</Label>
-										<Select
-											defaultValue={data.type}
-											onValueChange={(value) => setData('type', value)}
-										>
-											<SelectTrigger className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal">
-												<SelectValue placeholder="Pilih Jenis" />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value="Statis (Hydrant)">Statis (Hydrant)</SelectItem>
-												<SelectItem value="Portable (Mobil)">Portable (Mobil)</SelectItem>
-												<SelectItem value="Mesin Diesel">Mesin Diesel</SelectItem>
-											</SelectContent>
-										</Select>
-										{errors.type && <InputError message={errors.type} />}
-									</div>
-									<div className="grid gap-1.5">
-										<Label>Status</Label>
-										<Select
-											defaultValue={data.status}
-											onValueChange={(value) => setData('status', value)}
-										>
-											<SelectTrigger className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal">
-												<SelectValue placeholder="Pilih Status" />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value="Aktif">{facilityStatusLabel('Aktif')}</SelectItem>
-												<SelectItem value="Perbaikan">
-													{facilityStatusLabel('Perbaikan')}
-												</SelectItem>
-											</SelectContent>
-										</Select>
-										{errors.status && <InputError message={errors.status} />}
-									</div>
-								</div>
-
-								<div className="grid gap-1.5">
-									<Label htmlFor="capacity_lpm">Kapasitas (Liter / Menit)</Label>
-									<Input
-										type="number"
-										name="capacity_lpm"
-										id="capacity_lpm"
-										value={data.capacity_lpm}
-										onChange={onHandleChange}
-										className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
-										placeholder="Misal: 1500"
-									/>
-									{errors.capacity_lpm && <InputError message={errors.capacity_lpm} />}
-								</div>
-
-								<div className="grid gap-1.5">
-									<Label htmlFor="description">Catatan (Opsional)</Label>
-									<Input
-										name="description"
-										id="description"
-										value={data.description}
-										onChange={onHandleChange}
-										className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
-									/>
-								</div>
-
-								<div className="grid grid-cols-2 gap-4 border-t border-border pt-4">
-									<div className="grid gap-1.5">
-										<Label className="flex items-center gap-1 text-muted-foreground">
-											<IconLock className="h-3 w-3" /> Latitude
-										</Label>
-										<Input
-											readOnly
-											value={data.lat}
-											className="cursor-not-allowed border-dashed border-input bg-accent/50 font-mono text-muted-foreground shadow-none focus-visible:ring-0"
+							<div className="grid gap-1.5">
+								{admin_level?.province_code ? (
+									<LockedField label="Provinsi" value={admin_region_names?.province} />
+								) : (
+									<>
+										<Label>Provinsi</Label>
+										<Combobox
+											items={provinces}
+											value={data.province_code}
+											onChange={(val) =>
+												setData((prev) => ({
+													...prev,
+													province_code: val,
+													city_code: '',
+													district_code: '',
+													village_code: '',
+												}))
+											}
+											placeholder="Pilih Provinsi..."
 										/>
-									</div>
-									<div className="grid gap-1.5">
-										<Label className="flex items-center gap-1 text-muted-foreground">
-											<IconLock className="h-3 w-3" /> Longitude
-										</Label>
-										<Input
-											readOnly
-											value={data.lng}
-											className="cursor-not-allowed border-dashed border-input bg-accent/50 font-mono text-muted-foreground shadow-none focus-visible:ring-0"
-										/>
-									</div>
-								</div>
+									</>
+								)}
+							</div>
 
-								<div className="flex justify-end gap-2 pt-2">
-									<Button
-										type="button"
-										variant="secondary"
-										onClick={() => {
-											reset();
-											setCurrentStep(1);
-										}}
-									>
-										Atur ulang
-									</Button>
-									<Button
-										type="submit"
-										disabled={processing}
-										className="border-transparent bg-teal-600 text-white shadow-none hover:bg-teal-700 dark:bg-teal dark:hover:bg-teal/90"
-									>
-										<IconDeviceFloppy className="mr-2 h-4 w-4" /> Simpan
-									</Button>
+							<div className="grid gap-1.5">
+								{admin_level?.city_code ? (
+									<LockedField label="Kabupaten / Kota" value={admin_region_names?.city} />
+								) : (
+									<>
+										<Label>Kabupaten / Kota</Label>
+										<Combobox
+											items={dynamicCities}
+											value={data.city_code}
+											disabled={!data.province_code && !admin_level?.province_code}
+											onChange={(val) =>
+												setData((prev) => ({
+													...prev,
+													city_code: val,
+													district_code: '',
+													village_code: '',
+												}))
+											}
+											placeholder="Pilih Kota/Kabupaten..."
+										/>
+										{errors.city_code && <InputError message={errors.city_code} />}
+									</>
+								)}
+							</div>
+
+							<div className="grid gap-1.5">
+								{admin_level?.district_code ? (
+									<LockedField label="Kecamatan" value={admin_region_names?.district} />
+								) : (
+									<>
+										<Label>Kecamatan</Label>
+										<Combobox
+											items={dynamicDistricts}
+											value={data.district_code}
+											disabled={!data.city_code && !admin_level?.city_code}
+											onChange={(val) =>
+												setData((prev) => ({
+													...prev,
+													district_code: val,
+													village_code: '',
+												}))
+											}
+											placeholder="Pilih Kecamatan..."
+										/>
+										{errors.district_code && <InputError message={errors.district_code} />}
+									</>
+								)}
+							</div>
+
+							<div className="grid gap-1.5">
+								{admin_level?.village_code ? (
+									<LockedField label="Kelurahan / Desa" value={admin_region_names?.village} />
+								) : (
+									<>
+										<Label>Kelurahan / Desa</Label>
+										<Combobox
+											items={villages}
+											value={data.village_code}
+											disabled={!data.district_code}
+											onChange={(val) => setData('village_code', val)}
+											placeholder="Pilih Desa/Kelurahan..."
+										/>
+										{errors.village_code && <InputError message={errors.village_code} />}
+									</>
+								)}
+							</div>
+						</div>
+
+						<div className="space-y-4 rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
+							<h4 className="text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+								Detail fasilitas
+							</h4>
+							<div className="grid gap-1.5">
+								<Label htmlFor="name">Nama Fasilitas</Label>
+								<Input
+									name="name"
+									id="name"
+									value={data.name}
+									onChange={onHandleChange}
+									className="h-11 rounded-xl"
+									placeholder="Misal: Pompa Portable Pasar Badung"
+								/>
+								{errors.name && <InputError message={errors.name} />}
+							</div>
+
+							<div className="grid gap-1.5">
+								<Label htmlFor="address">Alamat Lapangan</Label>
+								<Textarea
+									name="address"
+									id="address"
+									rows="2"
+									value={data.address}
+									onChange={onHandleChange}
+									className="resize-none rounded-xl"
+								/>
+								{errors.address && <InputError message={errors.address} />}
+							</div>
+
+							<div className="grid grid-cols-2 gap-4">
+								<div className="grid gap-1.5">
+									<Label>Jenis Pompa</Label>
+									<Select defaultValue={data.type} onValueChange={(value) => setData('type', value)}>
+										<SelectTrigger className="h-11 rounded-xl">
+											<SelectValue placeholder="Pilih Jenis" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="Statis (Hydrant)">Statis (Hydrant)</SelectItem>
+											<SelectItem value="Portable (Mobil)">Portable (Mobil)</SelectItem>
+											<SelectItem value="Mesin Diesel">Mesin Diesel</SelectItem>
+										</SelectContent>
+									</Select>
+									{errors.type && <InputError message={errors.type} />}
 								</div>
-							</form>
-						</CardContent>
-					</Card>
+								<div className="grid gap-1.5">
+									<Label>Status</Label>
+									<Select
+										defaultValue={data.status}
+										onValueChange={(value) => setData('status', value)}
+									>
+										<SelectTrigger className="h-11 rounded-xl">
+											<SelectValue placeholder="Pilih Status" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="Aktif">{facilityStatusLabel('Aktif')}</SelectItem>
+											<SelectItem value="Perbaikan">
+												{facilityStatusLabel('Perbaikan')}
+											</SelectItem>
+										</SelectContent>
+									</Select>
+									{errors.status && <InputError message={errors.status} />}
+								</div>
+							</div>
+
+							<div className="grid gap-1.5">
+								<Label htmlFor="capacity_lpm">Kapasitas (Liter / Menit)</Label>
+								<Input
+									type="number"
+									name="capacity_lpm"
+									id="capacity_lpm"
+									value={data.capacity_lpm}
+									onChange={onHandleChange}
+									className="h-11 rounded-xl"
+									placeholder="Misal: 1500"
+								/>
+								{errors.capacity_lpm && <InputError message={errors.capacity_lpm} />}
+							</div>
+
+							<div className="grid gap-1.5">
+								<Label htmlFor="description">Catatan (Opsional)</Label>
+								<Input
+									name="description"
+									id="description"
+									value={data.description}
+									onChange={onHandleChange}
+									className="h-11 rounded-xl"
+								/>
+							</div>
+						</div>
+
+						<div className="grid grid-cols-2 gap-4 rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
+							<div className="grid gap-1.5">
+								<Label className="flex items-center gap-1 text-muted-foreground">
+									<IconLock className="h-3 w-3" /> Latitude
+								</Label>
+								<Input
+									readOnly
+									value={data.lat}
+									className="h-11 cursor-not-allowed rounded-xl border-dashed border-input bg-muted/50 font-mono text-muted-foreground shadow-none focus-visible:ring-0"
+								/>
+							</div>
+							<div className="grid gap-1.5">
+								<Label className="flex items-center gap-1 text-muted-foreground">
+									<IconLock className="h-3 w-3" /> Longitude
+								</Label>
+								<Input
+									readOnly
+									value={data.lng}
+									className="h-11 cursor-not-allowed rounded-xl border-dashed border-input bg-muted/50 font-mono text-muted-foreground shadow-none focus-visible:ring-0"
+								/>
+							</div>
+						</div>
+
+						<div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
+							<Button
+								type="button"
+								variant="ghost"
+								className="h-11 rounded-xl"
+								onClick={() => {
+									reset();
+									setCurrentStep(1);
+								}}
+							>
+								Atur ulang
+							</Button>
+							<Button type="submit" disabled={processing} className="h-11 rounded-xl px-6">
+								<IconDeviceFloppy className="h-4 w-4" /> Simpan
+							</Button>
+						</div>
+					</form>
 				</div>
 
-				<div className="relative flex h-[500px] w-full flex-col overflow-hidden rounded-2xl border bg-accent lg:h-[calc(100vh-140px)] lg:flex-1">
+				<div className="relative flex h-[500px] w-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-accent shadow-sm lg:h-[calc(100vh-140px)] lg:flex-1">
 					{/* z-10 (bukan z-[400]): peta di bawahnya sudah ber-`z-0` sehingga selisih ini
 					    cukup. Nilai 400 dulu menembus SEMUA lapisan halaman — header sticky
 					    (z-40) dan dialog "Pakai Lokasi Saat Ini" (z-50) ikut tertimpa chip ini. */}
 					<div className="pointer-events-none absolute left-4 top-4 z-10">
 						<div className="flex w-full flex-wrap gap-2">
 							<div
-								className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm transition-all ${currentStep === 1 ? 'animate-pulse bg-teal-600 text-white dark:bg-teal' : 'border bg-background text-muted-foreground'}`}
+								className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm transition-all ${currentStep === 1 ? 'animate-pulse bg-primary text-primary-foreground' : 'material-thick border border-border/60 text-muted-foreground'}`}
 							>
 								<IconClick className="h-3.5 w-3.5" /> <span>1. Klik Area Peta</span>
 							</div>
 							<div
-								className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm transition-all ${currentStep === 2 ? 'bg-teal-600 text-white dark:bg-teal' : 'border bg-background text-muted-foreground'}`}
+								className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm transition-all ${currentStep === 2 ? 'bg-primary text-primary-foreground' : 'material-thick border border-border/60 text-muted-foreground'}`}
 							>
 								<IconArrowsMove className="h-3.5 w-3.5" /> <span>2. Geser Pin</span>
 							</div>

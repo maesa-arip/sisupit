@@ -173,3 +173,22 @@ Penjaga: dua kasus baru di `AppleDesignMaterialTest` (teks lama di seluruh `Page
 Lapor Darurat Forum tetap padat) - keduanya MERAH terhadap 26 berkas versi HEAD, pulih byte-exact.
 Suite 644 -> 646 passed (3108). Halaman yang belum disentuh per berkas (Hydrants/Pumps/FireStations dll.)
 ikut berubah lewat primitif; rombak tata letak per halaman seperti /admin/users belum dilakukan.
+
+## 10. Bagian 5 — Hydrant & SKKL dirombak seperti Pengguna (permintaan user 2026-10-01)
+
+User: "rombak juga halaman hydrants dan pumps seperti users". Logika peta, geocode, filter, banjar, dan
+hapus TIDAK disentuh.
+- **Komponen bersama dipindah:** `Pages/Admin/Users/Partials/UserFormParts.jsx` -> `Components/GroupedForm.jsx`
+  (git mv), karena kini dipakai lebih dari satu modul; Users mengimpornya dari sana.
+- **Index (Hydrants & Pumps):** modal hapus buatan sendiri `fixed z-[9999]` -> `AlertDialog`; kartu per
+  aset -> SATU kartu bergrup berbaris garis rambut (baris `role="button"` + Enter/Spasi); cari
+  `type="search"` h-11; tombol tambah pil primer (dulu teal/info padat); chip & paginasi aktif primer;
+  status pill `rounded-full`; ringkasan air desa & wadah peta sebentuk kartu lain; "Lihat di peta".
+- **Form Tambah/Ubah (4 berkas, satu skrip berpenjaga jumlah-cocok):** kartu tunggal dipecah jadi kartu
+  bergrup - keterangan wewenang, Cari lokasi, Area yurisdiksi, **Detail fasilitas** (baru, membungkus
+  nama..catatan), Koordinat. Isian h-11 rounded-xl tanpa cincin teal; Kembali outline-pil, Atur ulang
+  ghost, Simpan primer; chip langkah di peta primer / material; "Auto-detected" -> "Terdeteksi otomatis".
+- **Penjaga:** kasus baru di `AppleDesignMaterialTest` (Index: AlertDialog, tanpa z-[9999], daftar
+  bergrup, search; form: grup Detail fasilitas, tanpa kartu `p-6` lama, tanpa teal, Simpan primer) +
+  Users wajib mengimpor `@/Components/GroupedForm`. Keduanya MERAH terhadap 8 berkas versi HEAD, pulih
+  byte-exact. Suite 646 -> 647 passed (3134).

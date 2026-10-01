@@ -4,7 +4,8 @@ import { Label } from '@/Components/ui/label';
 import { cn } from '@/lib/utils';
 import { IconLock } from '@tabler/icons-react';
 
-// Kerangka form Tambah & Edit Pengguna (TASK_69 bagian 2, apple-design, PENGECUALIAN_ATURAN #5):
+// Kerangka form bergrup (TASK_69, apple-design, PENGECUALIAN_ATURAN #5) - dipakai form Pengguna,
+// Hydrant & SKKL (asalnya Pages/Admin/Users/Partials/UserFormParts.jsx):
 // isian dikelompokkan seperti "inset grouped list" - judul grup kecil di LUAR kartu, isian
 // berbaris di DALAM satu kartu bersudut besar yang dipisah garis rambut. Dipakai KEDUA form
 // supaya rupanya tak menyimpang lagi; logika form tetap di halaman masing-masing.

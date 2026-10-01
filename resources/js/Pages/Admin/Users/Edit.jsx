@@ -1,3 +1,4 @@
+import { FormField, FormSection, LockedField, SegmentedControl, fieldInputClass } from '@/Components/GroupedForm';
 import HeaderTitle from '@/Components/HeaderTitle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/Components/ui/avatar';
 import { Button } from '@/Components/ui/button';
@@ -10,7 +11,6 @@ import { Link, useForm } from '@inertiajs/react';
 import { IconArrowLeft, IconUsersGroup } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { FormField, FormSection, LockedField, SegmentedControl, fieldInputClass } from './Partials/UserFormParts';
 
 export default function Edit(props) {
 	const fileInputAvatar = useRef(null);

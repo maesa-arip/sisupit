@@ -110,6 +110,7 @@ it('keeps user management on the grouped form and off the old gradient button va
 
     foreach (['Create', 'Edit'] as $page) {
         expect(appleSource("resources/js/Pages/Admin/Users/{$page}.jsx"))
+            ->toContain("from '@/Components/GroupedForm'")
             ->toContain('<FormSection')
             ->toContain('<SegmentedControl');
     }
@@ -144,4 +145,22 @@ it('paints the coloured button variants as tinted fills, while emergency calls s
     $forum = appleSource('resources/js/Pages/Forum/Partials/ForumParts.jsx');
     expect(preg_match_all('/<Button variant="destructive"[^>]*>\s*<Link href=\{route\(\'front\.reports\.create\'\)\}>/', $forum))->toBe(2)
         ->and($forum)->not->toContain('variant="red"');
+});
+
+it('reworks the hydrant and SKKL screens like user management', function () {
+    foreach (['Hydrants', 'Pumps'] as $module) {
+        $index = appleSource("resources/js/Pages/Admin/{$module}/Index.jsx");
+        expect($index)->toContain('<AlertDialog open=')
+            ->and($index)->not->toContain('z-[9999]')
+            ->and($index)->toContain('divide-y divide-border/70 overflow-hidden rounded-2xl')
+            ->and($index)->toContain('type="search"');
+
+        foreach (['Create', 'Edit'] as $page) {
+            $form = appleSource("resources/js/Pages/Admin/{$module}/{$page}.jsx");
+            expect($form)->toContain('Detail fasilitas')
+                ->and($form)->not->toContain('<CardContent className="p-6">')
+                ->and($form)->not->toMatch('/bg-teal-600|ring-teal-500/')
+                ->and($form)->toContain('className="h-11 rounded-xl px-6"');
+        }
+    }
 });
