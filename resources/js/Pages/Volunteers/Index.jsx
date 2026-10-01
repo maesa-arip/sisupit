@@ -50,7 +50,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 			</div>
 
 			{/* --- PANEL PENCARIAN & FILTER --- */}
-			<Card className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+			<Card className="overflow-hidden">
 				<CardContent className="p-5">
 					<form onSubmit={handleSubmit} className="flex flex-col gap-5">
 						{/* Search Nama */}
@@ -170,7 +170,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 					volunteers.data.map((volunteer) => (
 						<Card
 							key={volunteer.id}
-							className="group flex h-full flex-col overflow-hidden rounded-xl border-border bg-card shadow-sm transition-all duration-200 hover:border-muted-foreground/30 hover:shadow-md"
+							className="group flex h-full flex-col overflow-hidden transition-all duration-200 hover:border-muted-foreground/30 hover:shadow-md"
 						>
 							<CardContent className="flex flex-1 flex-col p-5">
 								<div className="mb-4 flex items-start justify-between">

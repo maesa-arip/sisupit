@@ -23,9 +23,11 @@ export default function ConfirmPassword() {
 	};
 
 	return (
-		<Card className="mx-auto mt-10 max-w-md rounded-xl border border-border bg-card shadow-sm">
+		<Card className="mx-auto mt-10 max-w-md">
 			<CardHeader className="border-b border-border bg-transparent pb-5">
-				<CardTitle className="text-lg font-semibold text-foreground">Konfirmasi Kata Sandi</CardTitle>
+				<CardTitle className="text-[17px] font-semibold tracking-tight text-foreground">
+					Konfirmasi Kata Sandi
+				</CardTitle>
 				<CardDescription className="mt-1 text-sm text-muted-foreground">
 					Ini adalah area aman aplikasi. Harap konfirmasi kata sandi Anda sebelum melanjutkan ke halaman
 					berikutnya.

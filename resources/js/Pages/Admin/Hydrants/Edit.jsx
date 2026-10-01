@@ -816,11 +816,11 @@ export default function Edit({
  */
 function HydrantHistory({ logs }) {
 	return (
-		<Card className="border-border shadow-none">
+		<Card>
 			<CardContent className="p-5">
 				<div className="mb-3 flex items-center gap-1.5">
 					<IconHistory className="h-4 w-4 text-primary" />
-					<h3 className="text-sm font-bold text-foreground">Riwayat Perubahan</h3>
+					<h3 className="text-[15px] font-semibold text-foreground">Riwayat Perubahan</h3>
 				</div>
 
 				{/* Hydrant yang terakhir disentuh sebelum riwayat ini ada tidak punya satu baris pun.

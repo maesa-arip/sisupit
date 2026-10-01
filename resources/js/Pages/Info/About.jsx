@@ -23,7 +23,7 @@ export default function About({ instansi, legal }) {
 				<div className="grid gap-3 sm:grid-cols-2">
 					{ALUR.map((tahap, index) => (
 						<div key={tahap.title} className="rounded-lg border border-border bg-card p-4">
-							<p className="text-sm font-bold text-foreground">
+							<p className="text-[15px] font-semibold text-foreground">
 								{index + 1}. {tahap.title}
 							</p>
 							<p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{tahap.body}</p>

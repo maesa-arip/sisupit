@@ -204,7 +204,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 				trailing={
 					<div className="flex w-full items-center gap-3 md:w-auto">
 						<div className="mr-2 hidden text-right lg:block">
-							<div className="text-sm font-bold text-foreground">
+							<div className="text-[15px] font-semibold text-foreground">
 								{new Intl.DateTimeFormat('id-ID', {
 									weekday: 'long',
 									day: 'numeric',
@@ -440,7 +440,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 						href={route('front.monitoring.map')}
 						className="group block rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
 					>
-						<Card className="relative overflow-hidden rounded-xl border-border shadow-sm transition-all hover:border-teal-500 hover:shadow-md dark:hover:border-teal">
+						<Card className="relative overflow-hidden transition-colors hover:bg-muted/30">
 							<CardContent className="flex flex-row items-center gap-3 p-4 md:flex-col md:items-stretch md:gap-4 md:p-5 lg:p-6">
 								{/* Di ponsel kartu ini jadi SATU BARIS yang bisa diketuk (ikon, judul, panah);
 								    uraian panjang & lencana lapisannya baru muncul mulai `md` - di layar sempit
@@ -503,7 +503,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 										<IconFiretruck className="h-5 w-5 text-destructive" />
 									</div>
 									<div className="ml-1 text-left">
-										<div className="text-sm font-bold text-foreground">Pos Armada</div>
+										<div className="text-[15px] font-semibold text-foreground">Pos Armada</div>
 										<div className="text-[11px] text-muted-foreground">Distribusi Kendaraan</div>
 									</div>
 								</Link>

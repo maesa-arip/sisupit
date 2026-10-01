@@ -241,3 +241,20 @@ Sisanya dikerjakan BERTINGKAT menurut templat, bukan ditulis ulang satu per satu
   ikut warna halaman di `onBackgroundColorDetected`, dan `set{Status,Navigation}BarContrastEnforced(false)`
   (API 29+, tanpa itu bilah 3-tombol dilapisi scrim abu). **AAB Play Store 1.1.5 yang sudah dibangun
   MEMBAWA BUG YANG SAMA** - wajib dibangun ulang sebelum diunggah.
+
+## 14. Bagian 8 - kebebasan penuh (user 2026-10-01: "khusus branch ini kamu bebas semua ... terapkan apple-design")
+
+Isian yang DIWAJIBKAN server tidak dihapus (form tetap harus tersimpan); selebihnya bebas.
+- **8a kerangka & tipografi:** `HeaderTitle` (60 halaman) jadi judul besar iOS (26-30px, petak ikon
+  bertint hanya di layar lebar); `NavLink` aktif = sorotan bertint primer (dulu blok merah padat -
+  menekuk #72 khusus branch ini); sidebar abu tipis + nama aplikasi; lonceng bulat; AppSection/AppList/
+  AppListRow, ReportCard, StatCard bergaya apple; `StatusBadge` jadi pil. Sapuan seluruh JSX:
+  `font-black`->bold, `tracking-wider/widest`->wide, `text-[10px]`->11px (197 token, 44 berkas).
+- **8b halaman:** Profil ditata ulang ala Settings iOS (kepala identitas di tengah, grup bergaris rambut,
+  "Keluar" baris merah di bawah; `roleLabel(`, `jurisdiction.kind === 'tugas'`, `#hapus-akun` tetap);
+  partial profil & 6 halaman Auth (isian h-11, fokus primer lembut, judul besar); /hydrants, /pumps,
+  /fire-stations jadi daftar bergrup.
+- **8c kartu & judul:** kelas penimpa bentuk lama dicabut dari 39 `<Card>` di 19 berkas (kembali ke
+  primitif 2xl/border tipis/bayangan halus; warna bermakna & className dinamis dibiarkan); skala judul
+  seksi diseragamkan (38 judul, 14 berkas - headline 17px, label seksi 13px abu).
+- Suite 648 passed (3153). Form Lapor & Detail Insiden: hanya lewat primitif, sapuan, & skala judul.

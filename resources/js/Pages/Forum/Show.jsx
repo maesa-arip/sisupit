@@ -202,7 +202,7 @@ export default function Show({ thread, posts, can, flagReasons }) {
 				</div>
 			)}
 
-			<Card className="rounded-xl shadow-sm">
+			<Card>
 				<CardContent className="space-y-3 p-5">
 					{thread.is_pinned && (
 						<span className="inline-flex items-center gap-1 rounded-xl border border-info/30 bg-info/10 px-2 py-0.5 text-[11px] font-bold uppercase text-info">
@@ -396,7 +396,7 @@ export default function Show({ thread, posts, can, flagReasons }) {
 			</div>
 
 			{can.reply ? (
-				<Card className="rounded-xl shadow-sm">
+				<Card>
 					<CardContent className="p-4">
 						<form onSubmit={handleReply} className="space-y-2">
 							<Textarea

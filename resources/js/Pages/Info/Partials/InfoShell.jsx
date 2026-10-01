@@ -51,7 +51,7 @@ export function InfoShell({ icon, eyebrow, title, subtitle, children, footerNote
 /** Satu bagian dokumen: judul bernomor + isi. */
 export function Section({ number, title, children }) {
 	return (
-		<Card className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+		<Card className="overflow-hidden">
 			<CardContent className="p-5">
 				<h2 className="flex items-start gap-2.5 text-sm font-bold text-foreground">
 					{number && (
@@ -95,7 +95,7 @@ export function Callout({ tone = 'muted', title, children }) {
 
 	return (
 		<div className={`rounded-xl border p-5 shadow-sm ${toneClass}`}>
-			{title && <p className="text-sm font-bold text-foreground">{title}</p>}
+			{title && <p className="text-[15px] font-semibold text-foreground">{title}</p>}
 			<div className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{children}</div>
 		</div>
 	);

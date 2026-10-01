@@ -134,7 +134,7 @@ export default function Help({ instansi, legal }) {
 								<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-destructive/10">
 									<langkah.icon className="size-5 text-destructive" stroke={1.8} />
 								</div>
-								<p className="text-sm font-bold text-foreground">
+								<p className="text-[15px] font-semibold text-foreground">
 									{index + 1}. {langkah.title}
 								</p>
 							</div>
@@ -174,7 +174,7 @@ export default function Help({ instansi, legal }) {
 					<div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4">
 						<div className="flex items-center gap-2">
 							<IconPhoneCall className="size-4 text-destructive" stroke={2} />
-							<p className="text-sm font-bold text-foreground">Keadaan darurat</p>
+							<p className="text-[15px] font-semibold text-foreground">Keadaan darurat</p>
 						</div>
 						<a
 							href={`tel:${telepon}`}
@@ -190,7 +190,7 @@ export default function Help({ instansi, legal }) {
 					<div className="rounded-lg border border-border bg-card p-4">
 						<div className="flex items-center gap-2">
 							<IconMail className="size-4 text-muted-foreground" stroke={2} />
-							<p className="text-sm font-bold text-foreground">Kendala akun & aplikasi</p>
+							<p className="text-[15px] font-semibold text-foreground">Kendala akun & aplikasi</p>
 						</div>
 						<p className="mt-1.5 text-sm text-muted-foreground">
 							{kontakInstansi && (

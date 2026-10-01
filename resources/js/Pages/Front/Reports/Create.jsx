@@ -842,9 +842,11 @@ export default function Create(props) {
 				</div>
 
 				{/* Form Card */}
-				<Card className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+				<Card className="overflow-hidden">
 					<CardHeader className="border-b border-border bg-transparent pb-5">
-						<CardTitle className="text-lg font-semibold text-foreground">Kirim Laporan Darurat</CardTitle>
+						<CardTitle className="text-[17px] font-semibold tracking-tight text-foreground">
+							Kirim Laporan Darurat
+						</CardTitle>
 						<CardDescription className="mt-1 text-sm text-muted-foreground">
 							Mohon lengkapi formulir di bawah agar relawan dapat segera membantu Anda.
 						</CardDescription>
@@ -1148,7 +1150,7 @@ export default function Create(props) {
 											value={INCIDENT_TAB.fire}
 											className="mt-4 outline-none focus-visible:ring-0"
 										>
-											<h3 className="border-b border-border pb-2 text-xs font-semibold uppercase tracking-wide text-foreground">
+											<h3 className="border-b border-border/70 pb-2 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
 												Apa yang terbakar?
 											</h3>
 											<div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
@@ -1184,7 +1186,7 @@ export default function Create(props) {
 											value={INCIDENT_TAB.nonFire}
 											className="mt-4 outline-none focus-visible:ring-0"
 										>
-											<h3 className="border-b border-border pb-2 text-xs font-semibold uppercase tracking-wide text-foreground">
+											<h3 className="border-b border-border/70 pb-2 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
 												Darurat apa yang terjadi?
 											</h3>
 										</TabsContent>

@@ -108,7 +108,7 @@ export default function Index({ pumps, filters, ...props }) {
 				{/* KOLOM KIRI */}
 				<div className="flex w-full shrink-0 flex-col gap-5 lg:w-5/12 xl:w-1/3">
 					{/* Kotak Pencarian */}
-					<Card className="overflow-hidden rounded-xl border-border bg-card shadow-sm">
+					<Card className="overflow-hidden">
 						<CardContent className="p-5">
 							<form onSubmit={handleSearch} className="flex flex-col gap-4">
 								<Button

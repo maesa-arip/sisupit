@@ -116,7 +116,7 @@ export default function Home(props) {
 							const isWarning = index === 0;
 							return (
 								<CarouselItem key={index} className="pl-3 md:basis-1/2 md:pl-4 lg:basis-1/3">
-									<Card className="group h-full overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-colors hover:border-muted-foreground/30">
+									<Card className="group h-full overflow-hidden transition-colors hover:border-muted-foreground/30">
 										<div className="flex h-28 w-full items-center justify-center border-b border-border bg-muted">
 											<IconNews
 												className="h-8 w-8 text-muted-foreground/60 transition-colors group-hover:text-muted-foreground"

@@ -199,7 +199,7 @@ export default function CompleteProfile({ provinces, user, banjar_required = fal
 
 	return (
 		<div className="mx-auto w-full max-w-2xl py-8">
-			<Card className="rounded-xl border border-border bg-card shadow-none">
+			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2 text-base font-bold text-foreground">
 						<IconShieldCheck className="h-5 w-5 text-destructive" /> Lengkapi Profil Anda

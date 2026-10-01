@@ -83,7 +83,7 @@ export default function ReportThanks({ report, pejabat, namaInstansi, teleponDar
 				</div>
 
 				{/* 2. Kartu Status Laporan & Aksi */}
-				<Card className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+				<Card className="overflow-hidden rounded-2xl">
 					<CardHeader className="border-b border-border bg-transparent pb-5">
 						<div className="flex items-start gap-3">
 							<IconShieldCheckFilled className="mt-0.5 h-8 w-8 shrink-0 text-success" />
@@ -251,7 +251,7 @@ export default function ReportThanks({ report, pejabat, namaInstansi, teleponDar
 								/>
 							)}
 							<div className="min-w-0 leading-tight">
-								<p className="text-sm font-bold text-foreground">{pejabat.nama}</p>
+								<p className="text-[15px] font-semibold text-foreground">{pejabat.nama}</p>
 								<p className="mt-0.5 text-xs leading-snug text-muted-foreground">{pejabat.jabatan}</p>
 							</div>
 						</div>

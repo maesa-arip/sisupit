@@ -166,7 +166,7 @@ export default function PetugasDashboard({
 
 			{/* --- BANNER STATUS SIAGA --- */}
 			{activeMissions.length > 0 ? (
-				<Card className="overflow-hidden rounded-xl border border-destructive/30 bg-destructive/10 shadow-sm">
+				<Card className="overflow-hidden border border-destructive/30 bg-destructive/10">
 					<CardContent className="flex flex-col justify-between gap-4 p-4 sm:flex-row sm:items-center md:p-5">
 						<div className="flex items-center gap-3 md:gap-4">
 							<div className="flex h-11 w-11 shrink-0 animate-pulse items-center justify-center rounded-lg border border-destructive/30 bg-destructive/20 text-destructive md:h-12 md:w-12">
@@ -184,7 +184,7 @@ export default function PetugasDashboard({
 					</CardContent>
 				</Card>
 			) : (
-				<Card className="overflow-hidden rounded-xl border border-teal-200 bg-teal-50/50 shadow-sm dark:border-success/30 dark:bg-success/10">
+				<Card className="overflow-hidden border border-teal-200 bg-teal-50/50 dark:border-success/30 dark:bg-success/10">
 					<CardContent className="flex flex-col justify-between gap-4 p-4 sm:flex-row sm:items-center md:p-5">
 						<div className="flex items-center gap-3 md:gap-4">
 							<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-teal-200 bg-teal-100 text-teal-600 dark:border-success/30 dark:bg-success/20 dark:text-success md:h-12 md:w-12">
@@ -208,7 +208,7 @@ export default function PetugasDashboard({
 			    dokumen. Petanya sempat dibuat menempel tepi layar 2026-09-09 lalu DICABUT
 			    atas koreksi user - tidak boleh ada yang full kanan kiri, semua tetap
 			    bermargin. */}
-			<Card className="relative flex h-[300px] flex-col overflow-hidden rounded-xl border border-border shadow-sm sm:h-[360px]">
+			<Card className="relative flex h-[300px] flex-col overflow-hidden sm:h-[360px]">
 				<div className="absolute left-0 right-0 top-0 z-10 flex items-center gap-2 border-b bg-card/90 px-4 py-2.5 backdrop-blur-sm">
 					<IconMapPin className="h-4 w-4 text-destructive" stroke={2.5} />
 					<span className="text-[11px] font-extrabold uppercase tracking-wide text-foreground">

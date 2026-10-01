@@ -43,7 +43,7 @@ export default function Show({ volunteer }) {
 			<div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
 				{/* KOLOM KIRI: Kartu Profil Utama */}
 				<div className="space-y-5 lg:col-span-1">
-					<Card className="overflow-hidden rounded-xl border-border shadow-sm">
+					<Card className="overflow-hidden">
 						{/* Banner Background */}
 						<div className="relative h-24 border-b border-border bg-muted">
 							{/* Status Badge */}
@@ -119,7 +119,7 @@ export default function Show({ volunteer }) {
 					</Card>
 
 					{/* Kartu Statistik Mini */}
-					<Card className="rounded-xl border-border shadow-sm">
+					<Card>
 						<CardContent className="flex items-center justify-between p-5">
 							<div>
 								<p className="text-[13px] font-medium text-muted-foreground">Total Bantuan</p>
@@ -137,7 +137,7 @@ export default function Show({ volunteer }) {
 
 				{/* KOLOM KANAN: Informasi Detail */}
 				<div className="space-y-5 lg:col-span-2">
-					<Card className="overflow-hidden rounded-xl border-border shadow-sm">
+					<Card className="overflow-hidden">
 						<CardHeader className="border-b border-border bg-muted/50 pb-4">
 							<CardTitle className="text-base font-semibold text-foreground">Informasi Pribadi</CardTitle>
 						</CardHeader>
@@ -192,7 +192,7 @@ export default function Show({ volunteer }) {
 					</Card>
 
 					{/* Kartu Keahlian */}
-					<Card className="overflow-hidden rounded-xl border-border shadow-sm">
+					<Card className="overflow-hidden">
 						<CardHeader className="border-b border-border bg-muted/50 pb-4">
 							<CardTitle className="text-base font-semibold text-foreground">
 								Keahlian & Kemampuan

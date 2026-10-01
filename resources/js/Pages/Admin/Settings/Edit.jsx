@@ -91,7 +91,7 @@ export default function Edit(props) {
 						{/* Laporan ganda (TASK_55). */}
 						<div className="space-y-4 border-t border-border pt-6">
 							<div>
-								<h3 className="text-sm font-bold text-foreground">Deteksi Laporan Ganda</h3>
+								<h3 className="text-[15px] font-semibold text-foreground">Deteksi Laporan Ganda</h3>
 								<p className="mt-1 text-sm text-muted-foreground">
 									Laporan kebakaran baru dalam radius dan rentang waktu ini dari laporan yang masih
 									aktif diusulkan sebagai kejadian yang sama. Usulan tidak membunyikan notifikasi

@@ -226,9 +226,9 @@ export default function Create(props) {
 					</Button>
 				</div>
 
-				<Card className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+				<Card className="overflow-hidden">
 					<CardHeader className="border-b border-border bg-transparent pb-5">
-						<CardTitle className="text-lg font-semibold text-foreground">
+						<CardTitle className="text-[17px] font-semibold tracking-tight text-foreground">
 							{isEdit ? 'Ubah' : 'Isi'} Laporan Kejadian {target === 'final' ? 'Final' : 'Sementara'}
 						</CardTitle>
 						<CardDescription className="mt-1 text-sm text-muted-foreground">

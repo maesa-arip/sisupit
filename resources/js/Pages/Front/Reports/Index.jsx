@@ -168,7 +168,7 @@ export default function ReportIndex(props) {
 						<div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-none">
 							<IconShieldCheck className="h-6 w-6" stroke={1.5} />
 						</div>
-						<h3 className="text-sm font-bold text-foreground">Pencarian Kosong</h3>
+						<h3 className="text-[15px] font-semibold text-foreground">Pencarian Kosong</h3>
 						<p className="mt-1 max-w-[280px] text-xs text-muted-foreground">
 							Tidak ada data laporan yang ditemukan berdasarkan filter atau kata kunci tersebut.
 						</p>

@@ -1210,14 +1210,14 @@ export default function ReportShow(props) {
 			    peta, dan pelapor yang laporannya berbunyi "Digabung" harus langsung tahu bahwa
 			    laporannya DITERIMA, bukan dibuang. */}
 			{reportStatus === 'digabung' && (
-				<Card className="rounded-xl border border-border bg-card shadow-none">
+				<Card>
 					<CardContent className="flex flex-col gap-4 p-4 sm:p-5 md:flex-row md:items-center md:justify-between">
 						<div className="flex items-start gap-3">
 							<div className="mt-0.5 shrink-0 rounded-lg bg-muted p-2 text-foreground/80">
 								<IconStack2 className="h-5 w-5" />
 							</div>
 							<div className="min-w-0 space-y-2">
-								<h3 className="text-sm font-bold text-foreground">Laporan Digabung</h3>
+								<h3 className="text-[15px] font-semibold text-foreground">Laporan Digabung</h3>
 								<p className="max-w-xl text-xs leading-relaxed text-muted-foreground">
 									Kejadian ini sudah dilaporkan sebelumnya, jadi laporan ini digabung dengan laporan
 									tersebut supaya penanganannya tercatat di satu insiden. Perkembangannya tetap
@@ -1276,14 +1276,14 @@ export default function ReportShow(props) {
 			    melahirkan dua misi untuk satu kebakaran. Menggabungkan bisa dibatalkan (Pisahkan),
 			    jadi tanpa dialog konfirmasi. */}
 			{reportStatus === 'TERLAPOR' && canMerge && duplicateCandidate && (
-				<Card className="rounded-xl border border-warning/30 bg-warning/5 shadow-none">
+				<Card className="border border-warning/30 bg-warning/5">
 					<CardContent className="flex flex-col gap-4 p-4 sm:p-5 md:flex-row md:items-center md:justify-between">
 						<div className="flex items-start gap-3">
 							<div className="mt-0.5 shrink-0 rounded-lg bg-warning/15 p-2 text-warning">
 								<IconStack2 className="h-5 w-5" />
 							</div>
 							<div className="min-w-0 space-y-2">
-								<h3 className="text-sm font-bold text-foreground">Kemungkinan Laporan Ganda</h3>
+								<h3 className="text-[15px] font-semibold text-foreground">Kemungkinan Laporan Ganda</h3>
 								<p className="max-w-xl text-xs leading-relaxed text-muted-foreground">
 									Ada laporan kebakaran lain yang masih aktif
 									{duplicateCandidate.distance_m != null
@@ -1359,14 +1359,14 @@ export default function ReportShow(props) {
 
 			{/* --- 🛡️ PANEL VERIFIKASI (ADMIN SAJA sejak TASK_51) --- */}
 			{reportStatus === 'TERLAPOR' && canVerify && (
-				<Card className="rounded-xl border border-border bg-card shadow-none">
+				<Card>
 					<CardContent className="flex flex-col items-start justify-between gap-4 p-4 sm:p-5 md:flex-row md:items-center">
 						<div className="flex items-start gap-3">
 							<div className="mt-0.5 shrink-0 rounded-lg bg-muted p-2 text-foreground/80">
 								<IconAlertCircle className="h-5 w-5" />
 							</div>
 							<div>
-								<h3 className="text-sm font-bold text-foreground">Verifikasi Laporan Masuk</h3>
+								<h3 className="text-[15px] font-semibold text-foreground">Verifikasi Laporan Masuk</h3>
 								<p className="mt-1 max-w-xl text-xs leading-relaxed text-muted-foreground">
 									Laporan ini belum divalidasi. Periksa bukti atau hubungi pelapor
 									{report.phone ? (
@@ -1437,13 +1437,13 @@ export default function ReportShow(props) {
 			    Yang ditampilkan bukan nama status (kamus status tetap satu, "Laporan Masuk")
 			    melainkan APA YANG SEDANG DITUNGGU. */}
 			{reportStatus === 'TERLAPOR' && isAwaitingAdmin && (
-				<Card className="rounded-xl border border-warning/30 bg-warning/5 shadow-none">
+				<Card className="border border-warning/30 bg-warning/5">
 					<CardContent className="flex items-start gap-3 p-4 sm:p-5">
 						<div className="mt-0.5 shrink-0 rounded-lg bg-warning/15 p-2 text-warning">
 							<IconHourglass className="h-5 w-5" />
 						</div>
 						<div className="space-y-1">
-							<h3 className="text-sm font-bold text-foreground">Menunggu Konfirmasi Admin</h3>
+							<h3 className="text-[15px] font-semibold text-foreground">Menunggu Konfirmasi Admin</h3>
 							<p className="max-w-xl text-xs leading-relaxed text-muted-foreground">
 								Laporan ini belum diverifikasi. Broadcast misi dan penolakan laporan adalah kewenangan
 								admin - begitu disiarkan, Anda akan menerima panggilan meluncur dan tombol tindakan
@@ -1458,10 +1458,12 @@ export default function ReportShow(props) {
 			<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				{/* BLOK KIRI: DOKUMEN & MAP */}
 				<div className="space-y-6 lg:col-span-2">
-					<Card className="rounded-xl border border-border bg-card shadow-none">
+					<Card>
 						<CardHeader className="flex flex-row items-center gap-2 overflow-hidden rounded-t-xl border-b border-border bg-muted/50 p-4 pb-3">
 							<IconFileText className="h-5 w-5 text-muted-foreground" />
-							<CardTitle className="text-sm font-bold text-foreground">Informasi Insiden</CardTitle>
+							<CardTitle className="text-[15px] font-semibold text-foreground">
+								Informasi Insiden
+							</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-5 p-4 sm:p-5">
 							<div className="space-y-1.5 border-b border-border pb-4">
@@ -1629,7 +1631,7 @@ export default function ReportShow(props) {
 						</CardContent>
 					</Card>
 
-					<Card className="relative h-[400px] overflow-hidden rounded-xl border border-border shadow-none">
+					<Card className="relative h-[400px] overflow-hidden">
 						<div className="absolute left-4 top-4 z-10 flex items-center gap-2 rounded-lg border border-border bg-card/95 px-3 py-1.5 text-xs font-bold text-foreground shadow-none">
 							<IconRadar
 								className={`h-4 w-4 text-destructive ${reportStatus !== 'resolved' ? 'animate-pulse' : ''}`}
@@ -1643,9 +1645,9 @@ export default function ReportShow(props) {
 				{/* BLOK KANAN: MANIFEST & KONTROL */}
 				<div className="space-y-4">
 					{reportStatus === 'ditolak' && (
-						<Card className="rounded-xl border border-border bg-card shadow-none">
+						<Card>
 							<CardContent className="space-y-2 p-4 sm:p-5">
-								<h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+								<h2 className="flex items-center gap-1.5 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
 									<IconX className="h-4 w-4" /> Laporan Ditolak
 								</h2>
 								<p className="text-xs leading-relaxed text-muted-foreground">
@@ -1668,9 +1670,9 @@ export default function ReportShow(props) {
 					    keterangan pelapor ke-2, ke-3, dst. adalah bukti tambahan - tanpa daftar ini
 					    semuanya hilang dari pandangan begitu digabung. */}
 					{mergedReports.length > 0 && (
-						<Card className="rounded-xl border border-border bg-card shadow-none">
+						<Card>
 							<CardContent className="space-y-3 p-4 sm:p-5">
-								<h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-foreground">
+								<h2 className="flex items-center gap-1.5 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
 									<IconStack2 className="h-4 w-4 text-muted-foreground" /> Laporan Terkait (
 									{mergedReports.length})
 								</h2>
@@ -1728,9 +1730,9 @@ export default function ReportShow(props) {
 					)}
 
 					{isInResponseFlow && (isRelawan || isStaffOrAdmin) && (
-						<Card className="rounded-xl border border-border bg-card shadow-none">
+						<Card>
 							<CardContent className="space-y-4 p-4 sm:p-5">
-								<h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-foreground">
+								<h2 className="flex items-center gap-1.5 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
 									<IconShieldCheck className="h-4 w-4 text-info" /> Panel Tindakan Anda
 								</h2>
 
@@ -1901,9 +1903,9 @@ export default function ReportShow(props) {
 						reportStatus !== 'ditolak' &&
 						reportStatus !== 'digabung' &&
 						reportStatus !== 'resolved' && (
-							<Card className="rounded-xl border border-border bg-card shadow-none">
+							<Card>
 								<CardContent className="space-y-3 p-4 sm:p-5">
-									<h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-foreground">
+									<h2 className="flex items-center gap-1.5 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
 										<IconTruck className="h-4 w-4 text-teal-600 dark:text-teal" /> Pengerahan Armada
 									</h2>
 
@@ -2006,9 +2008,9 @@ export default function ReportShow(props) {
 							reportStatus !== 'TERLAPOR' &&
 							reportStatus !== 'ditolak' &&
 							reportStatus !== 'digabung')) && (
-						<Card className="rounded-xl border border-border bg-card shadow-none">
+						<Card>
 							<CardContent className="space-y-3 p-4 sm:p-5">
-								<h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-foreground">
+								<h2 className="flex items-center gap-1.5 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
 									<IconBuildingCommunity className="h-4 w-4 text-muted-foreground" /> OPD Terkait
 								</h2>
 
@@ -2163,11 +2165,11 @@ export default function ReportShow(props) {
 						</Card>
 					)}
 
-					<h2 className="px-1 pt-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+					<h2 className="px-1 pt-2 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
 						Manifes Responden
 					</h2>
 
-					<Card className="rounded-xl border border-border bg-card shadow-none">
+					<Card>
 						<CardContent className="divide-y divide-border p-0">
 							<div className="flex items-center gap-2 bg-muted p-3 text-xs font-bold uppercase text-muted-foreground">
 								<IconFiretruck className="h-4 w-4" /> Damkar
@@ -2268,10 +2270,10 @@ export default function ReportShow(props) {
 
 					{/* --- 📝 LAPORAN KEGIATAN PENYELAMATAN / BERITA ACARA (staf kelola, pejabat read-only) --- */}
 					{canViewResolution && (reportStatus === 'resolved' || reportStatus === 'handling') && (
-						<Card className="rounded-xl border border-border bg-card shadow-none">
+						<Card>
 							<CardContent className="space-y-3 p-4 sm:p-5">
 								<div className="flex items-center justify-between gap-2">
-									<h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-foreground">
+									<h2 className="flex items-center gap-1.5 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
 										<IconFileText className="h-4 w-4 text-info" /> Laporan Kejadian
 									</h2>
 									{canManageResolution && (
@@ -2588,7 +2590,7 @@ export default function ReportShow(props) {
 						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-info/10 text-info">
 							<IconRadar className="h-6 w-6" />
 						</div>
-						<h2 className="text-lg font-bold text-foreground">Broadcast Darurat?</h2>
+						<h2 className="text-[17px] font-semibold tracking-tight text-foreground">Broadcast Darurat?</h2>
 						<p className="text-sm leading-relaxed text-muted-foreground">
 							Aksi ini memicu notifikasi ke seluruh personil aktif di area tersebut.
 						</p>
@@ -2679,7 +2681,7 @@ export default function ReportShow(props) {
 						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
 							<IconTrash className="h-6 w-6" />
 						</div>
-						<h2 className="text-lg font-bold text-foreground">Tolak Laporan?</h2>
+						<h2 className="text-[17px] font-semibold tracking-tight text-foreground">Tolak Laporan?</h2>
 						<p className="text-sm leading-relaxed text-muted-foreground">
 							Laporan ditandai <b>ditolak</b> dan diarsipkan (tidak dihapus) - tetap bisa ditelusuri Pusat
 							Komando.
@@ -2722,7 +2724,7 @@ export default function ReportShow(props) {
 						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/10 text-success">
 							<IconCheck className="h-6 w-6" />
 						</div>
-						<h2 className="text-lg font-bold text-foreground">Tutup Insiden?</h2>
+						<h2 className="text-[17px] font-semibold tracking-tight text-foreground">Tutup Insiden?</h2>
 						<p className="text-sm leading-relaxed text-muted-foreground">
 							Laporan ditandai selesai. Seluruh personil di lapangan akan dihentikan penugasannya.
 						</p>
@@ -2772,7 +2774,7 @@ export default function ReportShow(props) {
 						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/10 text-success">
 							<IconCheck className="h-6 w-6" />
 						</div>
-						<h2 className="text-lg font-bold text-foreground">Catat Konfirmasi?</h2>
+						<h2 className="text-[17px] font-semibold tracking-tight text-foreground">Catat Konfirmasi?</h2>
 						<p className="text-sm leading-relaxed text-muted-foreground">
 							<b>{agencyToConfirm?.agency_name}</b> - {agencyToConfirm?.confirmation_label}.
 							{canManageAgencies && myAgencyId !== agencyToConfirm?.agency_id
@@ -2821,7 +2823,9 @@ export default function ReportShow(props) {
 						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
 							<IconX className="h-6 w-6" />
 						</div>
-						<h2 className="text-lg font-bold text-foreground">Lepas OPD dari Insiden?</h2>
+						<h2 className="text-[17px] font-semibold tracking-tight text-foreground">
+							Lepas OPD dari Insiden?
+						</h2>
 						<p className="text-sm leading-relaxed text-muted-foreground">
 							<b>{agencyToRemove?.agency_name}</b> tidak lagi tercatat dilibatkan di insiden ini. Instansi
 							yang sama bisa diminta lagi kapan saja.
@@ -2852,7 +2856,9 @@ export default function ReportShow(props) {
 						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
 							<IconTrash className="h-6 w-6" />
 						</div>
-						<h2 className="text-lg font-bold text-foreground">Hapus Entri Berita Acara?</h2>
+						<h2 className="text-[17px] font-semibold tracking-tight text-foreground">
+							Hapus Entri Berita Acara?
+						</h2>
 						<p className="text-sm leading-relaxed text-muted-foreground">
 							Entri ini beserta data korban & fotonya akan dihapus permanen. Tindakan tidak dapat
 							dibatalkan.

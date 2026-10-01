@@ -111,7 +111,7 @@ export default function Index({ tab, items, counts }) {
 
 				{tab !== 'dilaporkan' &&
 					items.map((thread) => (
-						<Card key={thread.id} className="rounded-xl shadow-sm">
+						<Card key={thread.id}>
 							<CardContent className="space-y-2 p-4">
 								<div className="flex flex-wrap items-center gap-2">
 									<ForumStatusBadge status={thread.status} />
@@ -165,7 +165,7 @@ export default function Index({ tab, items, counts }) {
 
 				{tab === 'dilaporkan' &&
 					items.map((item) => (
-						<Card key={item.key} className="rounded-xl shadow-sm">
+						<Card key={item.key}>
 							<CardContent className="space-y-2 p-4">
 								<div className="flex flex-wrap items-center gap-2">
 									<span className="rounded-xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">

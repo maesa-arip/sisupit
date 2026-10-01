@@ -45,7 +45,7 @@ export default function Pricing({ instansi, legal, editions }) {
 						}`}
 					>
 						<div className="flex items-start justify-between gap-2">
-							<h2 className="text-sm font-bold text-foreground">{edition.label}</h2>
+							<h2 className="text-[15px] font-semibold text-foreground">{edition.label}</h2>
 							{instansi?.edition === edition.value && (
 								<span className="whitespace-nowrap rounded-lg border border-destructive/30 bg-destructive/10 px-2 py-0.5 text-xs font-semibold text-destructive">
 									Paket wilayah ini
@@ -110,7 +110,7 @@ export default function Pricing({ instansi, legal, editions }) {
 					<div className="rounded-lg border border-border bg-card p-4">
 						<div className="flex items-center gap-2">
 							<IconMail className="size-4 text-muted-foreground" stroke={2} />
-							<p className="text-sm font-bold text-foreground">Kontak penyedia sistem</p>
+							<p className="text-[15px] font-semibold text-foreground">Kontak penyedia sistem</p>
 						</div>
 						<p className="mt-1.5 text-sm text-muted-foreground">
 							{penyedia}
@@ -127,7 +127,7 @@ export default function Pricing({ instansi, legal, editions }) {
 					<div className="rounded-lg border border-border bg-card p-4">
 						<div className="flex items-center gap-2">
 							<IconBuildingCommunity className="size-4 text-muted-foreground" stroke={2} />
-							<p className="text-sm font-bold text-foreground">Sudah berjalan di</p>
+							<p className="text-[15px] font-semibold text-foreground">Sudah berjalan di</p>
 						</div>
 						<p className="mt-1.5 text-sm text-muted-foreground">
 							{instansi?.nama_instansi || 'Damkar kabupaten/kota di Bali'} - beserta kabupaten lain yang

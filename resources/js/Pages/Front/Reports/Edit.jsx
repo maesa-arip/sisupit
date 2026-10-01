@@ -102,9 +102,9 @@ export default function Edit(props) {
 					</Button>
 				</div>
 
-				<Card className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+				<Card className="overflow-hidden">
 					<CardHeader className="border-b border-border bg-transparent pb-5">
-						<CardTitle className="text-lg font-semibold text-foreground">
+						<CardTitle className="text-[17px] font-semibold tracking-tight text-foreground">
 							{props.page_settings.title}
 						</CardTitle>
 						<CardDescription className="mt-1 text-sm text-muted-foreground">
