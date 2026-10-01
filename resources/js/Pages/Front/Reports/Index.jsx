@@ -97,7 +97,7 @@ export default function ReportIndex(props) {
 					<button
 						onClick={() => handleFilterChange('all')}
 						className={cn(
-							'flex w-full items-center justify-center gap-2 rounded-md px-4 py-2 text-xs font-bold outline-none transition-colors sm:w-40',
+							'flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-xs font-bold outline-none transition-colors sm:w-40',
 							activeTab === 'all'
 								? 'border border-border bg-card text-foreground shadow-none'
 								: 'border border-transparent text-muted-foreground hover:text-foreground',
@@ -108,7 +108,7 @@ export default function ReportIndex(props) {
 					<button
 						onClick={() => handleFilterChange('mine')}
 						className={cn(
-							'flex w-full items-center justify-center gap-2 rounded-md px-4 py-2 text-xs font-bold outline-none transition-colors sm:w-40',
+							'flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-xs font-bold outline-none transition-colors sm:w-40',
 							activeTab === 'mine'
 								? 'border border-border bg-card text-destructive shadow-none'
 								: 'border border-transparent text-muted-foreground hover:text-foreground',

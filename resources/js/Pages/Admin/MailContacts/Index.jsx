@@ -139,7 +139,7 @@ export default function Index({ contacts, filters }) {
 												{contact.name}
 											</h3>
 											{!contact.is_active && (
-												<span className="shrink-0 rounded-md border border-border bg-muted px-2 py-0.5 text-[10px] font-bold uppercase text-muted-foreground">
+												<span className="shrink-0 rounded-xl border border-border bg-muted px-2 py-0.5 text-[10px] font-bold uppercase text-muted-foreground">
 													Nonaktif
 												</span>
 											)}
@@ -185,7 +185,7 @@ export default function Index({ contacts, filters }) {
 												key={index}
 												href={link.url}
 												preserveScroll
-												className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
+												className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition-colors ${
 													link.active
 														? 'border-primary bg-primary text-primary-foreground shadow-sm'
 														: 'border-input bg-background text-muted-foreground hover:bg-accent hover:text-foreground'
@@ -195,7 +195,7 @@ export default function Index({ contacts, filters }) {
 										) : (
 											<span
 												key={index}
-												className="rounded-md border border-input px-3 py-1.5 text-xs font-semibold text-muted-foreground/40"
+												className="rounded-xl border border-input px-3 py-1.5 text-xs font-semibold text-muted-foreground/40"
 												dangerouslySetInnerHTML={{ __html: link.label }}
 											/>
 										),

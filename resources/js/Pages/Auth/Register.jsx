@@ -105,7 +105,7 @@ export default function Register() {
 									autoComplete="name"
 									placeholder="Masukkan nama lengkap..."
 									onChange={onHandleChange}
-									className="h-11 w-full rounded-md border-border bg-background transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+									className="h-11 w-full rounded-xl border-border bg-background transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 								/>
 								{errors.name && <InputError message={errors.name} />}
 							</div>
@@ -123,7 +123,7 @@ export default function Register() {
 									autoComplete="username"
 									placeholder="nama@email.com"
 									onChange={onHandleChange}
-									className="h-11 w-full rounded-md border-border bg-background transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+									className="h-11 w-full rounded-xl border-border bg-background transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 								/>
 								{errors.email && <InputError message={errors.email} />}
 							</div>
@@ -142,12 +142,12 @@ export default function Register() {
 										autoComplete="new-password"
 										placeholder="Buat kata sandi"
 										onChange={onHandleChange}
-										className="h-11 w-full rounded-md border-border bg-background pr-12 transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+										className="h-11 w-full rounded-xl border-border bg-background pr-12 transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 									/>
 									<button
 										type="button"
 										onClick={() => setShowPassword(!showPassword)}
-										className="absolute right-1 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus:outline-none"
+										className="absolute right-1 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground focus:outline-none"
 										aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
 									>
 										{showPassword ? (
@@ -174,12 +174,12 @@ export default function Register() {
 										autoComplete="new-password"
 										placeholder="Ulangi kata sandi"
 										onChange={onHandleChange}
-										className="h-11 w-full rounded-md border-border bg-background pr-12 transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+										className="h-11 w-full rounded-xl border-border bg-background pr-12 transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 									/>
 									<button
 										type="button"
 										onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-										className="absolute right-1 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus:outline-none"
+										className="absolute right-1 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground focus:outline-none"
 										aria-label={
 											showConfirmPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'
 										}
@@ -229,7 +229,7 @@ export default function Register() {
 							<Button
 								type="submit"
 								disabled={processing || isGoogleLoading}
-								className="mt-4 h-11 w-full rounded-md bg-destructive text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:cursor-not-allowed disabled:opacity-70"
+								className="mt-4 h-11 w-full rounded-xl bg-destructive text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:cursor-not-allowed disabled:opacity-70"
 							>
 								{processing ? <IconLoader2 className="h-5 w-5 animate-spin" /> : 'Daftar Sekarang'}
 							</Button>
@@ -251,7 +251,7 @@ export default function Register() {
 							variant="outline"
 							disabled={processing || isGoogleLoading}
 							onClick={handleGoogleRegister}
-							className="flex h-11 w-full items-center justify-center gap-2.5 rounded-md border border-border bg-background text-sm font-medium text-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-70"
+							className="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-background text-sm font-medium text-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-70"
 						>
 							{isGoogleLoading ? (
 								<IconLoader2 className="h-5 w-5 animate-spin text-muted-foreground" />

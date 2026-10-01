@@ -96,7 +96,7 @@ export default function Edit(props) {
 							<h2 className="text-xl font-semibold leading-tight text-foreground">{user.name}</h2>
 							<p className="text-sm font-medium text-muted-foreground">{user.email}</p>
 							<span
-								className={`mt-2 rounded-md border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider ${roleTone(userRoles)}`}
+								className={`mt-2 rounded-xl border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider ${roleTone(userRoles)}`}
 							>
 								{accountRole}
 							</span>
@@ -107,7 +107,7 @@ export default function Edit(props) {
 						href={route('logout')}
 						method="post"
 						as="button"
-						className="flex items-center gap-1.5 rounded-md border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20"
+						className="flex items-center gap-1.5 rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20"
 					>
 						<IconLogout size={16} stroke={2} />
 						Keluar
@@ -122,7 +122,7 @@ export default function Edit(props) {
 								<IconMapPin size={18} className="text-muted-foreground" />{' '}
 								{props.jurisdiction.kind === 'tugas' ? 'Wilayah Tugas' : 'Wilayah Domisili'}
 							</h3>
-							<span className="shrink-0 rounded-md border border-border bg-muted px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+							<span className="shrink-0 rounded-xl border border-border bg-muted px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
 								{props.jurisdiction.scope.level}
 							</span>
 						</div>
@@ -174,7 +174,7 @@ export default function Edit(props) {
 				{isVolunteer && (
 					<div className="rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6">
 						<div className="flex items-center gap-3">
-							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-foreground">
+							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-muted text-foreground">
 								<IconMedal className="h-5 w-5" stroke={1.5} />
 							</div>
 							<div>
@@ -194,7 +194,7 @@ export default function Edit(props) {
 										type="button"
 										onClick={() => toggleSkill(skill)}
 										className={cn(
-											'flex items-center gap-1 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors',
+											'flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-xs font-medium transition-colors',
 											selected
 												? 'border-destructive bg-destructive/10 text-destructive'
 												: 'border-border bg-card text-foreground/80 hover:bg-muted',
@@ -211,7 +211,7 @@ export default function Edit(props) {
 							<Button
 								onClick={handleSaveSkills}
 								disabled={isSavingSkills}
-								className="h-9 shrink-0 rounded-md border border-transparent bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+								className="h-9 shrink-0 rounded-xl border border-transparent bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
 							>
 								{isSavingSkills ? (
 									<IconLoader2 className="mr-1.5 h-4 w-4 animate-spin" />
@@ -259,13 +259,13 @@ export default function Edit(props) {
 						<TabsList className="mb-6 grid h-fit w-full grid-cols-2 rounded-lg border border-border bg-muted p-1">
 							<TabsTrigger
 								value="profil"
-								className="flex items-center gap-2 rounded-md py-2 text-sm font-medium text-muted-foreground transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+								className="flex items-center gap-2 rounded-lg py-2 text-sm font-medium text-muted-foreground transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
 							>
 								<IconUserEdit size={16} /> Data Profil
 							</TabsTrigger>
 							<TabsTrigger
 								value="keamanan"
-								className="flex items-center gap-2 rounded-md py-2 text-sm font-medium text-muted-foreground transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+								className="flex items-center gap-2 rounded-lg py-2 text-sm font-medium text-muted-foreground transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
 							>
 								<IconLock size={16} /> Kata Sandi
 							</TabsTrigger>
@@ -297,7 +297,7 @@ export default function Edit(props) {
 						download="Sisupit.apk"
 						className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-border bg-card px-6 font-medium text-foreground shadow-sm outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-muted-foreground/50 sm:w-auto"
 					>
-						<div className="flex items-center justify-center rounded-md bg-success/10 p-1">
+						<div className="flex items-center justify-center rounded-lg bg-success/10 p-1">
 							<IconBrandAndroid className="h-5 w-5 text-success" stroke={2} />
 						</div>
 						<span className="text-sm">Unduh Aplikasi Android</span>

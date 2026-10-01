@@ -426,7 +426,7 @@ export default function ReportShow(props) {
 						</div>
 					)}
 				</div>
-				<Badge className={cn('rounded-md border px-2 py-0.5 text-xs font-semibold shadow-none', stat.color)}>
+				<Badge className={cn('rounded-xl border px-2 py-0.5 text-xs font-semibold shadow-none', stat.color)}>
 					{stat.label}
 				</Badge>
 			</div>
@@ -895,7 +895,7 @@ export default function ReportShow(props) {
 				// Label nama regu SELALU terlihat (bukan hanya di popup): 3-4 regu bisa meluncur ke
 				// satu kejadian, dan dispatcher membedakannya dari layar tanpa mengetuk satu per satu.
 				const label = `${regu.name} · ${regu.members.length}`;
-				htmlMarkup = `<div class="relative h-10 w-10">${circle}<div class="absolute left-1/2 top-full mt-1 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-card px-2 py-0.5 text-[11px] font-semibold text-foreground shadow-sm">${escapeHtml(label)}</div></div>`;
+				htmlMarkup = `<div class="relative h-10 w-10">${circle}<div class="absolute left-1/2 top-full mt-1 -translate-x-1/2 whitespace-nowrap rounded-xl border border-border bg-card px-2 py-0.5 text-[11px] font-semibold text-foreground shadow-sm">${escapeHtml(label)}</div></div>`;
 				const memberItems = regu.members.map((o) => `<li>${escapeHtml(o.user?.name)}</li>`).join('');
 				const leaderLine = regu.leader
 					? `<div class="text-muted-foreground">Danru: ${escapeHtml(regu.leader)}</div>`
@@ -1182,7 +1182,7 @@ export default function ReportShow(props) {
 						<Badge
 							variant="outline"
 							className={cn(
-								'whitespace-nowrap rounded-md px-2.5 py-0.5 font-bold shadow-none',
+								'whitespace-nowrap rounded-lg px-2.5 py-0.5 font-bold shadow-none',
 								currentStatus.color,
 							)}
 						>
@@ -1229,7 +1229,7 @@ export default function ReportShow(props) {
 										<Badge
 											variant="outline"
 											className={cn(
-												'whitespace-nowrap rounded-md px-2 py-0.5 font-bold shadow-none',
+												'whitespace-nowrap rounded-lg px-2 py-0.5 font-bold shadow-none',
 												getReportStatus(mergedIncident.status).color,
 											)}
 										>
@@ -1304,7 +1304,7 @@ export default function ReportShow(props) {
 										<Badge
 											variant="outline"
 											className={cn(
-												'whitespace-nowrap rounded-md px-2 py-0.5 font-bold shadow-none',
+												'whitespace-nowrap rounded-lg px-2 py-0.5 font-bold shadow-none',
 												getReportStatus(duplicateCandidate.status).color,
 											)}
 										>
@@ -1400,7 +1400,7 @@ export default function ReportShow(props) {
 								    terakhir tempat kekeliruan lokasi masih murah diperbaiki — lewat
 								    telepon pelapor yang nomornya sudah tertera persis di atasnya. */}
 								{!asalTitik.terpercaya && (
-									<p className="mt-2 max-w-xl rounded-md border border-warning/20 bg-warning/10 p-2 text-xs leading-relaxed text-warning">
+									<p className="mt-2 max-w-xl rounded-xl border border-warning/20 bg-warning/10 p-2 text-xs leading-relaxed text-warning">
 										<b>{asalTitik.label}</b>
 										{asalTitik.detail ? ` (${asalTitik.detail}). ` : '. '}
 										{asalTitik.hint}
@@ -1420,7 +1420,7 @@ export default function ReportShow(props) {
 							<Button
 								onClick={() => setConfirmReject(true)}
 								variant="ghost"
-								className="h-8 gap-1.5 rounded-md px-2 text-xs font-bold text-destructive/70 transition-colors hover:bg-destructive/10 hover:text-destructive"
+								className="h-8 gap-1.5 rounded-lg px-2 text-xs font-bold text-destructive/70 transition-colors hover:bg-destructive/10 hover:text-destructive"
 							>
 								<IconX className="h-3.5 w-3.5" /> Tolak laporan
 							</Button>
@@ -1542,7 +1542,7 @@ export default function ReportShow(props) {
 									<div className="mb-2 space-y-1">
 										<div
 											className={cn(
-												'inline-flex flex-wrap items-center gap-x-1.5 rounded-md border px-2 py-1 text-[11px] font-semibold',
+												'inline-flex flex-wrap items-center gap-x-1.5 rounded-xl border px-2 py-1 text-[11px] font-semibold',
 												asalTitik.tone,
 											)}
 										>
@@ -1581,7 +1581,7 @@ export default function ReportShow(props) {
 											href={`https://www.google.com/maps/dir/?api=1&destination=${incidentLocation.lat},${incidentLocation.lng}`}
 											target="_blank"
 											rel="noopener noreferrer"
-											className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground shadow-none transition-colors hover:bg-accent"
+											className="mt-2 inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground shadow-none transition-colors hover:bg-accent"
 										>
 											<IconMap className="h-3.5 w-3.5 text-destructive" /> Navigasi ke Lokasi
 										</a>
@@ -1617,7 +1617,7 @@ export default function ReportShow(props) {
 													alt={`Bukti ${i + 1}`}
 												/>
 												<div className="absolute inset-0 flex items-center justify-center bg-black/5 transition-colors group-hover:bg-black/40">
-													<span className="flex items-center gap-1.5 rounded-md bg-card/95 px-2.5 py-1 text-[11px] font-bold text-foreground opacity-0 transition-opacity group-hover:opacity-100">
+													<span className="flex items-center gap-1.5 rounded-lg bg-card/95 px-2.5 py-1 text-[11px] font-bold text-foreground opacity-0 transition-opacity group-hover:opacity-100">
 														<IconZoomIn className="h-3.5 w-3.5" /> Perbesar
 													</span>
 												</div>
@@ -1926,7 +1926,7 @@ export default function ReportShow(props) {
 														onClick={() => handleReleaseUnit(ru.unit_id)}
 														disabled={isUnitProcessing}
 														variant="outline"
-														className="h-8 shrink-0 rounded-md border-border px-2.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground shadow-none hover:bg-muted hover:text-foreground"
+														className="h-8 shrink-0 rounded-xl border-border px-2.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground shadow-none hover:bg-muted hover:text-foreground"
 													>
 														<IconArrowBackUp className="mr-1 h-3.5 w-3.5" /> Tarik
 													</Button>
@@ -2037,7 +2037,7 @@ export default function ReportShow(props) {
 															<Button
 																onClick={() => setAgencyToRemove(row)}
 																variant="ghost"
-																className="h-7 shrink-0 rounded-md px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+																className="h-7 shrink-0 rounded-lg px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
 															>
 																<IconX className="h-3.5 w-3.5" />
 															</Button>
@@ -2047,7 +2047,7 @@ export default function ReportShow(props) {
 													{row.requires_confirmation && (
 														<div
 															className={cn(
-																'rounded-md border px-2.5 py-2 text-[11px] leading-relaxed',
+																'rounded-xl border px-2.5 py-2 text-[11px] leading-relaxed',
 																row.confirmed_at
 																	? 'border-success/20 bg-success/10 text-success'
 																	: 'border-warning/20 bg-warning/10 text-warning',
@@ -2202,7 +2202,7 @@ export default function ReportShow(props) {
 														<div className="min-w-0 flex-1 truncate font-bold text-foreground">
 															{regu.stay}
 														</div>
-														<Badge className="rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground shadow-none">
+														<Badge className="rounded-xl border border-border bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground shadow-none">
 															Jaga di Kantor
 														</Badge>
 													</div>
@@ -2251,7 +2251,7 @@ export default function ReportShow(props) {
 											</div>
 											<Badge
 												className={cn(
-													'rounded-md border px-2 py-0.5 text-xs font-semibold shadow-none',
+													'rounded-xl border px-2 py-0.5 text-xs font-semibold shadow-none',
 													stat.color,
 												)}
 											>
@@ -2330,7 +2330,7 @@ export default function ReportShow(props) {
 												<div className="flex items-center gap-2">
 													<Badge
 														className={cn(
-															'rounded-md border px-2 py-0.5 text-xs font-semibold shadow-none',
+															'rounded-xl border px-2 py-0.5 text-xs font-semibold shadow-none',
 															r.status === 'final'
 																? 'border-success/30 bg-success/10 text-success'
 																: 'border-warning/30 bg-warning/10 text-warning',
@@ -2342,7 +2342,7 @@ export default function ReportShow(props) {
 													{/* PDF Laporan Kejadian (TASK_68) - URL dari server, <a> biasa karena ini unduhan. */}
 													<a
 														href={r.pdf_url}
-														className="ml-auto inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[11px] font-semibold text-foreground transition-colors hover:bg-accent"
+														className="ml-auto inline-flex items-center gap-1 rounded-xl border border-border bg-card px-2 py-1 text-[11px] font-semibold text-foreground transition-colors hover:bg-accent"
 													>
 														<IconDownload className="h-3.5 w-3.5" /> PDF
 													</a>
@@ -2507,7 +2507,7 @@ export default function ReportShow(props) {
 																	key={p.id}
 																	type="button"
 																	onClick={() => setModalPhoto(p.path)}
-																	className="h-14 w-14 overflow-hidden rounded-md border border-border"
+																	className="h-14 w-14 overflow-hidden rounded-xl border border-border"
 																>
 																	<img
 																		src={`/storage/${p.path}`}
@@ -2634,7 +2634,7 @@ export default function ReportShow(props) {
 														{recommended && (
 															<Badge
 																variant="outline"
-																className="rounded-md border-info/20 bg-info/10 px-1.5 py-0 text-[10px] font-bold text-info shadow-none"
+																className="rounded-xl border-info/20 bg-info/10 px-1.5 py-0 text-[10px] font-bold text-info shadow-none"
 															>
 																Disarankan
 															</Badge>
@@ -2890,7 +2890,7 @@ export default function ReportShow(props) {
 							<img
 								src={`/storage/${modalPhoto}`}
 								onError={(e) => (e.target.src = modalPhoto)}
-								className="h-auto max-h-[90vh] w-auto max-w-[100vw] rounded-md border border-border bg-black/20 object-contain shadow-none"
+								className="h-auto max-h-[90vh] w-auto max-w-[100vw] rounded-xl border border-border bg-black/20 object-contain shadow-none"
 								alt="Bukti"
 							/>
 						)}

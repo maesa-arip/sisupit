@@ -168,7 +168,7 @@ export default function Index({ tab, items, counts }) {
 						<Card key={item.key} className="rounded-xl shadow-sm">
 							<CardContent className="space-y-2 p-4">
 								<div className="flex flex-wrap items-center gap-2">
-									<span className="rounded-md border border-border bg-muted px-2 py-0.5 text-[10px] font-bold uppercase text-muted-foreground">
+									<span className="rounded-xl border border-border bg-muted px-2 py-0.5 text-[10px] font-bold uppercase text-muted-foreground">
 										{item.type === 'post' ? 'Balasan' : 'Pertanyaan'}
 									</span>
 									{item.status !== 'tampil' && <ForumStatusBadge status={item.status} />}
@@ -180,7 +180,7 @@ export default function Index({ tab, items, counts }) {
 									<p className="text-xs text-muted-foreground hover:underline">{item.thread_title}</p>
 								</Link>
 								<p className="whitespace-pre-line text-sm text-foreground">{item.excerpt}</p>
-								<ul className="space-y-1 rounded-md bg-muted/50 p-2 text-[11px] text-muted-foreground">
+								<ul className="space-y-1 rounded-lg bg-muted/50 p-2 text-[11px] text-muted-foreground">
 									{item.reports.map((report, index) => (
 										<li key={index}>
 											<span className="font-semibold text-foreground">{report.reason}</span>

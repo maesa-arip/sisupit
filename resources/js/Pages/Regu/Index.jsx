@@ -175,7 +175,7 @@ export default function Index({ regus, candidates, can }) {
 									{regu.members.map((m) => (
 										<span
 											key={m.id}
-											className="rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium text-foreground"
+											className="rounded-xl border border-border bg-muted px-2 py-0.5 text-xs font-medium text-foreground"
 										>
 											{m.name}
 											{regu.leader?.id === m.id && ' (Danru)'}

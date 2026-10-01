@@ -47,7 +47,7 @@ export default function Pricing({ instansi, legal, editions }) {
 						<div className="flex items-start justify-between gap-2">
 							<h2 className="text-sm font-bold text-foreground">{edition.label}</h2>
 							{instansi?.edition === edition.value && (
-								<span className="whitespace-nowrap rounded-md border border-destructive/30 bg-destructive/10 px-2 py-0.5 text-xs font-semibold text-destructive">
+								<span className="whitespace-nowrap rounded-lg border border-destructive/30 bg-destructive/10 px-2 py-0.5 text-xs font-semibold text-destructive">
 									Paket wilayah ini
 								</span>
 							)}

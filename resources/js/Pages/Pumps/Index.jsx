@@ -115,7 +115,7 @@ export default function Index({ pumps, filters, ...props }) {
 									type="button"
 									onClick={handleNearestSearch}
 									disabled={isLocating || processing}
-									className="flex h-10 w-full items-center gap-2 rounded-md border border-info/30 bg-info/10 text-sm font-medium text-info shadow-sm transition-colors hover:bg-info/20"
+									className="flex h-10 w-full items-center gap-2 rounded-xl border border-info/30 bg-info/10 text-sm font-medium text-info shadow-sm transition-colors hover:bg-info/20"
 								>
 									{isLocating ? (
 										<IconLoader2 className="h-4 w-4 animate-spin" />
@@ -132,7 +132,7 @@ export default function Index({ pumps, filters, ...props }) {
 									<Input
 										type="text"
 										placeholder="Cari nama area atau jalan..."
-										className="h-10 w-full rounded-md border-border bg-muted pl-9 text-sm focus-visible:ring-1 focus-visible:ring-info"
+										className="h-10 w-full rounded-xl border-border bg-muted pl-9 text-sm focus-visible:ring-1 focus-visible:ring-info"
 										value={data.search}
 										onChange={(e) => setData('search', e.target.value)}
 									/>
@@ -144,7 +144,7 @@ export default function Index({ pumps, filters, ...props }) {
 											key={status}
 											type="button"
 											onClick={() => applyFilter('status', status)}
-											className={`whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
+											className={`whitespace-nowrap rounded-xl border px-3 py-1.5 text-xs font-medium transition-colors ${
 												activeStatus === status
 													? 'border-transparent bg-primary text-primary-foreground'
 													: 'border-border bg-card text-foreground/80 hover:bg-muted'
@@ -169,7 +169,7 @@ export default function Index({ pumps, filters, ...props }) {
 									<CardContent className="flex flex-row flex-nowrap items-center gap-3 p-3 sm:p-4">
 										{/* KIRI: Ikon */}
 										<div
-											className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md border ${
+											className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${
 												facilityStatusIsFaulty(pump.status)
 													? 'border-destructive/30 bg-destructive/10 text-destructive'
 													: 'border-info/20 bg-info/10 text-info'
@@ -218,7 +218,7 @@ export default function Index({ pumps, filters, ...props }) {
 										{/* KANAN: Aksi & Jarak */}
 										<div className="flex shrink-0 flex-col items-end justify-center gap-2">
 											{pump.distance !== '-' ? (
-												<span className="whitespace-nowrap rounded-md border border-border bg-muted px-2 py-0.5 text-[10px] font-semibold text-foreground/80">
+												<span className="whitespace-nowrap rounded-xl border border-border bg-muted px-2 py-0.5 text-[10px] font-semibold text-foreground/80">
 													{pump.distance}
 												</span>
 											) : (
@@ -233,7 +233,7 @@ export default function Index({ pumps, filters, ...props }) {
 													type="button"
 													variant="ghost"
 													size="icon"
-													className="h-8 w-8 rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground/80"
+													className="h-8 w-8 rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground/80"
 												>
 													<IconRoute className="h-4 w-4" />
 												</Button>

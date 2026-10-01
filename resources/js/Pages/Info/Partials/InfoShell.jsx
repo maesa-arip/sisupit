@@ -35,7 +35,7 @@ export function InfoShell({ icon, eyebrow, title, subtitle, children, footerNote
 				{/* Slot kanan kepala halaman — bentuk & posisi sama dengan halaman fasilitas.
 				    Di sini dipakai versi/kategori dokumen (dulu "eyebrow" di atas judul hero). */}
 				{eyebrow && (
-					<span className="rounded-md border border-border bg-muted px-2.5 py-1 text-[11px] font-semibold text-foreground/80 sm:shrink-0">
+					<span className="rounded-xl border border-border bg-muted px-2.5 py-1 text-[11px] font-semibold text-foreground/80 sm:shrink-0">
 						{eyebrow}
 					</span>
 				)}
@@ -55,7 +55,7 @@ export function Section({ number, title, children }) {
 			<CardContent className="p-5">
 				<h2 className="flex items-start gap-2.5 text-sm font-bold text-foreground">
 					{number && (
-						<span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-destructive/10 text-[10px] font-bold text-destructive">
+						<span className="flex size-5 shrink-0 items-center justify-center rounded-lg bg-destructive/10 text-[10px] font-bold text-destructive">
 							{number}
 						</span>
 					)}

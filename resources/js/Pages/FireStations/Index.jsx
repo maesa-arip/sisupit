@@ -81,7 +81,7 @@ export default function Index({ stations, filters, ...props }) {
 									type="button"
 									onClick={handleNearestSearch}
 									disabled={isLocating || processing}
-									className="flex h-10 w-full items-center gap-2 rounded-md border border-destructive/30 bg-destructive/10 text-sm font-medium text-destructive shadow-sm transition-colors hover:bg-destructive/20"
+									className="flex h-10 w-full items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 text-sm font-medium text-destructive shadow-sm transition-colors hover:bg-destructive/20"
 								>
 									{isLocating ? (
 										<IconLoader2 className="h-4 w-4 animate-spin" />
@@ -98,7 +98,7 @@ export default function Index({ stations, filters, ...props }) {
 									<Input
 										type="text"
 										placeholder="Cari nama pos atau area..."
-										className="h-10 w-full rounded-md border-border bg-muted pl-9 text-sm focus-visible:ring-1 focus-visible:ring-destructive"
+										className="h-10 w-full rounded-xl border-border bg-muted pl-9 text-sm focus-visible:ring-1 focus-visible:ring-destructive"
 										value={data.search}
 										onChange={(e) => setData('search', e.target.value)}
 									/>
@@ -118,7 +118,7 @@ export default function Index({ stations, filters, ...props }) {
 									<CardContent className="flex flex-row flex-nowrap items-center gap-3 p-3 sm:p-4">
 										{/* KIRI: Ikon Mobil Pemadam */}
 										<div
-											className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md border ${
+											className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${
 												station.status === 'Aktif'
 													? 'border-info/30 bg-info/10 text-info'
 													: 'border-destructive/30 bg-destructive/10 text-destructive'
@@ -154,7 +154,7 @@ export default function Index({ stations, filters, ...props }) {
 										{/* KANAN: Jarak & Telepon */}
 										<div className="flex shrink-0 flex-col items-end justify-center gap-2">
 											{station.distance !== '-' ? (
-												<span className="whitespace-nowrap rounded-md border border-border bg-muted px-2 py-0.5 text-[10px] font-semibold text-foreground/80">
+												<span className="whitespace-nowrap rounded-xl border border-border bg-muted px-2 py-0.5 text-[10px] font-semibold text-foreground/80">
 													{station.distance}
 												</span>
 											) : (
@@ -167,7 +167,7 @@ export default function Index({ stations, filters, ...props }) {
 													<Button
 														variant="ghost"
 														size="icon"
-														className="h-8 w-8 rounded-md text-muted-foreground transition-colors hover:bg-success/10 hover:text-success"
+														className="h-8 w-8 rounded-lg text-muted-foreground transition-colors hover:bg-success/10 hover:text-success"
 													>
 														<IconPhoneCall className="h-4 w-4" />
 													</Button>
@@ -183,7 +183,7 @@ export default function Index({ stations, filters, ...props }) {
 														type="button"
 														variant="ghost"
 														size="icon"
-														className="h-8 w-8 rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground/80"
+														className="h-8 w-8 rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground/80"
 													>
 														<IconRoute className="h-4 w-4" />
 													</Button>

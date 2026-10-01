@@ -44,12 +44,12 @@ export default function ConfirmPassword() {
 								type={showPassword ? 'text' : 'password'}
 								value={data.password}
 								onChange={(e) => setData('password', e.target.value)}
-								className="h-11 w-full rounded-md border-border bg-background pr-11 transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+								className="h-11 w-full rounded-xl border-border bg-background pr-11 transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 							/>
 							<button
 								type="button"
 								onClick={() => setShowPassword(!showPassword)}
-								className="absolute right-0.5 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus:outline-none"
+								className="absolute right-0.5 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground focus:outline-none"
 							>
 								{showPassword ? (
 									<IconEyeOff className="h-5 w-5" stroke={1.5} />
@@ -65,7 +65,7 @@ export default function ConfirmPassword() {
 						<Button
 							type="submit"
 							disabled={processing}
-							className="h-10 rounded-md bg-destructive px-6 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:cursor-not-allowed disabled:opacity-70"
+							className="h-10 rounded-lg bg-destructive px-6 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:cursor-not-allowed disabled:opacity-70"
 						>
 							{processing ? <IconLoader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
 							Konfirmasi

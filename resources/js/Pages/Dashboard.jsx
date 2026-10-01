@@ -209,7 +209,7 @@ export default function Dashboard(props) {
 					<button
 						onClick={() => setActiveTab('menunggu')}
 						className={cn(
-							'flex w-full items-center justify-center gap-2 rounded-md px-3 py-2 text-xs font-bold outline-none transition-colors',
+							'flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-bold outline-none transition-colors',
 							activeTab === 'menunggu'
 								? 'border border-border bg-card text-destructive'
 								: 'border border-transparent text-muted-foreground hover:text-foreground',
@@ -221,7 +221,7 @@ export default function Dashboard(props) {
 					<button
 						onClick={() => setActiveTab('tugas_saya')}
 						className={cn(
-							'flex w-full items-center justify-center gap-2 rounded-md px-3 py-2 text-xs font-bold outline-none transition-colors',
+							'flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-bold outline-none transition-colors',
 							activeTab === 'tugas_saya'
 								? 'border border-border bg-card text-foreground'
 								: 'border border-transparent text-muted-foreground hover:text-foreground',
@@ -232,7 +232,7 @@ export default function Dashboard(props) {
 					<button
 						onClick={() => setActiveTab('semua')}
 						className={cn(
-							'flex w-full items-center justify-center gap-2 rounded-md px-3 py-2 text-xs font-bold outline-none transition-colors',
+							'flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-bold outline-none transition-colors',
 							activeTab === 'semua'
 								? 'border border-border bg-card text-foreground'
 								: 'border border-transparent text-muted-foreground hover:text-foreground',
@@ -283,7 +283,7 @@ export default function Dashboard(props) {
 								variant="outline"
 								onClick={handleLoadMore}
 								disabled={isLoadingMore}
-								className="flex h-10 items-center gap-2 rounded-md border border-border bg-card px-5 text-[10px] font-bold uppercase tracking-wider text-foreground/80 shadow-none transition-colors hover:bg-muted sm:h-8"
+								className="flex h-10 items-center gap-2 rounded-xl border border-border bg-card px-5 text-[10px] font-bold uppercase tracking-wider text-foreground/80 shadow-none transition-colors hover:bg-muted sm:h-8"
 							>
 								{isLoadingMore ? (
 									<>
@@ -313,7 +313,7 @@ export default function Dashboard(props) {
 						<Badge
 							variant="outline"
 							className={cn(
-								'rounded-md border border-border px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest shadow-none',
+								'rounded-xl border border-border px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest shadow-none',
 								isRelawan ? 'bg-volunteer text-volunteer-foreground' : 'bg-muted text-foreground/80',
 							)}
 						>
@@ -333,7 +333,7 @@ export default function Dashboard(props) {
 				className="group flex items-center justify-between gap-3 rounded-xl border border-destructive bg-destructive p-4 text-destructive-foreground shadow-none transition-colors hover:bg-destructive/90 active:bg-destructive/90"
 			>
 				<div className="flex items-center gap-3">
-					<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-destructive-foreground/30 bg-destructive-foreground/10">
+					<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-destructive-foreground/30 bg-destructive-foreground/10">
 						<IconFlame className="h-5 w-5" stroke={2} />
 					</div>
 					<div>
@@ -361,7 +361,7 @@ export default function Dashboard(props) {
 						<div className="flex items-center gap-3">
 							<div
 								className={cn(
-									'flex h-10 w-10 shrink-0 items-center justify-center rounded-md border',
+									'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border',
 									isStandby
 										? 'border-destructive/30 bg-card text-destructive'
 										: 'border-border bg-muted text-muted-foreground',
@@ -394,7 +394,7 @@ export default function Dashboard(props) {
 							variant={isStandby ? 'default' : 'outline'}
 							disabled={isTogglingStandby}
 							className={cn(
-								'h-10 w-full shrink-0 rounded-md px-4 text-[10px] font-bold uppercase tracking-wider shadow-none transition-colors sm:h-8 sm:w-auto',
+								'h-10 w-full shrink-0 rounded-lg px-4 text-[10px] font-bold uppercase tracking-wider shadow-none transition-colors sm:h-8 sm:w-auto',
 								isStandby
 									? 'border border-destructive bg-destructive text-destructive-foreground hover:bg-destructive/90'
 									: 'border-border bg-card text-foreground/80 hover:bg-muted',

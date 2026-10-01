@@ -188,7 +188,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 						<Badge
 							variant="secondary"
 							className={cn(
-								'rounded-md border-none px-2 py-0.5 font-semibold',
+								'rounded-xl border-none px-2 py-0.5 font-semibold',
 								isPejabat ? 'bg-info/10 text-info' : 'bg-destructive/10 text-destructive',
 							)}
 						>
@@ -244,7 +244,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 						<div className="flex items-center gap-3">
 							<div
 								className={cn(
-									'flex h-10 w-10 shrink-0 items-center justify-center rounded-md border',
+									'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border',
 									isStandby
 										? 'border-destructive/30 bg-card text-destructive'
 										: 'border-border bg-muted text-muted-foreground',
@@ -277,7 +277,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 							variant={isStandby ? 'default' : 'outline'}
 							disabled={isTogglingStandby}
 							className={cn(
-								'h-8 w-full shrink-0 rounded-md px-4 text-[10px] font-bold uppercase tracking-wider shadow-none transition-colors sm:w-auto',
+								'h-8 w-full shrink-0 rounded-lg px-4 text-[10px] font-bold uppercase tracking-wider shadow-none transition-colors sm:w-auto',
 								isStandby
 									? 'border border-destructive bg-destructive text-destructive-foreground hover:bg-destructive/90'
 									: 'border-border bg-card text-foreground/80 hover:bg-muted',
@@ -469,20 +469,20 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 								<div className="hidden flex-wrap gap-1.5 md:flex">
 									<Badge
 										variant="secondary"
-										className="rounded-md border-none bg-destructive/10 text-destructive"
+										className="rounded-lg border-none bg-destructive/10 text-destructive"
 									>
 										Kejadian
 									</Badge>
 									<Badge
 										variant="secondary"
-										className="rounded-md border-none bg-teal-50 text-teal-700 dark:bg-teal/10 dark:text-teal"
+										className="rounded-xl border-none bg-teal-50 text-teal-700 dark:bg-teal/10 dark:text-teal"
 									>
 										Hydrant
 									</Badge>
-									<Badge variant="secondary" className="rounded-md border-none bg-info/10 text-info">
+									<Badge variant="secondary" className="rounded-xl border-none bg-info/10 text-info">
 										Pos & Pompa
 									</Badge>
-									<Badge variant="secondary" className="rounded-md border-none bg-info/10 text-info">
+									<Badge variant="secondary" className="rounded-xl border-none bg-info/10 text-info">
 										Relawan
 									</Badge>
 								</div>

@@ -107,14 +107,14 @@ export default function Login({ status, canResetPassword }) {
 						{status && (
 							<Alert
 								variant="success"
-								className="rounded-md border-success/20 bg-success/10 text-success"
+								className="rounded-xl border-success/20 bg-success/10 text-success"
 							>
 								<AlertDescription>{status}</AlertDescription>
 							</Alert>
 						)}
 
 						{googleError && (
-							<Alert variant="destructive" className="rounded-md">
+							<Alert variant="destructive" className="rounded-lg">
 								<AlertDescription>{googleError}</AlertDescription>
 							</Alert>
 						)}
@@ -133,7 +133,7 @@ export default function Login({ status, canResetPassword }) {
 									autoComplete="username"
 									placeholder="nama@email.com"
 									onChange={(e) => setData(e.target.name, e.target.value)}
-									className="h-11 w-full rounded-md border-border bg-background transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+									className="h-11 w-full rounded-xl border-border bg-background transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 								/>
 								{errors.email && <InputError message={errors.email} />}
 							</div>
@@ -162,13 +162,13 @@ export default function Login({ status, canResetPassword }) {
 										value={data.password}
 										placeholder="Masukkan kata sandi"
 										onChange={(e) => setData(e.target.name, e.target.value)}
-										className="h-11 w-full rounded-md border-border bg-background pr-12 transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+										className="h-11 w-full rounded-xl border-border bg-background pr-12 transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 									/>
 
 									<button
 										type="button"
 										onClick={() => setShowPassword(!showPassword)}
-										className="absolute right-1 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus:outline-none"
+										className="absolute right-1 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground focus:outline-none"
 										aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
 									>
 										{showPassword ? (
@@ -202,7 +202,7 @@ export default function Login({ status, canResetPassword }) {
 							<Button
 								type="submit"
 								disabled={processing || isGoogleLoading}
-								className="mt-2 h-11 w-full rounded-md bg-destructive text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:cursor-not-allowed disabled:opacity-70"
+								className="mt-2 h-11 w-full rounded-xl bg-destructive text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:cursor-not-allowed disabled:opacity-70"
 							>
 								{processing ? <IconLoader2 className="h-5 w-5 animate-spin" /> : 'Masuk Akun'}
 							</Button>
@@ -224,7 +224,7 @@ export default function Login({ status, canResetPassword }) {
 							variant="outline"
 							disabled={processing || isGoogleLoading}
 							onClick={handleGoogleLogin}
-							className="flex h-11 w-full items-center justify-center gap-2.5 rounded-md border border-border bg-background text-sm font-medium text-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-70"
+							className="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-background text-sm font-medium text-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-70"
 						>
 							{isGoogleLoading ? (
 								<IconLoader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -289,7 +289,7 @@ export default function Login({ status, canResetPassword }) {
 									download="Sisupit.apk"
 									className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-border bg-card px-6 font-medium text-foreground shadow-sm outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-muted-foreground/50 sm:w-auto"
 								>
-									<div className="flex items-center justify-center rounded-md bg-success/10 p-1">
+									<div className="flex items-center justify-center rounded-lg bg-success/10 p-1">
 										<IconBrandAndroid className="h-5 w-5 text-success" stroke={2} />
 									</div>
 									<span className="text-sm">Unduh Aplikasi Android</span>

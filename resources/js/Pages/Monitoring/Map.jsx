@@ -203,7 +203,7 @@ export default function MonitoringMap({ layers }) {
 					<span>${escapeHtml(address || 'Alamat tidak tersedia')}</span>
 				</div>
 				${extra}
-				<span class="inline-flex rounded-md border border-border bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">${escapeHtml(facilityStatusLabel(status))}</span>`);
+				<span class="inline-flex rounded-xl border border-border bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">${escapeHtml(facilityStatusLabel(status))}</span>`);
 
 		// Baris "regu yang meluncur" di popup kejadian (TASK_60), kosong bila belum ada regu.
 		// Nama regu masuk ke HTML mentah popup Leaflet, jadi WAJIB di-escape (#131).
@@ -230,7 +230,7 @@ export default function MonitoringMap({ layers }) {
 				// app.blade.php, jadi ia menang dua kali. Tanpa itu teks & panah tombol ini
 				// biru Leaflet di atas latar merah = praktis tak terbaca. Berlaku untuk SETIAP
 				// <a> di dalam popup Leaflet, bukan cuma yang ini.
-				// Sisa tokennya menyalin Button varian `destructive` (rounded-md, text-xs
+				// Sisa tokennya menyalin Button varian `destructive` (rounded-lg, text-xs
 				// font-semibold, shadow-sm, ikon 16px stroke-2) supaya sebentuk dengan tombol
 				// di halaman lain — bukan label mungil huruf kapital seperti sebelumnya.
 				const html = popupShell(`
@@ -240,8 +240,8 @@ export default function MonitoringMap({ layers }) {
 						<div class="flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>${escapeHtml(r.time)}</span></div>
 						${reguLine(r.regus)}
 					</div>
-					<span class="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-bold ${meta.badge}">${meta.label}</span>
-					<a href="${escapeHtml(detailUrl)}" data-report-detail="${escapeHtml(r.id)}" class="flex h-9 w-full items-center justify-center gap-2 rounded-md bg-destructive text-xs font-semibold !text-destructive-foreground no-underline shadow-sm hover:bg-destructive/90">
+					<span class="inline-flex rounded-xl border px-2 py-0.5 text-[10px] font-bold ${meta.badge}">${meta.label}</span>
+					<a href="${escapeHtml(detailUrl)}" data-report-detail="${escapeHtml(r.id)}" class="flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-destructive text-xs font-semibold !text-destructive-foreground no-underline shadow-sm hover:bg-destructive/90">
 						Lihat Detail
 						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
 					</a>`);
@@ -320,7 +320,7 @@ export default function MonitoringMap({ layers }) {
 					<div class="flex items-start gap-1.5 text-[11px] font-medium text-muted-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mt-px shrink-0"><path d="M12 21s-6-5.686-6-10a6 6 0 1 1 12 0c0 4.314-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg><span>${escapeHtml(d.area || '-')}</span></div>
 					${skillsLine}
 					<div class="text-[10px] italic text-muted-foreground/80">Posisi perkiraan (pusat wilayah)</div>
-					<span class="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-bold ${statusClass}">${escapeHtml(d.status)}</span>`);
+					<span class="inline-flex rounded-xl border px-2 py-0.5 text-[10px] font-bold ${statusClass}">${escapeHtml(d.status)}</span>`);
 				const m = window.L.marker([d.lat, d.lng], {
 					icon: glyphIcon(volunteerColor(d.status), GLYPH.volunteer),
 				}).bindPopup(html);
@@ -569,7 +569,7 @@ export default function MonitoringMap({ layers }) {
 						<button
 							type="button"
 							onClick={() => setPanelOpen(false)}
-							className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden"
+							className="flex h-6 w-6 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden"
 							aria-label="Tutup filter"
 						>
 							<IconX className="h-4 w-4" />

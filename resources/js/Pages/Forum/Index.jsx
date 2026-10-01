@@ -104,18 +104,18 @@ export default function Index({ threads, filters, wilayah, canModerate, pendingC
 									<CardContent className="flex flex-col gap-1.5 p-4">
 										<div className="flex flex-wrap items-center gap-2">
 											{thread.is_pinned && (
-												<span className="flex shrink-0 items-center gap-1 rounded-md border border-info/30 bg-info/10 px-2 py-0.5 text-[10px] font-bold uppercase text-info">
+												<span className="flex shrink-0 items-center gap-1 rounded-xl border border-info/30 bg-info/10 px-2 py-0.5 text-[10px] font-bold uppercase text-info">
 													<IconPin className="size-3" /> Disematkan
 												</span>
 											)}
 											{thread.status !== 'tampil' && <ForumStatusBadge status={thread.status} />}
 											{thread.has_official_answer && (
-												<span className="flex shrink-0 items-center gap-1 rounded-md border border-success/20 bg-success/10 px-2 py-0.5 text-[10px] font-bold uppercase text-success">
+												<span className="flex shrink-0 items-center gap-1 rounded-xl border border-success/20 bg-success/10 px-2 py-0.5 text-[10px] font-bold uppercase text-success">
 													<IconShieldCheck className="size-3" /> Dijawab Damkar
 												</span>
 											)}
 											{thread.has_accepted_answer && (
-												<span className="flex shrink-0 items-center gap-1 rounded-md border border-border bg-muted px-2 py-0.5 text-[10px] font-bold uppercase text-muted-foreground">
+												<span className="flex shrink-0 items-center gap-1 rounded-xl border border-border bg-muted px-2 py-0.5 text-[10px] font-bold uppercase text-muted-foreground">
 													<IconCircleCheck className="size-3" /> Terjawab
 												</span>
 											)}
@@ -147,7 +147,7 @@ export default function Index({ threads, filters, wilayah, canModerate, pendingC
 											href={link.url}
 											preserveScroll
 											className={cn(
-												'rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors',
+												'rounded-xl border px-3 py-1.5 text-xs font-semibold transition-colors',
 												link.active
 													? 'border-primary bg-primary text-primary-foreground shadow-sm'
 													: 'border-input bg-background text-muted-foreground hover:bg-accent hover:text-foreground',
@@ -157,7 +157,7 @@ export default function Index({ threads, filters, wilayah, canModerate, pendingC
 									) : (
 										<span
 											key={index}
-											className="cursor-not-allowed rounded-md border border-transparent px-3 py-1.5 text-xs font-semibold text-muted-foreground opacity-50"
+											className="cursor-not-allowed rounded-xl border border-transparent px-3 py-1.5 text-xs font-semibold text-muted-foreground opacity-50"
 											dangerouslySetInnerHTML={{ __html: link.label }}
 										/>
 									),

@@ -145,7 +145,7 @@ export default function Help({ instansi, legal }) {
 				<div className="pt-1">
 					<Link
 						href={route('front.reports.create')}
-						className="inline-flex h-10 items-center gap-2 rounded-md bg-destructive px-4 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90"
+						className="inline-flex h-10 items-center gap-2 rounded-lg bg-destructive px-4 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90"
 					>
 						<IconFlame className="size-4" stroke={2.4} />
 						Buka Formulir Lapor
@@ -243,7 +243,7 @@ function FaqItem({ question, answer }) {
 				type="button"
 				onClick={() => setOpen(!open)}
 				aria-expanded={open}
-				className="flex w-full items-start justify-between gap-3 rounded-md py-2.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-destructive"
+				className="flex w-full items-start justify-between gap-3 rounded-lg py-2.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-destructive"
 			>
 				<span className="text-sm font-semibold text-foreground">{question}</span>
 				<IconChevronDown

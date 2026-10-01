@@ -104,7 +104,7 @@ const INCIDENT_TAB = { fire: 'kebakaran', nonFire: 'non_kebakaran' };
 // Sebentuk dengan tab di halaman Syarat & Ketentuan (Pages/Info/Terms.jsx) — satu-satunya
 // pemakai Tabs yang sudah ada, supaya tab di sini tidak jadi dialek kedua.
 const incidentTabClass =
-	'flex items-center justify-center gap-2 rounded-md py-2 text-sm font-medium text-muted-foreground transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm';
+	'flex items-center justify-center gap-2 rounded-lg py-2 text-sm font-medium text-muted-foreground transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm';
 
 // Kedekatan peta saat operator memilih wilayah (TASK_28): makin dalam tingkatnya makin
 // rapat, supaya pin tinggal digeser sedikit dari titik tengah wilayah terpilih.
@@ -831,7 +831,7 @@ export default function Create(props) {
 				<div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
 					<Button
 						variant="outline"
-						className="h-9 rounded-md border-border bg-card px-4 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent"
+						className="h-9 rounded-xl border-border bg-card px-4 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent"
 						asChild
 					>
 						<Link href={route('dashboard')}>
@@ -857,19 +857,19 @@ export default function Create(props) {
 								{/* Header Lokasi & Status GPS — hijau siap / kuning kurang akurat / merah gagal */}
 								<div className="flex items-center gap-3 border-b border-border pb-1">
 									{locState === 'scanning' ? (
-										<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-md bg-info/10 text-info">
+										<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-info/10 text-info">
 											<IconLoader2 className="h-4 w-4 animate-spin" />
 										</div>
 									) : locState === 'ready' ? (
-										<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-md bg-success/10 text-success">
+										<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-success/10 text-success">
 											<IconMapPinFilled className="h-4 w-4" />
 										</div>
 									) : locState === 'weak' ? (
-										<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-md bg-warning/10 text-warning">
+										<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-warning/10 text-warning">
 											<IconAlertTriangle className="h-4 w-4" />
 										</div>
 									) : (
-										<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-md bg-destructive/10 text-destructive">
+										<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
 											<IconAlertTriangle className="h-4 w-4" />
 										</div>
 									)}
@@ -892,7 +892,7 @@ export default function Create(props) {
 								    telepon: operator tahu nama desanya, bukan titik petanya), padahal
 								    server mewajibkan desa untuk SETIAP laporan - jadi warga yang desanya
 								    tak tercocokkan tak punya satu pun cara membetulkannya. */}
-								<div className="space-y-3 rounded-md border border-border bg-muted/30 p-3">
+								<div className="space-y-3 rounded-xl border border-border bg-muted/30 p-3">
 									<div className="min-w-0">
 										<p className="text-xs font-semibold uppercase tracking-wider text-foreground">
 											Wilayah Kejadian
@@ -926,7 +926,7 @@ export default function Create(props) {
 													runSearch(searchQuery);
 												}}
 												placeholder="Ketik nama jalan, desa, atau tempat..."
-												className="h-10 rounded-md border-border bg-card pl-9 pr-10 focus-visible:ring-1 focus-visible:ring-destructive"
+												className="h-10 rounded-xl border-border bg-card pl-9 pr-10 focus-visible:ring-1 focus-visible:ring-destructive"
 											/>
 											{isSearching && (
 												<div className="pointer-events-none absolute right-3 top-1/2 flex -translate-y-1/2 items-center">
@@ -941,7 +941,7 @@ export default function Create(props) {
 											    server (cari ulang lalu disaring dengan awalan kata itu). */}
 										{(searchStatus === 'done' || searchStatus === 'error') &&
 											searchResults.length === 0 && (
-												<div className="absolute left-0 right-0 top-full z-[999] mt-1 rounded-md border border-border bg-popover p-3 text-xs text-muted-foreground shadow-lg">
+												<div className="absolute left-0 right-0 top-full z-[999] mt-1 rounded-xl border border-border bg-popover p-3 text-xs text-muted-foreground shadow-lg">
 													{searchStatus === 'error' ? (
 														<span className="text-destructive">
 															Pencarian gagal. Tekan Enter untuk mencoba lagi, atau pilih
@@ -962,7 +962,7 @@ export default function Create(props) {
 											)}
 
 										{searchResults.length > 0 && (
-											<div className="absolute left-0 right-0 top-full z-[999] mt-1 max-h-48 overflow-y-auto rounded-md border border-border bg-popover text-popover-foreground shadow-lg">
+											<div className="absolute left-0 right-0 top-full z-[999] mt-1 max-h-48 overflow-y-auto rounded-xl border border-border bg-popover text-popover-foreground shadow-lg">
 												{searchResults.map((res, idx) => (
 													<button
 														key={idx}
@@ -1041,7 +1041,7 @@ export default function Create(props) {
 								</div>
 
 								{/* Peta - pin bisa digeser untuk mengoreksi titik lokasi */}
-								<div className="relative z-0 h-[200px] w-full overflow-hidden rounded-md border border-border bg-muted shadow-inner sm:h-[250px]">
+								<div className="relative z-0 h-[200px] w-full overflow-hidden rounded-xl border border-border bg-muted shadow-inner sm:h-[250px]">
 									<UserLeafletMap
 										lat={data.lat}
 										lng={data.lng}
@@ -1063,7 +1063,7 @@ export default function Create(props) {
 									    manusia, tapi menyediakan tombol salin sekali klik. Ikut dibuka untuk
 									    warga (2026-09-01): ia satu-satunya umpan balik yang membuktikan pin
 									    yang baru digeser benar-benar mendarat di tempat yang dimaksud. */}
-								<div className="rounded-md border border-border bg-muted/30 p-3">
+								<div className="rounded-xl border border-border bg-muted/30 p-3">
 									<div className="flex items-start justify-between gap-2">
 										<div className="min-w-0">
 											<p className="text-xs font-semibold uppercase tracking-wider text-foreground">
@@ -1097,7 +1097,7 @@ export default function Create(props) {
 								{/* Notice arah laporan berdasarkan kota kejadian (TASK_17) */}
 								{data.city_code &&
 									(matchedTenant ? (
-										<div className="flex items-start gap-2 rounded-md border border-success/30 bg-success/10 p-2.5 text-[13px] text-success">
+										<div className="flex items-start gap-2 rounded-xl border border-success/30 bg-success/10 p-2.5 text-[13px] text-success">
 											<IconMapPinFilled className="mt-0.5 h-4 w-4 shrink-0" />
 											<span>
 												Laporan akan diarahkan ke{' '}
@@ -1105,7 +1105,7 @@ export default function Create(props) {
 											</span>
 										</div>
 									) : (
-										<div className="flex items-start gap-2 rounded-md border border-warning/30 bg-warning/10 p-2.5 text-[13px] text-warning">
+										<div className="flex items-start gap-2 rounded-xl border border-warning/30 bg-warning/10 p-2.5 text-[13px] text-warning">
 											<IconAlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
 											<span>
 												Kabupatenmu belum terdaftar di layanan ini. Laporan tetap tercatat,
@@ -1162,7 +1162,7 @@ export default function Create(props) {
 															onClick={() => selectIncidentType(type)}
 															aria-pressed={active}
 															className={cn(
-																'flex min-h-[72px] flex-col items-center justify-center gap-1.5 rounded-md border p-2 text-center transition-colors',
+																'flex min-h-[72px] flex-col items-center justify-center gap-1.5 rounded-xl border p-2 text-center transition-colors',
 																active
 																	? 'border-destructive bg-destructive/10 text-destructive'
 																	: 'border-border bg-card text-foreground hover:bg-accent',
@@ -1212,7 +1212,7 @@ export default function Create(props) {
 														: 'Contoh: Kebakaran gudang, tumpukan sampah, tiang listrik...'
 												}
 												onChange={onHandleChange}
-												className="mt-1.5 h-11 rounded-md border-border bg-card focus-visible:ring-1 focus-visible:ring-destructive"
+												className="mt-1.5 h-11 rounded-xl border-border bg-card focus-visible:ring-1 focus-visible:ring-destructive"
 											/>
 										</div>
 									)}
@@ -1232,7 +1232,7 @@ export default function Create(props) {
 										id="address"
 										value={data.address}
 										onChange={onHandleChange}
-										className="mt-1.5 h-10 rounded-md border-border bg-card focus-visible:ring-1 focus-visible:ring-destructive"
+										className="mt-1.5 h-10 rounded-xl border-border bg-card focus-visible:ring-1 focus-visible:ring-destructive"
 										placeholder="Contoh: Samping warung cat biru, gang buntu..."
 									/>
 									{errors.address && <InputError message={errors.address} className="mt-1" />}
@@ -1251,7 +1251,7 @@ export default function Create(props) {
 										value={data.description}
 										placeholder="Jelaskan detail situasi saat ini jika memungkinkan..."
 										onChange={onHandleChange}
-										className="mt-1.5 min-h-[100px] resize-y rounded-md border-border bg-card p-3 text-sm focus-visible:ring-1 focus-visible:ring-destructive"
+										className="mt-1.5 min-h-[100px] resize-y rounded-xl border-border bg-card p-3 text-sm focus-visible:ring-1 focus-visible:ring-destructive"
 									/>
 									{errors.description && <InputError message={errors.description} className="mt-1" />}
 								</div>
@@ -1267,7 +1267,7 @@ export default function Create(props) {
 										<button
 											type="button"
 											onClick={() => setShowPhotoSection((v) => !v)}
-											className="flex w-full items-center justify-between rounded-md border border-dashed border-border bg-muted/40 px-4 py-3 text-left transition-colors hover:bg-muted"
+											className="flex w-full items-center justify-between rounded-xl border border-dashed border-border bg-muted/40 px-4 py-3 text-left transition-colors hover:bg-muted"
 										>
 											<span className="flex items-center gap-2 text-sm font-semibold text-foreground">
 												<IconCloudUpload
@@ -1312,7 +1312,7 @@ export default function Create(props) {
 													{previews.map((p, i) => (
 														<div
 															key={i}
-															className="group relative h-32 w-full overflow-hidden rounded-md border border-border shadow-sm"
+															className="group relative h-32 w-full overflow-hidden rounded-xl border border-border shadow-sm"
 														>
 															<img
 																src={p.url}
@@ -1322,7 +1322,7 @@ export default function Create(props) {
 															<button
 																type="button"
 																onClick={() => removePhoto(i)}
-																className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-md border border-transparent bg-card/90 text-destructive shadow-sm backdrop-blur-sm transition-colors hover:border-destructive/30 hover:bg-destructive/10"
+																className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-lg border border-transparent bg-card/90 text-destructive shadow-sm backdrop-blur-sm transition-colors hover:border-destructive/30 hover:bg-destructive/10"
 																title="Hapus foto"
 															>
 																<IconX stroke={2.5} className="h-4 w-4" />
@@ -1333,7 +1333,7 @@ export default function Create(props) {
 														<button
 															type="button"
 															onClick={() => fileInputPhoto.current?.click()}
-															className="flex h-32 w-full flex-col items-center justify-center rounded-md border border-dashed border-border bg-muted/50 text-center text-muted-foreground transition-colors hover:bg-muted"
+															className="flex h-32 w-full flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 text-center text-muted-foreground transition-colors hover:bg-muted"
 														>
 															<IconCloudUpload className="mb-1 h-6 w-6" stroke={1.5} />
 															<span className="text-xs font-semibold">Tambah foto</span>
@@ -1343,9 +1343,9 @@ export default function Create(props) {
 											) : (
 												<div
 													onClick={() => fileInputPhoto.current?.click()}
-													className="flex cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-border bg-muted/50 p-8 text-center transition-colors hover:bg-muted"
+													className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 p-8 text-center transition-colors hover:bg-muted"
 												>
-													<div className="mb-4 flex h-12 w-12 items-center justify-center rounded-md border border-border bg-card shadow-sm">
+													<div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-card shadow-sm">
 														<IconCloudUpload
 															className="h-6 w-6 text-muted-foreground"
 															stroke={1.5}
@@ -1357,7 +1357,7 @@ export default function Create(props) {
 													<p className="mb-5 mt-1 text-[13px] text-muted-foreground">
 														Format PNG/JPG/WEBP (Maks. 2 MB / foto)
 													</p>
-													<span className="inline-flex h-9 items-center justify-center rounded-md bg-destructive px-5 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90">
+													<span className="inline-flex h-9 items-center justify-center rounded-lg bg-destructive px-5 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90">
 														Jelajahi File
 													</span>
 												</div>
@@ -1379,7 +1379,7 @@ export default function Create(props) {
 								{/* Varian & ukuran dari `Components/ui/button.jsx`, bukan kelas warna
 								    rakitan tangan: `destructive` + `xl` sudah persis inilah yang
 								    dimaksud (h-12, rounded-xl, hover & disabled ikut). Bentuk lama
-								    menyalin warnanya sendiri lalu memakai `rounded-md`, sehingga
+								    menyalin warnanya sendiri lalu memakai `rounded-lg`, sehingga
 								    tombol utama halaman ini bersudut lebih tajam daripada tombol
 								    utama halaman lain tanpa ada yang menyadarinya. Kembarannya di
 								    sticky bar mobile memakai varian yang SAMA supaya keduanya tak

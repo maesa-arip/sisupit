@@ -44,7 +44,7 @@ export default function ForgotPassword({ status }) {
 						{status && (
 							<Alert
 								variant="success"
-								className="rounded-md border-success/20 bg-success/10 text-success"
+								className="rounded-xl border-success/20 bg-success/10 text-success"
 							>
 								<AlertDescription>{status}</AlertDescription>
 							</Alert>
@@ -62,7 +62,7 @@ export default function ForgotPassword({ status }) {
 									value={data.email}
 									placeholder="nama@email.com"
 									onChange={(e) => setData('email', e.target.value)}
-									className="h-11 w-full rounded-md border-border bg-background transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+									className="h-11 w-full rounded-xl border-border bg-background transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 								/>
 								{errors.email && <InputError message={errors.email} />}
 							</div>
@@ -70,7 +70,7 @@ export default function ForgotPassword({ status }) {
 							<Button
 								type="submit"
 								disabled={processing}
-								className="mt-2 h-11 w-full rounded-md bg-destructive text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:cursor-not-allowed disabled:opacity-70"
+								className="mt-2 h-11 w-full rounded-xl bg-destructive text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:cursor-not-allowed disabled:opacity-70"
 							>
 								{processing ? <IconLoader2 className="h-5 w-5 animate-spin" /> : 'Kirim Tautan Reset'}
 							</Button>

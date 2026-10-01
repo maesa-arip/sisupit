@@ -474,7 +474,7 @@ export default function Create({ tenant_location, provinces, cities, districts, 
 							</h4>
 
 							{jurisdictionWarning && (
-								<div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-2.5 text-destructive">
+								<div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-2.5 text-destructive">
 									<IconAlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
 									<p className="text-[11px] font-medium leading-relaxed">
 										Titik pin terdeteksi di luar {jurisdictionWarning.level} wilayah tugas Anda (

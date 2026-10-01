@@ -205,7 +205,7 @@ export default function Form(props) {
 								<img
 									src={currentFoto}
 									alt="Foto pejabat saat ini"
-									className="h-24 w-24 rounded-md border object-cover"
+									className="h-24 w-24 rounded-xl border object-cover"
 								/>
 							)}
 							<Input
@@ -286,7 +286,7 @@ export default function Form(props) {
 							{errors.alamat_instansi && <InputError message={errors.alamat_instansi} />}
 						</div>
 
-						<div className="flex items-start gap-3 rounded-md border border-border bg-accent/40 p-3">
+						<div className="flex items-start gap-3 rounded-xl border border-border bg-accent/40 p-3">
 							<IconInfoCircle className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
 							<p className="text-xs leading-relaxed text-muted-foreground">
 								Data ini hanya mengatur <b>wajah publik</b> kabupaten (Spotlight, halaman "Laporan

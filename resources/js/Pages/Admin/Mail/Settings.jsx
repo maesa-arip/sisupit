@@ -86,7 +86,7 @@ export default function Settings({ settings, encryption_options = [], feature_en
 			/>
 
 			{!feature_enabled && (
-				<div className="flex items-start gap-3 rounded-md border border-warning/20 bg-warning/10 p-3 text-warning">
+				<div className="flex items-start gap-3 rounded-xl border border-warning/20 bg-warning/10 p-3 text-warning">
 					<IconAlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
 					<p className="text-xs font-medium leading-relaxed">
 						Fitur Email Dinas belum dinyalakan untuk kabupaten ini. Pengaturan di bawah tetap bisa disimpan,
@@ -100,7 +100,7 @@ export default function Settings({ settings, encryption_options = [], feature_en
 					
 					<CardContent className="p-5 sm:p-6">
 						<form className="space-y-5" onSubmit={onHandleSubmit}>
-							<div className="flex items-start gap-3 rounded-md border border-info/20 bg-info/10 p-3 text-info">
+							<div className="flex items-start gap-3 rounded-xl border border-info/20 bg-info/10 p-3 text-info">
 								<IconInfoCircle className="mt-0.5 h-5 w-5 shrink-0" />
 								<p className="text-xs font-medium leading-relaxed">
 									Alamat di bawah dipakai sekaligus sebagai nama akun kotak surat. Untuk Google
@@ -219,7 +219,7 @@ export default function Settings({ settings, encryption_options = [], feature_en
 								{errors.mail_signature && <InputError message={errors.mail_signature} />}
 							</div>
 
-							<div className="flex items-start gap-3 rounded-md border border-border bg-muted/40 p-3">
+							<div className="flex items-start gap-3 rounded-xl border border-border bg-muted/40 p-3">
 								{terakhirDiuji ? (
 									<IconCircleCheck className="mt-0.5 h-5 w-5 shrink-0 text-success" />
 								) : (

@@ -43,7 +43,7 @@ export default function VerifyEmail({ status }) {
 						{status === 'verification-link-sent' && (
 							<Alert
 								variant="success"
-								className="rounded-md border-success/20 bg-success/10 text-success"
+								className="rounded-xl border-success/20 bg-success/10 text-success"
 							>
 								<AlertDescription>
 									Tautan verifikasi baru telah dikirimkan ke alamat email yang Anda berikan saat
@@ -56,7 +56,7 @@ export default function VerifyEmail({ status }) {
 							<Button
 								type="submit"
 								disabled={processing}
-								className="h-11 w-full rounded-md bg-destructive text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:cursor-not-allowed disabled:opacity-70"
+								className="h-11 w-full rounded-xl bg-destructive text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:cursor-not-allowed disabled:opacity-70"
 							>
 								{processing ? <IconLoader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
 								Kirim Ulang Email Verifikasi

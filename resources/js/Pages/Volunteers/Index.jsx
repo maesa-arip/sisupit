@@ -61,7 +61,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 							<Input
 								type="text"
 								placeholder="Cari nama relawan..."
-								className="h-10 w-full rounded-md border-border bg-muted pl-9 text-sm focus-visible:ring-1 focus-visible:ring-destructive"
+								className="h-10 w-full rounded-xl border-border bg-muted pl-9 text-sm focus-visible:ring-1 focus-visible:ring-destructive"
 								value={data.search}
 								onChange={(e) => setData('search', e.target.value)}
 							/>
@@ -140,7 +140,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 									variant="ghost"
 									onClick={handleReset}
 									disabled={processing}
-									className="h-10 rounded-md text-muted-foreground hover:text-foreground sm:w-auto"
+									className="h-10 rounded-lg text-muted-foreground hover:text-foreground sm:w-auto"
 								>
 									<IconFilterX className="mr-1.5 h-4 w-4" /> Reset Filter
 								</Button>
@@ -148,7 +148,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 							<Button
 								type="submit"
 								disabled={processing}
-								className="h-10 rounded-md bg-destructive px-6 font-medium text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50"
+								className="h-10 rounded-lg bg-destructive px-6 font-medium text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50"
 							>
 								Terapkan Filter
 							</Button>
@@ -216,7 +216,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 										volunteer.skills.map((skill, index) => (
 											<span
 												key={index}
-												className="flex items-center gap-1 rounded-md border border-border bg-muted px-2 py-1 text-[10px] font-medium text-foreground/80"
+												className="flex items-center gap-1 rounded-xl border border-border bg-muted px-2 py-1 text-[10px] font-medium text-foreground/80"
 											>
 												<IconMedal className="h-3 w-3 text-destructive" stroke={1.5} />
 												{skill}
@@ -231,7 +231,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 
 								<Button
 									variant="outline"
-									className="h-9 w-full rounded-md border-border bg-card text-foreground/80 transition-colors hover:bg-muted"
+									className="h-9 w-full rounded-xl border-border bg-card text-foreground/80 transition-colors hover:bg-muted"
 									asChild
 								>
 									<Link
@@ -265,7 +265,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 								key={index}
 								href={link.url || ''}
 								preserveScroll
-								className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+								className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
 									link.active
 										? 'bg-primary text-primary-foreground'
 										: 'border border-border bg-card text-foreground/80 hover:bg-muted'

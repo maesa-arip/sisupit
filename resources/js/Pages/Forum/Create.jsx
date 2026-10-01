@@ -99,7 +99,7 @@ export default function Create({ wilayah, needsApproval }) {
 						</div>
 
 						{needsApproval && (
-							<div className="flex items-start gap-3 rounded-md border border-border bg-accent/40 p-3">
+							<div className="flex items-start gap-3 rounded-xl border border-border bg-accent/40 p-3">
 								<IconInfoCircle className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
 								<p className="text-xs leading-relaxed text-muted-foreground">
 									Pertanyaan ditinjau admin Damkar sebelum tayang. Sampai disetujui, hanya Anda dan

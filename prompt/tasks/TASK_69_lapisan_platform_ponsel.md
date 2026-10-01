@@ -202,3 +202,27 @@ status kini `flex-wrap` & primer (dulu aksen merah destructive untuk SEMUA keada
 pil primer; form dipecah jadi kartu bergrup (Detail fasilitas dst.). Penjaga hydrant/SKKL di
 `AppleDesignMaterialTest` diperluas ke FireStations - MERAH terhadap 3 berkas HEAD, pulih byte-exact.
 Suite 647 passed (3146 assertions).
+
+## 12. Bagian 7 — semua halaman (permintaan user 2026-10-01: "rombak semua halaman")
+
+91 berkas halaman; 19 sudah dirombak penuh (Users, Hydrant, SKKL, Pos Pemadam + komponen bersama).
+Sisanya dikerjakan BERTINGKAT menurut templat, bukan ditulis ulang satu per satu:
+- **7a, form & daftar CRUD admin** (Roles, Permissions, RouteAccesses, Announcements, AssignPermissions,
+  Agencies, MailContacts, Units, Mail, Settings, NotificationLevel, Tenants, Banjars): skrip berpengurai
+  tag `<Button>` (atribut `onClick={() => ...}` memuat '>' yang mematahkan regex) - Kembali outline-pil,
+  Simpan primer h-11, Atur ulang ghost, "Uji koneksi" outline, kartu form `max-w-2xl` di tengah. Modal hapus
+  `z-[9999]` di 4 Index -> `AlertDialog`; rujukan `state.x` di keterangannya diubah ke `state?.x` karena
+  Radix tetap merender konten selama animasi tutup saat state sudah null (tanpa itu: TypeError tepat saat
+  dialog ditutup). Aksen teal dekoratif Units & aksen SELEKSI Verifikasi Laporan -> primer; teal status
+  "Penanganan" (keputusan produk) TETAP.
+- **7b, radius seluruh halaman:** `rounded-md` dihapus dari semua halaman (kecuali Guideline & dead code
+  Front/Settings) - kotak berbingkai & tombol merah besar `rounded-xl`, sisanya `rounded-lg` (272 baris).
+  Tombol "Lihat Detail" popup Peta Pemantauan ikut `rounded-lg` karena penjaganya
+  (`LeafletPopupLinkContrastTest`) mengunci bentuknya = Button `destructive`, dan Button kini `rounded-lg` -
+  test itu diperbarui, niatnya tetap.
+- **Sengaja TIDAK:** tombol submit halaman depan sempat ikut tersapu skrip 7a lalu DIKEMBALIKAN dari
+  cadangan - kelasnya buatan tangan sehingga tambahan kelas menumpuk & bertentangan; halaman itu cukup lewat
+  primitif + radius. Struktur Form Lapor (1.437 baris) & Detail Insiden (2.903 baris) TIDAK dirombak
+  (jalur darurat, banyak penjaga) - keduanya ikut lewat primitif & radius saja. Gradien di Login/Register
+  (scrim foto) & Landing (hero) bukan sisa gaya lama, dibiarkan.
+- Penjaga: `AppleDesignMaterialTest` + kasus radius (MERAH terhadap Login HEAD). Suite 648 passed (3147).

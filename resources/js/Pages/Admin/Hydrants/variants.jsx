@@ -152,7 +152,7 @@ export const hydrantVariant = (variant) => HYDRANT_VARIANTS[variant] ?? HYDRANT_
  *      tidak: pill bundar itu satu-satunya di halaman admin dan jadi terbaca sebagai chip
  *      filter, bukan perpindahan halaman.
  *   v4 (ini, permintaan user 2026-08-20) memakai <Button> yang sama persis dengan tombol
- *      "Hydrant Warga" & "Tambah Aset SKKL" di /admin/pumps — sudut `rounded-md`, tinggi `sm`.
+ *      "Hydrant Warga" & "Tambah Aset SKKL" di /admin/pumps — sudut `rounded-lg`, tinggi `sm`.
  *      Halaman ini dan SKKL saling merujuk terus-menerus, jadi tombolnya wajib sebentuk.
  *
  * `counts` ditempel inline dalam kurung, bukan sebagai baris kedua — menambah informasi

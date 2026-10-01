@@ -12,7 +12,7 @@ const formatTanggal = (value) => {
 };
 
 const tabTriggerClass =
-	'flex items-center justify-center gap-2 rounded-md py-2 text-sm font-medium text-muted-foreground transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm';
+	'flex items-center justify-center gap-2 rounded-lg py-2 text-sm font-medium text-muted-foreground transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm';
 
 /**
  * Syarat & Ketentuan. Dua dokumen dalam satu halaman bertab karena audiensnya berbeda:

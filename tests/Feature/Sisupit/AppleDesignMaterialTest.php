@@ -164,3 +164,19 @@ it('reworks the hydrant, SKKL and fire-station screens like user management', fu
         }
     }
 });
+
+it('keeps every page on the larger apple radii instead of the old rounded-md', function () {
+    $offenders = [];
+    $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(resource_path('js/Pages')));
+    foreach ($files as $file) {
+        $path = str_replace(DIRECTORY_SEPARATOR, '/', $file->getPathname());
+        if ($file->getExtension() !== 'jsx' || str_contains($path, 'Pages/Front/Settings') || str_ends_with($path, 'Pages/Guideline.jsx')) {
+            continue;
+        }
+        if (preg_match('/\brounded-md\b/', appleSource(substr($file->getPathname(), strlen(base_path()) + 1)))) {
+            $offenders[] = basename($path);
+        }
+    }
+
+    expect($offenders)->toBe([]);
+});

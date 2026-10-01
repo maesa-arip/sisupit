@@ -97,7 +97,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 								value={data.name}
 								onChange={onHandleChange}
 								autoComplete="name"
-								className="h-10 rounded-md border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive"
+								className="h-10 rounded-xl border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive"
 							/>
 							{errors.name && <InputError message={errors.name} />}
 						</div>
@@ -112,7 +112,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 								value={data.email}
 								onChange={onHandleChange}
 								autoComplete="email"
-								className="h-10 rounded-md border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive"
+								className="h-10 rounded-xl border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive"
 							/>
 							{errors.email && <InputError message={errors.email} />}
 						</div>
@@ -127,7 +127,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 								value={data.phone}
 								onChange={onHandleChange}
 								autoComplete="tel"
-								className="h-10 rounded-md border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive"
+								className="h-10 rounded-xl border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive"
 							/>
 							{errors.phone && <InputError message={errors.phone} />}
 						</div>
@@ -145,7 +145,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 								onChange={onHandleChange}
 								autoComplete="street-address"
 								placeholder="Jalan, nomor rumah, desa, kabupaten"
-								className="h-10 rounded-md border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive"
+								className="h-10 rounded-xl border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive"
 							/>
 							<p className="text-xs text-muted-foreground">
 								Hanya catatan. Tidak mengubah wilayah akun maupun notifikasi yang Anda terima.
@@ -179,7 +179,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 											<button
 												type="button"
 												onClick={removePhoto}
-												className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-md border border-transparent bg-background/90 text-destructive shadow-sm backdrop-blur-sm transition-colors hover:border-destructive/20 hover:bg-destructive/10"
+												className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-lg border border-transparent bg-background/90 text-destructive shadow-sm backdrop-blur-sm transition-colors hover:border-destructive/20 hover:bg-destructive/10"
 												title="Batal gunakan file ini"
 											>
 												<IconX stroke={2} className="h-4 w-4" />
@@ -196,7 +196,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 								>
 									<IconCamera className="mb-1.5 h-5 w-5 text-muted-foreground" />
 									<p className="mb-3 text-xs text-muted-foreground">PNG/JPG, maks. 2 MB</p>
-									<label className="inline-flex h-8 cursor-pointer items-center justify-center rounded-md border border-border bg-background px-4 text-xs font-medium text-foreground transition-colors focus-within:ring-2 focus-within:ring-destructive/50 hover:bg-accent">
+									<label className="inline-flex h-8 cursor-pointer items-center justify-center rounded-xl border border-border bg-background px-4 text-xs font-medium text-foreground transition-colors focus-within:ring-2 focus-within:ring-destructive/50 hover:bg-accent">
 										{previewUrl || user.ktp ? 'Ganti File' : 'Browse Files'}
 										<input
 											name="ktp"
@@ -215,7 +215,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 					</div>
 
 					{mustVerifyEmail && user.email_verified_at === null && (
-						<div className="mt-2 rounded-md border border-border bg-muted p-4">
+						<div className="mt-2 rounded-xl border border-border bg-muted p-4">
 							<p className="text-sm text-foreground">
 								Alamat email Anda belum diverifikasi.
 								<Link
@@ -240,7 +240,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 
 					<div className="flex items-center gap-4 pt-2">
 						<Button
-							className="h-9 rounded-md bg-destructive px-4 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50"
+							className="h-9 rounded-lg bg-destructive px-4 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50"
 							disabled={processing || compressing}
 						>
 							Simpan Perubahan

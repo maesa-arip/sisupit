@@ -87,7 +87,7 @@ export function ForumStatusBadge({ status }) {
 	const meta = forumStatusMeta(status);
 
 	return (
-		<span className={cn('shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase', meta.tone)}>
+		<span className={cn('shrink-0 rounded-xl border px-2 py-0.5 text-[10px] font-bold uppercase', meta.tone)}>
 			{meta.label}
 		</span>
 	);

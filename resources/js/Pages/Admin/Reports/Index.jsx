@@ -185,7 +185,7 @@ function ExportDialog({ open, onOpenChange, search }) {
 						<Label
 							key={option}
 							htmlFor={`export-${option}`}
-							className="flex cursor-pointer items-center gap-3 rounded-md border p-3 hover:bg-accent"
+							className="flex cursor-pointer items-center gap-3 rounded-xl border p-3 hover:bg-accent"
 						>
 							<RadioGroupItem value={option} id={`export-${option}`} />
 							{STATUS_META[option]?.dot && (
@@ -257,7 +257,7 @@ function StatusBadge({ status }) {
 	return (
 		<Badge
 			variant="outline"
-			className={cn('whitespace-nowrap rounded-md px-2 py-0.5 font-bold shadow-none', active.badge)}
+			className={cn('whitespace-nowrap rounded-lg px-2 py-0.5 font-bold shadow-none', active.badge)}
 		>
 			{active.label}
 		</Badge>
@@ -287,7 +287,7 @@ function MetaChip({ icon: Icon, children, tone = 'muted' }) {
 	return (
 		<span
 			className={cn(
-				'inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px] font-semibold',
+				'inline-flex items-center gap-1 rounded-xl border px-1.5 py-0.5 text-[11px] font-semibold',
 				CHIP_TONE[tone],
 			)}
 		>
@@ -416,7 +416,7 @@ export default function Index(props) {
 					onClick={() => setParams((prev) => ({ ...prev, status: 'TERLAPOR' }))}
 					className="flex items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-left transition-colors hover:bg-destructive/15"
 				>
-					<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-destructive/15 text-destructive">
+					<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-destructive/15 text-destructive">
 						<IconAlertTriangle className="h-4 w-4" />
 					</span>
 					<span className="text-sm font-semibold text-destructive">
@@ -640,7 +640,7 @@ export default function Index(props) {
 														href={link.url}
 														preserveScroll
 														className={cn(
-															'rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors',
+															'rounded-xl border px-3 py-1.5 text-xs font-semibold transition-colors',
 															link.active
 																? TEAL_ACCENT.pageActive
 																: 'border-input bg-background text-muted-foreground hover:bg-accent hover:text-foreground',
@@ -650,7 +650,7 @@ export default function Index(props) {
 												) : (
 													<span
 														key={index}
-														className="cursor-not-allowed rounded-md border border-transparent px-3 py-1.5 text-xs font-semibold text-muted-foreground opacity-50"
+														className="cursor-not-allowed rounded-xl border border-transparent px-3 py-1.5 text-xs font-semibold text-muted-foreground opacity-50"
 														dangerouslySetInnerHTML={{ __html: link.label }}
 													/>
 												),

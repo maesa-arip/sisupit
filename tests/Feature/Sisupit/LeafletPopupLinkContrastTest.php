@@ -45,8 +45,9 @@ it('keeps the detail button on the destructive button tokens', function () use (
     // destructive-foreground adalah persis keadaan yang dilaporkan user.
     expect($classes)->toContain('bg-destructive')
         ->and($classes)->toContain('!text-destructive-foreground')
-        // Bentuknya menyalin Button varian `destructive`, bukan dialek khusus peta.
-        ->and($classes)->toContain('rounded-md')
+        // Bentuknya menyalin Button varian `destructive`, bukan dialek khusus peta - radius Button
+        // primitif rounded-lg sejak TASK_69 (apple-design), jadi tombol popup ikut.
+        ->and($classes)->toContain('rounded-lg')
         ->and($classes)->toContain('text-xs')
         // Label mungil huruf kapital sudah ditinggalkan sejak kluster H (#37).
         ->and($classes)->not->toContain('uppercase')

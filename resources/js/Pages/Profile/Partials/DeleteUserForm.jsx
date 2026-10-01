@@ -76,7 +76,7 @@ export default function DeleteUserForm({ className = '', hasPassword = true }) {
 					<Button
 						variant="destructive"
 						onClick={confirmUserDeletion}
-						className="h-9 rounded-md bg-destructive px-4 text-sm font-medium transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50"
+						className="h-9 rounded-lg bg-destructive px-4 text-sm font-medium transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50"
 					>
 						Hapus Akun Permanen
 					</Button>
@@ -108,7 +108,7 @@ export default function DeleteUserForm({ className = '', hasPassword = true }) {
 								value={data[field]}
 								onChange={(e) => setData(field, e.target.value)}
 								autoComplete="off"
-								className="block h-10 w-full rounded-md border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive sm:w-3/4"
+								className="block h-10 w-full rounded-xl border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive sm:w-3/4"
 								placeholder={hasPassword ? 'Masukkan kata sandi Anda' : 'HAPUS'}
 							/>
 							{errors[field] && <InputError message={errors[field]} className="mt-2" />}
@@ -118,14 +118,14 @@ export default function DeleteUserForm({ className = '', hasPassword = true }) {
 							<Button
 								type="button"
 								variant="outline"
-								className="h-9 rounded-md border-border bg-card text-foreground hover:bg-accent"
+								className="h-9 rounded-xl border-border bg-card text-foreground hover:bg-accent"
 								onClick={closeModal}
 							>
 								Batal
 							</Button>
 							<Button
 								variant="destructive"
-								className="h-9 rounded-md bg-destructive hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50"
+								className="h-9 rounded-lg bg-destructive hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50"
 								disabled={processing}
 							>
 								Ya, Hapus Akun Saya

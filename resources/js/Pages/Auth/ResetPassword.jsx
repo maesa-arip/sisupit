@@ -62,7 +62,7 @@ export default function ResetPassword({ token, email }) {
 									autoComplete="username"
 									readOnly
 									onChange={(e) => setData('email', e.target.value)}
-									className="h-11 w-full cursor-not-allowed rounded-md border-border bg-muted text-muted-foreground transition-colors focus-visible:ring-0"
+									className="h-11 w-full cursor-not-allowed rounded-xl border-border bg-muted text-muted-foreground transition-colors focus-visible:ring-0"
 								/>
 								{errors.email && <InputError message={errors.email} />}
 							</div>
@@ -81,12 +81,12 @@ export default function ResetPassword({ token, email }) {
 										autoComplete="new-password"
 										placeholder="••••••••"
 										onChange={(e) => setData('password', e.target.value)}
-										className="h-11 w-full rounded-md border-border bg-background pr-11 transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+										className="h-11 w-full rounded-xl border-border bg-background pr-11 transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 									/>
 									<button
 										type="button"
 										onClick={() => setShowPassword(!showPassword)}
-										className="absolute right-0.5 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus:outline-none"
+										className="absolute right-0.5 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground focus:outline-none"
 										aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
 									>
 										{showPassword ? (
@@ -113,12 +113,12 @@ export default function ResetPassword({ token, email }) {
 										autoComplete="new-password"
 										placeholder="••••••••"
 										onChange={(e) => setData('password_confirmation', e.target.value)}
-										className="h-11 w-full rounded-md border-border bg-background pr-11 transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+										className="h-11 w-full rounded-xl border-border bg-background pr-11 transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 									/>
 									<button
 										type="button"
 										onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-										className="absolute right-0.5 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus:outline-none"
+										className="absolute right-0.5 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground focus:outline-none"
 										aria-label={
 											showConfirmPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'
 										}
@@ -136,7 +136,7 @@ export default function ResetPassword({ token, email }) {
 							<Button
 								type="submit"
 								disabled={processing}
-								className="mt-4 h-11 w-full rounded-md bg-destructive text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:cursor-not-allowed disabled:opacity-70"
+								className="mt-4 h-11 w-full rounded-xl bg-destructive text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:cursor-not-allowed disabled:opacity-70"
 							>
 								{processing ? <IconLoader2 className="h-5 w-5 animate-spin" /> : 'Simpan Sandi Baru'}
 							</Button>

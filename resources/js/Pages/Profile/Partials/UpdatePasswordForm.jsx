@@ -68,7 +68,7 @@ export default function UpdatePasswordForm({ className = '' }) {
 							onChange={onHandleChange}
 							type="password"
 							autoComplete="current-password"
-							className="h-10 rounded-md border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive"
+							className="h-10 rounded-xl border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive"
 						/>
 						{errors.current_password && <InputError message={errors.current_password} />}
 					</div>
@@ -85,7 +85,7 @@ export default function UpdatePasswordForm({ className = '' }) {
 							onChange={onHandleChange}
 							type="password"
 							autoComplete="new-password"
-							className="h-10 rounded-md border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive"
+							className="h-10 rounded-xl border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive"
 						/>
 						{errors.password && <InputError message={errors.password} />}
 					</div>
@@ -101,14 +101,14 @@ export default function UpdatePasswordForm({ className = '' }) {
 							onChange={onHandleChange}
 							type="password"
 							autoComplete="new-password"
-							className="h-10 rounded-md border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive"
+							className="h-10 rounded-xl border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive"
 						/>
 						{errors.password_confirmation && <InputError message={errors.password_confirmation} />}
 					</div>
 
 					<div className="flex items-center gap-4 pt-2">
 						<Button
-							className="h-9 rounded-md bg-destructive px-4 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50"
+							className="h-9 rounded-lg bg-destructive px-4 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50"
 							disabled={processing}
 						>
 							Perbarui Kata Sandi
