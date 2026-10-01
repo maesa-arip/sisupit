@@ -28,6 +28,11 @@ function appleClassesAround(string $path, string $needle): array
 it('defines both materials with a blur and a solid fallback for reduced transparency and high contrast', function () {
     $css = appleSource('resources/css/app.css');
 
+    // Opasitas minimum (koreksi user 2026-10-01): menu di bawah ini membuat data di belakangnya tembus.
+    expect(preg_match('/\.material-thick\s*\{[^}]*hsl\(var\(--popover\) \/ (0\.\d+)\)/', $css, $thick))->toBe(1)
+        ->and((float) $thick[1])->toBeGreaterThanOrEqual(0.95);
+    expect(preg_match('/\.material-chrome\s*\{[^}]*hsl\(var\(--background\) \/ (0\.\d+)\)/', $css, $chrome))->toBe(1)
+        ->and((float) $chrome[1])->toBeGreaterThanOrEqual(0.85);
     expect($css)->toMatch('/\.material-chrome\s*\{[^}]*backdrop-filter:\s*blur\(/')
         ->and($css)->toMatch('/\.material-thick\s*\{[^}]*backdrop-filter:\s*blur\(/')
         ->and($css)->toMatch('/@media \(prefers-reduced-transparency: reduce\), \(prefers-contrast: more\)\s*\{[^@]*backdrop-filter:\s*none/')

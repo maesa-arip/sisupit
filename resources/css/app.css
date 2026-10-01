@@ -178,15 +178,19 @@
 	/* MATERIAL (apple-design §12): lapisan tembus pandang yang konten-nya bergulir di bawahnya.
 	   `chrome` = pita navigasi (header & bilah bawah), lebih tipis; `thick` = permukaan yang
 	   melayang di atas konten (popover, menu, select), lebih buram & berbayang lebih dalam.
+	   OPASITAS DIKOREKSI user 2026-10-01 ("menu yang dibuka terlalu transparan, masih tabrakan dengan
+	   data di belakangnya"): thick 82% -> 96%, chrome 72% -> 85%. Daftar/tabel di belakang menu tetap
+	   terbaca di 82% - JANGAN turunkan lagi demi efek kaca; apple-design §12 sendiri: tembus pandang yang
+	   membuat teks bertumpuk adalah kegagalan, bukan gaya.
 	   JANGAN tambahkan `bg-*` di elemen yang sama - utilitas menang atas komponen dan materialnya
 	   jadi padat tanpa galat. Tak pernah menumpuk material terang di atas material terang. */
 	.material-chrome {
-		background-color: hsl(var(--background) / 0.72);
+		background-color: hsl(var(--background) / 0.85);
 		-webkit-backdrop-filter: blur(20px) saturate(180%);
 		backdrop-filter: blur(20px) saturate(180%);
 	}
 	.material-thick {
-		background-color: hsl(var(--popover) / 0.82);
+		background-color: hsl(var(--popover) / 0.96);
 		-webkit-backdrop-filter: blur(28px) saturate(180%);
 		backdrop-filter: blur(28px) saturate(180%);
 	}

@@ -226,3 +226,18 @@ Sisanya dikerjakan BERTINGKAT menurut templat, bukan ditulis ulang satu per satu
   (jalur darurat, banyak penjaga) - keduanya ikut lewat primitif & radius saja. Gradien di Login/Register
   (scrim foto) & Landing (hero) bukan sisa gaya lama, dibiarkan.
 - Penjaga: `AppleDesignMaterialTest` + kasus radius (MERAH terhadap Login HEAD). Suite 648 passed (3147).
+
+## 13. Koreksi user 2026-10-01 - menu terlalu transparan & bilah sistem APK tak ikut mode
+
+- **Menu tembus:** "menu yang dibuka terlalu transparan, masih tabrakan terlihat dengan data dibelakangnya".
+  `material-thick` 82% -> 96%, `material-chrome` 72% -> 85%. Penjaga kini mengunci BATAS MINIMUM
+  (thick >= 0,95, chrome >= 0,85), MERAH terhadap CSS lama.
+- **Status bar & navigation bar APK tak ikut mode gelap/terang** (di prod benar). AKARNYA DI WRAPPER, bukan
+  web: prod memakai APK 1.1.4 (targetSdk 34), APK uji dev = 1.1.5 (targetSdk 36). Sejak targetSdk 35,
+  Android 15+ memaksa edge-to-edge dan MENGABAIKAN `setStatusBarColor`/`setNavigationBarColor` - yang tampil
+  di area bilah adalah LATAR view akar yang diberi padding inset (dipasang 1.1.5), yang tak pernah diwarnai.
+  Ikon bilah tetap ikut mode lewat `setAppearanceLight*`, jadi di mode gelap: bilah putih + ikon terang.
+  Fix di `MainActivity.java` (cadangan `.bak-insetbg`): view akar jadi field `rootView`, warnanya + decorView
+  ikut warna halaman di `onBackgroundColorDetected`, dan `set{Status,Navigation}BarContrastEnforced(false)`
+  (API 29+, tanpa itu bilah 3-tombol dilapisi scrim abu). **AAB Play Store 1.1.5 yang sudah dibangun
+  MEMBAWA BUG YANG SAMA** - wajib dibangun ulang sebelum diunggah.
