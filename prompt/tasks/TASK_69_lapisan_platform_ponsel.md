@@ -258,3 +258,22 @@ Isian yang DIWAJIBKAN server tidak dihapus (form tetap harus tersimpan); selebih
   primitif 2xl/border tipis/bayangan halus; warna bermakna & className dinamis dibiarkan); skala judul
   seksi diseragamkan (38 judul, 14 berkas - headline 17px, label seksi 13px abu).
 - Suite 648 passed (3153). Form Lapor & Detail Insiden: hanya lewat primitif, sapuan, & skala judul.
+
+## 15. Bagian 9 - Form Lapor & Detail Insiden dirombak (user 2026-10-01: "rombak juga form lapor dan detail insiden")
+
+LOGIKA TIDAK DISENTUH - hanya pembungkus & kelas; seluruh isi (handler, gerbang, teks yang dijaga test,
+input tersembunyi, bilah Kirim sticky `bottom-[calc(4rem+...)]`) dipindah utuh. 12 berkas test yang membaca
+kedua layar (120 test) hijau sebelum & sesudah.
+- **Form Lapor (`Front/Reports/Create.jsx`):** kartu tunggal dicabut. Kini "Batal" bertint + judul besar,
+  lalu LIMA kartu bergrup berjudul kecil di luar kartu: Lokasi kejadian (status GPS, peta lebih tinggi,
+  alamat otomatis, catatan tujuan laporan) -> Wilayah kejadian (cari + 4 dropdown; DIPINDAH ke bawah peta
+  karena ia koreksi atas titik) -> Jenis kejadian (tab = segmented control) -> Keterangan -> Foto.
+  JEBAKAN yang dihindari: kartu seksi ditulis sebagai MARKUP, bukan komponen yang didefinisikan di dalam
+  fungsi render - komponen seperti itu dipasang ulang tiap render dan peta Leaflet akan dibangun ulang tiap
+  ketikan.
+- **Detail Insiden (`Front/Reports/Show.jsx`):** bilah atas ala navigasi iOS ("Kembali" & "Ubah" bertint,
+  judul besar tanpa huruf kapital semua, status pil + nomor laporan); 6 modal tanpa penimpa kotak lama;
+  kepala kartu tanpa pita abu; 11 label medan mikro -> 13px; tombol/tautan kapital tebal -> normal; kepala
+  tabel kehadiran regu normal-case; garis pemisah tipis. Tombol "Edit" pelapor kini berbunyi "Ubah".
+- Penjaga baru di `AppleDesignMaterialTest` (5 judul seksi, tanpa <Card>, bilah sticky utuh; navigasi
+  Kembali, judul tanpa uppercase, modal tanpa kotak lama) - MERAH terhadap HEAD. Suite 649 passed (3163).

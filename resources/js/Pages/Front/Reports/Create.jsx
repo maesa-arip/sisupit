@@ -1,6 +1,5 @@
 import InputError from '@/Components/InputError';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Combobox } from '@/Components/ui/combobox';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
@@ -827,558 +826,573 @@ export default function Create(props) {
 	return (
 		<div className="relative w-full pb-40 lg:pb-8">
 			<div className="mx-auto flex w-full max-w-3xl flex-col space-y-6">
-				{/* Header Section */}
-				<div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
+				{/* Kepala ala iOS (TASK_69, apple-design): "Batal" bertint di kiri atas, judul besar di bawahnya. */}
+				<div className="-mb-2 flex items-center">
 					<Button
-						variant="outline"
-						className="h-9 rounded-xl border-border bg-card px-4 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent"
+						variant="ghost"
+						className="-ml-3 h-10 rounded-full px-3 text-[15px] font-medium text-primary hover:bg-primary/10 hover:text-primary"
 						asChild
 					>
 						<Link href={route('dashboard')}>
-							<IconArrowLeft className="mr-2 h-4 w-4" />
+							<IconArrowLeft className="h-5 w-5" />
 							Batal
 						</Link>
 					</Button>
 				</div>
+				<div>
+					<h1 className="text-[28px] font-bold leading-tight tracking-tight text-foreground lg:text-3xl">
+						Kirim Laporan Darurat
+					</h1>
+					<p className="mt-1 text-[15px] text-muted-foreground">
+						Mohon lengkapi formulir di bawah agar relawan dapat segera membantu Anda.
+					</p>
+				</div>
 
-				{/* Form Card */}
-				<Card className="overflow-hidden">
-					<CardHeader className="border-b border-border bg-transparent pb-5">
-						<CardTitle className="text-[17px] font-semibold tracking-tight text-foreground">
-							Kirim Laporan Darurat
-						</CardTitle>
-						<CardDescription className="mt-1 text-sm text-muted-foreground">
-							Mohon lengkapi formulir di bawah agar relawan dapat segera membantu Anda.
-						</CardDescription>
-					</CardHeader>
+				<form id="reportForm" className="space-y-7" onSubmit={onHandleSubmit}>
+					{/* --- BAGIAN LOKASI --- */}
+					<section className="space-y-2">
+						<h2 className="px-4 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+							Lokasi kejadian
+						</h2>
+						<div className="space-y-4 rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
+							{/* Header Lokasi & Status GPS — hijau siap / kuning kurang akurat / merah gagal */}
+							<div className="flex items-center gap-3">
+								{locState === 'scanning' ? (
+									<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-info/10 text-info">
+										<IconLoader2 className="h-4 w-4 animate-spin" />
+									</div>
+								) : locState === 'ready' ? (
+									<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-success/10 text-success">
+										<IconMapPinFilled className="h-4 w-4" />
+									</div>
+								) : locState === 'weak' ? (
+									<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-warning/10 text-warning">
+										<IconAlertTriangle className="h-4 w-4" />
+									</div>
+								) : (
+									<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+										<IconAlertTriangle className="h-4 w-4" />
+									</div>
+								)}
 
-					<CardContent className="p-5 sm:p-6">
-						<form id="reportForm" className="space-y-6" onSubmit={onHandleSubmit}>
-							{/* --- BAGIAN LOKASI --- */}
-							<div className="space-y-3">
-								{/* Header Lokasi & Status GPS — hijau siap / kuning kurang akurat / merah gagal */}
-								<div className="flex items-center gap-3 border-b border-border pb-1">
-									{locState === 'scanning' ? (
-										<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-info/10 text-info">
-											<IconLoader2 className="h-4 w-4 animate-spin" />
-										</div>
-									) : locState === 'ready' ? (
-										<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-success/10 text-success">
-											<IconMapPinFilled className="h-4 w-4" />
-										</div>
-									) : locState === 'weak' ? (
-										<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-warning/10 text-warning">
-											<IconAlertTriangle className="h-4 w-4" />
-										</div>
-									) : (
-										<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
-											<IconAlertTriangle className="h-4 w-4" />
-										</div>
+								<div className="min-w-0 flex-1 pb-2">
+									<p className="text-[15px] font-semibold text-foreground">{locTitle}</p>
+									{locSubtitle && !locationLoading && (
+										<p className="mt-0.5 truncate text-[13px] text-muted-foreground">
+											{locSubtitle}
+										</p>
 									)}
-
-									<div className="min-w-0 flex-1 pb-2">
-										<p className="text-sm font-semibold uppercase tracking-wide text-foreground">
-											{locTitle}
-										</p>
-										{locSubtitle && !locationLoading && (
-											<p className="mt-0.5 truncate text-[13px] text-muted-foreground">
-												{locSubtitle}
-											</p>
-										)}
-									</div>
 								</div>
+							</div>
 
-								{/* --- WILAYAH KEJADIAN — untuk SEMUA pelapor sejak 2026-09-01 ---
-								    Satu mode: titik peta yang menentukan wilayah, dan memilih wilayah
-								    melompatkan titiknya. Blok ini dulu hanya untuk Pusat Komando (alur
-								    telepon: operator tahu nama desanya, bukan titik petanya), padahal
-								    server mewajibkan desa untuk SETIAP laporan - jadi warga yang desanya
-								    tak tercocokkan tak punya satu pun cara membetulkannya. */}
-								<div className="space-y-3 rounded-xl border border-border bg-muted/30 p-3">
-									<div className="min-w-0">
-										<p className="text-xs font-semibold uppercase tracking-wide text-foreground">
-											Wilayah Kejadian
-										</p>
-										<p className="mt-0.5 text-[13px] text-muted-foreground">
-											Terisi otomatis dari titik peta. Cari nama tempat atau betulkan lewat
-											pilihan di bawah bila meleset.
-										</p>
-									</div>
+							{/* Peta - pin bisa digeser untuk mengoreksi titik lokasi */}
+							<div className="relative z-0 h-[220px] w-full overflow-hidden rounded-xl bg-muted sm:h-[280px]">
+								<UserLeafletMap
+									lat={data.lat}
+									lng={data.lng}
+									draggable
+									autoLocate={false}
+									onLocationChange={handleMarkerDrag}
+									zoom={mapZoom}
+									clickToPlace
+								/>
+							</div>
+							<p className="mt-1.5 text-xs text-muted-foreground">
+								Klik peta atau geser pin merah ke titik kejadian - wilayah di atas ikut menyesuaikan
+								otomatis.
+							</p>
 
-									{/* Cari lokasi (pola Admin/Hydrants/Create): ketik nama jalan/tempat,
-										    pilih hasilnya → pin melompat & keempat dropdown terisi sendiri. */}
-									<div className="relative grid gap-1.5">
-										<Label className="text-sm font-medium text-foreground/80">
-											Cari Lokasi Kejadian{' '}
-											<span className="font-normal text-muted-foreground">(min. 3 huruf)</span>
-										</Label>
-
-										<div className="relative w-full">
-											<IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-											<Input
-												value={searchQuery}
-												onChange={(e) => setSearchQuery(e.target.value)}
-												onKeyDown={(e) => {
-													if (e.key !== 'Enter') return;
-
-													// Kotak ini ada DI DALAM <form> laporan: tanpa
-													// preventDefault, Enter mengirim laporan darurat.
-													// Enter di sini artinya "cari sekarang".
-													e.preventDefault();
-													runSearch(searchQuery);
-												}}
-												placeholder="Ketik nama jalan, desa, atau tempat..."
-												className="h-10 rounded-xl border-border bg-card pl-9 pr-10 focus-visible:ring-1 focus-visible:ring-destructive"
-											/>
-											{isSearching && (
-												<div className="pointer-events-none absolute right-3 top-1/2 flex -translate-y-1/2 items-center">
-													<IconLoader2 className="h-4 w-4 animate-spin text-destructive" />
-												</div>
-											)}
-										</div>
-
-										{/* Hasil kosong & permintaan gagal DITAMPILKAN, tidak dibiarkan
-											    senyap: dulu keduanya sama-sama "tidak terjadi apa-apa".
-											    Kata terakhir yang belum selesai diketik sudah ditangani
-											    server (cari ulang lalu disaring dengan awalan kata itu). */}
-										{(searchStatus === 'done' || searchStatus === 'error') &&
-											searchResults.length === 0 && (
-												<div className="absolute left-0 right-0 top-full z-[999] mt-1 rounded-xl border border-border bg-popover p-3 text-xs text-muted-foreground shadow-lg">
-													{searchStatus === 'error' ? (
-														<span className="text-destructive">
-															Pencarian gagal. Tekan Enter untuk mencoba lagi, atau pilih
-															wilayah lewat dropdown di bawah.
-														</span>
-													) : (
-														<>
-															Tidak ada hasil untuk
-															<span className="font-semibold text-foreground">
-																{' '}
-																{searchQuery.trim()}
-															</span>
-															. Coba kata kunci lain, atau pilih wilayah lewat dropdown di
-															bawah.
-														</>
-													)}
-												</div>
-											)}
-
-										{searchResults.length > 0 && (
-											<div className="absolute left-0 right-0 top-full z-[999] mt-1 max-h-48 overflow-y-auto rounded-xl border border-border bg-popover text-popover-foreground shadow-lg">
-												{searchResults.map((res, idx) => (
-													<button
-														key={idx}
-														type="button"
-														onClick={() => selectSearchResult(res)}
-														className="flex w-full gap-2 border-b border-border px-3 py-2.5 text-left text-xs transition-colors last:border-0 hover:bg-accent"
-													>
-														<IconCurrentLocation className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
-														<div className="min-w-0 flex-1">
-															<p className="truncate font-semibold">
-																{alamatTerbaca(res.name) ||
-																	alamatTerbaca(res.display_name).split(',')[0]}
-															</p>
-															<p className="mt-0.5 truncate text-muted-foreground">
-																{alamatTerbaca(res.display_name)}
-															</p>
-														</div>
-													</button>
-												))}
-											</div>
-										)}
-									</div>
-
-									<div className="grid gap-3 sm:grid-cols-2">
-										<div className="grid gap-1.5">
-											<Label className="text-sm font-medium text-foreground/80">Provinsi</Label>
-											<Combobox
-												items={provinces}
-												value={data.province_code}
-												onChange={(val) => selectRegion('province', val)}
-												placeholder="Pilih Provinsi..."
-											/>
-											{errors.province_code && <InputError message={errors.province_code} />}
-										</div>
-
-										<div className="grid gap-1.5">
-											<Label className="text-sm font-medium text-foreground/80">
-												Kabupaten / Kota
-											</Label>
-											<Combobox
-												items={cities}
-												value={data.city_code}
-												disabled={!data.province_code}
-												onChange={(val) => selectRegion('city', val)}
-												placeholder="Pilih Kabupaten/Kota..."
-											/>
-											{errors.city_code && <InputError message={errors.city_code} />}
-										</div>
-
-										<div className="grid gap-1.5">
-											<Label className="text-sm font-medium text-foreground/80">Kecamatan</Label>
-											<Combobox
-												items={districts}
-												value={data.district_code}
-												disabled={!data.city_code}
-												onChange={(val) => selectRegion('district', val)}
-												placeholder="Pilih Kecamatan..."
-											/>
-											{errors.district_code && <InputError message={errors.district_code} />}
-										</div>
-
-										<div className="grid gap-1.5">
-											<Label className="text-sm font-medium text-foreground/80">
-												Desa / Kelurahan
-											</Label>
-											<Combobox
-												items={villages}
-												value={data.village_code}
-												disabled={!data.district_code}
-												onChange={(val) => selectRegion('village', val)}
-												placeholder="Pilih Desa/Kelurahan..."
-											/>
-											{errors.village_code && <InputError message={errors.village_code} />}
-										</div>
-									</div>
-								</div>
-
-								{/* Peta - pin bisa digeser untuk mengoreksi titik lokasi */}
-								<div className="relative z-0 h-[200px] w-full overflow-hidden rounded-xl border border-border bg-muted shadow-inner sm:h-[250px]">
-									<UserLeafletMap
-										lat={data.lat}
-										lng={data.lng}
-										draggable
-										autoLocate={false}
-										onLocationChange={handleMarkerDrag}
-										zoom={mapZoom}
-										clickToPlace
-									/>
-								</div>
-								<p className="mt-1.5 text-xs text-muted-foreground">
-									Klik peta atau geser pin merah ke titik kejadian - wilayah di atas ikut menyesuaikan
-									otomatis.
-								</p>
-
-								{/* Alamat lengkap hasil reverse-geocode. TIGA keadaan yang selalu terlihat —
+							{/* Alamat lengkap hasil reverse-geocode. TIGA keadaan yang selalu terlihat —
 									    mencari / ketemu / belum ada — supaya menggeser pin tidak pernah terasa
 									    "diam tanpa hasil". Read-only: mesin tidak menimpa patokan yang diketik
 									    manusia, tapi menyediakan tombol salin sekali klik. Ikut dibuka untuk
 									    warga (2026-09-01): ia satu-satunya umpan balik yang membuktikan pin
 									    yang baru digeser benar-benar mendarat di tempat yang dimaksud. */}
-								<div className="rounded-xl border border-border bg-muted/30 p-3">
-									<div className="flex items-start justify-between gap-2">
-										<div className="min-w-0">
-											<p className="text-xs font-semibold uppercase tracking-wide text-foreground">
-												Alamat Lengkap (otomatis)
-											</p>
-											<p className="mt-0.5 break-words text-[13px] text-muted-foreground">
-												{locationLoading
-													? 'Mencari alamat titik ini...'
-													: data.geo_address ||
-														'Belum ada - klik peta atau geser pin ke titik kejadian.'}
-											</p>
-										</div>
+							<div className="rounded-xl bg-muted/50 p-3">
+								<div className="flex items-start justify-between gap-2">
+									<div className="min-w-0">
+										<p className="text-[13px] font-semibold text-foreground">
+											Alamat lengkap (otomatis)
+										</p>
+										<p className="mt-0.5 break-words text-[13px] text-muted-foreground">
+											{locationLoading
+												? 'Mencari alamat titik ini...'
+												: data.geo_address ||
+													'Belum ada - klik peta atau geser pin ke titik kejadian.'}
+										</p>
+									</div>
 
-										{data.geo_address && !locationLoading && (
-											<Button
-												type="button"
-												variant="outline"
-												size="sm"
-												className="h-8 shrink-0 text-xs"
-												onClick={() => {
-													setData('address', data.geo_address);
-													toast.success('Alamat disalin ke Patokan Lokasi.');
-												}}
-											>
-												Salin ke patokan
-											</Button>
+									{data.geo_address && !locationLoading && (
+										<Button
+											type="button"
+											variant="outline"
+											size="sm"
+											className="h-8 shrink-0 text-xs"
+											onClick={() => {
+												setData('address', data.geo_address);
+												toast.success('Alamat disalin ke Patokan Lokasi.');
+											}}
+										>
+											Salin ke patokan
+										</Button>
+									)}
+								</div>
+							</div>
+
+							{/* Notice arah laporan berdasarkan kota kejadian (TASK_17) */}
+							{data.city_code &&
+								(matchedTenant ? (
+									<div className="flex items-start gap-2 rounded-xl border border-success/30 bg-success/10 p-2.5 text-[13px] text-success">
+										<IconMapPinFilled className="mt-0.5 h-4 w-4 shrink-0" />
+										<span>
+											Laporan akan diarahkan ke{' '}
+											<span className="font-semibold">{matchedTenant.nama_instansi}</span>.
+										</span>
+									</div>
+								) : (
+									<div className="flex items-start gap-2 rounded-xl border border-warning/30 bg-warning/10 p-2.5 text-[13px] text-warning">
+										<IconAlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+										<span>
+											Kabupatenmu belum terdaftar di layanan ini. Laporan tetap tercatat, namun
+											untuk darurat segera hubungi{' '}
+											<span className="font-bold text-destructive">{NOMOR_DARURAT_NASIONAL}</span>
+											.
+										</span>
+									</div>
+								))}
+
+							{/* Data Administratif (DISEMBUNYIKAN SEPENUHNYA DARI USER) */}
+							<input type="hidden" name="lat" value={data.lat} />
+							<input type="hidden" name="lng" value={data.lng} />
+							<input type="hidden" name="province_code" value={data.province_code} />
+							<input type="hidden" name="city_code" value={data.city_code} />
+							<input type="hidden" name="district_code" value={data.district_code} />
+							<input type="hidden" name="village_code" value={data.village_code} />
+							<input type="hidden" name="road" value={data.road} />
+						</div>
+					</section>
+
+					<section className="space-y-2">
+						<h2 className="px-4 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+							Wilayah kejadian
+						</h2>
+						<div className="space-y-4 rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
+							{/* --- WILAYAH KEJADIAN — untuk SEMUA pelapor sejak 2026-09-01 ---
+								    Satu mode: titik peta yang menentukan wilayah, dan memilih wilayah
+								    melompatkan titiknya. Blok ini dulu hanya untuk Pusat Komando (alur
+								    telepon: operator tahu nama desanya, bukan titik petanya), padahal
+								    server mewajibkan desa untuk SETIAP laporan - jadi warga yang desanya
+								    tak tercocokkan tak punya satu pun cara membetulkannya. */}
+							<div className="space-y-4">
+								<div className="min-w-0">
+									<p className="text-[13px] text-muted-foreground">
+										Terisi otomatis dari titik peta. Cari nama tempat atau betulkan lewat pilihan di
+										bawah bila meleset.
+									</p>
+								</div>
+
+								{/* Cari lokasi (pola Admin/Hydrants/Create): ketik nama jalan/tempat,
+										    pilih hasilnya → pin melompat & keempat dropdown terisi sendiri. */}
+								<div className="relative grid gap-1.5">
+									<Label className="text-sm font-medium text-foreground/80">
+										Cari Lokasi Kejadian{' '}
+										<span className="font-normal text-muted-foreground">(min. 3 huruf)</span>
+									</Label>
+
+									<div className="relative w-full">
+										<IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+										<Input
+											value={searchQuery}
+											onChange={(e) => setSearchQuery(e.target.value)}
+											onKeyDown={(e) => {
+												if (e.key !== 'Enter') return;
+
+												// Kotak ini ada DI DALAM <form> laporan: tanpa
+												// preventDefault, Enter mengirim laporan darurat.
+												// Enter di sini artinya "cari sekarang".
+												e.preventDefault();
+												runSearch(searchQuery);
+											}}
+											placeholder="Ketik nama jalan, desa, atau tempat..."
+											className="h-11 rounded-xl border-border bg-card pl-9 pr-10 focus-visible:ring-2 focus-visible:ring-primary/30"
+										/>
+										{isSearching && (
+											<div className="pointer-events-none absolute right-3 top-1/2 flex -translate-y-1/2 items-center">
+												<IconLoader2 className="h-4 w-4 animate-spin text-destructive" />
+											</div>
 										)}
 									</div>
-								</div>
 
-								{/* Notice arah laporan berdasarkan kota kejadian (TASK_17) */}
-								{data.city_code &&
-									(matchedTenant ? (
-										<div className="flex items-start gap-2 rounded-xl border border-success/30 bg-success/10 p-2.5 text-[13px] text-success">
-											<IconMapPinFilled className="mt-0.5 h-4 w-4 shrink-0" />
-											<span>
-												Laporan akan diarahkan ke{' '}
-												<span className="font-semibold">{matchedTenant.nama_instansi}</span>.
-											</span>
-										</div>
-									) : (
-										<div className="flex items-start gap-2 rounded-xl border border-warning/30 bg-warning/10 p-2.5 text-[13px] text-warning">
-											<IconAlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-											<span>
-												Kabupatenmu belum terdaftar di layanan ini. Laporan tetap tercatat,
-												namun untuk darurat segera hubungi{' '}
-												<span className="font-bold text-destructive">
-													{NOMOR_DARURAT_NASIONAL}
-												</span>
-												.
-											</span>
-										</div>
-									))}
-
-								{/* Data Administratif (DISEMBUNYIKAN SEPENUHNYA DARI USER) */}
-								<input type="hidden" name="lat" value={data.lat} />
-								<input type="hidden" name="lng" value={data.lng} />
-								<input type="hidden" name="province_code" value={data.province_code} />
-								<input type="hidden" name="city_code" value={data.city_code} />
-								<input type="hidden" name="district_code" value={data.district_code} />
-								<input type="hidden" name="village_code" value={data.village_code} />
-								<input type="hidden" name="road" value={data.road} />
-							</div>
-
-							{/* --- BAGIAN FORM INFORMASI --- */}
-							<div className="space-y-4 pt-2">
-								{/* Jenis kejadian: dua tab (kebakaran / non kebakaran), masing-masing berikon
-								    kendaraan yang diberangkatkan — permintaan user 2026-08-27. */}
-								<div>
-									<Tabs value={incidentTab} onValueChange={selectIncidentTab} className="w-full">
-										<TabsList className="grid h-fit w-full grid-cols-2 rounded-lg border border-border bg-muted p-1">
-											<TabsTrigger value={INCIDENT_TAB.fire} className={incidentTabClass}>
-												<IconFiretruck size={18} stroke={1.5} /> Kebakaran
-											</TabsTrigger>
-											<TabsTrigger value={INCIDENT_TAB.nonFire} className={incidentTabClass}>
-												<IconAmbulance size={18} stroke={1.5} /> Non Kebakaran
-											</TabsTrigger>
-										</TabsList>
-
-										{/* TAB A: KEBAKARAN — pilihan cepat (tombol besar) agar warga tak mengetik */}
-										<TabsContent
-											value={INCIDENT_TAB.fire}
-											className="mt-4 outline-none focus-visible:ring-0"
-										>
-											<h3 className="border-b border-border/70 pb-2 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
-												Apa yang terbakar?
-											</h3>
-											<div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
-												{FIRE_INCIDENT_TYPES.map((type) => {
-													const Icon = type.icon;
-													const active = data.incident_type === type.value;
-													return (
-														<button
-															key={type.value}
-															type="button"
-															onClick={() => selectIncidentType(type)}
-															aria-pressed={active}
-															className={cn(
-																'flex min-h-[72px] flex-col items-center justify-center gap-1.5 rounded-xl border p-2 text-center transition-colors',
-																active
-																	? 'border-destructive bg-destructive/10 text-destructive'
-																	: 'border-border bg-card text-foreground hover:bg-accent',
-															)}
-														>
-															<Icon className="h-6 w-6" stroke={1.5} />
-															<span className="text-xs font-semibold leading-tight">
-																{type.label}
-															</span>
-														</button>
-													);
-												})}
-											</div>
-										</TabsContent>
-
-										{/* TAB B: NON KEBAKARAN — jenisnya sudah ditentukan oleh tabnya sendiri,
-										    jadi tak ada tombol pilihan; langsung diketik di isian bawah. */}
-										<TabsContent
-											value={INCIDENT_TAB.nonFire}
-											className="mt-4 outline-none focus-visible:ring-0"
-										>
-											<h3 className="border-b border-border/70 pb-2 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
-												Darurat apa yang terjadi?
-											</h3>
-										</TabsContent>
-									</Tabs>
-
-									{errors.incident_type && (
-										<InputError message={errors.incident_type} className="mt-1" />
-									)}
-
-									{/* Judul teks bebas: darurat non-kebakaran & kebakaran "Lainnya". Ditulis
-									    SEKALI di luar tab supaya kedua tab tidak memelihara isian kembar. */}
-									{needsFreeTitle && (
-										<div className="mt-3">
-											<Label htmlFor="title" className="text-sm font-medium text-foreground/80">
-												Jelaskan jenis kejadian
-											</Label>
-											<Input
-												name="title"
-												id="title"
-												value={data.title}
-												type="text"
-												placeholder={
-													isOther
-														? 'Contoh: Pohon tumbang, evakuasi, kabel putus...'
-														: 'Contoh: Kebakaran gudang, tumpukan sampah, tiang listrik...'
-												}
-												onChange={onHandleChange}
-												className="mt-1.5 h-11 rounded-xl border-border bg-card focus-visible:ring-1 focus-visible:ring-destructive"
-											/>
-										</div>
-									)}
-									{errors.title && <InputError message={errors.title} className="mt-1" />}
-								</div>
-
-								{/* Patokan Manual — wajib untuk darurat non-kebakaran, opsional untuk kebakaran */}
-								<div>
-									<Label htmlFor="address" className="text-sm font-medium text-foreground/80">
-										Patokan Lokasi{' '}
-										<span className="font-normal text-muted-foreground">
-											{isOther ? '(Wajib)' : '(Opsional)'}
-										</span>
-									</Label>
-									<Input
-										name="address"
-										id="address"
-										value={data.address}
-										onChange={onHandleChange}
-										className="mt-1.5 h-10 rounded-xl border-border bg-card focus-visible:ring-1 focus-visible:ring-destructive"
-										placeholder="Contoh: Samping warung cat biru, gang buntu..."
-									/>
-									{errors.address && <InputError message={errors.address} className="mt-1" />}
-								</div>
-
-								<div>
-									<Label htmlFor="description" className="text-sm font-medium text-foreground/80">
-										Detail Kejadian{' '}
-										<span className="font-normal text-muted-foreground">
-											{isOther ? '(Wajib)' : '(Opsional)'}
-										</span>
-									</Label>
-									<Textarea
-										name="description"
-										id="description"
-										value={data.description}
-										placeholder="Jelaskan detail situasi saat ini jika memungkinkan..."
-										onChange={onHandleChange}
-										className="mt-1.5 min-h-[100px] resize-y rounded-xl border-border bg-card p-3 text-sm focus-visible:ring-1 focus-visible:ring-destructive"
-									/>
-									{errors.description && <InputError message={errors.description} className="mt-1" />}
-								</div>
-
-								{/* --- BAGIAN UPLOAD FOTO (collapsible) --- */}
-								<div className="pt-2">
-									{isOther ? (
-										<Label className="text-sm font-medium text-foreground/80">
-											Foto Bukti Kejadian{' '}
-											<span className="font-normal text-muted-foreground">(Opsional)</span>
-										</Label>
-									) : (
-										<button
-											type="button"
-											onClick={() => setShowPhotoSection((v) => !v)}
-											className="flex w-full items-center justify-between rounded-xl border border-dashed border-border bg-muted/40 px-4 py-3 text-left transition-colors hover:bg-muted"
-										>
-											<span className="flex items-center gap-2 text-sm font-semibold text-foreground">
-												<IconCloudUpload
-													className="h-5 w-5 text-muted-foreground"
-													stroke={1.5}
-												/>
-												Tambah foto jika aman
-											</span>
-											<IconChevronDown
-												className={cn(
-													'h-4 w-4 text-muted-foreground transition-transform',
-													photoExpanded && 'rotate-180',
-												)}
-											/>
-										</button>
-									)}
-
-									{/* Pesan keselamatan — jangan ambil risiko demi foto */}
-									<p className="mt-2 flex items-start gap-1.5 text-[13px] text-muted-foreground">
-										<IconAlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
-										{isOther
-											? 'Foto opsional, tapi membantu petugas menilai situasi. Tetap utamakan keselamatan Anda.'
-											: 'Foto opsional. Jangan mendekat ke api hanya untuk mengambil foto.'}
-									</p>
-
-									{/* Satu input file tersembunyi, dipakai upload box & tombol "Tambah" */}
-									<input
-										name="photos"
-										id="photos"
-										type="file"
-										accept="image/*"
-										multiple
-										ref={fileInputPhoto}
-										onChange={handlePhotosChange}
-										className="sr-only"
-									/>
-
-									{photoExpanded && (
-										<div className="mt-3">
-											{previews.length > 0 ? (
-												<div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-													{previews.map((p, i) => (
-														<div
-															key={i}
-															className="group relative h-32 w-full overflow-hidden rounded-xl border border-border shadow-sm"
-														>
-															<img
-																src={p.url}
-																alt={`Preview ${i + 1}`}
-																className="h-full w-full object-cover"
-															/>
-															<button
-																type="button"
-																onClick={() => removePhoto(i)}
-																className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-lg border border-transparent bg-card/90 text-destructive shadow-sm backdrop-blur-sm transition-colors hover:border-destructive/30 hover:bg-destructive/10"
-																title="Hapus foto"
-															>
-																<IconX stroke={2.5} className="h-4 w-4" />
-															</button>
-														</div>
-													))}
-													{data.photos.length < MAX_PHOTOS && (
-														<button
-															type="button"
-															onClick={() => fileInputPhoto.current?.click()}
-															className="flex h-32 w-full flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 text-center text-muted-foreground transition-colors hover:bg-muted"
-														>
-															<IconCloudUpload className="mb-1 h-6 w-6" stroke={1.5} />
-															<span className="text-xs font-semibold">Tambah foto</span>
-														</button>
-													)}
-												</div>
-											) : (
-												<div
-													onClick={() => fileInputPhoto.current?.click()}
-													className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 p-8 text-center transition-colors hover:bg-muted"
-												>
-													<div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-card shadow-sm">
-														<IconCloudUpload
-															className="h-6 w-6 text-muted-foreground"
-															stroke={1.5}
-														/>
-													</div>
-													<p className="text-sm font-semibold text-foreground">
-														Pilih foto kejadian
-													</p>
-													<p className="mb-5 mt-1 text-[13px] text-muted-foreground">
-														Format PNG/JPG/WEBP (Maks. 2 MB / foto)
-													</p>
-													<span className="inline-flex h-9 items-center justify-center rounded-lg bg-destructive px-5 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90">
-														Jelajahi File
+									{/* Hasil kosong & permintaan gagal DITAMPILKAN, tidak dibiarkan
+											    senyap: dulu keduanya sama-sama "tidak terjadi apa-apa".
+											    Kata terakhir yang belum selesai diketik sudah ditangani
+											    server (cari ulang lalu disaring dengan awalan kata itu). */}
+									{(searchStatus === 'done' || searchStatus === 'error') &&
+										searchResults.length === 0 && (
+											<div className="absolute left-0 right-0 top-full z-[999] mt-1 rounded-xl border border-border bg-popover p-3 text-xs text-muted-foreground shadow-lg">
+												{searchStatus === 'error' ? (
+													<span className="text-destructive">
+														Pencarian gagal. Tekan Enter untuk mencoba lagi, atau pilih
+														wilayah lewat dropdown di bawah.
 													</span>
-												</div>
-											)}
+												) : (
+													<>
+														Tidak ada hasil untuk
+														<span className="font-semibold text-foreground">
+															{' '}
+															{searchQuery.trim()}
+														</span>
+														. Coba kata kunci lain, atau pilih wilayah lewat dropdown di
+														bawah.
+													</>
+												)}
+											</div>
+										)}
+
+									{searchResults.length > 0 && (
+										<div className="absolute left-0 right-0 top-full z-[999] mt-1 max-h-48 overflow-y-auto rounded-xl border border-border bg-popover text-popover-foreground shadow-lg">
+											{searchResults.map((res, idx) => (
+												<button
+													key={idx}
+													type="button"
+													onClick={() => selectSearchResult(res)}
+													className="flex w-full gap-2 border-b border-border px-3 py-2.5 text-left text-xs transition-colors last:border-0 hover:bg-accent"
+												>
+													<IconCurrentLocation className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+													<div className="min-w-0 flex-1">
+														<p className="truncate font-semibold">
+															{alamatTerbaca(res.name) ||
+																alamatTerbaca(res.display_name).split(',')[0]}
+														</p>
+														<p className="mt-0.5 truncate text-muted-foreground">
+															{alamatTerbaca(res.display_name)}
+														</p>
+													</div>
+												</button>
+											))}
 										</div>
 									)}
-									{errors.photos && <InputError message={errors.photos} className="mt-1" />}
-									{/* Galat per berkas bernama photos.0, photos.1, ... - bukan `photos`. */}
-									{Object.entries(errors)
-										.filter(([key]) => key.startsWith('photos.'))
-										.map(([key, message]) => (
-											<InputError key={key} message={message} className="mt-1" />
-										))}
+								</div>
+
+								<div className="grid gap-3 sm:grid-cols-2">
+									<div className="grid gap-1.5">
+										<Label className="text-sm font-medium text-foreground/80">Provinsi</Label>
+										<Combobox
+											items={provinces}
+											value={data.province_code}
+											onChange={(val) => selectRegion('province', val)}
+											placeholder="Pilih Provinsi..."
+										/>
+										{errors.province_code && <InputError message={errors.province_code} />}
+									</div>
+
+									<div className="grid gap-1.5">
+										<Label className="text-sm font-medium text-foreground/80">
+											Kabupaten / Kota
+										</Label>
+										<Combobox
+											items={cities}
+											value={data.city_code}
+											disabled={!data.province_code}
+											onChange={(val) => selectRegion('city', val)}
+											placeholder="Pilih Kabupaten/Kota..."
+										/>
+										{errors.city_code && <InputError message={errors.city_code} />}
+									</div>
+
+									<div className="grid gap-1.5">
+										<Label className="text-sm font-medium text-foreground/80">Kecamatan</Label>
+										<Combobox
+											items={districts}
+											value={data.district_code}
+											disabled={!data.city_code}
+											onChange={(val) => selectRegion('district', val)}
+											placeholder="Pilih Kecamatan..."
+										/>
+										{errors.district_code && <InputError message={errors.district_code} />}
+									</div>
+
+									<div className="grid gap-1.5">
+										<Label className="text-sm font-medium text-foreground/80">
+											Desa / Kelurahan
+										</Label>
+										<Combobox
+											items={villages}
+											value={data.village_code}
+											disabled={!data.district_code}
+											onChange={(val) => selectRegion('village', val)}
+											placeholder="Pilih Desa/Kelurahan..."
+										/>
+										{errors.village_code && <InputError message={errors.village_code} />}
+									</div>
 								</div>
 							</div>
+						</div>
+					</section>
 
-							{/* --- ACTIONS (desktop; di mobile pakai sticky bar di bawah) --- */}
-							<div className="mt-5 border-t border-border pt-5">
-								{/* Varian & ukuran dari `Components/ui/button.jsx`, bukan kelas warna
+					{/* --- BAGIAN FORM INFORMASI --- */}
+					<section className="space-y-2">
+						<h2 className="px-4 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+							Jenis kejadian
+						</h2>
+						<div className="space-y-4 rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
+							{/* Jenis kejadian: dua tab (kebakaran / non kebakaran), masing-masing berikon
+								    kendaraan yang diberangkatkan — permintaan user 2026-08-27. */}
+							<div>
+								<Tabs value={incidentTab} onValueChange={selectIncidentTab} className="w-full">
+									<TabsList className="grid h-auto w-full grid-cols-2 rounded-xl bg-muted p-1">
+										<TabsTrigger value={INCIDENT_TAB.fire} className={incidentTabClass}>
+											<IconFiretruck size={18} stroke={1.5} /> Kebakaran
+										</TabsTrigger>
+										<TabsTrigger value={INCIDENT_TAB.nonFire} className={incidentTabClass}>
+											<IconAmbulance size={18} stroke={1.5} /> Non Kebakaran
+										</TabsTrigger>
+									</TabsList>
+
+									{/* TAB A: KEBAKARAN — pilihan cepat (tombol besar) agar warga tak mengetik */}
+									<TabsContent
+										value={INCIDENT_TAB.fire}
+										className="mt-4 outline-none focus-visible:ring-0"
+									>
+										<h3 className="border-b border-border/70 pb-2 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+											Apa yang terbakar?
+										</h3>
+										<div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
+											{FIRE_INCIDENT_TYPES.map((type) => {
+												const Icon = type.icon;
+												const active = data.incident_type === type.value;
+												return (
+													<button
+														key={type.value}
+														type="button"
+														onClick={() => selectIncidentType(type)}
+														aria-pressed={active}
+														className={cn(
+															'flex min-h-[72px] flex-col items-center justify-center gap-1.5 rounded-xl border p-2 text-center transition-colors',
+															active
+																? 'border-destructive bg-destructive/10 text-destructive'
+																: 'border-border bg-card text-foreground hover:bg-accent',
+														)}
+													>
+														<Icon className="h-6 w-6" stroke={1.5} />
+														<span className="text-xs font-semibold leading-tight">
+															{type.label}
+														</span>
+													</button>
+												);
+											})}
+										</div>
+									</TabsContent>
+
+									{/* TAB B: NON KEBAKARAN — jenisnya sudah ditentukan oleh tabnya sendiri,
+										    jadi tak ada tombol pilihan; langsung diketik di isian bawah. */}
+									<TabsContent
+										value={INCIDENT_TAB.nonFire}
+										className="mt-4 outline-none focus-visible:ring-0"
+									>
+										<h3 className="border-b border-border/70 pb-2 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+											Darurat apa yang terjadi?
+										</h3>
+									</TabsContent>
+								</Tabs>
+
+								{errors.incident_type && <InputError message={errors.incident_type} className="mt-1" />}
+
+								{/* Judul teks bebas: darurat non-kebakaran & kebakaran "Lainnya". Ditulis
+									    SEKALI di luar tab supaya kedua tab tidak memelihara isian kembar. */}
+								{needsFreeTitle && (
+									<div className="mt-3">
+										<Label htmlFor="title" className="text-sm font-medium text-foreground/80">
+											Jelaskan jenis kejadian
+										</Label>
+										<Input
+											name="title"
+											id="title"
+											value={data.title}
+											type="text"
+											placeholder={
+												isOther
+													? 'Contoh: Pohon tumbang, evakuasi, kabel putus...'
+													: 'Contoh: Kebakaran gudang, tumpukan sampah, tiang listrik...'
+											}
+											onChange={onHandleChange}
+											className="mt-1.5 h-11 rounded-xl border-border bg-card focus-visible:ring-2 focus-visible:ring-primary/30"
+										/>
+									</div>
+								)}
+								{errors.title && <InputError message={errors.title} className="mt-1" />}
+							</div>
+						</div>
+					</section>
+
+					<section className="space-y-2">
+						<h2 className="px-4 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+							Keterangan
+						</h2>
+						<div className="space-y-4 rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
+							{/* Patokan Manual — wajib untuk darurat non-kebakaran, opsional untuk kebakaran */}
+							<div>
+								<Label htmlFor="address" className="text-sm font-medium text-foreground/80">
+									Patokan Lokasi{' '}
+									<span className="font-normal text-muted-foreground">
+										{isOther ? '(Wajib)' : '(Opsional)'}
+									</span>
+								</Label>
+								<Input
+									name="address"
+									id="address"
+									value={data.address}
+									onChange={onHandleChange}
+									className="mt-1.5 h-11 rounded-xl border-border bg-card focus-visible:ring-2 focus-visible:ring-primary/30"
+									placeholder="Contoh: Samping warung cat biru, gang buntu..."
+								/>
+								{errors.address && <InputError message={errors.address} className="mt-1" />}
+							</div>
+
+							<div>
+								<Label htmlFor="description" className="text-sm font-medium text-foreground/80">
+									Detail Kejadian{' '}
+									<span className="font-normal text-muted-foreground">
+										{isOther ? '(Wajib)' : '(Opsional)'}
+									</span>
+								</Label>
+								<Textarea
+									name="description"
+									id="description"
+									value={data.description}
+									placeholder="Jelaskan detail situasi saat ini jika memungkinkan..."
+									onChange={onHandleChange}
+									className="mt-1.5 min-h-[100px] resize-y rounded-xl border-border bg-card p-3 text-sm focus-visible:ring-2 focus-visible:ring-primary/30"
+								/>
+								{errors.description && <InputError message={errors.description} className="mt-1" />}
+							</div>
+						</div>
+					</section>
+
+					<section className="space-y-2">
+						<h2 className="px-4 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+							Foto
+						</h2>
+						<div className="space-y-4 rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
+							{/* --- BAGIAN UPLOAD FOTO (collapsible) --- */}
+							<div>
+								{isOther ? (
+									<Label className="text-sm font-medium text-foreground/80">
+										Foto Bukti Kejadian{' '}
+										<span className="font-normal text-muted-foreground">(Opsional)</span>
+									</Label>
+								) : (
+									<button
+										type="button"
+										onClick={() => setShowPhotoSection((v) => !v)}
+										className="flex w-full items-center justify-between rounded-xl border border-dashed border-border bg-muted/40 px-4 py-3 text-left transition-colors hover:bg-muted"
+									>
+										<span className="flex items-center gap-2 text-sm font-semibold text-foreground">
+											<IconCloudUpload className="h-5 w-5 text-muted-foreground" stroke={1.5} />
+											Tambah foto jika aman
+										</span>
+										<IconChevronDown
+											className={cn(
+												'h-4 w-4 text-muted-foreground transition-transform',
+												photoExpanded && 'rotate-180',
+											)}
+										/>
+									</button>
+								)}
+
+								{/* Pesan keselamatan — jangan ambil risiko demi foto */}
+								<p className="mt-2 flex items-start gap-1.5 text-[13px] text-muted-foreground">
+									<IconAlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
+									{isOther
+										? 'Foto opsional, tapi membantu petugas menilai situasi. Tetap utamakan keselamatan Anda.'
+										: 'Foto opsional. Jangan mendekat ke api hanya untuk mengambil foto.'}
+								</p>
+
+								{/* Satu input file tersembunyi, dipakai upload box & tombol "Tambah" */}
+								<input
+									name="photos"
+									id="photos"
+									type="file"
+									accept="image/*"
+									multiple
+									ref={fileInputPhoto}
+									onChange={handlePhotosChange}
+									className="sr-only"
+								/>
+
+								{photoExpanded && (
+									<div className="mt-3">
+										{previews.length > 0 ? (
+											<div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+												{previews.map((p, i) => (
+													<div
+														key={i}
+														className="group relative h-32 w-full overflow-hidden rounded-xl border border-border shadow-sm"
+													>
+														<img
+															src={p.url}
+															alt={`Preview ${i + 1}`}
+															className="h-full w-full object-cover"
+														/>
+														<button
+															type="button"
+															onClick={() => removePhoto(i)}
+															className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-lg border border-transparent bg-card/90 text-destructive shadow-sm backdrop-blur-sm transition-colors hover:border-destructive/30 hover:bg-destructive/10"
+															title="Hapus foto"
+														>
+															<IconX stroke={2.5} className="h-4 w-4" />
+														</button>
+													</div>
+												))}
+												{data.photos.length < MAX_PHOTOS && (
+													<button
+														type="button"
+														onClick={() => fileInputPhoto.current?.click()}
+														className="flex h-32 w-full flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 text-center text-muted-foreground transition-colors hover:bg-muted"
+													>
+														<IconCloudUpload className="mb-1 h-6 w-6" stroke={1.5} />
+														<span className="text-xs font-semibold">Tambah foto</span>
+													</button>
+												)}
+											</div>
+										) : (
+											<div
+												onClick={() => fileInputPhoto.current?.click()}
+												className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 p-8 text-center transition-colors hover:bg-muted"
+											>
+												<div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-card shadow-sm">
+													<IconCloudUpload
+														className="h-6 w-6 text-muted-foreground"
+														stroke={1.5}
+													/>
+												</div>
+												<p className="text-sm font-semibold text-foreground">
+													Pilih foto kejadian
+												</p>
+												<p className="mb-5 mt-1 text-[13px] text-muted-foreground">
+													Format PNG/JPG/WEBP (Maks. 2 MB / foto)
+												</p>
+												<span className="inline-flex h-9 items-center justify-center rounded-lg bg-destructive px-5 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90">
+													Jelajahi File
+												</span>
+											</div>
+										)}
+									</div>
+								)}
+								{errors.photos && <InputError message={errors.photos} className="mt-1" />}
+								{/* Galat per berkas bernama photos.0, photos.1, ... - bukan `photos`. */}
+								{Object.entries(errors)
+									.filter(([key]) => key.startsWith('photos.'))
+									.map(([key, message]) => (
+										<InputError key={key} message={message} className="mt-1" />
+									))}
+							</div>
+						</div>
+					</section>
+
+					{/* --- ACTIONS (desktop; di mobile pakai sticky bar di bawah) --- */}
+					<div className="pt-1">
+						{/* Varian & ukuran dari `Components/ui/button.jsx`, bukan kelas warna
 								    rakitan tangan: `destructive` + `xl` sudah persis inilah yang
 								    dimaksud (h-12, rounded-xl, hover & disabled ikut). Bentuk lama
 								    menyalin warnanya sendiri lalu memakai `rounded-lg`, sehingga
@@ -1386,24 +1400,18 @@ export default function Create(props) {
 								    utama halaman lain tanpa ada yang menyadarinya. Kembarannya di
 								    sticky bar mobile memakai varian yang SAMA supaya keduanya tak
 								    bisa menyimpang lagi. */}
-								<Button
-									type="submit"
-									variant="destructive"
-									size="xl"
-									className="hidden w-full font-semibold sm:inline-flex"
-									disabled={processing || locationLoading || compressingPhotos}
-								>
-									{processing || compressingPhotos ? (
-										<IconLoader2 className="animate-spin" />
-									) : (
-										<IconSend />
-									)}
-									{submitLabel}
-								</Button>
-							</div>
-						</form>
-					</CardContent>
-				</Card>
+						<Button
+							type="submit"
+							variant="destructive"
+							size="xl"
+							className="hidden w-full font-semibold sm:inline-flex"
+							disabled={processing || locationLoading || compressingPhotos}
+						>
+							{processing || compressingPhotos ? <IconLoader2 className="animate-spin" /> : <IconSend />}
+							{submitLabel}
+						</Button>
+					</div>
+				</form>
 			</div>
 
 			{/* Sticky CTA mobile — tombol Kirim selalu terlihat tanpa perlu scroll ke bawah.

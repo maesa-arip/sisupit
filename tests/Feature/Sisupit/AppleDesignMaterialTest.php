@@ -185,3 +185,17 @@ it('keeps every page on the larger apple radii instead of the old rounded-md', f
 
     expect($offenders)->toBe([]);
 });
+
+it('lays out the report form as grouped sections and the incident page with an iOS navigation bar', function () {
+    $create = appleSource('resources/js/Pages/Front/Reports/Create.jsx');
+    foreach (['Lokasi kejadian', 'Wilayah kejadian', 'Jenis kejadian', 'Keterangan', 'Foto'] as $section) {
+        expect($create)->toMatch('/<h2 className="px-4 text-\[13px\][^"]*">\s*'.$section.'\s*<\/h2>/');
+    }
+    expect($create)->not->toMatch('/<Card\b/')
+        ->and($create)->toContain('bottom-[calc(4rem+env(safe-area-inset-bottom))]');
+
+    $show = appleSource('resources/js/Pages/Front/Reports/Show.jsx');
+    expect($show)->toMatch('/<IconChevronLeft className="h-5 w-5" \/>\s*Kembali/')
+        ->and($show)->not->toMatch('/<h1 className="[^"]*\buppercase\b/')
+        ->and($show)->not->toContain('<DialogContent className="max-w-sm rounded-xl border');
+});

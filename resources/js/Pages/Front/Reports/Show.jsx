@@ -1162,47 +1162,47 @@ export default function ReportShow(props) {
 		<div className="mx-auto flex w-full max-w-7xl flex-col space-y-6 pb-32">
 			<Head title={`Komando Insiden #${report.id}`} />
 
-			{/* --- TOP BAR --- */}
-			<div className="flex items-center gap-3">
-				<Button
-					variant="outline"
-					size="icon"
-					className="h-9 w-9 rounded-xl border-border bg-card shadow-none"
-					asChild
-				>
-					<Link href="/dashboard">
-						<IconChevronLeft className="h-5 w-5 text-muted-foreground" />
-					</Link>
-				</Button>
-				<div className="min-w-0 flex-1">
-					<div className="flex flex-wrap items-center gap-2">
-						<h1 className="truncate text-lg font-bold uppercase tracking-tight text-foreground sm:text-xl">
-							{report.title}
-						</h1>
+			{/* --- TOP BAR --- (ala navigasi iOS, TASK_69 apple-design) */}
+			<div className="space-y-3">
+				<div className="flex items-center justify-between">
+					<Button
+						variant="ghost"
+						className="-ml-3 h-10 rounded-full px-3 text-[15px] font-medium text-primary hover:bg-primary/10 hover:text-primary"
+						asChild
+					>
+						<Link href="/dashboard">
+							<IconChevronLeft className="h-5 w-5" />
+							Kembali
+						</Link>
+					</Button>
+					{/* Pelapor boleh mengedit hanya selama laporan belum divalidasi (TERLAPOR) — #30 */}
+					{isOwner && reportStatus === 'TERLAPOR' && (
+						<Button
+							variant="ghost"
+							className="-mr-3 h-10 rounded-full px-3 text-[15px] font-medium text-primary hover:bg-primary/10 hover:text-primary"
+							asChild
+						>
+							<Link href={route('front.reports.edit', report.id)}>Ubah</Link>
+						</Button>
+					)}
+				</div>
+				<div className="min-w-0">
+					<h1 className="text-[26px] font-bold leading-tight tracking-tight text-foreground lg:text-3xl">
+						{report.title}
+					</h1>
+					<div className="mt-2 flex flex-wrap items-center gap-2">
 						<Badge
 							variant="outline"
 							className={cn(
-								'whitespace-nowrap rounded-lg px-2.5 py-0.5 font-bold shadow-none',
+								'whitespace-nowrap rounded-full px-2.5 py-0.5 font-semibold shadow-none',
 								currentStatus.color,
 							)}
 						>
 							{currentStatus.label}
 						</Badge>
+						<span className="font-mono text-[13px] text-muted-foreground">{reportNumber(report)}</span>
 					</div>
-					<p className="mt-1 font-mono text-xs font-semibold tracking-tight text-muted-foreground">
-						{reportNumber(report)}
-					</p>
 				</div>
-				{/* Pelapor boleh mengedit hanya selama laporan belum divalidasi (TERLAPOR) — #30 */}
-				{isOwner && reportStatus === 'TERLAPOR' && (
-					<Button
-						variant="outline"
-						className="h-9 shrink-0 border-border bg-card px-3 text-xs font-bold uppercase tracking-wide shadow-none"
-						asChild
-					>
-						<Link href={route('front.reports.edit', report.id)}>Edit</Link>
-					</Button>
-				)}
 			</div>
 
 			{/* --- LAPORAN INI SUDAH DIGABUNG (TASK_55) --- */}
@@ -1333,7 +1333,7 @@ export default function ReportShow(props) {
 										'Laporan digabung ke kejadian yang sama.',
 									)
 								}
-								className="h-11 gap-1.5 text-xs font-bold uppercase tracking-wide"
+								className="h-11 gap-1.5 text-[13px] font-semibold"
 							>
 								<IconStack2 className="h-4 w-4" /> Gabungkan
 							</Button>
@@ -1409,11 +1409,11 @@ export default function ReportShow(props) {
 							</div>
 						</div>
 
-						<div className="flex w-full shrink-0 flex-col items-stretch gap-2 border-t border-border pt-4 sm:items-center md:w-auto md:border-t-0 md:pt-0">
+						<div className="flex w-full shrink-0 flex-col items-stretch gap-2 border-t border-border/70 pt-4 sm:items-center md:w-auto md:border-t-0 md:pt-0">
 							{/* Satu aksi dominan (Broadcast); Tolak diturunkan jadi tombol teks destructive kecil (#37 Kluster E). */}
 							<Button
 								onClick={openApproveDialog}
-								className="h-12 w-full rounded-lg border border-destructive bg-destructive text-xs font-bold uppercase tracking-wide text-destructive-foreground transition-colors hover:bg-destructive/90 md:h-11 md:w-auto md:px-6"
+								className="h-12 w-full rounded-lg border border-destructive bg-destructive text-[13px] font-semibold text-destructive-foreground transition-colors hover:bg-destructive/90 md:h-11 md:w-auto md:px-6"
 							>
 								<IconRadar className="mr-1.5 h-4 w-4" /> Broadcast Misi
 							</Button>
@@ -1459,17 +1459,15 @@ export default function ReportShow(props) {
 				{/* BLOK KIRI: DOKUMEN & MAP */}
 				<div className="space-y-6 lg:col-span-2">
 					<Card>
-						<CardHeader className="flex flex-row items-center gap-2 overflow-hidden rounded-t-xl border-b border-border bg-muted/50 p-4 pb-3">
+						<CardHeader className="flex flex-row items-center gap-2 border-b border-border/70 p-4 pb-3">
 							<IconFileText className="h-5 w-5 text-muted-foreground" />
 							<CardTitle className="text-[15px] font-semibold text-foreground">
 								Informasi Insiden
 							</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-5 p-4 sm:p-5">
-							<div className="space-y-1.5 border-b border-border pb-4">
-								<div className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-									Judul Insiden:
-								</div>
+							<div className="space-y-1.5 border-b border-border/70 pb-4">
+								<div className="text-[13px] font-medium text-muted-foreground">Judul Insiden:</div>
 								<div className="text-base font-bold leading-snug text-destructive sm:text-lg">
 									{report.title}
 								</div>
@@ -1493,7 +1491,7 @@ export default function ReportShow(props) {
 								</div>
 
 								<div className="space-y-2 rounded-lg border border-border bg-muted p-4 sm:col-span-2">
-									<div className="mb-1 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+									<div className="mb-1 flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground">
 										<IconMap className="h-3.5 w-3.5" /> Wilayah Administratif
 									</div>
 									<div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
@@ -1568,7 +1566,7 @@ export default function ReportShow(props) {
 										</span>
 									</div>
 
-									<div className="mt-3 border-t border-border pt-2">
+									<div className="mt-3 border-t border-border/70 pt-2">
 										<div className="font-medium text-muted-foreground">Patokan Lokasi</div>
 										<div className="mt-1 leading-relaxed text-foreground">
 											{incidentLocation.address || (
@@ -1583,7 +1581,7 @@ export default function ReportShow(props) {
 											href={`https://www.google.com/maps/dir/?api=1&destination=${incidentLocation.lat},${incidentLocation.lng}`}
 											target="_blank"
 											rel="noopener noreferrer"
-											className="mt-2 inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide text-foreground shadow-none transition-colors hover:bg-accent"
+											className="mt-2 inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-1.5 text-[13px] font-semibold text-foreground shadow-none transition-colors hover:bg-accent"
 										>
 											<IconMap className="h-3.5 w-3.5 text-destructive" /> Navigasi ke Lokasi
 										</a>
@@ -1591,8 +1589,8 @@ export default function ReportShow(props) {
 								</div>
 							</div>
 
-							<div className="mt-2 space-y-2 border-t border-border pt-4">
-								<label className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+							<div className="mt-2 space-y-2 border-t border-border/70 pt-4">
+								<label className="text-[13px] font-medium text-muted-foreground">
 									Deskripsi Kejadian:
 								</label>
 								<p className="whitespace-pre-wrap rounded-lg border border-border bg-card p-4 text-sm leading-relaxed text-foreground/80">
@@ -1602,7 +1600,7 @@ export default function ReportShow(props) {
 
 							{photos.length > 0 && (
 								<div className="space-y-2 pt-2">
-									<label className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+									<label className="text-[13px] font-medium text-muted-foreground">
 										Lampiran Foto {photos.length > 1 && `(${photos.length})`}:
 									</label>
 									<div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -1758,7 +1756,7 @@ export default function ReportShow(props) {
 													onClick={handleCancelStay}
 													disabled={isActionLoading}
 													variant="outline"
-													className="mt-2 flex h-10 w-full items-center justify-center gap-2 rounded-lg border-border text-xs font-bold uppercase tracking-wide text-muted-foreground shadow-none transition-colors hover:bg-muted hover:text-foreground"
+													className="mt-2 flex h-10 w-full items-center justify-center gap-2 rounded-lg border-border text-[13px] font-semibold text-muted-foreground shadow-none transition-colors hover:bg-muted hover:text-foreground"
 												>
 													<IconX className="h-4 w-4" /> Batal Jaga Kantor
 												</Button>
@@ -1774,7 +1772,7 @@ export default function ReportShow(props) {
 													<Button
 														onClick={handleTakeAction}
 														disabled={isActionLoading}
-														className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-destructive text-xs font-bold uppercase tracking-wide text-destructive-foreground shadow-none transition-colors hover:bg-destructive/90"
+														className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-destructive text-[13px] font-semibold text-destructive-foreground shadow-none transition-colors hover:bg-destructive/90"
 													>
 														{isActionLoading ? (
 															<IconLoader2 className="h-4 w-4 animate-spin" />
@@ -1790,7 +1788,7 @@ export default function ReportShow(props) {
 															onClick={handleStayAtBase}
 															disabled={isActionLoading}
 															variant="outline"
-															className="flex h-12 w-full items-center justify-center gap-2 rounded-lg border-border text-xs font-bold uppercase tracking-wide text-foreground shadow-none transition-colors hover:bg-muted"
+															className="flex h-12 w-full items-center justify-center gap-2 rounded-lg border-border text-[13px] font-semibold text-foreground shadow-none transition-colors hover:bg-muted"
 														>
 															<IconBuilding className="h-4 w-4" /> Jaga di Kantor
 														</Button>
@@ -1807,7 +1805,7 @@ export default function ReportShow(props) {
 												<Button
 													onClick={handleArrive}
 													disabled={isActionLoading}
-													className="flex h-12 w-full animate-pulse items-center justify-center gap-2 rounded-lg bg-info text-xs font-bold uppercase tracking-wide text-info-foreground shadow-none transition-colors hover:bg-info/90"
+													className="flex h-12 w-full animate-pulse items-center justify-center gap-2 rounded-lg bg-info text-[13px] font-semibold text-info-foreground shadow-none transition-colors hover:bg-info/90"
 												>
 													{isActionLoading ? (
 														<IconLoader2 className="h-4 w-4 animate-spin" />
@@ -1821,7 +1819,7 @@ export default function ReportShow(props) {
 													onClick={handleCancelResponse}
 													disabled={isActionLoading}
 													variant="outline"
-													className="mt-2 flex h-10 w-full items-center justify-center gap-2 rounded-lg border-border text-xs font-bold uppercase tracking-wide text-muted-foreground shadow-none transition-colors hover:bg-muted hover:text-foreground"
+													className="mt-2 flex h-10 w-full items-center justify-center gap-2 rounded-lg border-border text-[13px] font-semibold text-muted-foreground shadow-none transition-colors hover:bg-muted hover:text-foreground"
 												>
 													<IconX className="h-4 w-4" /> Batal Meluncur
 												</Button>
@@ -1841,7 +1839,7 @@ export default function ReportShow(props) {
 											<Button
 												onClick={() => setIsCorrectingMode(true)}
 												variant="outline"
-												className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-lg border-border text-xs font-bold uppercase tracking-wide text-foreground/80 shadow-none transition-colors hover:bg-muted"
+												className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-lg border-border text-[13px] font-semibold text-foreground/80 shadow-none transition-colors hover:bg-muted"
 											>
 												<IconMapPin className="h-4 w-4" /> Koreksi Lokasi Insiden
 											</Button>
@@ -1881,7 +1879,7 @@ export default function ReportShow(props) {
 											<Button
 												onClick={() => setConfirmResolve(true)}
 												variant="outline"
-												className="mt-2 h-12 w-full rounded-lg border-success/30 text-xs font-bold uppercase tracking-wide text-success shadow-none transition-colors hover:bg-success/10"
+												className="mt-2 h-12 w-full rounded-lg border-success/30 text-[13px] font-semibold text-success shadow-none transition-colors hover:bg-success/10"
 											>
 												Tandai Insiden Selesai
 											</Button>
@@ -1928,7 +1926,7 @@ export default function ReportShow(props) {
 														onClick={() => handleReleaseUnit(ru.unit_id)}
 														disabled={isUnitProcessing}
 														variant="outline"
-														className="h-8 shrink-0 rounded-xl border-border px-2.5 text-[11px] font-bold uppercase tracking-wide text-muted-foreground shadow-none hover:bg-muted hover:text-foreground"
+														className="h-8 shrink-0 rounded-xl border-border px-2.5 text-[13px] font-medium text-muted-foreground shadow-none hover:bg-muted hover:text-foreground"
 													>
 														<IconArrowBackUp className="mr-1 h-3.5 w-3.5" /> Tarik
 													</Button>
@@ -1942,7 +1940,7 @@ export default function ReportShow(props) {
 									)}
 
 									{availableUnits.length > 0 ? (
-										<div className="flex flex-col gap-2 border-t border-border pt-2 sm:flex-row">
+										<div className="flex flex-col gap-2 border-t border-border/70 pt-2 sm:flex-row">
 											<select
 												value={unitToDispatch}
 												onChange={(e) => setUnitToDispatch(e.target.value)}
@@ -1958,7 +1956,7 @@ export default function ReportShow(props) {
 											<Button
 												onClick={handleDispatchUnit}
 												disabled={isUnitProcessing || !unitToDispatch}
-												className="h-10 shrink-0 rounded-lg bg-teal-600 text-xs font-bold uppercase tracking-wide text-white shadow-none hover:bg-teal-700 dark:bg-teal dark:hover:bg-teal/90"
+												className="h-10 shrink-0 rounded-lg bg-teal-600 text-[13px] font-semibold text-white shadow-none hover:bg-teal-700 dark:bg-teal dark:hover:bg-teal/90"
 											>
 												{isUnitProcessing ? (
 													<IconLoader2 className="h-4 w-4 animate-spin" />
@@ -1986,7 +1984,7 @@ export default function ReportShow(props) {
 												{noUnitsRegistered && canManageUnits && (
 													<Link
 														href={route('admin.units.index')}
-														className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide text-teal-600 hover:underline dark:text-teal"
+														className="inline-flex items-center gap-1 text-[13px] font-semibold text-primary hover:underline"
 													>
 														<IconTruck className="h-3.5 w-3.5" /> Kelola Armada
 													</Link>
@@ -2039,7 +2037,7 @@ export default function ReportShow(props) {
 															<Button
 																onClick={() => setAgencyToRemove(row)}
 																variant="ghost"
-																className="h-7 shrink-0 rounded-lg px-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+																className="h-7 shrink-0 rounded-lg px-2 text-[13px] font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
 															>
 																<IconX className="h-3.5 w-3.5" />
 															</Button>
@@ -2087,7 +2085,7 @@ export default function ReportShow(props) {
 																setConfirmationNote('');
 																setAgencyToConfirm(row);
 															}}
-															className="h-9 w-full rounded-lg bg-success text-[11px] font-bold uppercase tracking-wide text-success-foreground shadow-none hover:bg-success/90"
+															className="h-9 w-full rounded-lg bg-success text-[13px] font-semibold text-success-foreground shadow-none hover:bg-success/90"
 														>
 															<IconCheck className="mr-1.5 h-4 w-4" /> Catat Konfirmasi
 														</Button>
@@ -2108,7 +2106,7 @@ export default function ReportShow(props) {
 									reportStatus !== 'digabung' &&
 									reportStatus !== 'resolved' &&
 									(addableAgencies.length > 0 ? (
-										<div className="flex flex-col gap-2 border-t border-border pt-2 sm:flex-row">
+										<div className="flex flex-col gap-2 border-t border-border/70 pt-2 sm:flex-row">
 											<div className="min-w-0 flex-1">
 												<Combobox
 													items={addableAgencies.map((a) => ({
@@ -2125,7 +2123,7 @@ export default function ReportShow(props) {
 											<Button
 												onClick={handleAddAgency}
 												disabled={isAgencyProcessing || !agencyToAdd}
-												className="h-10 shrink-0 rounded-lg text-xs font-bold uppercase tracking-wide shadow-none"
+												className="h-10 shrink-0 rounded-lg text-[13px] font-semibold shadow-none"
 											>
 												{isAgencyProcessing ? (
 													<IconLoader2 className="h-4 w-4 animate-spin" />
@@ -2153,7 +2151,7 @@ export default function ReportShow(props) {
 												{agencyOptions.length === 0 && isAdminOrSuperadmin && (
 													<Link
 														href={route('admin.agencies.index')}
-														className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide text-primary hover:underline"
+														className="inline-flex items-center gap-1 text-[13px] font-semibold text-primary hover:underline"
 													>
 														<IconBuildingCommunity className="h-3.5 w-3.5" /> Kelola OPD
 													</Link>
@@ -2171,7 +2169,7 @@ export default function ReportShow(props) {
 
 					<Card>
 						<CardContent className="divide-y divide-border p-0">
-							<div className="flex items-center gap-2 bg-muted p-3 text-xs font-bold uppercase text-muted-foreground">
+							<div className="flex items-center gap-2 bg-muted/60 px-4 py-2.5 text-[13px] font-semibold text-muted-foreground">
 								<IconFiretruck className="h-4 w-4" /> Damkar
 							</div>
 							{officerList.length > 0 || reguRoster.length > 0 ? (
@@ -2227,7 +2225,7 @@ export default function ReportShow(props) {
 							    kejadian ditutup. Data internal - server hanya mengirimnya ke admin. */}
 							{alphaMembers.length > 0 && (
 								<div className="space-y-1 p-3.5 text-[11px] leading-relaxed">
-									<div className="font-bold uppercase text-destructive">Alpha (tidak memilih)</div>
+									<div className="font-semibold text-destructive">Alpha (tidak memilih)</div>
 									{alphaMembers.map((row) => (
 										<div key={row.regu} className="text-muted-foreground">
 											<span className="font-semibold text-foreground">{row.regu}:</span>{' '}
@@ -2237,7 +2235,7 @@ export default function ReportShow(props) {
 								</div>
 							)}
 
-							<div className="flex items-center gap-2 bg-muted p-3 text-xs font-bold uppercase text-muted-foreground">
+							<div className="flex items-center gap-2 bg-muted/60 px-4 py-2.5 text-[13px] font-semibold text-muted-foreground">
 								<IconUsersGroup className="h-4 w-4" /> Relawan Sipil
 							</div>
 							{helperList.length > 0 ? (
@@ -2462,8 +2460,8 @@ export default function ReportShow(props) {
 												</dl>
 
 												{r.victims.length > 0 && (
-													<div className="mt-2 border-t border-border pt-2">
-														<div className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+													<div className="mt-2 border-t border-border/70 pt-2">
+														<div className="text-[13px] font-medium text-muted-foreground">
 															Korban ({r.victims.length})
 														</div>
 														<div className="mt-1 space-y-1.5">
@@ -2499,8 +2497,8 @@ export default function ReportShow(props) {
 												)}
 
 												{r.photos.length > 0 && (
-													<div className="mt-2 border-t border-border pt-2">
-														<div className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+													<div className="mt-2 border-t border-border/70 pt-2">
+														<div className="text-[13px] font-medium text-muted-foreground">
 															Foto kejadian ({r.photos.length})
 														</div>
 														<div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -2524,8 +2522,8 @@ export default function ReportShow(props) {
 
 												{/* Riwayat perubahan (TASK_67): siapa mengubah apa, terbaru dulu. */}
 												{r.logs?.some((log) => log.action === 'diubah') && (
-													<details className="mt-2 border-t border-border pt-2">
-														<summary className="cursor-pointer text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+													<details className="mt-2 border-t border-border/70 pt-2">
+														<summary className="cursor-pointer text-[13px] font-medium text-muted-foreground">
 															Riwayat perubahan (
 															{r.logs.filter((log) => log.action === 'diubah').length})
 														</summary>
@@ -2585,7 +2583,7 @@ export default function ReportShow(props) {
 
 			{/* MODALS */}
 			<Dialog open={confirmApprove} onOpenChange={setConfirmApprove}>
-				<DialogContent className="max-w-md rounded-xl border border-border bg-card p-6 shadow-none">
+				<DialogContent className="max-w-md p-6">
 					<div className="flex flex-col items-center space-y-4 text-center">
 						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-info/10 text-info">
 							<IconRadar className="h-6 w-6" />
@@ -2598,11 +2596,9 @@ export default function ReportShow(props) {
 						{/* OPD terkait (TASK_27). Yang tercentang datang dari jenis kejadian laporan —
 						    saran, bukan keputusan: operator bebas melepas centangnya sebelum menyiarkan. */}
 						{agencyOptions.length > 0 && (
-							<div className="w-full space-y-2 border-t border-border pt-4 text-left">
+							<div className="w-full space-y-2 border-t border-border/70 pt-4 text-left">
 								<div className="flex items-baseline justify-between gap-2">
-									<span className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-										OPD Terkait
-									</span>
+									<span className="text-[13px] font-medium text-muted-foreground">OPD Terkait</span>
 									<span className="text-[11px] text-muted-foreground">
 										{selectedAgencyIds.length} dipilih
 									</span>
@@ -2655,7 +2651,7 @@ export default function ReportShow(props) {
 							</div>
 						)}
 
-						<div className="mt-2 flex w-full gap-3 border-t border-border pt-4">
+						<div className="mt-2 flex w-full gap-3 border-t border-border/70 pt-4">
 							<Button
 								onClick={() => setConfirmApprove(false)}
 								variant="outline"
@@ -2676,7 +2672,7 @@ export default function ReportShow(props) {
 			</Dialog>
 
 			<Dialog open={confirmReject} onOpenChange={setConfirmReject}>
-				<DialogContent className="max-w-sm rounded-xl border border-border bg-card p-6 shadow-none">
+				<DialogContent className="max-w-sm p-6">
 					<div className="flex flex-col items-center space-y-4 text-center">
 						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
 							<IconTrash className="h-6 w-6" />
@@ -2687,7 +2683,7 @@ export default function ReportShow(props) {
 							Komando.
 						</p>
 						<div className="w-full text-left">
-							<label className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+							<label className="text-[13px] font-medium text-muted-foreground">
 								Alasan penolakan <span className="font-normal normal-case">(opsional)</span>
 							</label>
 							<Textarea
@@ -2698,7 +2694,7 @@ export default function ReportShow(props) {
 								className="mt-1.5 min-h-[72px] resize-y rounded-lg border-border bg-card text-sm focus-visible:ring-1 focus-visible:ring-destructive"
 							/>
 						</div>
-						<div className="mt-2 flex w-full gap-3 border-t border-border pt-4">
+						<div className="mt-2 flex w-full gap-3 border-t border-border/70 pt-4">
 							<Button
 								onClick={() => setConfirmReject(false)}
 								variant="outline"
@@ -2719,7 +2715,7 @@ export default function ReportShow(props) {
 			</Dialog>
 
 			<Dialog open={confirmResolve} onOpenChange={setConfirmResolve}>
-				<DialogContent className="max-w-sm rounded-xl border border-border bg-card p-6 shadow-none">
+				<DialogContent className="max-w-sm p-6">
 					<div className="flex flex-col items-center space-y-4 text-center">
 						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/10 text-success">
 							<IconCheck className="h-6 w-6" />
@@ -2745,7 +2741,7 @@ export default function ReportShow(props) {
 								</ul>
 							</div>
 						)}
-						<div className="mt-2 flex w-full gap-3 border-t border-border pt-4">
+						<div className="mt-2 flex w-full gap-3 border-t border-border/70 pt-4">
 							<Button
 								onClick={() => setConfirmResolve(false)}
 								variant="outline"
@@ -2769,7 +2765,7 @@ export default function ReportShow(props) {
 			    baik oleh akun OPD itu sendiri maupun operator Pusat Komando — server yang menandai
 			    sumbernya, jadi dialognya satu dan tidak bisa dipakai mengaku-aku. */}
 			<Dialog open={agencyToConfirm !== null} onOpenChange={(open) => !open && setAgencyToConfirm(null)}>
-				<DialogContent className="max-w-sm rounded-xl border border-border bg-card p-6 shadow-none">
+				<DialogContent className="max-w-sm p-6">
 					<div className="flex flex-col items-center space-y-4 text-center">
 						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/10 text-success">
 							<IconCheck className="h-6 w-6" />
@@ -2784,7 +2780,7 @@ export default function ReportShow(props) {
 						<div className="w-full text-left">
 							<Label
 								htmlFor="agency-confirmation-note"
-								className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground"
+								className="text-[13px] font-medium text-muted-foreground"
 							>
 								Catatan <span className="font-normal normal-case">(opsional)</span>
 							</Label>
@@ -2797,7 +2793,7 @@ export default function ReportShow(props) {
 								className="mt-1.5 min-h-[72px] resize-y rounded-lg border-border bg-card text-sm focus-visible:ring-1 focus-visible:ring-ring"
 							/>
 						</div>
-						<div className="mt-2 flex w-full gap-3 border-t border-border pt-4">
+						<div className="mt-2 flex w-full gap-3 border-t border-border/70 pt-4">
 							<Button
 								onClick={() => setAgencyToConfirm(null)}
 								variant="outline"
@@ -2818,7 +2814,7 @@ export default function ReportShow(props) {
 			</Dialog>
 
 			<Dialog open={agencyToRemove !== null} onOpenChange={(open) => !open && setAgencyToRemove(null)}>
-				<DialogContent className="max-w-sm rounded-xl border border-border bg-card p-6 shadow-none">
+				<DialogContent className="max-w-sm p-6">
 					<div className="flex flex-col items-center space-y-4 text-center">
 						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
 							<IconX className="h-6 w-6" />
@@ -2830,7 +2826,7 @@ export default function ReportShow(props) {
 							<b>{agencyToRemove?.agency_name}</b> tidak lagi tercatat dilibatkan di insiden ini. Instansi
 							yang sama bisa diminta lagi kapan saja.
 						</p>
-						<div className="mt-2 flex w-full gap-3 border-t border-border pt-4">
+						<div className="mt-2 flex w-full gap-3 border-t border-border/70 pt-4">
 							<Button
 								onClick={() => setAgencyToRemove(null)}
 								variant="outline"
@@ -2851,7 +2847,7 @@ export default function ReportShow(props) {
 			</Dialog>
 
 			<Dialog open={resolutionToDelete !== null} onOpenChange={(open) => !open && setResolutionToDelete(null)}>
-				<DialogContent className="max-w-sm rounded-xl border border-border bg-card p-6 shadow-none">
+				<DialogContent className="max-w-sm p-6">
 					<div className="flex flex-col items-center space-y-4 text-center">
 						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
 							<IconTrash className="h-6 w-6" />
@@ -2863,7 +2859,7 @@ export default function ReportShow(props) {
 							Entri ini beserta data korban & fotonya akan dihapus permanen. Tindakan tidak dapat
 							dibatalkan.
 						</p>
-						<div className="mt-2 flex w-full gap-3 border-t border-border pt-4">
+						<div className="mt-2 flex w-full gap-3 border-t border-border/70 pt-4">
 							<Button
 								onClick={() => setResolutionToDelete(null)}
 								variant="outline"
