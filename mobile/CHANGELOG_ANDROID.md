@@ -8,6 +8,22 @@ iOS** sebagai daftar centang. Sisi iOS mencentang (`[x]`) saat sudah di-port.
 
 ---
 
+## (belum dirilis) - 2026-10-01 - warna status bar & bilah navigasi di Android 15+
+
+- **Bug 1.1.5 (targetSdk 36):** Android 15+ memaksa edge-to-edge dan MENGABAIKAN
+  `setStatusBarColor`/`setNavigationBarColor`; yang tampil di area bilah adalah latar view akar yang
+  diberi padding inset - tak pernah diwarnai, jadi bilah putih di mode gelap (ikon tetap ikut mode).
+  1.1.4 (targetSdk 34) tak terdampak.
+- **Fix `MainActivity`:** view akar disimpan sebagai `rootView`; `onBackgroundColorDetected` kini juga
+  mewarnai `rootView` + decorView dengan warna halaman; `set{Status,Navigation}BarContrastEnforced(false)`
+  (API 29+). Cadangan `MainActivity.java.bak-insetbg`.
+- **AAB Play Store 1.1.5 yang sudah dibangun (`backup-sisupit-wrapper/playstore/`) MEMBAWA BUG INI** -
+  bangun ulang `bundleRelease` sebelum diunggah ke uji tertutup.
+
+**Yang harus dilakukan iOS:**
+- [ ] Warnai area di belakang safe area atas & bawah dengan warna latar halaman (padanan PERILAKU #8),
+  bukan warna tetap.
+
 ## 1.1.5-dev / versionCode 7 - 2026-10-01 (APK uji dev, BUKAN rilis)
 
 - Alamat web kini **parameter build**, bukan string tertulis mati di dua tempat `MainActivity`
