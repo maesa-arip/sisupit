@@ -285,8 +285,8 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 					)}
 				</div>
 
-				{/* --- KOLOM KANAN: Peta Interaktif (Sticky) --- */}
-				<div className="flex w-full flex-col gap-3 lg:sticky lg:top-[90px] lg:flex-1">
+				{/* --- KOLOM KANAN: Peta Interaktif (Sticky). Desktop saja - di ponsel peta disembunyikan (permintaan user 2026-10-02, TASK_69 bagian 15) --- */}
+				<div className="hidden w-full flex-col gap-3 lg:sticky lg:top-[90px] lg:flex lg:flex-1">
 					<div className="flex items-center gap-2 px-1">
 						<IconMapPinFilled className="h-4 w-4 text-teal-600 dark:text-teal" />
 						<h2 className="text-sm font-semibold text-foreground">Sebaran Titik Hydrant</h2>

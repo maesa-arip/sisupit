@@ -1,3 +1,4 @@
+import { AppEmpty } from '@/Components/AppSection';
 import DatePicker from '@/Components/DatePicker';
 import HeaderTitle from '@/Components/HeaderTitle';
 import { Badge } from '@/Components/ui/badge';
@@ -18,13 +19,12 @@ import UseFilter from '@/hooks/UseFilter';
 import AppLayout from '@/Layouts/AppLayout';
 import { escapeHtml } from '@/lib/escape-html';
 import { alamatLaporan, cn, MAP_TILE_URL, reportNumber, timeAgo } from '@/lib/utils';
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import {
 	IconAlertTriangle,
-	IconArrowDown,
+	IconChevronRight,
 	IconCircleCheck,
 	IconClipboardPlus,
-	IconClock,
 	IconEye,
 	IconFileSpreadsheet,
 	IconMapPin,
@@ -254,7 +254,7 @@ function StatusBadge({ status }) {
 	return (
 		<Badge
 			variant="outline"
-			className={cn('whitespace-nowrap rounded-lg px-2 py-0.5 font-bold shadow-none', active.badge)}
+			className={cn('whitespace-nowrap rounded-full px-2.5 py-0.5 font-semibold shadow-none', active.badge)}
 		>
 			{active.label}
 		</Badge>
@@ -284,7 +284,7 @@ function MetaChip({ icon: Icon, children, tone = 'muted' }) {
 	return (
 		<span
 			className={cn(
-				'inline-flex items-center gap-1 rounded-2xl border px-1.5 py-0.5 text-[11px] font-semibold',
+				'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium',
 				CHIP_TONE[tone],
 			)}
 		>
@@ -372,9 +372,24 @@ export default function Index(props) {
 			parsedLng = parseFloat(lng);
 		if (!isNaN(parsedLat) && !isNaN(parsedLng) && mapInstanceRef.current) {
 			mapInstanceRef.current.flyTo([parsedLat, parsedLng], 17, { animate: true, duration: 1.5 });
-			if (window.innerWidth < 1024 && mapContainerRef.current) {
-				mapContainerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-			}
+		}
+	};
+
+	// Peta hanya tampil mulai lg (ponsel tanpa peta, TASK_69 bagian 15). Bila peta dibuat saat
+	// tersembunyi lalu layar melebar, Leaflet perlu mengukur ulang wadahnya.
+	useEffect(() => {
+		if (!mapRef.current || typeof ResizeObserver === 'undefined') return;
+		const observer = new ResizeObserver(() => mapInstanceRef.current?.invalidateSize());
+		observer.observe(mapRef.current);
+		return () => observer.disconnect();
+	}, []);
+
+	// Ketuk baris: desktop memusatkan peta; ponsel (tanpa peta) langsung membuka detail laporan.
+	const openReport = (report) => {
+		if (window.matchMedia('(min-width: 1024px)').matches) {
+			focusToReport(report.id, report.lat, report.lng);
+		} else {
+			router.visit(route('reports.show', report.id));
 		}
 	};
 
@@ -411,15 +426,18 @@ export default function Index(props) {
 				<button
 					type="button"
 					onClick={() => setParams((prev) => ({ ...prev, status: 'TERLAPOR' }))}
-					className="flex items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-left transition-colors hover:bg-destructive/15"
+					className="flex items-center gap-3 rounded-2xl bg-destructive/10 px-4 py-3 text-left transition-[background-color,transform] hover:bg-destructive/15 active:scale-[0.99]"
 				>
-					<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-destructive/15 text-destructive">
+					<span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-destructive text-destructive-foreground">
 						<IconAlertTriangle className="h-4 w-4" />
 					</span>
-					<span className="text-sm font-semibold text-destructive">
-						{menungguVerifikasi} laporan menunggu verifikasi
+					<span className="min-w-0 flex-1">
+						<span className="block text-[15px] font-semibold text-destructive">
+							{menungguVerifikasi} laporan menunggu verifikasi
+						</span>
+						<span className="block text-[13px] text-destructive/80">Ketuk untuk meninjau antrean</span>
 					</span>
-					<span className="ml-auto text-xs font-semibold text-destructive/80">Tinjau →</span>
+					<IconChevronRight className="h-4 w-4 shrink-0 text-destructive/70" />
 				</button>
 			)}
 
@@ -437,7 +455,8 @@ export default function Index(props) {
 								onChange={(e) => setParams((prev) => ({ ...prev, search: e.target.value }))}
 							/>
 						</div>
-						<div className="flex flex-wrap gap-1.5">
+						{/* Ponsel: satu baris chip yang digeser (bukan menumpuk 3 baris di atas daftar). */}
+						<div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none] lg:flex-wrap lg:overflow-visible [&::-webkit-scrollbar]:hidden">
 							{statusOptions.map((status) => {
 								const isActive = params?.status === status;
 								const dot = STATUS_META[status]?.dot;
@@ -447,7 +466,7 @@ export default function Index(props) {
 										type="button"
 										onClick={() => setParams((prev) => ({ ...prev, status }))}
 										className={cn(
-											'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all',
+											'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-[13px] font-semibold transition-all',
 											isActive
 												? TEAL_ACCENT.pillActive
 												: 'border-input bg-transparent text-muted-foreground hover:bg-accent hover:text-foreground',
@@ -469,8 +488,9 @@ export default function Index(props) {
 						</div>
 					</div>
 
-					{/* Area Scroll Daftar Laporan */}
-					<div className="flex h-[500px] flex-col gap-3 overflow-y-auto pb-4 pr-1 lg:h-[calc(100vh-240px)] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar]:w-1.5">
+					{/* Daftar laporan. Desktop: kolom bergulir di samping peta. Ponsel: mengalir bersama
+					    halaman (tanpa peta, tanpa gulir di dalam gulir) - TASK_69 bagian 15. */}
+					<div className="flex flex-col gap-3 pb-4 lg:h-[calc(100vh-240px)] lg:overflow-y-auto lg:pr-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar]:w-1.5">
 						{reports.length > 0 ? (
 							<>
 								<div className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
@@ -485,62 +505,82 @@ export default function Index(props) {
 												key={report.id}
 												role="button"
 												tabIndex={0}
-												onClick={() => focusToReport(report.id, report.lat, report.lng)}
+												onClick={() => openReport(report)}
 												onKeyDown={(e) =>
 													(e.key === 'Enter' || e.key === ' ') &&
-													(e.preventDefault(),
-													focusToReport(report.id, report.lat, report.lng))
+													(e.preventDefault(), openReport(report))
 												}
 												className={cn(
-													'cursor-pointer transition-colors active:bg-muted',
+													'flex cursor-pointer items-start gap-3 px-4 py-3.5 transition-colors active:bg-muted',
 													isActive ? 'bg-primary/5' : 'hover:bg-muted/40',
 												)}
 											>
-												<div className="flex flex-col gap-3 px-4 py-3.5">
-													<div className="flex flex-row items-start gap-3">
-														<div
+												<div
+													className={cn(
+														'flex h-10 w-10 shrink-0 items-center justify-center rounded-full',
+														style.ring,
+													)}
+												>
+													{isUrgent ? (
+														<IconAlertTriangle className="h-5 w-5" />
+													) : (
+														<IconMapPin className="h-5 w-5" />
+													)}
+												</div>
+
+												<div className="min-w-0 flex-1">
+													{/* Judul utuh (tanpa potongan) + umur laporan di kanan, ala baris Mail iOS. */}
+													<div className="flex items-start gap-3">
+														<h3
 															className={cn(
-																'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl',
-																style.ring,
+																'min-w-0 flex-1 break-words text-[15px] font-semibold leading-snug',
+																isActive ? TEAL_ACCENT.title : 'text-foreground',
 															)}
 														>
-															{isUrgent ? (
-																<IconAlertTriangle className="h-5 w-5" />
-															) : (
-																<IconMapPin className="h-5 w-5" />
+															{report.title}
+														</h3>
+														<span
+															title={formatDate(report.created_at)}
+															className={cn(
+																'shrink-0 pt-px text-[13px] leading-snug',
+																isUrgent
+																	? 'font-semibold text-destructive'
+																	: 'text-muted-foreground',
 															)}
-														</div>
-														<div className="w-full min-w-0 flex-1">
-															<div className="flex items-start justify-between gap-2">
-																<h3
-																	className={cn(
-																		'truncate text-sm font-semibold',
-																		isActive
-																			? TEAL_ACCENT.title
-																			: 'text-foreground',
-																	)}
-																>
-																	{report.title}
-																</h3>
-																<StatusBadge status={report.status} />
-															</div>
-															<p className="mt-0.5 font-mono text-xs font-semibold text-muted-foreground">
-																{reportNumber(report)}
-															</p>
-															<p className="mt-1 flex items-start gap-1 text-xs text-muted-foreground">
-																<IconMapPin className="mt-0.5 h-3 w-3 shrink-0" />
-																<span className="line-clamp-2">
-																	{alamatLaporan(report) || '-'}
-																</span>
-															</p>
-														</div>
-													</div>
-
-													{/* Chip urgensi untuk pemindaian triase cepat: umur, ada/tanpa foto, titik */}
-													<div className="flex flex-wrap items-center gap-1.5">
-														<MetaChip icon={IconClock} tone={isUrgent ? 'danger' : 'muted'}>
+														>
 															{timeAgo(report.created_at)}
-														</MetaChip>
+														</span>
+													</div>
+													<p className="mt-0.5 break-words text-[13px] leading-snug text-muted-foreground">
+														<span className="font-mono font-semibold">
+															{reportNumber(report)}
+														</span>
+														{' · '}
+														{alamatLaporan(report) || '-'}
+													</p>
+													<p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[13px] leading-snug text-muted-foreground">
+														<span className="inline-flex items-center gap-1">
+															<IconUser className="h-3.5 w-3.5 shrink-0" />
+															{report.name ?? report.user?.name ?? '-'}
+														</span>
+														<span className="hidden items-center gap-1 sm:inline-flex">
+															<IconPhone className="h-3.5 w-3.5 shrink-0" />
+															{report.phone ?? '-'}
+														</span>
+														{/* Penutup insiden (FINDINGS #88). Hanya untuk laporan yang sudah
+														    Selesai; laporan yang ditutup sebelum kolomnya ada memang tak
+														    punya jejak pelaku — dikatakan apa adanya, bukan disamarkan. */}
+														{report.status === 'resolved' && (
+															<span className="inline-flex items-center gap-1">
+																<IconCircleCheck className="h-3.5 w-3.5 shrink-0" />
+																Ditutup oleh {report.resolver?.name ?? 'tidak tercatat'}
+															</span>
+														)}
+													</p>
+
+													{/* Lencana status + tanda triase (foto, titik, laporan ganda) di barisnya sendiri. */}
+													<div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+														<StatusBadge status={report.status} />
 														{report.photo ? (
 															<MetaChip icon={IconPhoto} tone="ok">
 																Ada foto
@@ -556,8 +596,8 @@ export default function Index(props) {
 															</MetaChip>
 														)}
 														{/* Laporan ganda (TASK_55). Usulan mesin, BUKAN keputusan: laporannya
-													    tetap di antrean dan diputuskan admin di halaman detail. Jarak
-													    dihitung server. */}
+														    tetap di antrean dan diputuskan admin di halaman detail. Jarak
+														    dihitung server. */}
 														{isUrgent && report.candidate_of && (
 															<MetaChip icon={IconStack2} tone="warn">
 																Kemungkinan sama dengan{' '}
@@ -573,46 +613,24 @@ export default function Index(props) {
 														)}
 													</div>
 
-													<div className="grid grid-cols-1 gap-1.5 border-t border-border/70 pt-2.5 text-[13px] text-muted-foreground sm:grid-cols-2">
-														<span className="flex items-center gap-1.5 truncate">
-															<IconUser className="h-3.5 w-3.5 shrink-0" />
-															{report.name ?? report.user?.name ?? '-'}
-														</span>
-														<span className="hidden items-center gap-1.5 truncate sm:flex">
-															<IconPhone className="h-3.5 w-3.5 shrink-0" />
-															{report.phone ?? '-'}
-														</span>
-														<span className="flex items-center gap-1.5 truncate sm:col-span-2">
-															<IconClock className="h-3.5 w-3.5 shrink-0" />
-															{formatDate(report.created_at)}
-														</span>
-														{/* Penutup insiden (FINDINGS #88). Hanya untuk laporan yang sudah
-													    Selesai; laporan yang ditutup sebelum kolomnya ada memang tak
-													    punya jejak pelaku — dikatakan apa adanya, bukan disamarkan. */}
-														{report.status === 'resolved' && (
-															<span className="hidden items-center gap-1.5 truncate sm:col-span-2 sm:flex">
-																<IconCircleCheck className="h-3.5 w-3.5 shrink-0" />
-																Ditutup oleh {report.resolver?.name ?? 'tidak tercatat'}
-															</span>
-														)}
-													</div>
-
-													<div
-														className="flex items-center justify-end gap-2"
-														onClick={(e) => e.stopPropagation()}
-													>
-														{isUrgent && canVerify ? (
+													{isUrgent && canVerify ? (
+														<div className="mt-3" onClick={(e) => e.stopPropagation()}>
 															<Button
 																size="sm"
 																asChild
-																className="h-8 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+																className="h-9 w-full rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90 sm:w-auto"
 															>
 																<Link href={route('reports.show', report.id)}>
 																	<IconEye className="mr-1 size-4" /> Tinjau &
 																	Verifikasi
 																</Link>
 															</Button>
-														) : (
+														</div>
+													) : (
+														<div
+															className="mt-2 hidden justify-end lg:flex"
+															onClick={(e) => e.stopPropagation()}
+														>
 															<Button
 																variant="ghost"
 																size="sm"
@@ -623,15 +641,12 @@ export default function Index(props) {
 																	<IconEye className="mr-1 size-4" /> Detail
 																</Link>
 															</Button>
-														)}
-													</div>
-
-													{hasCoords && (
-														<div className="flex items-center justify-center gap-1 rounded-lg py-1 text-[11px] font-semibold text-primary lg:hidden">
-															<IconArrowDown className="h-3 w-3" /> Lihat di peta
 														</div>
 													)}
 												</div>
+
+												{/* Ponsel: baris ini sendiri tautan ke detail - tanda panah ala iOS. */}
+												<IconChevronRight className="h-4 w-4 shrink-0 self-center text-muted-foreground/50 lg:hidden" />
 											</div>
 										);
 									})}
@@ -671,8 +686,12 @@ export default function Index(props) {
 								</div>
 							</>
 						) : (
-							<div className="rounded-2xl border border-dashed border-input p-10 text-center">
-								<span className="text-sm text-muted-foreground">Tidak ada laporan yang ditemukan.</span>
+							<div className="rounded-2xl border border-border/70 bg-card shadow-sm">
+								<AppEmpty
+									icon={IconClipboardPlus}
+									title="Tidak ada laporan yang ditemukan."
+									description="Coba ubah kata kunci atau pilih status lain."
+								/>
 							</div>
 						)}
 					</div>
@@ -680,7 +699,7 @@ export default function Index(props) {
 
 				<div
 					ref={mapContainerRef}
-					className="flex h-[450px] w-full scroll-mt-24 flex-col lg:h-[calc(100vh-140px)] lg:flex-1"
+					className="hidden w-full flex-col lg:flex lg:h-[calc(100vh-140px)] lg:flex-1"
 				>
 					<div className="mb-3 flex items-center justify-between gap-2 px-1">
 						<div className="flex items-center gap-2">

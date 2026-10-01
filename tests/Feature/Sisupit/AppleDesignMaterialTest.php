@@ -276,3 +276,28 @@ it('lets dashboard rows wrap in full and moves status and action pills off the c
     expect($card)->not->toContain('line-clamp-2 flex min-w-0 flex-1 items-start gap-2 text-[17px]')
         ->and($card)->not->toContain('text-[11px] font-bold uppercase tracking-wide');
 });
+
+// TASK_69 bagian 15 (user 2026-10-02): di ponsel ketujuh halaman fasilitas & laporan TANPA peta.
+// Kolom peta disembunyikan di bawah lg, daftar mengalir bersama halaman (tanpa kotak gulir 500px),
+// dan tak ada lagi petunjuk "Lihat di peta" / gulir otomatis ke peta yang kini tak terlihat.
+it('hides the map on phones for the facility and report list pages', function () {
+    $public = ['Hydrants/Index', 'Pumps/Index', 'FireStations/Index'];
+    $admin = ['Admin/Reports/Index', 'Admin/Hydrants/Index', 'Admin/Pumps/Index', 'Admin/FireStations/Index'];
+    foreach ($public as $page) {
+        expect(appleSource("resources/js/Pages/{$page}.jsx"))
+            ->toContain('className="hidden w-full flex-col gap-3 lg:sticky lg:top-[90px] lg:flex lg:flex-1"');
+    }
+    foreach ($admin as $page) {
+        $src = appleSource("resources/js/Pages/{$page}.jsx");
+        expect($src)->toContain('className="hidden w-full flex-col lg:flex lg:h-[calc(100vh-140px)] lg:flex-1"')
+            ->and($src)->toContain('invalidateSize()')
+            ->and($src)->not->toContain('Lihat di peta')
+            ->and($src)->not->toContain('scrollIntoView')
+            ->and($src)->not->toContain('h-[500px]');
+    }
+    // Ponsel: baris laporan membuka detail (tak ada peta untuk dipusatkan).
+    $reports = appleSource('resources/js/Pages/Admin/Reports/Index.jsx');
+    expect($reports)->toContain("router.visit(route('reports.show', report.id))")
+        ->and($reports)->toContain('<AppEmpty')
+        ->and($reports)->not->toContain('rounded-lg px-2 py-0.5 font-bold');
+});

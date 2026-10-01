@@ -23,7 +23,6 @@ import {
 } from '@/lib/utils';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
-	IconArrowDown,
 	IconDroplet,
 	IconEdit,
 	IconFireHydrant,
@@ -116,15 +115,21 @@ export default function Index({
 		}
 	}, [hydrants.data]);
 
+	// Peta hanya tampil mulai lg (ponsel tanpa peta, TASK_69 bagian 15). Bila peta dibuat saat
+	// tersembunyi lalu layar melebar, Leaflet perlu mengukur ulang wadahnya.
+	useEffect(() => {
+		if (!mapRef.current || typeof ResizeObserver === 'undefined') return;
+		const observer = new ResizeObserver(() => mapInstanceRef.current?.invalidateSize());
+		observer.observe(mapRef.current);
+		return () => observer.disconnect();
+	}, []);
+
 	const focusToHydrant = (id, lat, lng) => {
 		setActiveHydrantId(id);
 		const parsedLat = parseFloat(lat),
 			parsedLng = parseFloat(lng);
 		if (!isNaN(parsedLat) && !isNaN(parsedLng) && mapInstanceRef.current) {
 			mapInstanceRef.current.flyTo([parsedLat, parsedLng], 17, { animate: true, duration: 1.5 });
-			if (window.innerWidth < 1024 && mapContainerRef.current) {
-				mapContainerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-			}
 		}
 	};
 
@@ -263,7 +268,7 @@ export default function Index({
 					)}
 
 					{/* Area Scroll Daftar Hydrant */}
-					<div className="flex h-[500px] flex-col gap-3 overflow-y-auto pb-4 pr-1 lg:h-[calc(100vh-240px)] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar]:w-1.5">
+					<div className="flex flex-col gap-3 pb-4 lg:h-[calc(100vh-240px)] lg:overflow-y-auto lg:pr-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar]:w-1.5">
 						{hydrants.data && hydrants.data.length > 0 ? (
 							<>
 								<div className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
@@ -391,9 +396,6 @@ export default function Index({
 														)}
 													</div>
 												</div>
-												<div className="flex items-center justify-center gap-1 rounded-lg py-1 text-[11px] font-semibold text-primary lg:hidden">
-													<IconArrowDown className="h-3 w-3" /> Lihat di peta
-												</div>
 											</div>
 										</div>
 									))}
@@ -444,7 +446,7 @@ export default function Index({
 
 				<div
 					ref={mapContainerRef}
-					className="flex h-[450px] w-full scroll-mt-24 flex-col lg:h-[calc(100vh-140px)] lg:flex-1"
+					className="hidden w-full flex-col lg:flex lg:h-[calc(100vh-140px)] lg:flex-1"
 				>
 					<div className="mb-2 flex items-center gap-2 px-1">
 						<IconMapPinFilled className="h-4 w-4 text-muted-foreground" />

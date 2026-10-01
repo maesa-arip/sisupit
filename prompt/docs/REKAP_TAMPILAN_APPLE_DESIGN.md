@@ -1,6 +1,6 @@
 # Rekap Tampilan per Peran & Status Rombakan apple-design
 
-> Branch `feat/mobile-native-polish` (TASK_69). Diperbarui 2026-10-02 (bagian 12-13: semua halaman B & C dirombak). Sumber: `php artisan route:list`
+> Branch `feat/mobile-native-polish` (TASK_69). Diperbarui 2026-10-02 (bagian 12-13: semua halaman B & C dirombak; bagian 15: peta disembunyikan di ponsel untuk 7 halaman fasilitas & laporan, /admin/reports dirombak ulang). Sumber: `php artisan route:list`
 > (URL + middleware peran) dan komponen Inertia yang dirender tiap controller, lalu digabung dengan
 > riwayat rombakan TASK_69. Route yang hanya bergerbang login dibagi per peran dari logika controller.
 
@@ -411,11 +411,11 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | `resources/js/Pages/Admin/Dashboard.jsx` | Statistik ala widget, StandbyCard; ponsel: angka + label, insiden maks 5 |
 | `resources/js/Pages/Admin/FireStations/Create.jsx` | Kartu tunggal dipecah: Cari lokasi, Area yurisdiksi, Detail fasilitas, Koordinat |
 | `resources/js/Pages/Admin/FireStations/Edit.jsx` | Kartu tunggal dipecah: Cari lokasi, Area yurisdiksi, Detail fasilitas, Koordinat |
-| `resources/js/Pages/Admin/FireStations/Index.jsx` | Daftar satu kartu bergrup, AlertDialog, cari type=search, chip & paginasi primer |
+| `resources/js/Pages/Admin/FireStations/Index.jsx` | Daftar satu kartu bergrup, AlertDialog, cari type=search, chip & paginasi primer; peta desktop saja |
 | `resources/js/Pages/Admin/Forum/Index.jsx` | Tab segmented control, pil, tipografi baca; kartu moderasi sengaja dipertahankan |
 | `resources/js/Pages/Admin/Hydrants/Create.jsx` | Kartu tunggal dipecah: Cari lokasi, Area yurisdiksi, Detail fasilitas, Koordinat |
 | `resources/js/Pages/Admin/Hydrants/Edit.jsx` | Kartu tunggal dipecah: Cari lokasi, Area yurisdiksi, Detail fasilitas, Koordinat |
-| `resources/js/Pages/Admin/Hydrants/Index.jsx` | Daftar satu kartu bergrup, AlertDialog, cari type=search, chip & paginasi primer |
+| `resources/js/Pages/Admin/Hydrants/Index.jsx` | Daftar satu kartu bergrup, AlertDialog, cari type=search, chip & paginasi primer; peta desktop saja |
 | `resources/js/Pages/Admin/Mail/Settings.jsx` | Form bergaris rambut ala iOS, tombol standar |
 | `resources/js/Pages/Admin/MailContacts/Create.jsx` | Form bergaris rambut ala iOS, kartu max-w-2xl |
 | `resources/js/Pages/Admin/MailContacts/Edit.jsx` | Form bergaris rambut ala iOS, kartu max-w-2xl |
@@ -426,8 +426,8 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | `resources/js/Pages/Admin/Permissions/Index.jsx` | Kartu ponsel ala /admin/users (tanpa pita abu, Ubah), cari type=search |
 | `resources/js/Pages/Admin/Pumps/Create.jsx` | Kartu tunggal dipecah: Cari lokasi, Area yurisdiksi, Detail fasilitas, Koordinat |
 | `resources/js/Pages/Admin/Pumps/Edit.jsx` | Kartu tunggal dipecah: Cari lokasi, Area yurisdiksi, Detail fasilitas, Koordinat |
-| `resources/js/Pages/Admin/Pumps/Index.jsx` | Daftar satu kartu bergrup, AlertDialog, cari type=search, chip & paginasi primer |
-| `resources/js/Pages/Admin/Reports/Index.jsx` | Triase: satu daftar bergrup (+keyboard), metadata ringkas di ponsel, peta bermaterial |
+| `resources/js/Pages/Admin/Pumps/Index.jsx` | Daftar satu kartu bergrup, AlertDialog, cari type=search, chip & paginasi primer; peta desktop saja |
+| `resources/js/Pages/Admin/Reports/Index.jsx` | Baris ala Mail iOS (judul utuh, umur di kanan, lencana pil di baris sendiri), banner triase bertint, chip digeser di ponsel; ponsel tanpa peta - ketuk baris = detail (bagian 15) |
 | `resources/js/Pages/Admin/Roles/Create.jsx` | Form bergaris rambut ala iOS (tiap isian/grup satu baris), tombol standar |
 | `resources/js/Pages/Admin/Roles/Edit.jsx` | Form bergaris rambut ala iOS (tiap isian/grup satu baris), tombol standar |
 | `resources/js/Pages/Admin/Roles/Index.jsx` | Kartu ponsel ala /admin/users (tanpa pita abu, Ubah), cari type=search |
@@ -451,7 +451,7 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | `resources/js/Pages/Auth/VerifyEmail.jsx` | Layar pesan iOS: ikon dalam lingkaran, judul besar, teks 15px, tombol 48px |
 | `resources/js/Pages/Dashboard.jsx` | Sapaan, Lapor Darurat, StandbyCard bersakelar; ponsel: riwayat 3 baris, kartu ringkas |
 | `resources/js/Pages/ErrorHandling.jsx` | Layar galat iOS tanpa kartu |
-| `resources/js/Pages/FireStations/Index.jsx` | Kolom cari ala iOS tanpa kartu, tombol terdekat bertint, daftar bergrup |
+| `resources/js/Pages/FireStations/Index.jsx` | Kolom cari ala iOS tanpa kartu, tombol terdekat bertint, daftar bergrup; peta desktop saja |
 | `resources/js/Pages/Forum/Create.jsx` | Form bergaris rambut ala iOS |
 | `resources/js/Pages/Forum/Index.jsx` | Satu daftar bergrup (dulu kartu terpisah) |
 | `resources/js/Pages/Forum/Show.jsx` | Judul besar, pil, label seksi iOS, isi 15px |
@@ -462,7 +462,7 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | `resources/js/Pages/Front/Reports/Show.jsx` | Bilah navigasi iOS, judul besar, status pil, modal & label apple |
 | `resources/js/Pages/Front/Reports/Thanks.jsx` | Layar konfirmasi iOS: ikon sukses di tengah, nomor & waktu sebagai baris |
 | `resources/js/Pages/Home.jsx` | Petak pintasan bertint, tanpa <hr>, karusel & judul seksi tipografi iOS |
-| `resources/js/Pages/Hydrants/Index.jsx` | Kolom cari ala iOS tanpa kartu, tombol terdekat bertint, daftar bergrup |
+| `resources/js/Pages/Hydrants/Index.jsx` | Kolom cari ala iOS tanpa kartu, tombol terdekat bertint, daftar bergrup; peta desktop saja |
 | `resources/js/Pages/Info/About.jsx` | InfoShell: lebar baca max-w-3xl, teks 15px, judul seksi 17px, pil |
 | `resources/js/Pages/Info/Help.jsx` | InfoShell: lebar baca max-w-3xl, teks 15px, judul seksi 17px, pil |
 | `resources/js/Pages/Info/Pricing.jsx` | InfoShell: lebar baca max-w-3xl, teks 15px, judul seksi 17px, pil |
@@ -476,7 +476,7 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | `resources/js/Pages/Petugas/Dashboard.jsx` | Ponsel: baris misi cuma waktu + jarak; kepala peta material |
 | `resources/js/Pages/Profile/CompleteProfile.jsx` | Form bergaris rambut ala iOS |
 | `resources/js/Pages/Profile/Edit.jsx` | Tata letak ala Settings iOS; Keluar jadi baris merah di bawah |
-| `resources/js/Pages/Pumps/Index.jsx` | Kolom cari ala iOS tanpa kartu, tombol terdekat bertint, daftar bergrup |
+| `resources/js/Pages/Pumps/Index.jsx` | Kolom cari ala iOS tanpa kartu, tombol terdekat bertint, daftar bergrup; peta desktop saja |
 | `resources/js/Pages/Regu/Index.jsx` | Satu daftar bergrup (dulu kartu terpisah) |
 | `resources/js/Pages/Spotlight.jsx` | Judul besar normal-case, CTA 17px, warna dekorasi ikut mode gelap |
 | `resources/js/Pages/Volunteers/Index.jsx` | Ponsel: baris kontak (avatar bulat, seluruh kartu bisa diketuk); desktop kisi |

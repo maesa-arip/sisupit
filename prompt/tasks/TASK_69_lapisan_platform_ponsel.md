@@ -358,3 +358,24 @@ Dikerjakan per keluarga templat (skrip berpenjaga jumlah-cocok, cadangan + pulih
   tetap pratinjau 3 baris (isi lengkap di detail); tombol bawah 44px huruf normal (dulu 11px kapital).
 - Penjaga baru di AppleDesignMaterialTest dibuktikan MERAH terhadap HEAD, 5 berkas pulih byte-exact.
   Satu asersi lama disesuaikan (deskripsi line-clamp-2 -> 3, disengaja). Suite 655 passed (3231).
+
+## 21. Bagian 15 - peta disembunyikan di ponsel + /admin/reports dirombak ulang (user 2026-10-02)
+
+Permintaan: "pada tampilan mobile hydrants, pumps, fire-stations, admin/reports, /admin/hydrants, /admin/pumps,
+admin/fire-stations jangan tampilkan mapsnya, sekalian ubah tampilan /admin/reports". Rencana dikonfirmasi user.
+- **Peta desktop saja (batas `lg`, sama dengan tata letak dua kolom):** kolom peta `hidden ... lg:flex`. Tablet
+  tegak ikut tanpa peta. Petunjuk "Lihat di peta" & gulir otomatis ke peta (`innerWidth < 1024` +
+  `scrollIntoView`) dibuang; kotak gulir daftar `h-[500px] overflow-y-auto` kini hanya `lg:` - di ponsel daftar
+  mengalir bersama halaman. Ketuk baris fasilitas admin di ponsel = tak ada aksi peta (Ubah/Hapus/Rute tetap).
+- **Leaflet admin + ResizeObserver:** keempat halaman admin membuat peta sendiri tanpa `invalidateSize`; peta
+  yang dibuat saat tersembunyi lalu layar melebar (tablet diputar) akan berubin rusak - kini diamati
+  `ResizeObserver` (pola `UserLeafletMap`, yang sudah punya). Halaman publik sudah aman lewat UserLeafletMap.
+- **/admin/reports (juga /reports mode pemantau):** baris ala Mail iOS - judul utuh + umur laporan di kanan
+  (merah untuk Laporan Masuk), nomor & alamat, pelapor (+telepon >= sm, penutup untuk Selesai), lencana status
+  PIL + tanda triase di baris sendiri, tombol Tinjau & Verifikasi tetap (lebar penuh di ponsel); ponsel: ketuk
+  baris = buka detail (`router.visit`), panah iOS; desktop: ketuk = pusatkan peta, tombol Detail. Banner
+  "menunggu verifikasi" bertint 2xl, chip status satu baris digeser di ponsel, keadaan kosong `AppEmpty`.
+  LOGIKA TIDAK DISENTUH: STATUS_META, MONITOR_HIDDEN_STATUSES, ExportDialog, filter, mode pemantau.
+- Penjaga baru `AppleDesignMaterialTest` "hides the map on phones..." dibuktikan MERAH terhadap HEAD (7 berkas),
+  dipulihkan byte-exact (`cmp`). Build lulus. Suite 655 -> 656 passed (3257).
+- Belum dicek: tampilan di HP/APK.
