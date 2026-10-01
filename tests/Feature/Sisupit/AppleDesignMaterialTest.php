@@ -237,3 +237,26 @@ it('reworks the remaining front pages into grouped lists and iOS-style screens',
     expect(appleSource('resources/js/Pages/Spotlight.jsx'))->not->toMatch('/\b(bg-white|border-white|border-neutral-200)\b/');
     expect(appleSource('resources/js/Pages/Admin/Roles/Create.jsx'))->toContain('divide-y divide-border/70 [&>*:first-child]:pt-0');
 });
+
+it('groups every sign-in field in one iOS-style card and keeps the marketing pages on theme tokens', function () {
+    foreach (['Login', 'Register', 'ForgotPassword', 'ResetPassword', 'ConfirmPassword'] as $page) {
+        $src = appleSource("resources/js/Pages/Auth/{$page}.jsx");
+        expect($src)->toContain('focus-within:border-primary/40')
+            ->and($src)->toContain('rounded-none border-0 bg-transparent p-0')
+            ->and($src)->not->toContain('h-11 w-full rounded-xl border-border bg-background');
+    }
+    foreach (['Landing', 'Home', 'Spotlight'] as $page) {
+        expect(appleSource("resources/js/Pages/{$page}.jsx"))->not->toMatch('/\b(bg-white|text-white|border-neutral-200)\b(?!\/)/');
+    }
+    expect(appleSource('resources/js/Pages/Home.jsx'))->not->toContain('<hr');
+});
+
+it('gives the superadmin tables a grouped phone list that shares one delete dialog with the desktop table', function () {
+    foreach (['Announcements' => 'DeleteAnnouncementDialog', 'Tenants' => 'DeleteTenantDialog'] as $mod => $dialog) {
+        $src = appleSource("resources/js/Pages/Admin/{$mod}/Index.jsx");
+        expect($src)->toContain('divide-y divide-border/70 md:hidden')
+            ->and($src)->toContain('<div className="hidden md:block">')
+            ->and(substr_count($src, "<{$dialog} "))->toBe(2)
+            ->and(substr_count($src, '<AlertDialog>'))->toBe(1);
+    }
+});

@@ -43,12 +43,12 @@ export default function Home(props) {
 				/>
 
 				{/* Indikator Sistem Online */}
-				<div className="flex w-fit items-center gap-2 rounded-2xl border border-success/30 bg-success/10 px-2.5 py-1.5 shadow-sm">
+				<div className="flex w-fit items-center gap-2 rounded-full border border-success/30 bg-success/10 px-3 py-1 shadow-sm">
 					<span className="relative flex h-2 w-2">
 						<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/60 opacity-75"></span>
 						<span className="relative inline-flex h-2 w-2 rounded-full bg-success"></span>
 					</span>
-					<span className="text-[11px] font-bold text-success">Siaga 24/7</span>
+					<span className="text-xs font-semibold text-success">Siaga 24/7</span>
 				</div>
 			</div>
 
@@ -57,12 +57,12 @@ export default function Home(props) {
 				{/* Menu Lokasi Pompa */}
 				<Link
 					href={route('front.pumps.index')}
-					className="group flex flex-col items-center justify-center rounded-2xl border border-border bg-card p-5 shadow-sm outline-none transition-colors hover:border-muted-foreground/30 focus-visible:ring-2 focus-visible:ring-ring sm:p-6"
+					className="group flex flex-col items-center justify-center rounded-2xl border border-border bg-card p-5 shadow-sm outline-none transition-colors hover:border-muted-foreground/30 focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] motion-reduce:active:scale-100 sm:p-6"
 				>
-					<div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg border border-info/20 bg-info/10 text-info transition-colors duration-200 group-hover:bg-info/20 sm:h-14 sm:w-14">
+					<div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-info/10 text-info transition-colors duration-200 group-hover:bg-info/20 sm:h-14 sm:w-14">
 						<IconDroplet size={24} stroke={1.5} className="sm:h-7 sm:w-7" />
 					</div>
-					<span className="text-center text-xs font-semibold leading-tight text-foreground sm:text-sm">
+					<span className="text-center text-[15px] font-semibold leading-tight text-foreground">
 						Lokasi Pompa
 						<br />
 						Sisupit
@@ -72,12 +72,12 @@ export default function Home(props) {
 				{/* Menu Pos Damkar */}
 				<Link
 					href={route('front.fire_stations.index')}
-					className="group flex flex-col items-center justify-center rounded-2xl border border-border bg-card p-5 shadow-sm outline-none transition-colors hover:border-muted-foreground/30 focus-visible:ring-2 focus-visible:ring-ring sm:p-6"
+					className="group flex flex-col items-center justify-center rounded-2xl border border-border bg-card p-5 shadow-sm outline-none transition-colors hover:border-muted-foreground/30 focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] motion-reduce:active:scale-100 sm:p-6"
 				>
-					<div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg border border-destructive/20 bg-destructive/10 text-destructive transition-colors duration-200 group-hover:bg-destructive/20 sm:h-14 sm:w-14">
+					<div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive transition-colors duration-200 group-hover:bg-destructive/20 sm:h-14 sm:w-14">
 						<IconFiretruck size={24} stroke={1.5} className="sm:h-7 sm:w-7" />
 					</div>
-					<span className="text-center text-xs font-semibold leading-tight text-foreground sm:text-sm">
+					<span className="text-center text-[15px] font-semibold leading-tight text-foreground">
 						Pos Damkar
 						<br />
 						Terdekat
@@ -94,13 +94,11 @@ export default function Home(props) {
 				</a>
 			</div>
 
-			<hr className="my-2 border-border" />
-
 			{/* --- CAROUSEL INFORMASI --- */}
 			<div className="flex w-full flex-col items-center space-y-4">
 				<div className="w-full px-1 text-left">
-					<h3 className="text-base font-semibold text-foreground">Informasi & Edukasi</h3>
-					<p className="mt-0.5 text-sm text-muted-foreground">
+					<h3 className="text-[17px] font-semibold tracking-tight text-foreground">Informasi & Edukasi</h3>
+					<p className="mt-0.5 text-[15px] text-muted-foreground">
 						Berita terkini dan panduan keselamatan untuk warga.
 					</p>
 				</div>
@@ -117,7 +115,7 @@ export default function Home(props) {
 							return (
 								<CarouselItem key={index} className="pl-3 md:basis-1/2 md:pl-4 lg:basis-1/3">
 									<Card className="group h-full overflow-hidden transition-colors hover:border-muted-foreground/30">
-										<div className="flex h-28 w-full items-center justify-center border-b border-border bg-muted">
+										<div className="flex h-28 w-full items-center justify-center bg-muted">
 											<IconNews
 												className="h-8 w-8 text-muted-foreground/60 transition-colors group-hover:text-muted-foreground"
 												stroke={1.5}
@@ -130,12 +128,12 @@ export default function Home(props) {
 												>
 													{isWarning ? 'Peringatan Dini' : 'Berita Warga'}
 												</span>
-												<h4 className="line-clamp-2 text-sm font-semibold text-foreground">
+												<h4 className="line-clamp-2 text-[15px] font-semibold text-foreground">
 													{isWarning
 														? 'Waspada Potensi Kebakaran Lahan di Musim Kemarau'
 														: `Informasi Kegiatan Edukasi Damkar Sesi ${index + 1}`}
 												</h4>
-												<p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+												<p className="mt-1 line-clamp-2 text-[13px] leading-relaxed text-muted-foreground">
 													Klik untuk membaca selengkapnya mengenai informasi penting ini demi
 													keselamatan bersama.
 												</p>

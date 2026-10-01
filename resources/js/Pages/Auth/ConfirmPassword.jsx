@@ -23,51 +23,54 @@ export default function ConfirmPassword() {
 	};
 
 	return (
-		<Card className="mx-auto mt-10 max-w-md">
-			<CardHeader className="border-b border-border bg-transparent pb-5">
-				<CardTitle className="text-[17px] font-semibold tracking-tight text-foreground">
+		<Card className="mx-auto mt-10 max-w-md border-0 bg-transparent shadow-none">
+			<CardHeader className="items-center bg-transparent pb-2 text-center">
+				<img src="/icon.png" alt="" className="mx-auto mb-4 h-16 w-16 rounded-2xl shadow-sm" />
+				<CardTitle className="text-3xl font-bold tracking-tight text-foreground">
 					Konfirmasi Kata Sandi
 				</CardTitle>
-				<CardDescription className="mt-1 text-sm text-muted-foreground">
+				<CardDescription className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
 					Ini adalah area aman aplikasi. Harap konfirmasi kata sandi Anda sebelum melanjutkan ke halaman
 					berikutnya.
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="pt-6">
 				<form onSubmit={onHandleSubmit}>
-					<div className="space-y-1.5">
-						<Label htmlFor="password" className="text-sm font-medium text-foreground">
-							Kata Sandi
-						</Label>
-						<div className="relative flex items-center">
-							<Input
-								id="password"
-								name="password"
-								type={showPassword ? 'text' : 'password'}
-								value={data.password}
-								onChange={(e) => setData('password', e.target.value)}
-								className="h-11 w-full rounded-xl border-border bg-background pr-11 transition-colors focus-visible:ring-2 focus-visible:ring-primary/30"
-							/>
-							<button
-								type="button"
-								onClick={() => setShowPassword(!showPassword)}
-								className="absolute right-0.5 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground focus:outline-none"
-							>
-								{showPassword ? (
-									<IconEyeOff className="h-5 w-5" stroke={1.5} />
-								) : (
-									<IconEye className="h-5 w-5" stroke={1.5} />
-								)}
-							</button>
+					<div className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition-colors focus-within:border-primary/40">
+						<div className="relative px-4 pb-2 pt-3">
+							<Label htmlFor="password" className="block text-[13px] font-medium text-muted-foreground">
+								Kata Sandi
+							</Label>
+							<div className="relative">
+								<Input
+									id="password"
+									name="password"
+									type={showPassword ? 'text' : 'password'}
+									value={data.password}
+									onChange={(e) => setData('password', e.target.value)}
+									className="h-9 w-full rounded-none border-0 bg-transparent p-0 text-[17px] shadow-none focus-visible:ring-0"
+								/>
+								<button
+									type="button"
+									onClick={() => setShowPassword(!showPassword)}
+									className="absolute right-0.5 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground focus:outline-none"
+								>
+									{showPassword ? (
+										<IconEyeOff className="h-5 w-5" stroke={1.5} />
+									) : (
+										<IconEye className="h-5 w-5" stroke={1.5} />
+									)}
+								</button>
+							</div>
+							{errors.password && <InputError message={errors.password} />}
 						</div>
-						{errors.password && <InputError message={errors.password} />}
 					</div>
 
 					<div className="mt-6 flex items-center justify-end">
 						<Button
 							type="submit"
 							disabled={processing}
-							className="h-10 rounded-lg bg-destructive px-6 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:cursor-not-allowed disabled:opacity-70"
+							className="h-12 w-full rounded-xl bg-destructive px-6 text-[17px] font-semibold text-destructive-foreground transition-[color,background-color,transform] hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 motion-reduce:active:scale-100"
 						>
 							{processing ? <IconLoader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
 							Konfirmasi

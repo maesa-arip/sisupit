@@ -24,7 +24,7 @@ export default function ForgotPassword({ status }) {
 			{/* PANE KIRI */}
 			<div className="relative z-0 flex flex-col bg-background px-6 py-6 lg:px-12">
 				{/* Header: Logo & Theme Switcher */}
-				<div className="mb-12 flex w-full items-center justify-between pt-2 lg:mb-0">
+				<div className="mb-6 flex w-full items-center justify-between pt-2 lg:mb-0">
 					<ApplicationLogo />
 					<ThemeSwitcher />
 				</div>
@@ -35,7 +35,7 @@ export default function ForgotPassword({ status }) {
 						{/* Judul */}
 						<div className="text-center">
 							<h1 className="text-3xl font-bold tracking-tight text-foreground">Lupa Kata Sandi?</h1>
-							<p className="mt-2 text-sm text-muted-foreground">
+							<p className="mt-2 text-[15px] text-muted-foreground">
 								Tidak masalah. Masukkan alamat email Anda dan kami akan mengirimkan tautan untuk
 								mengatur ulang kata sandi.
 							</p>
@@ -51,26 +51,31 @@ export default function ForgotPassword({ status }) {
 						)}
 
 						<form onSubmit={onHandleSubmit} className="space-y-5">
-							<div className="space-y-1.5">
-								<Label htmlFor="email" className="text-sm font-medium text-foreground">
-									Email Terdaftar
-								</Label>
-								<Input
-									id="email"
-									type="email"
-									name="email"
-									value={data.email}
-									placeholder="nama@email.com"
-									onChange={(e) => setData('email', e.target.value)}
-									className="h-11 w-full rounded-xl border-border bg-background transition-colors focus-visible:ring-2 focus-visible:ring-primary/30"
-								/>
-								{errors.email && <InputError message={errors.email} />}
+							<div className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition-colors focus-within:border-primary/40">
+								<div className="relative px-4 pb-2 pt-3">
+									<Label
+										htmlFor="email"
+										className="block text-[13px] font-medium text-muted-foreground"
+									>
+										Email Terdaftar
+									</Label>
+									<Input
+										id="email"
+										type="email"
+										name="email"
+										value={data.email}
+										placeholder="nama@email.com"
+										onChange={(e) => setData('email', e.target.value)}
+										className="h-9 w-full rounded-none border-0 bg-transparent p-0 text-[17px] shadow-none focus-visible:ring-0"
+									/>
+									{errors.email && <InputError message={errors.email} />}
+								</div>
 							</div>
 
 							<Button
 								type="submit"
 								disabled={processing}
-								className="mt-2 h-11 w-full rounded-xl bg-destructive text-sm font-semibold text-destructive-foreground transition-[color,background-color,transform] hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 motion-reduce:active:scale-100"
+								className="mt-2 h-12 w-full rounded-xl bg-destructive text-[17px] font-semibold text-destructive-foreground transition-[color,background-color,transform] hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 motion-reduce:active:scale-100"
 							>
 								{processing ? <IconLoader2 className="h-5 w-5 animate-spin" /> : 'Kirim Tautan Reset'}
 							</Button>

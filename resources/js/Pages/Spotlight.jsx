@@ -43,7 +43,7 @@ export default function Spotlight(props) {
 
 				{/* Ikon Utama (Tengah) */}
 				<div className="relative z-10 flex h-32 w-32 rotate-3 items-center justify-center rounded-[24px] border-4 border-background bg-destructive shadow-none transition-transform duration-300 hover:rotate-0 hover:scale-105 dark:border-neutral-900">
-					<IconFlame className="h-16 w-16 text-white" stroke={1.5} />
+					<IconFlame className="h-16 w-16 text-destructive-foreground" stroke={1.5} />
 				</div>
 
 				{/* Elemen Dekorasi (Kanan Bawah - Perisai) */}

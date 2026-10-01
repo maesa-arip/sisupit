@@ -328,3 +328,19 @@ Dikerjakan per keluarga templat (skrip berpenjaga jumlah-cocok, cadangan + pulih
   menyala di mode gelap); Auth = ikon aplikasi; fasilitas publik = kolom cari iOS tanpa kartu; OPD ringkas.
 - Rekap (`prompt/docs/REKAP_TAMPILAN_APPLE_DESIGN.md`) diperbarui: 73 dirombak penuh, 10 sebagian (Auth, Landing,
   Home, 2 tabel superadmin), 0 gaya umum saja, 5 sengaja tak disentuh. Suite 652 passed (3191).
+
+## 19. Bagian 13 - sisa status B dirombak (user 2026-10-02: "rombak juga sisa yang statusnya B")
+
+- **Auth (Masuk, Daftar, Lupa/Atur Ulang/Konfirmasi Kata Sandi):** isian digabung jadi SATU kartu bergaris rambut
+  ala layar masuk iOS (label 13px di dalam baris, isian tanpa bingkai 17px, bingkai kartu menyala saat fokus);
+  "Lupa kata sandi?" pindah sejajar "Ingat saya"; tombol 48px/17px. Konfirmasi Kata Sandi jadi layar iOS
+  (ikon aplikasi, judul besar). Galat tetap per isian di bawah kartu. id/name/autocomplete TIDAK berubah.
+- **Landing/Home:** kartu bergaris tipis + bayangan, teks baca 15/17px, `<hr>` dibuang, petak pintasan bertint.
+  Ikon api di atas merah kini `text-destructive-foreground` (token), bukan `text-white`.
+- **Pengumuman & Kabupaten (superadmin):** daftar bergrup khusus ponsel (ketuk baris = ubah, pil status);
+  dialog hapus dijadikan SATU komponen per berkas yang dipakai tabel & daftar ponsel.
+- Temuan kecil di luar scope (TIDAK diubah, sisi server): `AnnouncementResource` mengirim teks "TIdak Aktif"
+  (salah ketik huruf besar).
+- Rekap: 83 dirombak penuh, 0 sebagian, 5 sengaja tak disentuh. Suite 654 passed (3218). Penjaga baru di
+  AppleDesignMaterialTest (grup isian Auth, token warna halaman pemasaran, daftar ponsel superadmin) dibuktikan
+  MERAH terhadap HEAD, berkas dipulihkan byte-exact.

@@ -15,10 +15,49 @@ import { Card, CardContent, CardFooter } from '@/Components/ui/card';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink } from '@/Components/ui/pagination';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import AppLayout from '@/Layouts/AppLayout';
-import { flashMessage } from '@/lib/utils';
+import { cn, flashMessage } from '@/lib/utils';
 import { Link, router } from '@inertiajs/react';
-import { IconAlertCircle, IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
+import { IconAlertCircle, IconChevronRight, IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
 import { toast } from 'sonner';
+
+// Satu dialog hapus untuk tabel desktop & daftar ponsel (TASK_69), supaya keduanya tak menyimpang.
+function DeleteAnnouncementDialog({ announcement }) {
+	return (
+		<AlertDialog>
+			<AlertDialogTrigger asChild>
+				<Button variant="red" size="sm" aria-label="Hapus pengumuman">
+					<IconTrash size="4" />
+				</Button>
+			</AlertDialogTrigger>
+			<AlertDialogContent>
+				<AlertDialogHeader>
+					<AlertDialogTitle>Hapus data ini?</AlertDialogTitle>
+					<AlertDialogDescription>
+						Tindakan ini tidak dapat dibatalkan. Tindakan ini akan menghapus data ini secara permanen dari
+						server.
+					</AlertDialogDescription>
+				</AlertDialogHeader>
+				<AlertDialogFooter>
+					<AlertDialogCancel>Batal</AlertDialogCancel>
+					<AlertDialogAction
+						onClick={() =>
+							router.delete(route('admin.announcements.destroy', [announcement]), {
+								preserveScroll: true,
+								preserveState: true,
+								onSuccess: (success) => {
+									const flash = flashMessage(success);
+									if (flash) toast[flash.type](flash.message);
+								},
+							})
+						}
+					>
+						Hapus
+					</AlertDialogAction>
+				</AlertDialogFooter>
+			</AlertDialogContent>
+		</AlertDialog>
+	);
+}
 
 export default function Index(props) {
 	const { data: announcements, meta } = props.announcements;
@@ -39,78 +78,82 @@ export default function Index(props) {
 			</div>
 			<Card>
 				<CardContent className="px-0 py-0 [&-td]:whitespace-nowrap [&_td]:px-6 [&_th]:px-6">
-					<Table className="w-full">
-						<TableHeader>
-							<TableRow>
-								<TableHead className="hidden md:table-cell">#</TableHead>
-								<TableHead>Pesan</TableHead>
-								<TableHead className="hidden md:table-cell">URL</TableHead>
-								<TableHead>Aktif</TableHead>
-								<TableHead className="hidden md:table-cell">Dibuat Pada</TableHead>
-								<TableHead>Aksi</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{announcements.map((announcement, index) => (
-								<TableRow key={index}>
-									<TableCell className="hidden md:table-cell">
-										{index + 1 + (meta.current_page - 1) * meta.per_page}
-									</TableCell>
-									<TableCell>{announcement.message}</TableCell>
-									<TableCell className="hidden md:table-cell">{announcement.url}</TableCell>
-									<TableCell>{announcement.is_active}</TableCell>
-									<TableCell className="hidden md:table-cell">{announcement.created_at}</TableCell>
-									<TableCell>
-										<div className="flex items-center gap-x-1">
-											<Button variant="blue" size="sm" asChild>
-												<Link href={route('admin.announcements.edit', [announcement])}>
-													<IconPencil className="size-4" />
-												</Link>
-											</Button>
-											<AlertDialog>
-												<AlertDialogTrigger asChild>
-													<Button variant="red" size="sm">
-														<IconTrash size="4" />
-													</Button>
-												</AlertDialogTrigger>
-												<AlertDialogContent>
-													<AlertDialogHeader>
-														<AlertDialogTitle>Hapus data ini?</AlertDialogTitle>
-														<AlertDialogDescription>
-															Tindakan ini tidak dapat dibatalkan. Tindakan ini akan
-															menghapus data ini secara permanen dari server.
-														</AlertDialogDescription>
-													</AlertDialogHeader>
-													<AlertDialogFooter>
-														<AlertDialogCancel>Batal</AlertDialogCancel>
-														<AlertDialogAction
-															onClick={() =>
-																router.delete(
-																	route('admin.announcements.destroy', [
-																		announcement,
-																	]),
-																	{
-																		preserveScroll: true,
-																		preserveState: true,
-																		onSuccess: (success) => {
-																			const flash = flashMessage(success);
-																			if (flash) toast[flash.type](flash.message);
-																		},
-																	},
-																)
-															}
-														>
-															Hapus
-														</AlertDialogAction>
-													</AlertDialogFooter>
-												</AlertDialogContent>
-											</AlertDialog>
-										</div>
-									</TableCell>
+					{/* Ponsel: daftar bergrup ala iOS; ketuk baris = ubah. Tabel lengkap mulai md. */}
+					<ul className="divide-y divide-border/70 md:hidden">
+						{announcements.map((announcement, index) => (
+							<li key={index} className="flex items-center gap-3 px-4 py-3">
+								<Link
+									href={route('admin.announcements.edit', [announcement])}
+									className="flex min-w-0 flex-1 items-center gap-3 rounded-lg transition-opacity active:opacity-70"
+								>
+									<span className="min-w-0 flex-1">
+										<span className="line-clamp-2 text-[15px] font-medium text-foreground">
+											{announcement.message}
+										</span>
+										<span className="mt-1 flex items-center gap-2 text-[13px] text-muted-foreground">
+											<span
+												className={cn(
+													'rounded-full px-2 py-0.5 text-[11px] font-semibold',
+													announcement.is_active === 'Aktif'
+														? 'bg-success/10 text-success'
+														: 'bg-muted text-muted-foreground',
+												)}
+											>
+												{announcement.is_active}
+											</span>
+											{announcement.created_at}
+										</span>
+									</span>
+									<IconChevronRight className="size-4 shrink-0 text-muted-foreground/60" />
+								</Link>
+								<DeleteAnnouncementDialog announcement={announcement} />
+							</li>
+						))}
+						{announcements.length === 0 && (
+							<li className="px-4 py-10 text-center text-[15px] text-muted-foreground">
+								Belum ada pengumuman.
+							</li>
+						)}
+					</ul>
+					<div className="hidden md:block">
+						<Table className="w-full">
+							<TableHeader>
+								<TableRow>
+									<TableHead className="hidden md:table-cell">#</TableHead>
+									<TableHead>Pesan</TableHead>
+									<TableHead className="hidden md:table-cell">URL</TableHead>
+									<TableHead>Aktif</TableHead>
+									<TableHead className="hidden md:table-cell">Dibuat Pada</TableHead>
+									<TableHead>Aksi</TableHead>
 								</TableRow>
-							))}
-						</TableBody>
-					</Table>
+							</TableHeader>
+							<TableBody>
+								{announcements.map((announcement, index) => (
+									<TableRow key={index}>
+										<TableCell className="hidden md:table-cell">
+											{index + 1 + (meta.current_page - 1) * meta.per_page}
+										</TableCell>
+										<TableCell>{announcement.message}</TableCell>
+										<TableCell className="hidden md:table-cell">{announcement.url}</TableCell>
+										<TableCell>{announcement.is_active}</TableCell>
+										<TableCell className="hidden md:table-cell">
+											{announcement.created_at}
+										</TableCell>
+										<TableCell>
+											<div className="flex items-center gap-x-1">
+												<Button variant="blue" size="sm" asChild>
+													<Link href={route('admin.announcements.edit', [announcement])}>
+														<IconPencil className="size-4" />
+													</Link>
+												</Button>
+												<DeleteAnnouncementDialog announcement={announcement} />
+											</div>
+										</TableCell>
+									</TableRow>
+								))}
+							</TableBody>
+						</Table>
+					</div>
 				</CardContent>
 				<CardFooter className="flex w-full flex-col items-center justify-between border-t py-2 lg:flex-row">
 					<p className="mb-2 text-sm text-muted-foreground">

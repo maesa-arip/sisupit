@@ -18,7 +18,7 @@ export default function VerifyEmail({ status }) {
 		<div className="w-full bg-background lg:grid lg:min-h-screen lg:grid-cols-2">
 			{/* PANE KIRI */}
 			<div className="relative z-0 flex flex-col bg-background px-6 py-6 lg:px-12">
-				<div className="mb-12 flex w-full items-center justify-between pt-2 lg:mb-0">
+				<div className="mb-6 flex w-full items-center justify-between pt-2 lg:mb-0">
 					<ApplicationLogo />
 					<ThemeSwitcher />
 				</div>
@@ -33,7 +33,7 @@ export default function VerifyEmail({ status }) {
 
 						<div className="text-center">
 							<h1 className="text-3xl font-bold tracking-tight text-foreground">Verifikasi Email</h1>
-							<p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+							<p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
 								Terima kasih telah mendaftar! Sebelum memulai, mohon verifikasi alamat email Anda dengan
 								mengklik tautan yang baru saja kami kirimkan. Jika Anda tidak menerimanya, kami akan
 								mengirimkan ulang.
@@ -56,7 +56,7 @@ export default function VerifyEmail({ status }) {
 							<Button
 								type="submit"
 								disabled={processing}
-								className="h-11 w-full rounded-xl bg-destructive text-sm font-semibold text-destructive-foreground transition-[color,background-color,transform] hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 motion-reduce:active:scale-100"
+								className="h-12 w-full rounded-xl bg-destructive text-[17px] font-semibold text-destructive-foreground transition-[color,background-color,transform] hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 motion-reduce:active:scale-100"
 							>
 								{processing ? <IconLoader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
 								Kirim Ulang Email Verifikasi

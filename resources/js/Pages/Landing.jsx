@@ -160,7 +160,7 @@ export default function Landing({ page_data }) {
 						<div className="absolute inset-6 rounded-full bg-destructive/10"></div>
 						<div className="absolute inset-16 rounded-full bg-destructive/15"></div>
 						<div className="relative z-10 flex h-40 w-40 rotate-3 items-center justify-center rounded-[36px] border-4 border-background bg-destructive shadow-2xl shadow-destructive/30 transition-transform duration-300 hover:rotate-0 dark:border-neutral-900">
-							<IconFlame className="h-24 w-24 text-white" stroke={1.5} />
+							<IconFlame className="h-24 w-24 text-destructive-foreground" stroke={1.5} />
 						</div>
 						<div className="absolute right-4 top-10 z-20 flex h-16 w-16 -rotate-6 items-center justify-center rounded-2xl border border-border/70 bg-card shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
 							<IconShieldCheck className="h-8 w-8 text-success" stroke={1.5} />
@@ -173,7 +173,7 @@ export default function Landing({ page_data }) {
 			</section>
 
 			{/* ===== STATISTIK ===== */}
-			<section className="border-y border-border bg-card/40">
+			<section className="border-y border-border/70 bg-card/40">
 				<div className="mx-auto grid max-w-6xl grid-cols-3 divide-x divide-border px-4 py-8 sm:px-6">
 					{stats.map(({ label, value, icon: Icon }) => (
 						<div key={label} className="flex flex-col items-center gap-1.5 px-2 text-center">
@@ -196,7 +196,7 @@ export default function Landing({ page_data }) {
 					<h2 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
 						Dari Laporan ke Penanganan
 					</h2>
-					<p className="mt-3 text-muted-foreground">
+					<p className="mt-3 text-[17px] leading-relaxed text-muted-foreground">
 						Empat langkah sederhana yang menghubungkan warga dengan tim pemadam kebakaran.
 					</p>
 				</div>
@@ -205,7 +205,7 @@ export default function Landing({ page_data }) {
 					{steps.map(({ icon: Icon, title, desc }, i) => (
 						<div
 							key={title}
-							className="relative rounded-2xl border border-border bg-card p-6 transition-shadow hover:shadow-md"
+							className="relative rounded-2xl border border-border/70 bg-card p-6 shadow-sm transition-shadow hover:shadow-md"
 						>
 							<span className="absolute right-5 top-5 text-4xl font-bold text-destructive/15">
 								{String(i + 1).padStart(2, '0')}
@@ -213,15 +213,15 @@ export default function Landing({ page_data }) {
 							<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-destructive/10">
 								<Icon className="h-6 w-6 text-destructive" stroke={1.8} />
 							</div>
-							<h3 className="mt-4 text-lg font-bold text-foreground">{title}</h3>
-							<p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{desc}</p>
+							<h3 className="mt-4 text-[17px] font-semibold tracking-tight text-foreground">{title}</h3>
+							<p className="mt-1.5 text-[15px] leading-relaxed text-muted-foreground">{desc}</p>
 						</div>
 					))}
 				</div>
 			</section>
 
 			{/* ===== FITUR ===== */}
-			<section className="border-t border-border bg-card/40">
+			<section className="border-t border-border/70 bg-card/40">
 				<div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
 					<div className="mx-auto max-w-2xl text-center">
 						<span className="text-sm font-semibold text-destructive">Fitur</span>
@@ -232,13 +232,18 @@ export default function Landing({ page_data }) {
 
 					<div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
 						{features.map(({ icon: Icon, title, desc }) => (
-							<div key={title} className="flex gap-4 rounded-2xl border border-border bg-background p-5">
+							<div
+								key={title}
+								className="flex gap-4 rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
+							>
 								<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-destructive/10">
 									<Icon className="h-5 w-5 text-destructive" stroke={1.8} />
 								</div>
 								<div>
-									<h3 className="font-bold text-foreground">{title}</h3>
-									<p className="mt-1 text-sm leading-relaxed text-muted-foreground">{desc}</p>
+									<h3 className="text-[17px] font-semibold tracking-tight text-foreground">
+										{title}
+									</h3>
+									<p className="mt-1 text-[15px] leading-relaxed text-muted-foreground">{desc}</p>
 								</div>
 							</div>
 						))}
@@ -248,7 +253,7 @@ export default function Landing({ page_data }) {
 
 			{/* ===== UNDUH APLIKASI ===== */}
 			<section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
-				<div className="flex flex-col items-center gap-6 rounded-3xl border border-border bg-card p-8 text-center sm:p-12">
+				<div className="flex flex-col items-center gap-6 rounded-3xl border border-border/70 bg-card p-8 text-center shadow-sm sm:p-12">
 					<div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-success/10">
 						<IconBrandAndroid className="h-7 w-7 text-success" stroke={2} />
 					</div>
@@ -274,7 +279,7 @@ export default function Landing({ page_data }) {
 			{/* ===== CTA BESAR ===== */}
 			<section className="bg-destructive">
 				<div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 py-16 text-center sm:px-6">
-					<h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+					<h2 className="text-3xl font-bold tracking-tight text-destructive-foreground sm:text-4xl">
 						Melihat Kejadian Darurat?
 					</h2>
 					<p className="max-w-lg text-destructive-foreground/90">
@@ -283,7 +288,7 @@ export default function Landing({ page_data }) {
 					</p>
 					<Button
 						asChild
-						className="h-12 rounded-xl bg-card px-8 py-3 text-[17px] font-semibold text-destructive shadow-none transition-colors hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white/60"
+						className="h-12 rounded-xl bg-card px-8 py-3 text-[17px] font-semibold text-destructive shadow-none transition-colors hover:bg-card/90 focus-visible:ring-2 focus-visible:ring-white/60"
 					>
 						<Link href={route('front.reports.create')}>
 							Lapor Sekarang

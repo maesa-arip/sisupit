@@ -1,6 +1,6 @@
 # Rekap Tampilan per Peran & Status Rombakan apple-design
 
-> Branch `feat/mobile-native-polish` (TASK_69). Diperbarui 2026-10-02 (bagian 12: halaman B & C dirombak). Sumber: `php artisan route:list`
+> Branch `feat/mobile-native-polish` (TASK_69). Diperbarui 2026-10-02 (bagian 12-13: semua halaman B & C dirombak). Sumber: `php artisan route:list`
 > (URL + middleware peran) dan komponen Inertia yang dirender tiap controller, lalu digabung dengan
 > riwayat rombakan TASK_69. Route yang hanya bergerbang login dibagi per peran dari logika controller.
 
@@ -23,50 +23,53 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 
 | Status | Jumlah |
 |---|---|
-| A - Dirombak penuh | 73 |
-| B - Dirombak sebagian | 10 |
+| A - Dirombak penuh | 83 |
+| B - Dirombak sebagian | 0 |
 | C - Gaya umum saja | 0 |
 | D - Tidak disentuh | 5 |
 
 ## Tampilan per peran
 
-### Tamu (belum login) - 18 tampilan (11 dirombak penuh)
+### Tamu (belum login) - 18 tampilan (17 dirombak penuh)
 
 | Status | URL | Berkas halaman |
 |---|---|---|
 | A | `(halaman galat 403/404/500)` | `ErrorHandling.jsx` |
 | A | `/` | `Spotlight.jsx` |
 | A | `/fire-stations` | `FireStations/Index.jsx` |
+| A | `/forgot-password` | `Auth/ForgotPassword.jsx` |
+| A | `/home` | `Home.jsx` |
 | A | `/hydrants` | `Hydrants/Index.jsx` |
 | A | `/kebijakan-privasi` | `Info/Privacy.jsx` |
+| A | `/landing` | `Landing.jsx` |
+| A | `/login` | `Auth/Login.jsx` |
 | A | `/paket-lisensi` | `Info/Pricing.jsx` |
 | A | `/pumps` | `Pumps/Index.jsx` |
 | A | `/pusat-bantuan` | `Info/Help.jsx` |
+| A | `/register` | `Auth/Register.jsx` |
+| A | `/reset-password/{token}` | `Auth/ResetPassword.jsx` |
 | A | `/spotlight` | `Spotlight.jsx` |
 | A | `/syarat-ketentuan` | `Info/Terms.jsx` |
 | A | `/tentang` | `Info/About.jsx` |
-| B | `/forgot-password` | `Auth/ForgotPassword.jsx` |
-| B | `/home` | `Home.jsx` |
-| B | `/landing` | `Landing.jsx` |
-| B | `/login` | `Auth/Login.jsx` |
-| B | `/register` | `Auth/Register.jsx` |
-| B | `/reset-password/{token}` | `Auth/ResetPassword.jsx` |
 | D | `/guideline` | `Guideline.jsx` |
 
-### Warga - 27 tampilan (22 dirombak penuh)
+### Warga - 27 tampilan (26 dirombak penuh)
 
 | Status | URL | Berkas halaman |
 |---|---|---|
 | A | `(halaman galat 403/404/500)` | `ErrorHandling.jsx` |
 | A | `/` | `Spotlight.jsx` |
 | A | `/complete-profile` | `Profile/CompleteProfile.jsx` |
+| A | `/confirm-password` | `Auth/ConfirmPassword.jsx` |
 | A | `/dashboard` | `Dashboard.jsx` |
 | A | `/fire-stations` | `FireStations/Index.jsx` |
 | A | `/forum` | `Forum/Index.jsx` |
 | A | `/forum/tanya` | `Forum/Create.jsx` |
 | A | `/forum/{thread}` | `Forum/Show.jsx` |
+| A | `/home` | `Home.jsx` |
 | A | `/hydrants` | `Hydrants/Index.jsx` |
 | A | `/kebijakan-privasi` | `Info/Privacy.jsx` |
+| A | `/landing` | `Landing.jsx` |
 | A | `/paket-lisensi` | `Info/Pricing.jsx` |
 | A | `/profile` | `Profile/Edit.jsx` |
 | A | `/pumps` | `Pumps/Index.jsx` |
@@ -79,26 +82,26 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/spotlight` | `Spotlight.jsx` |
 | A | `/syarat-ketentuan` | `Info/Terms.jsx` |
 | A | `/tentang` | `Info/About.jsx` |
-| B | `/confirm-password` | `Auth/ConfirmPassword.jsx` |
-| B | `/home` | `Home.jsx` |
-| B | `/landing` | `Landing.jsx` |
-| B | `/verify-email` | `Auth/VerifyEmail.jsx` |
+| A | `/verify-email` | `Auth/VerifyEmail.jsx` |
 | D | `/guideline` | `Guideline.jsx` |
 
-### Relawan - 28 tampilan (23 dirombak penuh)
+### Relawan - 28 tampilan (27 dirombak penuh)
 
 | Status | URL | Berkas halaman |
 |---|---|---|
 | A | `(halaman galat 403/404/500)` | `ErrorHandling.jsx` |
 | A | `/` | `Spotlight.jsx` |
 | A | `/complete-profile` | `Profile/CompleteProfile.jsx` |
+| A | `/confirm-password` | `Auth/ConfirmPassword.jsx` |
 | A | `/dashboard` | `Dashboard.jsx` |
 | A | `/fire-stations` | `FireStations/Index.jsx` |
 | A | `/forum` | `Forum/Index.jsx` |
 | A | `/forum/tanya` | `Forum/Create.jsx` |
 | A | `/forum/{thread}` | `Forum/Show.jsx` |
+| A | `/home` | `Home.jsx` |
 | A | `/hydrants` | `Hydrants/Index.jsx` |
 | A | `/kebijakan-privasi` | `Info/Privacy.jsx` |
+| A | `/landing` | `Landing.jsx` |
 | A | `/paket-lisensi` | `Info/Pricing.jsx` |
 | A | `/profile` | `Profile/Edit.jsx` |
 | A | `/pumps` | `Pumps/Index.jsx` |
@@ -112,13 +115,10 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/spotlight` | `Spotlight.jsx` |
 | A | `/syarat-ketentuan` | `Info/Terms.jsx` |
 | A | `/tentang` | `Info/About.jsx` |
-| B | `/confirm-password` | `Auth/ConfirmPassword.jsx` |
-| B | `/home` | `Home.jsx` |
-| B | `/landing` | `Landing.jsx` |
-| B | `/verify-email` | `Auth/VerifyEmail.jsx` |
+| A | `/verify-email` | `Auth/VerifyEmail.jsx` |
 | D | `/guideline` | `Guideline.jsx` |
 
-### Petugas Damkar - 36 tampilan (31 dirombak penuh)
+### Petugas Damkar - 36 tampilan (35 dirombak penuh)
 
 | Status | URL | Berkas halaman |
 |---|---|---|
@@ -127,6 +127,7 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/admin/hydrants` | `Admin/Hydrants/Index.jsx` |
 | A | `/admin/hydrants/create` | `Admin/Hydrants/Create.jsx` |
 | A | `/admin/hydrants/{hydrant}/edit` | `Admin/Hydrants/Edit.jsx` |
+| A | `/confirm-password` | `Auth/ConfirmPassword.jsx` |
 | A | `/dashboard` | `Petugas/Dashboard.jsx` |
 | A | `/email` | `Mail/Index.jsx` |
 | A | `/email/tulis` | `Mail/Create.jsx` |
@@ -134,8 +135,10 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/forum` | `Forum/Index.jsx` |
 | A | `/forum/tanya` | `Forum/Create.jsx` |
 | A | `/forum/{thread}` | `Forum/Show.jsx` |
+| A | `/home` | `Home.jsx` |
 | A | `/hydrants` | `Hydrants/Index.jsx` |
 | A | `/kebijakan-privasi` | `Info/Privacy.jsx` |
+| A | `/landing` | `Landing.jsx` |
 | A | `/paket-lisensi` | `Info/Pricing.jsx` |
 | A | `/peta-pemantauan` | `Monitoring/Map.jsx` |
 | A | `/profile` | `Profile/Edit.jsx` |
@@ -153,13 +156,10 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/spotlight` | `Spotlight.jsx` |
 | A | `/syarat-ketentuan` | `Info/Terms.jsx` |
 | A | `/tentang` | `Info/About.jsx` |
-| B | `/confirm-password` | `Auth/ConfirmPassword.jsx` |
-| B | `/home` | `Home.jsx` |
-| B | `/landing` | `Landing.jsx` |
-| B | `/verify-email` | `Auth/VerifyEmail.jsx` |
+| A | `/verify-email` | `Auth/VerifyEmail.jsx` |
 | D | `/guideline` | `Guideline.jsx` |
 
-### Admin - 81 tampilan (74 dirombak penuh)
+### Admin - 81 tampilan (80 dirombak penuh)
 
 | Status | URL | Berkas halaman |
 |---|---|---|
@@ -168,6 +168,7 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/admin/agencies` | `Admin/Agencies/Index.jsx` |
 | A | `/admin/agencies/create` | `Admin/Agencies/Create.jsx` |
 | A | `/admin/agencies/{agency}/edit` | `Admin/Agencies/Edit.jsx` |
+| A | `/admin/announcements` | `Admin/Announcements/Index.jsx` |
 | A | `/admin/announcements/create` | `Admin/Announcements/Create.jsx` |
 | A | `/admin/announcements/edit/{announcement}` | `Admin/Announcements/Edit.jsx` |
 | A | `/admin/assign-permissions` | `Admin/AssignPermissions/Index.jsx` |
@@ -204,6 +205,7 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/admin/route-accesses/create` | `Admin/RouteAccesses/Create.jsx` |
 | A | `/admin/route-accesses/edit/{routeAccess}` | `Admin/RouteAccesses/Edit.jsx` |
 | A | `/admin/settings` | `Admin/Settings/Edit.jsx` |
+| A | `/admin/tenants` | `Admin/Tenants/Index.jsx` |
 | A | `/admin/tenants/create` | `Admin/Tenants/Form.jsx` |
 | A | `/admin/tenants/edit/{tenant}` | `Admin/Tenants/Form.jsx` |
 | A | `/admin/units` | `Admin/Units/Index.jsx` |
@@ -212,6 +214,7 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/admin/users` | `Admin/Users/Index.jsx` |
 | A | `/admin/users/create` | `Admin/Users/Create.jsx` |
 | A | `/admin/users/edit/{user}` | `Admin/Users/Edit.jsx` |
+| A | `/confirm-password` | `Auth/ConfirmPassword.jsx` |
 | A | `/dashboard` | `Admin/Dashboard.jsx` |
 | A | `/email` | `Mail/Index.jsx` |
 | A | `/email/tulis` | `Mail/Create.jsx` |
@@ -219,8 +222,10 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/forum` | `Forum/Index.jsx` |
 | A | `/forum/tanya` | `Forum/Create.jsx` |
 | A | `/forum/{thread}` | `Forum/Show.jsx` |
+| A | `/home` | `Home.jsx` |
 | A | `/hydrants` | `Hydrants/Index.jsx` |
 | A | `/kebijakan-privasi` | `Info/Privacy.jsx` |
+| A | `/landing` | `Landing.jsx` |
 | A | `/paket-lisensi` | `Info/Pricing.jsx` |
 | A | `/peta-pemantauan` | `Monitoring/Map.jsx` |
 | A | `/profile` | `Profile/Edit.jsx` |
@@ -237,15 +242,10 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/spotlight` | `Spotlight.jsx` |
 | A | `/syarat-ketentuan` | `Info/Terms.jsx` |
 | A | `/tentang` | `Info/About.jsx` |
-| B | `/admin/announcements` | `Admin/Announcements/Index.jsx` |
-| B | `/admin/tenants` | `Admin/Tenants/Index.jsx` |
-| B | `/confirm-password` | `Auth/ConfirmPassword.jsx` |
-| B | `/home` | `Home.jsx` |
-| B | `/landing` | `Landing.jsx` |
-| B | `/verify-email` | `Auth/VerifyEmail.jsx` |
+| A | `/verify-email` | `Auth/VerifyEmail.jsx` |
 | D | `/guideline` | `Guideline.jsx` |
 
-### Superadmin - 81 tampilan (74 dirombak penuh)
+### Superadmin - 81 tampilan (80 dirombak penuh)
 
 | Status | URL | Berkas halaman |
 |---|---|---|
@@ -254,6 +254,7 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/admin/agencies` | `Admin/Agencies/Index.jsx` |
 | A | `/admin/agencies/create` | `Admin/Agencies/Create.jsx` |
 | A | `/admin/agencies/{agency}/edit` | `Admin/Agencies/Edit.jsx` |
+| A | `/admin/announcements` | `Admin/Announcements/Index.jsx` |
 | A | `/admin/announcements/create` | `Admin/Announcements/Create.jsx` |
 | A | `/admin/announcements/edit/{announcement}` | `Admin/Announcements/Edit.jsx` |
 | A | `/admin/assign-permissions` | `Admin/AssignPermissions/Index.jsx` |
@@ -290,6 +291,7 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/admin/route-accesses/create` | `Admin/RouteAccesses/Create.jsx` |
 | A | `/admin/route-accesses/edit/{routeAccess}` | `Admin/RouteAccesses/Edit.jsx` |
 | A | `/admin/settings` | `Admin/Settings/Edit.jsx` |
+| A | `/admin/tenants` | `Admin/Tenants/Index.jsx` |
 | A | `/admin/tenants/create` | `Admin/Tenants/Form.jsx` |
 | A | `/admin/tenants/edit/{tenant}` | `Admin/Tenants/Form.jsx` |
 | A | `/admin/units` | `Admin/Units/Index.jsx` |
@@ -298,6 +300,7 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/admin/users` | `Admin/Users/Index.jsx` |
 | A | `/admin/users/create` | `Admin/Users/Create.jsx` |
 | A | `/admin/users/edit/{user}` | `Admin/Users/Edit.jsx` |
+| A | `/confirm-password` | `Auth/ConfirmPassword.jsx` |
 | A | `/dashboard` | `Admin/Dashboard.jsx` |
 | A | `/email` | `Mail/Index.jsx` |
 | A | `/email/tulis` | `Mail/Create.jsx` |
@@ -305,8 +308,10 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/forum` | `Forum/Index.jsx` |
 | A | `/forum/tanya` | `Forum/Create.jsx` |
 | A | `/forum/{thread}` | `Forum/Show.jsx` |
+| A | `/home` | `Home.jsx` |
 | A | `/hydrants` | `Hydrants/Index.jsx` |
 | A | `/kebijakan-privasi` | `Info/Privacy.jsx` |
+| A | `/landing` | `Landing.jsx` |
 | A | `/paket-lisensi` | `Info/Pricing.jsx` |
 | A | `/peta-pemantauan` | `Monitoring/Map.jsx` |
 | A | `/profile` | `Profile/Edit.jsx` |
@@ -323,27 +328,25 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/spotlight` | `Spotlight.jsx` |
 | A | `/syarat-ketentuan` | `Info/Terms.jsx` |
 | A | `/tentang` | `Info/About.jsx` |
-| B | `/admin/announcements` | `Admin/Announcements/Index.jsx` |
-| B | `/admin/tenants` | `Admin/Tenants/Index.jsx` |
-| B | `/confirm-password` | `Auth/ConfirmPassword.jsx` |
-| B | `/home` | `Home.jsx` |
-| B | `/landing` | `Landing.jsx` |
-| B | `/verify-email` | `Auth/VerifyEmail.jsx` |
+| A | `/verify-email` | `Auth/VerifyEmail.jsx` |
 | D | `/guideline` | `Guideline.jsx` |
 
-### Pejabat / Eksekutif - 26 tampilan (21 dirombak penuh)
+### Pejabat / Eksekutif - 26 tampilan (25 dirombak penuh)
 
 | Status | URL | Berkas halaman |
 |---|---|---|
 | A | `(halaman galat 403/404/500)` | `ErrorHandling.jsx` |
 | A | `/` | `Spotlight.jsx` |
+| A | `/confirm-password` | `Auth/ConfirmPassword.jsx` |
 | A | `/dashboard` | `Admin/Dashboard.jsx` |
 | A | `/fire-stations` | `FireStations/Index.jsx` |
 | A | `/forum` | `Forum/Index.jsx` |
 | A | `/forum/tanya` | `Forum/Create.jsx` |
 | A | `/forum/{thread}` | `Forum/Show.jsx` |
+| A | `/home` | `Home.jsx` |
 | A | `/hydrants` | `Hydrants/Index.jsx` |
 | A | `/kebijakan-privasi` | `Info/Privacy.jsx` |
+| A | `/landing` | `Landing.jsx` |
 | A | `/paket-lisensi` | `Info/Pricing.jsx` |
 | A | `/peta-pemantauan` | `Monitoring/Map.jsx` |
 | A | `/profile` | `Profile/Edit.jsx` |
@@ -356,25 +359,25 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/spotlight` | `Spotlight.jsx` |
 | A | `/syarat-ketentuan` | `Info/Terms.jsx` |
 | A | `/tentang` | `Info/About.jsx` |
-| B | `/confirm-password` | `Auth/ConfirmPassword.jsx` |
-| B | `/home` | `Home.jsx` |
-| B | `/landing` | `Landing.jsx` |
-| B | `/verify-email` | `Auth/VerifyEmail.jsx` |
+| A | `/verify-email` | `Auth/VerifyEmail.jsx` |
 | D | `/guideline` | `Guideline.jsx` |
 
-### OPD / Instansi Terkait - 25 tampilan (20 dirombak penuh)
+### OPD / Instansi Terkait - 25 tampilan (24 dirombak penuh)
 
 | Status | URL | Berkas halaman |
 |---|---|---|
 | A | `(halaman galat 403/404/500)` | `ErrorHandling.jsx` |
 | A | `/` | `Spotlight.jsx` |
+| A | `/confirm-password` | `Auth/ConfirmPassword.jsx` |
 | A | `/dashboard` | `Opd/Dashboard.jsx` |
 | A | `/fire-stations` | `FireStations/Index.jsx` |
 | A | `/forum` | `Forum/Index.jsx` |
 | A | `/forum/tanya` | `Forum/Create.jsx` |
 | A | `/forum/{thread}` | `Forum/Show.jsx` |
+| A | `/home` | `Home.jsx` |
 | A | `/hydrants` | `Hydrants/Index.jsx` |
 | A | `/kebijakan-privasi` | `Info/Privacy.jsx` |
+| A | `/landing` | `Landing.jsx` |
 | A | `/paket-lisensi` | `Info/Pricing.jsx` |
 | A | `/profile` | `Profile/Edit.jsx` |
 | A | `/pumps` | `Pumps/Index.jsx` |
@@ -386,15 +389,12 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/spotlight` | `Spotlight.jsx` |
 | A | `/syarat-ketentuan` | `Info/Terms.jsx` |
 | A | `/tentang` | `Info/About.jsx` |
-| B | `/confirm-password` | `Auth/ConfirmPassword.jsx` |
-| B | `/home` | `Home.jsx` |
-| B | `/landing` | `Landing.jsx` |
-| B | `/verify-email` | `Auth/VerifyEmail.jsx` |
+| A | `/verify-email` | `Auth/VerifyEmail.jsx` |
 | D | `/guideline` | `Guideline.jsx` |
 
 ## Semua berkas halaman
 
-### A - Dirombak penuh (73)
+### A - Dirombak penuh (83)
 
 | Berkas | Keterangan |
 |---|---|
@@ -403,6 +403,7 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | `resources/js/Pages/Admin/Agencies/Index.jsx` | Satu daftar bergrup (dulu kartu terpisah) + AlertDialog |
 | `resources/js/Pages/Admin/Announcements/Create.jsx` | Form bergaris rambut ala iOS (tiap isian/grup satu baris), tombol standar |
 | `resources/js/Pages/Admin/Announcements/Edit.jsx` | Form bergaris rambut ala iOS (tiap isian/grup satu baris), tombol standar |
+| `resources/js/Pages/Admin/Announcements/Index.jsx` | Tabel ramping: di ponsel tinggal 3 kolom inti dalam kartu bergaris tipis; kolom sekunder mulai md |
 | `resources/js/Pages/Admin/AssignPermissions/Edit.jsx` | Form bergaris rambut ala iOS, tombol standar |
 | `resources/js/Pages/Admin/AssignPermissions/Index.jsx` | Kartu ponsel ala /admin/users, cari type=search |
 | `resources/js/Pages/Admin/Banjars/Form.jsx` | Form bergaris rambut ala iOS, tombol standar |
@@ -435,12 +436,19 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | `resources/js/Pages/Admin/RouteAccesses/Index.jsx` | Kartu ponsel ala /admin/users (tanpa pita abu, Ubah), cari type=search |
 | `resources/js/Pages/Admin/Settings/Edit.jsx` | Form bergaris rambut ala iOS, tombol standar |
 | `resources/js/Pages/Admin/Tenants/Form.jsx` | Form bergaris rambut ala iOS, tombol standar |
+| `resources/js/Pages/Admin/Tenants/Index.jsx` | Tabel ramping: di ponsel tinggal 3 kolom inti dalam kartu bergaris tipis; kolom sekunder mulai md |
 | `resources/js/Pages/Admin/Units/Create.jsx` | Form bergaris rambut ala iOS, kartu max-w-2xl |
 | `resources/js/Pages/Admin/Units/Edit.jsx` | Form bergaris rambut ala iOS, kartu max-w-2xl |
 | `resources/js/Pages/Admin/Units/Index.jsx` | Satu daftar bergrup (dulu kartu terpisah) + AlertDialog |
 | `resources/js/Pages/Admin/Users/Create.jsx` | Form bergrup (GroupedForm), segmented control, aksi ikon, label peran, arah urut |
 | `resources/js/Pages/Admin/Users/Edit.jsx` | Form bergrup (GroupedForm), segmented control, aksi ikon, label peran, arah urut |
 | `resources/js/Pages/Admin/Users/Index.jsx` | Form bergrup (GroupedForm), segmented control, aksi ikon, label peran, arah urut |
+| `resources/js/Pages/Auth/ConfirmPassword.jsx` | Grup isian ala layar masuk iOS (satu kartu bergaris rambut, label di dalam baris, isian 17px), ikon aplikasi, tombol 48px |
+| `resources/js/Pages/Auth/ForgotPassword.jsx` | Grup isian ala layar masuk iOS (satu kartu bergaris rambut, label di dalam baris, isian 17px), ikon aplikasi, tombol 48px |
+| `resources/js/Pages/Auth/Login.jsx` | Grup isian ala layar masuk iOS (satu kartu bergaris rambut, label di dalam baris, isian 17px), ikon aplikasi, tombol 48px |
+| `resources/js/Pages/Auth/Register.jsx` | Grup isian ala layar masuk iOS (satu kartu bergaris rambut, label di dalam baris, isian 17px), ikon aplikasi, tombol 48px |
+| `resources/js/Pages/Auth/ResetPassword.jsx` | Grup isian ala layar masuk iOS (satu kartu bergaris rambut, label di dalam baris, isian 17px), ikon aplikasi, tombol 48px |
+| `resources/js/Pages/Auth/VerifyEmail.jsx` | Layar pesan iOS: ikon dalam lingkaran, judul besar, teks 15px, tombol 48px |
 | `resources/js/Pages/Dashboard.jsx` | Sapaan, Lapor Darurat, StandbyCard bersakelar; ponsel: riwayat 3 baris, kartu ringkas |
 | `resources/js/Pages/ErrorHandling.jsx` | Layar galat iOS tanpa kartu |
 | `resources/js/Pages/FireStations/Index.jsx` | Kolom cari ala iOS tanpa kartu, tombol terdekat bertint, daftar bergrup |
@@ -453,12 +461,14 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | `resources/js/Pages/Front/Reports/Resolution/Create.jsx` | Form bergaris rambut ala iOS |
 | `resources/js/Pages/Front/Reports/Show.jsx` | Bilah navigasi iOS, judul besar, status pil, modal & label apple |
 | `resources/js/Pages/Front/Reports/Thanks.jsx` | Layar konfirmasi iOS: ikon sukses di tengah, nomor & waktu sebagai baris |
+| `resources/js/Pages/Home.jsx` | Petak pintasan bertint, tanpa <hr>, karusel & judul seksi tipografi iOS |
 | `resources/js/Pages/Hydrants/Index.jsx` | Kolom cari ala iOS tanpa kartu, tombol terdekat bertint, daftar bergrup |
 | `resources/js/Pages/Info/About.jsx` | InfoShell: lebar baca max-w-3xl, teks 15px, judul seksi 17px, pil |
 | `resources/js/Pages/Info/Help.jsx` | InfoShell: lebar baca max-w-3xl, teks 15px, judul seksi 17px, pil |
 | `resources/js/Pages/Info/Pricing.jsx` | InfoShell: lebar baca max-w-3xl, teks 15px, judul seksi 17px, pil |
 | `resources/js/Pages/Info/Privacy.jsx` | InfoShell: lebar baca max-w-3xl, teks 15px, judul seksi 17px, pil |
 | `resources/js/Pages/Info/Terms.jsx` | InfoShell: lebar baca max-w-3xl, teks 15px, judul seksi 17px, pil |
+| `resources/js/Pages/Landing.jsx` | Kartu bergaris tipis, teks baca 15/17px, warna CTA & ikon jadi token tema |
 | `resources/js/Pages/Mail/Create.jsx` | Form bergaris rambut ala iOS, tombol standar |
 | `resources/js/Pages/Mail/Index.jsx` | Satu daftar bergrup (dulu kartu terpisah) |
 | `resources/js/Pages/Monitoring/Map.jsx` | Gaya Apple Maps: kontrol & panel Lapisan bermaterial, gerak pegas |
@@ -472,20 +482,10 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | `resources/js/Pages/Volunteers/Index.jsx` | Ponsel: baris kontak (avatar bulat, seluruh kartu bisa diketuk); desktop kisi |
 | `resources/js/Pages/Volunteers/Show.jsx` | Kartu kontak iOS: avatar bulat, tombol kontak, baris informasi |
 
-### B - Dirombak sebagian (10)
+### B - Dirombak sebagian (0)
 
 | Berkas | Keterangan |
 |---|---|
-| `resources/js/Pages/Admin/Announcements/Index.jsx` | Tabel superadmin: kolom sekunder disembunyikan di ponsel; masih tabel |
-| `resources/js/Pages/Admin/Tenants/Index.jsx` | Tabel superadmin: kolom sekunder disembunyikan di ponsel; masih tabel |
-| `resources/js/Pages/Auth/ConfirmPassword.jsx` | Ikon aplikasi (Login/Daftar), judul besar, fokus lembut; tata letak dua kolom dipertahankan |
-| `resources/js/Pages/Auth/ForgotPassword.jsx` | Ikon aplikasi (Login/Daftar), judul besar, fokus lembut; tata letak dua kolom dipertahankan |
-| `resources/js/Pages/Auth/Login.jsx` | Ikon aplikasi (Login/Daftar), judul besar, fokus lembut; tata letak dua kolom dipertahankan |
-| `resources/js/Pages/Auth/Register.jsx` | Ikon aplikasi (Login/Daftar), judul besar, fokus lembut; tata letak dua kolom dipertahankan |
-| `resources/js/Pages/Auth/ResetPassword.jsx` | Ikon aplikasi (Login/Daftar), judul besar, fokus lembut; tata letak dua kolom dipertahankan |
-| `resources/js/Pages/Auth/VerifyEmail.jsx` | Ikon aplikasi (Login/Daftar), judul besar, fokus lembut; tata letak dua kolom dipertahankan |
-| `resources/js/Pages/Home.jsx` | Halaman pemasaran: sapuan token & warna mode gelap; tata letak lama |
-| `resources/js/Pages/Landing.jsx` | Halaman pemasaran: sapuan token & warna mode gelap; tata letak lama |
 
 ### C - Gaya umum saja (0)
 
@@ -516,8 +516,6 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 - `resources/js/Layouts/Partials/MobileBottomNav.jsx` - Bilah material, slot bereaksi saat ditekan, panel tumbuh dari tombol
 - `resources/js/Pages/Profile/Partials/*` - Isian h-11, fokus primer lembut, kepala kartu bertint
 
-## Sisa yang belum dirombak penuh (status B)
+## Sisa yang belum dirombak penuh
 
-1. `Auth/* (6 halaman)` - Tata letak dua kolom (form + foto) dipertahankan; baru ikon aplikasi, judul, fokus
-1. `Landing, Home` - Halaman pemasaran; baru sapuan token & perbaikan warna mode gelap
-1. `Admin/Announcements/Index, Admin/Tenants/Index` - Tabel superadmin; kolom sekunder disembunyikan di ponsel, masih berupa tabel
+Tidak ada. Semua halaman berstatus A, kecuali 5 halaman D (panduan & kode mati) yang sengaja tidak dirombak.

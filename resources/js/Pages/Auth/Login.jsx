@@ -120,41 +120,37 @@ export default function Login({ status, canResetPassword }) {
 							</Alert>
 						)}
 
-						<form onSubmit={onHandleSubmit} className="space-y-5">
-							{/* Input Email */}
-							<div className="space-y-1.5">
-								<Label htmlFor="email" className="text-sm font-medium text-foreground">
-									Email
-								</Label>
-								<Input
-									id="email"
-									type="email"
-									name="email"
-									value={data.email}
-									autoComplete="username"
-									placeholder="nama@email.com"
-									onChange={(e) => setData(e.target.name, e.target.value)}
-									className="h-11 w-full rounded-xl border-border bg-background transition-colors focus-visible:ring-2 focus-visible:ring-primary/30"
-								/>
-								{errors.email && <InputError message={errors.email} />}
-							</div>
-
-							{/* Input Password */}
-							<div className="space-y-1.5">
-								<div className="flex items-center justify-between">
-									<Label htmlFor="password" className="text-sm font-medium text-foreground">
+						{/* Grup isian ala layar masuk iOS (TASK_69): satu kartu bergaris rambut, label kecil di
+						    dalam baris, isian tanpa bingkai 17px (>= 16px, iOS tak me-zoom halaman). */}
+						<form onSubmit={onHandleSubmit} className="space-y-4">
+							<div className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition-colors focus-within:border-primary/40">
+								<div className="px-4 pb-2 pt-3">
+									<Label
+										htmlFor="email"
+										className="block text-[13px] font-medium text-muted-foreground"
+									>
+										Email
+									</Label>
+									<Input
+										id="email"
+										type="email"
+										name="email"
+										inputMode="email"
+										autoCapitalize="none"
+										value={data.email}
+										autoComplete="username"
+										placeholder="nama@email.com"
+										onChange={(e) => setData(e.target.name, e.target.value)}
+										className="h-9 w-full rounded-none border-0 bg-transparent p-0 text-[17px] shadow-none focus-visible:ring-0"
+									/>
+								</div>
+								<div className="relative px-4 pb-2 pt-3">
+									<Label
+										htmlFor="password"
+										className="block text-[13px] font-medium text-muted-foreground"
+									>
 										Kata Sandi
 									</Label>
-									{canResetPassword && (
-										<Link
-											href={route('password.request')}
-											className="text-sm font-medium text-muted-foreground transition-colors hover:text-destructive"
-										>
-											Lupa Password?
-										</Link>
-									)}
-								</div>
-								<div className="relative flex items-center">
 									<Input
 										id="password"
 										name="password"
@@ -163,13 +159,12 @@ export default function Login({ status, canResetPassword }) {
 										value={data.password}
 										placeholder="Masukkan kata sandi"
 										onChange={(e) => setData(e.target.name, e.target.value)}
-										className="h-11 w-full rounded-xl border-border bg-background pr-12 transition-colors focus-visible:ring-2 focus-visible:ring-primary/30"
+										className="h-9 w-full rounded-none border-0 bg-transparent p-0 pr-12 text-[17px] shadow-none focus-visible:ring-0"
 									/>
-
 									<button
 										type="button"
 										onClick={() => setShowPassword(!showPassword)}
-										className="absolute right-1 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground focus:outline-none"
+										className="absolute right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground focus:outline-none active:bg-muted"
 										aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
 									>
 										{showPassword ? (
@@ -179,31 +174,41 @@ export default function Login({ status, canResetPassword }) {
 										)}
 									</button>
 								</div>
-								{errors.password && <InputError message={errors.password} />}
 							</div>
+							{errors.email && <InputError message={errors.email} />}
+							{errors.password && <InputError message={errors.password} />}
 
-							{/* Checkbox Ingat Saya */}
-							<div className="flex items-center space-x-2 pt-1">
-								<Checkbox
-									id="remember"
-									name="remember"
-									checked={data.remember}
-									onChange={(e) => setData('remember', e.target.checked)}
-									onCheckedChange={(checked) => setData('remember', checked)}
-									className="rounded-sm border-input focus-visible:ring-destructive data-[state=checked]:border-destructive data-[state=checked]:bg-destructive"
-								/>
-								<Label
-									htmlFor="remember"
-									className="cursor-pointer select-none text-sm font-medium text-muted-foreground"
-								>
-									Ingat Saya
-								</Label>
+							<div className="flex items-center justify-between gap-3 px-1">
+								<div className="flex items-center space-x-2">
+									<Checkbox
+										id="remember"
+										name="remember"
+										checked={data.remember}
+										onChange={(e) => setData('remember', e.target.checked)}
+										onCheckedChange={(checked) => setData('remember', checked)}
+										className="rounded"
+									/>
+									<Label
+										htmlFor="remember"
+										className="cursor-pointer select-none text-[15px] font-normal text-foreground/80"
+									>
+										Ingat saya
+									</Label>
+								</div>
+								{canResetPassword && (
+									<Link
+										href={route('password.request')}
+										className="text-[15px] font-medium text-primary transition-opacity hover:opacity-80"
+									>
+										Lupa kata sandi?
+									</Link>
+								)}
 							</div>
 
 							<Button
 								type="submit"
 								disabled={processing || isGoogleLoading}
-								className="mt-2 h-11 w-full rounded-xl bg-destructive text-sm font-semibold text-destructive-foreground transition-[color,background-color,transform] hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 motion-reduce:active:scale-100"
+								className="h-12 w-full rounded-xl bg-destructive text-[17px] font-semibold text-destructive-foreground transition-[color,background-color,transform] hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 motion-reduce:active:scale-100"
 							>
 								{processing ? <IconLoader2 className="h-5 w-5 animate-spin" /> : 'Masuk Akun'}
 							</Button>
