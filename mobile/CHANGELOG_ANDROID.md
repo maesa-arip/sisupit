@@ -10,24 +10,20 @@ iOS** sebagai daftar centang. Sisi iOS mencentang (`[x]`) saat sudah di-port.
 
 ## 1.1.5-dev / versionCode 7 - 2026-10-01 (APK uji dev, BUKAN rilis)
 
-- Alamat web kini **parameter build** (`BuildConfig.BASE_URL`), bukan string tertulis mati di dua
-  tempat `MainActivity` (halaman awal & `api/fcm-token`). Bawaan `https://sisupit.com/`.
-- Satu sakelar `gradlew assembleDebug -PsisupitDev` -> paket **`com.sisupit.app.dev`**, nama
-  **"Dev Sisupit"**, alamat `https://dev.sisupit.com/`, versi `-dev`. Terpasang BERDAMPINGAN dengan
-  aplikasi produksi (paket beda; FileProvider & URI suara sudah ikut `applicationId`). Tanpa sakelar =
-  build produksi persis seperti sebelumnya (diverifikasi: `com.sisupit.app`, "Sisupit", hanya sisupit.com).
-- Nama aplikasi kini resource `app_display_name` (dari `resValue`), dipakai label manifest & judul
-  cadangan notifikasi FCM. `app_name` di strings.xml tetap ada.
-- `google-services.json` memuat klien kedua `com.sisupit.app.dev` yang SEMENTARA menyalin klien
-  produksi (plugin menolak build tanpa klien yang cocok). **Push FCM & login Google di APK dev belum
-  dijamin** sampai `com.sisupit.app.dev` didaftarkan di Firebase `sisupit-c1e5a` (SHA-1 debug
-  `A2:32:08:4D:A3:D5:C7:E8:F4:16:C6:18:F9:0A:B3:47:63:E1:A3:36`) lalu `google-services.json`-nya
-  diunduh ulang menggantikan yang ini.
-- Disajikan HANYA di `https://dev.sisupit.com/apk/sisupit-dev.apk` (di luar git), kunci debug.
+- Alamat web kini **parameter build**, bukan string tertulis mati di dua tempat `MainActivity`
+  (halaman awal & `api/fcm-token`): `BuildConfig.BASE_URL`, bawaan `https://sisupit.com/`.
+  APK uji: `gradlew assembleDebug -PsisupitBaseUrl=https://dev.sisupit.com/ -PsisupitVersionSuffix=-dev`.
+  Tanpa properti = build produksi persis seperti sebelumnya.
+- Paket TETAP `com.sisupit.app` (`google-services.json` hanya mengenal paket itu), jadi APK dev
+  MENGGANTIKAN aplikasi produksi di HP; kembali ke produksi = uninstall lalu pasang `/apk/sisupit.apk`
+  (versionCode dev 7 > produksi 6, jadi tak bisa "turun versi" tanpa uninstall).
+- Disajikan HANYA di `https://dev.sisupit.com/apk/sisupit-dev.apk` (berkas di luar git di server dev),
+  ditandatangani kunci debug yang sama dengan `/apk/sisupit.apk`. Dibangun untuk menguji branch
+  `feat/mobile-native-polish` (TASK_69) di HP.
 
 **Yang harus dilakukan iOS:**
-- [ ] Skema build Dev terpisah: bundle id `.dev`, nama "Dev Sisupit", alamat dev - satu konstanta,
-  bukan string di beberapa tempat.
+- [ ] Jadikan alamat web satu konstanta per skema build (Debug/Dev vs Release), bukan string di
+  beberapa tempat.
 
 ## 1.1.5 / versionCode 7 - 2026-09-30 (Google Play, uji tertutup)
 
