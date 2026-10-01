@@ -39,7 +39,7 @@ export default function OpdDashboard({ agencyName, requests = [], feed_channel =
 			/>
 
 			{!agencyName && (
-				<div className="flex items-start gap-3 rounded-lg border border-warning/20 bg-warning/10 p-4 text-warning">
+				<div className="flex items-start gap-3 rounded-2xl border border-warning/20 bg-warning/10 p-4 text-warning">
 					<IconAlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
 					<p className="text-sm font-medium leading-relaxed">
 						Akun Anda belum ditautkan ke instansi mana pun, jadi belum ada permintaan yang bisa ditampilkan.
@@ -49,7 +49,7 @@ export default function OpdDashboard({ agencyName, requests = [], feed_channel =
 			)}
 
 			{awaiting.length > 0 && (
-				<div className="flex items-start gap-3 rounded-lg border border-warning/20 bg-warning/10 p-4 text-warning">
+				<div className="flex items-start gap-3 rounded-2xl border border-warning/20 bg-warning/10 p-4 text-warning">
 					<IconAlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
 					<p className="text-sm font-medium leading-relaxed">
 						{awaiting.length} insiden menunggu konfirmasi tindakan dari instansi Anda.

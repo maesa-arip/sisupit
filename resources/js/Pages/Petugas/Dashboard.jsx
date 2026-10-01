@@ -144,7 +144,7 @@ export default function PetugasDashboard({
 					<>
 						<Badge
 							variant="secondary"
-							className="rounded-lg border-none bg-destructive px-2.5 py-1 text-[11px] font-bold tracking-wide text-destructive-foreground"
+							className="rounded-full border-none bg-destructive px-2.5 py-0.5 text-xs font-semibold text-destructive-foreground"
 						>
 							<IconShieldCheck className="mr-1 h-3.5 w-3.5" stroke={2.5} /> PETUGAS DAMKAR
 						</Badge>
@@ -169,11 +169,11 @@ export default function PetugasDashboard({
 				<Card className="overflow-hidden border border-destructive/30 bg-destructive/10">
 					<CardContent className="flex flex-col justify-between gap-4 p-4 sm:flex-row sm:items-center md:p-5">
 						<div className="flex items-center gap-3 md:gap-4">
-							<div className="flex h-11 w-11 shrink-0 animate-pulse items-center justify-center rounded-lg border border-destructive/30 bg-destructive/20 text-destructive md:h-12 md:w-12">
+							<div className="flex h-11 w-11 shrink-0 animate-pulse items-center justify-center rounded-xl bg-destructive/15 text-destructive md:h-12 md:w-12">
 								<IconAlertCircle className="h-6 w-6" stroke={2} />
 							</div>
 							<div>
-								<h3 className="text-sm font-bold text-destructive">
+								<h3 className="text-[15px] font-semibold text-destructive">
 									Ada {activeMissions.length} Insiden Aktif!
 								</h3>
 								<p className="text-xs font-medium text-destructive/80">
@@ -184,17 +184,15 @@ export default function PetugasDashboard({
 					</CardContent>
 				</Card>
 			) : (
-				<Card className="overflow-hidden border border-teal-200 bg-teal-50/50 dark:border-success/30 dark:bg-success/10">
+				<Card className="overflow-hidden border-success/30 bg-success/10">
 					<CardContent className="flex flex-col justify-between gap-4 p-4 sm:flex-row sm:items-center md:p-5">
 						<div className="flex items-center gap-3 md:gap-4">
-							<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-teal-200 bg-teal-100 text-teal-600 dark:border-success/30 dark:bg-success/20 dark:text-success md:h-12 md:w-12">
+							<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-success/15 text-success">
 								<IconShieldCheck className="h-6 w-6" stroke={2} />
 							</div>
 							<div>
-								<h3 className="text-sm font-bold text-teal-900 dark:text-success">
-									Wilayah Aman Terkendali
-								</h3>
-								<p className="text-xs font-medium text-teal-700/80 dark:text-success/80">
+								<h3 className="text-[15px] font-semibold text-success">Wilayah Aman Terkendali</h3>
+								<p className="text-[13px] text-success/80">
 									Tidak ada insiden darurat di wilayah tugas Anda saat ini.
 								</p>
 							</div>
@@ -209,11 +207,9 @@ export default function PetugasDashboard({
 			    atas koreksi user - tidak boleh ada yang full kanan kiri, semua tetap
 			    bermargin. */}
 			<Card className="relative flex h-[300px] flex-col overflow-hidden sm:h-[360px]">
-				<div className="absolute left-0 right-0 top-0 z-10 flex items-center gap-2 border-b bg-card/90 px-4 py-2.5 backdrop-blur-sm">
+				<div className="material-chrome absolute left-0 right-0 top-0 z-10 flex items-center gap-2 border-b border-border/60 px-4 py-2.5">
 					<IconMapPin className="h-4 w-4 text-destructive" stroke={2.5} />
-					<span className="text-[11px] font-extrabold uppercase tracking-wide text-foreground">
-						Peta Taktis Misi
-					</span>
+					<span className="text-[13px] font-semibold text-foreground">Peta Taktis Misi</span>
 				</div>
 				<div ref={miniMapRef} className="z-0 h-full w-full bg-accent/30 pt-11"></div>
 				{missionsWithCoords.length === 0 && (
@@ -298,7 +294,7 @@ export default function PetugasDashboard({
 										    mencabut sinyalnya persis di tempat ia paling dibutuhkan. */}
 										<div
 											className={cn(
-												'flex h-7 shrink-0 items-center justify-center gap-1 rounded-lg px-2 text-[11px] font-bold uppercase tracking-wide transition-all md:h-10 md:rounded-lg md:px-4 md:text-xs',
+												'flex h-7 shrink-0 items-center justify-center gap-1 rounded-full px-2.5 text-xs font-semibold transition-all md:h-10 md:rounded-lg md:px-4 md:text-xs',
 												mission.isUrgent &&
 													'bg-destructive text-destructive-foreground group-hover:bg-destructive/90',
 												mission.isAwaitingAdmin &&
@@ -368,7 +364,7 @@ export default function PetugasDashboard({
 									/* Antrian ini hanya berisi insiden yang BELUM punya entri berita acara
 									   sama sekali (TASK_49), jadi tak ada lagi dua keadaan yang perlu
 									   dibedakan - `has_draft` ikut dihapus di server. */
-									<div className="flex h-7 shrink-0 items-center justify-center rounded-lg bg-warning px-2 text-[11px] font-bold uppercase tracking-wide text-warning-foreground transition-all group-hover:bg-warning/90 md:h-10 md:rounded-lg md:px-4 md:text-xs">
+									<div className="flex h-7 shrink-0 items-center justify-center rounded-full bg-warning px-2.5 text-xs font-semibold text-warning-foreground transition-all group-hover:bg-warning/90 md:h-10 md:rounded-lg md:px-4 md:text-xs">
 										Buat Laporan
 									</div>
 								}

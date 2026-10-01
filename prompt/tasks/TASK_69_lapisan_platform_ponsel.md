@@ -277,3 +277,20 @@ kedua layar (120 test) hijau sebelum & sesudah.
   tabel kehadiran regu normal-case; garis pemisah tipis. Tombol "Edit" pelapor kini berbunyi "Ubah".
 - Penjaga baru di `AppleDesignMaterialTest` (5 judul seksi, tanpa <Card>, bilah sticky utuh; navigasi
   Kembali, judul tanpa uppercase, modal tanpa kotak lama) - MERAH terhadap HEAD. Suite 649 passed (3163).
+
+## 16. Bagian 10 - Dashboard & Peta Pemantauan dirombak (user 2026-10-01)
+
+- **Mode Kesiapan = satu komponen `Components/StandbyCard.jsx`** (baris ala iOS + SAKELAR, label keadaan
+  "Siaga"/"Non Aktif" tetap di sampingnya). Dulu dua kartu kembar disalin tangan di dashboard relawan &
+  pejabat - TASK_41 sampai mencatat "selalu ubah keduanya"; kini mustahil menyimpang.
+- **Admin/pejabat:** sapaan tanpa bingkai (judul besar), statistik ala widget (angka 3xl-4xl tabular-nums,
+  subjudul tanpa kapital, tekan mengecil), varian teal lama -> token `teal`, "Sistem Online" warna sukses,
+  lencana pil, Pos Armada jadi baris.
+- **Warga/relawan:** tab = segmented control, keadaan kosong kartu biasa, tombol/lencana tanpa kapital,
+  kartu "Lapor Darurat" TETAP merah padat (ajakan darurat). **Petugas:** kartu aman teal -> token sukses,
+  kepala peta taktis `material-chrome`, pil tanpa kapital. **OPD:** kotak peringatan 2xl.
+- **Peta Pemantauan ala Apple Maps:** pita judul & tombol mengambang memakai material standar (dulu
+  `bg-card/90` + blur buatan sendiri yang tak ikut koreksi opasitas), panel "Lapisan" jadi sheet kaca 2xl
+  bergerak pegas, popup marker semibold + lencana pil (tombol "Lihat Detail" yang dijaga test tak disentuh).
+- Penjaga baru (StandbyCard dipakai kedua dashboard tanpa salinan; peta tanpa blur buatan sendiri) - MERAH
+  terhadap HEAD. `DashboardMobileShellTest` tetap hijau. Suite 650 passed (3171).

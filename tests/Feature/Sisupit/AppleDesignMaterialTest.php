@@ -199,3 +199,17 @@ it('lays out the report form as grouped sections and the incident page with an i
         ->and($show)->not->toMatch('/<h1 className="[^"]*\buppercase\b/')
         ->and($show)->not->toContain('<DialogContent className="max-w-sm rounded-xl border');
 });
+
+it('shares one standby control between dashboards and floats the monitoring map controls on the standard materials', function () {
+    foreach (['resources/js/Pages/Dashboard.jsx', 'resources/js/Pages/Admin/Dashboard.jsx'] as $path) {
+        $src = appleSource($path);
+        expect($src)->toContain('<StandbyCard')
+            ->and($src)->not->toContain('Mode Kesiapan');
+    }
+    expect(appleSource('resources/js/Components/StandbyCard.jsx'))->toContain('<Switch');
+
+    $map = appleSource('resources/js/Pages/Monitoring/Map.jsx');
+    expect($map)->not->toMatch('/bg-card\/9\d/')
+        ->and($map)->not->toContain('backdrop-blur-sm')
+        ->and($map)->toContain('material-thick m-3 mt-16');
+});

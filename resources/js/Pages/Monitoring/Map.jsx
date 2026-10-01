@@ -101,7 +101,7 @@ const LAYERS = [
 		key: 'hydrants',
 		label: 'Hydrant',
 		icon: IconFireHydrant,
-		color: 'text-teal-600 dark:text-teal',
+		color: 'text-teal',
 		chip: 'facility',
 	},
 	{ key: 'stations', label: 'Pos Pemadam', icon: IconFiretruck, color: 'text-destructive', chip: 'facility' },
@@ -197,13 +197,13 @@ export default function MonitoringMap({ layers }) {
 		const popupShell = (inner) => `<div class="font-sans w-[210px] space-y-1.5">${inner}</div>`;
 		const facilityPopup = (title, address, status, extra = '') =>
 			popupShell(`
-				<h4 class="m-0 text-[13px] font-bold leading-snug text-foreground">${escapeHtml(title)}</h4>
+				<h4 class="m-0 text-[15px] font-semibold leading-snug text-foreground">${escapeHtml(title)}</h4>
 				<div class="flex items-start gap-1.5 text-[11px] font-medium text-muted-foreground">
 					<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mt-px shrink-0"><path d="M12 21s-6-5.686-6-10a6 6 0 1 1 12 0c0 4.314-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg>
 					<span>${escapeHtml(address || 'Alamat tidak tersedia')}</span>
 				</div>
 				${extra}
-				<span class="inline-flex rounded-xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold text-muted-foreground">${escapeHtml(facilityStatusLabel(status))}</span>`);
+				<span class="inline-flex rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">${escapeHtml(facilityStatusLabel(status))}</span>`);
 
 		// Baris "regu yang meluncur" di popup kejadian (TASK_60), kosong bila belum ada regu.
 		// Nama regu masuk ke HTML mentah popup Leaflet, jadi WAJIB di-escape (#131).
@@ -234,13 +234,13 @@ export default function MonitoringMap({ layers }) {
 				// font-semibold, shadow-sm, ikon 16px stroke-2) supaya sebentuk dengan tombol
 				// di halaman lain — bukan label mungil huruf kapital seperti sebelumnya.
 				const html = popupShell(`
-					<h4 class="m-0 text-[13px] font-bold leading-snug text-foreground">${escapeHtml(r.title)}</h4>
+					<h4 class="m-0 text-[15px] font-semibold leading-snug text-foreground">${escapeHtml(r.title)}</h4>
 					<div class="space-y-1 text-[11px] font-medium text-muted-foreground">
 						<div class="flex items-start gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mt-px shrink-0"><path d="M12 21s-6-5.686-6-10a6 6 0 1 1 12 0c0 4.314-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg><span>${escapeHtml(r.location || 'Lokasi tidak tersedia')}</span></div>
 						<div class="flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>${escapeHtml(r.time)}</span></div>
 						${reguLine(r.regus)}
 					</div>
-					<span class="inline-flex rounded-xl border px-2 py-0.5 text-[11px] font-bold ${meta.badge}">${meta.label}</span>
+					<span class="inline-flex rounded-full border px-2 py-0.5 text-xs font-semibold ${meta.badge}">${meta.label}</span>
 					<a href="${escapeHtml(detailUrl)}" data-report-detail="${escapeHtml(r.id)}" class="flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-destructive text-xs font-semibold !text-destructive-foreground no-underline shadow-sm hover:bg-destructive/90">
 						Lihat Detail
 						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
@@ -316,11 +316,11 @@ export default function MonitoringMap({ layers }) {
 					? `<div class="text-[11px] font-medium text-muted-foreground">Keahlian: ${escapeHtml(d.skills.join(', '))}</div>`
 					: '';
 				const html = popupShell(`
-					<h4 class="m-0 text-[13px] font-bold leading-snug text-foreground">${escapeHtml(d.name)}</h4>
+					<h4 class="m-0 text-[15px] font-semibold leading-snug text-foreground">${escapeHtml(d.name)}</h4>
 					<div class="flex items-start gap-1.5 text-[11px] font-medium text-muted-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mt-px shrink-0"><path d="M12 21s-6-5.686-6-10a6 6 0 1 1 12 0c0 4.314-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg><span>${escapeHtml(d.area || '-')}</span></div>
 					${skillsLine}
 					<div class="text-[11px] italic text-muted-foreground/80">Posisi perkiraan (pusat wilayah)</div>
-					<span class="inline-flex rounded-xl border px-2 py-0.5 text-[11px] font-bold ${statusClass}">${escapeHtml(d.status)}</span>`);
+					<span class="inline-flex rounded-full border px-2 py-0.5 text-xs font-semibold ${statusClass}">${escapeHtml(d.status)}</span>`);
 				const m = window.L.marker([d.lat, d.lng], {
 					icon: glyphIcon(volunteerColor(d.status), GLYPH.volunteer),
 				}).bindPopup(html);
@@ -383,7 +383,7 @@ export default function MonitoringMap({ layers }) {
 			type="button"
 			onClick={onClick}
 			className={cn(
-				'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors',
+				'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
 				active
 					? 'bg-muted text-foreground'
 					: 'text-muted-foreground/50 line-through hover:text-muted-foreground',
@@ -510,18 +510,16 @@ export default function MonitoringMap({ layers }) {
 
 			{/* Header melayang */}
 			<div className="pointer-events-none absolute left-0 right-0 top-0 z-[10] flex items-center justify-between gap-2 p-3 sm:p-4">
-				<div className="pointer-events-auto flex items-center gap-2 rounded-xl border border-border bg-card/90 px-3 py-2 shadow-sm backdrop-blur-sm">
-					<IconMapPin className="h-4 w-4 text-teal-600 dark:text-teal" stroke={2.5} />
-					<span className="text-[11px] font-extrabold uppercase tracking-wide text-teal-700 dark:text-teal sm:text-xs">
-						Peta Pemantauan
-					</span>
+				<div className="material-chrome pointer-events-auto flex items-center gap-2 rounded-full border border-border/60 px-4 py-2 shadow-sm">
+					<IconMapPin className="h-4 w-4 text-primary" stroke={2} />
+					<span className="text-[13px] font-semibold text-foreground">Peta Pemantauan</span>
 				</div>
 				<div className="pointer-events-auto flex items-center gap-2">
 					<button
 						type="button"
 						onClick={() => setIsMaximized((v) => !v)}
 						aria-label={isMaximized ? 'Perkecil peta' : 'Perbesar peta'}
-						className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-card/90 text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-muted hover:text-foreground"
+						className="material-thick flex h-10 w-10 items-center justify-center rounded-full border border-border/60 text-muted-foreground shadow-md transition-[color,transform] hover:text-foreground active:scale-95 motion-reduce:active:scale-100"
 					>
 						{isMaximized ? (
 							<IconMinimize className="h-4 w-4" stroke={2} />
@@ -543,11 +541,11 @@ export default function MonitoringMap({ layers }) {
 			{/* Panel filter — tinggi mengikuti konten (tidak memenuhi layar ke bawah) */}
 			<div
 				className={cn(
-					'absolute left-0 top-0 z-[20] w-full max-w-[16rem] transition-transform duration-300 lg:translate-x-0',
+					'absolute left-0 top-0 z-[20] w-full max-w-[17rem] transition-transform duration-300 ease-spring lg:translate-x-0',
 					panelOpen ? 'translate-x-0' : '-translate-x-full',
 				)}
 			>
-				<div className="m-3 mt-16 flex max-h-[calc(100%-5rem)] flex-col overflow-hidden rounded-xl border border-border bg-card/95 shadow-lg backdrop-blur-sm">
+				<div className="material-thick m-3 mt-16 flex max-h-[calc(100%-5rem)] flex-col overflow-hidden rounded-2xl border border-border/60 shadow-xl">
 					<div className="flex items-center gap-1 px-3 py-2">
 						<button
 							type="button"
@@ -562,14 +560,12 @@ export default function MonitoringMap({ layers }) {
 								)}
 								stroke={2}
 							/>
-							<h2 className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-								Layer
-							</h2>
+							<h2 className="text-[13px] font-semibold text-foreground">Lapisan</h2>
 						</button>
 						<button
 							type="button"
 							onClick={() => setPanelOpen(false)}
-							className="flex h-6 w-6 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden"
+							className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden"
 							aria-label="Tutup filter"
 						>
 							<IconX className="h-4 w-4" />
@@ -587,7 +583,10 @@ export default function MonitoringMap({ layers }) {
 
 			{/* Overlay gelap saat panel terbuka di mobile */}
 			{panelOpen && (
-				<div className="absolute inset-0 z-[15] bg-black/30 lg:hidden" onClick={() => setPanelOpen(false)} />
+				<div
+					className="absolute inset-0 z-[15] bg-black/30 backdrop-blur-[1px] lg:hidden"
+					onClick={() => setPanelOpen(false)}
+				/>
 			)}
 		</div>
 	);

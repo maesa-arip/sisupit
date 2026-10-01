@@ -1,9 +1,9 @@
 import { AppEmpty, AppGreeting, AppList, AppListRow, AppSection } from '@/Components/AppSection';
 import ReportCard from '@/Components/ReportCard';
+import StandbyCard from '@/Components/StandbyCard';
 import StatusBadge from '@/Components/StatusBadge';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent } from '@/Components/ui/card';
 import useReportFeed from '@/hooks/use-report-feed';
 import AppLayout from '@/Layouts/AppLayout';
 import { cn, GEO_OPTIONS } from '@/lib/utils';
@@ -17,8 +17,6 @@ import {
 	IconHistory,
 	IconLoader2,
 	IconMapPin,
-	IconPower,
-	IconRadar,
 	IconRefresh,
 	IconShieldCheck,
 	IconUserCheck,
@@ -205,11 +203,11 @@ export default function Dashboard(props) {
 	const RenderRadarFeed = () => (
 		<AppSection title={isRelawan ? 'Radar Insiden' : 'Kejadian di Sekitar'} icon={IconCheckupList}>
 			{isRelawan && (
-				<div className="no-scrollbar flex space-x-1 overflow-x-auto rounded-lg border border-border bg-muted p-1 shadow-none">
+				<div className="no-scrollbar flex space-x-1 overflow-x-auto rounded-xl bg-muted p-1">
 					<button
 						onClick={() => setActiveTab('menunggu')}
 						className={cn(
-							'flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-bold outline-none transition-colors',
+							'flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-[13px] font-semibold outline-none transition-colors',
 							activeTab === 'menunggu'
 								? 'border border-border bg-card text-destructive'
 								: 'border border-transparent text-muted-foreground hover:text-foreground',
@@ -221,7 +219,7 @@ export default function Dashboard(props) {
 					<button
 						onClick={() => setActiveTab('tugas_saya')}
 						className={cn(
-							'flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-bold outline-none transition-colors',
+							'flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-[13px] font-semibold outline-none transition-colors',
 							activeTab === 'tugas_saya'
 								? 'border border-border bg-card text-foreground'
 								: 'border border-transparent text-muted-foreground hover:text-foreground',
@@ -232,7 +230,7 @@ export default function Dashboard(props) {
 					<button
 						onClick={() => setActiveTab('semua')}
 						className={cn(
-							'flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-bold outline-none transition-colors',
+							'flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-[13px] font-semibold outline-none transition-colors',
 							activeTab === 'semua'
 								? 'border border-border bg-card text-foreground'
 								: 'border border-transparent text-muted-foreground hover:text-foreground',
@@ -244,7 +242,7 @@ export default function Dashboard(props) {
 			)}
 
 			{displayedReports.length === 0 ? (
-				<div className="rounded-xl border border-dashed border-border bg-muted/50">
+				<div className="rounded-2xl border border-border/70 bg-card shadow-sm">
 					<AppEmpty
 						icon={IconShieldCheck}
 						title={
@@ -283,7 +281,7 @@ export default function Dashboard(props) {
 								variant="outline"
 								onClick={handleLoadMore}
 								disabled={isLoadingMore}
-								className="flex h-10 items-center gap-2 rounded-xl border border-border bg-card px-5 text-[11px] font-bold uppercase tracking-wide text-foreground/80 shadow-none transition-colors hover:bg-muted sm:h-8"
+								className="flex h-10 items-center gap-2 rounded-full border border-border/70 bg-card px-5 text-[13px] font-semibold text-foreground/80 shadow-sm transition-colors hover:bg-muted sm:h-8"
 							>
 								{isLoadingMore ? (
 									<>
@@ -313,7 +311,7 @@ export default function Dashboard(props) {
 						<Badge
 							variant="outline"
 							className={cn(
-								'rounded-xl border border-border px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide shadow-none',
+								'rounded-full border px-2.5 py-0.5 text-xs font-semibold shadow-none',
 								isRelawan ? 'bg-volunteer text-volunteer-foreground' : 'bg-muted text-foreground/80',
 							)}
 						>
@@ -330,14 +328,14 @@ export default function Dashboard(props) {
 			{/* CTA UTAMA: LAPOR DARURAT - aksi inti yang harus paling menonjol bagi warga */}
 			<Link
 				href={route('front.reports.create')}
-				className="group flex items-center justify-between gap-3 rounded-xl border border-destructive bg-destructive p-4 text-destructive-foreground shadow-none transition-colors hover:bg-destructive/90 active:bg-destructive/90"
+				className="active:scale-\\[0.98\\] group flex items-center justify-between gap-3 rounded-2xl border border-destructive bg-destructive p-4 text-destructive-foreground shadow-sm transition-colors hover:bg-destructive/90 active:bg-destructive/90 motion-reduce:active:scale-100"
 			>
 				<div className="flex items-center gap-3">
-					<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-destructive-foreground/30 bg-destructive-foreground/10">
+					<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-destructive-foreground/15">
 						<IconFlame className="h-5 w-5" stroke={2} />
 					</div>
 					<div>
-						<h3 className="text-sm font-bold">Lapor Darurat</h3>
+						<h3 className="text-[17px] font-semibold tracking-tight">Lapor Darurat</h3>
 						<p className="mt-0.5 text-xs font-medium text-destructive-foreground/80">
 							Kebakaran atau keadaan darurat lain? Laporkan sekarang.
 						</p>
@@ -350,71 +348,7 @@ export default function Dashboard(props) {
 			    "Daftar Relawan" bagi warga; DICABUT 2026-09-02 atas permintaan user, sehingga
 			    peran relawan kini hanya diberikan admin lewat /admin/users. Jangan hidupkan
 			    lagi tanpa menanyakan user. */}
-			{isRelawan && (
-				<Card
-					className={cn(
-						'overflow-hidden rounded-xl border shadow-none transition-colors',
-						isStandby ? 'border-destructive bg-destructive/10' : 'border-border bg-card',
-					)}
-				>
-					<CardContent className="flex flex-col justify-between gap-3 p-4 sm:flex-row sm:items-center">
-						<div className="flex items-center gap-3">
-							<div
-								className={cn(
-									'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border',
-									isStandby
-										? 'border-destructive/30 bg-card text-destructive'
-										: 'border-border bg-muted text-muted-foreground',
-								)}
-							>
-								<IconRadar className="h-5 w-5" stroke={1.5} />
-							</div>
-							<div>
-								<h3
-									className={cn(
-										'text-sm font-bold',
-										isStandby ? 'text-destructive' : 'text-foreground',
-									)}
-								>
-									Mode Kesiapan
-								</h3>
-								<p
-									className={cn(
-										'mt-0.5 text-xs font-medium',
-										isStandby ? 'text-destructive/80' : 'text-muted-foreground',
-									)}
-								>
-									{isStandby
-										? 'Anda menerima notifikasi insiden sesuai wilayah & aturan siaran.'
-										: 'Anda tidak menerima notifikasi insiden sampai siaga diaktifkan kembali.'}
-								</p>
-							</div>
-						</div>
-						<Button
-							variant={isStandby ? 'default' : 'outline'}
-							disabled={isTogglingStandby}
-							className={cn(
-								'h-10 w-full shrink-0 rounded-lg px-4 text-[11px] font-bold uppercase tracking-wide shadow-none transition-colors sm:h-8 sm:w-auto',
-								isStandby
-									? 'border border-destructive bg-destructive text-destructive-foreground hover:bg-destructive/90'
-									: 'border-border bg-card text-foreground/80 hover:bg-muted',
-							)}
-							onClick={handleToggleStandby}
-						>
-							{isTogglingStandby ? (
-								<IconLoader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-							) : (
-								<IconPower className="mr-1.5 h-3.5 w-3.5" />
-							)}
-							{/* Label = KEADAAN, bukan ajakan (permintaan user 2026-08-26). Dulu berbunyi
-							    'Siaga Aktif' saat menyala tapi 'Mulai Siaga' saat mati - satu keadaan
-							    dibaca sebagai status, satunya sebagai perintah, sehingga tak jelas mana
-							    yang sedang berlaku. Kini keduanya simetris. */}
-							{isStandby ? 'Siaga' : 'Non Aktif'}
-						</Button>
-					</CardContent>
-				</Card>
-			)}
+			{isRelawan && <StandbyCard isStandby={isStandby} busy={isTogglingStandby} onToggle={handleToggleStandby} />}
 
 			{/* Pemisah `<hr>` antar-seksi dicabut: tiap seksi kini membawa labelnya sendiri
 			    (AppSection), dan garis mendatar selebar halaman adalah idiom dokumen. */}

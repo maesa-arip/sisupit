@@ -1,4 +1,5 @@
 import { AppEmpty, AppGreeting, AppList, AppListRow, AppSection } from '@/Components/AppSection';
+import StandbyCard from '@/Components/StandbyCard';
 import StatusBadge from '@/Components/StatusBadge';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
@@ -17,11 +18,8 @@ import {
 	IconDroplet,
 	IconFiretruck,
 	IconFlame,
-	IconLoader2,
 	IconMapPin,
 	IconMapSearch,
-	IconPower,
-	IconRadar,
 	IconShieldCheck,
 	IconTree,
 	IconUsersGroup,
@@ -131,7 +129,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 							</p>
 							<div
 								className={cn(
-									'text-2xl font-extrabold tracking-tight md:text-3xl',
+									'text-3xl font-bold tabular-nums tracking-tight md:text-4xl',
 									hasEmergency ? 'text-destructive-foreground' : 'text-foreground',
 								)}
 							>
@@ -150,7 +148,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 					{subtitle && (
 						<div
 							className={cn(
-								'mt-4 hidden text-[11px] font-semibold uppercase tracking-wide md:block',
+								'mt-3 hidden text-xs text-muted-foreground md:block',
 								hasEmergency ? 'text-destructive-foreground/70' : 'text-muted-foreground',
 							)}
 						>
@@ -166,7 +164,10 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 		return (
 			<Link
 				href={href}
-				className={cn('block rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring', className)}
+				className={cn(
+					'block rounded-2xl outline-none transition-transform focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] motion-reduce:active:scale-100',
+					className,
+				)}
 			>
 				{card}
 			</Link>
@@ -181,14 +182,13 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 			    halaman berbingkai adalah hal pertama yang membuat layar ponsel terbaca sebagai
 			    halaman web, dan di sini ia memakan sepertiga layar sebelum ada satu data pun. */}
 			<AppGreeting
-				framed
 				title={`Halo, ${auth.user.name}`}
 				meta={
 					<>
 						<Badge
 							variant="secondary"
 							className={cn(
-								'rounded-xl border-none px-2 py-0.5 font-semibold',
+								'rounded-full border-none px-2.5 py-0.5 font-semibold',
 								isPejabat ? 'bg-info/10 text-info' : 'bg-destructive/10 text-destructive',
 							)}
 						>
@@ -196,7 +196,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 							{isPejabat ? 'Pejabat/Eksekutif' : 'Administrator'}
 						</Badge>
 						<span className="flex items-center gap-1 text-xs font-medium text-muted-foreground md:text-sm">
-							<IconMapPin className="h-3.5 w-3.5 text-teal md:h-4 md:w-4" />
+							<IconMapPin className="h-3.5 w-3.5 text-muted-foreground md:h-4 md:w-4" />
 							Yurisdiksi: <strong className="text-foreground">{getAdminLevelName()}</strong>
 						</span>
 					</>
@@ -212,9 +212,9 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 									year: 'numeric',
 								}).format(new Date())}
 							</div>
-							<div className="flex items-center justify-end gap-1 text-xs font-medium text-teal-600 dark:text-teal">
-								<span className="h-1.5 w-1.5 animate-pulse rounded-full bg-teal-500 dark:bg-teal"></span>{' '}
-								Sistem Online
+							<div className="flex items-center justify-end gap-1 text-xs font-medium text-success">
+								<span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success"></span> Sistem
+								Online
 							</div>
 						</div>
 						{/* Pejabat bersifat read-only (pemantau) — sembunyikan aksi input insiden */}
@@ -233,71 +233,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 			/>
 
 			{/* MODE KESIAPAN PEJABAT — pejabat memantau, jadi ia boleh memilih tidak dibangunkan */}
-			{isPejabat && (
-				<Card
-					className={cn(
-						'overflow-hidden rounded-xl border shadow-none transition-colors',
-						isStandby ? 'border-destructive bg-destructive/10' : 'border-border bg-card',
-					)}
-				>
-					<CardContent className="flex flex-col justify-between gap-3 p-4 sm:flex-row sm:items-center">
-						<div className="flex items-center gap-3">
-							<div
-								className={cn(
-									'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border',
-									isStandby
-										? 'border-destructive/30 bg-card text-destructive'
-										: 'border-border bg-muted text-muted-foreground',
-								)}
-							>
-								<IconRadar className="h-5 w-5" stroke={1.5} />
-							</div>
-							<div>
-								<h3
-									className={cn(
-										'text-sm font-bold',
-										isStandby ? 'text-destructive' : 'text-foreground',
-									)}
-								>
-									Mode Kesiapan
-								</h3>
-								<p
-									className={cn(
-										'mt-0.5 text-xs font-medium',
-										isStandby ? 'text-destructive/80' : 'text-muted-foreground',
-									)}
-								>
-									{isStandby
-										? 'Anda menerima notifikasi insiden sesuai wilayah & aturan siaran.'
-										: 'Anda tidak menerima notifikasi insiden sampai siaga diaktifkan kembali.'}
-								</p>
-							</div>
-						</div>
-						<Button
-							variant={isStandby ? 'default' : 'outline'}
-							disabled={isTogglingStandby}
-							className={cn(
-								'h-8 w-full shrink-0 rounded-lg px-4 text-[11px] font-bold uppercase tracking-wide shadow-none transition-colors sm:w-auto',
-								isStandby
-									? 'border border-destructive bg-destructive text-destructive-foreground hover:bg-destructive/90'
-									: 'border-border bg-card text-foreground/80 hover:bg-muted',
-							)}
-							onClick={handleToggleStandby}
-						>
-							{isTogglingStandby ? (
-								<IconLoader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-							) : (
-								<IconPower className="mr-1.5 h-3.5 w-3.5" />
-							)}
-							{/* Label = KEADAAN, bukan ajakan (permintaan user 2026-08-26). Dulu berbunyi
-						    'Siaga Aktif' saat menyala tapi 'Mulai Siaga' saat mati — satu keadaan
-						    dibaca sebagai status, satunya sebagai perintah, sehingga tak jelas mana
-						    yang sedang berlaku. Kini keduanya simetris. */}
-							{isStandby ? 'Siaga' : 'Non Aktif'}
-						</Button>
-					</CardContent>
-				</Card>
-			)}
+			{isPejabat && <StandbyCard isStandby={isStandby} busy={isTogglingStandby} onToggle={handleToggleStandby} />}
 
 			{/* KARTU STATISTIK - petak 2 kolom di ponsel supaya keempat angka terbaca
 			    sekaligus tanpa digeser. Gulir mendatar sempat dipasang 2026-09-09 lalu
@@ -328,8 +264,8 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 					title="Hydrant Siaga"
 					value={currentStats.active_hydrants}
 					icon={IconDroplet}
-					colorClass="text-teal-600 dark:text-teal"
-					bgIconClass="bg-teal-50 dark:bg-teal/10"
+					colorClass="text-teal"
+					bgIconClass="bg-teal/10"
 					subtitle="Sumber Air Aktif"
 					href={route(isPejabat ? 'front.hydrants.index' : 'admin.hydrants.index')}
 				/>
@@ -376,7 +312,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 							if (t.includes('pohon')) {
 								ReportIcon = IconTree;
 								// Teal - selaras warna teks "Hydrant" di kartu Peta Pemantauan.
-								colorStyle = 'text-teal-700 dark:text-teal bg-teal-50 dark:bg-teal/10';
+								colorStyle = 'text-teal bg-teal/10';
 							} else if (t.includes('hewan') || t.includes('ular') || t.includes('tawon')) {
 								ReportIcon = IconBug;
 								colorStyle = 'text-warning bg-warning/10';
@@ -415,7 +351,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 											status={report.status}
 											className={
 												report.status === 'handling'
-													? 'border-teal-200 bg-teal-50 text-teal-700 dark:border-teal/30 dark:bg-teal/10 dark:text-teal'
+													? 'border-teal/30 bg-teal/10 text-teal'
 													: undefined
 											}
 										/>
@@ -438,7 +374,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 					{/* CTA menuju halaman Peta Pemantauan terpadu (menggantikan mini-peta lama) */}
 					<Link
 						href={route('front.monitoring.map')}
-						className="group block rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
+						className="group block rounded-2xl outline-none transition-transform focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.99] motion-reduce:active:scale-100"
 					>
 						<Card className="relative overflow-hidden transition-colors hover:bg-muted/30">
 							<CardContent className="flex flex-row items-center gap-3 p-4 md:flex-col md:items-stretch md:gap-4 md:p-5 lg:p-6">
@@ -447,16 +383,15 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 								    keduanya kalimat pemasaran yang mendorong daftar insiden turun tanpa menambah
 								    satu pun keputusan. */}
 								<div className="flex shrink-0 items-center justify-between md:w-full">
-									<div className="rounded-xl bg-teal-50 p-2.5 dark:bg-teal/10 md:rounded-2xl md:p-3.5">
-										<IconMapSearch
-											className="h-5 w-5 text-teal-600 dark:text-teal md:h-6 md:w-6"
-											stroke={2}
-										/>
+									<div className="rounded-xl bg-teal/10 p-2.5 md:rounded-2xl md:p-3.5">
+										<IconMapSearch className="h-5 w-5 text-teal md:h-6 md:w-6" stroke={2} />
 									</div>
-									<IconChevronRight className="hidden h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-teal-600 dark:group-hover:text-teal md:block" />
+									<IconChevronRight className="hidden h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground md:block" />
 								</div>
 								<div className="min-w-0 flex-1">
-									<h3 className="text-sm font-bold text-foreground md:text-lg">Peta Pemantauan</h3>
+									<h3 className="text-[15px] font-semibold text-foreground md:text-[17px]">
+										Peta Pemantauan
+									</h3>
 									<p className="mt-1 hidden text-[13px] leading-relaxed text-muted-foreground md:block">
 										Peta terpadu dengan filter lengkap - kejadian, hydrant, pos pemadam, pompa, &
 										relawan di seluruh yurisdiksi Anda.
@@ -469,20 +404,26 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 								<div className="hidden flex-wrap gap-1.5 md:flex">
 									<Badge
 										variant="secondary"
-										className="rounded-lg border-none bg-destructive/10 text-destructive"
+										className="rounded-full border-none bg-destructive/10 text-destructive"
 									>
 										Kejadian
 									</Badge>
 									<Badge
 										variant="secondary"
-										className="rounded-xl border-none bg-teal-50 text-teal-700 dark:bg-teal/10 dark:text-teal"
+										className="rounded-full border-none bg-teal/10 text-teal"
 									>
 										Hydrant
 									</Badge>
-									<Badge variant="secondary" className="rounded-xl border-none bg-info/10 text-info">
+									<Badge
+										variant="secondary"
+										className="rounded-full border-none bg-info/10 text-info"
+									>
 										Pos & Pompa
 									</Badge>
-									<Badge variant="secondary" className="rounded-xl border-none bg-info/10 text-info">
+									<Badge
+										variant="secondary"
+										className="rounded-full border-none bg-info/10 text-info"
+									>
 										Relawan
 									</Badge>
 								</div>
@@ -495,7 +436,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 						<div className="grid grid-cols-1 gap-3">
 							<Button
 								variant="outline"
-								className="group flex h-auto flex-row items-center gap-2 rounded-xl border-border bg-card px-4 py-3 shadow-sm transition-all hover:border-destructive"
+								className="group flex h-auto flex-row items-center justify-start gap-3 rounded-2xl border-border/70 bg-card px-4 py-3 shadow-sm hover:bg-muted/40"
 								asChild
 							>
 								<Link href={route('admin.hydrants.index', { type: 'pos' })}>
