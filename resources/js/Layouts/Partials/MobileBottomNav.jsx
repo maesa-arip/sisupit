@@ -511,7 +511,7 @@ function FloatingPanel({ className, children }) {
 	return (
 		<div
 			className={cn(
-				'no-scrollbar absolute bottom-[72px] z-50 flex max-h-[70vh] flex-col overflow-y-auto rounded-xl border border-border bg-popover p-1.5 text-popover-foreground shadow-md duration-200 animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2',
+				'no-scrollbar absolute bottom-[72px] z-50 flex max-h-[70vh] flex-col overflow-y-auto overscroll-contain rounded-xl border border-border bg-popover p-1.5 text-popover-foreground shadow-md duration-200 animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2',
 				className,
 			)}
 		>

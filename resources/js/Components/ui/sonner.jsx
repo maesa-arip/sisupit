@@ -1,4 +1,6 @@
-import { useTheme } from 'next-themes';
+// #159: tema dibaca dari ThemeProvider MILIK aplikasi (app.jsx). Dulu dari next-themes, yang
+// provider-nya tak pernah dipasang - toast selalu ikut tema OS, bukan pilihan di ThemeSwitcher.
+import { useTheme } from '@/Components/ThemeProvider';
 import { Toaster as Sonner } from 'sonner';
 
 const Toaster = ({ ...props }) => {

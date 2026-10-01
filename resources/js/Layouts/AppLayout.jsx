@@ -192,7 +192,7 @@ export default function AppLayout({ title, children }) {
 												</button>
 											)}
 										</div>
-										<div className="max-h-80 divide-y divide-border overflow-y-auto">
+										<div className="max-h-80 divide-y divide-border overflow-y-auto overscroll-contain">
 											{notifications.length > 0 ? (
 												notifications.map((n) => (
 													<button

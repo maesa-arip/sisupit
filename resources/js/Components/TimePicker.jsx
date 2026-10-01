@@ -56,7 +56,7 @@ export default function TimePicker({
 	const pick = (nextHour, nextMinute) => onChange(`${nextHour || '00'}:${nextMinute || '00'}`);
 
 	const column = (items, selected, onPick, activeRef) => (
-		<div className="max-h-56 w-16 overflow-y-auto p-1" role="listbox" aria-label="Pilihan">
+		<div className="max-h-56 w-16 overflow-y-auto overscroll-contain p-1" role="listbox" aria-label="Pilihan">
 			{items.map((item) => {
 				const isActive = item === selected;
 				return (

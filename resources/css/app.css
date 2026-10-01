@@ -110,6 +110,22 @@
 	body {
 		overscroll-behavior-y: contain;
 	}
+	/* #159: kilatan abu/biru yang dicat browser ponsel di atas setiap elemen yang diketuk adalah
+	   tanda "ini halaman web" paling mencolok, dan ia menimpa umpan balik `active:` milik kita.
+	   text-size-adjust mencegah huruf membesar sendiri saat ponsel dimiringkan. */
+	html {
+		-webkit-tap-highlight-color: transparent;
+		-webkit-text-size-adjust: 100%;
+	}
+	/* Kontrol, bukan konten: `manipulation` membuat ketukan langsung jadi klik tanpa menunggu
+	   kemungkinan ketukan-ganda (zoom), dan tekan-lama tak memblok teks label tombol. JANGAN
+	   diperluas ke `a` atau `body` - alamat, nomor laporan, dan pesan galat harus tetap bisa disalin. */
+	button,
+	[role='button'] {
+		touch-action: manipulation;
+		user-select: none;
+		-webkit-user-select: none;
+	}
 	body {
 		@apply bg-background text-foreground;
 	}

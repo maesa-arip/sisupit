@@ -500,8 +500,8 @@ export default function MonitoringMap({ layers }) {
 			className={cn(
 				'relative w-full overflow-hidden border-border bg-accent/30 shadow-sm',
 				isMaximized
-					? 'fixed inset-0 z-[200] h-screen w-screen rounded-none border-0'
-					: 'h-[calc(100vh-8rem)] rounded-2xl border lg:h-[calc(100vh-6rem)]',
+					? 'fixed inset-0 z-[200] h-dvh w-screen rounded-none border-0'
+					: 'h-[calc(100dvh-8rem)] rounded-2xl border lg:h-[calc(100vh-6rem)]',
 			)}
 		>
 			<Head title="Peta Pemantauan" />

@@ -3,6 +3,13 @@ import defaultTheme from 'tailwindcss/defaultTheme';
 /** @type {import('tailwindcss').Config} */
 export default {
 	darkMode: ['class'],
+	// #159: tanpa ini `hover:` (460+ pemakaian) berlaku juga di layar sentuh, dan ketukan pertama
+	// meninggalkan keadaan hover menempel di tombol itu sampai pengguna mengetuk tempat lain - di
+	// WebView APK tak ada kursor. Kini hover hanya terpancar di bawah @media (hover: hover); umpan
+	// balik sentuh dipegang `active:`.
+	future: {
+		hoverOnlyWhenSupported: true,
+	},
 	content: [
 		'./vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
 		'./storage/framework/views/*.php',

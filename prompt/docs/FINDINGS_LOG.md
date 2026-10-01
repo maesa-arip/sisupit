@@ -3888,3 +3888,35 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   (`git show HEAD:`), berkas pulih byte-exact (`cmp`).
 - **Status:** FIXED & TERDEPLOY 2026-09-30 @9988587e ke dev/staging/prod (deploy-env.sh; 0 pending, data utuh, 0 ERROR sesudah deploy). Test 619 -> 621 passed (3003).
   Sisi iOS: ikutkan `konfirmasi.caf` di bundle (`mobile/aset/suara/konfirmasi.wav`).
+
+### #159 — Lapisan platform ponsel: hover menempel, kilatan tap, tombol tanpa umpan balik tekan, zoom iOS (FIXED)
+
+- **Ditemukan:** 2026-10-01, audit `feat/mobile-native-polish` memakai skill `mobile-native`,
+  `ask-sonner`, `apple-design` (dipasang di `.claude/skills/` hari yang sama). Rincian: TASK_69.
+- **Akar (semua senyap - tak ada galat, build hijau, dan tak satu pun muncul di emulasi Chrome):**
+  (1) 460+ `hover:` tanpa gerbang - Tailwind v3 memancarkannya juga di layar sentuh, ketukan pertama
+  meninggalkan hover menempel di WebView APK; (2) tanpa `-webkit-tap-highlight-color` &
+  `touch-action: manipulation` - kilatan abu/biru tiap ketukan + tunda ketukan-ganda; (3) primitif
+  `Button` tanpa `active:` sama sekali - tombol baru bereaksi saat halaman berikutnya dimuat;
+  (4) `CommandInput` (kolom cari SEMUA combobox) 14px dan `<select>` armada `Show.jsx` 12px - iOS
+  me-zoom halaman saat kolom < 16px difokuskan dan tak meng-zoom-out kembali (relevan untuk wrapper
+  iOS); (5) `ui/sonner.jsx` membaca `useTheme` dari `next-themes` yang provider-nya TAK PERNAH
+  dipasang - toast mengikuti tema OS, bukan pilihan ThemeSwitcher; (6) daftar gulir combobox, lonceng,
+  popover bilah bawah, TimePicker tanpa `overscroll-contain` - gulir tembus ke halaman di belakangnya;
+  (7) Peta Pemantauan `h-[calc(100vh-8rem)]`/`h-screen` di ponsel - kepanjangan setinggi bilah URL;
+  (8) belum ada satu pun aturan `prefers-reduced-motion`.
+- **Fix:** `tailwind.config.js` `future.hoverOnlyWhenSupported`; `app.css` tap-highlight +
+  text-size-adjust di `html`, `touch-action`/`user-select: none` HANYA di `button, [role=button]`
+  (bukan `a`/`body` - teks konten harus bisa disalin); `Button` `active:scale-[0.97]` 100ms ease-out +
+  `motion-reduce:active:scale-100`; `CommandInput` & `<select>` `text-base md:text-*`; sonner membaca
+  `@/Components/ThemeProvider`; `overscroll-contain` di 4 wadah; `dvh` di Peta Pemantauan;
+  `DialogContent`/`AlertDialogContent` `motion-reduce:animate-none`.
+- **Sengaja TIDAK:** `theme-color` tetap satu nilai merah (APK mewarnai status bar sendiri dari
+  latar body); `overscroll-behavior: none` di root (tarik-untuk-refresh APK native, #150); bilah
+  tembus/blur, sheet bergestur, & pegas dari `apple-design` (bertentangan #106/#118/keputusan
+  popover 2026-08-13, dan pegas butuh pustaka baru).
+- **Penjaga:** `MobileNativeBaselineTest` (12 test) - sepuluh MERAH terhadap kode lama, dua kasus
+  dialog dibuktikan MERAH lewat sabotase (`cmp`, pulih byte-exact).
+- **Status:** FIXED (kode) di branch `feat/mobile-native-polish`, BELUM di-merge & BELUM dideploy.
+  SISA: uji di ponsel/APK sungguhan - hover tak lagi menempel, tombol mengecil saat ditekan, kolom
+  cari combobox tak me-zoom di iPhone, toast ikut tema saat ThemeSwitcher dipakai.

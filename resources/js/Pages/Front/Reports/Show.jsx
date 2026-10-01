@@ -1944,7 +1944,7 @@ export default function ReportShow(props) {
 											<select
 												value={unitToDispatch}
 												onChange={(e) => setUnitToDispatch(e.target.value)}
-												className="h-10 flex-1 rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
+												className="h-10 flex-1 rounded-lg border border-border bg-card px-3 text-base font-medium text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-teal-500 dark:focus-visible:ring-teal md:text-xs"
 											>
 												<option value="">Pilih unit tersedia...</option>
 												{availableUnits.map((u) => (
