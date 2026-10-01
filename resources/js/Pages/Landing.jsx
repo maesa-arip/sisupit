@@ -105,7 +105,7 @@ export default function Landing({ page_data }) {
 			<section className="relative overflow-hidden bg-gradient-to-b from-destructive/5 to-background">
 				<div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-2">
 					<div className="text-center lg:text-left">
-						<span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+						<span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5 text-xs font-semibold text-muted-foreground">
 							<span className="relative flex h-2 w-2">
 								<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-destructive opacity-75"></span>
 								<span className="relative inline-flex h-2 w-2 rounded-full bg-destructive"></span>
@@ -136,7 +136,7 @@ export default function Landing({ page_data }) {
 							<Button
 								asChild
 								variant="ghost"
-								className="h-14 w-full rounded-xl px-6 text-sm font-bold uppercase tracking-wide text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:w-auto"
+								className="h-14 w-full rounded-xl px-6 text-sm font-semibold uppercase tracking-wide text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:w-auto"
 							>
 								<Link href={primaryHref}>
 									<IconLogin2 className="mr-2 h-5 w-5" stroke={2} />
@@ -192,7 +192,7 @@ export default function Landing({ page_data }) {
 			{/* ===== ALUR / CARA KERJA ===== */}
 			<section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
 				<div className="mx-auto max-w-2xl text-center">
-					<span className="text-sm font-bold uppercase tracking-wide text-destructive">Cara Kerja</span>
+					<span className="text-sm font-semibold uppercase tracking-wide text-destructive">Cara Kerja</span>
 					<h2 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
 						Dari Laporan ke Penanganan
 					</h2>
@@ -224,7 +224,7 @@ export default function Landing({ page_data }) {
 			<section className="border-t border-border bg-card/40">
 				<div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
 					<div className="mx-auto max-w-2xl text-center">
-						<span className="text-sm font-bold uppercase tracking-wide text-destructive">Fitur</span>
+						<span className="text-sm font-semibold uppercase tracking-wide text-destructive">Fitur</span>
 						<h2 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
 							Satu Platform, Respons Menyeluruh
 						</h2>
@@ -263,7 +263,7 @@ export default function Landing({ page_data }) {
 					<a
 						href="/apk/sisupit.apk"
 						download="Sisupit.apk"
-						className="inline-flex h-12 items-center justify-center gap-3 rounded-xl border border-border bg-background px-6 font-semibold text-foreground shadow-sm outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-muted-foreground/50"
+						className="inline-flex h-12 items-center justify-center gap-3 rounded-2xl border border-border bg-background px-6 font-semibold text-foreground shadow-sm outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-muted-foreground/50"
 					>
 						<IconDownload className="h-5 w-5 text-success" stroke={2} />
 						Unduh APK

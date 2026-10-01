@@ -33,7 +33,7 @@ export default function Spotlight(props) {
 					{namaInstansi}
 				</h1>
 
-				<p className="text-sm font-bold text-destructive sm:text-base">
+				<p className="text-sm font-semibold text-destructive sm:text-base">
 					Lapor Damkar Cepat, Tepat Lindungi Warga.
 				</p>
 			</div>
@@ -49,7 +49,7 @@ export default function Spotlight(props) {
 				</div>
 
 				{/* Elemen Dekorasi (Kanan Bawah - Perisai) */}
-				<div className="absolute bottom-8 right-6 z-20 flex h-14 w-14 -rotate-6 items-center justify-center rounded-xl border border-neutral-200 bg-white shadow-none transition-colors dark:border-neutral-700 dark:bg-neutral-900 sm:right-10">
+				<div className="absolute bottom-8 right-6 z-20 flex h-14 w-14 -rotate-6 items-center justify-center rounded-2xl border border-neutral-200 bg-white shadow-none transition-colors dark:border-neutral-700 dark:bg-neutral-900 sm:right-10">
 					<IconShieldCheck className="h-7 w-7 text-success" stroke={1.5} />
 				</div>
 
@@ -84,7 +84,7 @@ export default function Spotlight(props) {
 
 				<a
 					href={telHref}
-					className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-border bg-card text-sm font-semibold text-muted-foreground shadow-none transition-colors hover:border-destructive/40 hover:text-destructive"
+					className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card text-sm font-semibold text-muted-foreground shadow-none transition-colors hover:border-destructive/40 hover:text-destructive"
 				>
 					<IconPhoneCall className="h-4 w-4 text-destructive" stroke={2} />
 					Darurat tanpa internet? <span className="font-bold text-destructive">{teleponDarurat}</span>

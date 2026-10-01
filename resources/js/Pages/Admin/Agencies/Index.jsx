@@ -111,12 +111,12 @@ export default function Index({ agencies, filters }) {
 													{agency.name}
 												</h3>
 												{agency.code && (
-													<span className="shrink-0 rounded-xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
+													<span className="shrink-0 rounded-2xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
 														{agency.code}
 													</span>
 												)}
 												{!agency.is_active && (
-													<span className="shrink-0 rounded-xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
+													<span className="shrink-0 rounded-2xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
 														Nonaktif
 													</span>
 												)}
@@ -192,7 +192,7 @@ export default function Index({ agencies, filters }) {
 												key={index}
 												href={link.url}
 												preserveScroll
-												className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition-colors ${
+												className={`rounded-2xl border px-3 py-1.5 text-xs font-semibold transition-colors ${
 													link.active
 														? 'border-primary bg-primary text-primary-foreground shadow-sm'
 														: 'border-input bg-background text-muted-foreground hover:bg-accent hover:text-foreground'
@@ -202,7 +202,7 @@ export default function Index({ agencies, filters }) {
 										) : (
 											<span
 												key={index}
-												className="cursor-not-allowed rounded-xl border border-transparent px-3 py-1.5 text-xs font-semibold text-muted-foreground opacity-50"
+												className="cursor-not-allowed rounded-2xl border border-transparent px-3 py-1.5 text-xs font-semibold text-muted-foreground opacity-50"
 												dangerouslySetInnerHTML={{ __html: link.label }}
 											/>
 										),
@@ -212,7 +212,7 @@ export default function Index({ agencies, filters }) {
 						</div>
 					</>
 				) : (
-					<div className="rounded-xl border border-dashed border-input p-10 text-center">
+					<div className="rounded-2xl border border-dashed border-input p-10 text-center">
 						<span className="text-sm text-muted-foreground">Belum ada OPD terdaftar di wilayah Anda.</span>
 					</div>
 				)}

@@ -68,7 +68,7 @@ export default function Create({ contacts = [], mailbox }) {
 					
 					<CardContent className="p-5 sm:p-6">
 						{contacts.length === 0 ? (
-							<div className="flex items-start gap-3 rounded-xl border border-warning/20 bg-warning/10 p-3 text-warning">
+							<div className="flex items-start gap-3 rounded-2xl border border-warning/20 bg-warning/10 p-3 text-warning">
 								<IconInfoCircle className="mt-0.5 h-5 w-5 shrink-0" />
 								<p className="text-xs font-medium leading-relaxed">
 									Belum ada penerima terdaftar untuk wilayah ini. Minta admin mengisi Daftar Penerima
@@ -82,7 +82,7 @@ export default function Create({ contacts = [], mailbox }) {
 							>
 								<div className="space-y-2">
 									<Label>Penerima</Label>
-									<div className="max-h-56 space-y-1 overflow-y-auto rounded-xl border border-input p-2">
+									<div className="max-h-56 space-y-1 overflow-y-auto rounded-2xl border border-input p-2">
 										{contacts.map((contact) => (
 											<label
 												key={contact.id}

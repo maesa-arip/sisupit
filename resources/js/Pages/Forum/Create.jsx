@@ -66,7 +66,10 @@ export default function Create({ wilayah, needsApproval }) {
 
 			<Card className="max-w-3xl">
 				<CardContent className="p-5">
-					<form className="space-y-5" onSubmit={handleSubmit}>
+					<form
+						className="divide-y divide-border/70 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:py-4"
+						onSubmit={handleSubmit}
+					>
 						<div className="grid gap-1.5">
 							<Label htmlFor="title">Judul pertanyaan</Label>
 							<Input
@@ -99,7 +102,7 @@ export default function Create({ wilayah, needsApproval }) {
 						</div>
 
 						{needsApproval && (
-							<div className="flex items-start gap-3 rounded-xl border border-border bg-accent/40 p-3">
+							<div className="flex items-start gap-3 rounded-2xl border border-border bg-accent/40 p-3">
 								<IconInfoCircle className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
 								<p className="text-xs leading-relaxed text-muted-foreground">
 									Pertanyaan ditinjau admin Damkar sebelum tayang. Sampai disetujui, hanya Anda dan

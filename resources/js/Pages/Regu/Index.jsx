@@ -11,7 +11,7 @@ import {
 	AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent } from '@/Components/ui/card';
+import { CardContent } from '@/Components/ui/card';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Combobox } from '@/Components/ui/combobox';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
@@ -141,63 +141,67 @@ export default function Index({ regus, candidates, can }) {
 
 			<div className="flex flex-col gap-3">
 				{regus.length > 0 ? (
-					regus.map((regu) => (
-						<Card key={regu.id}>
-							<CardContent className="flex flex-col gap-3 p-3 sm:p-4">
-								<div className="flex flex-row items-start gap-3">
-									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-										<IconUsers className="h-5 w-5" />
-									</div>
-									<div className="min-w-0 flex-1">
-										<h3 className="truncate text-sm font-semibold text-foreground">{regu.name}</h3>
-										<p className="mt-0.5 truncate text-xs text-muted-foreground">
-											Danru: {regu.leader?.name || '-'} . {regu.members.length} anggota
-										</p>
-									</div>
-									{can.manage && (
-										<div className="flex shrink-0 gap-1">
-											<Button variant="ghost" size="icon" onClick={() => openForm(regu)}>
-												<IconEdit className="h-4 w-4" />
-											</Button>
-											<Button
-												variant="ghost"
-												size="icon"
-												className="text-destructive hover:text-destructive"
-												onClick={() => setReguToDelete(regu)}
-											>
-												<IconTrash className="h-4 w-4" />
-											</Button>
+					<div className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
+						{regus.map((regu) => (
+							<div key={regu.id}>
+								<CardContent className="flex flex-col gap-3 p-3 sm:p-4">
+									<div className="flex flex-row items-start gap-3">
+										<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+											<IconUsers className="h-5 w-5" />
 										</div>
-									)}
-								</div>
+										<div className="min-w-0 flex-1">
+											<h3 className="truncate text-sm font-semibold text-foreground">
+												{regu.name}
+											</h3>
+											<p className="mt-0.5 truncate text-xs text-muted-foreground">
+												Danru: {regu.leader?.name || '-'} . {regu.members.length} anggota
+											</p>
+										</div>
+										{can.manage && (
+											<div className="flex shrink-0 gap-1">
+												<Button variant="ghost" size="icon" onClick={() => openForm(regu)}>
+													<IconEdit className="h-4 w-4" />
+												</Button>
+												<Button
+													variant="ghost"
+													size="icon"
+													className="text-destructive hover:text-destructive"
+													onClick={() => setReguToDelete(regu)}
+												>
+													<IconTrash className="h-4 w-4" />
+												</Button>
+											</div>
+										)}
+									</div>
 
-								<div className="flex flex-wrap gap-1.5">
-									{regu.members.map((m) => (
-										<span
-											key={m.id}
-											className="rounded-xl border border-border bg-muted px-2 py-0.5 text-xs font-medium text-foreground"
+									<div className="flex flex-wrap gap-1.5">
+										{regu.members.map((m) => (
+											<span
+												key={m.id}
+												className="rounded-2xl border border-border bg-muted px-2 py-0.5 text-xs font-medium text-foreground"
+											>
+												{m.name}
+												{regu.leader?.id === m.id && ' (Danru)'}
+											</span>
+										))}
+									</div>
+
+									{regu.can_manage_members && (
+										<Button
+											size="sm"
+											variant="secondary"
+											className="self-start"
+											onClick={() => openMembers(regu)}
 										>
-											{m.name}
-											{regu.leader?.id === m.id && ' (Danru)'}
-										</span>
-									))}
-								</div>
-
-								{regu.can_manage_members && (
-									<Button
-										size="sm"
-										variant="secondary"
-										className="self-start"
-										onClick={() => openMembers(regu)}
-									>
-										<IconUsers className="mr-1.5 h-4 w-4" /> Atur Anggota
-									</Button>
-								)}
-							</CardContent>
-						</Card>
-					))
+											<IconUsers className="mr-1.5 h-4 w-4" /> Atur Anggota
+										</Button>
+									)}
+								</CardContent>
+							</div>
+						))}
+					</div>
 				) : (
-					<div className="rounded-xl border border-dashed border-input p-10 text-center">
+					<div className="rounded-2xl border border-dashed border-input p-10 text-center">
 						<span className="text-sm text-muted-foreground">
 							{can.manage
 								? 'Belum ada regu. Tambahkan regu lalu tunjuk danrunya; danru yang akan mengatur anggotanya.'

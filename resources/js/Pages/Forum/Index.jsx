@@ -1,6 +1,6 @@
 import HeaderTitle from '@/Components/HeaderTitle';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent } from '@/Components/ui/card';
+import { CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
 import { cn, timeAgo } from '@/lib/utils';
@@ -98,45 +98,51 @@ export default function Index({ threads, filters, wilayah, canModerate, pendingC
 			<div className="flex flex-col gap-3">
 				{threads.data.length > 0 ? (
 					<>
-						{threads.data.map((thread) => (
-							<Link key={thread.id} href={route('forum.show', thread.id)} className="block">
-								<Card className="transition-colors hover:border-primary/40 active:bg-accent">
-									<CardContent className="flex flex-col gap-1.5 p-4">
-										<div className="flex flex-wrap items-center gap-2">
-											{thread.is_pinned && (
-												<span className="flex shrink-0 items-center gap-1 rounded-xl border border-info/30 bg-info/10 px-2 py-0.5 text-[11px] font-bold uppercase text-info">
-													<IconPin className="size-3" /> Disematkan
+						<div className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
+							{threads.data.map((thread) => (
+								<Link key={thread.id} href={route('forum.show', thread.id)} className="block">
+									<div className="transition-colors hover:bg-muted/40 active:bg-muted">
+										<CardContent className="flex flex-col gap-1.5 p-4">
+											<div className="flex flex-wrap items-center gap-2">
+												{thread.is_pinned && (
+													<span className="flex shrink-0 items-center gap-1 rounded-2xl border border-info/30 bg-info/10 px-2 py-0.5 text-[11px] font-bold uppercase text-info">
+														<IconPin className="size-3" /> Disematkan
+													</span>
+												)}
+												{thread.status !== 'tampil' && (
+													<ForumStatusBadge status={thread.status} />
+												)}
+												{thread.has_official_answer && (
+													<span className="flex shrink-0 items-center gap-1 rounded-2xl border border-success/20 bg-success/10 px-2 py-0.5 text-[11px] font-bold uppercase text-success">
+														<IconShieldCheck className="size-3" /> Dijawab Damkar
+													</span>
+												)}
+												{thread.has_accepted_answer && (
+													<span className="flex shrink-0 items-center gap-1 rounded-2xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
+														<IconCircleCheck className="size-3" /> Terjawab
+													</span>
+												)}
+											</div>
+											<h3 className="line-clamp-2 text-sm font-semibold text-foreground">
+												{thread.title}
+											</h3>
+											<p className="line-clamp-2 text-xs text-muted-foreground">
+												{thread.excerpt}
+											</p>
+											<div className="mt-1 flex items-center gap-3 text-[11px] text-muted-foreground">
+												<span className="truncate">
+													{thread.is_mine ? 'Anda' : thread.author} ·{' '}
+													{timeAgo(thread.last_activity_at ?? thread.created_at)}
 												</span>
-											)}
-											{thread.status !== 'tampil' && <ForumStatusBadge status={thread.status} />}
-											{thread.has_official_answer && (
-												<span className="flex shrink-0 items-center gap-1 rounded-xl border border-success/20 bg-success/10 px-2 py-0.5 text-[11px] font-bold uppercase text-success">
-													<IconShieldCheck className="size-3" /> Dijawab Damkar
+												<span className="ml-auto flex shrink-0 items-center gap-1">
+													<IconMessageCircle className="size-3.5" /> {thread.replies_count}
 												</span>
-											)}
-											{thread.has_accepted_answer && (
-												<span className="flex shrink-0 items-center gap-1 rounded-xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
-													<IconCircleCheck className="size-3" /> Terjawab
-												</span>
-											)}
-										</div>
-										<h3 className="line-clamp-2 text-sm font-semibold text-foreground">
-											{thread.title}
-										</h3>
-										<p className="line-clamp-2 text-xs text-muted-foreground">{thread.excerpt}</p>
-										<div className="mt-1 flex items-center gap-3 text-[11px] text-muted-foreground">
-											<span className="truncate">
-												{thread.is_mine ? 'Anda' : thread.author} ·{' '}
-												{timeAgo(thread.last_activity_at ?? thread.created_at)}
-											</span>
-											<span className="ml-auto flex shrink-0 items-center gap-1">
-												<IconMessageCircle className="size-3.5" /> {thread.replies_count}
-											</span>
-										</div>
-									</CardContent>
-								</Card>
-							</Link>
-						))}
+											</div>
+										</CardContent>
+									</div>
+								</Link>
+							))}
+						</div>
 
 						{threads.links && threads.links.length > 3 && (
 							<div className="mt-2 flex flex-wrap justify-center gap-1 border-t border-dashed border-border pt-4">
@@ -147,7 +153,7 @@ export default function Index({ threads, filters, wilayah, canModerate, pendingC
 											href={link.url}
 											preserveScroll
 											className={cn(
-												'rounded-xl border px-3 py-1.5 text-xs font-semibold transition-colors',
+												'rounded-2xl border px-3 py-1.5 text-xs font-semibold transition-colors',
 												link.active
 													? 'border-primary bg-primary text-primary-foreground shadow-sm'
 													: 'border-input bg-background text-muted-foreground hover:bg-accent hover:text-foreground',
@@ -157,7 +163,7 @@ export default function Index({ threads, filters, wilayah, canModerate, pendingC
 									) : (
 										<span
 											key={index}
-											className="cursor-not-allowed rounded-xl border border-transparent px-3 py-1.5 text-xs font-semibold text-muted-foreground opacity-50"
+											className="cursor-not-allowed rounded-2xl border border-transparent px-3 py-1.5 text-xs font-semibold text-muted-foreground opacity-50"
 											dangerouslySetInnerHTML={{ __html: link.label }}
 										/>
 									),
@@ -166,7 +172,7 @@ export default function Index({ threads, filters, wilayah, canModerate, pendingC
 						)}
 					</>
 				) : (
-					<div className="rounded-xl border border-dashed border-input p-8 text-center">
+					<div className="rounded-2xl border border-dashed border-input p-8 text-center">
 						<p className="text-sm font-medium text-foreground">
 							{filters.search
 								? 'Tidak ada pertanyaan yang cocok dengan pencarian.'

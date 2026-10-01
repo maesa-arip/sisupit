@@ -171,7 +171,7 @@ export default function Index(props) {
 											key={index}
 											href={link.url}
 											preserveScroll
-											className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition-colors ${
+											className={`rounded-2xl border px-3 py-1.5 text-xs font-semibold transition-colors ${
 												link.active
 													? 'border-warning bg-warning text-warning-foreground'
 													: 'border-input bg-background text-muted-foreground hover:bg-accent'
@@ -181,7 +181,7 @@ export default function Index(props) {
 									) : (
 										<span
 											key={index}
-											className="cursor-not-allowed rounded-xl border border-transparent px-3 py-1.5 text-xs font-semibold text-muted-foreground opacity-50"
+											className="cursor-not-allowed rounded-2xl border border-transparent px-3 py-1.5 text-xs font-semibold text-muted-foreground opacity-50"
 											dangerouslySetInnerHTML={{ __html: link.label }}
 										/>
 									),

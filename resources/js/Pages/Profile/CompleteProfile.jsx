@@ -216,7 +216,10 @@ export default function CompleteProfile({ provinces, user, banjar_required = fal
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<form onSubmit={onSubmit} className="space-y-5">
+					<form
+						onSubmit={onSubmit}
+						className="divide-y divide-border/70 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:py-4"
+					>
 						{isDetecting && (
 							<div className="flex items-center gap-2 rounded-lg border border-border bg-muted p-3 text-xs font-medium text-muted-foreground">
 								<IconLoader2 className="h-4 w-4 animate-spin" /> Mendeteksi lokasi Anda...

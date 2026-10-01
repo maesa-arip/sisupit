@@ -74,7 +74,7 @@ export default function ReportThanks({ report, pejabat, namaInstansi, teleponDar
 
 			<div className="mx-auto mt-4 flex w-full max-w-2xl flex-col space-y-6 pb-24 sm:pb-6">
 				{/* 1. Banner Instruksi Keselamatan (Prioritas Utama) */}
-				<div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-destructive">
+				<div className="flex items-start gap-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-destructive">
 					<IconInfoCircle className="mt-0.5 h-6 w-6 shrink-0" />
 					<div className="text-sm font-medium leading-relaxed">
 						Pastikan Anda berada di tempat yang aman dan jauhi titik bahaya. Jangan mencoba memadamkan api
@@ -104,7 +104,7 @@ export default function ReportThanks({ report, pejabat, namaInstansi, teleponDar
 							<dl className="grid grid-cols-1 gap-4 rounded-lg bg-muted/50 p-4 sm:grid-cols-2">
 								<div className="space-y-1">
 									<dt className="text-xs font-medium text-muted-foreground">Nomor Laporan</dt>
-									<dd className="font-mono text-sm font-bold tracking-tight text-foreground">
+									<dd className="font-mono text-sm font-semibold tracking-tight text-foreground">
 										{reportNumber(report)}
 									</dd>
 								</div>

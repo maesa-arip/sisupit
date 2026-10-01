@@ -29,7 +29,7 @@ export default function Show({ volunteer }) {
 				<HeaderTitle title="Profil Relawan" subtitle="Detail informasi dan kontak relawan." icon={IconUser} />
 				<Button
 					variant="outline"
-					className="h-9 rounded-xl border-border bg-card px-4 text-sm font-medium text-foreground/80 shadow-sm transition-colors hover:bg-muted"
+					className="h-9 rounded-2xl border-border bg-card px-4 text-sm font-medium text-foreground/80 shadow-sm transition-colors hover:bg-muted"
 					asChild
 				>
 					<Link href={route('front.volunteers.index')}>
@@ -49,7 +49,7 @@ export default function Show({ volunteer }) {
 							{/* Status Badge */}
 							<div className="absolute right-4 top-4">
 								<span
-									className={`rounded-xl border px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${
+									className={`rounded-2xl border px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${
 										user.status === 'Siaga'
 											? 'border-success/30 bg-success/10 text-success'
 											: 'border-warning/30 bg-warning/10 text-warning'
@@ -94,7 +94,7 @@ export default function Show({ volunteer }) {
 										asChild
 										variant="outline"
 										disabled={!hasPhone}
-										className="h-10 flex-1 rounded-xl border-border bg-muted hover:bg-muted/70 aria-disabled:pointer-events-none aria-disabled:opacity-50"
+										className="h-10 flex-1 rounded-2xl border-border bg-muted hover:bg-muted/70 aria-disabled:pointer-events-none aria-disabled:opacity-50"
 									>
 										<a href={hasPhone ? `tel:${digits}` : undefined} aria-disabled={!hasPhone}>
 											<IconPhone className="h-4 w-4 text-muted-foreground" />
@@ -104,7 +104,7 @@ export default function Show({ volunteer }) {
 										asChild
 										variant="outline"
 										disabled={!user.email}
-										className="h-10 flex-1 rounded-xl border-border bg-muted hover:bg-muted/70 aria-disabled:pointer-events-none aria-disabled:opacity-50"
+										className="h-10 flex-1 rounded-2xl border-border bg-muted hover:bg-muted/70 aria-disabled:pointer-events-none aria-disabled:opacity-50"
 									>
 										<a
 											href={user.email ? `mailto:${user.email}` : undefined}
@@ -204,7 +204,7 @@ export default function Show({ volunteer }) {
 									user.skills.map((skill, index) => (
 										<span
 											key={index}
-											className="flex items-center gap-1.5 rounded-xl border border-border bg-muted px-3 py-1.5 text-[13px] font-medium text-foreground/80"
+											className="flex items-center gap-1.5 rounded-2xl border border-border bg-muted px-3 py-1.5 text-[13px] font-medium text-foreground/80"
 										>
 											<IconMedal className="h-4 w-4 text-destructive" stroke={1.5} />
 											{skill}

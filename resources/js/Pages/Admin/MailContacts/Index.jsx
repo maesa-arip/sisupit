@@ -140,7 +140,7 @@ export default function Index({ contacts, filters }) {
 													{contact.name}
 												</h3>
 												{!contact.is_active && (
-													<span className="shrink-0 rounded-xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
+													<span className="shrink-0 rounded-2xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
 														Nonaktif
 													</span>
 												)}
@@ -187,7 +187,7 @@ export default function Index({ contacts, filters }) {
 												key={index}
 												href={link.url}
 												preserveScroll
-												className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition-colors ${
+												className={`rounded-2xl border px-3 py-1.5 text-xs font-semibold transition-colors ${
 													link.active
 														? 'border-primary bg-primary text-primary-foreground shadow-sm'
 														: 'border-input bg-background text-muted-foreground hover:bg-accent hover:text-foreground'
@@ -197,7 +197,7 @@ export default function Index({ contacts, filters }) {
 										) : (
 											<span
 												key={index}
-												className="rounded-xl border border-input px-3 py-1.5 text-xs font-semibold text-muted-foreground/40"
+												className="rounded-2xl border border-input px-3 py-1.5 text-xs font-semibold text-muted-foreground/40"
 												dangerouslySetInnerHTML={{ __html: link.label }}
 											/>
 										),
@@ -207,7 +207,7 @@ export default function Index({ contacts, filters }) {
 						</div>
 					</>
 				) : (
-					<div className="rounded-xl border border-dashed border-input p-10 text-center">
+					<div className="rounded-2xl border border-dashed border-input p-10 text-center">
 						<span className="text-sm text-muted-foreground">
 							Belum ada penerima terdaftar. Tambahkan pejabat yang berhak menerima surat dinas, atau tarik
 							alamat yang sudah ada di master OPD.

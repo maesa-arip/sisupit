@@ -98,7 +98,7 @@ export default function Index({ tab, items, counts }) {
 
 			<div className="flex flex-col gap-3">
 				{items.length === 0 && (
-					<div className="rounded-xl border border-dashed border-input p-8 text-center">
+					<div className="rounded-2xl border border-dashed border-input p-8 text-center">
 						<p className="text-sm font-medium text-foreground">
 							{tab === 'menunggu'
 								? 'Tidak ada pertanyaan yang menunggu tinjauan.'
@@ -168,7 +168,7 @@ export default function Index({ tab, items, counts }) {
 						<Card key={item.key}>
 							<CardContent className="space-y-2 p-4">
 								<div className="flex flex-wrap items-center gap-2">
-									<span className="rounded-xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
+									<span className="rounded-2xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
 										{item.type === 'post' ? 'Balasan' : 'Pertanyaan'}
 									</span>
 									{item.status !== 'tampil' && <ForumStatusBadge status={item.status} />}

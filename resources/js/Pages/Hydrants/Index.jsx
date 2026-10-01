@@ -101,7 +101,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 									type="button"
 									onClick={handleNearestSearch}
 									disabled={isLocating || processing}
-									className="flex h-10 w-full items-center gap-2 rounded-xl border border-teal-200 bg-teal-50 text-sm font-medium text-teal-700 shadow-sm transition-colors hover:bg-teal-100 dark:border-teal/30 dark:bg-teal/10 dark:text-teal dark:hover:bg-teal/20"
+									className="flex h-10 w-full items-center gap-2 rounded-2xl border border-teal-200 bg-teal-50 text-sm font-medium text-teal-700 shadow-sm transition-colors hover:bg-teal-100 dark:border-teal/30 dark:bg-teal/10 dark:text-teal dark:hover:bg-teal/20"
 								>
 									{isLocating ? (
 										<IconLoader2 className="h-4 w-4 animate-spin" />
@@ -119,7 +119,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 										type="search"
 										enterKeyHint="search"
 										placeholder="Cari nama area atau jalan..."
-										className="h-10 w-full rounded-xl border-border bg-muted pl-9 text-sm focus-visible:ring-1 focus-visible:ring-teal"
+										className="h-10 w-full rounded-2xl border-border bg-muted pl-9 text-sm focus-visible:ring-1 focus-visible:ring-teal"
 										value={data.search}
 										onChange={(e) => setData('search', e.target.value)}
 									/>
@@ -129,7 +129,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 									<button
 										type="button"
 										onClick={() => applyFilter('status', 'Semua')}
-										className={`whitespace-nowrap rounded-xl border px-3 py-1.5 text-xs font-medium transition-colors ${
+										className={`whitespace-nowrap rounded-2xl border px-3 py-1.5 text-xs font-medium transition-colors ${
 											activeStatus === 'Semua'
 												? 'border-transparent bg-primary text-primary-foreground'
 												: 'border-border bg-card text-foreground/80 hover:bg-muted'
@@ -140,7 +140,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 									<button
 										type="button"
 										onClick={() => applyFilter('status', 'Aktif')}
-										className={`whitespace-nowrap rounded-xl border px-3 py-1.5 text-xs font-medium transition-colors ${
+										className={`whitespace-nowrap rounded-2xl border px-3 py-1.5 text-xs font-medium transition-colors ${
 											activeStatus === 'Aktif'
 												? 'border-transparent bg-primary text-primary-foreground'
 												: 'border-border bg-card text-foreground/80 hover:bg-muted'
@@ -151,7 +151,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 									<button
 										type="button"
 										onClick={() => applyFilter('status', 'Perbaikan')}
-										className={`whitespace-nowrap rounded-xl border px-3 py-1.5 text-xs font-medium transition-colors ${
+										className={`whitespace-nowrap rounded-2xl border px-3 py-1.5 text-xs font-medium transition-colors ${
 											activeStatus === 'Perbaikan'
 												? 'border-transparent bg-primary text-primary-foreground'
 												: 'border-border bg-card text-foreground/80 hover:bg-muted'
@@ -174,7 +174,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 								>
 									<div className="flex flex-row flex-nowrap items-center gap-3 px-4 py-3.5">
 										<div
-											className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${
+											className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border ${
 												hydrant.status === 'Aktif'
 													? 'border-info/30 bg-info/10 text-info'
 													: 'border-destructive/30 bg-destructive/10 text-destructive'
@@ -228,7 +228,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 
 										<div className="flex shrink-0 flex-col items-end justify-center gap-2">
 											{hydrant.distance !== '-' ? (
-												<span className="whitespace-nowrap rounded-xl border border-border bg-muted px-2 py-0.5 text-[11px] font-semibold text-foreground/80">
+												<span className="whitespace-nowrap rounded-2xl border border-border bg-muted px-2 py-0.5 text-[11px] font-semibold text-foreground/80">
 													{hydrant.distance}
 												</span>
 											) : (
@@ -254,7 +254,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 								</div>
 							))
 						) : (
-							<div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 p-10 text-center">
+							<div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/50 p-10 text-center">
 								<IconFireHydrant className="mb-2 h-10 w-10 text-muted-foreground" stroke={1.5} />
 								<h4 className="text-sm font-semibold text-foreground">Tidak ada data hydrant</h4>
 								<p className="mt-1 text-xs text-muted-foreground">
@@ -293,7 +293,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 						<h2 className="text-sm font-semibold text-foreground">Sebaran Titik Hydrant</h2>
 					</div>
 
-					<div className="relative z-0 h-[400px] w-full overflow-hidden rounded-xl border border-border bg-muted shadow-sm lg:h-[calc(100vh-160px)]">
+					<div className="relative z-0 h-[400px] w-full overflow-hidden rounded-2xl border border-border bg-muted shadow-sm lg:h-[calc(100vh-160px)]">
 						{/* PETA MENGGUNAKAN map_markers */}
 						<UserLeafletMap markers={map_markers} lat={filters.lat} lng={filters.lng} />
 					</div>

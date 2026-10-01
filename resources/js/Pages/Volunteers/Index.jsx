@@ -61,7 +61,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 							<Input
 								type="text"
 								placeholder="Cari nama relawan..."
-								className="h-10 w-full rounded-xl border-border bg-muted pl-9 text-sm focus-visible:ring-1 focus-visible:ring-destructive"
+								className="h-10 w-full rounded-2xl border-border bg-muted pl-9 text-sm focus-visible:ring-1 focus-visible:ring-destructive"
 								value={data.search}
 								onChange={(e) => setData('search', e.target.value)}
 							/>
@@ -216,7 +216,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 										volunteer.skills.map((skill, index) => (
 											<span
 												key={index}
-												className="flex items-center gap-1 rounded-xl border border-border bg-muted px-2 py-1 text-[11px] font-medium text-foreground/80"
+												className="flex items-center gap-1 rounded-2xl border border-border bg-muted px-2 py-1 text-[11px] font-medium text-foreground/80"
 											>
 												<IconMedal className="h-3 w-3 text-destructive" stroke={1.5} />
 												{skill}
@@ -231,7 +231,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 
 								<Button
 									variant="outline"
-									className="h-9 w-full rounded-xl border-border bg-card text-foreground/80 transition-colors hover:bg-muted"
+									className="h-9 w-full rounded-2xl border-border bg-card text-foreground/80 transition-colors hover:bg-muted"
 									asChild
 								>
 									<Link
@@ -246,7 +246,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 					))
 				) : (
 					/* State Jika Data Kosong */
-					<div className="col-span-full flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 p-10 text-center">
+					<div className="col-span-full flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/50 p-10 text-center">
 						<IconUsersGroup className="mb-2 h-10 w-10 text-muted-foreground" stroke={1.5} />
 						<h4 className="text-sm font-semibold text-foreground">Belum ada relawan ditemukan</h4>
 						<p className="mt-1 text-xs text-muted-foreground">

@@ -216,7 +216,7 @@ export default function Create(props) {
 				<div>
 					<Button
 						variant="outline"
-						className="h-9 rounded-xl border-border bg-card px-4 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent"
+						className="h-9 rounded-2xl border-border bg-card px-4 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent"
 						asChild
 					>
 						<Link href={route('reports.show', report.id)}>
@@ -241,7 +241,10 @@ export default function Create(props) {
 					</CardHeader>
 
 					<CardContent className="p-5 sm:p-6">
-						<form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+						<form
+							className="divide-y divide-border/70 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:py-4"
+							onSubmit={(e) => e.preventDefault()}
+						>
 							<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 								<div>
 									<Label htmlFor="jenis_kejadian" className="text-sm font-medium text-foreground/80">
@@ -253,7 +256,7 @@ export default function Create(props) {
 										value={data.jenis_kejadian}
 										onChange={onHandleChange}
 										placeholder="Contoh: kebakaran rumah bedeng"
-										className="mt-1.5 h-10 rounded-xl border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+										className="mt-1.5 h-10 rounded-2xl border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 									/>
 									<p className="mt-1 text-[12px] text-muted-foreground">
 										Diambil dari judul insiden. Bisa diedit.
@@ -274,7 +277,7 @@ export default function Create(props) {
 										value={data.sumber_informasi}
 										onChange={onHandleChange}
 										placeholder="Contoh: warga menelepon pos induk"
-										className="mt-1.5 h-10 rounded-xl border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+										className="mt-1.5 h-10 rounded-2xl border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 									/>
 									<InputError message={errors.sumber_informasi} className="mt-1" />
 								</div>
@@ -313,7 +316,7 @@ export default function Create(props) {
 										value={data.kerugian}
 										onChange={onHandleChange}
 										placeholder="Contoh: ±1jt"
-										className="mt-1.5 h-10 rounded-xl border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+										className="mt-1.5 h-10 rounded-2xl border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 									/>
 									<InputError message={errors.kerugian} className="mt-1" />
 								</div>
@@ -328,7 +331,7 @@ export default function Create(props) {
 										value={data.volume_air}
 										onChange={onHandleChange}
 										placeholder="Contoh: ±3 tangki (12.000 liter)"
-										className="mt-1.5 h-10 rounded-xl border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+										className="mt-1.5 h-10 rounded-2xl border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 									/>
 									<InputError message={errors.volume_air} className="mt-1" />
 								</div>
@@ -347,7 +350,7 @@ export default function Create(props) {
 											value={data.lokasi_alamat}
 											onChange={onHandleChange}
 											placeholder="Alamat lengkap (Jl. ... No. ..., patokan, RT/RW)"
-											className="mt-1 min-h-[64px] resize-y rounded-xl border-border bg-card p-3 text-sm leading-relaxed focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+											className="mt-1 min-h-[64px] resize-y rounded-2xl border-border bg-card p-3 text-sm leading-relaxed focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 										/>
 										<InputError message={errors.lokasi_alamat} className="mt-1" />
 									</div>
@@ -361,7 +364,7 @@ export default function Create(props) {
 											value={data.kelurahan}
 											onChange={onHandleChange}
 											placeholder="Desa/Kelurahan"
-											className="mt-1 h-10 rounded-xl border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+											className="mt-1 h-10 rounded-2xl border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 										/>
 										<InputError message={errors.kelurahan} className="mt-1" />
 									</div>
@@ -375,7 +378,7 @@ export default function Create(props) {
 											value={data.kecamatan}
 											onChange={onHandleChange}
 											placeholder="Kecamatan"
-											className="mt-1 h-10 rounded-xl border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+											className="mt-1 h-10 rounded-2xl border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 										/>
 										<InputError message={errors.kecamatan} className="mt-1" />
 									</div>
@@ -391,7 +394,7 @@ export default function Create(props) {
 											value={data.pemilik_nama}
 											onChange={onHandleChange}
 											placeholder="Nama pemilik"
-											className="h-10 rounded-xl border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+											className="h-10 rounded-2xl border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 										/>
 										<InputError message={errors.pemilik_nama} className="mt-1" />
 									</div>
@@ -403,7 +406,7 @@ export default function Create(props) {
 											onChange={onHandleChange}
 											placeholder="Umur"
 											min="0"
-											className="h-10 rounded-xl border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+											className="h-10 rounded-2xl border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 										/>
 										<InputError message={errors.pemilik_umur} className="mt-1" />
 									</div>
@@ -420,7 +423,7 @@ export default function Create(props) {
 											type="button"
 											variant="outline"
 											onClick={() => setData('tim_atensi', timAtensiSuggestion)}
-											className="h-8 gap-1 rounded-xl border-border bg-card px-3 text-xs font-semibold shadow-sm"
+											className="h-8 gap-1 rounded-2xl border-border bg-card px-3 text-xs font-semibold shadow-sm"
 										>
 											<IconUsersGroup className="h-3.5 w-3.5" /> Isi dari data sistem
 										</Button>
@@ -432,7 +435,7 @@ export default function Create(props) {
 									value={data.tim_atensi}
 									onChange={onHandleChange}
 									placeholder="Contoh: Pemadam Pos Cokro, BW 13, BW 16..."
-									className="mt-1.5 min-h-[72px] resize-y rounded-xl border-border bg-card p-3 text-sm focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+									className="mt-1.5 min-h-[72px] resize-y rounded-2xl border-border bg-card p-3 text-sm focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 								/>
 								<p className="mt-1 text-[12px] text-muted-foreground">
 									Terisi otomatis dari data sistem (armada, petugas, dan relawan yang tercatat
@@ -451,7 +454,7 @@ export default function Create(props) {
 									value={data.kronologi}
 									onChange={onHandleChange}
 									placeholder="Uraian singkat penanganan (mis. dipadamkan pemilik & tukang, nihil penyemprotan)..."
-									className="mt-1.5 min-h-[90px] resize-y rounded-xl border-border bg-card p-3 text-sm focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+									className="mt-1.5 min-h-[90px] resize-y rounded-2xl border-border bg-card p-3 text-sm focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 								/>
 								<InputError message={errors.kronologi} className="mt-1" />
 							</div>
@@ -468,7 +471,7 @@ export default function Create(props) {
 												type="button"
 												variant="outline"
 												onClick={addVictimFromReporter}
-												className="h-8 gap-1 rounded-xl border-border bg-card px-3 text-xs font-semibold shadow-sm"
+												className="h-8 gap-1 rounded-2xl border-border bg-card px-3 text-xs font-semibold shadow-sm"
 											>
 												<IconUser className="h-3.5 w-3.5" /> Ambil dari data pelapor
 											</Button>
@@ -477,7 +480,7 @@ export default function Create(props) {
 											type="button"
 											variant="outline"
 											onClick={addVictim}
-											className="h-8 gap-1 rounded-xl border-border bg-card px-3 text-xs font-semibold shadow-sm"
+											className="h-8 gap-1 rounded-2xl border-border bg-card px-3 text-xs font-semibold shadow-sm"
 										>
 											<IconPlus className="h-3.5 w-3.5" /> Tambah korban
 										</Button>
@@ -492,7 +495,7 @@ export default function Create(props) {
 									{data.victims.map((v, i) => (
 										<div key={i} className="rounded-lg border border-border bg-muted/40 p-3">
 											<div className="flex items-center justify-between">
-												<span className="text-xs font-bold text-muted-foreground">
+												<span className="text-xs font-semibold text-muted-foreground">
 													Korban {i + 1}
 												</span>
 												<button
@@ -509,7 +512,7 @@ export default function Create(props) {
 													value={v.nama}
 													onChange={(e) => updateVictim(i, 'nama', e.target.value)}
 													placeholder="Nama korban"
-													className="h-10 rounded-xl border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+													className="h-10 rounded-2xl border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
 												/>
 												<DatePicker
 													value={v.tanggal_lahir}
@@ -521,13 +524,13 @@ export default function Create(props) {
 													value={v.alamat}
 													onChange={(e) => updateVictim(i, 'alamat', e.target.value)}
 													placeholder="Alamat korban"
-													className="h-10 rounded-xl border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive sm:col-span-2"
+													className="h-10 rounded-2xl border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive sm:col-span-2"
 												/>
 												<Input
 													value={v.kondisi}
 													onChange={(e) => updateVictim(i, 'kondisi', e.target.value)}
 													placeholder="Kondisi korban (mis. luka bakar ringan, dirujuk ke RSUD)"
-													className="h-10 rounded-xl border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive sm:col-span-2"
+													className="h-10 rounded-2xl border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive sm:col-span-2"
 												/>
 											</div>
 											<div className="mt-3">
@@ -536,7 +539,7 @@ export default function Create(props) {
 												</Label>
 												<div className="mt-1.5 grid grid-cols-3 gap-3 sm:grid-cols-4">
 													{!v.ktpPreview && v.ktp_url && !v.remove_ktp ? (
-														<div className="relative flex h-24 w-full flex-col items-center justify-center rounded-xl border border-border bg-card text-center text-muted-foreground">
+														<div className="relative flex h-24 w-full flex-col items-center justify-center rounded-2xl border border-border bg-card text-center text-muted-foreground">
 															<IconId className="mb-1 h-5 w-5" stroke={1.5} />
 															<a
 																href={v.ktp_url}
@@ -556,7 +559,7 @@ export default function Create(props) {
 															</button>
 														</div>
 													) : v.ktpPreview ? (
-														<div className="group relative h-24 w-full overflow-hidden rounded-xl border border-border shadow-sm">
+														<div className="group relative h-24 w-full overflow-hidden rounded-2xl border border-border shadow-sm">
 															<img
 																src={v.ktpPreview}
 																alt="Foto KTP korban"
@@ -572,7 +575,7 @@ export default function Create(props) {
 															</button>
 														</div>
 													) : (
-														<label className="flex h-24 w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 text-center text-muted-foreground transition-colors hover:bg-muted">
+														<label className="flex h-24 w-full cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/50 text-center text-muted-foreground transition-colors hover:bg-muted">
 															<IconId className="mb-1 h-5 w-5" stroke={1.5} />
 															<span className="text-[11px] font-semibold">Foto KTP</span>
 															<input
@@ -610,7 +613,7 @@ export default function Create(props) {
 									{savedPhotos.map((ph) => (
 										<div
 											key={`saved-${ph.id}`}
-											className="group relative h-32 w-full overflow-hidden rounded-xl border border-border shadow-sm"
+											className="group relative h-32 w-full overflow-hidden rounded-2xl border border-border shadow-sm"
 										>
 											<img
 												src={`/storage/${ph.path}`}
@@ -630,7 +633,7 @@ export default function Create(props) {
 									{previews.map((pv, i) => (
 										<div
 											key={`ph-${i}`}
-											className="group relative h-32 w-full overflow-hidden rounded-xl border border-border shadow-sm"
+											className="group relative h-32 w-full overflow-hidden rounded-2xl border border-border shadow-sm"
 										>
 											<img
 												src={pv.url}
@@ -651,7 +654,7 @@ export default function Create(props) {
 										<button
 											type="button"
 											onClick={() => fileInputPhoto.current?.click()}
-											className="flex h-32 w-full flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 text-center text-muted-foreground transition-colors hover:bg-muted"
+											className="flex h-32 w-full flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/50 text-center text-muted-foreground transition-colors hover:bg-muted"
 										>
 											<IconCloudUpload className="mb-1 h-6 w-6" stroke={1.5} />
 											<span className="text-xs font-semibold">Tambah foto</span>
@@ -684,7 +687,7 @@ export default function Create(props) {
 									{target === 'final' ? 'Final' : 'Sementara'}
 								</Button>
 								{target === 'sementara' && !canFinalize && (
-									<p className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-muted/40 px-6 text-center text-[13px] text-muted-foreground">
+									<p className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-muted/40 px-6 text-center text-[13px] text-muted-foreground">
 										<IconShieldCheck className="h-4 w-4 shrink-0" />
 										Entri final ditutup admin.
 									</p>

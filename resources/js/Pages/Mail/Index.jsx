@@ -1,6 +1,6 @@
 import HeaderTitle from '@/Components/HeaderTitle';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent } from '@/Components/ui/card';
+import { CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -58,43 +58,45 @@ export default function Index({ messages, filters, mailbox }) {
 			<div className="flex flex-col gap-3">
 				{messages.data && messages.data.length > 0 ? (
 					<>
-						{messages.data.map((message) => (
-							<Card key={message.id}>
-								<CardContent className="flex flex-row items-start gap-3 p-3 sm:p-4">
-									<div
-										className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
-											message.status === 'gagal'
-												? 'bg-destructive/10 text-destructive'
-												: 'bg-muted text-muted-foreground'
-										}`}
-									>
-										{message.status === 'gagal' ? (
-											<IconAlertTriangle className="h-5 w-5" />
-										) : (
-											<IconSend className="h-5 w-5" />
-										)}
-									</div>
-									<div className="min-w-0 flex-1">
-										<div className="flex flex-wrap items-center gap-2">
-											<h3 className="truncate text-sm font-semibold text-foreground">
-												{message.subject}
-											</h3>
-											{message.status === 'gagal' && (
-												<span className="shrink-0 rounded-lg border border-destructive/20 bg-destructive/10 px-2 py-0.5 text-[11px] font-bold uppercase text-destructive">
-													Gagal
-												</span>
+						<div className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
+							{messages.data.map((message) => (
+								<div key={message.id} className="transition-colors hover:bg-muted/40 active:bg-muted">
+									<CardContent className="flex flex-row items-start gap-3 p-3 sm:p-4">
+										<div
+											className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+												message.status === 'gagal'
+													? 'bg-destructive/10 text-destructive'
+													: 'bg-muted text-muted-foreground'
+											}`}
+										>
+											{message.status === 'gagal' ? (
+												<IconAlertTriangle className="h-5 w-5" />
+											) : (
+												<IconSend className="h-5 w-5" />
 											)}
 										</div>
-										<p className="mt-0.5 truncate text-xs text-muted-foreground">
-											Kepada {message.penerima || '-'}
-										</p>
-										<p className="mt-1 text-[11px] text-muted-foreground">
-											{message.sender_name} . {tanggal(message.created_at)}
-										</p>
-									</div>
-								</CardContent>
-							</Card>
-						))}
+										<div className="min-w-0 flex-1">
+											<div className="flex flex-wrap items-center gap-2">
+												<h3 className="truncate text-sm font-semibold text-foreground">
+													{message.subject}
+												</h3>
+												{message.status === 'gagal' && (
+													<span className="shrink-0 rounded-lg border border-destructive/20 bg-destructive/10 px-2 py-0.5 text-[11px] font-bold uppercase text-destructive">
+														Gagal
+													</span>
+												)}
+											</div>
+											<p className="mt-0.5 truncate text-xs text-muted-foreground">
+												Kepada {message.penerima || '-'}
+											</p>
+											<p className="mt-1 text-[11px] text-muted-foreground">
+												{message.sender_name} . {tanggal(message.created_at)}
+											</p>
+										</div>
+									</CardContent>
+								</div>
+							))}
+						</div>
 
 						<div className="mt-2 flex flex-col items-center justify-between gap-3 sm:flex-row">
 							<span className="text-[11px] font-medium text-muted-foreground">
@@ -109,7 +111,7 @@ export default function Index({ messages, filters, mailbox }) {
 												key={index}
 												href={link.url}
 												preserveScroll
-												className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition-colors ${
+												className={`rounded-2xl border px-3 py-1.5 text-xs font-semibold transition-colors ${
 													link.active
 														? 'border-primary bg-primary text-primary-foreground shadow-sm'
 														: 'border-input bg-background text-muted-foreground hover:bg-accent hover:text-foreground'
@@ -119,7 +121,7 @@ export default function Index({ messages, filters, mailbox }) {
 										) : (
 											<span
 												key={index}
-												className="rounded-xl border border-input px-3 py-1.5 text-xs font-semibold text-muted-foreground/40"
+												className="rounded-2xl border border-input px-3 py-1.5 text-xs font-semibold text-muted-foreground/40"
 												dangerouslySetInnerHTML={{ __html: link.label }}
 											/>
 										),
@@ -129,7 +131,7 @@ export default function Index({ messages, filters, mailbox }) {
 						</div>
 					</>
 				) : (
-					<div className="rounded-xl border border-dashed border-input p-10 text-center">
+					<div className="rounded-2xl border border-dashed border-input p-10 text-center">
 						<span className="text-sm text-muted-foreground">Belum ada surat yang dikirim dari sini.</span>
 					</div>
 				)}

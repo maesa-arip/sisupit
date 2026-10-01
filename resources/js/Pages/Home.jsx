@@ -43,7 +43,7 @@ export default function Home(props) {
 				/>
 
 				{/* Indikator Sistem Online */}
-				<div className="flex w-fit items-center gap-2 rounded-xl border border-success/30 bg-success/10 px-2.5 py-1.5 shadow-sm">
+				<div className="flex w-fit items-center gap-2 rounded-2xl border border-success/30 bg-success/10 px-2.5 py-1.5 shadow-sm">
 					<span className="relative flex h-2 w-2">
 						<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/60 opacity-75"></span>
 						<span className="relative inline-flex h-2 w-2 rounded-full bg-success"></span>
@@ -57,7 +57,7 @@ export default function Home(props) {
 				{/* Menu Lokasi Pompa */}
 				<Link
 					href={route('front.pumps.index')}
-					className="group flex flex-col items-center justify-center rounded-xl border border-border bg-card p-5 shadow-sm outline-none transition-colors hover:border-muted-foreground/30 focus-visible:ring-2 focus-visible:ring-ring sm:p-6"
+					className="group flex flex-col items-center justify-center rounded-2xl border border-border bg-card p-5 shadow-sm outline-none transition-colors hover:border-muted-foreground/30 focus-visible:ring-2 focus-visible:ring-ring sm:p-6"
 				>
 					<div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg border border-info/20 bg-info/10 text-info transition-colors duration-200 group-hover:bg-info/20 sm:h-14 sm:w-14">
 						<IconDroplet size={24} stroke={1.5} className="sm:h-7 sm:w-7" />
@@ -72,7 +72,7 @@ export default function Home(props) {
 				{/* Menu Pos Damkar */}
 				<Link
 					href={route('front.fire_stations.index')}
-					className="group flex flex-col items-center justify-center rounded-xl border border-border bg-card p-5 shadow-sm outline-none transition-colors hover:border-muted-foreground/30 focus-visible:ring-2 focus-visible:ring-ring sm:p-6"
+					className="group flex flex-col items-center justify-center rounded-2xl border border-border bg-card p-5 shadow-sm outline-none transition-colors hover:border-muted-foreground/30 focus-visible:ring-2 focus-visible:ring-ring sm:p-6"
 				>
 					<div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg border border-destructive/20 bg-destructive/10 text-destructive transition-colors duration-200 group-hover:bg-destructive/20 sm:h-14 sm:w-14">
 						<IconFiretruck size={24} stroke={1.5} className="sm:h-7 sm:w-7" />
@@ -87,7 +87,7 @@ export default function Home(props) {
 				{/* Tombol Telepon Darurat */}
 				<a
 					href="tel:113"
-					className="col-span-2 flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 text-sm font-semibold text-destructive shadow-sm outline-none transition-colors hover:bg-destructive/20 focus-visible:ring-2 focus-visible:ring-destructive"
+					className="col-span-2 flex h-11 w-full items-center justify-center gap-2 rounded-2xl border border-destructive/30 bg-destructive/10 text-sm font-semibold text-destructive shadow-sm outline-none transition-colors hover:bg-destructive/20 focus-visible:ring-2 focus-visible:ring-destructive"
 				>
 					<IconPhoneCall size={18} stroke={2} />
 					<span>Telepon Darurat (113)</span>
@@ -159,7 +159,7 @@ export default function Home(props) {
 					<a
 						href="/apk/sisupit.apk"
 						download="Sisupit.apk"
-						className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-border bg-card px-6 font-medium text-foreground/80 shadow-sm outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring sm:w-auto"
+						className="flex h-12 w-full items-center justify-center gap-3 rounded-2xl border border-border bg-card px-6 font-medium text-foreground/80 shadow-sm outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring sm:w-auto"
 					>
 						<div className="flex items-center justify-center rounded-lg bg-success/10 p-1">
 							<IconBrandAndroid className="h-5 w-5 text-success" stroke={2} />

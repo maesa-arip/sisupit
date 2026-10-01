@@ -115,7 +115,7 @@ export default function Index({ pumps, filters, ...props }) {
 									type="button"
 									onClick={handleNearestSearch}
 									disabled={isLocating || processing}
-									className="flex h-10 w-full items-center gap-2 rounded-xl border border-info/30 bg-info/10 text-sm font-medium text-info shadow-sm transition-colors hover:bg-info/20"
+									className="flex h-10 w-full items-center gap-2 rounded-2xl border border-info/30 bg-info/10 text-sm font-medium text-info shadow-sm transition-colors hover:bg-info/20"
 								>
 									{isLocating ? (
 										<IconLoader2 className="h-4 w-4 animate-spin" />
@@ -133,7 +133,7 @@ export default function Index({ pumps, filters, ...props }) {
 										type="search"
 										enterKeyHint="search"
 										placeholder="Cari nama area atau jalan..."
-										className="h-10 w-full rounded-xl border-border bg-muted pl-9 text-sm focus-visible:ring-1 focus-visible:ring-info"
+										className="h-10 w-full rounded-2xl border-border bg-muted pl-9 text-sm focus-visible:ring-1 focus-visible:ring-info"
 										value={data.search}
 										onChange={(e) => setData('search', e.target.value)}
 									/>
@@ -145,7 +145,7 @@ export default function Index({ pumps, filters, ...props }) {
 											key={status}
 											type="button"
 											onClick={() => applyFilter('status', status)}
-											className={`whitespace-nowrap rounded-xl border px-3 py-1.5 text-xs font-medium transition-colors ${
+											className={`whitespace-nowrap rounded-2xl border px-3 py-1.5 text-xs font-medium transition-colors ${
 												activeStatus === status
 													? 'border-transparent bg-primary text-primary-foreground'
 													: 'border-border bg-card text-foreground/80 hover:bg-muted'
@@ -170,7 +170,7 @@ export default function Index({ pumps, filters, ...props }) {
 									<div className="flex flex-row flex-nowrap items-center gap-3 px-4 py-3.5">
 										{/* KIRI: Ikon */}
 										<div
-											className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${
+											className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border ${
 												facilityStatusIsFaulty(pump.status)
 													? 'border-destructive/30 bg-destructive/10 text-destructive'
 													: 'border-info/20 bg-info/10 text-info'
@@ -219,7 +219,7 @@ export default function Index({ pumps, filters, ...props }) {
 										{/* KANAN: Aksi & Jarak */}
 										<div className="flex shrink-0 flex-col items-end justify-center gap-2">
 											{pump.distance !== '-' ? (
-												<span className="whitespace-nowrap rounded-xl border border-border bg-muted px-2 py-0.5 text-[11px] font-semibold text-foreground/80">
+												<span className="whitespace-nowrap rounded-2xl border border-border bg-muted px-2 py-0.5 text-[11px] font-semibold text-foreground/80">
 													{pump.distance}
 												</span>
 											) : (
@@ -244,7 +244,7 @@ export default function Index({ pumps, filters, ...props }) {
 								</div>
 							))
 						) : (
-							<div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 p-10 text-center">
+							<div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/50 p-10 text-center">
 								<IconDroplet className="mb-2 h-10 w-10 text-muted-foreground" stroke={1.5} />
 								<h4 className="text-sm font-semibold text-foreground">Tidak ada data SKKL</h4>
 								<p className="mt-1 text-xs text-muted-foreground">
@@ -264,7 +264,7 @@ export default function Index({ pumps, filters, ...props }) {
 					</div>
 
 					{/* Wrapper Peta */}
-					<div className="relative z-0 h-[400px] w-full overflow-hidden rounded-xl border border-border bg-muted shadow-sm lg:h-[calc(100vh-160px)]">
+					<div className="relative z-0 h-[400px] w-full overflow-hidden rounded-2xl border border-border bg-muted shadow-sm lg:h-[calc(100vh-160px)]">
 						<UserLeafletMap markers={pumps.data} />
 					</div>
 				</div>

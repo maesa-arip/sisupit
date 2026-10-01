@@ -152,7 +152,7 @@ export default function Index({ units, filters }) {
 														{unit.name}
 													</h3>
 													<span
-														className={`shrink-0 rounded-xl border px-2 py-0.5 text-[11px] font-bold uppercase ${meta.color}`}
+														className={`shrink-0 rounded-2xl border px-2 py-0.5 text-[11px] font-bold uppercase ${meta.color}`}
 													>
 														{meta.label}
 													</span>
@@ -207,7 +207,7 @@ export default function Index({ units, filters }) {
 												key={index}
 												href={link.url}
 												preserveScroll
-												className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition-colors ${
+												className={`rounded-2xl border px-3 py-1.5 text-xs font-semibold transition-colors ${
 													link.active
 														? 'border-primary bg-primary text-primary-foreground shadow-sm'
 														: 'border-input bg-background text-muted-foreground hover:bg-accent hover:text-foreground'
@@ -217,7 +217,7 @@ export default function Index({ units, filters }) {
 										) : (
 											<span
 												key={index}
-												className="cursor-not-allowed rounded-xl border border-transparent px-3 py-1.5 text-xs font-semibold text-muted-foreground opacity-50"
+												className="cursor-not-allowed rounded-2xl border border-transparent px-3 py-1.5 text-xs font-semibold text-muted-foreground opacity-50"
 												dangerouslySetInnerHTML={{ __html: link.label }}
 											/>
 										),
@@ -227,7 +227,7 @@ export default function Index({ units, filters }) {
 						</div>
 					</>
 				) : (
-					<div className="rounded-xl border border-dashed border-input p-10 text-center">
+					<div className="rounded-2xl border border-dashed border-input p-10 text-center">
 						<span className="text-sm text-muted-foreground">Belum ada unit terdaftar.</span>
 					</div>
 				)}

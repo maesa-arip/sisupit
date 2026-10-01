@@ -50,11 +50,11 @@ function AuthorLine({ name, roles, isMine, createdAt, official }) {
 	return (
 		<div className="flex flex-wrap items-center gap-2 text-xs">
 			<span className="font-semibold text-foreground">{isMine ? `${name} (Anda)` : name}</span>
-			<span className={cn('rounded-xl border px-1.5 py-0.5 text-[11px] font-semibold', roleTone(roles))}>
+			<span className={cn('rounded-2xl border px-1.5 py-0.5 text-[11px] font-semibold', roleTone(roles))}>
 				{roleLabel(roles)}
 			</span>
 			{official && (
-				<span className="flex items-center gap-1 rounded-xl border border-success/20 bg-success/10 px-1.5 py-0.5 text-[11px] font-bold uppercase text-success">
+				<span className="flex items-center gap-1 rounded-2xl border border-success/20 bg-success/10 px-1.5 py-0.5 text-[11px] font-bold uppercase text-success">
 					<IconShieldCheck className="size-3" /> Jawaban Resmi Damkar
 				</span>
 			)}
@@ -192,7 +192,7 @@ export default function Show({ thread, posts, can, flagReasons }) {
 			</div>
 
 			{thread.status !== 'tampil' && (
-				<div className="rounded-xl border border-warning/30 bg-warning/10 p-4 text-xs leading-relaxed text-foreground">
+				<div className="rounded-2xl border border-warning/30 bg-warning/10 p-4 text-xs leading-relaxed text-foreground">
 					<div className="mb-1">
 						<ForumStatusBadge status={thread.status} />
 					</div>
@@ -205,7 +205,7 @@ export default function Show({ thread, posts, can, flagReasons }) {
 			<Card>
 				<CardContent className="space-y-3 p-5">
 					{thread.is_pinned && (
-						<span className="inline-flex items-center gap-1 rounded-xl border border-info/30 bg-info/10 px-2 py-0.5 text-[11px] font-bold uppercase text-info">
+						<span className="inline-flex items-center gap-1 rounded-2xl border border-info/30 bg-info/10 px-2 py-0.5 text-[11px] font-bold uppercase text-info">
 							<IconPin className="size-3" /> Disematkan
 						</span>
 					)}
@@ -283,7 +283,7 @@ export default function Show({ thread, posts, can, flagReasons }) {
 				</CardContent>
 			</Card>
 
-			<h2 className="px-1 pt-2 text-sm font-bold text-foreground">
+			<h2 className="px-1 pt-2 text-sm font-semibold text-foreground">
 				{posts.length > 0 ? `${posts.length} Balasan` : 'Belum ada balasan'}
 			</h2>
 
@@ -305,7 +305,7 @@ export default function Show({ thread, posts, can, flagReasons }) {
 							<CardContent className="space-y-2 p-4">
 								<div className="flex flex-wrap items-center gap-2">
 									{accepted && (
-										<span className="flex items-center gap-1 rounded-xl border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-[11px] font-bold uppercase text-primary">
+										<span className="flex items-center gap-1 rounded-2xl border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-[11px] font-bold uppercase text-primary">
 											<IconCircleCheck className="size-3" /> Paling Membantu
 										</span>
 									)}

@@ -92,7 +92,7 @@ export default function Edit(props) {
 				<div>
 					<Button
 						variant="outline"
-						className="h-9 rounded-xl border-border bg-card px-4 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent"
+						className="h-9 rounded-2xl border-border bg-card px-4 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent"
 						asChild
 					>
 						<Link href={route('reports.show', report.id)}>
@@ -113,7 +113,10 @@ export default function Edit(props) {
 					</CardHeader>
 
 					<CardContent className="p-5 sm:p-6">
-						<form className="space-y-6" onSubmit={onHandleSubmit}>
+						<form
+							className="divide-y divide-border/70 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:py-4"
+							onSubmit={onHandleSubmit}
+						>
 							<div>
 								<Label htmlFor="title" className="text-sm font-medium text-foreground/80">
 									Apa yang terjadi?
@@ -123,7 +126,7 @@ export default function Edit(props) {
 									id="title"
 									value={data.title}
 									onChange={onHandleChange}
-									className="mt-1.5 h-10 rounded-xl border-border bg-card focus-visible:ring-1 focus-visible:ring-destructive"
+									className="mt-1.5 h-10 rounded-2xl border-border bg-card focus-visible:ring-1 focus-visible:ring-destructive"
 								/>
 								{errors.title && <InputError message={errors.title} className="mt-1" />}
 							</div>
@@ -137,7 +140,7 @@ export default function Edit(props) {
 									id="description"
 									value={data.description}
 									onChange={onHandleChange}
-									className="mt-1.5 min-h-[100px] resize-y rounded-xl border-border bg-card p-3 text-sm focus-visible:ring-1 focus-visible:ring-destructive"
+									className="mt-1.5 min-h-[100px] resize-y rounded-2xl border-border bg-card p-3 text-sm focus-visible:ring-1 focus-visible:ring-destructive"
 								/>
 								{errors.description && <InputError message={errors.description} className="mt-1" />}
 							</div>
@@ -151,7 +154,7 @@ export default function Edit(props) {
 									id="address"
 									value={data.address}
 									onChange={onHandleChange}
-									className="mt-1.5 h-10 rounded-xl border-border bg-card focus-visible:ring-1 focus-visible:ring-destructive"
+									className="mt-1.5 h-10 rounded-2xl border-border bg-card focus-visible:ring-1 focus-visible:ring-destructive"
 									placeholder="Contoh: Samping warung cat biru, gang buntu..."
 								/>
 								<p className="mt-1 text-[12px] text-muted-foreground">
@@ -183,7 +186,7 @@ export default function Edit(props) {
 									{existingPhotos.map((p) => (
 										<div
 											key={`old-${p.id}`}
-											className="group relative h-32 w-full overflow-hidden rounded-xl border border-border shadow-sm"
+											className="group relative h-32 w-full overflow-hidden rounded-2xl border border-border shadow-sm"
 										>
 											<img
 												src={`/storage/${p.path}`}
@@ -204,7 +207,7 @@ export default function Edit(props) {
 									{previews.map((p, i) => (
 										<div
 											key={`new-${i}`}
-											className="group relative h-32 w-full overflow-hidden rounded-xl border border-border shadow-sm"
+											className="group relative h-32 w-full overflow-hidden rounded-2xl border border-border shadow-sm"
 										>
 											<img
 												src={p.url}
@@ -228,7 +231,7 @@ export default function Edit(props) {
 										<button
 											type="button"
 											onClick={() => fileInputPhoto.current?.click()}
-											className="flex h-32 w-full flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 text-center text-muted-foreground transition-colors hover:bg-muted"
+											className="flex h-32 w-full flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/50 text-center text-muted-foreground transition-colors hover:bg-muted"
 										>
 											<IconCloudUpload className="mb-1 h-6 w-6" stroke={1.5} />
 											<span className="text-xs font-semibold">Tambah foto</span>
