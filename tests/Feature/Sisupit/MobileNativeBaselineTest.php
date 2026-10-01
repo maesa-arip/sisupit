@@ -46,13 +46,6 @@ it('gives every Button press feedback that respects reduced motion', function ()
         ->and($classes)->not->toContain('transition-colors');
 });
 
-it('drops the zoom-and-slide entrance of both dialog primitives under reduced motion', function (string $path, string $const) {
-    expect(baseClassesOf($path, $const))->toContain('motion-reduce:animate-none');
-})->with([
-    ['resources/js/Components/ui/dialog.jsx', 'DialogContent'],
-    ['resources/js/Components/ui/alert-dialog.jsx', 'AlertDialogContent'],
-]);
-
 it('keeps every text field at 16px on phones so iOS never zooms the page', function () {
     $command = baseClassesOf('resources/js/Components/ui/command.jsx', 'CommandInput');
     expect($command)->toContain('text-base')->and($command)->toContain('md:text-sm')->and($command)->not->toContain('text-sm');

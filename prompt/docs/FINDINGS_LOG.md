@@ -3920,3 +3920,9 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Status:** FIXED (kode) di branch `feat/mobile-native-polish`, BELUM di-merge & BELUM dideploy.
   SISA: uji di ponsel/APK sungguhan - hover tak lagi menempel, tombol mengecil saat ditekan, kolom
   cari combobox tak me-zoom di iPhone, toast ikut tema saat ThemeSwitcher dipakai.
+- **ADENDUM 2026-10-01 (bagian 2, PENGECUALIAN_ATURAN #5):** atas permintaan user, branch yang sama
+  menerapkan `apple-design` penuh - material kaca di header/bilah bawah/popover, `ease-spring`, dialog
+  simetris + scrim, asal gerak dari pemicu, reduced motion = cross-fade global (menggantikan
+  `motion-reduce:animate-none`), tracking judul, `theme-color` per skema. Ikut terbetulkan: panel
+  Fasilitas bilah bawah meluncur menyamping setengah lebarnya tiap dibuka (keyframe menimpa
+  `-translate-x-1/2`). Penjaga `AppleDesignMaterialTest` (12). Rincian TASK_69 §7.

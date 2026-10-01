@@ -207,3 +207,34 @@
   test penjaga di bawah.
 - **Test penjaga:** `tests/Feature/Sisupit/ButtonBrandColorTest.php` - token primary = destructive di
   kedua mode, dan tak ada tombol/chip yang menulis latar hitam + teks putih sendiri.
+
+---
+
+## #5 — apple-design penuh di branch `feat/mobile-native-polish`, menimpa keputusan rupa sebelumnya
+
+- **Aturan yang ditekuk:** seluruh keputusan rupa yang tercatat sebelumnya, khususnya
+  (a) FINDINGS #106 - bilah bawah tembus pandang/"liquid glass" DIBATALKAN user 2026-09-09 dan bilah
+  wajib `bg-card` padat; (b) `MobileBottomNav` docblock & SKILL `sisupit-ui` - popover bilah bawah
+  `bg-popover` padat; (c) dua keputusan TASK_69 yang semula diambil ke arah hati-hati (A `theme-color`
+  merah brand, B reduced motion hanya di primitif).
+- **Keputusan:** skill `apple-design` diterapkan penuh di branch itu: material tembus pandang (header &
+  bilah bawah `material-chrome`; popover, menu, select, panel bilah bawah `material-thick`), kurva pegas
+  `ease-spring`, scrim peredup + dialog masuk/keluar di jalur yang sama, permukaan melayang tumbuh dari
+  pemicunya (`transform-origin`), reduced motion global = cross-fade, tracking judul per ukuran, dan
+  `theme-color` per skema warna.
+- **Disetujui:** user, **2026-10-01** - "khusus branch baru ini gunakan apple-design dan pengecualian
+  desain sebelumnya boleh diabaikan, khusus branch ini saja".
+- **Batas:** HANYA branch `feat/mobile-native-polish`. Merge ke `main` = keputusan tersendiri; kalau user
+  memutuskan merge, entri ini berubah jadi pengecualian permanen dan #106 di FINDINGS harus dirujuk ke
+  sini. Yang TIDAK disentuh meski boleh: tombol merah brand (#4), bentuk & ikon padat bilah bawah (#2,
+  #3), kerangka dashboard (#118 - apple-design tidak menuntut tepi-ke-tepi), dan aturan dependensi
+  (pegas ditiru kurva CSS, bukan pustaka baru).
+- **Konsekuensi yang diterima:** konten kini terlihat samar di balik header & bilah bawah saat digulir
+  (memang tujuannya); di perangkat tanpa `backdrop-filter` atau dengan transparansi dikurangi /
+  kontras tinggi, material jatuh padat. Elemen material tak boleh diberi `bg-*` - utilitas menang atas
+  komponen dan material diam-diam jadi padat.
+- **Hidup di:** `resources/css/app.css` (blok apple-design di akhir berkas), `tailwind.config.js`
+  (`ease-spring`), `resources/views/app.blade.php`, `Layouts/AppLayout.jsx`,
+  `Layouts/Partials/MobileBottomNav.jsx`, `Components/ui/{popover,dropdown-menu,select,command,dialog,alert-dialog}.jsx`.
+- **Test penjaga:** `tests/Feature/Sisupit/AppleDesignMaterialTest.php` (12 test) - dua belas kasus
+  MERAH terhadap HEAD sebelum apple-design, plus sabotase `bg-card` di bilah bawah.

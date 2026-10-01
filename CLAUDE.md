@@ -39,7 +39,8 @@ Task aktif   : RILIS GOOGLE PLAY (2026-09-30). Akun Play Console PRIBADI (tanpa 
                 unggah sisupit-upload.jks; AAB siap; rincian di memori WebView & folder mobile/).
                 SISA: SHA-1 Play App Signing ke Firebase, uji di HP.
 Terakhir     : #159/TASK_69 lapisan platform ponsel (hover sentuh, tap, active Button, 16px iOS,
-                tema toast, dvh) di branch feat/mobile-native-polish - BELUM merge/deploy, butuh uji HP.
+                tema toast, dvh) + apple-design penuh (material kaca, pegas, cross-fade; PENGECUALIAN #5
+                KHUSUS branch ini) di branch feat/mobile-native-polish - BELUM merge/deploy, butuh uji HP.
                 #158 push iOS (kabar status pelapor & nada OPD) TERDEPLOY @9988587e.
                 #157 hapus akun = ANONIMISASI TERDEPLOY @43479a4e.
 SEMENTARA    : #149 menu "Jangkauan Petugas" disembunyikan + foto laporan non-kebakaran
@@ -50,7 +51,7 @@ Belum dicek  : visual di ponsel/APK untuk banyak perubahan UI (tombol merah bran
 Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115 #119 #121
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148.
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
-Test         : 633 passed, 3033 assertions (2026-10-01, branch feat/mobile-native-polish; main 621/3003).
+Test         : 643 passed, 3089 assertions (2026-10-01, branch feat/mobile-native-polish; main 621/3003).
 ```
 
 ### Peringatan operasional (dari riwayat, masih berlaku)
@@ -75,7 +76,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-10-01: 633 passed, 3033 assertions - main 621/3003;
+Test      : php artisan test            (baseline 2026-10-01: 643 passed, 3089 assertions - main 621/3003;
             lokal: php -d memory_limit=1G -d extension=php_sqlite3.dll -d extension=pdo_sqlite vendor/bin/pest.
             Perbarui angka ini tiap kali test bertambah - baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan. Riwayat angkanya di STATUS_LOG.md)

@@ -235,7 +235,7 @@ export default function MobileBottomNav({ auth }) {
 			    z-index bar itu ke atas bilah, sebab popover Fasilitas & Menu melayang tepat
 			    di ketinggian yang sama dan akan ikut tertutup. */}
 			<div
-				className="fixed bottom-0 left-0 z-50 w-full bg-card shadow-[0_-1px_0_0_hsl(var(--border)),0_-8px_24px_-12px_rgba(0,0,0,0.22)] md:hidden"
+				className="material-chrome fixed bottom-0 left-0 z-50 w-full shadow-[0_-1px_0_0_hsl(var(--border)),0_-8px_24px_-12px_rgba(0,0,0,0.22)] md:hidden"
 				style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
 			>
 				<div className="mx-auto grid h-16 max-w-md grid-cols-5 px-1">
@@ -255,7 +255,7 @@ export default function MobileBottomNav({ auth }) {
 						ref={fasilitasRef}
 					>
 						{showFasilitas && (
-							<FloatingPanel className="left-1/2 w-56 -translate-x-1/2">
+							<FloatingPanel className="left-1/2 w-56 -translate-x-1/2 slide-in-from-left-1/2">
 								{fasilitasItems.map((item) => (
 									<FloatingLink
 										key={item.key}
@@ -355,7 +355,7 @@ export default function MobileBottomNav({ auth }) {
 						   peran yang sudah login */
 						<div className="relative flex h-full w-full flex-col items-center justify-center" ref={menuRef}>
 							{showMenu && (
-								<FloatingPanel className="right-2 w-64">
+								<FloatingPanel className="right-2 w-64 origin-bottom-right">
 									{menuSections.map((section, index) => (
 										<Fragment key={section.key}>
 											<div
@@ -436,7 +436,7 @@ function SlotContent({ icon: Icon, iconActive: IconActive, label, active, iconCl
 
 const slotClass = (active, open = false) =>
 	cn(
-		'group relative flex h-full w-full flex-col items-center justify-center gap-2 rounded-lg px-1 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-destructive',
+		'group relative flex h-full w-full flex-col items-center justify-center gap-2 rounded-lg px-1 outline-none transition-[color,background-color,transform] duration-100 ease-out active:scale-[0.92] motion-reduce:active:scale-100 focus-visible:ring-2 focus-visible:ring-destructive',
 		// PENANDA AKTIF = WARNA + TEBAL HURUF + IKON PADAT. Tetap tidak ada bidang, kotak,
 		// pil, garis, maupun titik - "minimalis" pada referensi `Menu 6.png` bertahan; yang
 		// ditambahkan 2026-09-06 (permintaan user) hanya pemadatan glyphnya, dan itu justru
@@ -511,7 +511,7 @@ function FloatingPanel({ className, children }) {
 	return (
 		<div
 			className={cn(
-				'no-scrollbar absolute bottom-[72px] z-50 flex max-h-[70vh] flex-col overflow-y-auto overscroll-contain rounded-xl border border-border bg-popover p-1.5 text-popover-foreground shadow-md duration-200 animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2',
+				'material-thick no-scrollbar absolute bottom-[72px] z-50 flex max-h-[70vh] origin-bottom flex-col overflow-y-auto overscroll-contain rounded-2xl border border-border/60 p-1.5 text-popover-foreground shadow-xl duration-300 ease-spring animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2',
 				className,
 			)}
 		>

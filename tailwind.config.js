@@ -19,6 +19,12 @@ export default {
 
 	theme: {
 		extend: {
+			// apple-design §4: pegas teredam kritis (damping 1.0, response ~0.35 dtk) ditiru kurva
+			// CSS karena repo tak memakai pustaka pegas. `ease-spring` juga menyetel
+			// animation-timing-function untuk animate-in/out (tailwindcss-animate membaca tema ini).
+			transitionTimingFunction: {
+				spring: 'cubic-bezier(0.32, 0.72, 0, 1)',
+			},
 			fontFamily: {
 				sans: ['Inter', ...defaultTheme.fontFamily.sans],
 			},

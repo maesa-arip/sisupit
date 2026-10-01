@@ -151,3 +151,102 @@
 		display: none;
 	}
 }
+
+/* ===== apple-design (branch feat/mobile-native-polish, TASK_69 bagian 2) =====================
+   KHUSUS BRANCH INI atas permintaan user 2026-10-01 ("khusus branch baru ini gunakan
+   apple-design dan pengecualian desain sebelumnya boleh diabaikan") - membalik #106 (liquid
+   glass dibatalkan) & aturan "bilah bg-card padat". Lihat PENGECUALIAN_ATURAN #5. */
+
+@layer base {
+	/* Tracking mengikuti ukuran (apple-design §15): judul besar dirapatkan, isi dibiarkan 0.
+	   Kelas `tracking-*` di elemen tetap menang - ini hanya bawaan. */
+	body {
+		font-optical-sizing: auto;
+	}
+	h1 {
+		letter-spacing: -0.022em;
+	}
+	h2 {
+		letter-spacing: -0.017em;
+	}
+	h3 {
+		letter-spacing: -0.01em;
+	}
+}
+
+@layer components {
+	/* MATERIAL (apple-design §12): lapisan tembus pandang yang konten-nya bergulir di bawahnya.
+	   `chrome` = pita navigasi (header & bilah bawah), lebih tipis; `thick` = permukaan yang
+	   melayang di atas konten (popover, menu, select), lebih buram & berbayang lebih dalam.
+	   JANGAN tambahkan `bg-*` di elemen yang sama - utilitas menang atas komponen dan materialnya
+	   jadi padat tanpa galat. Tak pernah menumpuk material terang di atas material terang. */
+	.material-chrome {
+		background-color: hsl(var(--background) / 0.72);
+		-webkit-backdrop-filter: blur(20px) saturate(180%);
+		backdrop-filter: blur(20px) saturate(180%);
+	}
+	.material-thick {
+		background-color: hsl(var(--popover) / 0.82);
+		-webkit-backdrop-filter: blur(28px) saturate(180%);
+		backdrop-filter: blur(28px) saturate(180%);
+	}
+	/* Tanpa dukungan blur, tembus pandang tanpa buram = teks bertumpuk tak terbaca -> padat. */
+	@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+		.material-chrome {
+			background-color: hsl(var(--background));
+		}
+		.material-thick {
+			background-color: hsl(var(--popover));
+		}
+	}
+	/* §14: pengguna yang meminta transparansi dikurangi / kontras tinggi mendapat permukaan padat. */
+	@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+		.material-chrome,
+		.material-thick {
+			-webkit-backdrop-filter: none;
+			backdrop-filter: none;
+		}
+		.material-chrome {
+			background-color: hsl(var(--background));
+		}
+		.material-thick {
+			background-color: hsl(var(--popover));
+		}
+	}
+	@media (prefers-contrast: more) {
+		.material-chrome,
+		.material-thick {
+			border-color: hsl(var(--foreground) / 0.5);
+		}
+	}
+}
+
+/* REDUCED MOTION = CROSS-FADE, BUKAN DIAM (apple-design §14). Animasi masuk/keluar
+   tailwindcss-animate disusun dari variabel --tw-enter-(...) dan --tw-exit-(...); menolkan skala &
+   gesernya menyisakan fade saja di SEMUA dialog, popover, menu, dan panel sekaligus.
+   Selektor diberi `html:root` supaya spesifisitasnya (0,2,1) mengalahkan varian
+   `data-[state=open]:zoom-in-95` (0,2,0) tanpa !important. Pantulan & denyut cincin
+   (bounce/ping) berhenti - keduanya gerak vestibular; denyut opasitas (pulse) & spinner tetap. */
+@media (prefers-reduced-motion: reduce) {
+	html:root .animate-in,
+	html:root .animate-out {
+		--tw-enter-scale: 1;
+		--tw-exit-scale: 1;
+		--tw-enter-rotate: 0;
+		--tw-exit-rotate: 0;
+	}
+	/* Geser dinolkan KECUALI pada elemen yang dipusatkan lewat translate(-50%) (Dialog,
+	   AlertDialog, panel Fasilitas bilah bawah): di sana `slide-in-from-left-1/2` bukan gerak melainkan PEMUSATAN selama
+	   animasi - menolkannya membuat dialog melompat setengah layar ke kanan-bawah lalu kembali. */
+	html:root .animate-in:not(.translate-x-\[-50\%\], .-translate-x-1\/2),
+	html:root .animate-out:not(.translate-x-\[-50\%\], .-translate-x-1\/2) {
+		--tw-enter-translate-x: 0;
+		--tw-enter-translate-y: 0;
+		--tw-exit-translate-x: 0;
+		--tw-exit-translate-y: 0;
+	}
+	html:root .animate-bounce,
+	html:root .animate-ping {
+		animation: none;
+	}
+}

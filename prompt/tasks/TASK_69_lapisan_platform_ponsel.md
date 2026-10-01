@@ -79,3 +79,50 @@ skema (keputusan A, ditunda), `user-select: none` di `a`/`body`.
   kilatan saat mengetuk, tombol mengecil saat ditekan, kolom cari combobox tak me-zoom di iPhone/iOS
   wrapper, gulir daftar lonceng/combobox tak menyeret halaman, Peta Pemantauan pas di Chrome Android
   dengan bilah URL, toast gelap saat ThemeSwitcher = gelap sementara OS terang.
+
+---
+
+## 7. Bagian 2 — apple-design penuh (permintaan user 2026-10-01, PENGECUALIAN_ATURAN #5)
+
+User: "lanjutkan sampai selesai dan khusus branch baru ini gunakan apple-design dan pengecualian desain
+sebelumnya boleh diabaikan, khusus branch ini saja". Yang diterapkan (nomor bagian = skill apple-design):
+
+- **§12 Material:** `.material-chrome` (latar 72% + blur 20px saturate 180%) di header AppLayout & bilah
+  bawah; `.material-thick` (82% + blur 28px) di PopoverContent, DropdownMenuContent/SubContent,
+  SelectContent, FloatingPanel bilah bawah. Pemisah header jadi garis rambut `border-border/60`.
+  `Command` kini `bg-transparent` supaya lapisan padatnya tak menutup material popover yang memuatnya.
+  Fallback padat: `@supports not (backdrop-filter)`, `prefers-reduced-transparency`, `prefers-contrast`.
+- **§4 Pegas:** token `ease-spring` = `cubic-bezier(0.32, 0.72, 0, 1)` (teredam kritis, response
+  ~0,3 dtk), dipakai dialog (300ms), popover/menu/select (200ms), panel bilah bawah (300ms).
+- **§7 Konsistensi ruang:** permukaan melayang tumbuh dari pemicunya (`origin-[--radix-*-transform-origin]`,
+  panel Menu `origin-bottom-right`, Fasilitas `origin-bottom`). Dialog masuk & keluar di jalur yang sama
+  (fade + skala 95%) - geser serong `slide-*-top-[48%]` bawaan shadcn dicabut, diganti `1/2` simetris.
+  Scrim `bg-black/40 backdrop-blur-[2px]` (dulu `/80`) - "redupkan untuk fokus".
+- **§14 Reduced motion = cross-fade global** (menggantikan `motion-reduce:animate-none` di dialog):
+  variabel skala/rotasi/geser tailwindcss-animate dinolkan sehingga SEMUA animasi masuk/keluar tinggal
+  fade; `animate-bounce`/`animate-ping` berhenti. Tanpa `!important` - spesifisitas `html:root`.
+- **§1 Respons:** slot bilah bawah `active:scale-[0.92]`.
+- **§15 Tipografi:** `h1/h2/h3` tracking -0.022/-0.017/-0.01em, `font-optical-sizing: auto` (Inter
+  dimuat bersumbu `opsz`).
+- **Warna status bar:** `theme-color` per skema = latar header (#fafafa / #0f0f0f); APK tak terpengaruh.
+
+**Bug lama yang ikut terbetulkan:** panel Fasilitas bilah bawah dipusatkan `-translate-x-1/2` tetapi
+bingkai pertama keyframe `enter` menimpa `transform`, sehingga panel meluncur menyamping setengah
+lebarnya setiap dibuka. Kini `slide-in-from-left-1/2` menjaga pemusatan selama animasi.
+
+**Jebakan yang dihindari:** menolkan `--tw-enter-translate-*` untuk reduced motion akan MENCABUT
+pemusatan dialog & panel Fasilitas selama animasi (melompat setengah layar) - karena itu elemen
+ber-`translate-x-[-50%]` / `-translate-x-1/2` dikecualikan. `<meta name="color-scheme">` sengaja TIDAK
+dipasang: ThemeSwitcher bisa memaksa terang saat OS gelap, dan meta itu akan menggelapkan kontrol &
+batang gulir bawaan di halaman terang.
+
+**Sengaja TIDAK dikerjakan:** pustaka pegas/gestur (dependensi baru), sheet bergestur dengan proyeksi
+momentum (§5-§6 - bilah bawah memakai popover, bukan drawer), mengubah tombol merah brand / ikon bilah /
+kerangka dashboard (apple-design tidak menuntutnya).
+
+**Verifikasi bagian 2:** `AppleDesignMaterialTest` 12 test - 12 kasus MERAH terhadap HEAD (11 berkas
+diganti versi HEAD, dipulihkan byte-exact), sabotase `bg-card` di bilah bawah MERAH. Build lulus; CSS
+produksi memuat `.material-chrome`/`.material-thick`, `prefers-reduced-transparency`, kurva pegas,
+origin Radix, tracking judul, dan pengecualian pemusatan.
+**Butuh ponsel:** keterbacaan teks di atas header/bilah kaca di mode terang & gelap, kinerja blur di
+ponsel lama (backdrop-filter mahal di GPU lemah), rasa pegas dialog/popover.

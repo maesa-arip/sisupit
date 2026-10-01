@@ -156,7 +156,7 @@ export default function AppLayout({ title, children }) {
 				    bar perangkat, sama seperti padding di bilahnya sendiri. */}
 				<div className="flex min-h-screen min-w-0 flex-1 flex-col pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">
 					{/* HEADER */}
-					<header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur-md lg:px-8">
+					<header className="material-chrome sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border/60 px-4 lg:px-8">
 						<ApplicationLogo />
 						<div className="flex items-center gap-2 lg:gap-4">
 							{auth && (

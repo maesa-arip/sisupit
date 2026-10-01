@@ -5,7 +5,11 @@
         {{-- viewport-fit=cover: syarat agar env(safe-area-inset-*) berisi nilai nyata di
              ponsel berponi/gesture-bar. Tanpa ini bottom nav & drawer tertimpa UI sistem. --}}
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-        <meta name="theme-color" content="#b91c1c">
+        {{-- #159/apple-design: status bar browser = warna header (--background terang 98% / gelap 6%),
+             bukan merah brand - satu nilai membuat mode gelap berstatus-bar terang. APK tak
+             terpengaruh (wrapper membaca latar body sendiri, mobile/PERILAKU_WEBVIEW.md #8). --}}
+        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fafafa">
+        <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0f0f0f">
 
         <!-- Favicon -->
         <link rel="icon" href="/favicon.ico" sizes="any">
