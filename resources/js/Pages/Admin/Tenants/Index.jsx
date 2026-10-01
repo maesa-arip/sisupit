@@ -17,7 +17,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/Layouts/AppLayout';
 import { flashMessage } from '@/lib/utils';
 import { Link, router, useForm } from '@inertiajs/react';
-import { IconBuildingCommunity, IconCheck, IconPencil, IconPlus, IconSearch, IconTrash, IconX } from '@tabler/icons-react';
+import {
+	IconBuildingCommunity,
+	IconCheck,
+	IconPencil,
+	IconPlus,
+	IconSearch,
+	IconTrash,
+	IconX,
+} from '@tabler/icons-react';
 import { toast } from 'sonner';
 
 export default function Index(props) {
@@ -47,7 +55,7 @@ export default function Index(props) {
 					subtitle={props.page_settings.subtitle}
 					icon={IconBuildingCommunity}
 				/>
-				<Button variant="orange" size="sm" asChild>
+				<Button className="h-10 rounded-full px-4" size="sm" asChild>
 					<Link href={route('admin.tenants.create')}>
 						<IconPlus className="size-4" /> Tambah
 					</Link>
@@ -83,7 +91,9 @@ export default function Index(props) {
 							{tenants.length > 0 ? (
 								tenants.map((tenant, index) => (
 									<TableRow key={tenant.id}>
-										<TableCell>{index + 1 + (props.tenants.current_page - 1) * props.tenants.per_page}</TableCell>
+										<TableCell>
+											{index + 1 + (props.tenants.current_page - 1) * props.tenants.per_page}
+										</TableCell>
 										<TableCell className="font-medium">{tenant.nama_instansi}</TableCell>
 										<TableCell>
 											<span className="rounded bg-accent px-2 py-1 font-mono text-xs">
@@ -119,9 +129,10 @@ export default function Index(props) {
 														<AlertDialogHeader>
 															<AlertDialogTitle>Hapus tenant ini?</AlertDialogTitle>
 															<AlertDialogDescription>
-																Menghapus <b>{tenant.nama_instansi}</b> akan menonaktifkan
-																subdomain <b>{tenant.subdomain}</b>. Laporan wilayah ini
-																TIDAK ikut terhapus (routing tetap dari lokasi kejadian).
+																Menghapus <b>{tenant.nama_instansi}</b> akan
+																menonaktifkan subdomain <b>{tenant.subdomain}</b>.
+																Laporan wilayah ini TIDAK ikut terhapus (routing tetap
+																dari lokasi kejadian).
 															</AlertDialogDescription>
 														</AlertDialogHeader>
 														<AlertDialogFooter>

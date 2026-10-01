@@ -42,15 +42,15 @@ export default function Edit(props) {
 					subtitle={props.page_settings.subtitle}
 					icon={IconAlertCircle}
 				/>
-				<Button variant="orange" size="sm" asChild>
+				<Button className="rounded-full" variant="outline" size="sm" asChild>
 					<Link href={route('admin.announcements.index')}>
 						<IconArrowLeft className="size-4" />
 						Kembali
 					</Link>
 				</Button>
 			</div>
-			<Card>
-				<CardContent className="p-6">
+			<Card className="mx-auto w-full max-w-2xl">
+				<CardContent className="p-5 sm:p-6">
 					<form className="space-y-6" onSubmit={onHandleSubmit}>
 						<div className="grid w-full items-center gap-1.5">
 							<Label htmlFor="message">Pesan</Label>
@@ -91,10 +91,10 @@ export default function Edit(props) {
 							{errors.is_active && <InputError message={errors.is_active} />}
 						</div>
 						<div className="flex justify-end gap-x-2">
-							<Button type="button" variant="secondary" size="sm" onClick={onHandleReset}>
+							<Button className="h-11 rounded-xl" type="button" variant="ghost" onClick={onHandleReset}>
 								Atur ulang
 							</Button>
-							<Button type="submit" variant="orange" size="sm" disabled={processing}>
+							<Button className="h-11 rounded-xl px-6" type="submit" disabled={processing}>
 								Simpan
 							</Button>
 						</div>

@@ -48,13 +48,13 @@ const MONITOR_HIDDEN_STATUSES = ['TERLAPOR', 'ditolak', 'digabung'];
 
 // Metadata status kejadian (badge + pin peta + titik legenda). Warna selaras Peta Pemantauan,
 // KECUALI "Penanganan" yang memakai teal (permintaan produk). Gaya kartu/pill/paginasi
-// mengikuti halaman Hydrant (Admin/Hydrants/Index.jsx): tetap pakai border, aksen seleksi teal.
+// mengikuti halaman Hydrant (Admin/Hydrants/Index.jsx): aksen seleksi primer sejak TASK_69 (apple-design).
 const TEAL_ACCENT = {
-	cardActive: 'border-teal-500 bg-teal-50/50 dark:border-teal dark:bg-teal/5',
-	cardHover: 'hover:border-teal-300 dark:hover:border-teal/50',
-	title: 'text-teal-700 dark:text-teal',
-	pillActive: 'border-teal-200 bg-teal-50 text-teal-700 dark:border-teal/30 dark:bg-teal/10 dark:text-teal',
-	pageActive: 'border-teal-600 bg-teal-600 text-white shadow-sm dark:border-teal dark:bg-teal',
+	cardActive: 'border-primary/40 bg-primary/5',
+	cardHover: 'hover:bg-muted/40',
+	title: 'text-primary',
+	pillActive: 'border-primary/20 bg-primary/10 text-primary',
+	pageActive: 'border-primary bg-primary text-primary-foreground shadow-sm',
 };
 
 const STATUS_META = {
@@ -432,9 +432,10 @@ export default function Index(props) {
 						<div className="relative">
 							<IconSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 							<Input
-								type="text"
+								type="search"
+								enterKeyHint="search"
 								placeholder="Cari judul, alamat, atau pelapor..."
-								className="h-10 pl-9 focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
+								className="h-11 rounded-xl bg-card pl-9"
 								value={params?.search ?? ''}
 								onChange={(e) => setParams((prev) => ({ ...prev, search: e.target.value }))}
 							/>
@@ -616,7 +617,7 @@ export default function Index(props) {
 												</div>
 
 												{hasCoords && (
-													<div className="flex items-center justify-center gap-1 rounded-md bg-teal-50 py-1.5 text-[10px] font-bold text-teal-600 dark:bg-teal/10 dark:text-teal lg:hidden">
+													<div className="flex items-center justify-center gap-1 rounded-lg py-1 text-[11px] font-semibold text-primary lg:hidden">
 														<IconArrowDown className="h-3 w-3" /> Lihat Peta Lokasi
 													</div>
 												)}

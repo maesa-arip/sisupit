@@ -1,19 +1,21 @@
 import HeaderTitle from '@/Components/HeaderTitle';
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from '@/Components/ui/alert-dialog';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
 import { flashMessage } from '@/lib/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import {
-	IconAlertTriangle,
-	IconCheck,
-	IconEdit,
-	IconHomeCog,
-	IconPlus,
-	IconSearch,
-	IconTrash,
-} from '@tabler/icons-react';
+import { IconCheck, IconEdit, IconHomeCog, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -98,31 +100,26 @@ export default function Index({
 		<div className="flex h-full w-full flex-col space-y-6">
 			<Head title="Manajemen Banjar" />
 
-			{banjarToDelete && (
-				<div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-					<div className="w-full max-w-md rounded-2xl border bg-background p-6 shadow-xl">
-						<div className="flex items-center gap-3 text-destructive">
-							<IconAlertTriangle className="h-6 w-6" />{' '}
-							<h3 className="text-lg font-bold">Hapus banjar?</h3>
-						</div>
-						<p className="mt-2 text-sm text-muted-foreground">
+			<AlertDialog open={!!banjarToDelete} onOpenChange={(open) => !open && setBanjarToDelete(null)}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Hapus banjar?</AlertDialogTitle>
+						<AlertDialogDescription>
 							Banjar ini tidak lagi muncul di pilihan warga maupun form hydrant warga. Warga dan tandon
 							yang terlanjur menunjuk ke sana TIDAK ikut terhapus - banjarnya saja yang dikosongkan.
-						</p>
-						<div className="mt-6 flex justify-end gap-3">
-							<Button variant="ghost" onClick={() => setBanjarToDelete(null)}>
-								Batal
-							</Button>
-							<Button
-								className="bg-destructive text-destructive-foreground shadow-none hover:bg-destructive/90"
-								onClick={confirmDelete}
-							>
-								Hapus
-							</Button>
-						</div>
-					</div>
-				</div>
-			)}
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel className="rounded-xl">Batal</AlertDialogCancel>
+						<AlertDialogAction
+							className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+							onClick={confirmDelete}
+						>
+							Hapus
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 
 			<div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
 				<HeaderTitle

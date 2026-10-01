@@ -194,7 +194,7 @@ export default function Form({ banjar = null, districts = [], jenis_options = []
 							<Button type="button" variant="ghost" asChild>
 								<Link href={route('admin.banjars.index')}>Batal</Link>
 							</Button>
-							<Button type="submit" disabled={processing}>
+							<Button className="h-11 rounded-xl px-6" type="submit" disabled={processing}>
 								<IconDeviceFloppy className="mr-1.5 h-4 w-4" />
 								{isEdit ? 'Simpan Perubahan' : 'Tambah Banjar'}
 							</Button>

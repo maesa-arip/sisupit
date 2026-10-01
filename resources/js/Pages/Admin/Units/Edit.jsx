@@ -45,7 +45,7 @@ export default function Edit({ unit, pos_options = [], type_options = [] }) {
 					subtitle="Perbarui nama, jenis, status, atau homebase unit."
 					icon={IconTruck}
 				/>
-				<Button variant="secondary" size="sm" asChild>
+				<Button className="rounded-full" variant="outline" size="sm" asChild>
 					<Link href={route('admin.units.index')}>
 						<IconArrowLeft className="mr-1.5 size-4" /> Kembali
 					</Link>
@@ -53,8 +53,9 @@ export default function Edit({ unit, pos_options = [], type_options = [] }) {
 			</div>
 
 			<div className="w-full max-w-2xl">
-				<Card className="border-border shadow-none">
-					<CardContent className="p-6">
+				<Card className="mx-auto w-full max-w-2xl">
+					
+					<CardContent className="p-5 sm:p-6">
 						<form className="space-y-5" onSubmit={onHandleSubmit}>
 							{isDispatched && (
 								<div className="flex items-start gap-3 rounded-md border border-warning/30 bg-warning/10 p-3 text-warning">
@@ -73,7 +74,7 @@ export default function Edit({ unit, pos_options = [], type_options = [] }) {
 									id="name"
 									value={data.name}
 									onChange={(e) => setData('name', e.target.value)}
-									className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
+									className="h-11 rounded-xl"
 								/>
 								{errors.name && <InputError message={errors.name} />}
 							</div>
@@ -82,7 +83,7 @@ export default function Edit({ unit, pos_options = [], type_options = [] }) {
 								<div className="grid gap-1.5">
 									<Label>Jenis Unit</Label>
 									<Select value={data.type} onValueChange={(value) => setData('type', value)}>
-										<SelectTrigger className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal">
+										<SelectTrigger className="h-11 rounded-xl">
 											<SelectValue placeholder="Pilih Jenis" />
 										</SelectTrigger>
 										<SelectContent>
@@ -99,7 +100,7 @@ export default function Edit({ unit, pos_options = [], type_options = [] }) {
 								<div className="grid gap-1.5">
 									<Label>Status</Label>
 									<Select value={data.status} onValueChange={(value) => setData('status', value)}>
-										<SelectTrigger className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal">
+										<SelectTrigger className="h-11 rounded-xl">
 											<SelectValue placeholder="Pilih Status" />
 										</SelectTrigger>
 										<SelectContent>
@@ -120,20 +121,16 @@ export default function Edit({ unit, pos_options = [], type_options = [] }) {
 									onChange={(value) => setData('pos_pemadam_id', value)}
 									placeholder="Tanpa Pos"
 									emptyText="Pos tidak ditemukan."
-									className="focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
+									className="h-11 rounded-xl"
 								/>
 								{errors.pos_pemadam_id && <InputError message={errors.pos_pemadam_id} />}
 							</div>
 
 							<div className="flex justify-end gap-2 border-t border-border pt-2">
-								<Button type="button" variant="secondary" asChild>
+								<Button className="h-11 rounded-xl" type="button" variant="ghost" asChild>
 									<Link href={route('admin.units.index')}>Batal</Link>
 								</Button>
-								<Button
-									type="submit"
-									disabled={processing}
-									className="border-transparent bg-teal-600 text-white shadow-none hover:bg-teal-700 dark:bg-teal dark:hover:bg-teal/90"
-								>
+								<Button type="submit" disabled={processing} className="h-11 rounded-xl px-6">
 									<IconDeviceFloppy className="mr-2 h-4 w-4" /> Simpan Update
 								</Button>
 							</div>

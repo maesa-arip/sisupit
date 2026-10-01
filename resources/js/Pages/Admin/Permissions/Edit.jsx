@@ -41,15 +41,15 @@ export default function Edit(props) {
 					subtitle={props.page_settings.subtitle}
 					icon={IconCircleKey}
 				/>
-				<Button variant="orange" size="sm" className="w-full lg:w-auto" asChild>
+				<Button variant="outline" size="sm" className="rounded-full" asChild>
 					<Link href={route('admin.permissions.index')}>
 						<IconArrowLeft className="size-4" />
 						Kembali
 					</Link>
 				</Button>
 			</div>
-			<Card>
-				<CardContent className="p-6">
+			<Card className="mx-auto w-full max-w-2xl">
+				<CardContent className="p-5 sm:p-6">
 					<form className="space-y-6" onSubmit={onHandleSubmit}>
 						<div className="grid w-full items-center gap-1.5">
 							<Label htmlFor="name">Nama</Label>
@@ -85,18 +85,15 @@ export default function Edit(props) {
 						<div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
 							<Button
 								type="button"
-								variant="secondary"
-								size="sm"
-								className="w-full sm:w-auto"
+								variant="ghost"
+								className="h-11 w-full rounded-xl sm:w-auto"
 								onClick={onHandleReset}
 							>
 								Atur ulang
 							</Button>
 							<Button
 								type="submit"
-								variant="orange"
-								size="sm"
-								className="w-full sm:w-auto"
+								className="h-11 w-full rounded-xl px-6 sm:w-auto"
 								disabled={processing}
 							>
 								Simpan

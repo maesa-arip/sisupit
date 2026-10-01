@@ -43,7 +43,7 @@ export default function Edit({ contact }) {
 					subtitle="Perubahan di sini tidak mengubah surat yang sudah terkirim."
 					icon={IconAddressBook}
 				/>
-				<Button variant="secondary" size="sm" asChild>
+				<Button className="rounded-full" variant="outline" size="sm" asChild>
 					<Link href={route('admin.mail-contacts.index')}>
 						<IconArrowLeft className="mr-1.5 size-4" /> Kembali
 					</Link>
@@ -51,8 +51,9 @@ export default function Edit({ contact }) {
 			</div>
 
 			<div className="w-full max-w-2xl">
-				<Card className="border-border shadow-none">
-					<CardContent className="p-6">
+				<Card className="mx-auto w-full max-w-2xl">
+					
+					<CardContent className="p-5 sm:p-6">
 						<form className="space-y-5" onSubmit={onHandleSubmit}>
 							<div className="space-y-2">
 								<Label htmlFor="name">Nama</Label>
@@ -111,10 +112,10 @@ export default function Edit({ contact }) {
 							</label>
 
 							<div className="flex justify-end gap-2 border-t border-border pt-4">
-								<Button type="button" variant="secondary" asChild>
+								<Button className="h-11 rounded-xl" type="button" variant="ghost" asChild>
 									<Link href={route('admin.mail-contacts.index')}>Batal</Link>
 								</Button>
-								<Button type="submit" disabled={processing}>
+								<Button className="h-11 rounded-xl px-6" type="submit" disabled={processing}>
 									<IconDeviceFloppy className="mr-2 h-4 w-4" /> Simpan Perubahan
 								</Button>
 							</div>

@@ -109,7 +109,7 @@ export default function Index(props) {
 					subtitle={props.page_settings.subtitle}
 					icon={IconRoute}
 				/>
-				<Button variant="orange" size="sm" className="w-full lg:w-auto" asChild>
+				<Button size="sm" className="h-10 w-full rounded-full px-4 lg:w-auto" asChild>
 					<Link href={route('admin.route-accesses.create')}>
 						<IconPlus className="size-4" /> Tambah
 					</Link>

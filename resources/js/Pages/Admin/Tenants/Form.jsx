@@ -91,7 +91,7 @@ export default function Form(props) {
 					subtitle={page_settings.subtitle}
 					icon={IconBuildingCommunity}
 				/>
-				<Button variant="orange" size="sm" asChild>
+				<Button className="rounded-full" variant="outline" size="sm" asChild>
 					<Link href={route('admin.tenants.index')}>
 						<IconArrowLeft className="size-4" /> Kembali
 					</Link>
@@ -338,11 +338,16 @@ export default function Form(props) {
 
 						<div className="flex justify-end gap-x-2">
 							{!tenant && (
-								<Button type="button" variant="secondary" size="sm" onClick={() => reset()}>
+								<Button
+									className="h-11 rounded-xl"
+									type="button"
+									variant="ghost"
+									onClick={() => reset()}
+								>
 									Atur ulang
 								</Button>
 							)}
-							<Button type="submit" variant="orange" size="sm" disabled={processing || compressing}>
+							<Button className="h-11 rounded-xl px-6" type="submit" disabled={processing || compressing}>
 								Simpan
 							</Button>
 						</div>

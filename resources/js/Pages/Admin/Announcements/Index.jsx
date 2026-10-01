@@ -31,7 +31,7 @@ export default function Index(props) {
 					subtitle={props.page_settings.subtitle}
 					icon={IconAlertCircle}
 				/>
-				<Button variant="orange" size="sm" asChild>
+				<Button className="h-10 rounded-full px-4" size="sm" asChild>
 					<Link href={route('admin.announcements.create')}>
 						<IconPlus className="size-4" /> Tambah
 					</Link>

@@ -11,9 +11,7 @@ export default function ErrorHandling({ status }) {
 			<div className="grid min-h-full place-items-center bg-background px-6 py-24 sm:py-32 lg:px-8">
 				<Card className="text-center">
 					<CardContent className="p-8">
-						<p className="text-base font-semibold text-warning">
-							{errorMessages.status}
-						</p>
+						<p className="text-base font-semibold text-warning">{errorMessages.status}</p>
 						<h1 className="mt-4 text-5xl font-bold tracking-tighter text-foreground">
 							{errorMessages.title}
 						</h1>
@@ -21,7 +19,7 @@ export default function ErrorHandling({ status }) {
 							{errorMessages.description}
 						</p>
 						<div className="mt-10 flex items-start justify-center gap-x-6">
-							<Button variant="orange" asChild>
+							<Button className="h-10 rounded-full px-4" asChild>
 								<Link href="/">Kembali ke halaman awal</Link>
 							</Button>
 						</div>

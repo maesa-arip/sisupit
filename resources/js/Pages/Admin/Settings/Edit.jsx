@@ -62,8 +62,8 @@ export default function Edit(props) {
 					icon={IconSettings}
 				/>
 			</div>
-			<Card>
-				<CardContent className="p-6">
+			<Card className="mx-auto w-full max-w-2xl">
+				<CardContent className="p-5 sm:p-6">
 					<form className="space-y-6" onSubmit={onHandleSubmit}>
 						<p className="text-sm text-muted-foreground">
 							Notifikasi laporan selalu dimulai dari desa lokasi laporan, lalu disiarkan naik ke tingkat
@@ -131,7 +131,7 @@ export default function Edit(props) {
 							</div>
 						</div>
 						<div className="flex justify-end gap-x-2">
-							<Button type="submit" variant="orange" size="sm" disabled={processing}>
+							<Button className="h-11 rounded-xl px-6" type="submit" disabled={processing}>
 								Simpan
 							</Button>
 						</div>

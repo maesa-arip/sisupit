@@ -1,11 +1,20 @@
 import HeaderTitle from '@/Components/HeaderTitle';
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from '@/Components/ui/alert-dialog';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
-	IconAlertTriangle,
 	IconBolt,
 	IconBuildingCommunity,
 	IconEdit,
@@ -41,30 +50,26 @@ export default function Index({ agencies, filters }) {
 		<div className="flex h-full w-full flex-col space-y-6">
 			<Head title="Manajemen OPD" />
 
-			{agencyToDelete && (
-				<div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-					<div className="w-full max-w-md rounded-2xl border bg-background p-6 shadow-xl">
-						<div className="flex items-center gap-3 text-destructive">
-							<IconAlertTriangle className="h-6 w-6" /> <h3 className="text-lg font-bold">Hapus OPD?</h3>
-						</div>
-						<p className="mt-2 text-sm text-muted-foreground">
+			<AlertDialog open={!!agencyToDelete} onOpenChange={(open) => !open && setAgencyToDelete(null)}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Hapus OPD?</AlertDialogTitle>
+						<AlertDialogDescription>
 							OPD ini tidak lagi muncul saat verifikasi laporan. Pelibatannya di insiden yang sudah lewat
 							tetap tercatat.
-						</p>
-						<div className="mt-6 flex justify-end gap-3">
-							<Button variant="ghost" onClick={() => setAgencyToDelete(null)}>
-								Batal
-							</Button>
-							<Button
-								className="bg-destructive text-destructive-foreground shadow-none hover:bg-destructive/90"
-								onClick={confirmDelete}
-							>
-								Hapus
-							</Button>
-						</div>
-					</div>
-				</div>
-			)}
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel className="rounded-xl">Batal</AlertDialogCancel>
+						<AlertDialogAction
+							className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+							onClick={confirmDelete}
+						>
+							Hapus
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 
 			<div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
 				<HeaderTitle
@@ -206,9 +211,7 @@ export default function Index({ agencies, filters }) {
 					</>
 				) : (
 					<div className="rounded-xl border border-dashed border-input p-10 text-center">
-						<span className="text-sm text-muted-foreground">
-							Belum ada OPD terdaftar di wilayah Anda.
-						</span>
+						<span className="text-sm text-muted-foreground">Belum ada OPD terdaftar di wilayah Anda.</span>
 					</div>
 				)}
 			</div>

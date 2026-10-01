@@ -1,11 +1,20 @@
 import HeaderTitle from '@/Components/HeaderTitle';
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from '@/Components/ui/alert-dialog';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
-	IconAlertTriangle,
 	IconBuildingWarehouse,
 	IconEdit,
 	IconMapPin,
@@ -60,29 +69,25 @@ export default function Index({ units, filters }) {
 		<div className="flex h-full w-full flex-col space-y-6">
 			<Head title="Manajemen Armada" />
 
-			{unitToDelete && (
-				<div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-					<div className="w-full max-w-md rounded-2xl border bg-background p-6 shadow-xl">
-						<div className="flex items-center gap-3 text-destructive">
-							<IconAlertTriangle className="h-6 w-6" /> <h3 className="text-lg font-bold">Hapus Unit?</h3>
-						</div>
-						<p className="mt-2 text-sm text-muted-foreground">
+			<AlertDialog open={!!unitToDelete} onOpenChange={(open) => !open && setUnitToDelete(null)}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Hapus Unit?</AlertDialogTitle>
+						<AlertDialogDescription>
 							Unit ini akan dihapus dari katalog armada wilayah Anda.
-						</p>
-						<div className="mt-6 flex justify-end gap-3">
-							<Button variant="ghost" onClick={() => setUnitToDelete(null)}>
-								Batal
-							</Button>
-							<Button
-								className="bg-destructive text-destructive-foreground shadow-none hover:bg-destructive/90"
-								onClick={confirmDelete}
-							>
-								Hapus Permanen
-							</Button>
-						</div>
-					</div>
-				</div>
-			)}
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel className="rounded-xl">Batal</AlertDialogCancel>
+						<AlertDialogAction
+							className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+							onClick={confirmDelete}
+						>
+							Hapus Permanen
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 
 			<div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
 				<HeaderTitle
@@ -90,11 +95,7 @@ export default function Index({ units, filters }) {
 					subtitle="Kelola katalog unit operasional (truk, tangki, rescue) di wilayah Anda."
 					icon={IconTruck}
 				/>
-				<Button
-					size="sm"
-					className="border-none bg-teal-600 text-white shadow-none hover:bg-teal-700 dark:bg-teal dark:hover:bg-teal/90"
-					asChild
-				>
+				<Button size="sm" className="h-10 rounded-full px-4" asChild>
 					<Link href={route('admin.units.create')}>
 						<IconPlus className="mr-1.5 h-4 w-4" /> Tambah Unit
 					</Link>
@@ -107,7 +108,7 @@ export default function Index({ units, filters }) {
 					<Input
 						type="text"
 						placeholder="Cari nama unit..."
-						className="h-10 pl-9 focus-visible:ring-teal-500 dark:focus-visible:ring-teal"
+						className="h-11 rounded-xl bg-card pl-9"
 						value={data.search}
 						onChange={(e) => setData('search', e.target.value)}
 					/>
@@ -120,7 +121,7 @@ export default function Index({ units, filters }) {
 							onClick={() => applyStatusFilter(status)}
 							className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-all ${
 								data.status === status
-									? 'border-teal-200 bg-teal-50 text-teal-700 dark:border-teal/30 dark:bg-teal/10 dark:text-teal'
+									? 'border-primary/20 bg-primary/10 text-primary'
 									: 'border-input bg-transparent text-muted-foreground hover:bg-accent'
 							}`}
 						>
@@ -139,12 +140,9 @@ export default function Index({ units, filters }) {
 								color: 'bg-muted text-muted-foreground border-border',
 							};
 							return (
-								<Card
-									key={unit.id}
-									className="transition-colors hover:border-teal-300 dark:hover:border-teal/50"
-								>
+								<Card key={unit.id} className="transition-colors hover:bg-muted/40">
 									<CardContent className="flex flex-row items-center gap-3 p-3 sm:p-4">
-										<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-teal-100 text-teal-600 dark:bg-teal/10 dark:text-teal">
+										<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal/10 text-teal">
 											<IconBuildingWarehouse className="h-5 w-5" />
 										</div>
 										<div className="min-w-0 flex-1">
@@ -209,7 +207,7 @@ export default function Index({ units, filters }) {
 												preserveScroll
 												className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
 													link.active
-														? 'border-teal-600 bg-teal-600 text-white shadow-sm dark:border-teal dark:bg-teal'
+														? 'border-primary bg-primary text-primary-foreground shadow-sm'
 														: 'border-input bg-background text-muted-foreground hover:bg-accent hover:text-foreground'
 												}`}
 												dangerouslySetInnerHTML={{ __html: link.label }}

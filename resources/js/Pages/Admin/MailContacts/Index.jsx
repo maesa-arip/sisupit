@@ -1,4 +1,14 @@
 import HeaderTitle from '@/Components/HeaderTitle';
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from '@/Components/ui/alert-dialog';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
@@ -7,7 +17,6 @@ import { flashMessage } from '@/lib/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
 	IconAddressBook,
-	IconAlertTriangle,
 	IconDownload,
 	IconEdit,
 	IconMail,
@@ -65,31 +74,26 @@ export default function Index({ contacts, filters }) {
 		<div className="flex h-full w-full flex-col space-y-6">
 			<Head title="Daftar Penerima Email" />
 
-			{contactToDelete && (
-				<div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-					<div className="w-full max-w-md rounded-2xl border bg-background p-6 shadow-xl">
-						<div className="flex items-center gap-3 text-destructive">
-							<IconAlertTriangle className="h-6 w-6" />{' '}
-							<h3 className="text-lg font-bold">Hapus penerima?</h3>
-						</div>
-						<p className="mt-2 text-sm text-muted-foreground">
+			<AlertDialog open={!!contactToDelete} onOpenChange={(open) => !open && setContactToDelete(null)}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Hapus penerima?</AlertDialogTitle>
+						<AlertDialogDescription>
 							Alamat ini tidak lagi bisa dikirimi surat. Surat yang sudah terkirim tetap mencatat nama dan
 							alamatnya.
-						</p>
-						<div className="mt-6 flex justify-end gap-3">
-							<Button variant="ghost" onClick={() => setContactToDelete(null)}>
-								Batal
-							</Button>
-							<Button
-								className="bg-destructive text-destructive-foreground shadow-none hover:bg-destructive/90"
-								onClick={confirmDelete}
-							>
-								Hapus
-							</Button>
-						</div>
-					</div>
-				</div>
-			)}
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel className="rounded-xl">Batal</AlertDialogCancel>
+						<AlertDialogAction
+							className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+							onClick={confirmDelete}
+						>
+							Hapus
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 
 			<div className="flex flex-col items-start justify-between gap-y-4 sm:flex-row sm:items-center">
 				<HeaderTitle

@@ -22,7 +22,7 @@ export default function Success() {
 								Terimakasih telah menyelesaikan pembayaran denda. Kami dengan senang hati mengkonfirmasi
 								bahwa transaksi anda telah berhasil diproses.
 							</p>
-							<Button variant="orange" asChild>
+							<Button className="h-10 rounded-full px-4" asChild>
 								<Link href={route('dashboard')}>Kembali</Link>
 							</Button>
 						</CardContent>
