@@ -126,3 +126,27 @@ produksi memuat `.material-chrome`/`.material-thick`, `prefers-reduced-transpare
 origin Radix, tracking judul, dan pengecualian pemusatan.
 **Butuh ponsel:** keterbacaan teks di atas header/bilah kaca di mode terang & gelap, kinerja blur di
 ponsel lama (backdrop-filter mahal di GPU lemah), rasa pegas dialog/popover.
+
+## 8. Bagian 3 — /admin/users (Index, Create, Edit) ke rupa apple-design (permintaan user 2026-10-01)
+
+User: "cek pada tampilan /admin/users masih tampilan lama, perbaiki sampai ke semua isiannya, tombol card
+warna dan semuanya". LOGIKA TIDAK DISENTUH (filter, urut, dialog peran, gerbang tingkat/OPD, submit) -
+hanya rupa.
+- **Form Tambah & Edit:** isian dikelompokkan "inset grouped" lewat komponen BERSAMA BARU
+  `Pages/Admin/Users/Partials/UserFormParts.jsx` (`FormSection`, `FormField`, `LockedField`,
+  `SegmentedControl`) - grup Identitas / Kata sandi / Wilayah akun / Peran. Jenis kelamin jadi segmented
+  control (2 pilihan, satu ketukan). Isian h-11 rounded-xl + `type`/`inputMode`/`autoComplete` yang benar
+  (email, tel, new-password). Edit menampilkan avatar + nama di kepala, kata sandi bertanda "kosongkan
+  bila tidak diubah". Tombol: "Simpan pengguna"/"Simpan perubahan" (primer), "Atur ulang" (ghost),
+  "Kembali" (outline bulat) - tak ada lagi varian gradien `orange`, teks "Save"/"Reset", maupun
+  placeholder "Masukan ...".
+- **Daftar:** peran tampil dengan `roleLabel`/`roleTone` (dulu nama mentah `petugas`); aksi baris =
+  tombol ikon netral (Peran, Ubah) + Hapus merah - dulu tiga tombol gradien hijau/biru/merah; kolom cari
+  berikon `type="search"`; "Atur ulang" ghost (dulu tombol MERAH untuk aksi yang tak berbahaya); kepala
+  kolom menampilkan arah urut kolom aktif (+`aria-sort`); kartu ponsel dengan baris aksi bergaris rambut;
+  keadaan kosong; "Menampilkan X-Y dari Z pengguna" (dulu salah ketik "Menamplikan"). Dialog Hapus &
+  Peran berbahasa Indonesia ("Batal"/"Hapus", "Simpan peran"; dulu "Cancel"/"Continue"); pilihan peran
+  jadi daftar bergaris dengan baris terpilih bertint.
+- **Penjaga:** kasus baru di `AppleDesignMaterialTest` - ketiga halaman tanpa varian gradien & teks
+  Inggris, Create/Edit memakai FormSection + SegmentedControl, Index memakai roleLabel. MERAH terhadap
+  ketiga berkas lama (pulih byte-exact). Suite 643 -> 644 passed (3100).

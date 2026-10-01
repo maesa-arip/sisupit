@@ -98,3 +98,21 @@ it('tightens large headings and leaves body text untracked', function () {
     expect($css)->toMatch('/\bh1\s*\{\s*letter-spacing:\s*-0\.0\d+em/')
         ->and($css)->not->toMatch('/\bbody\s*\{[^}]*letter-spacing/');
 });
+
+it('keeps user management on the grouped form and off the old gradient button variants', function () {
+    $pages = ['Index', 'Create', 'Edit'];
+
+    foreach ($pages as $page) {
+        $src = appleSource("resources/js/Pages/Admin/Users/{$page}.jsx");
+        expect($src)->not->toMatch('/variant="(green|blue|red|orange|purple)"/')
+            ->and($src)->not->toMatch('/>\s*(Save|Reset|Cancel|Continue)\s*</');
+    }
+
+    foreach (['Create', 'Edit'] as $page) {
+        expect(appleSource("resources/js/Pages/Admin/Users/{$page}.jsx"))
+            ->toContain('<FormSection')
+            ->toContain('<SegmentedControl');
+    }
+
+    expect(appleSource('resources/js/Pages/Admin/Users/Index.jsx'))->toContain('roleLabel([role])');
+});

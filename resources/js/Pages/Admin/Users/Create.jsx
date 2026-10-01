@@ -1,33 +1,17 @@
 import HeaderTitle from '@/Components/HeaderTitle';
-import InputError from '@/Components/InputError';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent } from '@/Components/ui/card';
 import { Combobox } from '@/Components/ui/combobox';
 import { Input } from '@/Components/ui/input';
-import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import AppLayout from '@/Layouts/AppLayout';
 import { compressImage } from '@/lib/compress-image';
 import { flashMessage } from '@/lib/utils';
 import { Link, useForm } from '@inertiajs/react';
-import { IconArrowLeft, IconInfoCircle, IconLock, IconUsersGroup } from '@tabler/icons-react';
+import { IconArrowLeft, IconInfoCircle, IconUsersGroup } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { FormField, FormSection, LockedField, SegmentedControl, fieldInputClass } from './Partials/UserFormParts';
 import { defaultLevelFor, levelOptionsFor, regionRankOf } from './roleLevel';
-
-const LockedField = ({ label, value }) => (
-	<div className="grid gap-1.5">
-		<Label className="text-muted-foreground">{label}</Label>
-		<div className="relative">
-			<Input
-				readOnly
-				value={value || 'Memuat...'}
-				className="border-dashed bg-accent/50 pr-10 font-medium text-muted-foreground shadow-none focus-visible:ring-0"
-			/>
-			<IconLock className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground opacity-50" />
-		</div>
-	</div>
-);
 
 export default function Create(props) {
 	const fileInputAvatar = useRef(null);
@@ -139,329 +123,305 @@ export default function Create(props) {
 	};
 	return (
 		<div className="flex w-full flex-col pb-32">
-			<div className="mb-8 flex flex-col items-start justify-between gap-y-4 lg:flex-row lg:items-center">
+			<div className="mb-6 flex flex-col items-start justify-between gap-y-4 lg:flex-row lg:items-center">
 				<HeaderTitle
 					title={props.page_settings.title}
 					subtitle={props.page_settings.subtitle}
 					icon={IconUsersGroup}
 				/>
-				<Button variant="orange" size="sm" asChild>
+				<Button variant="outline" size="sm" className="rounded-full" asChild>
 					<Link href={route('admin.users.index')}>
 						<IconArrowLeft className="size-4" />
 						Kembali
 					</Link>
 				</Button>
 			</div>
-			<Card>
-				<CardContent className="p-6">
-					<form className="space-y-6" onSubmit={onHandleSubmit}>
-						<div className="grid w-full items-center gap-1.5">
-							<Label htmlFor="name">Nama</Label>
-							<Input
-								name="name"
-								id="name"
-								value={data.name}
-								type="text"
-								placeholder="Masukan nama..."
-								onChange={onHandleChange}
-							/>
-							{errors.name && <InputError message={errors.name} />}
-						</div>
-						<div className="grid w-full items-center gap-1.5">
-							<Label htmlFor="email">Email</Label>
-							<Input
-								name="email"
-								id="email"
-								value={data.email}
-								type="text"
-								placeholder="Masukan email..."
-								onChange={onHandleChange}
-							/>
-							{errors.email && <InputError message={errors.email} />}
-						</div>
-						<div className="grid w-full items-center gap-1.5">
-							<Label htmlFor="password">Password</Label>
-							<Input
-								name="password"
-								id="password"
-								value={data.password}
-								type="password"
-								placeholder="Masukan password..."
-								onChange={onHandleChange}
-							/>
-							{errors.password && <InputError message={errors.password} />}
-						</div>
-						<div className="grid w-full items-center gap-1.5">
-							<Label htmlFor="password_confirmation">Konfirmasi Password</Label>
-							<Input
-								name="password_confirmation"
-								id="password_confirmation"
-								value={data.password_confirmation}
-								type="password"
-								placeholder="Masukan konfirmasi password..."
-								onChange={onHandleChange}
-							/>
-							{errors.password_confirmation && <InputError message={errors.password_confirmation} />}
-						</div>
-						<div className="grid w-full items-center gap-1.5">
-							<Label htmlFor="phone">Nomor Handphone</Label>
-							<Input
-								name="phone"
-								id="phone"
-								value={data.phone}
-								type="text"
-								placeholder="Masukan nomor handphone..."
-								onChange={onHandleChange}
-							/>
-							{errors.phone && <InputError message={errors.phone} />}
-						</div>
-						{/* Alamat tinggal TERPISAH dari wilayah akun (TASK_61): bagi petugas, wilayah
-						    akun = wilayah TUGAS, bukan tempat tinggalnya. */}
-						<div className="grid w-full items-center gap-1.5">
-							<Label htmlFor="address">Alamat Tinggal</Label>
-							<Input
-								name="address"
-								id="address"
-								value={data.address}
-								type="text"
-								placeholder="Jalan, nomor rumah, desa, kabupaten"
-								onChange={onHandleChange}
-							/>
-							{errors.address && <InputError message={errors.address} />}
-						</div>
-						<div className="flex flex-col gap-4 rounded-lg border border-border bg-accent/30 p-4">
-							<h4 className="text-xs font-bold uppercase text-muted-foreground">Wilayah Akun</h4>
-							<p className="text-xs leading-relaxed text-muted-foreground">
-								Bagi petugas, isi dengan wilayah TUGAS (wilayah damkar tempat ia bertugas), bukan tempat
-								tinggalnya - wilayah ini menentukan laporan dan notifikasi yang ia terima. Tempat
-								tinggal dicatat di isian Alamat Tinggal. Bagi warga dan relawan, isi dengan wilayah
-								tempat tinggal.
-							</p>
-							<p className="text-xs leading-relaxed text-muted-foreground">{getHelperText()}</p>
+			<form className="mx-auto w-full max-w-2xl space-y-8" onSubmit={onHandleSubmit}>
+				<FormSection title="Identitas">
+					<FormField label="Nama lengkap" htmlFor="name" error={errors.name}>
+						<Input
+							name="name"
+							id="name"
+							value={data.name}
+							type="text"
+							autoComplete="name"
+							placeholder="Nama sesuai identitas"
+							className={fieldInputClass}
+							onChange={onHandleChange}
+						/>
+					</FormField>
+					<FormField label="Email" htmlFor="email" error={errors.email}>
+						<Input
+							name="email"
+							id="email"
+							value={data.email}
+							type="email"
+							inputMode="email"
+							autoCapitalize="none"
+							autoComplete="email"
+							placeholder="nama@contoh.com"
+							className={fieldInputClass}
+							onChange={onHandleChange}
+						/>
+					</FormField>
+					<FormField label="Nomor handphone" htmlFor="phone" error={errors.phone}>
+						<Input
+							name="phone"
+							id="phone"
+							value={data.phone}
+							type="tel"
+							inputMode="tel"
+							autoComplete="tel"
+							placeholder="08xxxxxxxxxx"
+							className={fieldInputClass}
+							onChange={onHandleChange}
+						/>
+					</FormField>
+					{/* Alamat tinggal TERPISAH dari wilayah akun (TASK_61): bagi petugas, wilayah
+					    akun = wilayah TUGAS, bukan tempat tinggalnya. */}
+					<FormField label="Alamat tinggal" htmlFor="address" error={errors.address}>
+						<Input
+							name="address"
+							id="address"
+							value={data.address}
+							type="text"
+							autoComplete="street-address"
+							placeholder="Jalan, nomor rumah, desa, kabupaten"
+							className={fieldInputClass}
+							onChange={onHandleChange}
+						/>
+					</FormField>
+					<FormField label="Jenis kelamin" error={errors.gender}>
+						<SegmentedControl
+							ariaLabel="Jenis kelamin"
+							options={props.genders}
+							value={data.gender}
+							onChange={(value) => setData('gender', value)}
+						/>
+					</FormField>
+					<FormField
+						label="Foto profil"
+						htmlFor="avatar"
+						hint="Opsional. Foto dikompres otomatis sebelum diunggah."
+						error={errors.avatar}
+					>
+						<Input
+							name="avatar"
+							id="avatar"
+							type="file"
+							accept="image/*"
+							ref={fileInputAvatar}
+							className="h-11 rounded-xl py-2.5"
+							onChange={(e) => setCompressedFile(e.target.name, e.target.files[0])}
+						/>
+					</FormField>
+				</FormSection>
 
-							<div className="grid gap-1.5">
-								{props.admin_level?.province_code ? (
-									<LockedField label="Provinsi" value={props.admin_region_names?.province} />
-								) : (
-									<>
-										<Label>Provinsi</Label>
-										<Combobox
-											items={props.provinces}
-											value={data.province_code}
-											onChange={(val) =>
-												setData((prev) => ({
-													...prev,
-													province_code: val,
-													city_code: '',
-													district_code: '',
-													village_code: '',
-												}))
-											}
-											placeholder="Pilih Provinsi..."
-										/>
-										{errors.province_code && <InputError message={errors.province_code} />}
-									</>
-								)}
-							</div>
+				<FormSection title="Kata sandi">
+					<FormField label="Kata sandi" htmlFor="password" error={errors.password}>
+						<Input
+							name="password"
+							id="password"
+							value={data.password}
+							type="password"
+							autoComplete="new-password"
+							placeholder="Kata sandi baru"
+							className={fieldInputClass}
+							onChange={onHandleChange}
+						/>
+					</FormField>
+					<FormField
+						label="Ulangi kata sandi"
+						htmlFor="password_confirmation"
+						error={errors.password_confirmation}
+					>
+						<Input
+							name="password_confirmation"
+							id="password_confirmation"
+							value={data.password_confirmation}
+							type="password"
+							autoComplete="new-password"
+							placeholder="Ketik ulang kata sandi"
+							className={fieldInputClass}
+							onChange={onHandleChange}
+						/>
+					</FormField>
+				</FormSection>
 
-							<div className="grid gap-1.5">
-								{props.admin_level?.city_code ? (
-									<LockedField label="Kabupaten / Kota" value={props.admin_region_names?.city} />
-								) : (
-									<>
-										<Label>Kabupaten / Kota</Label>
-										<Combobox
-											items={dynamicCities}
-											value={data.city_code}
-											disabled={!data.province_code}
-											onChange={(val) =>
-												setData((prev) => ({
-													...prev,
-													city_code: val,
-													district_code: '',
-													village_code: '',
-												}))
-											}
-											placeholder="Pilih Kabupaten/Kota..."
-										/>
-										{errors.city_code && <InputError message={errors.city_code} />}
-									</>
-								)}
-							</div>
+				<FormSection
+					title="Wilayah akun"
+					description={`Bagi petugas, isi dengan wilayah TUGAS (wilayah damkar tempat ia bertugas), bukan tempat tinggalnya - wilayah ini menentukan laporan dan notifikasi yang ia terima. Bagi warga dan relawan, isi dengan wilayah tempat tinggal. ${getHelperText()}`}
+				>
+					{props.admin_level?.province_code ? (
+						<LockedField label="Provinsi" value={props.admin_region_names?.province} />
+					) : (
+						<FormField label="Provinsi" error={errors.province_code}>
+							<Combobox
+								items={props.provinces}
+								value={data.province_code}
+								className={fieldInputClass}
+								onChange={(val) =>
+									setData((prev) => ({
+										...prev,
+										province_code: val,
+										city_code: '',
+										district_code: '',
+										village_code: '',
+									}))
+								}
+								placeholder="Pilih provinsi"
+							/>
+						</FormField>
+					)}
+					{props.admin_level?.city_code ? (
+						<LockedField label="Kabupaten / Kota" value={props.admin_region_names?.city} />
+					) : (
+						<FormField label="Kabupaten / Kota" error={errors.city_code}>
+							<Combobox
+								items={dynamicCities}
+								value={data.city_code}
+								disabled={!data.province_code}
+								className={fieldInputClass}
+								onChange={(val) =>
+									setData((prev) => ({
+										...prev,
+										city_code: val,
+										district_code: '',
+										village_code: '',
+									}))
+								}
+								placeholder="Pilih kabupaten/kota"
+							/>
+						</FormField>
+					)}
+					{props.admin_level?.district_code ? (
+						<LockedField label="Kecamatan" value={props.admin_region_names?.district} />
+					) : (
+						<FormField label="Kecamatan" error={errors.district_code}>
+							<Combobox
+								items={dynamicDistricts}
+								value={data.district_code}
+								disabled={!data.city_code}
+								className={fieldInputClass}
+								onChange={(val) =>
+									setData((prev) => ({ ...prev, district_code: val, village_code: '' }))
+								}
+								placeholder="Pilih kecamatan"
+							/>
+						</FormField>
+					)}
+					{props.admin_level?.village_code ? (
+						<LockedField label="Kelurahan / Desa" value={props.admin_region_names?.village} />
+					) : (
+						<FormField label="Kelurahan / Desa" error={errors.village_code}>
+							<Combobox
+								items={villages}
+								value={data.village_code}
+								disabled={!data.district_code}
+								className={fieldInputClass}
+								onChange={(val) => setData('village_code', val)}
+								placeholder="Pilih kelurahan/desa"
+							/>
+						</FormField>
+					)}
+				</FormSection>
 
-							<div className="grid gap-1.5">
-								{props.admin_level?.district_code ? (
-									<LockedField label="Kecamatan" value={props.admin_region_names?.district} />
-								) : (
-									<>
-										<Label>Kecamatan</Label>
-										<Combobox
-											items={dynamicDistricts}
-											value={data.district_code}
-											disabled={!data.city_code}
-											onChange={(val) =>
-												setData((prev) => ({ ...prev, district_code: val, village_code: '' }))
-											}
-											placeholder="Pilih Kecamatan..."
-										/>
-										{errors.district_code && <InputError message={errors.district_code} />}
-									</>
-								)}
-							</div>
+				<FormSection
+					title="Peran"
+					description="Akun yang dibuat admin langsung aktif tanpa verifikasi email. Pastikan alamat email benar - lupa kata sandi dikirim ke alamat ini."
+				>
+					<FormField label="Peran pengguna" htmlFor="role" error={errors.role}>
+						<Select value={data.role} onValueChange={onRoleChange}>
+							<SelectTrigger id="role" className={fieldInputClass}>
+								<SelectValue placeholder="Pilih peran" />
+							</SelectTrigger>
+							<SelectContent>
+								{roles.map((role) => (
+									<SelectItem key={role.value} value={role.value}>
+										{role.label}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</FormField>
 
-							<div className="grid gap-1.5">
-								{props.admin_level?.village_code ? (
-									<LockedField label="Kelurahan / Desa" value={props.admin_region_names?.village} />
-								) : (
-									<>
-										<Label>Kelurahan / Desa</Label>
-										<Combobox
-											items={villages}
-											value={data.village_code}
-											disabled={!data.district_code}
-											onChange={(val) => setData('village_code', val)}
-											placeholder="Pilih Kelurahan/Desa..."
-										/>
-										{errors.village_code && <InputError message={errors.village_code} />}
-									</>
-								)}
-							</div>
-						</div>
-						<div className="flex flex-col gap-4 rounded-lg border border-border bg-accent/30 p-4">
-							<h4 className="text-xs font-bold uppercase text-muted-foreground">Peran</h4>
-							<div className="grid gap-1.5">
-								<Label htmlFor="role">Peran Pengguna</Label>
-								<Select value={data.role} onValueChange={onRoleChange}>
-									<SelectTrigger id="role">
-										<SelectValue placeholder="Pilih peran..." />
+					{isJurisdictional(data.role) && (
+						<FormField
+							label="Tingkat yurisdiksi"
+							htmlFor="level"
+							hint={
+								levelOptions.length > 0
+									? 'Kode wilayah akun disesuaikan ke tingkat ini; wilayah yang lebih rinci dikosongkan agar yurisdiksi tepat.'
+									: null
+							}
+							error={errors.level}
+						>
+							{levelOptions.length > 0 ? (
+								<Select value={data.level} onValueChange={(value) => setData('level', value)}>
+									<SelectTrigger id="level" className={fieldInputClass}>
+										<SelectValue placeholder="Pilih tingkat wilayah" />
 									</SelectTrigger>
 									<SelectContent>
-										{roles.map((role) => (
-											<SelectItem key={role.value} value={role.value}>
-												{role.label}
+										{levelOptions.map((level) => (
+											<SelectItem key={level.value} value={level.value}>
+												{level.label}
 											</SelectItem>
 										))}
 									</SelectContent>
 								</Select>
-								<p className="text-xs leading-relaxed text-muted-foreground">
-									Akun yang dibuat admin langsung aktif tanpa verifikasi email. Pastikan alamat email
-									benar - lupa password dikirim ke alamat ini.
+							) : (
+								<p className="flex items-start gap-2 text-xs text-muted-foreground">
+									<IconInfoCircle className="mt-0.5 size-4 shrink-0" />
+									Isi Wilayah Akun di atas lebih dulu untuk memilih tingkat yurisdiksi.
 								</p>
-								{errors.role && <InputError message={errors.role} />}
-							</div>
-
-							{isJurisdictional(data.role) && (
-								<div className="grid gap-1.5">
-									<Label htmlFor="level">Tingkat Yurisdiksi</Label>
-									{levelOptions.length > 0 ? (
-										<>
-											<Select
-												value={data.level}
-												onValueChange={(value) => setData('level', value)}
-											>
-												<SelectTrigger id="level">
-													<SelectValue placeholder="Pilih tingkat wilayah" />
-												</SelectTrigger>
-												<SelectContent>
-													{levelOptions.map((level) => (
-														<SelectItem key={level.value} value={level.value}>
-															{level.label}
-														</SelectItem>
-													))}
-												</SelectContent>
-											</Select>
-											<p className="text-xs text-muted-foreground">
-												Kode wilayah akun disesuaikan ke tingkat ini; wilayah yang lebih rinci
-												dikosongkan agar yurisdiksi tepat.
-											</p>
-										</>
-									) : (
-										<p className="flex items-start gap-2 text-xs text-muted-foreground">
-											<IconInfoCircle className="mt-0.5 size-4 shrink-0" />
-											Isi Wilayah Akun di atas lebih dulu untuk memilih tingkat yurisdiksi.
-										</p>
-									)}
-									{errors.level && <InputError message={errors.level} />}
-								</div>
 							)}
+						</FormField>
+					)}
 
-							{data.role === 'opd' && (
-								<div className="grid gap-1.5">
-									<Label htmlFor="agency_id">Instansi yang Diwakili</Label>
-									{agencies.length > 0 ? (
-										<Combobox
-											items={agencies.map((agency) => ({
-												code: String(agency.id),
-												name: agency.name,
-											}))}
-											value={data.agency_id ? String(data.agency_id) : ''}
-											onChange={(value) => setData('agency_id', value)}
-											placeholder="Pilih instansi"
-											emptyText="Instansi tidak ditemukan."
-										/>
-									) : (
-										<p className="flex items-start gap-2 text-xs text-muted-foreground">
-											<IconInfoCircle className="mt-0.5 size-4 shrink-0" />
-											Belum ada OPD terdaftar di wilayah Anda. Tambahkan lebih dulu lewat
-											Manajemen OPD Terkait.
-										</p>
-									)}
-									{errors.agency_id && <InputError message={errors.agency_id} />}
-								</div>
+					{data.role === 'opd' && (
+						<FormField label="Instansi yang diwakili" htmlFor="agency_id" error={errors.agency_id}>
+							{agencies.length > 0 ? (
+								<Combobox
+									items={agencies.map((agency) => ({
+										code: String(agency.id),
+										name: agency.name,
+									}))}
+									value={data.agency_id ? String(data.agency_id) : ''}
+									className={fieldInputClass}
+									onChange={(value) => setData('agency_id', value)}
+									placeholder="Pilih instansi"
+									emptyText="Instansi tidak ditemukan."
+								/>
+							) : (
+								<p className="flex items-start gap-2 text-xs text-muted-foreground">
+									<IconInfoCircle className="mt-0.5 size-4 shrink-0" />
+									Belum ada OPD terdaftar di wilayah Anda. Tambahkan lebih dulu lewat Manajemen OPD
+									Terkait.
+								</p>
 							)}
-						</div>
-						<div className="grid w-full items-center gap-1.5">
-							<Label htmlFor="avatar">Avatar</Label>
-							<Input
-								name="avatar"
-								id="avatar"
-								type="file"
-								ref={fileInputAvatar}
-								onChange={(e) => setCompressedFile(e.target.name, e.target.files[0])}
-							/>
-							{errors.avatar && <InputError message={errors.avatar} />}
-						</div>
-						<div className="grid w-full items-center gap-1.5">
-							<Label htmlFor="gender">Jenis Kelamin</Label>
-							<Select defaultValue={data.gender} onValueChange={(value) => setData('gender', value)}>
-								<SelectTrigger>
-									<SelectValue>
-										{props.genders.find((gender) => gender.value == data.gender)?.label ??
-											'Pilih Jenis Kelamin'}
-									</SelectValue>
-								</SelectTrigger>
-								<SelectContent>
-									{props.genders.map((gender, index) => (
-										<SelectItem key={index} value={gender.value}>
-											{gender.label}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-							{errors.gender && <InputError message={errors.gender} />}
-						</div>
-						<div className="flex justify-end gap-x-2">
-							<Button type="button" variant="secondary" size="sm" onClick={onHandleReset}>
-								Reset
-							</Button>
-							<Button
-								type="submit"
-								variant="orange"
-								size="sm"
-								disabled={
-									processing ||
-									compressing ||
-									!data.role ||
-									(isJurisdictional(data.role) && !data.level) ||
-									(data.role === 'opd' && !data.agency_id)
-								}
-							>
-								Save
-							</Button>
-						</div>
-					</form>
-				</CardContent>
-			</Card>
+						</FormField>
+					)}
+				</FormSection>
+
+				<div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+					<Button type="button" variant="ghost" className="h-11 rounded-xl" onClick={onHandleReset}>
+						Atur ulang
+					</Button>
+					<Button
+						type="submit"
+						className="h-11 rounded-xl px-6"
+						disabled={
+							processing ||
+							compressing ||
+							!data.role ||
+							(isJurisdictional(data.role) && !data.level) ||
+							(data.role === 'opd' && !data.agency_id)
+						}
+					>
+						{compressing ? 'Memproses foto...' : processing ? 'Menyimpan...' : 'Simpan pengguna'}
+					</Button>
+				</div>
+			</form>
 		</div>
 	);
 }
