@@ -41,7 +41,8 @@ Task aktif   : RILIS GOOGLE PLAY (2026-09-30). Akun Play Console PRIBADI (tanpa 
 Terakhir     : #159/TASK_69 lapisan platform ponsel (hover sentuh, tap, active Button, 16px iOS,
                 tema toast, dvh) + apple-design penuh (material kaca, pegas, cross-fade; PENGECUALIAN #5
                 KHUSUS branch ini; bagian 15: peta hanya desktop di 7 halaman fasilitas/laporan +
-                /admin/reports dirombak ulang) di branch feat/mobile-native-polish - BELUM merge/deploy, butuh uji HP.
+                /admin/reports dirombak ulang) di branch feat/mobile-native-polish - TERDEPLOY ke DEV @9e4deaad
+                (2026-10-02); belum merge main/staging/prod, butuh uji HP.
                 #158 push iOS (kabar status pelapor & nada OPD) TERDEPLOY @9988587e.
                 #157 hapus akun = ANONIMISASI TERDEPLOY @43479a4e.
 SEMENTARA    : #149 menu "Jangkauan Petugas" disembunyikan + foto laporan non-kebakaran
