@@ -894,7 +894,7 @@ export default function Create(props) {
 								    tak tercocokkan tak punya satu pun cara membetulkannya. */}
 								<div className="space-y-3 rounded-xl border border-border bg-muted/30 p-3">
 									<div className="min-w-0">
-										<p className="text-xs font-semibold uppercase tracking-wider text-foreground">
+										<p className="text-xs font-semibold uppercase tracking-wide text-foreground">
 											Wilayah Kejadian
 										</p>
 										<p className="mt-0.5 text-[13px] text-muted-foreground">
@@ -1066,7 +1066,7 @@ export default function Create(props) {
 								<div className="rounded-xl border border-border bg-muted/30 p-3">
 									<div className="flex items-start justify-between gap-2">
 										<div className="min-w-0">
-											<p className="text-xs font-semibold uppercase tracking-wider text-foreground">
+											<p className="text-xs font-semibold uppercase tracking-wide text-foreground">
 												Alamat Lengkap (otomatis)
 											</p>
 											<p className="mt-0.5 break-words text-[13px] text-muted-foreground">
@@ -1148,7 +1148,7 @@ export default function Create(props) {
 											value={INCIDENT_TAB.fire}
 											className="mt-4 outline-none focus-visible:ring-0"
 										>
-											<h3 className="border-b border-border pb-2 text-xs font-semibold uppercase tracking-wider text-foreground">
+											<h3 className="border-b border-border pb-2 text-xs font-semibold uppercase tracking-wide text-foreground">
 												Apa yang terbakar?
 											</h3>
 											<div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
@@ -1184,7 +1184,7 @@ export default function Create(props) {
 											value={INCIDENT_TAB.nonFire}
 											className="mt-4 outline-none focus-visible:ring-0"
 										>
-											<h3 className="border-b border-border pb-2 text-xs font-semibold uppercase tracking-wider text-foreground">
+											<h3 className="border-b border-border pb-2 text-xs font-semibold uppercase tracking-wide text-foreground">
 												Darurat apa yang terjadi?
 											</h3>
 										</TabsContent>

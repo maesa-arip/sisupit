@@ -332,7 +332,7 @@ export default function CompleteProfile({ provinces, user, banjar_required = fal
 						<Button
 							type="submit"
 							disabled={processing}
-							className="h-11 w-full rounded-lg bg-destructive font-bold uppercase tracking-wider text-destructive-foreground shadow-none hover:bg-destructive/90"
+							className="h-11 w-full rounded-lg bg-destructive font-bold uppercase tracking-wide text-destructive-foreground shadow-none hover:bg-destructive/90"
 						>
 							{processing ? <IconLoader2 className="h-4 w-4 animate-spin" /> : 'Simpan & Lanjutkan'}
 						</Button>

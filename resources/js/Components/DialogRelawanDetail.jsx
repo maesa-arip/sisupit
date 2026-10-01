@@ -33,7 +33,7 @@ export default function DialogRelawanDetail({ open, onClose, helper, onBack }) {
 								<h3 className="text-center text-lg font-semibold text-foreground">
 									{helper.user?.name}
 								</h3>
-								<span className="mt-2 rounded-md border border-info/20 bg-info/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-info">
+								<span className="mt-2 rounded-md border border-info/20 bg-info/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-info">
 									Relawan Terdaftar
 								</span>
 							</div>
@@ -110,7 +110,7 @@ function DetailItem({ icon, label, value, href, actionIcon }) {
 				{icon}
 			</div>
 			<div className="min-w-0 flex-1">
-				<p className="mb-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
+				<p className="mb-0.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
 				<p
 					className={`break-words text-[13px] font-medium leading-tight transition-colors ${href ? 'text-foreground' : 'text-muted-foreground'}`}
 				>

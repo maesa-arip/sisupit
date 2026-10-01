@@ -157,7 +157,7 @@ export default function ReportThanks({ report, pejabat, namaInstansi, teleponDar
 													</span>
 													<span
 														className={cn(
-															'text-center text-[10px] font-medium leading-tight sm:text-[11px]',
+															'text-center text-[11px] font-medium leading-tight sm:text-[11px]',
 															isCurrent
 																? 'font-bold text-foreground'
 																: 'text-muted-foreground',
@@ -232,7 +232,7 @@ export default function ReportThanks({ report, pejabat, namaInstansi, teleponDar
 							/>
 						</span>
 						<div className="ml-1 flex flex-col justify-center">
-							<span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+							<span className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
 								Layanan Resmi
 							</span>
 							<span className="text-sm font-semibold text-foreground">{namaInstansi}</span>

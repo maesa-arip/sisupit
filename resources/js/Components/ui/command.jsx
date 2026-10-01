@@ -93,7 +93,7 @@ const CommandItem = React.forwardRef(({ className, ...props }, ref) => (
 CommandItem.displayName = CommandPrimitive.Item.displayName;
 
 const CommandShortcut = ({ className, ...props }) => {
-	return <span className={cn('ml-auto text-xs tracking-widest text-muted-foreground', className)} {...props} />;
+	return <span className={cn('ml-auto text-xs tracking-wide text-muted-foreground', className)} {...props} />;
 };
 CommandShortcut.displayName = 'CommandShortcut';
 

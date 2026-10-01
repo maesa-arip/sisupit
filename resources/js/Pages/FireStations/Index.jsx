@@ -145,7 +145,7 @@ export default function Index({ stations, filters, ...props }) {
 												>
 													{facilityStatusLabel(station.status)}
 												</span>
-												<span className="border-l border-border pl-1.5 text-[10px] font-medium text-muted-foreground sm:pl-2">
+												<span className="border-l border-border pl-1.5 text-[11px] font-medium text-muted-foreground sm:pl-2">
 													{station.vehicle_count} Armada
 												</span>
 											</div>
@@ -154,7 +154,7 @@ export default function Index({ stations, filters, ...props }) {
 										{/* KANAN: Jarak & Telepon */}
 										<div className="flex shrink-0 flex-col items-end justify-center gap-2">
 											{station.distance !== '-' ? (
-												<span className="whitespace-nowrap rounded-xl border border-border bg-muted px-2 py-0.5 text-[10px] font-semibold text-foreground/80">
+												<span className="whitespace-nowrap rounded-xl border border-border bg-muted px-2 py-0.5 text-[11px] font-semibold text-foreground/80">
 													{station.distance}
 												</span>
 											) : (

@@ -1197,7 +1197,7 @@ export default function ReportShow(props) {
 				{isOwner && reportStatus === 'TERLAPOR' && (
 					<Button
 						variant="outline"
-						className="h-9 shrink-0 border-border bg-card px-3 text-xs font-bold uppercase tracking-wider shadow-none"
+						className="h-9 shrink-0 border-border bg-card px-3 text-xs font-bold uppercase tracking-wide shadow-none"
 						asChild
 					>
 						<Link href={route('front.reports.edit', report.id)}>Edit</Link>
@@ -1333,7 +1333,7 @@ export default function ReportShow(props) {
 										'Laporan digabung ke kejadian yang sama.',
 									)
 								}
-								className="h-11 gap-1.5 text-xs font-bold uppercase tracking-wider"
+								className="h-11 gap-1.5 text-xs font-bold uppercase tracking-wide"
 							>
 								<IconStack2 className="h-4 w-4" /> Gabungkan
 							</Button>
@@ -1413,7 +1413,7 @@ export default function ReportShow(props) {
 							{/* Satu aksi dominan (Broadcast); Tolak diturunkan jadi tombol teks destructive kecil (#37 Kluster E). */}
 							<Button
 								onClick={openApproveDialog}
-								className="h-12 w-full rounded-lg border border-destructive bg-destructive text-xs font-bold uppercase tracking-wider text-destructive-foreground transition-colors hover:bg-destructive/90 md:h-11 md:w-auto md:px-6"
+								className="h-12 w-full rounded-lg border border-destructive bg-destructive text-xs font-bold uppercase tracking-wide text-destructive-foreground transition-colors hover:bg-destructive/90 md:h-11 md:w-auto md:px-6"
 							>
 								<IconRadar className="mr-1.5 h-4 w-4" /> Broadcast Misi
 							</Button>
@@ -1465,7 +1465,7 @@ export default function ReportShow(props) {
 						</CardHeader>
 						<CardContent className="space-y-5 p-4 sm:p-5">
 							<div className="space-y-1.5 border-b border-border pb-4">
-								<div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+								<div className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
 									Judul Insiden:
 								</div>
 								<div className="text-base font-bold leading-snug text-destructive sm:text-lg">
@@ -1491,18 +1491,18 @@ export default function ReportShow(props) {
 								</div>
 
 								<div className="space-y-2 rounded-lg border border-border bg-muted p-4 sm:col-span-2">
-									<div className="mb-1 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+									<div className="mb-1 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
 										<IconMap className="h-3.5 w-3.5" /> Wilayah Administratif
 									</div>
 									<div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
 										<div>
-											<div className="mb-0.5 text-[10px] text-muted-foreground">Provinsi</div>
+											<div className="mb-0.5 text-[11px] text-muted-foreground">Provinsi</div>
 											<div className="truncate font-bold text-foreground">
 												{report.province?.name || report.province_code || 'Bali'}
 											</div>
 										</div>
 										<div>
-											<div className="mb-0.5 text-[10px] text-muted-foreground">
+											<div className="mb-0.5 text-[11px] text-muted-foreground">
 												Kabupaten/Kota
 											</div>
 											<div className="truncate font-bold text-foreground">
@@ -1510,13 +1510,13 @@ export default function ReportShow(props) {
 											</div>
 										</div>
 										<div>
-											<div className="mb-0.5 text-[10px] text-muted-foreground">Kecamatan</div>
+											<div className="mb-0.5 text-[11px] text-muted-foreground">Kecamatan</div>
 											<div className="truncate font-bold text-foreground">
 												{report.district?.name || report.district_code || '-'}
 											</div>
 										</div>
 										<div>
-											<div className="mb-0.5 text-[10px] text-muted-foreground">
+											<div className="mb-0.5 text-[11px] text-muted-foreground">
 												Desa/Kelurahan
 											</div>
 											<div className="truncate font-bold text-foreground">
@@ -1581,7 +1581,7 @@ export default function ReportShow(props) {
 											href={`https://www.google.com/maps/dir/?api=1&destination=${incidentLocation.lat},${incidentLocation.lng}`}
 											target="_blank"
 											rel="noopener noreferrer"
-											className="mt-2 inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground shadow-none transition-colors hover:bg-accent"
+											className="mt-2 inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide text-foreground shadow-none transition-colors hover:bg-accent"
 										>
 											<IconMap className="h-3.5 w-3.5 text-destructive" /> Navigasi ke Lokasi
 										</a>
@@ -1590,7 +1590,7 @@ export default function ReportShow(props) {
 							</div>
 
 							<div className="mt-2 space-y-2 border-t border-border pt-4">
-								<label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+								<label className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
 									Deskripsi Kejadian:
 								</label>
 								<p className="whitespace-pre-wrap rounded-lg border border-border bg-card p-4 text-sm leading-relaxed text-foreground/80">
@@ -1600,7 +1600,7 @@ export default function ReportShow(props) {
 
 							{photos.length > 0 && (
 								<div className="space-y-2 pt-2">
-									<label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+									<label className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
 										Lampiran Foto {photos.length > 1 && `(${photos.length})`}:
 									</label>
 									<div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -1645,7 +1645,7 @@ export default function ReportShow(props) {
 					{reportStatus === 'ditolak' && (
 						<Card className="rounded-xl border border-border bg-card shadow-none">
 							<CardContent className="space-y-2 p-4 sm:p-5">
-								<h2 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-muted-foreground">
+								<h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-muted-foreground">
 									<IconX className="h-4 w-4" /> Laporan Ditolak
 								</h2>
 								<p className="text-xs leading-relaxed text-muted-foreground">
@@ -1670,7 +1670,7 @@ export default function ReportShow(props) {
 					{mergedReports.length > 0 && (
 						<Card className="rounded-xl border border-border bg-card shadow-none">
 							<CardContent className="space-y-3 p-4 sm:p-5">
-								<h2 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-foreground">
+								<h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-foreground">
 									<IconStack2 className="h-4 w-4 text-muted-foreground" /> Laporan Terkait (
 									{mergedReports.length})
 								</h2>
@@ -1730,7 +1730,7 @@ export default function ReportShow(props) {
 					{isInResponseFlow && (isRelawan || isStaffOrAdmin) && (
 						<Card className="rounded-xl border border-border bg-card shadow-none">
 							<CardContent className="space-y-4 p-4 sm:p-5">
-								<h2 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-foreground">
+								<h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-foreground">
 									<IconShieldCheck className="h-4 w-4 text-info" /> Panel Tindakan Anda
 								</h2>
 
@@ -1756,7 +1756,7 @@ export default function ReportShow(props) {
 													onClick={handleCancelStay}
 													disabled={isActionLoading}
 													variant="outline"
-													className="mt-2 flex h-10 w-full items-center justify-center gap-2 rounded-lg border-border text-xs font-bold uppercase tracking-wider text-muted-foreground shadow-none transition-colors hover:bg-muted hover:text-foreground"
+													className="mt-2 flex h-10 w-full items-center justify-center gap-2 rounded-lg border-border text-xs font-bold uppercase tracking-wide text-muted-foreground shadow-none transition-colors hover:bg-muted hover:text-foreground"
 												>
 													<IconX className="h-4 w-4" /> Batal Jaga Kantor
 												</Button>
@@ -1772,7 +1772,7 @@ export default function ReportShow(props) {
 													<Button
 														onClick={handleTakeAction}
 														disabled={isActionLoading}
-														className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-destructive text-xs font-bold uppercase tracking-wider text-destructive-foreground shadow-none transition-colors hover:bg-destructive/90"
+														className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-destructive text-xs font-bold uppercase tracking-wide text-destructive-foreground shadow-none transition-colors hover:bg-destructive/90"
 													>
 														{isActionLoading ? (
 															<IconLoader2 className="h-4 w-4 animate-spin" />
@@ -1788,7 +1788,7 @@ export default function ReportShow(props) {
 															onClick={handleStayAtBase}
 															disabled={isActionLoading}
 															variant="outline"
-															className="flex h-12 w-full items-center justify-center gap-2 rounded-lg border-border text-xs font-bold uppercase tracking-wider text-foreground shadow-none transition-colors hover:bg-muted"
+															className="flex h-12 w-full items-center justify-center gap-2 rounded-lg border-border text-xs font-bold uppercase tracking-wide text-foreground shadow-none transition-colors hover:bg-muted"
 														>
 															<IconBuilding className="h-4 w-4" /> Jaga di Kantor
 														</Button>
@@ -1805,7 +1805,7 @@ export default function ReportShow(props) {
 												<Button
 													onClick={handleArrive}
 													disabled={isActionLoading}
-													className="flex h-12 w-full animate-pulse items-center justify-center gap-2 rounded-lg bg-info text-xs font-bold uppercase tracking-wider text-info-foreground shadow-none transition-colors hover:bg-info/90"
+													className="flex h-12 w-full animate-pulse items-center justify-center gap-2 rounded-lg bg-info text-xs font-bold uppercase tracking-wide text-info-foreground shadow-none transition-colors hover:bg-info/90"
 												>
 													{isActionLoading ? (
 														<IconLoader2 className="h-4 w-4 animate-spin" />
@@ -1819,7 +1819,7 @@ export default function ReportShow(props) {
 													onClick={handleCancelResponse}
 													disabled={isActionLoading}
 													variant="outline"
-													className="mt-2 flex h-10 w-full items-center justify-center gap-2 rounded-lg border-border text-xs font-bold uppercase tracking-wider text-muted-foreground shadow-none transition-colors hover:bg-muted hover:text-foreground"
+													className="mt-2 flex h-10 w-full items-center justify-center gap-2 rounded-lg border-border text-xs font-bold uppercase tracking-wide text-muted-foreground shadow-none transition-colors hover:bg-muted hover:text-foreground"
 												>
 													<IconX className="h-4 w-4" /> Batal Meluncur
 												</Button>
@@ -1839,7 +1839,7 @@ export default function ReportShow(props) {
 											<Button
 												onClick={() => setIsCorrectingMode(true)}
 												variant="outline"
-												className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-lg border-border text-xs font-bold uppercase tracking-wider text-foreground/80 shadow-none transition-colors hover:bg-muted"
+												className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-lg border-border text-xs font-bold uppercase tracking-wide text-foreground/80 shadow-none transition-colors hover:bg-muted"
 											>
 												<IconMapPin className="h-4 w-4" /> Koreksi Lokasi Insiden
 											</Button>
@@ -1879,7 +1879,7 @@ export default function ReportShow(props) {
 											<Button
 												onClick={() => setConfirmResolve(true)}
 												variant="outline"
-												className="mt-2 h-12 w-full rounded-lg border-success/30 text-xs font-bold uppercase tracking-wider text-success shadow-none transition-colors hover:bg-success/10"
+												className="mt-2 h-12 w-full rounded-lg border-success/30 text-xs font-bold uppercase tracking-wide text-success shadow-none transition-colors hover:bg-success/10"
 											>
 												Tandai Insiden Selesai
 											</Button>
@@ -1903,7 +1903,7 @@ export default function ReportShow(props) {
 						reportStatus !== 'resolved' && (
 							<Card className="rounded-xl border border-border bg-card shadow-none">
 								<CardContent className="space-y-3 p-4 sm:p-5">
-									<h2 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-foreground">
+									<h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-foreground">
 										<IconTruck className="h-4 w-4 text-teal-600 dark:text-teal" /> Pengerahan Armada
 									</h2>
 
@@ -1918,7 +1918,7 @@ export default function ReportShow(props) {
 														<div className="truncate text-xs font-bold text-foreground">
 															{ru.unit?.name || 'Unit'}
 														</div>
-														<div className="truncate text-[10px] text-muted-foreground">
+														<div className="truncate text-[11px] text-muted-foreground">
 															{ru.unit?.type}
 														</div>
 													</div>
@@ -1926,7 +1926,7 @@ export default function ReportShow(props) {
 														onClick={() => handleReleaseUnit(ru.unit_id)}
 														disabled={isUnitProcessing}
 														variant="outline"
-														className="h-8 shrink-0 rounded-xl border-border px-2.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground shadow-none hover:bg-muted hover:text-foreground"
+														className="h-8 shrink-0 rounded-xl border-border px-2.5 text-[11px] font-bold uppercase tracking-wide text-muted-foreground shadow-none hover:bg-muted hover:text-foreground"
 													>
 														<IconArrowBackUp className="mr-1 h-3.5 w-3.5" /> Tarik
 													</Button>
@@ -1956,7 +1956,7 @@ export default function ReportShow(props) {
 											<Button
 												onClick={handleDispatchUnit}
 												disabled={isUnitProcessing || !unitToDispatch}
-												className="h-10 shrink-0 rounded-lg bg-teal-600 text-xs font-bold uppercase tracking-wider text-white shadow-none hover:bg-teal-700 dark:bg-teal dark:hover:bg-teal/90"
+												className="h-10 shrink-0 rounded-lg bg-teal-600 text-xs font-bold uppercase tracking-wide text-white shadow-none hover:bg-teal-700 dark:bg-teal dark:hover:bg-teal/90"
 											>
 												{isUnitProcessing ? (
 													<IconLoader2 className="h-4 w-4 animate-spin" />
@@ -1984,7 +1984,7 @@ export default function ReportShow(props) {
 												{noUnitsRegistered && canManageUnits && (
 													<Link
 														href={route('admin.units.index')}
-														className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-teal-600 hover:underline dark:text-teal"
+														className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide text-teal-600 hover:underline dark:text-teal"
 													>
 														<IconTruck className="h-3.5 w-3.5" /> Kelola Armada
 													</Link>
@@ -2008,7 +2008,7 @@ export default function ReportShow(props) {
 							reportStatus !== 'digabung')) && (
 						<Card className="rounded-xl border border-border bg-card shadow-none">
 							<CardContent className="space-y-3 p-4 sm:p-5">
-								<h2 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-foreground">
+								<h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-foreground">
 									<IconBuildingCommunity className="h-4 w-4 text-muted-foreground" /> OPD Terkait
 								</h2>
 
@@ -2029,7 +2029,7 @@ export default function ReportShow(props) {
 															<div className="truncate text-xs font-bold text-foreground">
 																{row.agency_name}
 															</div>
-															<div className="truncate text-[10px] text-muted-foreground">
+															<div className="truncate text-[11px] text-muted-foreground">
 																Diminta oleh {row.notified_by || 'Pusat Komando'}
 															</div>
 														</div>
@@ -2037,7 +2037,7 @@ export default function ReportShow(props) {
 															<Button
 																onClick={() => setAgencyToRemove(row)}
 																variant="ghost"
-																className="h-7 shrink-0 rounded-lg px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+																className="h-7 shrink-0 rounded-lg px-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
 															>
 																<IconX className="h-3.5 w-3.5" />
 															</Button>
@@ -2062,7 +2062,7 @@ export default function ReportShow(props) {
 																<span>{row.confirmation_label}</span>
 															</div>
 															{row.confirmed_at ? (
-																<div className="mt-1 pl-5 text-[10px] font-medium opacity-80">
+																<div className="mt-1 pl-5 text-[11px] font-medium opacity-80">
 																	Dikonfirmasi {row.confirmed_by || '-'}
 																	{row.confirmed_source === 'operator'
 																		? ' (dicatat Pusat Komando)'
@@ -2072,7 +2072,7 @@ export default function ReportShow(props) {
 																		: ''}
 																</div>
 															) : (
-																<div className="mt-1 pl-5 text-[10px] font-medium opacity-80">
+																<div className="mt-1 pl-5 text-[11px] font-medium opacity-80">
 																	Belum dikonfirmasi.
 																</div>
 															)}
@@ -2085,7 +2085,7 @@ export default function ReportShow(props) {
 																setConfirmationNote('');
 																setAgencyToConfirm(row);
 															}}
-															className="h-9 w-full rounded-lg bg-success text-[11px] font-bold uppercase tracking-wider text-success-foreground shadow-none hover:bg-success/90"
+															className="h-9 w-full rounded-lg bg-success text-[11px] font-bold uppercase tracking-wide text-success-foreground shadow-none hover:bg-success/90"
 														>
 															<IconCheck className="mr-1.5 h-4 w-4" /> Catat Konfirmasi
 														</Button>
@@ -2123,7 +2123,7 @@ export default function ReportShow(props) {
 											<Button
 												onClick={handleAddAgency}
 												disabled={isAgencyProcessing || !agencyToAdd}
-												className="h-10 shrink-0 rounded-lg text-xs font-bold uppercase tracking-wider shadow-none"
+												className="h-10 shrink-0 rounded-lg text-xs font-bold uppercase tracking-wide shadow-none"
 											>
 												{isAgencyProcessing ? (
 													<IconLoader2 className="h-4 w-4 animate-spin" />
@@ -2151,7 +2151,7 @@ export default function ReportShow(props) {
 												{agencyOptions.length === 0 && isAdminOrSuperadmin && (
 													<Link
 														href={route('admin.agencies.index')}
-														className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-primary hover:underline"
+														className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide text-primary hover:underline"
 													>
 														<IconBuildingCommunity className="h-3.5 w-3.5" /> Kelola OPD
 													</Link>
@@ -2163,7 +2163,7 @@ export default function ReportShow(props) {
 						</Card>
 					)}
 
-					<h2 className="px-1 pt-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+					<h2 className="px-1 pt-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
 						Manifes Responden
 					</h2>
 
@@ -2183,7 +2183,7 @@ export default function ReportShow(props) {
 											<div key={regu.key} className="divide-y divide-border">
 												<div className="flex items-center justify-between gap-3 bg-muted/40 px-3.5 py-2.5 text-xs">
 													<div className="min-w-0 flex-1">
-														<div className="truncate font-black text-foreground">
+														<div className="truncate font-bold text-foreground">
 															{regu.name}
 														</div>
 														{regu.leader && (
@@ -2271,7 +2271,7 @@ export default function ReportShow(props) {
 						<Card className="rounded-xl border border-border bg-card shadow-none">
 							<CardContent className="space-y-3 p-4 sm:p-5">
 								<div className="flex items-center justify-between gap-2">
-									<h2 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-foreground">
+									<h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-foreground">
 										<IconFileText className="h-4 w-4 text-info" /> Laporan Kejadian
 									</h2>
 									{canManageResolution && (
@@ -2359,7 +2359,7 @@ export default function ReportShow(props) {
 														)}
 												</div>
 
-												<div className="mt-1 text-[10px] text-muted-foreground">
+												<div className="mt-1 text-[11px] text-muted-foreground">
 													{r.creator ? `Dibuat ${r.creator} · ` : ''}
 													{fmtDateTime(r.created_at)}
 												</div>
@@ -2461,7 +2461,7 @@ export default function ReportShow(props) {
 
 												{r.victims.length > 0 && (
 													<div className="mt-2 border-t border-border pt-2">
-														<div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+														<div className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
 															Korban ({r.victims.length})
 														</div>
 														<div className="mt-1 space-y-1.5">
@@ -2498,7 +2498,7 @@ export default function ReportShow(props) {
 
 												{r.photos.length > 0 && (
 													<div className="mt-2 border-t border-border pt-2">
-														<div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+														<div className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
 															Foto kejadian ({r.photos.length})
 														</div>
 														<div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -2523,7 +2523,7 @@ export default function ReportShow(props) {
 												{/* Riwayat perubahan (TASK_67): siapa mengubah apa, terbaru dulu. */}
 												{r.logs?.some((log) => log.action === 'diubah') && (
 													<details className="mt-2 border-t border-border pt-2">
-														<summary className="cursor-pointer text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+														<summary className="cursor-pointer text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
 															Riwayat perubahan (
 															{r.logs.filter((log) => log.action === 'diubah').length})
 														</summary>
@@ -2598,10 +2598,10 @@ export default function ReportShow(props) {
 						{agencyOptions.length > 0 && (
 							<div className="w-full space-y-2 border-t border-border pt-4 text-left">
 								<div className="flex items-baseline justify-between gap-2">
-									<span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+									<span className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
 										OPD Terkait
 									</span>
-									<span className="text-[10px] text-muted-foreground">
+									<span className="text-[11px] text-muted-foreground">
 										{selectedAgencyIds.length} dipilih
 									</span>
 								</div>
@@ -2634,7 +2634,7 @@ export default function ReportShow(props) {
 														{recommended && (
 															<Badge
 																variant="outline"
-																className="rounded-xl border-info/20 bg-info/10 px-1.5 py-0 text-[10px] font-bold text-info shadow-none"
+																className="rounded-xl border-info/20 bg-info/10 px-1.5 py-0 text-[11px] font-bold text-info shadow-none"
 															>
 																Disarankan
 															</Badge>
@@ -2685,7 +2685,7 @@ export default function ReportShow(props) {
 							Komando.
 						</p>
 						<div className="w-full text-left">
-							<label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+							<label className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
 								Alasan penolakan <span className="font-normal normal-case">(opsional)</span>
 							</label>
 							<Textarea
@@ -2782,7 +2782,7 @@ export default function ReportShow(props) {
 						<div className="w-full text-left">
 							<Label
 								htmlFor="agency-confirmation-note"
-								className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground"
+								className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground"
 							>
 								Catatan <span className="font-normal normal-case">(opsional)</span>
 							</Label>

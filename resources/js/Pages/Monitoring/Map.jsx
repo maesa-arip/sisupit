@@ -203,7 +203,7 @@ export default function MonitoringMap({ layers }) {
 					<span>${escapeHtml(address || 'Alamat tidak tersedia')}</span>
 				</div>
 				${extra}
-				<span class="inline-flex rounded-xl border border-border bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">${escapeHtml(facilityStatusLabel(status))}</span>`);
+				<span class="inline-flex rounded-xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold text-muted-foreground">${escapeHtml(facilityStatusLabel(status))}</span>`);
 
 		// Baris "regu yang meluncur" di popup kejadian (TASK_60), kosong bila belum ada regu.
 		// Nama regu masuk ke HTML mentah popup Leaflet, jadi WAJIB di-escape (#131).
@@ -240,7 +240,7 @@ export default function MonitoringMap({ layers }) {
 						<div class="flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>${escapeHtml(r.time)}</span></div>
 						${reguLine(r.regus)}
 					</div>
-					<span class="inline-flex rounded-xl border px-2 py-0.5 text-[10px] font-bold ${meta.badge}">${meta.label}</span>
+					<span class="inline-flex rounded-xl border px-2 py-0.5 text-[11px] font-bold ${meta.badge}">${meta.label}</span>
 					<a href="${escapeHtml(detailUrl)}" data-report-detail="${escapeHtml(r.id)}" class="flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-destructive text-xs font-semibold !text-destructive-foreground no-underline shadow-sm hover:bg-destructive/90">
 						Lihat Detail
 						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
@@ -319,8 +319,8 @@ export default function MonitoringMap({ layers }) {
 					<h4 class="m-0 text-[13px] font-bold leading-snug text-foreground">${escapeHtml(d.name)}</h4>
 					<div class="flex items-start gap-1.5 text-[11px] font-medium text-muted-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mt-px shrink-0"><path d="M12 21s-6-5.686-6-10a6 6 0 1 1 12 0c0 4.314-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg><span>${escapeHtml(d.area || '-')}</span></div>
 					${skillsLine}
-					<div class="text-[10px] italic text-muted-foreground/80">Posisi perkiraan (pusat wilayah)</div>
-					<span class="inline-flex rounded-xl border px-2 py-0.5 text-[10px] font-bold ${statusClass}">${escapeHtml(d.status)}</span>`);
+					<div class="text-[11px] italic text-muted-foreground/80">Posisi perkiraan (pusat wilayah)</div>
+					<span class="inline-flex rounded-xl border px-2 py-0.5 text-[11px] font-bold ${statusClass}">${escapeHtml(d.status)}</span>`);
 				const m = window.L.marker([d.lat, d.lng], {
 					icon: glyphIcon(volunteerColor(d.status), GLYPH.volunteer),
 				}).bindPopup(html);
@@ -512,7 +512,7 @@ export default function MonitoringMap({ layers }) {
 			<div className="pointer-events-none absolute left-0 right-0 top-0 z-[10] flex items-center justify-between gap-2 p-3 sm:p-4">
 				<div className="pointer-events-auto flex items-center gap-2 rounded-xl border border-border bg-card/90 px-3 py-2 shadow-sm backdrop-blur-sm">
 					<IconMapPin className="h-4 w-4 text-teal-600 dark:text-teal" stroke={2.5} />
-					<span className="text-[11px] font-extrabold uppercase tracking-widest text-teal-700 dark:text-teal sm:text-xs">
+					<span className="text-[11px] font-extrabold uppercase tracking-wide text-teal-700 dark:text-teal sm:text-xs">
 						Peta Pemantauan
 					</span>
 				</div>
@@ -562,7 +562,7 @@ export default function MonitoringMap({ layers }) {
 								)}
 								stroke={2}
 							/>
-							<h2 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+							<h2 className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
 								Layer
 							</h2>
 						</button>

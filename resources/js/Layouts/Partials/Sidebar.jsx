@@ -22,7 +22,7 @@ export default function Sidebar({ url, auth, compact = false }) {
 			{compact && <div className="mx-auto my-2 h-px w-8 shrink-0 bg-border lg:hidden" />}
 			<div
 				className={cn(
-					'mb-1 mt-6 px-3 py-2 text-[11px] font-black uppercase tracking-widest text-muted-foreground first:mt-2',
+					'mb-1 mt-5 px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground first:mt-2',
 					compact && 'hidden lg:block',
 				)}
 			>

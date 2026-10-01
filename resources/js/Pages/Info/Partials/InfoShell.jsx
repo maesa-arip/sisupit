@@ -17,7 +17,7 @@ import AppLayout from '@/Layouts/AppLayout';
  * RUPA (permintaan user 2026-08-26): mengikuti halaman FASILITAS (`Pages/Hydrants/Index.jsx`,
  * `Pages/Pumps/Index.jsx`, `Pages/FireStations/Index.jsx`) — skala huruf, jarak, dan bentuk
  * kartunya sama persis. Sebelumnya halaman-halaman ini punya bahasa visualnya sendiri: hero
- * gradient `PublicPageHeader` (judul `text-3xl font-black`) plus pembungkus `max-w-4xl px-4
+ * gradient `PublicPageHeader` (judul `text-3xl font-bold`) plus pembungkus `max-w-4xl px-4
  * py-6 sm:py-10` DI DALAM container AppLayout yang sudah ber-padding — jadi jaraknya
  * bertumpuk dan tak ada halaman lain di aplikasi ini yang setebal itu. Sekarang:
  *   - kepala halaman  : `HeaderTitle` (ikon sebaris + `text-lg lg:text-2xl font-bold`)
@@ -55,7 +55,7 @@ export function Section({ number, title, children }) {
 			<CardContent className="p-5">
 				<h2 className="flex items-start gap-2.5 text-sm font-bold text-foreground">
 					{number && (
-						<span className="flex size-5 shrink-0 items-center justify-center rounded-lg bg-destructive/10 text-[10px] font-bold text-destructive">
+						<span className="flex size-5 shrink-0 items-center justify-center rounded-lg bg-destructive/10 text-[11px] font-bold text-destructive">
 							{number}
 						</span>
 					)}
@@ -108,7 +108,7 @@ export function Callout({ tone = 'muted', title, children }) {
 export function DefinitionRow({ label, value }) {
 	return (
 		<div className="flex flex-col gap-0.5 border-b border-border py-2.5 last:border-0 sm:flex-row sm:gap-4">
-			<span className="w-full text-[10px] font-medium uppercase tracking-wide text-muted-foreground sm:w-56 sm:shrink-0 sm:pt-0.5">
+			<span className="w-full text-[11px] font-medium uppercase tracking-wide text-muted-foreground sm:w-56 sm:shrink-0 sm:pt-0.5">
 				{label}
 			</span>
 			<span className="text-sm font-medium text-foreground">{value || '-'}</span>

@@ -113,7 +113,7 @@ export default function Landing({ page_data }) {
 							Siaga 24 Jam
 						</span>
 
-						<h1 className="mt-5 text-4xl font-black leading-[1.05] tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+						<h1 className="mt-5 text-4xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-5xl lg:text-6xl">
 							Lapor Damkar <span className="text-destructive">Cepat</span>,
 							<br className="hidden sm:block" /> Respons Tepat.
 						</h1>
@@ -126,7 +126,7 @@ export default function Landing({ page_data }) {
 						<div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center lg:justify-start">
 							<Button
 								asChild
-								className="h-14 w-full rounded-xl bg-destructive px-8 text-base font-bold uppercase tracking-wider text-destructive-foreground shadow-lg shadow-destructive/25 transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 sm:w-auto"
+								className="h-14 w-full rounded-xl bg-destructive px-8 text-base font-bold uppercase tracking-wide text-destructive-foreground shadow-lg shadow-destructive/25 transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 sm:w-auto"
 							>
 								<Link href={route('front.reports.create')}>
 									<IconFlame className="mr-2 h-5 w-5" stroke={2.5} />
@@ -136,7 +136,7 @@ export default function Landing({ page_data }) {
 							<Button
 								asChild
 								variant="ghost"
-								className="h-14 w-full rounded-xl px-6 text-sm font-bold uppercase tracking-wider text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:w-auto"
+								className="h-14 w-full rounded-xl px-6 text-sm font-bold uppercase tracking-wide text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:w-auto"
 							>
 								<Link href={primaryHref}>
 									<IconLogin2 className="mr-2 h-5 w-5" stroke={2} />
@@ -178,7 +178,7 @@ export default function Landing({ page_data }) {
 					{stats.map(({ label, value, icon: Icon }) => (
 						<div key={label} className="flex flex-col items-center gap-1.5 px-2 text-center">
 							<Icon className="h-5 w-5 text-destructive" stroke={2} />
-							<span className="text-2xl font-black text-foreground sm:text-4xl">
+							<span className="text-2xl font-bold text-foreground sm:text-4xl">
 								{Number(value).toLocaleString('id-ID')}
 							</span>
 							<span className="text-[11px] font-medium leading-tight text-muted-foreground sm:text-sm">
@@ -192,8 +192,8 @@ export default function Landing({ page_data }) {
 			{/* ===== ALUR / CARA KERJA ===== */}
 			<section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
 				<div className="mx-auto max-w-2xl text-center">
-					<span className="text-sm font-bold uppercase tracking-widest text-destructive">Cara Kerja</span>
-					<h2 className="mt-2 text-3xl font-black tracking-tight text-foreground sm:text-4xl">
+					<span className="text-sm font-bold uppercase tracking-wide text-destructive">Cara Kerja</span>
+					<h2 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
 						Dari Laporan ke Penanganan
 					</h2>
 					<p className="mt-3 text-muted-foreground">
@@ -207,7 +207,7 @@ export default function Landing({ page_data }) {
 							key={title}
 							className="relative rounded-2xl border border-border bg-card p-6 transition-shadow hover:shadow-md"
 						>
-							<span className="absolute right-5 top-5 text-4xl font-black text-destructive/15">
+							<span className="absolute right-5 top-5 text-4xl font-bold text-destructive/15">
 								{String(i + 1).padStart(2, '0')}
 							</span>
 							<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-destructive/10">
@@ -224,8 +224,8 @@ export default function Landing({ page_data }) {
 			<section className="border-t border-border bg-card/40">
 				<div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
 					<div className="mx-auto max-w-2xl text-center">
-						<span className="text-sm font-bold uppercase tracking-widest text-destructive">Fitur</span>
-						<h2 className="mt-2 text-3xl font-black tracking-tight text-foreground sm:text-4xl">
+						<span className="text-sm font-bold uppercase tracking-wide text-destructive">Fitur</span>
+						<h2 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
 							Satu Platform, Respons Menyeluruh
 						</h2>
 					</div>
@@ -253,7 +253,7 @@ export default function Landing({ page_data }) {
 						<IconBrandAndroid className="h-7 w-7 text-success" stroke={2} />
 					</div>
 					<div>
-						<h2 className="text-2xl font-black tracking-tight text-foreground sm:text-3xl">
+						<h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
 							Pasang Aplikasi Android
 						</h2>
 						<p className="mx-auto mt-2 max-w-md text-muted-foreground">
@@ -274,7 +274,7 @@ export default function Landing({ page_data }) {
 			{/* ===== CTA BESAR ===== */}
 			<section className="bg-destructive">
 				<div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 py-16 text-center sm:px-6">
-					<h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl">
+					<h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
 						Melihat Kejadian Darurat?
 					</h2>
 					<p className="max-w-lg text-destructive-foreground/90">
@@ -283,7 +283,7 @@ export default function Landing({ page_data }) {
 					</p>
 					<Button
 						asChild
-						className="h-12 rounded-xl bg-white px-8 py-3 text-base font-bold uppercase tracking-wider text-destructive shadow-none transition-colors hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white/60"
+						className="h-12 rounded-xl bg-white px-8 py-3 text-base font-bold uppercase tracking-wide text-destructive shadow-none transition-colors hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white/60"
 					>
 						<Link href={route('front.reports.create')}>
 							Lapor Sekarang

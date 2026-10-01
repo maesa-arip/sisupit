@@ -96,7 +96,7 @@ export default function Edit(props) {
 							<h2 className="text-xl font-semibold leading-tight text-foreground">{user.name}</h2>
 							<p className="text-sm font-medium text-muted-foreground">{user.email}</p>
 							<span
-								className={`mt-2 rounded-xl border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider ${roleTone(userRoles)}`}
+								className={`mt-2 rounded-xl border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${roleTone(userRoles)}`}
 							>
 								{accountRole}
 							</span>
@@ -118,11 +118,11 @@ export default function Edit(props) {
 				{props.jurisdiction && (
 					<div className="rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6">
 						<div className="flex items-center justify-between gap-3">
-							<h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-foreground">
+							<h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-foreground">
 								<IconMapPin size={18} className="text-muted-foreground" />{' '}
 								{props.jurisdiction.kind === 'tugas' ? 'Wilayah Tugas' : 'Wilayah Domisili'}
 							</h3>
-							<span className="shrink-0 rounded-xl border border-border bg-muted px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+							<span className="shrink-0 rounded-xl border border-border bg-muted px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
 								{props.jurisdiction.scope.level}
 							</span>
 						</div>
@@ -251,7 +251,7 @@ export default function Edit(props) {
 
 				{/* --- 3. PENGATURAN AKUN (MENGGUNAKAN TABS) --- */}
 				<div className="pt-4">
-					<h3 className="mb-4 flex items-center gap-2 px-1 text-sm font-semibold uppercase tracking-wider text-foreground">
+					<h3 className="mb-4 flex items-center gap-2 px-1 text-sm font-semibold uppercase tracking-wide text-foreground">
 						<IconSettings size={18} className="text-muted-foreground" /> Pengaturan & Keamanan
 					</h3>
 
@@ -328,7 +328,7 @@ function BanjarCard({ banjar }) {
 
 	return (
 		<form onSubmit={simpan} className="rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6">
-			<h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-foreground">
+			<h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-foreground">
 				<IconHome2 size={18} className="text-muted-foreground" /> Banjar
 			</h3>
 			<p className="mt-1 text-sm text-muted-foreground">

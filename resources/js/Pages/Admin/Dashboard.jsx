@@ -95,10 +95,10 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 		const card = (
 			<Card
 				className={cn(
-					'h-full rounded-xl border shadow-sm transition-all',
+					'h-full rounded-2xl border shadow-sm transition-all',
 					hasEmergency
 						? 'border-destructive bg-destructive text-destructive-foreground shadow-destructive/20 duration-500 animate-in zoom-in-95'
-						: 'border-border bg-card hover:border-border/80',
+						: 'border-border/70 bg-card hover:border-border',
 					href && 'cursor-pointer hover:shadow-md',
 				)}
 			>
@@ -150,7 +150,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 					{subtitle && (
 						<div
 							className={cn(
-								'mt-4 hidden text-[11px] font-semibold uppercase tracking-wider md:block',
+								'mt-4 hidden text-[11px] font-semibold uppercase tracking-wide md:block',
 								hasEmergency ? 'text-destructive-foreground/70' : 'text-muted-foreground',
 							)}
 						>
@@ -277,7 +277,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 							variant={isStandby ? 'default' : 'outline'}
 							disabled={isTogglingStandby}
 							className={cn(
-								'h-8 w-full shrink-0 rounded-lg px-4 text-[10px] font-bold uppercase tracking-wider shadow-none transition-colors sm:w-auto',
+								'h-8 w-full shrink-0 rounded-lg px-4 text-[11px] font-bold uppercase tracking-wide shadow-none transition-colors sm:w-auto',
 								isStandby
 									? 'border border-destructive bg-destructive text-destructive-foreground hover:bg-destructive/90'
 									: 'border-border bg-card text-foreground/80 hover:bg-muted',
@@ -504,7 +504,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 									</div>
 									<div className="ml-1 text-left">
 										<div className="text-sm font-bold text-foreground">Pos Armada</div>
-										<div className="text-[10px] text-muted-foreground">Distribusi Kendaraan</div>
+										<div className="text-[11px] text-muted-foreground">Distribusi Kendaraan</div>
 									</div>
 								</Link>
 							</Button>

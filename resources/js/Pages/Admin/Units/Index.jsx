@@ -151,7 +151,7 @@ export default function Index({ units, filters }) {
 													{unit.name}
 												</h3>
 												<span
-													className={`shrink-0 rounded-xl border px-2 py-0.5 text-[10px] font-bold uppercase ${meta.color}`}
+													className={`shrink-0 rounded-xl border px-2 py-0.5 text-[11px] font-bold uppercase ${meta.color}`}
 												>
 													{meta.label}
 												</span>

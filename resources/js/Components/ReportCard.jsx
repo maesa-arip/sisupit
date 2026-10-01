@@ -64,16 +64,16 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 	const statusConfig = getStatusConfig();
 
 	return (
-		<div className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card shadow-none transition-colors duration-200 hover:border-muted-foreground/50">
+		<div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition-colors duration-200 hover:border-muted-foreground/50">
 			<div className="flex flex-1 flex-col p-4">
 				<div className="mb-3 flex items-start justify-between gap-3">
-					<h2 className="line-clamp-2 flex min-w-0 flex-1 items-start gap-2 text-base font-bold leading-snug text-foreground">
+					<h2 className="line-clamp-2 flex min-w-0 flex-1 items-start gap-2 text-[17px] font-semibold leading-snug tracking-tight text-foreground">
 						<Flame size={16} className="mt-0.5 shrink-0 text-destructive" strokeWidth={2.5} />
 						{report.title}
 					</h2>
 					<span
 						className={cn(
-							'flex shrink-0 items-center whitespace-nowrap rounded-md border px-2 py-1 text-[10px] font-bold uppercase tracking-widest shadow-none',
+							'flex shrink-0 items-center whitespace-nowrap rounded-md border px-2 py-1 text-[11px] font-bold uppercase tracking-wide shadow-none',
 							statusConfig.color,
 						)}
 					>
@@ -82,7 +82,7 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 					</span>
 				</div>
 
-				<div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+				<div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-medium text-muted-foreground">
 					<span className="flex items-center gap-1">
 						<Clock size={12} strokeWidth={2.5} className="shrink-0" />
 						{timeAgo(report.created_at)}
@@ -101,7 +101,7 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 
 				{hasPhoto && (
 					<div
-						className="group/img relative mb-3 h-36 w-full shrink-0 cursor-pointer overflow-hidden rounded-lg border border-border bg-muted shadow-none"
+						className="group/img relative mb-3 h-40 w-full shrink-0 cursor-pointer overflow-hidden rounded-xl bg-muted shadow-none"
 						onClick={() => setShowImage(true)}
 					>
 						<img
@@ -113,22 +113,22 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 						<div className="absolute inset-0 flex items-center justify-center bg-black/5 transition-colors duration-300 group-hover/img:bg-black/30">
 							<div className="flex translate-y-2 transform items-center gap-1.5 rounded-md border border-border bg-card/95 p-1.5 px-3 text-foreground opacity-0 shadow-none backdrop-blur-sm transition-all duration-300 group-hover/img:translate-y-0 group-hover/img:opacity-100">
 								<ZoomIn size={12} />
-								<span className="text-[10px] font-bold uppercase tracking-wider">Perbesar</span>
+								<span className="text-xs font-semibold">Perbesar</span>
 							</div>
 						</div>
 					</div>
 				)}
 
-				<div className="mb-1.5 flex items-start gap-2 text-xs font-bold text-muted-foreground">
+				<div className="mb-1.5 flex items-start gap-2 text-[13px] font-medium text-foreground/80">
 					<MapPin size={14} className="mt-0.5 shrink-0 text-destructive" />
 					<span className="line-clamp-2 leading-snug">{alamatLaporan(report)}</span>
 				</div>
-				<p className="line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">
+				<p className="line-clamp-2 text-[13px] leading-relaxed text-muted-foreground">
 					{report.description || 'Tidak ada deskripsi rinci.'}
 				</p>
 			</div>
 
-			<div className="mt-auto border-t border-border bg-muted/50 px-4 pb-4 pt-3">
+			<div className="mt-auto border-t border-border/70 bg-muted/30 px-4 pb-4 pt-3">
 				{hasHelpers ? (
 					<button
 						type="button"
@@ -151,7 +151,7 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 						<span className="text-base leading-none">›</span>
 					</button>
 				) : (
-					<div className="mb-3 flex w-full items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+					<div className="mb-3 flex w-full items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
 						<Users size={12} /> Belum Ada Responden
 					</div>
 				)}
@@ -176,14 +176,14 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 						{isOwner ? (
 							<Link
 								href={route('reports.show', report.id)}
-								className="flex h-10 w-full items-center justify-center rounded-md border border-border bg-card text-[10px] font-bold uppercase tracking-wider text-foreground shadow-none transition-colors hover:bg-accent"
+								className="flex h-10 w-full items-center justify-center rounded-md border border-border bg-card text-[11px] font-bold uppercase tracking-wide text-foreground shadow-none transition-colors hover:bg-accent"
 							>
 								Pantau Laporan
 							</Link>
 						) : isMyTask ? (
 							<Link
 								href={route('reports.show', report.id)}
-								className="flex h-10 w-full items-center justify-center rounded-md border border-transparent bg-primary text-[10px] font-bold uppercase tracking-wider text-primary-foreground shadow-none transition-colors hover:bg-primary/90"
+								className="flex h-10 w-full items-center justify-center rounded-md border border-transparent bg-primary text-[11px] font-bold uppercase tracking-wide text-primary-foreground shadow-none transition-colors hover:bg-primary/90"
 							>
 								Peta Operasional
 							</Link>
@@ -191,14 +191,14 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 							<button
 								disabled
 								type="button"
-								className="flex h-10 w-full cursor-not-allowed items-center justify-center rounded-md border border-border bg-muted text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70 shadow-none transition-colors"
+								className="flex h-10 w-full cursor-not-allowed items-center justify-center rounded-md border border-border bg-muted text-xs font-medium text-muted-foreground/70 shadow-none transition-colors"
 							>
 								Kasus Selesai
 							</button>
 						) : isRelawan ? (
 							<Link
 								href={route('reports.show', report.id)}
-								className="flex h-10 w-full items-center justify-center rounded-md border border-destructive bg-destructive text-[10px] font-bold uppercase tracking-wider text-destructive-foreground shadow-none outline-none transition-colors hover:bg-destructive/90 focus:ring-2 focus:ring-destructive/50"
+								className="flex h-10 w-full items-center justify-center rounded-md border border-destructive bg-destructive text-[11px] font-bold uppercase tracking-wide text-destructive-foreground shadow-none outline-none transition-colors hover:bg-destructive/90 focus:ring-2 focus:ring-destructive/50"
 							>
 								Lihat &amp; Respons
 							</Link>
@@ -206,7 +206,7 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 							<button
 								disabled
 								type="button"
-								className="flex h-10 w-full cursor-not-allowed items-center justify-center rounded-md border border-border bg-muted text-[10px] font-bold uppercase tracking-wider text-muted-foreground shadow-none transition-colors"
+								className="flex h-10 w-full cursor-not-allowed items-center justify-center rounded-md border border-border bg-muted text-xs font-medium text-muted-foreground shadow-none transition-colors"
 							>
 								{hasHelpers ? 'Dalam Penanganan' : 'Menunggu Relawan'}
 							</button>

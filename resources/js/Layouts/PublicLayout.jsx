@@ -42,8 +42,8 @@ export default function PublicLayout({ children, title }) {
 					<Link href="/" className="flex items-center gap-2.5 outline-none">
 						<img src="/icon.png" alt="SISUPIT" className="size-9 rounded-lg object-contain" />
 						<div className="flex flex-col leading-none">
-							<span className="text-lg font-black tracking-tight text-foreground">SISUPIT</span>
-							<span className="mt-0.5 hidden text-[9px] font-bold uppercase tracking-widest text-destructive sm:block">
+							<span className="text-lg font-bold tracking-tight text-foreground">SISUPIT</span>
+							<span className="mt-0.5 hidden text-[9px] font-bold uppercase tracking-wide text-destructive sm:block">
 								Damkar Terintegrasi
 							</span>
 						</div>
@@ -78,7 +78,7 @@ export default function PublicLayout({ children, title }) {
 						<div className="sm:col-span-2 lg:col-span-1">
 							<div className="flex items-center gap-2.5">
 								<img src="/icon.png" alt="SISUPIT" className="size-9 rounded-lg object-contain" />
-								<span className="text-lg font-black tracking-tight text-foreground">SISUPIT</span>
+								<span className="text-lg font-bold tracking-tight text-foreground">SISUPIT</span>
 							</div>
 							<p className="mt-3 max-w-xs text-sm leading-relaxed text-muted-foreground">
 								Sistem Informasi Kesiapsiagaan untuk Pemadam Kebakaran Terintegrasi.

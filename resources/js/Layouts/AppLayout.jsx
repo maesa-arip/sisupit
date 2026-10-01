@@ -140,10 +140,10 @@ export default function AppLayout({ title, children }) {
 			<div className="flex min-h-screen w-full bg-background">
 				{/* SIDEBAR — rail ikon di tablet (md), penuh berlabel di ≥lg. Di bawah md
 				    navigasi dipegang MobileBottomNav. */}
-				<div className="z-20 hidden w-20 shrink-0 border-r border-border bg-card md:block lg:w-64">
+				<div className="z-20 hidden w-20 shrink-0 border-r border-border/70 bg-muted/40 md:block lg:w-64">
 					<div className="sticky top-0 flex h-screen flex-col">
-						<div className="flex h-16 shrink-0 items-center border-b border-border px-6">
-							{/* <ApplicationLogo /> */}
+						<div className="flex h-16 shrink-0 items-center justify-center px-6 lg:justify-start">
+							<span className="hidden text-lg font-bold tracking-tight lg:inline">Sisupit</span>
 						</div>
 						<div className="flex-1 overflow-y-auto">
 							<Sidebar url={url} auth={auth} compact />
@@ -162,10 +162,10 @@ export default function AppLayout({ title, children }) {
 							{auth && (
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild>
-										<button className="relative flex h-9 w-9 items-center justify-center rounded-md outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-muted-foreground/50">
+										<button className="relative flex h-10 w-10 items-center justify-center rounded-full outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-muted-foreground/50 active:bg-muted">
 											<IconBell className="h-5 w-5 text-muted-foreground" />
 											{unreadCount > 0 && (
-												<span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+												<span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-destructive px-1 text-[11px] font-bold text-destructive-foreground">
 													{unreadCount > 9 ? '9+' : unreadCount}
 												</span>
 											)}
@@ -173,7 +173,7 @@ export default function AppLayout({ title, children }) {
 									</DropdownMenuTrigger>
 									<DropdownMenuContent
 										align="end"
-										className="mt-2 w-80 overflow-hidden rounded-xl border border-border bg-card p-0 shadow-md"
+										className="mt-2 w-80 overflow-hidden rounded-2xl p-0"
 									>
 										<div className="flex items-center justify-between border-b border-border px-4 py-3">
 											<h4 className="text-sm font-bold text-foreground">Notifikasi</h4>
@@ -221,7 +221,7 @@ export default function AppLayout({ title, children }) {
 																	{n.message}
 																</p>
 															)}
-															<p className="mt-1 text-[10px] text-muted-foreground/70">
+															<p className="mt-1 text-[11px] text-muted-foreground/70">
 																{new Date(n.created_at).toLocaleString('id-ID', {
 																	day: 'numeric',
 																	month: 'short',
@@ -294,7 +294,7 @@ export default function AppLayout({ title, children }) {
 													{auth.role.map((role_name, i) => (
 														<span
 															key={i}
-															className="rounded-md border border-border bg-muted px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground"
+															className="rounded-md border border-border bg-muted px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground"
 														>
 															{role_name}
 														</span>

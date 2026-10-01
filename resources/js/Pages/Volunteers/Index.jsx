@@ -72,7 +72,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 						{/* Filter Wilayah, Keahlian & Status (Menggunakan ComboBox) */}
 						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
 							<div className="space-y-1.5">
-								<Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+								<Label className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
 									Kabupaten / Kota
 								</Label>
 								<ComboBox
@@ -84,7 +84,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 							</div>
 
 							<div className="space-y-1.5">
-								<Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+								<Label className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
 									Kecamatan
 								</Label>
 								<ComboBox
@@ -96,7 +96,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 							</div>
 
 							<div className="space-y-1.5">
-								<Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+								<Label className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
 									Desa / Kelurahan
 								</Label>
 								<ComboBox
@@ -108,7 +108,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 							</div>
 
 							<div className="space-y-1.5">
-								<Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+								<Label className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
 									Keahlian
 								</Label>
 								<ComboBox
@@ -120,7 +120,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 							</div>
 
 							<div className="space-y-1.5">
-								<Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+								<Label className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
 									Status Siaga
 								</Label>
 								<ComboBox
@@ -216,7 +216,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 										volunteer.skills.map((skill, index) => (
 											<span
 												key={index}
-												className="flex items-center gap-1 rounded-xl border border-border bg-muted px-2 py-1 text-[10px] font-medium text-foreground/80"
+												className="flex items-center gap-1 rounded-xl border border-border bg-muted px-2 py-1 text-[11px] font-medium text-foreground/80"
 											>
 												<IconMedal className="h-3 w-3 text-destructive" stroke={1.5} />
 												{skill}

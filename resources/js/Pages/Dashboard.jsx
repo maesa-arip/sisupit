@@ -283,7 +283,7 @@ export default function Dashboard(props) {
 								variant="outline"
 								onClick={handleLoadMore}
 								disabled={isLoadingMore}
-								className="flex h-10 items-center gap-2 rounded-xl border border-border bg-card px-5 text-[10px] font-bold uppercase tracking-wider text-foreground/80 shadow-none transition-colors hover:bg-muted sm:h-8"
+								className="flex h-10 items-center gap-2 rounded-xl border border-border bg-card px-5 text-[11px] font-bold uppercase tracking-wide text-foreground/80 shadow-none transition-colors hover:bg-muted sm:h-8"
 							>
 								{isLoadingMore ? (
 									<>
@@ -313,7 +313,7 @@ export default function Dashboard(props) {
 						<Badge
 							variant="outline"
 							className={cn(
-								'rounded-xl border border-border px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest shadow-none',
+								'rounded-xl border border-border px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide shadow-none',
 								isRelawan ? 'bg-volunteer text-volunteer-foreground' : 'bg-muted text-foreground/80',
 							)}
 						>
@@ -394,7 +394,7 @@ export default function Dashboard(props) {
 							variant={isStandby ? 'default' : 'outline'}
 							disabled={isTogglingStandby}
 							className={cn(
-								'h-10 w-full shrink-0 rounded-lg px-4 text-[10px] font-bold uppercase tracking-wider shadow-none transition-colors sm:h-8 sm:w-auto',
+								'h-10 w-full shrink-0 rounded-lg px-4 text-[11px] font-bold uppercase tracking-wide shadow-none transition-colors sm:h-8 sm:w-auto',
 								isStandby
 									? 'border border-destructive bg-destructive text-destructive-foreground hover:bg-destructive/90'
 									: 'border-border bg-card text-foreground/80 hover:bg-muted',

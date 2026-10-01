@@ -676,7 +676,7 @@ export default function Index(props) {
 							<IconMapPinFilled className="h-4 w-4 text-primary" />
 							<h2 className="text-sm font-semibold text-foreground">Peta Sebaran Laporan</h2>
 						</div>
-						<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-semibold text-muted-foreground">
+						<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-semibold text-muted-foreground">
 							{legendStatuses.map((status) => (
 								<span key={status} className="flex items-center gap-1">
 									<span

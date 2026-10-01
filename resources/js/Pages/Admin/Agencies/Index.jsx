@@ -110,12 +110,12 @@ export default function Index({ agencies, filters }) {
 												{agency.name}
 											</h3>
 											{agency.code && (
-												<span className="shrink-0 rounded-xl border border-border bg-muted px-2 py-0.5 text-[10px] font-bold uppercase text-muted-foreground">
+												<span className="shrink-0 rounded-xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
 													{agency.code}
 												</span>
 											)}
 											{!agency.is_active && (
-												<span className="shrink-0 rounded-xl border border-border bg-muted px-2 py-0.5 text-[10px] font-bold uppercase text-muted-foreground">
+												<span className="shrink-0 rounded-xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
 													Nonaktif
 												</span>
 											)}

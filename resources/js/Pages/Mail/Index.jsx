@@ -80,7 +80,7 @@ export default function Index({ messages, filters, mailbox }) {
 												{message.subject}
 											</h3>
 											{message.status === 'gagal' && (
-												<span className="shrink-0 rounded-lg border border-destructive/20 bg-destructive/10 px-2 py-0.5 text-[10px] font-bold uppercase text-destructive">
+												<span className="shrink-0 rounded-lg border border-destructive/20 bg-destructive/10 px-2 py-0.5 text-[11px] font-bold uppercase text-destructive">
 													Gagal
 												</span>
 											)}

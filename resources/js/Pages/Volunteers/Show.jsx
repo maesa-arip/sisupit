@@ -49,7 +49,7 @@ export default function Show({ volunteer }) {
 							{/* Status Badge */}
 							<div className="absolute right-4 top-4">
 								<span
-									className={`rounded-xl border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
+									className={`rounded-xl border px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${
 										user.status === 'Siaga'
 											? 'border-success/30 bg-success/10 text-success'
 											: 'border-warning/30 bg-warning/10 text-warning'

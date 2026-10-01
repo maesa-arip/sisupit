@@ -21,13 +21,13 @@ export default function NavLink({
 			title={typeof title === 'string' ? title : undefined}
 			className={cn(
 				// Base classes: w-full memastikan rentang full, overflow tersembunyi
-				'flex w-full items-center gap-3 rounded-xl p-3 font-medium outline-none transition-all focus-visible:ring-2 focus-visible:ring-destructive',
+				'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary/40 active:bg-muted',
 
-				// Active State: warna destructive solid (mendukung dark mode otomatis)
+				// Aktif = sorotan bertint seperti sidebar iPadOS/macOS (apple-design, TASK_69, khusus branch
+				// ini) - dulu blok merah padat, yang di dalam daftar menu terbaca seperti tombol darurat.
 				active
-					? 'bg-destructive font-bold text-destructive-foreground shadow-sm'
-					: // Inactive State: Warna redup dengan efek hover destructive
-						'text-muted-foreground hover:bg-destructive/10 hover:text-destructive',
+					? 'bg-primary/10 font-semibold text-primary'
+					: 'text-foreground/80 hover:bg-muted hover:text-foreground',
 				className,
 			)}
 		>

@@ -449,11 +449,11 @@ export default function Edit({
 							<h4 className="flex items-center justify-between text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
 								Area Yurisdiksi{' '}
 								{isDetecting ? (
-									<span className="flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold normal-case text-muted-foreground">
+									<span className="flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[11px] font-semibold normal-case text-muted-foreground">
 										<IconLoader2 className="h-3 w-3 animate-spin" /> Mendeteksi wilayah...
 									</span>
 								) : (
-									<span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">
+									<span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] text-primary">
 										Terdeteksi otomatis
 									</span>
 								)}

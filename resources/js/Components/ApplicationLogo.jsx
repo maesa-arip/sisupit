@@ -21,7 +21,7 @@ export default function ApplicationLogo({ url = '/', size = 'size-10', isTitle =
 			{isTitle && (
 				<div className="flex flex-col justify-center">
 					<span className="text-xl font-bold leading-none tracking-tight text-foreground">SISUPIT</span>
-					<span className="mt-1 text-[10px] font-bold uppercase tracking-widest text-destructive">
+					<span className="mt-1 text-[11px] font-bold uppercase tracking-wide text-destructive">
 						Sistem Untuk Pelaporan Dini Terintegrasi
 					</span>
 				</div>

@@ -203,7 +203,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 												>
 													{facilityStatusLabel(hydrant.status)}
 												</span>
-												<span className="max-w-[80px] truncate border-l border-border pl-1.5 text-[10px] font-medium text-muted-foreground sm:max-w-none sm:pl-2">
+												<span className="max-w-[80px] truncate border-l border-border pl-1.5 text-[11px] font-medium text-muted-foreground sm:max-w-none sm:pl-2">
 													Hydrant {hydrant.type}
 												</span>
 												{/* Kondisi air, sekata dengan kartu /admin/hydrants (permintaan user
@@ -212,7 +212,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 														Tanpa gerbang varian - halaman ini hanya memuat hydrant resmi, yang memang
 														punya kolomnya. */}
 												<span
-													className={`border-l border-border pl-1.5 text-[10px] sm:pl-2 ${
+													className={`border-l border-border pl-1.5 text-[11px] sm:pl-2 ${
 														hydrant.water_pressure
 															? 'font-medium text-foreground'
 															: 'italic text-muted-foreground'
@@ -227,7 +227,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 
 										<div className="flex shrink-0 flex-col items-end justify-center gap-2">
 											{hydrant.distance !== '-' ? (
-												<span className="whitespace-nowrap rounded-xl border border-border bg-muted px-2 py-0.5 text-[10px] font-semibold text-foreground/80">
+												<span className="whitespace-nowrap rounded-xl border border-border bg-muted px-2 py-0.5 text-[11px] font-semibold text-foreground/80">
 													{hydrant.distance}
 												</span>
 											) : (

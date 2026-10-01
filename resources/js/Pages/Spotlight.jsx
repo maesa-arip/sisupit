@@ -29,7 +29,7 @@ export default function Spotlight(props) {
 		<div className="relative flex min-h-[75vh] w-full flex-col items-center justify-center space-y-8 px-6 py-6 text-center">
 			{/* --- HEADER TEKS BARU (TAKTIS & TEGAS) --- */}
 			<div className="mt-4 space-y-2">
-				<h1 className="text-2xl font-black uppercase tracking-tight text-foreground sm:text-3xl">
+				<h1 className="text-2xl font-bold uppercase tracking-tight text-foreground sm:text-3xl">
 					{namaInstansi}
 				</h1>
 
@@ -74,7 +74,7 @@ export default function Spotlight(props) {
 			<div className="mx-auto flex w-full max-w-sm flex-col gap-3">
 				<Button
 					asChild
-					className="h-14 w-full rounded-xl bg-destructive text-base font-bold uppercase tracking-wider text-destructive-foreground shadow-none transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50"
+					className="h-14 w-full rounded-xl bg-destructive text-base font-bold uppercase tracking-wide text-destructive-foreground shadow-none transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50"
 				>
 					<Link href={route('front.reports.create')}>
 						<IconFlame className="mr-2 h-5 w-5" stroke={2.5} />

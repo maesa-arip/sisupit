@@ -22,7 +22,7 @@ export default function StatusBadge({ status, className }) {
 	return (
 		<Badge
 			variant="outline"
-			className={cn('rounded-md px-2 py-0.5 font-bold shadow-none', config.className, className)}
+			className={cn('rounded-full px-2.5 py-0.5 font-semibold shadow-none', config.className, className)}
 		>
 			{config.label}
 		</Badge>

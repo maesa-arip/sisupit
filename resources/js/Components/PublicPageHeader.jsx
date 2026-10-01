@@ -14,11 +14,9 @@ export default function PublicPageHeader({ icon: Icon, title, subtitle, eyebrow,
 				)}
 				<div className="min-w-0">
 					{eyebrow && (
-						<span className="text-xs font-bold uppercase tracking-widest text-destructive">
-							{eyebrow}
-						</span>
+						<span className="text-xs font-bold uppercase tracking-wide text-destructive">{eyebrow}</span>
 					)}
-					<h1 className="text-2xl font-black tracking-tight text-foreground sm:text-3xl">{title}</h1>
+					<h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">{title}</h1>
 					{subtitle && (
 						<p className="mt-1 max-w-2xl text-sm text-muted-foreground sm:text-base">{subtitle}</p>
 					)}

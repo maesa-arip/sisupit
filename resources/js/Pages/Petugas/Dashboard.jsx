@@ -144,7 +144,7 @@ export default function PetugasDashboard({
 					<>
 						<Badge
 							variant="secondary"
-							className="rounded-lg border-none bg-destructive px-2.5 py-1 text-[10px] font-bold tracking-wider text-destructive-foreground"
+							className="rounded-lg border-none bg-destructive px-2.5 py-1 text-[11px] font-bold tracking-wide text-destructive-foreground"
 						>
 							<IconShieldCheck className="mr-1 h-3.5 w-3.5" stroke={2.5} /> PETUGAS DAMKAR
 						</Badge>
@@ -211,7 +211,7 @@ export default function PetugasDashboard({
 			<Card className="relative flex h-[300px] flex-col overflow-hidden rounded-xl border border-border shadow-sm sm:h-[360px]">
 				<div className="absolute left-0 right-0 top-0 z-10 flex items-center gap-2 border-b bg-card/90 px-4 py-2.5 backdrop-blur-sm">
 					<IconMapPin className="h-4 w-4 text-destructive" stroke={2.5} />
-					<span className="text-[11px] font-extrabold uppercase tracking-widest text-foreground">
+					<span className="text-[11px] font-extrabold uppercase tracking-wide text-foreground">
 						Peta Taktis Misi
 					</span>
 				</div>
@@ -298,7 +298,7 @@ export default function PetugasDashboard({
 										    mencabut sinyalnya persis di tempat ia paling dibutuhkan. */}
 										<div
 											className={cn(
-												'flex h-7 shrink-0 items-center justify-center gap-1 rounded-lg px-2 text-[10px] font-bold uppercase tracking-wider transition-all md:h-10 md:rounded-lg md:px-4 md:text-xs',
+												'flex h-7 shrink-0 items-center justify-center gap-1 rounded-lg px-2 text-[11px] font-bold uppercase tracking-wide transition-all md:h-10 md:rounded-lg md:px-4 md:text-xs',
 												mission.isUrgent &&
 													'bg-destructive text-destructive-foreground group-hover:bg-destructive/90',
 												mission.isAwaitingAdmin &&
@@ -368,7 +368,7 @@ export default function PetugasDashboard({
 									/* Antrian ini hanya berisi insiden yang BELUM punya entri berita acara
 									   sama sekali (TASK_49), jadi tak ada lagi dua keadaan yang perlu
 									   dibedakan - `has_draft` ikut dihapus di server. */
-									<div className="flex h-7 shrink-0 items-center justify-center rounded-lg bg-warning px-2 text-[10px] font-bold uppercase tracking-wider text-warning-foreground transition-all group-hover:bg-warning/90 md:h-10 md:rounded-lg md:px-4 md:text-xs">
+									<div className="flex h-7 shrink-0 items-center justify-center rounded-lg bg-warning px-2 text-[11px] font-bold uppercase tracking-wide text-warning-foreground transition-all group-hover:bg-warning/90 md:h-10 md:rounded-lg md:px-4 md:text-xs">
 										Buat Laporan
 									</div>
 								}

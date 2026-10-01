@@ -324,7 +324,7 @@ export default function Register() {
 
 				{/* Teks Overlay (Damkar Kota Denpasar) — putih fixed di atas foto, bukan token tema */}
 				<div className="absolute bottom-16 left-12 z-30">
-					<h2 className="text-4xl font-black uppercase tracking-tight text-white drop-shadow-lg">
+					<h2 className="text-4xl font-bold uppercase tracking-tight text-white drop-shadow-lg">
 						Damkar Kota
 						<br />
 						Denpasar

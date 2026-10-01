@@ -168,7 +168,7 @@ export default function Index({ tab, items, counts }) {
 						<Card key={item.key} className="rounded-xl shadow-sm">
 							<CardContent className="space-y-2 p-4">
 								<div className="flex flex-wrap items-center gap-2">
-									<span className="rounded-xl border border-border bg-muted px-2 py-0.5 text-[10px] font-bold uppercase text-muted-foreground">
+									<span className="rounded-xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
 										{item.type === 'post' ? 'Balasan' : 'Pertanyaan'}
 									</span>
 									{item.status !== 'tampil' && <ForumStatusBadge status={item.status} />}
