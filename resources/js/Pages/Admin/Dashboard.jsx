@@ -106,7 +106,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 						    supaya markupnya tetap satu, bukan dua cabang tata letak. */}
 						<div
 							className={cn(
-								'order-1 shrink-0 rounded-xl p-2 md:order-2 md:rounded-2xl md:p-3.5',
+								'order-1 hidden shrink-0 rounded-xl p-2 md:order-2 md:block md:rounded-2xl md:p-3.5',
 								hasEmergency ? 'bg-destructive-foreground/20' : bgIconClass,
 							)}
 						>
@@ -139,7 +139,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 					</div>
 					<p
 						className={cn(
-							'mt-1 truncate text-xs font-semibold md:hidden',
+							'mt-0.5 truncate text-[13px] font-medium md:hidden',
 							hasEmergency ? 'text-destructive-foreground/80' : 'text-muted-foreground',
 						)}
 					>
@@ -195,7 +195,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 							<IconShieldCheck className="mr-1 h-3.5 w-3.5" stroke={2.5} />{' '}
 							{isPejabat ? 'Pejabat/Eksekutif' : 'Administrator'}
 						</Badge>
-						<span className="flex items-center gap-1 text-xs font-medium text-muted-foreground md:text-sm">
+						<span className="hidden items-center gap-1 text-xs font-medium text-muted-foreground md:flex md:text-sm">
 							<IconMapPin className="h-3.5 w-3.5 text-muted-foreground md:h-4 md:w-4" />
 							Yurisdiksi: <strong className="text-foreground">{getAdminLevelName()}</strong>
 						</span>
@@ -220,7 +220,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 						{/* Pejabat bersifat read-only (pemantau) — sembunyikan aksi input insiden */}
 						{!isPejabat && (
 							<Button
-								className="h-12 w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 md:h-10 md:w-auto"
+								className="h-11 w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 md:h-10 md:w-auto"
 								asChild
 							>
 								<Link href="/reports/create">
@@ -303,7 +303,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 					<p className="hidden px-1 text-[13px] text-muted-foreground md:block">
 						Pemantauan waktu nyata dari masyarakat & relawan.
 					</p>
-					<AppList>
+					<AppList className="max-md:[&>a:nth-of-type(n+6)]:hidden">
 						{reports.map((report) => {
 							const t = report.title.toLowerCase();
 							let ReportIcon = IconFlame;
@@ -333,11 +333,11 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 									title={report.title}
 									meta={
 										<>
-											<span className="flex min-w-0 items-center gap-1.5">
+											<span className="hidden min-w-0 items-center gap-1.5 md:flex">
 												<IconMapPin className="h-3.5 w-3.5 shrink-0" stroke={2} />
 												<span className="truncate">{report.location}</span>
 											</span>
-											<span className="text-border">•</span>
+											<span className="hidden text-border md:inline">•</span>
 											<span className="flex shrink-0 items-center gap-1.5">
 												<IconClock className="h-3.5 w-3.5 shrink-0" stroke={2} />
 												{report.time}

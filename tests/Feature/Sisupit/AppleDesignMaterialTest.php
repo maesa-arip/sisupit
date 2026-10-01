@@ -213,3 +213,15 @@ it('shares one standby control between dashboards and floats the monitoring map 
         ->and($map)->not->toContain('backdrop-blur-sm')
         ->and($map)->toContain('material-thick m-3 mt-16');
 });
+
+it('keeps the mobile dashboards to the essentials and leaves the detail for larger screens', function () {
+    expect(appleSource('resources/js/Pages/Dashboard.jsx'))->toContain('max-md:[&>a:nth-of-type(n+4)]:hidden')
+        ->toContain('timeAgo(report.created_at)')
+        ->toContain('active:scale-[0.98]');
+    expect(appleSource('resources/js/Pages/Admin/Dashboard.jsx'))->toContain('max-md:[&>a:nth-of-type(n+6)]:hidden')
+        ->toContain('order-1 hidden shrink-0');
+    expect(appleSource('resources/js/Pages/Petugas/Dashboard.jsx'))->toContain('hidden font-mono font-semibold md:inline')
+        ->not->toContain('Wilayah Yurisdiksi')
+        ->not->toContain('PETUGAS DAMKAR');
+    expect(appleSource('resources/js/Components/ReportCard.jsx'))->toContain('line-clamp-2 hidden text-[13px]');
+});

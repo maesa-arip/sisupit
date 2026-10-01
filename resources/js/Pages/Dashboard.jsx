@@ -6,7 +6,7 @@ import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import useReportFeed from '@/hooks/use-report-feed';
 import AppLayout from '@/Layouts/AppLayout';
-import { cn, GEO_OPTIONS } from '@/lib/utils';
+import { cn, GEO_OPTIONS, timeAgo } from '@/lib/utils';
 import { Link, router } from '@inertiajs/react';
 import {
 	IconAlertCircle,
@@ -159,8 +159,12 @@ export default function Dashboard(props) {
 	};
 
 	const RenderMyHistory = () => (
-		<AppSection title="Riwayat Laporan Saya" icon={IconHistory}>
-			<AppList>
+		<AppSection
+			title="Riwayat Laporan Saya"
+			icon={IconHistory}
+			action={myReports?.length > 3 ? { href: route('front.reports.index'), label: 'Lihat semua' } : undefined}
+		>
+			<AppList className="max-md:[&>a:nth-of-type(n+4)]:hidden">
 				{myReports && myReports.length > 0 ? (
 					myReports.map((report) => (
 						<AppListRow
@@ -169,20 +173,23 @@ export default function Dashboard(props) {
 							title={report.title}
 							meta={
 								<>
-									<span className="flex min-w-0 items-center gap-1.5">
+									<span className="hidden min-w-0 items-center gap-1.5 md:flex">
 										<IconMapPin className="h-3.5 w-3.5 shrink-0" />
 										<span className="truncate">{report.address || 'Lokasi Terdeteksi'}</span>
 									</span>
-									<span className="text-muted-foreground/60">•</span>
+									<span className="hidden text-muted-foreground/60 md:inline">•</span>
 									<span className="flex shrink-0 items-center gap-1.5">
 										<IconClock className="h-3.5 w-3.5 shrink-0" />
-										{new Date(report.created_at).toLocaleDateString('id-ID', {
-											day: 'numeric',
-											month: 'short',
-											year: 'numeric',
-											hour: '2-digit',
-											minute: '2-digit',
-										})}
+										<span className="md:hidden">{timeAgo(report.created_at)}</span>
+										<span className="hidden md:inline">
+											{new Date(report.created_at).toLocaleDateString('id-ID', {
+												day: 'numeric',
+												month: 'short',
+												year: 'numeric',
+												hour: '2-digit',
+												minute: '2-digit',
+											})}
+										</span>
 									</span>
 								</>
 							}
@@ -318,7 +325,7 @@ export default function Dashboard(props) {
 							<IconShieldCheck className="mr-1 h-3.5 w-3.5" stroke={2.5} />{' '}
 							{isRelawan ? 'Relawan Siaga' : 'Warga Umum'}
 						</Badge>
-						<span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+						<span className="hidden items-center gap-1.5 text-xs font-medium text-muted-foreground md:flex">
 							<IconMapPin className="h-3.5 w-3.5 text-destructive" /> Layanan Darurat Sisupit
 						</span>
 					</>
@@ -328,7 +335,7 @@ export default function Dashboard(props) {
 			{/* CTA UTAMA: LAPOR DARURAT - aksi inti yang harus paling menonjol bagi warga */}
 			<Link
 				href={route('front.reports.create')}
-				className="active:scale-\\[0.98\\] group flex items-center justify-between gap-3 rounded-2xl border border-destructive bg-destructive p-4 text-destructive-foreground shadow-sm transition-colors hover:bg-destructive/90 active:bg-destructive/90 motion-reduce:active:scale-100"
+				className="group flex items-center justify-between gap-3 rounded-2xl border border-destructive bg-destructive p-4 text-destructive-foreground shadow-sm transition-colors hover:bg-destructive/90 active:scale-[0.98] active:bg-destructive/90 motion-reduce:active:scale-100"
 			>
 				<div className="flex items-center gap-3">
 					<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-destructive-foreground/15">

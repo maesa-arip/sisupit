@@ -146,12 +146,8 @@ export default function PetugasDashboard({
 							variant="secondary"
 							className="rounded-full border-none bg-destructive px-2.5 py-0.5 text-xs font-semibold text-destructive-foreground"
 						>
-							<IconShieldCheck className="mr-1 h-3.5 w-3.5" stroke={2.5} /> PETUGAS DAMKAR
+							<IconShieldCheck className="mr-1 h-3.5 w-3.5" stroke={2.5} /> Petugas Damkar
 						</Badge>
-						<span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground md:text-sm">
-							<IconMapPin className="h-3.5 w-3.5 text-destructive md:h-4 md:w-4" /> Wilayah Yurisdiksi
-							Anda
-						</span>
 						{/* Regu milik petugas ini (TASK_60) - tidak tampil bila belum beregu. */}
 						{myRegu && (
 							<span className="flex items-center gap-1.5 text-xs font-semibold text-foreground md:text-sm">
@@ -176,7 +172,7 @@ export default function PetugasDashboard({
 								<h3 className="text-[15px] font-semibold text-destructive">
 									Ada {activeMissions.length} Insiden Aktif!
 								</h3>
-								<p className="text-xs font-medium text-destructive/80">
+								<p className="hidden text-[13px] text-destructive/80 sm:block">
 									Segera pantau dan ambil tindakan operasional.
 								</p>
 							</div>
@@ -192,7 +188,7 @@ export default function PetugasDashboard({
 							</div>
 							<div>
 								<h3 className="text-[15px] font-semibold text-success">Wilayah Aman Terkendali</h3>
-								<p className="text-[13px] text-success/80">
+								<p className="hidden text-[13px] text-success/80 sm:block">
 									Tidak ada insiden darurat di wilayah tugas Anda saat ini.
 								</p>
 							</div>
@@ -243,13 +239,15 @@ export default function PetugasDashboard({
 								title={mission.title}
 								meta={
 									<>
-										<span className="font-mono font-semibold">{reportNumber(mission)}</span>
-										<span className="text-muted-foreground/60">•</span>
-										<span className="flex min-w-0 items-center gap-1.5">
+										<span className="hidden font-mono font-semibold md:inline">
+											{reportNumber(mission)}
+										</span>
+										<span className="hidden text-muted-foreground/60 md:inline">•</span>
+										<span className="hidden min-w-0 items-center gap-1.5 md:flex">
 											<IconMapPin className="h-3.5 w-3.5 shrink-0" />
 											<span className="truncate">{mission.location}</span>
 										</span>
-										<span className="text-muted-foreground/60">•</span>
+										<span className="hidden text-muted-foreground/60 md:inline">•</span>
 										<span
 											className={cn(
 												'flex shrink-0 items-center gap-1.5',
@@ -257,7 +255,7 @@ export default function PetugasDashboard({
 											)}
 										>
 											<IconClock className="h-3.5 w-3.5 shrink-0" />
-											Dilaporkan {mission.time}
+											<span className="hidden md:inline">Dilaporkan</span> {mission.time}
 										</span>
 										{mission.distKm != null && (
 											<>
@@ -273,7 +271,7 @@ export default function PetugasDashboard({
 										)}
 										{/* Regu yang sudah meluncur ke insiden ini (TASK_60). */}
 										{mission.regus?.length > 0 && (
-											<>
+											<span className="hidden md:contents">
 												<span className="text-muted-foreground/60">•</span>
 												<span className="flex min-w-0 items-center gap-1.5 font-semibold text-foreground">
 													<IconUsers className="h-3.5 w-3.5 shrink-0" />
@@ -281,7 +279,7 @@ export default function PetugasDashboard({
 														{mission.regus.join(', ')} meluncur
 													</span>
 												</span>
-											</>
+											</span>
 										)}
 									</>
 								}

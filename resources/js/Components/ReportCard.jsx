@@ -101,7 +101,7 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 
 				{hasPhoto && (
 					<div
-						className="group/img relative mb-3 h-40 w-full shrink-0 cursor-pointer overflow-hidden rounded-xl bg-muted shadow-none"
+						className="group/img relative mb-3 h-32 w-full shrink-0 cursor-pointer overflow-hidden rounded-xl bg-muted shadow-none sm:h-40"
 						onClick={() => setShowImage(true)}
 					>
 						<img
@@ -123,7 +123,7 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 					<MapPin size={14} className="mt-0.5 shrink-0 text-destructive" />
 					<span className="line-clamp-2 leading-snug">{alamatLaporan(report)}</span>
 				</div>
-				<p className="line-clamp-2 text-[13px] leading-relaxed text-muted-foreground">
+				<p className="line-clamp-2 hidden text-[13px] leading-relaxed text-muted-foreground sm:block">
 					{report.description || 'Tidak ada deskripsi rinci.'}
 				</p>
 			</div>

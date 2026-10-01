@@ -294,3 +294,20 @@ kedua layar (120 test) hijau sebelum & sesudah.
   bergerak pegas, popup marker semibold + lencana pil (tombol "Lihat Detail" yang dijaga test tak disentuh).
 - Penjaga baru (StandbyCard dipakai kedua dashboard tanpa salinan; peta tanpa blur buatan sendiri) - MERAH
   terhadap HEAD. `DashboardMobileShellTest` tetap hijau. Suite 650 passed (3171).
+
+## 17. Bagian 11 - dashboard ponsel disederhanakan (user 2026-10-01: "dashboard terlalu rame dan susah di
+baca ... sesuaikan dengan kaidah desain mobile")
+
+Prinsip: satu hal terpenting di atas, satu aksi utama, yang sekunder baru muncul mulai `md`
+(progressive disclosure). DESKTOP TIDAK BERUBAH - semua lewat `md:`/`max-md:`.
+- **Petugas:** baris misi di ponsel hanya waktu (merah bila mendesak) + jarak; nomor laporan, lokasi, regu
+  baru mulai `md` (dulu sampai 5 metadata per baris). Teks "Wilayah Yurisdiksi Anda" (tanpa informasi)
+  DICABUT; lencana "Petugas Damkar" tanpa kapital; keterangan kartu status disembunyikan di ponsel.
+- **Admin/pejabat:** statistik ponsel = angka + label saja (petak ikon mulai `md`); daftar insiden ponsel
+  tanpa lokasi & maks 5 baris; yurisdiksi hanya desktop.
+- **Warga/relawan:** riwayat ponsel = waktu relatif (`timeAgo`), tanpa lokasi, maks 3 baris + "Lihat semua";
+  meta sapaan dirampingkan. ReportCard di ponsel: deskripsi disembunyikan, foto lebih pendek.
+- **Bug ikutan diperbaiki:** kelas tekan kartu "Lapor Darurat" tertulis `active:scale-\[0.98\]` (backslash
+  terbawa regex bagian 10) - kelas tak sah, efek tekan tak pernah jalan. Pemeriksaan di seluruh JSX: tak ada
+  kelas rusak serupa.
+- Penjaga baru (MERAH terhadap HEAD). Suite 651 passed (3180).
