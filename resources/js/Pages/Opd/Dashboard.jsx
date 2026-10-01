@@ -31,7 +31,7 @@ export default function OpdDashboard({ agencyName, requests = [], feed_channel =
 			<AppGreeting
 				title={agencyName || 'Instansi Terkait'}
 				meta={
-					<span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground md:text-sm">
+					<span className="hidden items-center gap-1.5 text-xs font-medium text-muted-foreground md:flex md:text-sm">
 						<IconBuildingCommunity className="h-3.5 w-3.5 shrink-0 md:h-4 md:w-4" />
 						Permintaan bantuan dari Pemadam Kebakaran untuk instansi Anda.
 					</span>
@@ -41,7 +41,7 @@ export default function OpdDashboard({ agencyName, requests = [], feed_channel =
 			{!agencyName && (
 				<div className="flex items-start gap-3 rounded-2xl border border-warning/20 bg-warning/10 p-4 text-warning">
 					<IconAlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
-					<p className="text-sm font-medium leading-relaxed">
+					<p className="text-[15px] font-medium leading-relaxed">
 						Akun Anda belum ditautkan ke instansi mana pun, jadi belum ada permintaan yang bisa ditampilkan.
 						Hubungi admin Damkar wilayah Anda untuk menautkannya.
 					</p>
@@ -51,7 +51,7 @@ export default function OpdDashboard({ agencyName, requests = [], feed_channel =
 			{awaiting.length > 0 && (
 				<div className="flex items-start gap-3 rounded-2xl border border-warning/20 bg-warning/10 p-4 text-warning">
 					<IconAlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
-					<p className="text-sm font-medium leading-relaxed">
+					<p className="text-[15px] font-medium leading-relaxed">
 						{awaiting.length} insiden menunggu konfirmasi tindakan dari instansi Anda.
 					</p>
 				</div>
@@ -89,11 +89,11 @@ export default function OpdDashboard({ agencyName, requests = [], feed_channel =
 									title={item.title}
 									meta={
 										<>
-											<span className="flex min-w-0 items-center gap-1.5">
+											<span className="hidden min-w-0 items-center gap-1.5 md:flex">
 												<IconMapPin className="h-3.5 w-3.5 shrink-0" />
 												<span className="truncate">{item.location}</span>
 											</span>
-											<span className="text-muted-foreground/60">•</span>
+											<span className="hidden text-muted-foreground/60 md:inline">•</span>
 											<span className="shrink-0">{item.time}</span>
 											{item.requires_confirmation && (
 												<span

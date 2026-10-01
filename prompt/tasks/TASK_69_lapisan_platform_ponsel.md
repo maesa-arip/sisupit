@@ -311,3 +311,20 @@ Prinsip: satu hal terpenting di atas, satu aksi utama, yang sekunder baru muncul
   terbawa regex bagian 10) - kelas tak sah, efek tekan tak pernah jalan. Pemeriksaan di seluruh JSX: tak ada
   kelas rusak serupa.
 - Penjaga baru (MERAH terhadap HEAD). Suite 651 passed (3180).
+
+## 18. Bagian 12 - halaman berstatus B & C dirombak (user 2026-10-01/02: "rombak semua yang statusnya B dan C")
+
+Dikerjakan per keluarga templat (skrip berpenjaga jumlah-cocok, cadangan + pulih otomatis):
+- **Daftar:** OPD, Penerima Email, Armada, Banjar, Kotak Email, Riwayat Laporan, Forum, Regu, Verifikasi
+  Laporan -> satu daftar bergrup; Roles/Permissions/Akses Rute/Hak Akses -> kartu ponsel ala /admin/users.
+  JEBAKAN: membungkus ekspresi `.map()` di dalam ternary dengan `<div>` tanpa `{}` membuat sebagian JSX jadi
+  TEKS mentah - sintaksnya sah sehingga prettier diam; diperiksa & dibungkus `{...}`.
+- **Form (25):** tiap ANAK LANGSUNG <form> jadi baris bergaris rambut
+  (`divide-y [&>*]:py-4 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0`) - satu pola untuk form berisian tunggal
+  maupun berkolom; garis atas baris tombol dicabut. Primitif Input/Select/Combobox/Button default h-10.
+- **Layar tunggal:** Terima kasih = layar konfirmasi iOS; Relawan = baris kontak di ponsel + profil kartu kontak;
+  Forum = pil & tipografi baca; Info (InfoShell) = lebar baca max-w-3xl, teks 15px; Galat = layar iOS tanpa
+  kartu; Spotlight/Landing = warna dekorasi ditulis mati (`bg-white`, `border-neutral-200`) -> token (dulu putih
+  menyala di mode gelap); Auth = ikon aplikasi; fasilitas publik = kolom cari iOS tanpa kartu; OPD ringkas.
+- Rekap (`prompt/docs/REKAP_TAMPILAN_APPLE_DESIGN.md`) diperbarui: 73 dirombak penuh, 10 sebagian (Auth, Landing,
+  Home, 2 tabel superadmin), 0 gaya umum saja, 5 sengaja tak disentuh. Suite 652 passed (3191).

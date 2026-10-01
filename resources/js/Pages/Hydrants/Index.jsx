@@ -1,6 +1,5 @@
 import HeaderTitle from '@/Components/HeaderTitle';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
@@ -94,14 +93,14 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 				{/* --- KOLOM KIRI (Filter & List) --- */}
 				<div className="flex w-full shrink-0 flex-col gap-5 lg:w-5/12 xl:w-1/3">
 					{/* Kotak Pencarian & Filter */}
-					<Card className="overflow-hidden">
-						<CardContent className="p-5">
-							<form onSubmit={handleSearch} className="flex flex-col gap-4">
+					<div>
+						<div>
+							<form onSubmit={handleSearch} className="flex flex-col gap-3">
 								<Button
 									type="button"
 									onClick={handleNearestSearch}
 									disabled={isLocating || processing}
-									className="flex h-10 w-full items-center gap-2 rounded-2xl border border-teal-200 bg-teal-50 text-sm font-medium text-teal-700 shadow-sm transition-colors hover:bg-teal-100 dark:border-teal/30 dark:bg-teal/10 dark:text-teal dark:hover:bg-teal/20"
+									className="flex h-11 w-full items-center gap-2 rounded-xl border-transparent bg-primary/10 text-[15px] font-medium text-primary shadow-none transition-colors hover:bg-primary/15"
 								>
 									{isLocating ? (
 										<IconLoader2 className="h-4 w-4 animate-spin" />
@@ -119,7 +118,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 										type="search"
 										enterKeyHint="search"
 										placeholder="Cari nama area atau jalan..."
-										className="h-10 w-full rounded-2xl border-border bg-muted pl-9 text-sm focus-visible:ring-1 focus-visible:ring-teal"
+										className="h-11 w-full rounded-xl border-transparent bg-muted pl-9 text-[15px] focus-visible:ring-2 focus-visible:ring-primary/30"
 										value={data.search}
 										onChange={(e) => setData('search', e.target.value)}
 									/>
@@ -129,7 +128,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 									<button
 										type="button"
 										onClick={() => applyFilter('status', 'Semua')}
-										className={`whitespace-nowrap rounded-2xl border px-3 py-1.5 text-xs font-medium transition-colors ${
+										className={`h-8 whitespace-nowrap rounded-full border px-3.5 text-[13px] font-medium transition-colors ${
 											activeStatus === 'Semua'
 												? 'border-transparent bg-primary text-primary-foreground'
 												: 'border-border bg-card text-foreground/80 hover:bg-muted'
@@ -140,7 +139,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 									<button
 										type="button"
 										onClick={() => applyFilter('status', 'Aktif')}
-										className={`whitespace-nowrap rounded-2xl border px-3 py-1.5 text-xs font-medium transition-colors ${
+										className={`h-8 whitespace-nowrap rounded-full border px-3.5 text-[13px] font-medium transition-colors ${
 											activeStatus === 'Aktif'
 												? 'border-transparent bg-primary text-primary-foreground'
 												: 'border-border bg-card text-foreground/80 hover:bg-muted'
@@ -151,7 +150,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 									<button
 										type="button"
 										onClick={() => applyFilter('status', 'Perbaikan')}
-										className={`whitespace-nowrap rounded-2xl border px-3 py-1.5 text-xs font-medium transition-colors ${
+										className={`h-8 whitespace-nowrap rounded-full border px-3.5 text-[13px] font-medium transition-colors ${
 											activeStatus === 'Perbaikan'
 												? 'border-transparent bg-primary text-primary-foreground'
 												: 'border-border bg-card text-foreground/80 hover:bg-muted'
@@ -161,8 +160,8 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 									</button>
 								</div>
 							</form>
-						</CardContent>
-					</Card>
+						</div>
+					</div>
 
 					{/* Daftar List Hydrant */}
 					<div className="flex flex-col divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
