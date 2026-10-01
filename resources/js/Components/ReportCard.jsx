@@ -66,14 +66,12 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 	return (
 		<div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition-colors duration-200 hover:border-muted-foreground/50">
 			<div className="flex flex-1 flex-col p-4">
-				<div className="mb-3 flex items-start justify-between gap-3">
-					<h2 className="line-clamp-2 flex min-w-0 flex-1 items-start gap-2 text-[17px] font-semibold leading-snug tracking-tight text-foreground">
-						<Flame size={16} className="mt-0.5 shrink-0 text-destructive" strokeWidth={2.5} />
-						{report.title}
-					</h2>
+				{/* Status di BARIS SENDIRI di atas judul (keluhan user 2026-10-02): dulu pil ini
+				    duduk di samping judul dan menjepitnya jadi dua baris berakhiran "...". */}
+				<div className="mb-2 flex flex-wrap items-center gap-2">
 					<span
 						className={cn(
-							'flex shrink-0 items-center whitespace-nowrap rounded-md border px-2 py-1 text-[11px] font-bold uppercase tracking-wide shadow-none',
+							'inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold shadow-none',
 							statusConfig.color,
 						)}
 					>
@@ -81,15 +79,19 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 						{statusConfig.label}
 					</span>
 				</div>
+				<h2 className="mb-2 flex items-start gap-2 break-words text-[17px] font-semibold leading-snug tracking-tight text-foreground">
+					<Flame size={16} className="mt-1 shrink-0 text-destructive" strokeWidth={2.5} />
+					<span className="min-w-0">{report.title}</span>
+				</h2>
 
-				<div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-medium text-muted-foreground">
+				<div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] text-muted-foreground">
 					<span className="flex items-center gap-1">
 						<Clock size={12} strokeWidth={2.5} className="shrink-0" />
 						{timeAgo(report.created_at)}
 					</span>
 					<span className="flex min-w-0 items-center gap-1">
 						<User size={12} strokeWidth={2.5} className="shrink-0" />
-						<span className="truncate">{report.name || report.user?.name || 'Warga'}</span>
+						<span className="break-words">{report.name || report.user?.name || 'Warga'}</span>
 					</span>
 					{distKm != null && (
 						<span className="flex items-center gap-1 text-foreground">
@@ -119,11 +121,11 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 					</div>
 				)}
 
-				<div className="mb-1.5 flex items-start gap-2 text-[13px] font-medium text-foreground/80">
-					<MapPin size={14} className="mt-0.5 shrink-0 text-destructive" />
-					<span className="line-clamp-2 leading-snug">{alamatLaporan(report)}</span>
+				<div className="mb-1.5 flex items-start gap-2 text-[15px] text-foreground/80">
+					<MapPin size={15} className="mt-0.5 shrink-0 text-destructive" />
+					<span className="break-words leading-snug">{alamatLaporan(report)}</span>
 				</div>
-				<p className="line-clamp-2 hidden text-[13px] leading-relaxed text-muted-foreground sm:block">
+				<p className="line-clamp-3 hidden text-[13px] leading-relaxed text-muted-foreground sm:block">
 					{report.description || 'Tidak ada deskripsi rinci.'}
 				</p>
 			</div>
@@ -132,7 +134,7 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 				{hasHelpers ? (
 					<button
 						type="button"
-						className="group/helper mb-3 flex w-full items-center justify-between text-[11px] font-bold text-foreground outline-none transition-colors hover:text-destructive"
+						className="group/helper mb-3 flex min-h-[32px] w-full items-center justify-between text-[13px] font-semibold text-foreground outline-none transition-colors hover:text-destructive"
 						onClick={() => setShowList(true)}
 					>
 						<div className="flex items-center gap-2.5">
@@ -151,12 +153,12 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 						<span className="text-base leading-none">›</span>
 					</button>
 				) : (
-					<div className="mb-3 flex w-full items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+					<div className="mb-3 flex w-full items-center gap-1.5 text-[13px] font-medium text-muted-foreground">
 						<Users size={12} /> Belum Ada Responden
 					</div>
 				)}
 
-				{/* 👇 FIX: TOMBOL EKSTRA KOMPAK (h-8 atau 32px) 👇 */}
+				{/* Tombol 44px berhuruf normal (TASK_69): dulu 11px kapital tebal berdesakan. */}
 				<div className="flex items-stretch gap-2">
 					<a
 						href={googleMapsUrl}
@@ -166,7 +168,7 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 					>
 						<button
 							type="button"
-							className="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-card text-muted-foreground shadow-none transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-muted-foreground/50"
+							className="flex h-11 w-11 items-center justify-center rounded-xl border border-border/70 bg-card text-muted-foreground shadow-none transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-muted-foreground/50"
 						>
 							<Navigation size={14} strokeWidth={2.5} />
 						</button>
@@ -176,14 +178,14 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 						{isOwner ? (
 							<Link
 								href={route('reports.show', report.id)}
-								className="flex h-10 w-full items-center justify-center rounded-md border border-border bg-card text-[11px] font-bold uppercase tracking-wide text-foreground shadow-none transition-colors hover:bg-accent"
+								className="flex h-11 w-full items-center justify-center rounded-xl border border-border bg-card text-[15px] font-semibold text-foreground shadow-none transition-colors hover:bg-accent"
 							>
 								Pantau Laporan
 							</Link>
 						) : isMyTask ? (
 							<Link
 								href={route('reports.show', report.id)}
-								className="flex h-10 w-full items-center justify-center rounded-md border border-transparent bg-primary text-[11px] font-bold uppercase tracking-wide text-primary-foreground shadow-none transition-colors hover:bg-primary/90"
+								className="flex h-11 w-full items-center justify-center rounded-xl border border-transparent bg-primary text-[15px] font-semibold text-primary-foreground shadow-none transition-colors hover:bg-primary/90"
 							>
 								Peta Operasional
 							</Link>
@@ -191,14 +193,14 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 							<button
 								disabled
 								type="button"
-								className="flex h-10 w-full cursor-not-allowed items-center justify-center rounded-md border border-border bg-muted text-xs font-medium text-muted-foreground/70 shadow-none transition-colors"
+								className="flex h-11 w-full cursor-not-allowed items-center justify-center rounded-xl border border-border bg-muted text-[15px] font-semibold text-muted-foreground/70 shadow-none transition-colors"
 							>
 								Kasus Selesai
 							</button>
 						) : isRelawan ? (
 							<Link
 								href={route('reports.show', report.id)}
-								className="flex h-10 w-full items-center justify-center rounded-md border border-destructive bg-destructive text-[11px] font-bold uppercase tracking-wide text-destructive-foreground shadow-none outline-none transition-colors hover:bg-destructive/90 focus:ring-2 focus:ring-destructive/50"
+								className="flex h-11 w-full items-center justify-center rounded-xl border border-destructive bg-destructive text-[15px] font-semibold text-destructive-foreground shadow-none outline-none transition-colors hover:bg-destructive/90 focus:ring-2 focus:ring-destructive/50"
 							>
 								Lihat &amp; Respons
 							</Link>
@@ -206,7 +208,7 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 							<button
 								disabled
 								type="button"
-								className="flex h-10 w-full cursor-not-allowed items-center justify-center rounded-md border border-border bg-muted text-xs font-medium text-muted-foreground shadow-none transition-colors"
+								className="flex h-11 w-full cursor-not-allowed items-center justify-center rounded-xl border border-border bg-muted text-[15px] font-semibold text-muted-foreground shadow-none transition-colors"
 							>
 								{hasHelpers ? 'Dalam Penanganan' : 'Menunggu Relawan'}
 							</button>

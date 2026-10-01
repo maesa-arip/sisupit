@@ -10,7 +10,6 @@ import { Head, router } from '@inertiajs/react';
 import {
 	IconAlertCircle,
 	IconCheck,
-	IconClock,
 	IconFileText,
 	IconFiretruck,
 	IconHourglass,
@@ -237,81 +236,65 @@ export default function PetugasDashboard({
 									</div>
 								}
 								title={mission.title}
+								aside={
+									<span className={cn(mission.isUrgent && 'font-semibold text-destructive')}>
+										{mission.time}
+									</span>
+								}
 								meta={
 									<>
 										<span className="hidden font-mono font-semibold md:inline">
 											{reportNumber(mission)}
 										</span>
-										<span className="hidden text-muted-foreground/60 md:inline">•</span>
-										<span className="hidden min-w-0 items-center gap-1.5 md:flex">
-											<IconMapPin className="h-3.5 w-3.5 shrink-0" />
-											<span className="truncate">{mission.location}</span>
-										</span>
-										<span className="hidden text-muted-foreground/60 md:inline">•</span>
-										<span
-											className={cn(
-												'flex shrink-0 items-center gap-1.5',
-												mission.isUrgent && 'font-semibold text-destructive',
-											)}
-										>
-											<IconClock className="h-3.5 w-3.5 shrink-0" />
-											<span className="hidden md:inline">Dilaporkan</span> {mission.time}
+										<span className="flex items-start gap-1.5">
+											<IconMapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+											<span>{mission.location}</span>
 										</span>
 										{mission.distKm != null && (
-											<>
-												<span className="text-muted-foreground/60">•</span>
-												<span className="flex shrink-0 items-center gap-1.5 font-semibold text-foreground">
-													<IconRoute className="h-3.5 w-3.5 shrink-0" /> ±{' '}
-													{mission.distKm < 10
-														? mission.distKm.toFixed(1)
-														: Math.round(mission.distKm)}{' '}
-													km
-												</span>
-											</>
+											<span className="flex shrink-0 items-center gap-1.5 font-semibold text-foreground">
+												<IconRoute className="h-3.5 w-3.5 shrink-0" /> ±{' '}
+												{mission.distKm < 10
+													? mission.distKm.toFixed(1)
+													: Math.round(mission.distKm)}{' '}
+												km
+											</span>
 										)}
 										{/* Regu yang sudah meluncur ke insiden ini (TASK_60). */}
 										{mission.regus?.length > 0 && (
-											<span className="hidden md:contents">
-												<span className="text-muted-foreground/60">•</span>
-												<span className="flex min-w-0 items-center gap-1.5 font-semibold text-foreground">
-													<IconUsers className="h-3.5 w-3.5 shrink-0" />
-													<span className="truncate">
-														{mission.regus.join(', ')} meluncur
-													</span>
-												</span>
+											<span className="flex items-start gap-1.5 font-semibold text-foreground">
+												<IconUsers className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+												<span>{mission.regus.join(', ')} meluncur</span>
 											</span>
 										)}
 									</>
 								}
-								trailing={
-									<div className="flex flex-col items-end gap-1.5 md:flex-row md:items-center md:gap-4">
+								badges={
+									<>
 										<StatusBadge status={mission.status} />
-										{/* Ajakan bertindak IKUT MENGECIL di ponsel, tidak dihilangkan: warna
-										    merah "Tanggapi" adalah sinyal urgensi dashboard ini (TASK_51), dan
-										    menyembunyikannya justru di perangkat yang dibawa ke lapangan akan
-										    mencabut sinyalnya persis di tempat ia paling dibutuhkan. */}
-										<div
+										{/* Ajakan bertindak TETAP ada di ponsel (TASK_51): merah "Tanggapi" adalah
+										    sinyal urgensi dashboard ini. Kini di baris lencana sendiri, bukan
+										    dijejalkan di kolom kanan (keluhan user 2026-10-02). */}
+										<span
 											className={cn(
-												'flex h-7 shrink-0 items-center justify-center gap-1 rounded-full px-2.5 text-xs font-semibold transition-all md:h-10 md:rounded-lg md:px-4 md:text-xs',
-												mission.isUrgent &&
-													'bg-destructive text-destructive-foreground group-hover:bg-destructive/90',
-												mission.isAwaitingAdmin &&
-													'border border-warning/30 bg-warning/10 text-warning',
+												'inline-flex h-7 items-center gap-1 rounded-full px-3 text-[13px] font-semibold transition-colors',
+												mission.isUrgent && 'bg-destructive text-destructive-foreground',
+												mission.isAwaitingAdmin && 'bg-warning/10 text-warning',
 												!mission.isUrgent &&
 													!mission.isAwaitingAdmin &&
-													'border border-border bg-muted text-foreground/80 group-hover:border-destructive group-hover:bg-destructive group-hover:text-destructive-foreground',
+													'bg-muted text-foreground/80',
 											)}
 										>
 											{mission.isAwaitingAdmin ? (
 												<>
-													<IconHourglass className="h-3.5 w-3.5 md:h-4 md:w-4" /> Menunggu
-													Admin
+													<IconHourglass className="h-3.5 w-3.5" /> Menunggu Admin
 												</>
+											) : mission.isUrgent ? (
+												'Tanggapi'
 											) : (
-												<>{mission.isUrgent ? 'Tanggapi' : 'Pantau'}</>
+												'Pantau'
 											)}
-										</div>
-									</div>
+										</span>
+									</>
 								}
 							/>
 						))
@@ -343,28 +326,22 @@ export default function PetugasDashboard({
 									</div>
 								}
 								title={item.title}
+								aside={`Selesai ${item.time}`}
 								meta={
 									<>
 										<span className="font-mono font-semibold">{reportNumber(item)}</span>
-										<span className="text-muted-foreground/60">•</span>
-										<span className="flex min-w-0 items-center gap-1.5">
-											<IconMapPin className="h-3.5 w-3.5 shrink-0" />
-											<span className="truncate">{item.location}</span>
-										</span>
-										<span className="text-muted-foreground/60">•</span>
-										<span className="flex shrink-0 items-center gap-1.5">
-											<IconCheck className="h-3.5 w-3.5 shrink-0 text-success" />
-											Selesai {item.time}
+										<span className="flex items-start gap-1.5">
+											<IconMapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+											<span>{item.location}</span>
 										</span>
 									</>
 								}
-								trailing={
+								badges={
 									/* Antrian ini hanya berisi insiden yang BELUM punya entri berita acara
-									   sama sekali (TASK_49), jadi tak ada lagi dua keadaan yang perlu
-									   dibedakan - `has_draft` ikut dihapus di server. */
-									<div className="flex h-7 shrink-0 items-center justify-center rounded-full bg-warning px-2.5 text-xs font-semibold text-warning-foreground transition-all group-hover:bg-warning/90 md:h-10 md:rounded-lg md:px-4 md:text-xs">
+									   sama sekali (TASK_49), jadi cukup satu ajakan. */
+									<span className="inline-flex h-7 items-center rounded-full bg-warning px-3 text-[13px] font-semibold text-warning-foreground">
 										Buat Laporan
-									</div>
+									</span>
 								}
 							/>
 						))}

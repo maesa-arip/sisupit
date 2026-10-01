@@ -344,3 +344,17 @@ Dikerjakan per keluarga templat (skrip berpenjaga jumlah-cocok, cadangan + pulih
 - Rekap: 83 dirombak penuh, 0 sebagian, 5 sengaja tak disentuh. Suite 654 passed (3218). Penjaga baru di
   AppleDesignMaterialTest (grup isian Auth, token warna halaman pemasaran, daftar ponsel superadmin) dibuktikan
   MERAH terhadap HEAD, berkas dipulihkan byte-exact.
+
+## 20. Baris dashboard & kartu laporan dirombak (user 2026-10-02: "teks terpotong diganti ... tombol pill di kanan desak-desakan, rombak total")
+
+- Akar: primitif bersama `AppListRow` (Components/AppSection.jsx) memaksa judul `truncate`, dan ketiga dashboard
+  menjejalkan StatusBadge + pil aksi ("Tanggapi"/"Menunggu Admin"/"Buat Laporan") ke kolom kanan di samping
+  panah - judul makin terjepit.
+- `AppListRow` kini ala baris Mail iOS: judul & meta MEMBUNGKUS (tanpa "..."), prop BARU `aside` (waktu, pojok
+  kanan atas) & `badges` (status + ajakan, baris sendiri rata kiri). Kolom kanan tinggal panah; `trailing` tetap
+  diterima untuk pemanggil lama tapi dashboard tak lagi memakainya. Lokasi kini tampil di ponsel juga.
+- Pil "Tanggapi" merah TETAP ada di ponsel (sinyal urgensi TASK_51), kini h-7/13px di baris lencana.
+- `ReportCard`: status naik ke baris sendiri di atas judul; judul, nama pelapor, alamat penuh; deskripsi sengaja
+  tetap pratinjau 3 baris (isi lengkap di detail); tombol bawah 44px huruf normal (dulu 11px kapital).
+- Penjaga baru di AppleDesignMaterialTest dibuktikan MERAH terhadap HEAD, 5 berkas pulih byte-exact.
+  Satu asersi lama disesuaikan (deskripsi line-clamp-2 -> 3, disengaja). Suite 655 passed (3231).

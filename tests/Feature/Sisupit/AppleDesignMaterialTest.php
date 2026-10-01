@@ -223,7 +223,7 @@ it('keeps the mobile dashboards to the essentials and leaves the detail for larg
     expect(appleSource('resources/js/Pages/Petugas/Dashboard.jsx'))->toContain('hidden font-mono font-semibold md:inline')
         ->not->toContain('Wilayah Yurisdiksi')
         ->not->toContain('PETUGAS DAMKAR');
-    expect(appleSource('resources/js/Components/ReportCard.jsx'))->toContain('line-clamp-2 hidden text-[13px]');
+    expect(appleSource('resources/js/Components/ReportCard.jsx'))->toContain('line-clamp-3 hidden text-[13px]');
 });
 
 it('reworks the remaining front pages into grouped lists and iOS-style screens', function () {
@@ -259,4 +259,20 @@ it('gives the superadmin tables a grouped phone list that shares one delete dial
             ->and(substr_count($src, "<{$dialog} "))->toBe(2)
             ->and(substr_count($src, '<AlertDialog>'))->toBe(1);
     }
+});
+
+it('lets dashboard rows wrap in full and moves status and action pills off the crowded right edge', function () {
+    $row = appleSource('resources/js/Components/AppSection.jsx');
+    $rowFn = substr($row, strpos($row, 'export function AppListRow'));
+    expect($rowFn)->not->toContain('truncate')
+        ->and($rowFn)->toContain('{badges && <div className="mt-2.5 flex flex-wrap');
+    foreach (['Pages/Dashboard.jsx', 'Pages/Admin/Dashboard.jsx', 'Pages/Petugas/Dashboard.jsx'] as $page) {
+        $src = appleSource("resources/js/{$page}");
+        expect($src)->toContain('badges={')
+            ->and($src)->toContain('aside={')
+            ->and($src)->not->toMatch('/<span className="truncate">\{(report|mission|item)\.(location|address)/');
+    }
+    $card = appleSource('resources/js/Components/ReportCard.jsx');
+    expect($card)->not->toContain('line-clamp-2 flex min-w-0 flex-1 items-start gap-2 text-[17px]')
+        ->and($card)->not->toContain('text-[11px] font-bold uppercase tracking-wide');
 });

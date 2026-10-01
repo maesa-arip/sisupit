@@ -12,7 +12,6 @@ import {
 	IconAlertCircle,
 	IconCheckupList,
 	IconChevronRight,
-	IconClock,
 	IconFlame,
 	IconHistory,
 	IconLoader2,
@@ -171,29 +170,26 @@ export default function Dashboard(props) {
 							key={report.id}
 							href={route('reports.show', report.id)}
 							title={report.title}
-							meta={
+							aside={
 								<>
-									<span className="hidden min-w-0 items-center gap-1.5 md:flex">
-										<IconMapPin className="h-3.5 w-3.5 shrink-0" />
-										<span className="truncate">{report.address || 'Lokasi Terdeteksi'}</span>
-									</span>
-									<span className="hidden text-muted-foreground/60 md:inline">•</span>
-									<span className="flex shrink-0 items-center gap-1.5">
-										<IconClock className="h-3.5 w-3.5 shrink-0" />
-										<span className="md:hidden">{timeAgo(report.created_at)}</span>
-										<span className="hidden md:inline">
-											{new Date(report.created_at).toLocaleDateString('id-ID', {
-												day: 'numeric',
-												month: 'short',
-												year: 'numeric',
-												hour: '2-digit',
-												minute: '2-digit',
-											})}
-										</span>
+									<span className="md:hidden">{timeAgo(report.created_at)}</span>
+									<span className="hidden md:inline">
+										{new Date(report.created_at).toLocaleDateString('id-ID', {
+											day: 'numeric',
+											month: 'short',
+											hour: '2-digit',
+											minute: '2-digit',
+										})}
 									</span>
 								</>
 							}
-							trailing={<StatusBadge status={report.status} />}
+							meta={
+								<span className="flex items-start gap-1.5">
+									<IconMapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+									<span>{report.address || 'Lokasi Terdeteksi'}</span>
+								</span>
+							}
+							badges={<StatusBadge status={report.status} />}
 						/>
 					))
 				) : (

@@ -128,31 +128,44 @@ export function AppEmpty({ icon: Icon, title, description }) {
  * ponsel, dan `active:` memberi umpan balik ketukan - di WebView APK tak ada kursor yang
  * bisa hover, jadi tanpa keadaan aktif sebuah ketukan terasa tidak tercatat.
  *
- * `trailing` diletakkan di kolom kanan berdampingan dengan tanda panah, bukan di baris
- * sendiri berbatas garis seperti bentuk lama - garis pemisah di DALAM satu baris membuat
- * satu insiden terbaca sebagai dua entri.
+ * Susunan ala baris Mail/Pengingat iOS (TASK_69, rombak 2026-10-02 atas keluhan user: "teks
+ * terpotong diganti ... dan tombol pill di kanan desak-desakan"):
+ * - `title` & `meta` TIDAK dipotong - keduanya membungkus ke baris berikutnya. Dashboard ini
+ *   layar darurat; nama kejadian/lokasi yang berakhir "..." adalah informasi yang hilang.
+ * - `aside` = teks kecil di pojok kanan atas (waktu), sejajar baris pertama judul.
+ * - `badges` = status & ajakan bertindak, di BARIS SENDIRI di bawah teks, rata kiri. Dulu
+ *   keduanya dijejalkan ke kolom kanan di samping panah sehingga judul terjepit.
+ * - Kolom kanan kini hanya tanda panah. `trailing` tetap diterima untuk pemanggil lama, tapi
+ *   dashboard JANGAN lagi menaruh pil di sana.
+ * Tetap SATU jangkar per baris dan tanpa garis pemisah di dalamnya (satu insiden = satu entri).
  */
-export function AppListRow({ href, leading, title, meta, trailing, className }) {
+export function AppListRow({ href, leading, title, meta, aside, badges, trailing, className }) {
 	const body = (
 		<>
-			{leading}
+			{leading && <div className="shrink-0 self-start">{leading}</div>}
 			<div className="min-w-0 flex-1">
-				<div className="truncate text-[15px] font-semibold text-foreground">{title}</div>
+				<div className="flex items-start gap-3">
+					<div className="min-w-0 flex-1 break-words text-[15px] font-semibold leading-snug text-foreground">
+						{title}
+					</div>
+					{aside && (
+						<div className="shrink-0 pt-px text-[13px] leading-snug text-muted-foreground">{aside}</div>
+					)}
+				</div>
 				{meta && (
-					<div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[13px] text-muted-foreground">
+					<div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 break-words text-[13px] leading-snug text-muted-foreground">
 						{meta}
 					</div>
 				)}
+				{badges && <div className="mt-2.5 flex flex-wrap items-center gap-2">{badges}</div>}
 			</div>
-			<div className="flex shrink-0 items-center gap-2">
-				{trailing}
-				<IconChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/50" />
-			</div>
+			{trailing && <div className="flex shrink-0 items-center gap-2 self-center">{trailing}</div>}
+			<IconChevronRight className="h-4 w-4 shrink-0 self-center text-muted-foreground/50" />
 		</>
 	);
 
 	const classes = cn(
-		'group flex min-h-[64px] w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50 active:bg-muted md:px-5 md:py-3.5',
+		'group flex min-h-[64px] w-full items-start gap-3 px-4 py-3.5 text-left transition-colors hover:bg-muted/50 active:bg-muted md:px-5 md:py-4',
 		className,
 	);
 

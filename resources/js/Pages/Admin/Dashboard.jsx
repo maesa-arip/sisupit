@@ -14,7 +14,6 @@ import {
 	IconBug,
 	IconCheck,
 	IconChevronRight,
-	IconClock,
 	IconDroplet,
 	IconFiretruck,
 	IconFlame,
@@ -331,22 +330,16 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 										</div>
 									}
 									title={report.title}
+									aside={report.time}
 									meta={
-										<>
-											<span className="hidden min-w-0 items-center gap-1.5 md:flex">
-												<IconMapPin className="h-3.5 w-3.5 shrink-0" stroke={2} />
-												<span className="truncate">{report.location}</span>
-											</span>
-											<span className="hidden text-border md:inline">•</span>
-											<span className="flex shrink-0 items-center gap-1.5">
-												<IconClock className="h-3.5 w-3.5 shrink-0" stroke={2} />
-												{report.time}
-											</span>
-										</>
+										<span className="flex items-start gap-1.5">
+											<IconMapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" stroke={2} />
+											<span>{report.location}</span>
+										</span>
 									}
-									trailing={
-										/* Badge status berbingkai (selaras admin/reports). Status "Penanganan"
-										   memakai teal seperti teks "Hydrant" pada kartu Peta Pemantauan. */
+									badges={
+										/* Badge status (selaras admin/reports). Status "Penanganan" memakai teal
+										   seperti teks "Hydrant" pada kartu Peta Pemantauan. */
 										<StatusBadge
 											status={report.status}
 											className={
