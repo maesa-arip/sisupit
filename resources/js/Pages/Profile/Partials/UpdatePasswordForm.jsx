@@ -40,13 +40,15 @@ export default function UpdatePasswordForm({ className = '' }) {
 
 	return (
 		<Card className={`overflow-hidden rounded-xl border border-border bg-card shadow-sm ${className}`}>
-			<CardHeader className="border-b border-border bg-transparent pb-5">
+			<CardHeader className="border-b border-border/70 bg-transparent pb-4">
 				<div className="flex items-center gap-3">
-					<div className="rounded-lg border border-border bg-muted p-2 text-muted-foreground">
+					<div className="rounded-xl bg-primary/10 p-2 text-primary">
 						<IconLock size={20} stroke={1.5} />
 					</div>
 					<div>
-						<CardTitle className="text-base font-semibold text-foreground">Keamanan Kata Sandi</CardTitle>
+						<CardTitle className="text-[17px] font-semibold tracking-tight text-foreground">
+							Keamanan Kata Sandi
+						</CardTitle>
 						<CardDescription className="mt-1 text-sm text-muted-foreground">
 							Pastikan akun Anda menggunakan kata sandi yang panjang dan acak agar tetap aman.
 						</CardDescription>
@@ -68,7 +70,7 @@ export default function UpdatePasswordForm({ className = '' }) {
 							onChange={onHandleChange}
 							type="password"
 							autoComplete="current-password"
-							className="h-10 rounded-xl border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive"
+							className="h-11 rounded-xl border-border bg-background focus-visible:ring-2 focus-visible:ring-primary/30"
 						/>
 						{errors.current_password && <InputError message={errors.current_password} />}
 					</div>
@@ -85,7 +87,7 @@ export default function UpdatePasswordForm({ className = '' }) {
 							onChange={onHandleChange}
 							type="password"
 							autoComplete="new-password"
-							className="h-10 rounded-xl border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive"
+							className="h-11 rounded-xl border-border bg-background focus-visible:ring-2 focus-visible:ring-primary/30"
 						/>
 						{errors.password && <InputError message={errors.password} />}
 					</div>
@@ -101,14 +103,14 @@ export default function UpdatePasswordForm({ className = '' }) {
 							onChange={onHandleChange}
 							type="password"
 							autoComplete="new-password"
-							className="h-10 rounded-xl border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive"
+							className="h-11 rounded-xl border-border bg-background focus-visible:ring-2 focus-visible:ring-primary/30"
 						/>
 						{errors.password_confirmation && <InputError message={errors.password_confirmation} />}
 					</div>
 
 					<div className="flex items-center gap-4 pt-2">
 						<Button
-							className="h-9 rounded-lg bg-destructive px-4 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50"
+							className="h-10 rounded-xl bg-destructive px-4 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50"
 							disabled={processing}
 						>
 							Perbarui Kata Sandi

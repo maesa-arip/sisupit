@@ -50,13 +50,15 @@ export default function DeleteUserForm({ className = '', hasPassword = true }) {
 
 	return (
 		<Card className={`overflow-hidden rounded-xl border border-border bg-card shadow-sm ${className}`}>
-			<CardHeader className="border-b border-border bg-transparent pb-5">
+			<CardHeader className="border-b border-border/70 bg-transparent pb-4">
 				<div className="flex items-center gap-3">
-					<div className="rounded-lg border border-destructive/20 bg-destructive/10 p-2 text-destructive">
+					<div className="rounded-xl bg-destructive/10 p-2 text-destructive">
 						<IconAlertTriangle size={20} stroke={1.5} />
 					</div>
 					<div>
-						<CardTitle className="text-base font-semibold text-foreground">Hapus Akun</CardTitle>
+						<CardTitle className="text-[17px] font-semibold tracking-tight text-foreground">
+							Hapus Akun
+						</CardTitle>
 						<CardDescription className="mt-1 text-sm text-muted-foreground">
 							Hapus identitas Anda dari Sisupit secara permanen.
 						</CardDescription>
@@ -76,14 +78,14 @@ export default function DeleteUserForm({ className = '', hasPassword = true }) {
 					<Button
 						variant="destructive"
 						onClick={confirmUserDeletion}
-						className="h-9 rounded-lg bg-destructive px-4 text-sm font-medium transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50"
+						className="h-10 rounded-xl bg-destructive px-4 text-sm font-medium transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50"
 					>
 						Hapus Akun Permanen
 					</Button>
 				</div>
 
 				<Modal show={confirmingUserDeletion} onClose={closeModal}>
-					<form onSubmit={deleteUser} className="rounded-xl border border-border bg-card p-6 sm:p-8">
+					<form onSubmit={deleteUser} className="rounded-2xl border border-border/70 bg-card p-5 sm:p-6">
 						<h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
 							<IconAlertTriangle className="h-5 w-5 text-destructive" />
 							Apakah Anda yakin?

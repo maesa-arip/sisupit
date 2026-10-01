@@ -34,7 +34,7 @@ export default function ForgotPassword({ status }) {
 					<div className="mx-auto w-full max-w-sm space-y-8">
 						{/* Judul */}
 						<div className="text-center">
-							<h1 className="text-2xl font-bold tracking-tight text-foreground">Lupa Kata Sandi?</h1>
+							<h1 className="text-3xl font-bold tracking-tight text-foreground">Lupa Kata Sandi?</h1>
 							<p className="mt-2 text-sm text-muted-foreground">
 								Tidak masalah. Masukkan alamat email Anda dan kami akan mengirimkan tautan untuk
 								mengatur ulang kata sandi.
@@ -62,7 +62,7 @@ export default function ForgotPassword({ status }) {
 									value={data.email}
 									placeholder="nama@email.com"
 									onChange={(e) => setData('email', e.target.value)}
-									className="h-11 w-full rounded-xl border-border bg-background transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+									className="h-11 w-full rounded-xl border-border bg-background transition-colors focus-visible:ring-2 focus-visible:ring-primary/30"
 								/>
 								{errors.email && <InputError message={errors.email} />}
 							</div>
@@ -70,7 +70,7 @@ export default function ForgotPassword({ status }) {
 							<Button
 								type="submit"
 								disabled={processing}
-								className="mt-2 h-11 w-full rounded-xl bg-destructive text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:cursor-not-allowed disabled:opacity-70"
+								className="mt-2 h-11 w-full rounded-xl bg-destructive text-sm font-semibold text-destructive-foreground transition-[color,background-color,transform] hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 motion-reduce:active:scale-100"
 							>
 								{processing ? <IconLoader2 className="h-5 w-5 animate-spin" /> : 'Kirim Tautan Reset'}
 							</Button>

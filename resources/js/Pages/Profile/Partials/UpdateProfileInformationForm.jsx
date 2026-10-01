@@ -70,13 +70,15 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 
 	return (
 		<Card className={`overflow-hidden rounded-xl border border-border bg-card shadow-sm ${className}`}>
-			<CardHeader className="border-b border-border bg-transparent pb-5">
+			<CardHeader className="border-b border-border/70 bg-transparent pb-4">
 				<div className="flex items-center gap-3">
-					<div className="rounded-lg border border-border bg-muted p-2 text-muted-foreground">
+					<div className="rounded-xl bg-primary/10 p-2 text-primary">
 						<IconUserEdit size={20} stroke={1.5} />
 					</div>
 					<div>
-						<CardTitle className="text-base font-semibold text-foreground">Informasi Profil</CardTitle>
+						<CardTitle className="text-[17px] font-semibold tracking-tight text-foreground">
+							Informasi Profil
+						</CardTitle>
 						<CardDescription className="mt-1 text-sm text-muted-foreground">
 							Perbarui informasi akun, alamat email, dan alamat tinggal Anda di sini.
 						</CardDescription>
@@ -97,7 +99,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 								value={data.name}
 								onChange={onHandleChange}
 								autoComplete="name"
-								className="h-10 rounded-xl border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive"
+								className="h-11 rounded-xl border-border bg-background focus-visible:ring-2 focus-visible:ring-primary/30"
 							/>
 							{errors.name && <InputError message={errors.name} />}
 						</div>
@@ -112,7 +114,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 								value={data.email}
 								onChange={onHandleChange}
 								autoComplete="email"
-								className="h-10 rounded-xl border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive"
+								className="h-11 rounded-xl border-border bg-background focus-visible:ring-2 focus-visible:ring-primary/30"
 							/>
 							{errors.email && <InputError message={errors.email} />}
 						</div>
@@ -127,7 +129,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 								value={data.phone}
 								onChange={onHandleChange}
 								autoComplete="tel"
-								className="h-10 rounded-xl border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive"
+								className="h-11 rounded-xl border-border bg-background focus-visible:ring-2 focus-visible:ring-primary/30"
 							/>
 							{errors.phone && <InputError message={errors.phone} />}
 						</div>
@@ -145,7 +147,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 								onChange={onHandleChange}
 								autoComplete="street-address"
 								placeholder="Jalan, nomor rumah, desa, kabupaten"
-								className="h-10 rounded-xl border-border bg-background focus-visible:ring-1 focus-visible:ring-destructive"
+								className="h-11 rounded-xl border-border bg-background focus-visible:ring-2 focus-visible:ring-primary/30"
 							/>
 							<p className="text-xs text-muted-foreground">
 								Hanya catatan. Tidak mengubah wilayah akun maupun notifikasi yang Anda terima.
@@ -240,7 +242,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 
 					<div className="flex items-center gap-4 pt-2">
 						<Button
-							className="h-9 rounded-lg bg-destructive px-4 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50"
+							className="h-10 rounded-xl bg-destructive px-4 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50"
 							disabled={processing || compressing}
 						>
 							Simpan Perubahan

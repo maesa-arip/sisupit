@@ -130,7 +130,8 @@ export default function Index({ pumps, filters, ...props }) {
 										<IconSearch className="h-4 w-4 text-muted-foreground" />
 									</div>
 									<Input
-										type="text"
+										type="search"
+										enterKeyHint="search"
 										placeholder="Cari nama area atau jalan..."
 										className="h-10 w-full rounded-xl border-border bg-muted pl-9 text-sm focus-visible:ring-1 focus-visible:ring-info"
 										value={data.search}
@@ -159,14 +160,14 @@ export default function Index({ pumps, filters, ...props }) {
 					</Card>
 
 					{/* List Daftar Pompa */}
-					<div className="flex flex-col gap-3 pb-4">
+					<div className="flex flex-col divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
 						{pumps.data && pumps.data.length > 0 ? (
 							pumps.data.map((pump) => (
-								<Card
+								<div
 									key={`${pump.source}-${pump.id}`}
-									className="group shrink-0 cursor-pointer overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-all duration-200 hover:border-muted-foreground/30"
+									className="group shrink-0 transition-colors hover:bg-muted/40 active:bg-muted"
 								>
-									<CardContent className="flex flex-row flex-nowrap items-center gap-3 p-3 sm:p-4">
+									<div className="flex flex-row flex-nowrap items-center gap-3 px-4 py-3.5">
 										{/* KIRI: Ikon */}
 										<div
 											className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${
@@ -184,7 +185,7 @@ export default function Index({ pumps, filters, ...props }) {
 
 										{/* TENGAH: Info Text */}
 										<div className="w-full min-w-0 flex-1 py-1">
-											<h3 className="truncate text-sm font-semibold text-foreground transition-colors group-hover:text-info">
+											<h3 className="truncate text-sm font-semibold text-foreground">
 												{pump.name}
 											</h3>
 											<p className="mt-0.5 truncate text-[11px] text-muted-foreground sm:text-xs">
@@ -192,7 +193,7 @@ export default function Index({ pumps, filters, ...props }) {
 											</p>
 											<div className="mt-1.5 flex flex-wrap items-center gap-1.5">
 												<span
-													className={`whitespace-nowrap rounded border px-2 py-0.5 text-xs font-semibold ${
+													className={`whitespace-nowrap rounded-full border px-2 py-0.5 text-xs font-semibold ${
 														facilityStatusIsFaulty(pump.status)
 															? 'border-destructive/30 bg-destructive/10 text-destructive'
 															: 'border-info/30 bg-info/10 text-info'
@@ -239,8 +240,8 @@ export default function Index({ pumps, filters, ...props }) {
 												</Button>
 											</a>
 										</div>
-									</CardContent>
-								</Card>
+									</div>
+								</div>
 							))
 						) : (
 							<div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 p-10 text-center">

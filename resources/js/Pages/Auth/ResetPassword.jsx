@@ -42,7 +42,7 @@ export default function ResetPassword({ token, email }) {
 					<div className="mx-auto w-full max-w-sm space-y-8">
 						{/* Judul */}
 						<div className="text-center">
-							<h1 className="text-2xl font-bold tracking-tight text-foreground">Buat Sandi Baru</h1>
+							<h1 className="text-3xl font-bold tracking-tight text-foreground">Buat Sandi Baru</h1>
 							<p className="mt-2 text-sm text-muted-foreground">
 								Silakan buat kata sandi baru yang aman dan mudah Anda ingat.
 							</p>
@@ -81,7 +81,7 @@ export default function ResetPassword({ token, email }) {
 										autoComplete="new-password"
 										placeholder="••••••••"
 										onChange={(e) => setData('password', e.target.value)}
-										className="h-11 w-full rounded-xl border-border bg-background pr-11 transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+										className="h-11 w-full rounded-xl border-border bg-background pr-11 transition-colors focus-visible:ring-2 focus-visible:ring-primary/30"
 									/>
 									<button
 										type="button"
@@ -113,7 +113,7 @@ export default function ResetPassword({ token, email }) {
 										autoComplete="new-password"
 										placeholder="••••••••"
 										onChange={(e) => setData('password_confirmation', e.target.value)}
-										className="h-11 w-full rounded-xl border-border bg-background pr-11 transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+										className="h-11 w-full rounded-xl border-border bg-background pr-11 transition-colors focus-visible:ring-2 focus-visible:ring-primary/30"
 									/>
 									<button
 										type="button"
@@ -136,7 +136,7 @@ export default function ResetPassword({ token, email }) {
 							<Button
 								type="submit"
 								disabled={processing}
-								className="mt-4 h-11 w-full rounded-xl bg-destructive text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:cursor-not-allowed disabled:opacity-70"
+								className="mt-4 h-11 w-full rounded-xl bg-destructive text-sm font-semibold text-destructive-foreground transition-[color,background-color,transform] hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 motion-reduce:active:scale-100"
 							>
 								{processing ? <IconLoader2 className="h-5 w-5 animate-spin" /> : 'Simpan Sandi Baru'}
 							</Button>

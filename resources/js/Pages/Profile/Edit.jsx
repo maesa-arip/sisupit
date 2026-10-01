@@ -16,7 +16,6 @@ import {
 	IconLogout,
 	IconMapPin,
 	IconMedal,
-	IconSettings,
 	IconShieldCheck,
 	IconUserEdit,
 } from '@tabler/icons-react';
@@ -78,93 +77,108 @@ export default function Edit(props) {
 		);
 	};
 
+	// Tata letak ala layar Settings iOS (TASK_69, apple-design, khusus branch feat/mobile-native-polish):
+	// kepala identitas di tengah, lalu grup-grup bergaris rambut berjudul kecil, dan "Keluar" sebagai
+	// baris merah tersendiri di bawah - bukan tombol di pojok kartu identitas.
+	const Group = ({ title, footer, children }) => (
+		<section className="space-y-2">
+			{title && (
+				<h2 className="px-4 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+					{title}
+				</h2>
+			)}
+			<div className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
+				{children}
+			</div>
+			{footer && <p className="px-4 text-xs leading-relaxed text-muted-foreground">{footer}</p>}
+		</section>
+	);
+	const RowLink = ({ href, icon: Icon, tint, title, subtitle, ...rest }) => (
+		<Link
+			href={href}
+			{...rest}
+			className="flex min-h-[56px] w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50 active:bg-muted"
+		>
+			<span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg', tint)}>
+				<Icon size={18} stroke={1.75} />
+			</span>
+			<span className="min-w-0 flex-1">
+				<span className="block truncate text-[15px] font-medium text-foreground">{title}</span>
+				{subtitle && <span className="block truncate text-[13px] text-muted-foreground">{subtitle}</span>}
+			</span>
+			<IconChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/50" />
+		</Link>
+	);
+
 	return (
 		<div className="relative w-full pb-32">
-			<div className="relative z-10 mx-auto flex w-full max-w-3xl flex-col space-y-6">
-				{/* --- 1. HEADER PROFIL & LOGOUT --- */}
-				<div className="mt-4 flex flex-col items-center justify-between gap-4 rounded-xl border border-border bg-card p-5 shadow-sm sm:flex-row sm:items-start sm:p-6">
-					<div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-						<div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-3xl font-semibold text-foreground">
-							{user.name?.[0]?.toUpperCase() ?? 'U'}
-							{!isPlainCitizen && (
-								<div className="absolute bottom-0 right-0 rounded-full border-2 border-background bg-info p-1 text-info-foreground">
-									<IconShieldCheck size={14} stroke={2} />
-								</div>
-							)}
-						</div>
-						<div className="mt-2 flex flex-col items-center text-center sm:mt-0 sm:items-start sm:text-left">
-							<h2 className="text-xl font-semibold leading-tight text-foreground">{user.name}</h2>
-							<p className="text-sm font-medium text-muted-foreground">{user.email}</p>
-							<span
-								className={`mt-2 rounded-xl border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${roleTone(userRoles)}`}
-							>
-								{accountRole}
-							</span>
-						</div>
+			<div className="relative z-10 mx-auto flex w-full max-w-2xl flex-col gap-8">
+				{/* --- KEPALA IDENTITAS --- */}
+				<div className="mt-2 flex flex-col items-center text-center">
+					<div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-muted text-4xl font-semibold text-foreground">
+						{user.name?.[0]?.toUpperCase() ?? 'U'}
+						{!isPlainCitizen && (
+							<div className="absolute bottom-0.5 right-0.5 rounded-full border-[3px] border-background bg-info p-1 text-info-foreground">
+								<IconShieldCheck size={14} stroke={2} />
+							</div>
+						)}
 					</div>
-
-					<Link
-						href={route('logout')}
-						method="post"
-						as="button"
-						className="flex items-center gap-1.5 rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20"
-					>
-						<IconLogout size={16} stroke={2} />
-						Keluar
-					</Link>
+					<h1 className="mt-4 text-2xl font-bold tracking-tight text-foreground">{user.name}</h1>
+					<p className="mt-0.5 text-[15px] text-muted-foreground">{user.email}</p>
+					<span className={`mt-3 rounded-full border px-3 py-1 text-xs font-semibold ${roleTone(userRoles)}`}>
+						{accountRole}
+					</span>
 				</div>
 
-				{/* --- YURISDIKSI AKUN --- */}
+				{/* --- WILAYAH AKUN --- */}
 				{props.jurisdiction && (
-					<div className="rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6">
-						<div className="flex items-center justify-between gap-3">
-							<h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-foreground">
-								<IconMapPin size={18} className="text-muted-foreground" />{' '}
-								{props.jurisdiction.kind === 'tugas' ? 'Wilayah Tugas' : 'Wilayah Domisili'}
-							</h3>
-							<span className="shrink-0 rounded-xl border border-border bg-muted px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+					<Group
+						title={props.jurisdiction.kind === 'tugas' ? 'Wilayah Tugas' : 'Wilayah Domisili'}
+						footer={
+							props.jurisdiction.kind === 'tugas'
+								? 'Wilayah tempat Anda bertugas, ditetapkan admin. Wilayah ini menentukan laporan dan notifikasi yang Anda terima. Tempat tinggal Anda dicatat terpisah di isian Alamat Tinggal.'
+								: 'Wilayah tempat tinggal Anda. Wilayah ini menentukan notifikasi darurat di sekitar Anda.'
+						}
+					>
+						{/* Kode wilayah akun bagi petugas/staf = tempat BERTUGAS, bukan tempat tinggal
+						    (TASK_61). Tempat tinggal dicatat terpisah di isian Alamat Tinggal. */}
+						<div className="flex items-center justify-between gap-3 px-4 py-3">
+							<span className="flex items-center gap-3 text-[15px] font-medium text-foreground">
+								<span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+									<IconMapPin size={18} stroke={1.75} />
+								</span>
+								<span className="capitalize">
+									{props.jurisdiction.scope.name
+										? props.jurisdiction.scope.name.toLowerCase()
+										: 'Nasional'}
+								</span>
+							</span>
+							<span className="shrink-0 rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
 								{props.jurisdiction.scope.level}
 							</span>
 						</div>
-
-						{/* Kode wilayah akun bagi petugas/staf = tempat BERTUGAS, bukan tempat tinggal
-						    (TASK_61). Tempat tinggal dicatat terpisah di isian Alamat Tinggal. */}
-						<p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-							{props.jurisdiction.kind === 'tugas'
-								? 'Wilayah tempat Anda bertugas, ditetapkan admin. Wilayah ini menentukan laporan dan notifikasi yang Anda terima. Tempat tinggal Anda dicatat terpisah di isian Alamat Tinggal.'
-								: 'Wilayah tempat tinggal Anda. Wilayah ini menentukan notifikasi darurat di sekitar Anda.'}
-						</p>
-
-						{props.jurisdiction.scope.name && (
-							<p className="mt-3 text-base font-semibold capitalize text-foreground">
-								{props.jurisdiction.scope.name.toLowerCase()}
-							</p>
-						)}
-
 						{props.jurisdiction.levels.length > 0 ? (
-							<dl className="mt-4 space-y-2.5">
-								{props.jurisdiction.levels.map((level) => (
-									<div
-										key={level.label}
-										className="flex items-start justify-between gap-4 border-b border-border/60 pb-2.5 text-sm last:border-b-0 last:pb-0"
-									>
-										<dt className="shrink-0 text-muted-foreground">{level.label}</dt>
-										<dd className="text-right font-medium capitalize text-foreground">
-											{level.name.toLowerCase()}
-										</dd>
-									</div>
-								))}
-							</dl>
+							props.jurisdiction.levels.map((level) => (
+								<div
+									key={level.label}
+									className="flex items-start justify-between gap-4 px-4 py-3 text-[15px]"
+								>
+									<span className="shrink-0 text-muted-foreground">{level.label}</span>
+									<span className="text-right font-medium capitalize text-foreground">
+										{level.name.toLowerCase()}
+									</span>
+								</div>
+							))
 						) : (
-							<p className="mt-3 text-sm text-muted-foreground">
+							<p className="px-4 py-3 text-[15px] text-muted-foreground">
 								Cakupan nasional - tidak terbatas pada wilayah tertentu.
 							</p>
 						)}
-					</div>
+					</Group>
 				)}
 
 				{/* --- BANJAR --- */}
-				{/* Terpisah dari kartu Yurisdiksi di atas yang murni tampilan: banjar BOLEH diubah
+				{/* Terpisah dari kartu wilayah di atas yang murni tampilan: banjar BOLEH diubah
 				    (warga pindah banjar, atau salah pilih saat mendaftar), sedangkan kode wilayah akun
 				    tidak — ia menentukan apa yang dilihat & notifikasi apa yang diterima. Hanya muncul
 				    bagi akun yang punya desa; staf kabupaten/kecamatan sengaja tak berbanjar (#56). */}
@@ -172,102 +186,80 @@ export default function Edit(props) {
 
 				{/* --- KEAHLIAN RELAWAN --- */}
 				{isVolunteer && (
-					<div className="rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6">
-						<div className="flex items-center gap-3">
-							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-muted text-foreground">
-								<IconMedal className="h-5 w-5" stroke={1.5} />
-							</div>
-							<div>
-								<h3 className="text-sm font-semibold text-foreground">Keahlian Saya</h3>
-								<p className="mt-0.5 text-xs text-muted-foreground">
-									Beritahu kami pelatihan apa yang pernah Anda ikuti.
-								</p>
-							</div>
-						</div>
-
-						<div className="mt-4 flex flex-wrap gap-2">
+					<Group title="Keahlian Saya" footer="Beritahu kami pelatihan apa yang pernah Anda ikuti.">
+						<div className="flex flex-wrap gap-2 p-4">
 							{SKILL_OPTIONS.map((skill) => {
 								const selected = skills.includes(skill);
 								return (
 									<button
 										key={skill}
 										type="button"
+										aria-pressed={selected}
 										onClick={() => toggleSkill(skill)}
 										className={cn(
-											'flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-xs font-medium transition-colors',
+											'flex h-9 items-center gap-1.5 rounded-full border px-3 text-[13px] font-medium transition-colors active:scale-[0.97] motion-reduce:active:scale-100',
 											selected
-												? 'border-destructive bg-destructive/10 text-destructive'
-												: 'border-border bg-card text-foreground/80 hover:bg-muted',
+												? 'border-primary/30 bg-primary/10 text-primary'
+												: 'border-border/70 bg-card text-foreground/80 hover:bg-muted',
 										)}
 									>
-										<IconMedal className="h-3.5 w-3.5" stroke={selected ? 2 : 1.5} />
+										<IconMedal className="h-4 w-4" stroke={selected ? 2 : 1.5} />
 										{skill}
 									</button>
 								);
 							})}
 						</div>
-
-						<div className="mt-4 flex justify-end">
+						<div className="flex justify-end px-4 py-3">
 							<Button
 								onClick={handleSaveSkills}
 								disabled={isSavingSkills}
-								className="h-9 shrink-0 rounded-xl border border-transparent bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+								className="h-10 rounded-xl px-4"
 							>
 								{isSavingSkills ? (
-									<IconLoader2 className="mr-1.5 h-4 w-4 animate-spin" />
+									<IconLoader2 className="h-4 w-4 animate-spin" />
 								) : (
-									<IconDeviceFloppy className="mr-1.5 h-4 w-4" />
+									<IconDeviceFloppy className="h-4 w-4" />
 								)}
-								Simpan Keahlian
+								Simpan keahlian
 							</Button>
 						</div>
-					</div>
+					</Group>
 				)}
 
-				{/* --- 2. QUICK ACTIONS (Riwayat & Banner) --- */}
-				<div className="space-y-4">
-					<Link
+				{/* --- AKTIVITAS --- */}
+				{/* Banner "Panggilan Kemanusiaan" (ajakan mendaftar jadi relawan) DICABUT
+				    2026-09-02 atas permintaan user, sepasang dengan kartu serupa di
+				    Pages/Dashboard.jsx. Peran relawan kini hanya diberikan admin lewat
+				    /admin/users - tak ada lagi pendaftaran mandiri di layar mana pun.
+				    Jangan hidupkan lagi tanpa menanyakan user. */}
+				<Group title="Aktivitas">
+					<RowLink
 						href={route('front.reports.index')}
-						className="group flex items-center gap-4 rounded-xl border border-border bg-card p-4 shadow-sm outline-none transition-colors hover:border-muted-foreground/50 focus-visible:ring-2 focus-visible:ring-muted-foreground/50"
-					>
-						<div className="shrink-0 rounded-lg border border-border bg-muted p-2.5 text-muted-foreground transition-colors group-hover:bg-accent">
-							<IconHistory size={20} />
-						</div>
-						<div className="flex-1">
-							<h3 className="text-sm font-semibold text-foreground">Riwayat Laporan Saya</h3>
-							<p className="mt-0.5 text-xs text-muted-foreground">
-								Pantau status kejadian yang pernah Anda laporkan
-							</p>
-						</div>
-						<IconChevronRight className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-foreground" />
-					</Link>
+						icon={IconHistory}
+						tint="bg-info/10 text-info"
+						title="Riwayat Laporan Saya"
+						subtitle="Pantau status kejadian yang pernah Anda laporkan"
+					/>
+				</Group>
 
-					{/* Banner "Panggilan Kemanusiaan" (ajakan mendaftar jadi relawan) DICABUT
-					    2026-09-02 atas permintaan user, sepasang dengan kartu serupa di
-					    Pages/Dashboard.jsx. Peran relawan kini hanya diberikan admin lewat
-					    /admin/users - tak ada lagi pendaftaran mandiri di layar mana pun.
-					    Jangan hidupkan lagi tanpa menanyakan user. */}
-				</div>
-
-				{/* --- 3. PENGATURAN AKUN (MENGGUNAKAN TABS) --- */}
-				<div className="pt-4">
-					<h3 className="mb-4 flex items-center gap-2 px-1 text-sm font-semibold uppercase tracking-wide text-foreground">
-						<IconSettings size={18} className="text-muted-foreground" /> Pengaturan & Keamanan
-					</h3>
-
+				{/* --- PENGATURAN AKUN --- */}
+				<section className="space-y-2">
+					<h2 className="px-4 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+						Akun
+					</h2>
 					<Tabs defaultValue="profil" className="w-full">
-						<TabsList className="mb-6 grid h-fit w-full grid-cols-2 rounded-lg border border-border bg-muted p-1">
+						<TabsList className="mb-4 grid h-auto w-full grid-cols-2 rounded-xl bg-muted p-1">
 							<TabsTrigger
 								value="profil"
-								className="flex items-center gap-2 rounded-lg py-2 text-sm font-medium text-muted-foreground transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+								className="flex h-9 items-center gap-2 rounded-lg text-sm font-medium text-muted-foreground transition-all data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm"
 							>
-								<IconUserEdit size={16} /> Data Profil
+								<IconUserEdit size={16} /> Data profil
 							</TabsTrigger>
 							<TabsTrigger
 								value="keamanan"
-								className="flex items-center gap-2 rounded-lg py-2 text-sm font-medium text-muted-foreground transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+								className="flex h-9 items-center gap-2 rounded-lg text-sm font-medium text-muted-foreground transition-all data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm"
 							>
-								<IconLock size={16} /> Kata Sandi
+								<IconLock size={16} /> Kata sandi
 							</TabsTrigger>
 						</TabsList>
 
@@ -282,29 +274,46 @@ export default function Edit(props) {
 							<UpdatePasswordForm />
 						</TabsContent>
 					</Tabs>
-				</div>
-			</div>
-			{/* Syarat Google Play: hapus akun dari dalam aplikasi. Tautan web yang didaftarkan
-			    ke Play Console = /profile#hapus-akun - jangan ganti id-nya tanpa memperbarui Play. */}
-			<div id="hapus-akun" className="mt-4 scroll-mt-20">
-				<DeleteUserForm hasPassword={props.hasPassword} />
-			</div>
-			{/* --- UNDUH APLIKASI --- */}
-			{!isWebView && (
-				<div className="mt-4 flex w-full flex-col items-center">
-					<a
-						href="/apk/sisupit.apk"
-						download="Sisupit.apk"
-						className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-border bg-card px-6 font-medium text-foreground shadow-sm outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-muted-foreground/50 sm:w-auto"
+				</section>
+
+				{/* --- APLIKASI --- */}
+				{!isWebView && (
+					<Group title="Aplikasi">
+						<a
+							href="/apk/sisupit.apk"
+							download="Sisupit.apk"
+							className="flex min-h-[56px] w-full items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50 active:bg-muted"
+						>
+							<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-success/10 text-success">
+								<IconBrandAndroid size={18} stroke={1.75} />
+							</span>
+							<span className="flex-1 text-[15px] font-medium text-foreground">
+								Unduh Aplikasi Android
+							</span>
+							<IconDownload className="h-4 w-4 shrink-0 text-muted-foreground" stroke={2} />
+						</a>
+					</Group>
+				)}
+
+				{/* --- KELUAR --- */}
+				<Group>
+					<Link
+						href={route('logout')}
+						method="post"
+						as="button"
+						className="flex min-h-[52px] w-full items-center justify-center gap-2 px-4 py-3 text-[15px] font-semibold text-destructive transition-colors hover:bg-destructive/5 active:bg-destructive/10"
 					>
-						<div className="flex items-center justify-center rounded-lg bg-success/10 p-1">
-							<IconBrandAndroid className="h-5 w-5 text-success" stroke={2} />
-						</div>
-						<span className="text-sm">Unduh Aplikasi Android</span>
-						<IconDownload className="ml-1 h-4 w-4 text-muted-foreground" stroke={2} />
-					</a>
+						<IconLogout size={18} stroke={2} />
+						Keluar
+					</Link>
+				</Group>
+
+				{/* Syarat Google Play: hapus akun dari dalam aplikasi. Tautan web yang didaftarkan
+				    ke Play Console = /profile#hapus-akun - jangan ganti id-nya tanpa memperbarui Play. */}
+				<div id="hapus-akun" className="scroll-mt-20">
+					<DeleteUserForm hasPassword={props.hasPassword} />
 				</div>
-			)}
+			</div>
 		</div>
 	);
 }
@@ -327,11 +336,14 @@ function BanjarCard({ banjar }) {
 	};
 
 	return (
-		<form onSubmit={simpan} className="rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6">
-			<h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-foreground">
-				<IconHome2 size={18} className="text-muted-foreground" /> Banjar
+		<form onSubmit={simpan} className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
+			<h3 className="flex items-center gap-3 text-[15px] font-semibold text-foreground">
+				<span className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal/10 text-teal">
+					<IconHome2 size={18} stroke={1.75} />
+				</span>
+				Banjar
 			</h3>
-			<p className="mt-1 text-sm text-muted-foreground">
+			<p className="mt-2 text-[13px] text-muted-foreground">
 				Banjar tempat Anda tinggal. Belum terdaftar? Ketik namanya lalu tambahkan sendiri.
 			</p>
 
@@ -346,7 +358,7 @@ function BanjarCard({ banjar }) {
 				/>
 			</div>
 
-			<Button type="submit" disabled={processing || !isDirty} className="mt-4">
+			<Button type="submit" disabled={processing || !isDirty} className="mt-4 h-10 rounded-xl px-4">
 				Simpan
 			</Button>
 		</form>

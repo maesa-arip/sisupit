@@ -44,7 +44,7 @@ export default function ConfirmPassword() {
 								type={showPassword ? 'text' : 'password'}
 								value={data.password}
 								onChange={(e) => setData('password', e.target.value)}
-								className="h-11 w-full rounded-xl border-border bg-background pr-11 transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+								className="h-11 w-full rounded-xl border-border bg-background pr-11 transition-colors focus-visible:ring-2 focus-visible:ring-primary/30"
 							/>
 							<button
 								type="button"

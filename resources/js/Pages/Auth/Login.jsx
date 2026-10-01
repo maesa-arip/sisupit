@@ -100,7 +100,7 @@ export default function Login({ status, canResetPassword }) {
 					<div className="mx-auto w-full max-w-sm space-y-8">
 						{/* Judul */}
 						<div className="text-center">
-							<h1 className="text-2xl font-bold tracking-tight text-foreground">Selamat Datang</h1>
+							<h1 className="text-3xl font-bold tracking-tight text-foreground">Selamat Datang</h1>
 							<p className="mt-2 text-sm text-muted-foreground">Portal Akses Sistem Pelaporan Darurat</p>
 						</div>
 
@@ -133,7 +133,7 @@ export default function Login({ status, canResetPassword }) {
 									autoComplete="username"
 									placeholder="nama@email.com"
 									onChange={(e) => setData(e.target.name, e.target.value)}
-									className="h-11 w-full rounded-xl border-border bg-background transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+									className="h-11 w-full rounded-xl border-border bg-background transition-colors focus-visible:ring-2 focus-visible:ring-primary/30"
 								/>
 								{errors.email && <InputError message={errors.email} />}
 							</div>
@@ -162,7 +162,7 @@ export default function Login({ status, canResetPassword }) {
 										value={data.password}
 										placeholder="Masukkan kata sandi"
 										onChange={(e) => setData(e.target.name, e.target.value)}
-										className="h-11 w-full rounded-xl border-border bg-background pr-12 transition-colors focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+										className="h-11 w-full rounded-xl border-border bg-background pr-12 transition-colors focus-visible:ring-2 focus-visible:ring-primary/30"
 									/>
 
 									<button
@@ -202,7 +202,7 @@ export default function Login({ status, canResetPassword }) {
 							<Button
 								type="submit"
 								disabled={processing || isGoogleLoading}
-								className="mt-2 h-11 w-full rounded-xl bg-destructive text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 disabled:cursor-not-allowed disabled:opacity-70"
+								className="mt-2 h-11 w-full rounded-xl bg-destructive text-sm font-semibold text-destructive-foreground transition-[color,background-color,transform] hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 motion-reduce:active:scale-100"
 							>
 								{processing ? <IconLoader2 className="h-5 w-5 animate-spin" /> : 'Masuk Akun'}
 							</Button>
@@ -213,7 +213,7 @@ export default function Login({ status, canResetPassword }) {
 							<div className="absolute inset-0 flex items-center">
 								<span className="w-full border-t border-border" />
 							</div>
-							<div className="relative flex justify-center text-xs uppercase">
+							<div className="relative flex justify-center text-xs">
 								<span className="bg-background px-3 text-muted-foreground">Atau lanjutkan dengan</span>
 							</div>
 						</div>
