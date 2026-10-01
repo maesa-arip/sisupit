@@ -83,15 +83,17 @@ export default function ReportThanks({ report, pejabat, namaInstansi, teleponDar
 				</div>
 
 				{/* 2. Kartu Status Laporan & Aksi */}
-				<Card className="overflow-hidden rounded-2xl">
-					<CardHeader className="border-b border-border bg-transparent pb-5">
-						<div className="flex items-start gap-3">
-							<IconShieldCheckFilled className="mt-0.5 h-8 w-8 shrink-0 text-success" />
+				<Card className="overflow-hidden">
+					<CardHeader className="items-center bg-transparent pb-2 pt-8 text-center">
+						<div className="flex flex-col items-center gap-4">
+							<span className="flex h-16 w-16 items-center justify-center rounded-full bg-success/10">
+								<IconShieldCheckFilled className="h-9 w-9 text-success" />
+							</span>
 							<div>
-								<CardTitle className="text-xl font-bold tracking-tight text-foreground">
+								<CardTitle className="text-2xl font-bold tracking-tight text-foreground">
 									Sinyal Darurat Diterima
 								</CardTitle>
-								<CardDescription className="mt-1.5 text-sm text-muted-foreground">
+								<CardDescription className="mx-auto mt-2 max-w-md text-[15px] leading-relaxed text-muted-foreground">
 									Pusat Komando telah menerima laporan Anda. Petugas/relawan terdekat sedang
 									dikoordinasikan untuk segera meluncur ke lokasi.
 								</CardDescription>
@@ -101,16 +103,18 @@ export default function ReportThanks({ report, pejabat, namaInstansi, teleponDar
 
 					<CardContent className="space-y-6 pt-6">
 						<div className="space-y-2">
-							<dl className="grid grid-cols-1 gap-4 rounded-lg bg-muted/50 p-4 sm:grid-cols-2">
-								<div className="space-y-1">
-									<dt className="text-xs font-medium text-muted-foreground">Nomor Laporan</dt>
-									<dd className="font-mono text-sm font-semibold tracking-tight text-foreground">
+							<dl className="divide-y divide-border/70 rounded-xl bg-muted/40 px-4">
+								<div className="flex items-center justify-between gap-4 py-3">
+									<dt className="text-[15px] text-muted-foreground">Nomor Laporan</dt>
+									<dd className="font-mono text-[15px] font-semibold tracking-tight text-foreground">
 										{reportNumber(report)}
 									</dd>
 								</div>
-								<div className="space-y-1">
-									<dt className="text-xs font-medium text-muted-foreground">Waktu Kejadian</dt>
-									<dd className="text-sm font-semibold text-foreground">{submittedAt}</dd>
+								<div className="flex items-center justify-between gap-4 py-3">
+									<dt className="text-[15px] text-muted-foreground">Waktu Kejadian</dt>
+									<dd className="text-right text-[15px] font-semibold text-foreground">
+										{submittedAt}
+									</dd>
 								</div>
 							</dl>
 							<p className="text-xs text-muted-foreground">
@@ -119,9 +123,9 @@ export default function ReportThanks({ report, pejabat, namaInstansi, teleponDar
 						</div>
 
 						{/* Mini-stepper: tahap yang SEDANG berlaku, bergerak sendiri lewat WebSocket. */}
-						<div className="rounded-lg border border-border bg-card p-4">
+						<div className="rounded-xl bg-muted/40 p-4">
 							<div className="mb-3 flex items-center justify-between gap-2">
-								<p className="text-xs font-medium text-muted-foreground">Status laporan</p>
+								<p className="text-[13px] font-medium text-muted-foreground">Status laporan</p>
 								<StatusBadge status={status} />
 							</div>
 
@@ -178,7 +182,7 @@ export default function ReportThanks({ report, pejabat, namaInstansi, teleponDar
 
 						<div className="space-y-2 pt-2">
 							<div className="flex flex-col gap-3 sm:flex-row">
-								<Button asChild className="h-12 flex-1 text-base font-medium">
+								<Button asChild className="h-12 flex-1 rounded-xl text-base font-semibold">
 									<Link href={route('reports.show', report.id)}>
 										Pantau Bantuan
 										<IconArrowRight className="ml-2 h-5 w-5" />
@@ -189,7 +193,7 @@ export default function ReportThanks({ report, pejabat, namaInstansi, teleponDar
 									<Button
 										asChild
 										variant="destructive"
-										className="h-12 flex-1 text-base font-semibold"
+										className="h-12 flex-1 rounded-xl text-base font-semibold"
 									>
 										<a href={telHref}>
 											<IconPhoneCall className="mr-2 h-5 w-5" />

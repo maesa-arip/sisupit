@@ -90,7 +90,7 @@ export default function Login({ status, canResetPassword }) {
 			{/* PANE KIRI: AREA FORM */}
 			<div className="relative z-0 flex flex-col bg-background px-6 py-6 lg:px-12">
 				{/* Header: Logo & Theme Switcher */}
-				<div className="mb-12 flex w-full items-center justify-between pt-2 lg:mb-0">
+				<div className="mb-6 flex w-full items-center justify-between pt-2 lg:mb-0">
 					<ApplicationLogo />
 					<ThemeSwitcher />
 				</div>
@@ -100,6 +100,7 @@ export default function Login({ status, canResetPassword }) {
 					<div className="mx-auto w-full max-w-sm space-y-8">
 						{/* Judul */}
 						<div className="text-center">
+							<img src="/icon.png" alt="" className="mx-auto mb-5 h-16 w-16 rounded-2xl shadow-sm" />
 							<h1 className="text-3xl font-bold tracking-tight text-foreground">Selamat Datang</h1>
 							<p className="mt-2 text-sm text-muted-foreground">Portal Akses Sistem Pelaporan Darurat</p>
 						</div>

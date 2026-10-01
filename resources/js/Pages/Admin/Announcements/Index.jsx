@@ -42,22 +42,24 @@ export default function Index(props) {
 					<Table className="w-full">
 						<TableHeader>
 							<TableRow>
-								<TableHead>#</TableHead>
+								<TableHead className="hidden md:table-cell">#</TableHead>
 								<TableHead>Pesan</TableHead>
-								<TableHead>URL</TableHead>
+								<TableHead className="hidden md:table-cell">URL</TableHead>
 								<TableHead>Aktif</TableHead>
-								<TableHead>Dibuat Pada</TableHead>
+								<TableHead className="hidden md:table-cell">Dibuat Pada</TableHead>
 								<TableHead>Aksi</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
 							{announcements.map((announcement, index) => (
 								<TableRow key={index}>
-									<TableCell>{index + 1 + (meta.current_page - 1) * meta.per_page}</TableCell>
+									<TableCell className="hidden md:table-cell">
+										{index + 1 + (meta.current_page - 1) * meta.per_page}
+									</TableCell>
 									<TableCell>{announcement.message}</TableCell>
-									<TableCell>{announcement.url}</TableCell>
+									<TableCell className="hidden md:table-cell">{announcement.url}</TableCell>
 									<TableCell>{announcement.is_active}</TableCell>
-									<TableCell>{announcement.created_at}</TableCell>
+									<TableCell className="hidden md:table-cell">{announcement.created_at}</TableCell>
 									<TableCell>
 										<div className="flex items-center gap-x-1">
 											<Button variant="blue" size="sm" asChild>

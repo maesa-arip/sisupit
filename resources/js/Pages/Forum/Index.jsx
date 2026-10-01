@@ -105,7 +105,7 @@ export default function Index({ threads, filters, wilayah, canModerate, pendingC
 										<CardContent className="flex flex-col gap-1.5 p-4">
 											<div className="flex flex-wrap items-center gap-2">
 												{thread.is_pinned && (
-													<span className="flex shrink-0 items-center gap-1 rounded-2xl border border-info/30 bg-info/10 px-2 py-0.5 text-[11px] font-bold uppercase text-info">
+													<span className="flex shrink-0 items-center gap-1 rounded-full border border-info/30 bg-info/10 px-2 py-0.5 text-[11px] font-semibold text-info">
 														<IconPin className="size-3" /> Disematkan
 													</span>
 												)}
@@ -113,12 +113,12 @@ export default function Index({ threads, filters, wilayah, canModerate, pendingC
 													<ForumStatusBadge status={thread.status} />
 												)}
 												{thread.has_official_answer && (
-													<span className="flex shrink-0 items-center gap-1 rounded-2xl border border-success/20 bg-success/10 px-2 py-0.5 text-[11px] font-bold uppercase text-success">
+													<span className="flex shrink-0 items-center gap-1 rounded-full border border-success/20 bg-success/10 px-2 py-0.5 text-[11px] font-semibold text-success">
 														<IconShieldCheck className="size-3" /> Dijawab Damkar
 													</span>
 												)}
 												{thread.has_accepted_answer && (
-													<span className="flex shrink-0 items-center gap-1 rounded-2xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
+													<span className="flex shrink-0 items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
 														<IconCircleCheck className="size-3" /> Terjawab
 													</span>
 												)}

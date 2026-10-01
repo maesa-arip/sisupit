@@ -48,7 +48,7 @@ export default function Home(props) {
 						<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/60 opacity-75"></span>
 						<span className="relative inline-flex h-2 w-2 rounded-full bg-success"></span>
 					</span>
-					<span className="text-[11px] font-bold uppercase tracking-wide text-success">Siaga 24/7</span>
+					<span className="text-[11px] font-bold text-success">Siaga 24/7</span>
 				</div>
 			</div>
 
@@ -126,7 +126,7 @@ export default function Home(props) {
 										<CardContent className="p-4">
 											<div className="flex h-full flex-col gap-1.5">
 												<span
-													className={`text-[11px] font-semibold uppercase tracking-wide ${isWarning ? 'text-warning' : 'text-info'}`}
+													className={`text-[11px] font-semibold ${isWarning ? 'text-warning' : 'text-info'}`}
 												>
 													{isWarning ? 'Peringatan Dini' : 'Berita Warga'}
 												</span>

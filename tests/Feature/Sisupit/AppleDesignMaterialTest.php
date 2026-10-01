@@ -225,3 +225,15 @@ it('keeps the mobile dashboards to the essentials and leaves the detail for larg
         ->not->toContain('PETUGAS DAMKAR');
     expect(appleSource('resources/js/Components/ReportCard.jsx'))->toContain('line-clamp-2 hidden text-[13px]');
 });
+
+it('reworks the remaining front pages into grouped lists and iOS-style screens', function () {
+    $group = 'divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm';
+    foreach (['Mail/Index', 'Front/Reports/Index', 'Forum/Index', 'Regu/Index', 'Admin/Reports/Index', 'Admin/Agencies/Index'] as $page) {
+        expect(appleSource("resources/js/Pages/{$page}.jsx"))->toContain($group);
+    }
+    expect(appleSource('resources/js/Pages/Front/Reports/Thanks.jsx'))->toContain('rounded-full bg-success/10');
+    expect(appleSource('resources/js/Pages/Volunteers/Index.jsx'))->toContain('after:absolute after:inset-0');
+    expect(appleSource('resources/js/Pages/ErrorHandling.jsx'))->not->toMatch('/<Card\b/');
+    expect(appleSource('resources/js/Pages/Spotlight.jsx'))->not->toMatch('/\b(bg-white|border-white|border-neutral-200)\b/');
+    expect(appleSource('resources/js/Pages/Admin/Roles/Create.jsx'))->toContain('divide-y divide-border/70 [&>*:first-child]:pt-0');
+});

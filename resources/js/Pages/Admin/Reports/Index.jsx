@@ -2,7 +2,6 @@ import DatePicker from '@/Components/DatePicker';
 import HeaderTitle from '@/Components/HeaderTitle';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent } from '@/Components/ui/card';
 import { Checkbox } from '@/Components/ui/checkbox';
 import {
 	Dialog,
@@ -50,8 +49,6 @@ const MONITOR_HIDDEN_STATUSES = ['TERLAPOR', 'ditolak', 'digabung'];
 // KECUALI "Penanganan" yang memakai teal (permintaan produk). Gaya kartu/pill/paginasi
 // mengikuti halaman Hydrant (Admin/Hydrants/Index.jsx): aksen seleksi primer sejak TASK_69 (apple-design).
 const TEAL_ACCENT = {
-	cardActive: 'border-primary/40 bg-primary/5',
-	cardHover: 'hover:bg-muted/40',
 	title: 'text-primary',
 	pillActive: 'border-primary/20 bg-primary/10 text-primary',
 	pageActive: 'border-primary bg-primary text-primary-foreground shadow-sm',
@@ -476,157 +473,171 @@ export default function Index(props) {
 					<div className="flex h-[500px] flex-col gap-3 overflow-y-auto pb-4 pr-1 lg:h-[calc(100vh-240px)] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar]:w-1.5">
 						{reports.length > 0 ? (
 							<>
-								{reports.map((report) => {
-									const style = markerStyle(report.status);
-									const isActive = activeReportId === report.id;
-									const isUrgent = report.status === 'TERLAPOR'; // butuh verifikasi → tonjolkan
-									const hasCoords = !isNaN(parseFloat(report.lat)) && !isNaN(parseFloat(report.lng));
-									return (
-										<Card
-											key={report.id}
-											onClick={() => focusToReport(report.id, report.lat, report.lng)}
-											className={cn(
-												'cursor-pointer transition-colors',
-												isActive ? TEAL_ACCENT.cardActive : TEAL_ACCENT.cardHover,
-											)}
-										>
-											<CardContent className="flex flex-col gap-3 p-3 sm:p-4">
-												<div className="flex flex-row items-start gap-3">
-													<div
-														className={cn(
-															'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg',
-															style.ring,
-														)}
-													>
-														{isUrgent ? (
-															<IconAlertTriangle className="h-5 w-5" />
-														) : (
-															<IconMapPin className="h-5 w-5" />
-														)}
-													</div>
-													<div className="w-full min-w-0 flex-1">
-														<div className="flex items-start justify-between gap-2">
-															<h3
-																className={cn(
-																	'truncate text-sm font-semibold',
-																	isActive ? TEAL_ACCENT.title : 'text-foreground',
-																)}
-															>
-																{report.title}
-															</h3>
-															<StatusBadge status={report.status} />
+								<div className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
+									{reports.map((report) => {
+										const style = markerStyle(report.status);
+										const isActive = activeReportId === report.id;
+										const isUrgent = report.status === 'TERLAPOR'; // butuh verifikasi → tonjolkan
+										const hasCoords =
+											!isNaN(parseFloat(report.lat)) && !isNaN(parseFloat(report.lng));
+										return (
+											<div
+												key={report.id}
+												role="button"
+												tabIndex={0}
+												onClick={() => focusToReport(report.id, report.lat, report.lng)}
+												onKeyDown={(e) =>
+													(e.key === 'Enter' || e.key === ' ') &&
+													(e.preventDefault(),
+													focusToReport(report.id, report.lat, report.lng))
+												}
+												className={cn(
+													'cursor-pointer transition-colors active:bg-muted',
+													isActive ? 'bg-primary/5' : 'hover:bg-muted/40',
+												)}
+											>
+												<div className="flex flex-col gap-3 px-4 py-3.5">
+													<div className="flex flex-row items-start gap-3">
+														<div
+															className={cn(
+																'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl',
+																style.ring,
+															)}
+														>
+															{isUrgent ? (
+																<IconAlertTriangle className="h-5 w-5" />
+															) : (
+																<IconMapPin className="h-5 w-5" />
+															)}
 														</div>
-														<p className="mt-0.5 font-mono text-xs font-semibold text-muted-foreground">
-															{reportNumber(report)}
-														</p>
-														<p className="mt-1 flex items-start gap-1 text-xs text-muted-foreground">
-															<IconMapPin className="mt-0.5 h-3 w-3 shrink-0" />
-															<span className="line-clamp-2">
-																{alamatLaporan(report) || '-'}
-															</span>
-														</p>
+														<div className="w-full min-w-0 flex-1">
+															<div className="flex items-start justify-between gap-2">
+																<h3
+																	className={cn(
+																		'truncate text-sm font-semibold',
+																		isActive
+																			? TEAL_ACCENT.title
+																			: 'text-foreground',
+																	)}
+																>
+																	{report.title}
+																</h3>
+																<StatusBadge status={report.status} />
+															</div>
+															<p className="mt-0.5 font-mono text-xs font-semibold text-muted-foreground">
+																{reportNumber(report)}
+															</p>
+															<p className="mt-1 flex items-start gap-1 text-xs text-muted-foreground">
+																<IconMapPin className="mt-0.5 h-3 w-3 shrink-0" />
+																<span className="line-clamp-2">
+																	{alamatLaporan(report) || '-'}
+																</span>
+															</p>
+														</div>
 													</div>
-												</div>
 
-												{/* Chip urgensi untuk pemindaian triase cepat: umur, ada/tanpa foto, titik */}
-												<div className="flex flex-wrap items-center gap-1.5">
-													<MetaChip icon={IconClock} tone={isUrgent ? 'danger' : 'muted'}>
-														{timeAgo(report.created_at)}
-													</MetaChip>
-													{report.photo ? (
-														<MetaChip icon={IconPhoto} tone="ok">
-															Ada foto
+													{/* Chip urgensi untuk pemindaian triase cepat: umur, ada/tanpa foto, titik */}
+													<div className="flex flex-wrap items-center gap-1.5">
+														<MetaChip icon={IconClock} tone={isUrgent ? 'danger' : 'muted'}>
+															{timeAgo(report.created_at)}
 														</MetaChip>
-													) : (
-														<MetaChip icon={IconPhoto} tone="muted">
-															Tanpa foto
-														</MetaChip>
-													)}
-													{!hasCoords && (
-														<MetaChip icon={IconMapPin} tone="warn">
-															Tanpa titik
-														</MetaChip>
-													)}
-													{/* Laporan ganda (TASK_55). Usulan mesin, BUKAN keputusan: laporannya
+														{report.photo ? (
+															<MetaChip icon={IconPhoto} tone="ok">
+																Ada foto
+															</MetaChip>
+														) : (
+															<MetaChip icon={IconPhoto} tone="muted">
+																Tanpa foto
+															</MetaChip>
+														)}
+														{!hasCoords && (
+															<MetaChip icon={IconMapPin} tone="warn">
+																Tanpa titik
+															</MetaChip>
+														)}
+														{/* Laporan ganda (TASK_55). Usulan mesin, BUKAN keputusan: laporannya
 													    tetap di antrean dan diputuskan admin di halaman detail. Jarak
 													    dihitung server. */}
-													{isUrgent && report.candidate_of && (
-														<MetaChip icon={IconStack2} tone="warn">
-															Kemungkinan sama dengan {reportNumber(report.candidate_of)}
-															{report.candidate_distance_m != null &&
-																` · ±${report.candidate_distance_m} m`}
-														</MetaChip>
-													)}
-													{report.merged_children_count > 0 && (
-														<MetaChip icon={IconStack2} tone="muted">
-															{report.merged_children_count} laporan terkait
-														</MetaChip>
-													)}
-												</div>
+														{isUrgent && report.candidate_of && (
+															<MetaChip icon={IconStack2} tone="warn">
+																Kemungkinan sama dengan{' '}
+																{reportNumber(report.candidate_of)}
+																{report.candidate_distance_m != null &&
+																	` · ±${report.candidate_distance_m} m`}
+															</MetaChip>
+														)}
+														{report.merged_children_count > 0 && (
+															<MetaChip icon={IconStack2} tone="muted">
+																{report.merged_children_count} laporan terkait
+															</MetaChip>
+														)}
+													</div>
 
-												<div className="grid grid-cols-1 gap-1.5 border-t border-dashed border-border pt-2.5 text-xs text-muted-foreground sm:grid-cols-2">
-													<span className="flex items-center gap-1.5 truncate">
-														<IconUser className="h-3.5 w-3.5 shrink-0" />
-														{report.name ?? report.user?.name ?? '-'}
-													</span>
-													<span className="flex items-center gap-1.5 truncate">
-														<IconPhone className="h-3.5 w-3.5 shrink-0" />
-														{report.phone ?? '-'}
-													</span>
-													<span className="flex items-center gap-1.5 truncate sm:col-span-2">
-														<IconClock className="h-3.5 w-3.5 shrink-0" />
-														{formatDate(report.created_at)}
-													</span>
-													{/* Penutup insiden (FINDINGS #88). Hanya untuk laporan yang sudah
+													<div className="grid grid-cols-1 gap-1.5 border-t border-border/70 pt-2.5 text-[13px] text-muted-foreground sm:grid-cols-2">
+														<span className="flex items-center gap-1.5 truncate">
+															<IconUser className="h-3.5 w-3.5 shrink-0" />
+															{report.name ?? report.user?.name ?? '-'}
+														</span>
+														<span className="hidden items-center gap-1.5 truncate sm:flex">
+															<IconPhone className="h-3.5 w-3.5 shrink-0" />
+															{report.phone ?? '-'}
+														</span>
+														<span className="flex items-center gap-1.5 truncate sm:col-span-2">
+															<IconClock className="h-3.5 w-3.5 shrink-0" />
+															{formatDate(report.created_at)}
+														</span>
+														{/* Penutup insiden (FINDINGS #88). Hanya untuk laporan yang sudah
 													    Selesai; laporan yang ditutup sebelum kolomnya ada memang tak
 													    punya jejak pelaku — dikatakan apa adanya, bukan disamarkan. */}
-													{report.status === 'resolved' && (
-														<span className="flex items-center gap-1.5 truncate sm:col-span-2">
-															<IconCircleCheck className="h-3.5 w-3.5 shrink-0" />
-															Ditutup oleh {report.resolver?.name ?? 'tidak tercatat'}
-														</span>
-													)}
-												</div>
-
-												<div
-													className="flex items-center justify-end gap-2"
-													onClick={(e) => e.stopPropagation()}
-												>
-													{isUrgent && canVerify ? (
-														<Button
-															size="sm"
-															asChild
-															className="h-8 bg-destructive text-destructive-foreground hover:bg-destructive/90"
-														>
-															<Link href={route('reports.show', report.id)}>
-																<IconEye className="mr-1 size-4" /> Tinjau & Verifikasi
-															</Link>
-														</Button>
-													) : (
-														<Button
-															variant="ghost"
-															size="sm"
-															asChild
-															className="h-8 text-muted-foreground hover:text-primary"
-														>
-															<Link href={route('reports.show', report.id)}>
-																<IconEye className="mr-1 size-4" /> Detail
-															</Link>
-														</Button>
-													)}
-												</div>
-
-												{hasCoords && (
-													<div className="flex items-center justify-center gap-1 rounded-lg py-1 text-[11px] font-semibold text-primary lg:hidden">
-														<IconArrowDown className="h-3 w-3" /> Lihat Peta Lokasi
+														{report.status === 'resolved' && (
+															<span className="hidden items-center gap-1.5 truncate sm:col-span-2 sm:flex">
+																<IconCircleCheck className="h-3.5 w-3.5 shrink-0" />
+																Ditutup oleh {report.resolver?.name ?? 'tidak tercatat'}
+															</span>
+														)}
 													</div>
-												)}
-											</CardContent>
-										</Card>
-									);
-								})}
 
-								<div className="mt-4 flex flex-col items-center gap-3 border-t border-dashed border-border pt-4">
+													<div
+														className="flex items-center justify-end gap-2"
+														onClick={(e) => e.stopPropagation()}
+													>
+														{isUrgent && canVerify ? (
+															<Button
+																size="sm"
+																asChild
+																className="h-8 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+															>
+																<Link href={route('reports.show', report.id)}>
+																	<IconEye className="mr-1 size-4" /> Tinjau &
+																	Verifikasi
+																</Link>
+															</Button>
+														) : (
+															<Button
+																variant="ghost"
+																size="sm"
+																asChild
+																className="h-8 text-muted-foreground hover:text-primary"
+															>
+																<Link href={route('reports.show', report.id)}>
+																	<IconEye className="mr-1 size-4" /> Detail
+																</Link>
+															</Button>
+														)}
+													</div>
+
+													{hasCoords && (
+														<div className="flex items-center justify-center gap-1 rounded-lg py-1 text-[11px] font-semibold text-primary lg:hidden">
+															<IconArrowDown className="h-3 w-3" /> Lihat di peta
+														</div>
+													)}
+												</div>
+											</div>
+										);
+									})}
+								</div>
+
+								<div className="mt-4 flex flex-col items-center gap-3 pt-1">
 									<span className="text-[11px] font-medium text-muted-foreground">
 										Menampilkan {from ?? 0} - {to ?? 0} dari {total} laporan
 									</span>
@@ -673,8 +684,10 @@ export default function Index(props) {
 				>
 					<div className="mb-3 flex items-center justify-between gap-2 px-1">
 						<div className="flex items-center gap-2">
-							<IconMapPinFilled className="h-4 w-4 text-primary" />
-							<h2 className="text-sm font-semibold text-foreground">Peta Sebaran Laporan</h2>
+							<IconMapPinFilled className="h-4 w-4 text-muted-foreground" />
+							<h2 className="text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+								Peta sebaran
+							</h2>
 						</div>
 						<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-semibold text-muted-foreground">
 							{legendStatuses.map((status) => (
@@ -689,7 +702,7 @@ export default function Index(props) {
 					</div>
 					<div
 						ref={mapRef}
-						className="relative z-0 h-full w-full overflow-hidden rounded-2xl border bg-accent"
+						className="relative z-0 h-full w-full overflow-hidden rounded-2xl border border-border/70 bg-accent shadow-sm"
 					></div>
 				</div>
 			</div>

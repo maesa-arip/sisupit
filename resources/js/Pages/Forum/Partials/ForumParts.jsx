@@ -87,7 +87,7 @@ export function ForumStatusBadge({ status }) {
 	const meta = forumStatusMeta(status);
 
 	return (
-		<span className={cn('shrink-0 rounded-xl border px-2 py-0.5 text-[11px] font-bold uppercase', meta.tone)}>
+		<span className={cn('shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-semibold', meta.tone)}>
 			{meta.label}
 		</span>
 	);
@@ -103,7 +103,7 @@ export function ForumText({ text, className }) {
 	const parts = String(text ?? '').split(LINK_PATTERN);
 
 	return (
-		<p className={cn('whitespace-pre-line break-words text-sm leading-relaxed text-foreground', className)}>
+		<p className={cn('whitespace-pre-line break-words text-[15px] leading-relaxed text-foreground', className)}>
 			{parts.map((part, index) =>
 				index % 2 === 1 ? (
 					<a

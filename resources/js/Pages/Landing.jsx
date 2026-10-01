@@ -126,7 +126,7 @@ export default function Landing({ page_data }) {
 						<div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center lg:justify-start">
 							<Button
 								asChild
-								className="h-14 w-full rounded-xl bg-destructive px-8 text-base font-bold uppercase tracking-wide text-destructive-foreground shadow-lg shadow-destructive/25 transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 sm:w-auto"
+								className="h-14 w-full rounded-xl bg-destructive px-8 text-[17px] font-semibold text-destructive-foreground shadow-lg shadow-destructive/25 transition-colors hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 sm:w-auto"
 							>
 								<Link href={route('front.reports.create')}>
 									<IconFlame className="mr-2 h-5 w-5" stroke={2.5} />
@@ -136,7 +136,7 @@ export default function Landing({ page_data }) {
 							<Button
 								asChild
 								variant="ghost"
-								className="h-14 w-full rounded-xl px-6 text-sm font-semibold uppercase tracking-wide text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:w-auto"
+								className="h-14 w-full rounded-xl px-6 text-sm font-semibold text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:w-auto"
 							>
 								<Link href={primaryHref}>
 									<IconLogin2 className="mr-2 h-5 w-5" stroke={2} />
@@ -159,13 +159,13 @@ export default function Landing({ page_data }) {
 					<div className="relative mx-auto flex aspect-square w-full max-w-sm items-center justify-center">
 						<div className="absolute inset-6 rounded-full bg-destructive/10"></div>
 						<div className="absolute inset-16 rounded-full bg-destructive/15"></div>
-						<div className="relative z-10 flex h-40 w-40 rotate-3 items-center justify-center rounded-[36px] border-4 border-white bg-destructive shadow-2xl shadow-destructive/30 transition-transform duration-300 hover:rotate-0 dark:border-neutral-900">
+						<div className="relative z-10 flex h-40 w-40 rotate-3 items-center justify-center rounded-[36px] border-4 border-background bg-destructive shadow-2xl shadow-destructive/30 transition-transform duration-300 hover:rotate-0 dark:border-neutral-900">
 							<IconFlame className="h-24 w-24 text-white" stroke={1.5} />
 						</div>
-						<div className="absolute right-4 top-10 z-20 flex h-16 w-16 -rotate-6 items-center justify-center rounded-2xl border border-neutral-200 bg-white shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
+						<div className="absolute right-4 top-10 z-20 flex h-16 w-16 -rotate-6 items-center justify-center rounded-2xl border border-border/70 bg-card shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
 							<IconShieldCheck className="h-8 w-8 text-success" stroke={1.5} />
 						</div>
-						<div className="absolute bottom-8 left-2 z-20 flex h-14 w-14 rotate-6 items-center justify-center rounded-full border border-neutral-200 bg-white shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
+						<div className="absolute bottom-8 left-2 z-20 flex h-14 w-14 rotate-6 items-center justify-center rounded-full border border-border/70 bg-card shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
 							<IconMapPin className="h-6 w-6 text-info" stroke={1.8} />
 						</div>
 					</div>
@@ -192,7 +192,7 @@ export default function Landing({ page_data }) {
 			{/* ===== ALUR / CARA KERJA ===== */}
 			<section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
 				<div className="mx-auto max-w-2xl text-center">
-					<span className="text-sm font-semibold uppercase tracking-wide text-destructive">Cara Kerja</span>
+					<span className="text-sm font-semibold text-destructive">Cara Kerja</span>
 					<h2 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
 						Dari Laporan ke Penanganan
 					</h2>
@@ -224,7 +224,7 @@ export default function Landing({ page_data }) {
 			<section className="border-t border-border bg-card/40">
 				<div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
 					<div className="mx-auto max-w-2xl text-center">
-						<span className="text-sm font-semibold uppercase tracking-wide text-destructive">Fitur</span>
+						<span className="text-sm font-semibold text-destructive">Fitur</span>
 						<h2 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
 							Satu Platform, Respons Menyeluruh
 						</h2>
@@ -283,7 +283,7 @@ export default function Landing({ page_data }) {
 					</p>
 					<Button
 						asChild
-						className="h-12 rounded-xl bg-white px-8 py-3 text-base font-bold uppercase tracking-wide text-destructive shadow-none transition-colors hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white/60"
+						className="h-12 rounded-xl bg-card px-8 py-3 text-[17px] font-semibold text-destructive shadow-none transition-colors hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white/60"
 					>
 						<Link href={route('front.reports.create')}>
 							Lapor Sekarang

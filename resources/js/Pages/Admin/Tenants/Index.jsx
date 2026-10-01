@@ -78,11 +78,11 @@ export default function Index(props) {
 					<Table className="w-full">
 						<TableHeader>
 							<TableRow>
-								<TableHead>#</TableHead>
+								<TableHead className="hidden md:table-cell">#</TableHead>
 								<TableHead>Instansi</TableHead>
-								<TableHead>Subdomain</TableHead>
-								<TableHead>Kabupaten / Kota</TableHead>
-								<TableHead>Telepon Darurat</TableHead>
+								<TableHead className="hidden md:table-cell">Subdomain</TableHead>
+								<TableHead className="hidden md:table-cell">Kabupaten / Kota</TableHead>
+								<TableHead className="hidden md:table-cell">Telepon Darurat</TableHead>
 								<TableHead>Aktif</TableHead>
 								<TableHead>Aksi</TableHead>
 							</TableRow>
@@ -91,20 +91,22 @@ export default function Index(props) {
 							{tenants.length > 0 ? (
 								tenants.map((tenant, index) => (
 									<TableRow key={tenant.id}>
-										<TableCell>
+										<TableCell className="hidden md:table-cell">
 											{index + 1 + (props.tenants.current_page - 1) * props.tenants.per_page}
 										</TableCell>
 										<TableCell className="font-medium">{tenant.nama_instansi}</TableCell>
-										<TableCell>
+										<TableCell className="hidden md:table-cell">
 											<span className="rounded bg-accent px-2 py-1 font-mono text-xs">
 												{tenant.subdomain}
 											</span>
 										</TableCell>
-										<TableCell>
+										<TableCell className="hidden md:table-cell">
 											{tenant.city_name}{' '}
 											<span className="text-xs text-muted-foreground">({tenant.city_code})</span>
 										</TableCell>
-										<TableCell>{tenant.telepon_darurat || '-'}</TableCell>
+										<TableCell className="hidden md:table-cell">
+											{tenant.telepon_darurat || '-'}
+										</TableCell>
 										<TableCell>
 											{tenant.is_active ? (
 												<IconCheck className="size-4 text-emerald-600" />

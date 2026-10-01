@@ -165,17 +165,17 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 			</p>
 
 			{/* --- DAFTAR GRID RELAWAN --- */}
-			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+			<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
 				{volunteers.data.length > 0 ? (
 					volunteers.data.map((volunteer) => (
 						<Card
 							key={volunteer.id}
-							className="group flex h-full flex-col overflow-hidden transition-all duration-200 hover:border-muted-foreground/30 hover:shadow-md"
+							className="group flex h-full flex-col overflow-hidden transition-colors hover:bg-muted/30 active:bg-muted"
 						>
-							<CardContent className="flex flex-1 flex-col p-5">
-								<div className="mb-4 flex items-start justify-between">
+							<CardContent className="relative flex flex-1 flex-row items-center gap-3 p-4 sm:flex-col sm:items-stretch sm:gap-0 sm:p-5">
+								<div className="contents sm:mb-4 sm:flex sm:items-start sm:justify-between">
 									{/* Avatar */}
-									<div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted text-lg font-bold text-muted-foreground shadow-sm">
+									<div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-lg font-semibold text-muted-foreground">
 										{volunteer.avatar ? (
 											<img
 												src={volunteer.avatar}
@@ -189,7 +189,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 
 									{/* Status Badge */}
 									<span
-										className={`whitespace-nowrap rounded border px-2 py-0.5 text-xs font-semibold ${
+										className={`order-last whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-semibold sm:order-none ${
 											volunteer.status === 'Siaga'
 												? 'border-success/30 bg-success/10 text-success'
 												: 'border-border bg-muted text-muted-foreground'
@@ -200,9 +200,14 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 								</div>
 
 								{/* Info Relawan */}
-								<div className="flex-1">
-									<h3 className="line-clamp-1 text-base font-semibold text-foreground transition-colors group-hover:text-destructive">
-										{volunteer.name}
+								<div className="min-w-0 flex-1">
+									<h3 className="line-clamp-1 text-[15px] font-semibold text-foreground sm:text-base">
+										<Link
+											href={route('front.volunteers.show', volunteer.id)}
+											className="after:absolute after:inset-0 sm:after:hidden"
+										>
+											{volunteer.name}
+										</Link>
 									</h3>
 									<p className="mt-1 line-clamp-2 flex items-start gap-1.5 text-[13px] leading-snug text-muted-foreground">
 										<IconMapPinFilled className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
@@ -211,7 +216,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 								</div>
 
 								{/* Keahlian / Badge Skills */}
-								<div className="mb-5 mt-4 flex flex-wrap gap-1.5">
+								<div className="mb-5 mt-4 hidden flex-wrap gap-1.5 sm:flex">
 									{volunteer.skills && volunteer.skills.length > 0 ? (
 										volunteer.skills.map((skill, index) => (
 											<span
@@ -231,7 +236,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 
 								<Button
 									variant="outline"
-									className="h-9 w-full rounded-2xl border-border bg-card text-foreground/80 transition-colors hover:bg-muted"
+									className="hidden h-10 w-full rounded-xl border-border bg-card text-foreground/80 transition-colors hover:bg-muted sm:inline-flex"
 									asChild
 								>
 									<Link

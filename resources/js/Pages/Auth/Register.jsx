@@ -85,6 +85,7 @@ export default function Register() {
 					<div className="mx-auto w-full max-w-sm space-y-8">
 						{/* Judul */}
 						<div className="text-center">
+							<img src="/icon.png" alt="" className="mx-auto mb-5 h-16 w-16 rounded-2xl shadow-sm" />
 							<h1 className="text-3xl font-bold tracking-tight text-foreground">Buat Akun Baru</h1>
 							<p className="mt-2 text-sm text-muted-foreground">
 								Daftarkan diri Anda untuk mulai menjadi pahlawan di sekitar.

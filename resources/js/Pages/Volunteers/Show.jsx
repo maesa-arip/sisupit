@@ -29,11 +29,11 @@ export default function Show({ volunteer }) {
 				<HeaderTitle title="Profil Relawan" subtitle="Detail informasi dan kontak relawan." icon={IconUser} />
 				<Button
 					variant="outline"
-					className="h-9 rounded-2xl border-border bg-card px-4 text-sm font-medium text-foreground/80 shadow-sm transition-colors hover:bg-muted"
+					className="-ml-3 h-10 rounded-full border-transparent bg-transparent px-3 text-[15px] font-medium text-primary shadow-none hover:bg-primary/10 hover:text-primary"
 					asChild
 				>
 					<Link href={route('front.volunteers.index')}>
-						<IconArrowLeft className="mr-2 h-4 w-4" />
+						<IconArrowLeft className="h-5 w-5" />
 						Kembali
 					</Link>
 				</Button>
@@ -49,7 +49,7 @@ export default function Show({ volunteer }) {
 							{/* Status Badge */}
 							<div className="absolute right-4 top-4">
 								<span
-									className={`rounded-2xl border px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${
+									className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
 										user.status === 'Siaga'
 											? 'border-success/30 bg-success/10 text-success'
 											: 'border-warning/30 bg-warning/10 text-warning'
@@ -62,7 +62,7 @@ export default function Show({ volunteer }) {
 
 						<CardContent className="flex flex-col items-center px-5 pb-6 pt-0 text-center">
 							{/* Avatar */}
-							<div className="z-10 -mt-12 mb-3 flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border-4 border-background bg-muted text-3xl font-bold text-muted-foreground shadow-sm">
+							<div className="z-10 -mt-12 mb-3 flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-background bg-muted text-3xl font-bold text-muted-foreground shadow-sm">
 								{user.avatar ? (
 									<img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
 								) : (
@@ -78,7 +78,7 @@ export default function Show({ volunteer }) {
 								<Button
 									asChild
 									disabled={!hasPhone}
-									className="h-10 w-full rounded-lg bg-success font-medium text-success-foreground transition-colors hover:bg-success/90 aria-disabled:pointer-events-none aria-disabled:opacity-50"
+									className="h-11 w-full rounded-xl bg-success font-medium text-success-foreground transition-colors hover:bg-success/90 aria-disabled:pointer-events-none aria-disabled:opacity-50"
 								>
 									<a
 										href={hasPhone ? `https://wa.me/${waNumber}` : undefined}
@@ -94,7 +94,7 @@ export default function Show({ volunteer }) {
 										asChild
 										variant="outline"
 										disabled={!hasPhone}
-										className="h-10 flex-1 rounded-2xl border-border bg-muted hover:bg-muted/70 aria-disabled:pointer-events-none aria-disabled:opacity-50"
+										className="h-11 flex-1 rounded-xl border-border/70 bg-muted hover:bg-muted/70 aria-disabled:pointer-events-none aria-disabled:opacity-50"
 									>
 										<a href={hasPhone ? `tel:${digits}` : undefined} aria-disabled={!hasPhone}>
 											<IconPhone className="h-4 w-4 text-muted-foreground" />
@@ -104,7 +104,7 @@ export default function Show({ volunteer }) {
 										asChild
 										variant="outline"
 										disabled={!user.email}
-										className="h-10 flex-1 rounded-2xl border-border bg-muted hover:bg-muted/70 aria-disabled:pointer-events-none aria-disabled:opacity-50"
+										className="h-11 flex-1 rounded-xl border-border/70 bg-muted hover:bg-muted/70 aria-disabled:pointer-events-none aria-disabled:opacity-50"
 									>
 										<a
 											href={user.email ? `mailto:${user.email}` : undefined}
@@ -128,7 +128,7 @@ export default function Show({ volunteer }) {
 									<span className="text-sm font-normal text-muted-foreground/70">Kasus</span>
 								</p>
 							</div>
-							<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+							<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
 								<IconMedal className="h-5 w-5" stroke={1.5} />
 							</div>
 						</CardContent>
@@ -138,53 +138,57 @@ export default function Show({ volunteer }) {
 				{/* KOLOM KANAN: Informasi Detail */}
 				<div className="space-y-5 lg:col-span-2">
 					<Card className="overflow-hidden">
-						<CardHeader className="border-b border-border bg-muted/50 pb-4">
-							<CardTitle className="text-base font-semibold text-foreground">Informasi Pribadi</CardTitle>
+						<CardHeader className="border-b border-border/70 pb-4">
+							<CardTitle className="text-[17px] font-semibold tracking-tight text-foreground">
+								Informasi Pribadi
+							</CardTitle>
 						</CardHeader>
 						<CardContent className="p-0">
-							<ul className="divide-y divide-border">
-								<li className="flex items-start gap-4 p-5 transition-colors hover:bg-muted/50">
-									<div className="rounded-lg bg-destructive/10 p-2 text-destructive">
+							<ul className="divide-y divide-border/70">
+								<li className="flex items-start gap-3 px-4 py-3.5">
+									<div className="rounded-xl bg-primary/10 p-2 text-primary">
 										<IconMapPinFilled className="h-4 w-4" />
 									</div>
 									<div>
-										<p className="text-sm font-semibold text-foreground">Area Wilayah</p>
-										<p className="mt-0.5 text-sm text-muted-foreground">
+										<p className="text-[13px] text-muted-foreground">Area Wilayah</p>
+										<p className="mt-0.5 text-[15px] font-medium text-foreground">
 											{user.desa}, {user.kecamatan}, {user.kabupaten}
 										</p>
 										<p className="mt-1 text-xs text-muted-foreground/70">{user.address}</p>
 									</div>
 								</li>
 
-								<li className="flex items-center gap-4 p-5 transition-colors hover:bg-muted/50">
-									<div className="rounded-lg bg-destructive/10 p-2 text-destructive">
+								<li className="flex items-center gap-3 px-4 py-3.5">
+									<div className="rounded-xl bg-primary/10 p-2 text-primary">
 										<IconPhone className="h-4 w-4" />
 									</div>
 									<div>
-										<p className="text-sm font-semibold text-foreground">Nomor Telepon</p>
-										<p className="mt-0.5 text-sm text-muted-foreground">
+										<p className="text-[13px] text-muted-foreground">Nomor Telepon</p>
+										<p className="mt-0.5 text-[15px] font-medium text-foreground">
 											{user.phone || 'Tidak ada nomor telepon'}
 										</p>
 									</div>
 								</li>
 
-								<li className="flex items-center gap-4 p-5 transition-colors hover:bg-muted/50">
-									<div className="rounded-lg bg-destructive/10 p-2 text-destructive">
+								<li className="flex items-center gap-3 px-4 py-3.5">
+									<div className="rounded-xl bg-primary/10 p-2 text-primary">
 										<IconMail className="h-4 w-4" />
 									</div>
 									<div>
-										<p className="text-sm font-semibold text-foreground">Alamat Email</p>
-										<p className="mt-0.5 text-sm text-muted-foreground">{user.email}</p>
+										<p className="text-[13px] text-muted-foreground">Alamat Email</p>
+										<p className="mt-0.5 text-[15px] font-medium text-foreground">{user.email}</p>
 									</div>
 								</li>
 
-								<li className="flex items-center gap-4 p-5 transition-colors hover:bg-muted/50">
-									<div className="rounded-lg bg-destructive/10 p-2 text-destructive">
+								<li className="flex items-center gap-3 px-4 py-3.5">
+									<div className="rounded-xl bg-primary/10 p-2 text-primary">
 										<IconCalendarEvent className="h-4 w-4" />
 									</div>
 									<div>
-										<p className="text-sm font-semibold text-foreground">Bergabung Sejak</p>
-										<p className="mt-0.5 text-sm text-muted-foreground">{user.join_date}</p>
+										<p className="text-[13px] text-muted-foreground">Bergabung Sejak</p>
+										<p className="mt-0.5 text-[15px] font-medium text-foreground">
+											{user.join_date}
+										</p>
 									</div>
 								</li>
 							</ul>
@@ -193,8 +197,8 @@ export default function Show({ volunteer }) {
 
 					{/* Kartu Keahlian */}
 					<Card className="overflow-hidden">
-						<CardHeader className="border-b border-border bg-muted/50 pb-4">
-							<CardTitle className="text-base font-semibold text-foreground">
+						<CardHeader className="border-b border-border/70 pb-4">
+							<CardTitle className="text-[17px] font-semibold tracking-tight text-foreground">
 								Keahlian & Kemampuan
 							</CardTitle>
 						</CardHeader>
