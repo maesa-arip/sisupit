@@ -147,8 +147,8 @@ it('paints the coloured button variants as tinted fills, while emergency calls s
         ->and($forum)->not->toContain('variant="red"');
 });
 
-it('reworks the hydrant and SKKL screens like user management', function () {
-    foreach (['Hydrants', 'Pumps'] as $module) {
+it('reworks the hydrant, SKKL and fire-station screens like user management', function () {
+    foreach (['Hydrants', 'Pumps', 'FireStations'] as $module) {
         $index = appleSource("resources/js/Pages/Admin/{$module}/Index.jsx");
         expect($index)->toContain('<AlertDialog open=')
             ->and($index)->not->toContain('z-[9999]')

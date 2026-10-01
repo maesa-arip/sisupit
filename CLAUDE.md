@@ -51,7 +51,7 @@ Belum dicek  : visual di ponsel/APK untuk banyak perubahan UI (tombol merah bran
 Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115 #119 #121
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148.
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
-Test         : 647 passed, 3134 assertions (2026-10-01, branch feat/mobile-native-polish; main 621/3003).
+Test         : 647 passed, 3146 assertions (2026-10-01, branch feat/mobile-native-polish; main 621/3003).
 ```
 
 ### Peringatan operasional (dari riwayat, masih berlaku)
@@ -76,7 +76,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-10-01: 647 passed, 3134 assertions - main 621/3003;
+Test      : php artisan test            (baseline 2026-10-01: 647 passed, 3146 assertions - main 621/3003;
             lokal: php -d memory_limit=1G -d extension=php_sqlite3.dll -d extension=pdo_sqlite vendor/bin/pest.
             Perbarui angka ini tiap kali test bertambah - baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan. Riwayat angkanya di STATUS_LOG.md)

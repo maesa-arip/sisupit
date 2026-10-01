@@ -192,3 +192,13 @@ hapus TIDAK disentuh.
   bergrup, search; form: grup Detail fasilitas, tanpa kartu `p-6` lama, tanpa teal, Simpan primer) +
   Users wajib mengimpor `@/Components/GroupedForm`. Keduanya MERAH terhadap 8 berkas versi HEAD, pulih
   byte-exact. Suite 646 -> 647 passed (3134).
+
+## 11. Bagian 6 — Pos Pemadam dirombak seperti Pengguna (permintaan user 2026-10-01)
+
+`Pages/Admin/FireStations/{Index,Create,Edit}.jsx` salinan templat yang sama dengan Hydrant/SKKL, jadi
+skrip transformasi yang sama dipakai ulang (berpenjaga jumlah-cocok, cadangan + pulih otomatis):
+modal `z-[9999]` -> `AlertDialog`, daftar satu kartu bergrup (+Enter/Spasi), cari `type="search"`, chip
+status kini `flex-wrap` & primer (dulu aksen merah destructive untuk SEMUA keadaan aktif), tombol tambah
+pil primer; form dipecah jadi kartu bergrup (Detail fasilitas dst.). Penjaga hydrant/SKKL di
+`AppleDesignMaterialTest` diperluas ke FireStations - MERAH terhadap 3 berkas HEAD, pulih byte-exact.
+Suite 647 passed (3146 assertions).
