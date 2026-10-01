@@ -1,0 +1,2542 @@
+# STATUS LOG — riwayat lengkap STATUS Sisupit
+
+Dipindahkan apa adanya dari `CLAUDE.md` pada 2026-10-01, karena CLAUDE.md melewati batas
+150k karakter (233,8k) dan ~95% isinya adalah riwayat di bawah ini. CLAUDE.md kini hanya
+memuat STATUS ringkas + rujukan ke file ini.
+
+Cara memakai: entri TERBARU di paling atas. Saat task selesai, tulis rinciannya di sini
+(dan di file task / FINDINGS_LOG), lalu perbarui STATUS ringkas di CLAUDE.md (≤ 5 baris
+per entri). File ini TIDAK dimuat otomatis tiap sesi — baca saat butuh konteks historis.
+
+## Riwayat STATUS (salinan verbatim per 2026-10-01)
+
+```
+Task aktif   : RILIS GOOGLE PLAY (2026-09-30). Akun Play Console PRIBADI (tanpa D-U-N-S) di
+                tawarineverywhere@gmail.com -> wajib uji tertutup 12 penguji x 14 hari. APK 1.1.5/vc7
+                (targetSdk 36, kunci unggah sisupit-upload.jks di proyek SisupitWebView + cadangan
+                C:\Users\Admin\backup-sisupit-wrapper\playstore\, AAB siap; rincian di memori WebView).
+                #157 FIXED: hapus akun dari Profil (#hapus-akun) = ANONIMISASI, bukan DELETE baris
+                (reports.user_id restrict, report_officers cascade); akun Google konfirmasi "HAPUS".
+                Test 619 passed. #157 TERDEPLOY @43479a4e. SISA: SHA-1 Play App Signing ke Firebase, uji di HP.
+               SEMENTARA sembunyikan menu admin "Daftar Penerima Email" & "Pengaturan Email Dinas" (#156,
+                2026-09-30) lewat SHOW_MAIL_ADMIN_MENU=false di navItems.js; route & data tetap. TERDEPLOY @130535ab
+                ke dev -> staging -> prod (deploy-env.sh; bundel menu live tanpa kedua menu, Email Dinas tetap).
+               502 PROFIL + #153 + #154 (2026-09-30). #155: "upstream sent too big header" - header Link
+                preload ~4 KB + cookie > buffer FastCGI 4 KB. Buffer Nginx ketiga vhost dinaikkan (32k) LANGSUNG
+                di server + AddLinkHeadersForPreloadedAssets dicabut dari bootstrap/app.php. #153: deploy-env.sh
+                menjalankan composer install bila composer.lock berubah, salinan resmi deploy/deploy-env.sh.
+                #154: report_officers.arrived_by (migrasi aditif) + "Ditandai tiba oleh X". Test 614 passed.
+                TERDEPLOY @7b2dacc8 ke dev -> staging -> prod lewat deploy-env.sh BARU (migrasi DONE, 0 pending,
+                header respons 2,7 KB -> 1,1 KB, nol 502/too-big sesudahnya; cadangan /root/backup-predeploy-20260929-2337).
+               TOMBOL MERAH BRAND (2026-09-30), TERDEPLOY @cec5c164 ke dev -> staging -> prod (git pull + chown;
+                frontend saja). User: "masih ada tombol dengan warna hitam dan teks putih, ganti semua" -> pilih
+                MERAH BRAND. Token --primary = --destructive (terang & gelap) + 7 tombol/chip hardcode
+                bg-foreground -> bg-primary, lencana Relawan Siaga -> bg-volunteer. PENGECUALIAN_ATURAN #4,
+                dijaga ButtonBrandColorTest. Test 612 passed (2925). FINDINGS #152. SISA: cek visual di ponsel/APK.
+               11 PERMINTAAN USER 2026-09-29 -> TASK_64..68. SELESAI & TERDEPLOY 2026-09-30 @66b8ee52 ke dev ->
+                staging -> prod (git pull + composer install [dompdf] + migrate 2 aditif DONE, 0 pending, route
+                cache dibangun ulang, queue:restart; cadangan DB /root/backup-predeploy-20260929-2015; data prod
+                utuh 166 users/9 reports/5 BA; dompdf dirender sbg www-data OK; 0 ERROR). APK 1.1.4/vc6 TERBIT
+                2026-09-30 @af2c51b5 (/apk/sisupit.apk 200 di ketiga domain, md5 7a9efecb..., sertifikat = 1.1.3;
+                1.1.3 dicadangkan di /root/backup-apk-1.1.3-*). SISA: uji di ponsel lewat jalur UPDATE. TASK_64 teks: menu "Manajemen Regu", "Laporan Kejadian", "Laporan Sama" (pop-up
+                & berkas Export SAJA - chip/lencana tetap "Digabung"). TASK_65: tombol Telepon + WhatsApp di
+                panel verifikasi admin; rentang tanggal (WITA, inklusif) di Export; "Atur Anggota" bergulir
+                sendiri + dialog meminta APK mematikan tarik-untuk-refresh (AKARNYA SwipeRefreshLayout APK) ->
+                APK 1.1.4/vc6 DIBANGUN (bridge setPullToRefreshEnabled), BELUM diterbitkan ke public/apk.
+                TASK_66 (migrasi): koordinat saat Meluncur/Jaga di Kantor, Tiba = seregu yang sudah meluncur,
+                alpha dicatat saat ditutup (admin saja; regu yang nihil tanggapan tak dihitung). TASK_67
+                (migrasi): 1 entri sementara + 1 final, bisa disunting, riwayat report_resolution_logs, hapus
+                final = admin. TASK_68: PDF dompdf (DEPENDENSI BARU -> deploy WAJIB composer install), tanpa
+                KTP. Test 583 -> 610 passed (2918). DEPLOY = kode + composer install + php artisan migrate
+                (2 migrasi aditif) + build. Rincian di prompt/tasks/TASK_64..68. FINDINGS #150 (refresh APK,
+                FIXED), #151 (Laporan Kejadian bukan append-only, keputusan user), #153 OPEN (deploy-env.sh
+                tanpa composer install), #154 OPEN (Tiba seregu tanpa jejak penanda).
+               DUA PELONGGARAN SEMENTARA (#149). SELESAI & TERDEPLOY 2026-09-29 @28f7ad4c ke dev ->
+                staging -> prod (git pull + chown; tanpa migrasi/route). (a) Menu "Jangkauan Petugas"
+                (/admin/notifikasi-petugas) disembunyikan lewat SHOW_NOTIFY_LEVEL_MENU=false di navItems.js -
+                route, gerbang & plafon tersimpan TETAP berlaku, URL langsung masih terbuka. (b) Foto laporan
+                NON-kebakaran ('lainnya') kini OPSIONAL; deskripsi & patokan TETAP wajib. Penjaga dibalik di
+                ReportMultiPhotoTest. Keduanya SEMENTARA - cara mengembalikan ada di FINDINGS_LOG #149.
+               "TOO MANY CONNECTION" SAAT ADMIN LAPOR = 429 LIMITER LAPORAN (#147). SELESAI & TERDEPLOY 2026-09-29
+                @de8857d3 ke dev -> staging -> prod (ikut naik: #145 & #146). Tanpa migrasi; route cache
+                dibangun ulang; cadangan DB /root/backup-predeploy-20260929-1444*; 0 ERROR sesudahnya.
+                Bukan MySQL (0 connection error, puncak 11/150). Kiriman admin ditolak validasi TANPA pesan,
+                diketuk ulang, dan throttle:report-create menghitung kiriman gagal -> 429 mentah. Kini limiter
+                di ReportController::store (hanya laporan TERSIMPAN dihitung, petugas/admin/superadmin bebas),
+                429 Inertia -> toast Indonesia, form lapor punya onError + galat per foto, report($e) di catch.
+                Keputusan user: 2 MB PER FOTO untuk SEMUA unggahan (max:2048 + MAX_UPLOAD_BYTES klien).
+                PHP-FPM prod efektif 10M/30M lewat conf.d/99-upload-limits.ini (php -r = CLI, menyesatkan);
+                konfigurasi server TIDAK diubah. #148 OPEN: prod APP_LOCALE=en (pesan validasi Inggris).
+               PENCARIAN DI "ATUR ANGGOTA" /regu (#146). SELESAI 2026-09-29, TERDEPLOY @de8857d3 (bersama #147).
+                Prod punya 80+ petugas. Disaring di klien; yang disimpan tetap SELURUH selectedIds (anggota
+                yang tersembunyi oleh pencarian tak boleh ikut terlepas). Penjaga 1 test di ReguTest.
+               POP-UP DI PONSEL TAK LAGI MENEMPEL TEPI (#145). SELESAI 2026-09-29, TERDEPLOY @de8857d3 (bersama #147).
+                User: "semua pop up di mobile jangan ada yang full kanan kiri, harus tetap ada space sehingga
+                tetap ada roundednya". Akar di primitif DialogContent & AlertDialogContent (w-full, baru
+                membulat mulai sm:). Kini w-[calc(100%-2rem)] + rounded-xl di semua ukuran; tambalan di kedua
+                berkas Forum dicabut (persetujuan user). Pemanggil cukup atur max-w-*, JANGAN w-full/
+                rounded-none. Penjaga DialogMobileMarginTest (3, MERAH lewat sabotase). Frontend saja.
+                SISA: cek visual di ponsel/APK, deploy (git pull + chown).
+               COMBOBOX DI PONSEL (#144). SELESAI & TERDEPLOY 2026-09-29 @18a335de ke dev -> staging -> prod.
+                Membuka ui/combobox di ponsel memfokuskan kolom cari -> keyboard muncul, popover berbalik ke
+                atas & terpotong di balik bilah notifikasi. Kini fokus otomatis dilewati di pointer: coarse
+                dan PopoverContent dibatasi --radix-popover-content-available-height. Berlaku ke SEMUA
+                combobox (termasuk pemilih wilayah form lapor). Penjaga ComboboxMobileTest (2, MERAH lewat
+                sabotase). SISA: uji di ponsel/APK sungguhan.
+               COMBOBOX BERCARI + RINCIAN CALON DANRU (#143). SELESAI & TERDEPLOY 2026-09-29 @2b03b4d4
+                ke dev -> staging -> prod (ff dari ebce20e1), BERSAMA #141 & #142 di bawah (commit
+                ac12cff2 / 2d0c5514 / f93c9c24 + build 2b03b4d4). Tanpa migrasi/route/config: git pull +
+                chown; 0 pending, 0 ERROR baru. Danru /regu, Instansi (Users), "Libatkan OPD lain", Pos
+                Pemadam (Armada) kini ui/combobox bercari. YANG MENGIKAT: (a) ui/combobox beridentitas KODE
+                (value) + nama sebagai keywords - value = nama membuat nama kembar tersorot bersamaan;
+                (b) `modal` WAJIB bila di dalam Dialog (roda mouse tertahan kunci gulir); (c) email/telepon/
+                wilayah calon hanya dikirim ke ADMIN - prop `candidates` yang sama sampai ke danru;
+                (d) DialogContent grid-cols-[minmax(0,1fr)] bila berisi baris `truncate`, kalau tidak
+                dialog melebar & bergulir ke kanan; (e) Atur Anggota: danru di atas tanpa checkbox.
+                Ikut terbetulkan: filter wilayah /volunteers tak bisa dicari dengan nama (ComboBox.jsx).
+                SISA: cek visual /regu (dropdown Danru, dialog Atur Anggota) di desktop & ponsel.
+               POP-UP PILIHAN EXPORT EXCEL /admin/reports (#141). SELESAI 2026-09-29, TERDEPLOY
+                @2b03b4d4 (lihat entri di atas); #142 akun buatan admin terverifikasi ikut naik. Isi berkas dulu diam-diam ikut chip status aktif (default
+                'aktif'). Kini tombol membuka ExportDialog, pilihan awal SELALU "Semua Laporan", pencarian
+                ikut hanya bila dicentang. Frontend saja (server NOL berubah); deploy = git pull + chown.
+               JAM BERITA ACARA & EXPORT DALAM WITA (#134) + DEPLOY SEMUA. SELESAI & TERDEPLOY
+                2026-09-29 @55154552 ke dev -> staging -> prod (ff dari 8dc43af6), atas permintaan
+                user "deploy semua". Akar #134: server/APP_TIMEZONE UTC, prefill "Waktu Kejadian"
+                mencetak created_at UTC & jam ketikan petugas (WITA) disimpan mentah seolah UTC ->
+                tampil +8 jam; Export Excel mencetak UTC. Penyimpanan TETAP UTC, konversi di tepi lewat
+                config('app.local_timezone') (Asia/Makassar). Data prod BA 7/8/12 dikurangi 8 jam
+                (cadangan /root/backup-jamba-20260929-012848). Ikut naik: SELURUH isi main di bawah
+                (TASK_54/55/56/60/61/62/63, #131) + pekerjaan sesi lain yang tadinya belum ter-commit
+                (TASK_60 §13 marker regu, #130, #132, #133). 7 migrasi DONE di ketiga env, 0 pending,
+                cadangan DB penuh /root/backup-predeploy-20260929-013324; route cache (routes-v7.php)
+                AKTIF dan dibangun ulang. S&K 2.1 berlaku 2026-09-29 (config/legal.php) - isi klausul
+                forum BELUM ditinjau hukum. Forum & email tetap mati per kabupaten sampai dicentang.
+                GOTCHA: SSH VPS memutus koneksi beruntun ("connection abort"/timeout) - gabungkan
+                perintah ke sedikit koneksi dan beri jeda ~35 dtk.
+               SEMUA BRANCH FITUR DI-MERGE KE `main` 2026-09-27 (permintaan user "merge ke main
+                semua") - TERDEPLOY 2026-09-29 @55154552 (lihat entri di atas). Yang naik: feat/regu-danru
+                (membawa TASK_54 forum [keputusan tahan forum DICABUT user lewat perintah ini;
+                forum & email tetap MATI per kabupaten sampai dicentang di /admin/tenants],
+                TASK_55, TASK_56, TASK_59, TASK_60, #131, dev:all) + TASK_61 di bawah.
+                feat/email-dinas SENGAJA TIDAK di-merge: TASK_56-nya sudah masuk lewat
+                c181b7d0, dan versi lepas-forum itu hanya berisi baris LAMA (penyaring tanpa
+                `digabung`, S&K 2.0) - merge-nya akan menarik kembali kode usang. Perubahan
+                BELUM ter-commit di folder utama (#130: ReportController, FINDINGS_LOG,
+                ReportBroadcastFailureTest) TIDAK ikut - milik sesi lain. DEPLOY main ini WAJIB
+                `php artisan migrate` BERSAMAAN (migrasi TASK_54/55/56/60 belum ada di VPS;
+                tanpa migrasi halaman detail insiden 500) + cadangan DB lebih dulu + S&K 2.1
+                (tanggal berlaku disesuaikan) + centang fitur per kabupaten bila dikehendaki.
+               SATU MARKER PER REGU DI PETA DETAIL INSIDEN (TASK_60 §13). SELESAI (kode) 2026-09-29,
+                BELUM di-commit & BELUM dideploy. User: 8 petugas/regu x 3-4 regu = marker & rute per
+                orang menumpuk. Kini petugas beregu = satu marker berlabel "Regu Garuda · 8" di GPS
+                DANRU (roster membawa `leader_id`), satu rute per regu, popup danru + anggota
+                (di-escape). Petugas tanpa regu & relawan tetap per orang. Tanpa migrasi.
+                Test 552 passed (2516) termasuk 7 test sesi lain yang belum di-commit.
+               WILAYAH AKUN = WILAYAH TUGAS BAGI PETUGAS + ISIAN ALAMAT TINGGAL (TASK_61,
+                prompt/tasks/TASK_61_wilayah_tugas_alamat_tinggal.md). SELESAI (kode) 2026-09-27,
+                commit 6a76f6bd, di-merge ke main. Pemicu: petugas tinggal di Badung, bertugas di
+                Damkar Denpasar. Keputusan user: alamat tinggal = users.address YANG SUDAH ADA
+                (tanpa migrasi), diisi pemilik akun + admin. YANG MENGIKAT: kartu profil
+                "Wilayah Tugas"/"Wilayah Domisili" dari prop server jurisdiction.kind
+                (CENTRALLY_MANAGED_ROLES), alamat tinggal TAK BOLEH menggeser kode wilayah.
+                ProfileAlamatTinggalTest 7, tiga sabotase MERAH, pulih byte-exact.
+               REGU & DANRU - MELUNCUR ATAS NAMA REGU + SATU ANGGOTA JAGA DI KANTOR (TASK_60,
+                prompt/tasks/TASK_60_regu_danru_jaga_kantor.md). SELESAI (kode) 2026-09-25 di
+                branch `feat/regu-danru` (worktree .claude/worktrees/regu-danru, dari
+                feat/hydrant-log-petugas @4814de6f - ikut membawa TASK_54/55/56/59). BELUM dideploy.
+                Keputusan user: dua tombol "Meluncur" | "Jaga di Kantor" (usul user sendiri), TEPAT
+                SATU jaga kantor per regu per kejadian, anggota mana pun boleh memulai, anggota regu
+                PETUGAS SAJA. YANG MENGIKAT: (a) danru = regus.leader_id, BUKAN peran Spatie;
+                (b) tiap anggota menekan sendiri - klik satu orang tak pernah mengklaim anggota lain;
+                nama regu di-SNAPSHOT ke report_officers.regu_name; (c) jaga kantor = tabel
+                report_jaga_kantor, BUKAN status responder (lihat CONVENTIONS), UNIQUE(report_id,
+                regu_id); (d) siapa jaga kantor & siapa belum memilih hanya untuk staf/pejabat;
+                (e) tombol dari prop server canStayAtBase + 3 prop regu ikut SATU daftar
+                reloadIncident (#113). Test 497 -> 514 passed (2291), ReguTest 17 (termasuk adendum Peta Pemantauan [+temuan XSS #131, FIXED 2026-09-27 lewat lib/escape-html.js + LeafletPopupEscapeTest di 8 pemanggil bindPopup], berita acara, dashboard petugas & kolom AK "Regu Meluncur" di Export Excel); TIGA sabotase
+                MERAH (dicek `cmp` terpasang), pulih byte-exact. Pint/prettier/build lulus. Migrasi
+                aditif DONE di MySQL dev LOKAL (up/rollback/up), BELUM di VPS. SISA: verifikasi
+                manual §6, build + commit public/build, deploy = kode + `php artisan migrate`
+                BERSAMAAN (tanpa migrasi halaman detail insiden 500).
+               PETUGAS BOLEH TAMBAH & EDIT HYDRANT + RIWAYAT SUNTINGAN (TASK_59,
+                prompt/tasks/TASK_59_petugas_edit_hydrant_log.md). SELESAI (kode) 2026-09-22 di
+                branch `feat/hydrant-log-petugas` (dari feat/laporan-ganda-atas-forum @c181b7d0).
+                TERDEPLOY 2026-09-23 @8dc43af6 SENDIRIAN lewat cherry-pick (branch
+                `deploy/hydrant-log`, tanpa TASK_54/55/56 - keputusan user saat itu).
+                Keputusan user: petugas TAMBAH + EDIT (hapus tetap admin), HYDRANT RESMI SAJA
+                (hydrant warga tak dibuka untuk petugas & tanpa log), "dibuat oleh" ikut dicatat.
+                YANG MENGIKAT: (a) route index/create/store/edit/update di grup BARU
+                role:petugas|admin|superadmin, destroy tetap grup admin + re-check di controller;
+                (b) hak layar dari prop server `can` (delete/warga), bukan peran di JSX (#101);
+                (c) hydrant_logs append-only, penyunting di-SNAPSHOT (nama+peran), wilayah
+                dicatat sebagai NAMA; (d) diff WAJIB menyaring nilai yang sama secara angka -
+                Eloquent membandingkan kolom tanpa cast sebagai STRING, "-8.69" vs "-8.6900"
+                akan menulis "Titik Lokasi" palsu di tiap simpan (ditemukan test); (e) log
+                ditulis dari controller, bukan model event (seeder/artisan tak tercatat);
+                (f) entri menu satu konstanta `hydrantAdminItem` untuk admin & petugas.
+                Test 487 -> 499 passed (2099), HydrantEditLogTest 12; EMPAT sabotase MERAH,
+                dicek `cmp` terpasang, pulih byte-exact. Pint/prettier/build lulus. Migrasi aditif
+                DONE di DB dev LOKAL, BELUM di VPS. SISA: verifikasi manual §6, deploy = kode +
+                `php artisan migrate` BERSAMAAN.
+               EMAIL DINAS DI DALAM SISUPIT - SLICE 1 (TASK_56,
+                prompt/tasks/TASK_56_email_dinas_daftar_putih.md). SELESAI (kode) 2026-09-22,
+                BELUM di-commit & BELUM dideploy. Permintaan user: komputer operator akan
+                dikunci hanya untuk Sisupit, jadi email & WhatsApp harus bisa ditangani dari
+                dalam aplikasi, "tidak bisa kirim email selain email yang di daftarkan".
+                DIPECAH TIGA TASK (aturan emas #6): TASK_56 email (ini), TASK_57 WhatsApp
+                (DITUNDA atas keputusan user 2026-09-22), TASK_58 penguncian komputer (TODO,
+                paling akhir). Urutannya mengikat: email dipakai dulu, baru dikunci.
+                DIBANGUN SEBAGAI HALAMAN WEB, BUKAN FITUR ELECTRON - `.exe` sudah memuat
+                sisupit.com, jadi NOL perubahan wrapper & satu perbaikan tiba lewat `git pull`
+                ke .exe + APK + browser sekaligus (pelajaran #108; rilis wrapper di repo ini
+                mahal: versionCode, artifactName yang mengubah URL unduhan, SmartScreen).
+                DELAPAN KEPUTUSAN USER: penerima = PEJABAT (perorangan) -> tabel `mail_contacts`
+                TERSENDIRI dan itu BUKAN "daftar kedua" yang dilarang #110/#71 (agencies mendata
+                ORGANISASI penanganan insiden, ini mendata ORANG; memaksanya jadi satu membuat
+                nama pejabat muncul sebagai instansi yang bisa dimintai bantuan saat kebakaran
+                lewat Agency::recommendedIdsFor); pengirim = petugas|admin|superadmin; SATU
+                KOTAK SURAT PER KABUPATEN, alamatnya diminta ke tiap kota dan alamat itu yang
+                dipakai; kredensialnya DIISI ADMIN KABUPATEN SENDIRI di /admin/email (superadmin
+                tetap pemegang saklar tenants.features); lampiran boleh tapi dibatasi & dicatat
+                (slice 3, belum).
+                YANG MENGIKAT: (a) DUA JALUR EMAIL TAK BOLEH TERCAMPUR - `.env` (MAIL_*) milik
+                email SISTEM (verifikasi pendaftaran & reset password, TIDAK berubah), surat
+                dinas lewat mailer BERNAMA per tenant `dinas_{id}`; nama ber-id itu wajib sebab
+                MailManager menyimpan mailer per NAMA, dan satu nama bersama membuat proses yang
+                melayani dua kabupaten (queue worker) mengirim surat kabupaten kedua dari kotak
+                surat kabupaten pertama TANPA GALAT; (b) BUKAN Mail::build() meski itu paling
+                ringkas - MailFake tak punya build(), jadi jalur kirim yang memakainya mustahil
+                diuji, dan jalur kirim yang tak bisa diuji adalah jalur yang gerbangnya jebol
+                diam-diam; (c) gerbang penerima = DAFTAR PUTIH satu tabel, satu Form Request
+                (MailSendRequest) untuk tulis baru/balas/teruskan, dan gerbang peran + 404
+                diletakkan di authorize() BUKAN cuma controller - FormRequest divalidasi SEBELUM
+                controller, terbukti lewat test: POST ke fitur mati dijawab galat validasi (302)
+                alih-alih 404, yang mengaku endpoint-nya ada sekaligus membocorkan cara kerja
+                daftar putihnya; (d) password kotak surat TAK PERNAH dikirim ke layar (hanya
+                `has_password`), kolom kosong = JANGAN UBAH (kalau terbalik, menyimpan perubahan
+                nama pengirim menghapus passwordnya dan fiturnya baru mati di kiriman
+                berikutnya), alamat pengirim DIKUNCI ke akun (mail_username = mail_from_address;
+                Gmail menulis ulang From yang tak cocok dengan akunnya), tenant yang disunting
+                ditentukan city_code AKUN tak pernah dari request (#1 P0); (e) tiap percobaan
+                kirim BERHASIL MAUPUN GAGAL meninggalkan satu baris mail_messages (append-only,
+                pengirim & penerima di-SNAPSHOT: user_id nullOnDelete + sender_name, sebab
+                menghapus akun tak boleh membuat jejak audit berbunyi "tidak tercatat").
+                YANG TIDAK BISA DIJANJIKAN, sudah tertulis di §1.1 file task: "email tidak semua
+                bisa login" TIDAK bisa ditegakkan Sisupit - yang menentukan siapa memegang
+                password. Syarat mutlaknya password tidak dibagikan ke PETUGAS; admin tetap bisa
+                membuka kotak surat dari luar Sisupit, jadi jaminannya BERLAPIS PERAN, bukan
+                mutlak.
+                Test 472 -> 485 passed (1986 assertions); ENAM sabotase dibuktikan MERAH, berkas
+                pulih byte-exact. PELAJARAN SABOTASE: dua sabotase pertama tampak "gagal
+                memerahkan" padahal TIDAK PERNAH TERPASANG (\Q...\E di perl tetap menginterpolasi
+                $var jadi string kosong) - sabotase yang gagal terpasang tampak PERSIS seperti
+                penjaga yang bekerja; sejak itu tiap sabotase diverifikasi `cmp` lebih dulu.
+                Pint PASS (14 berkas), prettier PASS, npm run build lulus & keenam halaman baru
+                dibuktikan ada di manifest + string kuncinya ada di bundel produksi.
+                TIGA MIGRASI ADITIF sudah dijalankan di DB dev LOKAL (0 pending), BELUM di VPS.
+                `.env` TIDAK disentuh sama sekali. TEMUAN BARU #129 OPEN (sengaja tak dikerjakan):
+                `->with('success', ...)` + `page.props.flash` tak pernah sampai ke layar - kunci
+                `flash` tidak pernah di-share, jadi toast di halaman admin lama diam tanpa gejala.
+                SISA: kredensial kotak surat dari tiap kota + kesepakatan §1.1, uji SMTP sungguhan
+                di staging, verifikasi visual 6 layar, nyalakan fitur per kabupaten, commit
+                (terpisah dari TASK_54 & TASK_55) + deploy = kode + `php artisan migrate`
+                BERSAMAAN. Slice 2 (kotak masuk IMAP - BUTUH PERSETUJUAN DEPENDENSI BARU, mengubah
+                composer.lock sehingga deploy wajib `composer install`) & slice 3 (lampiran)
+                belum dikerjakan.
+               LAPORAN GANDA UNTUK SATU KEJADIAN - LAPIS 1 & 2 (TASK_55,
+                prompt/tasks/TASK_55_laporan_ganda_satu_kejadian.md). SELESAI (kode) 2026-09-14,
+                BELUM di-commit & BELUM dideploy. User: "banyak yang melapor padahal 1 kejadian",
+                memilih lapis 1+2 dan "setuju semua" atas K1-K5 (radius 500 m / 120 menit sebagai
+                Setting, 0 = mati; kebakaran saja; gabung = ADMIN saja; usulan TANPA nada triase;
+                penanda = status `digabung` + merged_into_id). Lapis 3 (form warga) DITUNDA.
+                YANG MENGIKAT: (a) mesin hanya MENGUSULKAN (duplicate_candidate_of_id), tak ada
+                auto-merge; (b) status `digabung` wajib disebut di setiap penyaring DAFTAR HITAM
+                (!= 'ditolak', whereNotIn, in_array gerbang aksi, JSX) - lihat CONVENTIONS;
+                (c) reports.lat/lng STRING - kotak whereBetween diam-diam tak cocok apa pun;
+                (d) notifikasi pelapor anak dibangun atas laporan ANAK (induk 403 bagi mereka).
+                Test 433 -> 472 passed (1930), ReportDuplicateMergeTest 38; penjaga dibuktikan MERAH
+                lewat sabotase karena alasan yang benar (pulih md5). GOTCHA: `php` di `bash script.sh`
+                = PHP tanpa SQLite (alias php.bat hanya di shell interaktif) -> merah palsu.
+                Pint/prettier/build lulus. Migrasi aditif DONE di DB dev LOKAL. Temuan: #125 FIXED,
+                #126 FIXED (penjaga ditolak kosong sejak TASK_51), #127 & #128 OPEN.
+                SISA: verifikasi manual §6, commit (terpisah dari TASK_54 & sesi kondisi air),
+                deploy = kode + `php artisan migrate` BERSAMAAN.
+               FORUM TANYA JAWAB WARGA PER KABUPATEN (TASK_54, prompt/tasks/TASK_54_forum_tanya_jawab_warga.md).
+                SELESAI (kode) 2026-09-14. DI-COMMIT di branch `feat/forum-warga` (bercabang dari
+                `feat/mobile-bottom-nav` @d2b77228), SENGAJA BELUM masuk `main` & BELUM dideploy -
+                keputusan user: forum belum akan dirilis. JANGAN merge ke main/staging/dev tanpa
+                persetujuan user. Merge kelak: aset public/build akan bentrok bila main sudah punya
+                build lain -> build ulang sesudah merge, jangan pilih salah satu sisi.
+                Keputusan user: komunitas warga, satu ruang per kabupaten, pertanyaan warga MENUNGGU
+                admin (pra-moderasi), "Jawaban Resmi Damkar" ADMIN SAJA, tanpa foto, wajib login.
+                YANG MENGIKAT: (a) forum_threads hanya menyimpan province+city dari AKUN - desa
+                penulis yang ikut disimpan membuat Tenantable (#60) menyembunyikan pertanyaannya dari
+                desa lain sekabupaten tanpa galat; (b) ForumNotification via() = database SAJA -
+                FCM/broadcast dengan payload tak dikenal = SIRINE di APK & .exe (TASK_50);
+                (c) forum menyala per tenant lewat tenants.features (Tenant::FEATURES, checkbox
+                /admin/tenants) dibaca dari city_code AKUN; mati = 404 + menu absen.
+                Test 415 -> 431 passed (1731), ForumTest 16; 4 penjaga dibuktikan MERAH lewat
+                sabotase (berkas pulih md5). Pint/prettier/build lulus. Migrasi aditif sudah di DB
+                dev LOKAL. S&K naik 2.0 -> 2.1 (klausul Forum Warga) - tanggal berlaku WAJIB
+                disesuaikan saat deploy & ditinjau hukum. Temuan BARU #121 OPEN (lonceng tak
+                menavigasi). Pekerjaan sesi lain di working tree yang sama (kondisi air /hydrants)
+                sudah di-commit TERPISAH di `feat/mobile-bottom-nav` (df5c772c + build d2b77228),
+                tanpa forum. SISA: keputusan rilis, lalu merge + deploy (migrate + centang fitur
+                per kabupaten).
+                ADENDUM #122 (2026-09-14, FIXED): user menyalakan forum Denpasar lalu melapor
+                "ajukan pertanyaan tidak tersimpan, tidak ada error apa2, hanya diam". SERVER
+                BENAR - keempat kirimannya ditolak `min:10` pada JUDUL (dibuktikan dari access log
+                Nginx: 302 kembali ke form + selisih respons TEPAT 54 byte = galat judul; 419 = +32
+                dan galat isi = +51 tidak cocok). Pesan galatnya ADA tapi TERTUTUP HEADER STICKY
+                di ponsel (elementFromPoint di Chrome 390x844 = logo di <header>): form dikirim
+                preserveScroll, onError sengaja tanpa toast selama ada galat per isian, dan batas
+                minimal tak disebut (penghitung cuma "4/150"). FIX di lib/forum.js: FORUM_LIMITS +
+                lengthHint() ("4/150 · min. 10") + announceFormErrors() (toast + gulir ke TENGAH +
+                fokus; `start` akan menaruhnya kembali di bawah header), dipakai Forum/Create.jsx
+                DAN form balasan Forum/Show.jsx. NOL perubahan server. Penjaga: 2 test JSX di
+                ForumTest - angka min/max DITARIK dari ForumThreadRequest & diadu (pelajaran #79);
+                dibuktikan MERAH lewat 4 sabotase, pulih byte-exact. Diverifikasi di browser
+                ponsel sesudah fix. Test 431 -> 433 passed (1753). Data uji di DB lokal dihapus.
+                DUA TEMUAN IKUTAN DICATAT SAJA (keputusan user): #123 limiter forum menghitung
+                kiriman yang GAGAL validasi + 429 tampil sebagai modal halaman galat mentah; #124
+                cabang 419 di bootstrap/app.php tanpa `type` -> `toast[null]` TypeError -> SEMUA
+                form diam tanpa pesan saat sesi kedaluwarsa.
+               KEEMPAT DASHBOARD DIROMBAK JADI LAYAR APLIKASI DI PONSEL (#118) + #120.
+                SELESAI & TERDEPLOY 2026-09-09 @d1c8cf8e ke prod/staging/dev.
+                Laporan user: "perbaiki tampilan dashboardnya, sekarang versi mobile masih
+                seperti versi desktop hanya dilayar kecil saja tidak seperti tampilan aplikasi
+                native mobile".
+                YANG PALING PENTING DISADARI SESI BERIKUTNYA: ada EMPAT dashboard, bukan satu -
+                Pages/Dashboard.jsx (warga/relawan), Pages/Admin/Dashboard.jsx (admin DAN
+                pejabat), Pages/Petugas/Dashboard.jsx, Pages/Opd/Dashboard.jsx, semuanya
+                dirender DashboardController sesuai peran. Kata "dashboard" karena itu ambigu;
+                user memilih KEEMPATNYA setelah ditanya.
+                AKARNYA BUKAN SATU HALAMAN MELAINKAN SATU KEBIASAAN yang terulang empat kali:
+                keempatnya membungkus daftarnya dengan KARTU BERBINGKAI, dan di ponsel bingkai
+                itu duduk DI DALAM padding halaman `p-4` milik AppLayout sehingga jadi
+                bingkai-di-dalam-bingkai. Aplikasi native menempelkan daftarnya ke tepi layar
+                dan memisahkan barisnya dengan garis rambut. Karena kebiasaannya sama di empat
+                berkas, memperbaiki satu per satu akan melahirkan EMPAT DIALEK - bentuk yang
+                persis melahirkan #71/#53 (sembilan menu desktop hilang di ponsel selama enam
+                hari tanpa satu pun gejala).
+                YANG PALING MAHAL, di Admin/Dashboard.jsx: kepala halaman berupa KARTU
+                berbingkai (rounded-2xl border p-5) berisi h1 text-2xl + badge + tombol selebar
+                layar - blok itu sendiri memakan sepertiga layar ponsel sebelum ada satu data
+                pun; lalu TIGA StatCard grid-cols-1 ber-p-5, angka text-3xl, kotak ikon
+                p-3.5 rounded-2xl menumpuk vertikal, sehingga daftar insiden baru terlihat
+                setelah menggulir melewati SELURUH statistik.
+                FIX: satu primitif bersama BARU `resources/js/Components/AppSection.jsx`
+                (AppGreeting, AppSection, AppList, AppListRow, AppEmpty) yang dipakai KEEMPAT
+                dashboard. Daftar menempel tepi layar (-mx-4) dan kembali jadi kartu berbingkai
+                mulai `md`; baris min-h-[64px] + `active:` (di WebView APK tak ada kursor yang
+                bisa hover, jadi tanpa keadaan aktif sebuah ketukan terasa TIDAK TERCATAT);
+                label seksi jadi teks mikro text-[11px] uppercase di ponsel (idiom subtitle
+                StatCard yang memang sudah ada) dan kembali text-lg berikut ikonnya mulai `md`.
+                DESKTOP NOL BERUBAH - seluruhnya lewat breakpoint `md`; TIDAK ADA pohon render
+                kedua untuk mobile, dan jangan pernah membuatnya.
+                TIGA KEPUTUSAN USER yang membentuknya, disodori lebih dulu berikut harganya:
+                (a) bentuk FULL-BLEED ala app, bukan sekadar kartu diringkas; (b) statistik
+                admin PETAK 2 KOLOM dan BUKAN gulir mendatar - di aplikasi darurat angka
+                "Darurat Aktif" tak boleh bisa tersembunyi di luar layar, dan itu satu-satunya
+                alasan gulir mendatar (yang lebih khas native) ditolak; (c) footer legal
+                DIRINGKAS TAPI TAUTANNYA TETAP.
+                FOOTER SENGAJA TIDAK DISEMBUNYIKAN, dan ini yang gampang "dirapikan" keliru
+                oleh sesi berikutnya: footer AppLayout diringkas di ponsel (jarak & huruf lebih
+                kecil, tautan naik ke atas lewat flex-col-reverse) tapi kelima tautan legalnya
+                TETAP. Sejak seksi nav "Bantuan & Legal" dihapus 2026-08-28, footer itu
+                SATU-SATUNYA jalan ke S&K/Privasi/Bantuan - menyembunyikannya di ponsel membuat
+                halaman-halaman itu tak terjangkau sama sekali dari perangkat yang paling
+                banyak dipakai, tanpa satu pun galat.
+                AJAKAN BERTINDAK PETUGAS IKUT MENGECIL, TIDAK DIHILANGKAN: pil "Tanggapi" merah
+                adalah sinyal urgensi dashboard petugas (TASK_51 poin d). Menyembunyikannya di
+                ponsel akan mencabut sinyal itu persis di perangkat yang dibawa ke lapangan,
+                jadi ia dikecilkan (h-7 / 10px) bukan disingkirkan.
+                ANGKA BARU YANG TERIKAT DI DUA BERKAS - ini yang paling gampang menyimpang
+                kelak: `-mx-4` pada AppList HARUS sama besar dengan padding halaman `p-4` di
+                AppLayout. Mengubah salah satunya sendirian membuat daftar menonjol keluar
+                layar (halaman ikut bisa digulir mendatar) atau menyisakan celah di tepi -
+                tanpa galat, tanpa test merah, hanya tata letak yang meleset. Bentuk kegagalan
+                yang SAMA dengan tinggi bilah bawah yang terikat di tiga berkas. Pemakaian
+                KEDUA ada di peta taktis Petugas/Dashboard.jsx (berkomentar merujuk aturan ini).
+                IKUTAN yang ikut dibetulkan karena barisnya memang ditulis ulang:
+                Admin/Dashboard.jsx menaruh <Link> DI DALAM <Link> (jangkar bersarang, HTML tak
+                sah) demi baris yang bisa diketuk - AppListRow membuat seluruh barisnya SATU
+                jangkar; Pages/Dashboard.jsx & Petugas/Dashboard.jsx membungkus diri dengan
+                `mx-auto max-w-7xl` padahal AppLayout sudah memberi max-width DAN padding
+                (container bertumpuk, gema InfoShell yang dibetulkan TASK_41); dan baris daftar
+                memakai border-t DI DALAM satu baris untuk memisahkan status dari isinya,
+                sehingga di ponsel satu insiden terbaca sebagai DUA entri. Pemisah <hr>
+                antar-seksi dicabut - tiap seksi kini membawa labelnya sendiri.
+                Penjaga: DashboardMobileShellTest BARU (3 test, KETIGANYA dibuktikan MERAH lewat
+                sabotase; AppLayout.jsx & Opd/Dashboard.jsx dipulihkan byte-exact, md5
+                dicocokkan). Yang pertama TIDAK mengadu konstanta dengan konstanta melainkan
+                MENARIK KEDUA ANGKA lewat regex dari dua berkas berbeda lalu mengadunya -
+                pelajaran #79, test yang cuma mengulang angka yang sama di dua tempat tidak
+                menjaga apa pun. GOTCHA: `toContain()` di Pest bersifat VARIADIC, argumen kedua
+                dibaca sebagai needle TAMBAHAN bukan pesan kegagalan (sempat membuat test hijau
+                jadi merah palsu).
+                Test 408 -> 411 passed (1583 assertions), Pint PASS (303 berkas), prettier PASS,
+                npm run build lulus (client + SSR). Angka 406 yang tertulis di STATUS lama sudah
+                tertinggal dua sebelum sesi ini; baris baseline di atas sudah diluruskan.
+                NOL PERUBAHAN SERVER: `git status --short app/ routes/ database/ config/
+                bootstrap/ composer.json composer.lock` KOSONG - tanpa migrasi, route, skema,
+                controller, otorisasi, atau sentuhan DB. Frontend saja.
+                BERKAS: 1 BARU (Components/AppSection.jsx) + 5 disunting (keempat dashboard +
+                Layouts/AppLayout.jsx) + 1 test BARU + 3 dokumen (FINDINGS_LOG, CONVENTIONS,
+                SKILL.md).
+                TEMUAN BARU #119 OPEN, sengaja TIDAK dikerjakan (aturan emas #6):
+                Pages/Dashboard.jsx:176 membaca `report.address` MENTAH untuk baris "di mana",
+                padahal Components/ReportCard.jsx:124 - kartu yang dirender halaman YANG SAMA,
+                beberapa piksel di bawahnya - memakai alamatLaporan(). Sejak TASK_49 `address`
+                bukan lagi alamat melainkan PATOKAN yang diketik warga dan sah kosong, jadi
+                laporan tanpa patokan berbunyi "Lokasi Terdeteksi" padahal geo_address-nya
+                berisi alamat sesungguhnya (bentuk #90/#94). Barisnya DIPINDAHKAN APA ADANYA,
+                tidak dibetulkan diam-diam - fixnya perlu memeriksa apakah `myReports` dari
+                DashboardController ikut mengirim geo_address, dan itu bisa menyentuh sisi
+                server sedangkan task ini nol perubahan server.
+                PUTARAN KEDUA (permintaan user hari yang sama: "coba tampilan full seperti
+                native yang kamu tawarkan sebelumnya"). Putaran pertama ternyata baru memenuhi
+                SATU dari tiga hal yang saya tawarkan sendiri di opsi "Rombak jadi layar app"
+                ("kepala sticky ringkas, kartu ringkasan bergulir mendatar, seksi tanpa
+                chrome") - yaitu yang terakhir. Dua sisanya dipasang di sini; user memilihnya
+                dari tiga tingkat cakupan berikut harganya, dan MENOLAK tingkat ketiga
+                (footer disembunyikan di ponsel), jadi footer TETAP seperti putaran pertama.
+                  - KEPALA MENYUSUT: sapaan jadi BARIS RINGKAS `h-11` yang menempel di bawah
+                    header saat digulir. Barisnya `fixed` dan sentinelnya `absolute` - KEDUANYA
+                    DI LUAR ALIRAN, sebab bentuk `sticky` yang menyusut akan memendekkan
+                    dirinya sendiri saat menempel lalu MENYENTAK konten di bawahnya ke atas.
+                    Dipicu IntersectionObserver, bukan listener `scroll` (nol pekerjaan
+                    per-frame).
+                  - JUDUL SEKSI LENGKET di `STICKY_TOP`, pita mikro berhuruf besar tepat di
+                    bawah baris ringkas.
+                  - TIGA ANGKA WAJIB SEJALAN, bagian yang paling gampang rusak diam-diam:
+                    HEADER_PX(64) + COMPACT_PX(44) = STICKY_TOP(`top-[6.75rem]`=108). Kekecilan
+                    = judul seksi TERSEMBUNYI di balik baris ringkas; kebesaran = pita latar
+                    KOSONG menganga di atasnya. Keduanya tanpa galat. Ambang munculnya baris
+                    ringkas SENGAJA disamakan dengan tempat judul seksi menempel - kalau
+                    berbeda ada jendela puluhan piksel yang memperlihatkan pita kosong itu.
+                  - STATISTIK ADMIN JADI GULIR MENDATAR, MEMBALIK pilihan "petak 2 kolom" di
+                    putaran pertama. Pembalikannya sah karena alasan lamanya DIBAYAR, bukan
+                    diabaikan: kartu "Darurat Aktif" DIKUNCI `sticky left-4` sehingga tetap
+                    terlihat betapa pun barisnya digeser. JANGAN cabut kuncinya - itu satu-
+                    satunya hal yang membuat gulir mendatar boleh dipakai di layar darurat.
+                    Kartu terkunci WAJIB berlatar buram (yang lain lewat di bawahnya).
+                  - KARTU KEEMPAT "Selesai Bulan Ini" dipasang: `resolved_this_month` SUDAH
+                    dihitung DashboardController sejak dulu tapi tak pernah ada kartu yang
+                    menampilkannya - nilai yang dihitung lalu dibuang (bentuk ringan #115).
+                  - `BLEED` JADI KONSTANTA. Margin negatif tadinya ditulis ulang di tiga tempat;
+                    kini satu konstanta dan dashboard DILARANG menulis `-mx-4` sendiri.
+                    Penjaganya MEMBUANG KOMENTAR lebih dulu - berkas yang menjelaskan larangan
+                    itu menyebut `-mx-4` di komentarnya sendiri, dan penjaga yang tersandung
+                    penjelasannya sendiri akan dimatikan orang berikutnya (pelajaran #108,
+                    terulang persis di sini).
+                  - OPD PINDAH dari HeaderTitle ke AppGreeting. BUKAN kerapian: tempat judul
+                    seksi menempel sudah memperhitungkan tinggi baris ringkas, jadi satu-satunya
+                    layar tanpa baris itu akan menyisakan pita kosong 44px di atas judul
+                    seksinya. HeaderTitle tetap hidup & dipakai halaman lain. Tombol "Buka
+                    Insiden" dicabut - seluruh barisnya kini satu jangkar.
+                TEMUAN IKUTAN #120 (FIXED di sini): `no-scrollbar` dipakai di LIMA berkas
+                (Sidebar, popover MobileBottomNav, tab relawan Dashboard, Monitoring/Map,
+                AppSection) tapi TIDAK PERNAH DIDEFINISIKAN di mana pun - bukan utility
+                Tailwind, bukan plugin, tidak ada di app.css. Dibuktikan: 0 kecocokan
+                `.no-scrollbar` di bundel CSS produksi. Keluarga yang sama dengan `fles-wrap`
+                (#109): nama kelas yang tak ada TIDAK PERNAH BERGALAT. Diberi definisi karena
+                baris statistik bergulir benar-benar bergantung padanya. EFEK SAMPING YANG
+                DISENGAJA: batang gulir kini benar-benar hilang di KEEMPAT pemakai lama juga.
+                PELAJARAN PENJAGA, layak diingat: DUA sabotase pertama LOLOS karena assertion-
+                nya mencari SUBSTRING (`.no-scrollbar` cocok dengan `.no-scrollbar-DISABLED`;
+                `<AppGreeting` cocok dengan `<AppGreetingX`). Sabotase yang gagal memerahkan
+                BUKAN bukti kodenya benar melainkan bukti PENJAGANYA LONGGAR; keduanya
+                diperketat jadi regex yang menuntut blok aturan / batas kata, lalu dibuktikan
+                merah lewat sabotase yang benar.
+                Test 411 -> 414 passed (1600 assertions), Pint PASS (303 berkas), prettier PASS,
+                npm run build lulus (client + SSR). Kelas-kelas baru DIBUKTIKAN benar-benar
+                terpancar ke CSS produksi (`top-[6.75rem]`, `no-scrollbar`, `snap-start`) -
+                konstanta string bisa saja luput dari pemindaian Tailwind, dan kalau itu terjadi
+                judul seksi diam-diam tidak akan menempel.
+                Berkas putaran kedua: AppSection.jsx (BLEED/STICKY_TOP/AppGreeting menyusut/
+                AppScrollRow), keempat dashboard, resources/css/app.css, + penjaga jadi 6 test.
+                PUTARAN KETIGA - DUA BENTUK DICABUT ATAS KOREKSI USER (hari yang sama).
+                User: "scrollnya menumpuk, tampilannya tidak bagus, dan jangan ada tampilan yang
+                full kanan kiri harus tetap ada margin atau padding". DUA aturan lahir dari sini
+                dan keduanya MEMBALIK inti putaran pertama & kedua. Keduanya gampang
+                "diperbaiki" kembali oleh sesi berikutnya yang mengira itu kelalaian - JANGAN.
+                  (1) TIDAK ADA LAGI YANG MENEMPEL TEPI LAYAR. Seluruh margin negatif (`-mx-4`)
+                      dicabut: daftar kembali jadi kartu berbingkai bersudut membulat di SEMUA
+                      ukuran layar, peta taktis petugas kembali bermargin, baris statistik tak
+                      lagi bocor ke tepi. Konstanta BLEED ikut hilang. Ini membatalkan alasan
+                      teknis yang sempat saya tulis panjang ("bingkai-di-dalam-bingkai",
+                      "aplikasi native menempelkan daftarnya ke tepi") - alasan itu tidak salah
+                      secara teori, tapi hasilnya di layar sungguhan tidak disukai, dan ITU yang
+                      menentukan.
+                  (2) TIDAK ADA LAGI PITA YANG MENEMPEL SAAT DIGULIR. Sapaan menyusut `fixed` DAN
+                      judul seksi lengket - keduanya dicabut, berikut AppGreeting.compact,
+                      STICKY_TOP, HEADER_PX, COMPACT_PX, sentinel, & IntersectionObserver-nya.
+                      AKARNYA: header AppLayout sendiri SUDAH `sticky`, jadi menambahkan dua pita
+                      lengket lagi menghasilkan TIGA lapis bertumpuk - layar termakan dan gulir
+                      terasa berlapis. SATU PITA LENGKET PER LAYAR SUDAH CUKUP, DAN PITA ITU
+                      MILIK APPLAYOUT.
+                GULIR MENDATAR STATISTIK DICABUT, kembali ke petak 2 kolom (pilihan pertama user).
+                Gulir mendatar bersarang di dalam gulir vertikal ikut menyumbang rasa "menumpuk",
+                dan di layar darurat angka yang harus digeser dulu untuk terlihat adalah angka
+                yang bisa terlewat. Kartu keempat "Selesai Bulan Ini" TETAP - ia mengisi petak
+                2x2 dengan rapi.
+                PENJAGA BERUBAH ARAH: DashboardMobileShellTest kini justru MELARANG margin negatif
+                mendatar (`-m[xlr]-N`) dan MELARANG `sticky`/`fixed` di kerangka dashboard - dua
+                test yang menjaga PENCABUTAN, bukan pemasangannya. Keduanya dibuktikan MERAH lewat
+                sabotase; AppSection.jsx dipulihkan byte-exact (md5 dicocokkan). Berkas itu 6 -> 5
+                test, jadi suite 414 -> 413 passed (1600 assertions) - TURUNNYA disengaja, bukan
+                regresi. Komentar dibuang lebih dulu di kedua penjaga (pelajaran #108: berkas yang
+                menjelaskan larangan itu menyebut `-mx-4` & "sticky" di komentarnya sendiri).
+                YANG TETAP dari putaran pertama: kepala halaman tanpa bingkai kartu di ponsel,
+                label seksi mikro, baris daftar min-h-[64px] + umpan balik `active:`, keadaan
+                kosong seragam AppEmpty, `<hr>` & container ganda yang sudah dicabut, footer yang
+                diringkas (tautan legal TETAP ada), keempat dashboard lewat satu primitif, dan
+                #120 (`no-scrollbar` akhirnya didefinisikan).
+                PELAJARAN YANG LAYAK DIINGAT: tiga putaran dalam satu hari, dan yang dua kali
+                dibatalkan justru bagian yang paling banyak saya beri pembenaran teknis. Untuk
+                perubahan RUPA, alasan teknis yang rapi bukan bukti apa pun sampai user melihatnya
+                di layar - sodorkan bentuknya lebih dulu, dan tahan diri dari mengunci alasannya
+                di komentar sebelum bentuk itu benar-benar diterima.
+                DEPLOY 2026-09-09 @d1c8cf8e, ff dari 92cfd9d0, urutan dev -> staging -> prod.
+                DUA commit: 90632ede kode (12 berkas, +1383/-660) + d1c8cf8e aset build (175
+                berkas). Keempat ref didorong ke commit yang sama: main/staging/dev +
+                feat/mobile-bottom-nav.
+                DEPLOY PALING SEDERHANA: `git diff --stat 92cfd9d0..d1c8cf8e` atas
+                database/migrations/, routes/, composer.json, composer.lock, config/, bootstrap/
+                KOSONG - jadi TANPA migrasi, TANPA cadangan DB (nol sentuhan DB), TANPA composer
+                install, TANPA rebuild route/config cache, TANPA restart Reverb; cukup
+                `git pull` + `chown`. `opcache.validate_timestamps` = On di server (DIPERIKSA,
+                bukan diasumsikan), jadi php-fpm juga tak perlu di-reload. 0 migrasi pending di
+                ketiga env sebelum & sesudah.
+                CATATAN: `bootstrap/ssr` TIDAK ikut ter-commit - ia di-gitignore, sama seperti
+                commit aset build sebelumnya. Yang ter-track hanya `public/build`, dan itulah
+                yang dibaca produksi (deploy tak menjalankan build di server).
+                VERIFIKASI, dan yang diperiksa PERILAKUNYA di bundel yang benar-benar disajikan -
+                bukan cuma nama berkasnya: keempat bundel dashboard BARU 200 & keempat bundel
+                LAMA 404 di ketiga domain (Dashboard-NEjJwQNx/gIjySeCC/Crq3MYyD/4B4XuNjq.js vs
+                DyL87BQp/qGo_4pd4/DYpT7-dr/r_9o8Eqz.js); CSS live app-CaSe-7cE.css memuat
+                `.no-scrollbar` (bukti #120 mendarat); keempat bundel dashboard prod memuat NOL
+                `-mx-4` dan NOL `sticky` (bukti kedua pencabutan putaran ketiga benar-benar
+                sampai); bundel admin memuat "Selesai Bulan Ini" (kartu keempat).
+                Ketiga domain / & /hydrants 200, prod /pumps 200, POST /broadcasting/auth 403;
+                nginx/php8.2-fpm/reverb/reverb-staging/reverb-dev active; 0 berkas root-owned
+                pasca-chown di ketiga env.
+                DATA PROD UTUH: 89 users / 38 reports / 51 hydrants / 6 pompas / 326 banjars -
+                SAMA PERSIS pra-pull & pasca-pull (deploy ini nol sentuhan DB).
+                LOG: 0 baris ERROR bertanggal 2026-09-09 di ketiga env. ERROR terakhir prod tetap
+                2026-09-06 04:06 = gotcha psysh sesi sebelumnya, bukan dari deploy ini.
+                SISA: verifikasi visual di ponsel/APK untuk KEEMPAT peran - khususnya apakah
+                baris daftar yang memuat StatusBadge + pil aksi + tanda panah masih lega di
+                layar 360px, dan apakah petak statistik 2 kolom terbaca saat angkanya tiga
+                digit. Lalu commit & deploy (frontend saja; `git pull` + `chown` sudah cukup).
+               DUA PERBAIKAN LAYAR ADMIN - EXPORT EXCEL KELUAR DARI KEBAB (#116) & KARTU
+                HYDRANT MENYEBUT KONDISI AIR (#117). SELESAI & TERDEPLOY 2026-09-09 @c6b3483c
+                ke prod/staging/dev.
+                (A) #116, permintaan user: "di admin/reports tombol export excel langsung
+                munculkan tanpa perlu klik titik tiga". MEMBALIK keputusan #37 kluster C
+                ("Export dipindah ke menu kebab agar tak bersaing dgn aksi triase"), dan
+                pembalikannya sah karena alasan lamanya sudah GUGUR: peran "aksi dominan" di
+                kepala halaman itu kini dipegang SPANDUK MERAH "X laporan menunggu verifikasi"
+                yang lahir di kluster C yang sama dan duduk tepat di bawahnya - tombol outline
+                kecil di pojok kanan tidak menyainginya. Kebab itu isinya CUMA SATU item, jadi
+                seluruh DropdownMenu + impor IconDotsVertical + impor ui/dropdown-menu jadi
+                kode mati dan ikut dibuang; ini sekaligus menghapus satu-satunya pemakaian
+                DropdownMenu di Pages/Admin/Reports/. Gerbang canExport, parameter
+                search/status, dan sisi server NOL tersentuh.
+                (B) #117, permintaan user: "pada admin/hydrants munculkan kondisi air, dan
+                untuk teks berfungsi buat seperti pada /hydrants".
+                YANG MENENTUKAN BENTUKNYA, dan gampang salah dibaca: kondisi air SUDAH
+                dirender sejak TASK_30 - waterPressureLabel(hydrant.water_pressure) memang ada
+                di berkas itu. Yang membuatnya tak pernah terlihat: helper itu memulangkan
+                NULL untuk kolom kosong, lalu .filter(Boolean).join(' . ') membuangnya -
+                sehingga medannya LENYAP TANPA JEJAK alih-alih terbaca "belum diisi". Di DB
+                dev 0 DARI 51 hydrant mengisinya (0 juga untuk debit_lpm), jadi praktis tak
+                ada satu pun kartu yang pernah menampilkannya sejak kolomnya lahir - dan
+                karena tak terlihat, tak ada yang tahu ada yang harus diisi. Bentuk yang sama
+                dengan #94/#90: yang berbahaya bukan datanya kosong, melainkan LAYAR YANG
+                TIDAK MENGATAKAN BAHWA IA KOSONG.
+                Kini kartu selalu menyebutnya; yang kosong berbunyi "Kondisi air belum
+                didata". Digerbangi v.showWaterPressure (DATA di variants.jsx) dan BUKAN
+                variant === 'warga' - hydrant_wargas memang tak punya kolom itu sejak TASK_33,
+                jadi di tab warga "belum didata" akan jadi tuduhan yang salah.
+                Kosakatanya mengikuti LABEL FORMNYA SENDIRI ("Kondisi Air"), bukan
+                waterPressureLabel() yang berbunyi "Tekanan Keras"; helpernya TIDAK diubah dan
+                tetap dipakai /admin/pumps.
+                IKUTAN atas permintaan user di percakapan yang sama: status jadi PILL BERWARNA
+                meniru /hydrants, dan DEBIT (lpm) TIDAK LAGI DITAMPILKAN di kartu ini (kolomnya
+                tetap ada di form & tetap tampil di /admin/pumps). Kapasitas (liter) & banjar
+                TETAP - "500 lpm" yang user minta hilang itu debit hydrant resmi, sedangkan
+                kapasitas adalah medan wajib yang menopang rekap air desa.
+                JEBAKAN YANG DIHINDARI, bagian terpenting: pill di /hydrants memilih warnanya
+                dengan status === 'Aktif'. Itu BENAR DI SANA - halaman publik hanya menampilkan
+                hydrant resmi, yang statusnya cuma dua. Halaman admin melayani DUA kosakata
+                status, jadi menyalin perbandingan itu akan MEMERAHKAN SELURUH hydrant warga
+                ("Terdaftar Belum/Sudah Dimodifikasi") padahal tak satu pun rusak - persis #76,
+                yang gejalanya nol: tak ada galat, warnanya saja yang berbohong. Warnanya
+                karena itu dipilih facilityStatusIsFaulty().
+                Penjaga: DUA test JSX baru di HydrantWargaSkklTest (komentar dibuang lebih
+                dulu - berkasnya sendiri MENJELASKAN larangan status === 'Aktif', dan penjaga
+                yang tersandung penjelasannya sendiri akan dimatikan orang berikutnya,
+                pelajaran #108). Yang menjaga kondisi air dibuktikan MERAH terhadap berkas
+                sebelum perubahan; yang menjaga hukum warna hijau sejak awal (= penjaga
+                regresi, bukan bukti bug) sehingga dibuktikan merah lewat SABOTASE. Berkas
+                dipulihkan byte-exact, md5 dicocokkan.
+                Test 406 -> 408 passed (1568 assertions), Pint PASS (302 berkas), prettier
+                PASS, npm run build lulus. TANPA migrasi, route, skema, otorisasi, sentuhan DB.
+                DEPLOY 2026-09-09 @c6b3483c, ff dari 9205bad9, urutan dev -> staging -> prod.
+                DUA commit: 38064674 kode + c6b3483c aset build; ketiga branch didorong ke
+                commit yang sama. IKUT NAIK di rentang yang sama: ketiga commit BILAH BAWAH
+                MOBILE di bawah (0f39ebdc, 297f1d1a, 01268a41) - user memilih itu setelah
+                disodori pilihan "hanya dua perbaikan ini" vs "semuanya", BERIKUT catatan
+                bahwa bilah bawah itu belum pernah diuji di ponsel.
+                DEPLOY PALING SEDERHANA: diff 9205bad9..c6b3483c atas database/migrations/,
+                routes/, composer.json, composer.lock, config/, bootstrap/ KOSONG - jadi TANPA
+                migrasi, TANPA cadangan DB (nol sentuhan DB), TANPA composer install, TANPA
+                rebuild route cache, TANPA restart Reverb; cukup `git pull` + `chown`.
+                0 migrasi pending di ketiga env sebelum & sesudah.
+                VERIFIKASI: bundel LIVE Index-DcTEab9c.js memuat "Kondisi air belum didata"
+                dan NOL " lpm"; bundel LIVE Index-CMr-H1eK.js memuat "Export Excel" dan NOL
+                aria-label "Menu lainnya" milik kebab - jadi yang diperiksa PERILAKUNYA di
+                bundel yang benar-benar disajikan, bukan cuma nama berkasnya. Bundel LAMA
+                Index-DULbVLhL.js & Index-BtC8qzQk.js 404 di prod; ketiga domain / & /hydrants
+                200; POST /broadcasting/auth 403; nginx/php8.2-fpm/reverb/reverb-staging/
+                reverb-dev active; 0 berkas root-owned pasca-chown.
+                DATA PROD UTUH: 89 users / 38 reports / 51 hydrants / 6 pompas / 326 banjars /
+                1 berita acara - SAMA PERSIS pra-pull & pasca-pull.
+                LOG: 0 baris ERROR bertanggal 2026-09-09 di ketiga env (47 baris prod hari itu
+                semuanya production.INFO). ERROR terakhir prod tetap 2026-09-06 04:06 = gotcha
+                psysh sesi sebelumnya; staging/dev tetap 2026-09-02 06:01 = queue worker lama.
+                SISA: verifikasi visual di browser - tombol Export di kanan judul
+                /admin/reports, dan di /admin/hydrants pill status + "Kondisi air belum didata"
+                di tab Hydrant serta TIDAK adanya baris kondisi air di tab Hydrant Warga.
+               BILAH BAWAH MOBILE - IKON DIPERBESAR & TEKS DIRAMPINGKAN. SELESAI (kode)
+                2026-09-09 di branch `feat/mobile-bottom-nav`, TERDEPLOY 2026-09-09 @c6b3483c
+                ke prod/staging/dev (ikut naik bersama #116/#117 atas keputusan user).
+                MASIH BELUM DIVERIFIKASI DI PONSEL - itu sisa terpenting dari entri ini, dan
+                kini ia sudah hidup di produksi.
+                Permintaan user mula-mula: "tambahkan liquid glass ... dan buat ada animasi
+                geser saat ke menu lainnya, jangan langsung koding di main". Itu DIKERJAKAN
+                lalu DIBATALKAN user di sesi yang sama ("kembalikan seperti sebelumnya, tidak
+                jadi pakai ini, tapi buat iconnya lebih besar dan teksnya lebih slim").
+                YANG DIBATALKAN, supaya sesi berikutnya tak mengira ia hilang karena kelalaian:
+                bilah tembus `bg-card/80` + `backdrop-blur-md`, komponen `ActiveSlotGlass` (satu
+                kotak kaca `inset-2` yang meluncur antar slot lewat translateX berkelipatan
+                `w-1/5`, tanpa pengukuran DOM), pencabutan `bg-accent` dari keadaan "panel
+                terbuka", `MobileNavActiveGlassTest` (4 test, keempatnya sudah dibuktikan MERAH),
+                entri PENGECUALIAN_ATURAN #4, dan pembaruan SKILL.md yang menyertainya. Semuanya
+                dipulihkan BYTE-EXACT (md5 `MobileBottomNav.jsx` dicocokkan dengan HEAD sebelum
+                tweak di bawah dipasang). Bentuknya ada di riwayat sesi ini saja - TIDAK
+                diarsipkan ke `docs/example/sepakat/`, sebab folder itu hanya untuk bentuk yang
+                benar-benar disepakati.
+                YANG BERLAKU SEKARANG (tiga permintaan user berturut-turut di sesi yang sama:
+                "iconnya lebih besar dan teksnya lebih slim", lalu "hurufnya juga buat lebih
+                kecil, dan untuk icon lapor buat agar lebih besar dari yang lain, tapi buat agar
+                tetap harmonis"):
+                  - ikon slot 16px -> **20px** (`h-4 w-4` -> `h-5 w-5`)
+                  - slot "Lapor" **24px** (`h-6 w-6`) - satu-satunya yang berbeda
+                  - label 12px -> **11px** (`text-xs` -> `text-[11px]`)
+                  - tebal huruf turun SATU tingkat di ketiga keadaan (aktif semibold -> medium,
+                    dua lainnya medium -> normal). Sengaja tetap satu tingkat, bukan nol: tebal
+                    huruf masih ikut menandai slot aktif bersama warna & ikon padat.
+                BARIS IKON DIPATOK 24px (`h-6`) UNTUK KELIMA SLOT dan itu yang membuat
+                pembesaran "Lapor" tetap harmonis: slot diisi `justify-center`, jadi tanpa baris
+                bertinggi tetap ikon yang 4px lebih tinggi MENDORONG labelnya turun ~2px dan satu
+                label berdiri tidak sebaris dengan empat tetangganya - tanpa galat, hanya terbaca
+                sebagai tata letak yang meleset. Ukuran per slot dikirim lewat prop OPSIONAL
+                `iconClassName` (menimpa bawaan lewat twMerge), diteruskan NavItem MAUPUN
+                PanelTrigger - satu jalur untuk kelima slot seperti `iconActive`, bukan cabang
+                khusus untuk satu slot (larangan yang sama dengan PENGECUALIAN_ATURAN #3, dan
+                jalur khusus untuk satu slot persis yang membuat #106 hidup lama).
+                KENAPA "Lapor" LEBIH BESAR ITU BUKAN #106 KEMBALI: penonjolannya lewat UKURAN,
+                bukan bidang maupun warna sendiri - warnanya tetap ikut kelas slotnya. #106
+                berakar pada latar merah PERMANEN yang membuat slot itu tampak aktif di setiap
+                halaman. Ini justru MEMBAYAR KEMBALI harga yang dicatat sendiri oleh docblock
+                berkas itu saat bentuk minimalis disepakati 2026-09-01 ("slot Lapor kehilangan
+                seluruh penonjolan tetapnya ... di aplikasi darurat harganya tidak sepele").
+                Sekaligus menjawab catatan lama bahwa petir brand terbaca lebih RAMPING dari
+                tetangganya: bentuknya memang sempit (rasio ~0,44 lawan ~1,0 milik ikon persegi),
+                jadi pada 24px lebarnya baru ~10,5px - masih lebih ramping dari ikon 20px
+                persegi, dan itulah yang membuatnya terbaca seimbang.
+                TINGGI BILAH TIDAK BERUBAH (`h-16`) - baris ikon 24px + jarak 8px + baris label
+                16px = 48px di dalam 64px. Itu yang membuat KETIGA angka terikat di berkas lain
+                tak perlu disentuh (`AppLayout` `pb-[calc(5rem+...)]`, tombol Kirim
+                `Front/Reports/Create.jsx` `bottom-[calc(4rem+...)]`, `FloatingPanel
+                bottom-[72px]`). Ikon yang melewati 24px akan menuntut baris ikon dinaikkan, dan
+                ketiganya WAJIB dihitung ulang bersamaan - mengubah salah satu sendirian membuat
+                konten & tombol kirim laporan darurat tertutup bilah tanpa galat apa pun.
+                Ikon 16px itu sendiri hasil pengukuran `Menu 6.png` (21px : pitch 102px = 20,6%
+                dinormalkan ke layar 390px), jadi angka-angka ini SENGAJA menyimpang dari
+                referensi itu atas permintaan user; docblock & SKILL.md sudah diluruskan.
+                Ketebalan garis ikon TETAP 1,75 - ia bukan pembeda aktif (#72).
+                Test 406 passed (1562 assertions), SAMA PERSIS dengan baseline - tak ada penjaga
+                baru ditambahkan sebab ukuran & tebal huruf adalah preferensi yang memang bisa
+                disetel ulang; kesepuluh penjaga navigasi lama (MobileNavIconGlyphTest +
+                MobileNavParityTest) hijau. Pint & prettier PASS, npm run build lulus & bundel
+                `AppLayout-BAdeIwOe.js` dibuktikan memuat `h-6 w-6`, `text-[11px]`, baris ikon
+                `flex h-6`, dan NOL sisa liquid glass.
+                NOL perubahan server: tanpa migrasi, route, skema, controller, sentuhan DB.
+                SISA: verifikasi visual di ponsel/APK - khususnya apakah label 11px
+                ber-`font-normal` masih cukup terbaca di layar terang (dua penurunan sekaligus,
+                ukuran DAN tebal, jadi inilah yang paling mungkin kelewat batas), dan apakah
+                selisih 20px vs 24px sudah terbaca "menonjol tapi harmonis". Commit & deploy
+                SUDAH dilakukan 2026-09-09 (@c6b3483c) - jadi verifikasi ponsel itu kini
+                dilakukan LANGSUNG DI PRODUKSI, bukan sebelum rilis.
+               HALAMAN DETAIL INSIDEN AUTO-UPDATE PENUH (#113) + LONCENG REAL-TIME (#46).
+                SELESAI & TERDEPLOY 2026-09-06 @145b3d5a ke prod/staging/dev.
+                Laporan user: "di reports/show masih ada yang belum auto update harus refresh
+                manual, lihat di semua role", lalu "lonceng #46 sekalian, update laporan juga
+                disiarkan".
+                YANG DITEMUKAN: Show.jsx mendengar EMPAT event di `report-tracking.{id}` dan
+                NOL polling, sementara TIGA kelompok mutasi tak pernah menyiarkan apa pun -
+                (1) panel OPD lewat keempat jalur tulisnya (`approve`/`attachAgencies`,
+                `notifyAgencies`, `removeAgency`, `confirmAgency`), (2) berita acara
+                (`ReportResolutionController::store`/`destroy`, berkas itu nol `broadcast()`),
+                (3) suntingan pelapor (`ReportController::update`, yang justru berjalan saat
+                laporan masih TERLAPOR = saat Pusat Komando sedang meninjaunya).
+                GEJALA PALING MAHAL: PLN mengonfirmasi "listrik sudah dipadamkan" dari akunnya,
+                notifikasinya terkirim (TASK_30/#63), tapi LAYAR petugas yang berdiri di TKP
+                tetap berbunyi "menunggu konfirmasi". NOTIFIKASI MEMBANGUNKAN ORANGNYA, SIARAN
+                MEMBETULKAN LAYARNYA - keduanya bukan pengganti satu sama lain.
+                Ikutan `approve()`: lencana berkedip jadi "Laporan Terverifikasi" secara live
+                sementara panel OPD tetap kosong, jadi layarnya menyatakan hal yang SALAH
+                ("sudah diverifikasi, tak ada OPD diminta"), bukan sekadar tertinggal.
+                DUA AKAR LAIN: `router.reload` satu-satunya di berkas itu berbunyi
+                `only: ['report']` padahal `reportAgencies` & `resolutions` prop TERPISAH -
+                jadi sinyal yang SUDAH ada pun tak menyegarkan keduanya; dan
+                `ReportStatusChanged` cuma menambal dua state klien tanpa membaca ulang prop
+                `report`, sehingga penolakan yang baru terjadi berbunyi "Ditolak oleh TIDAK
+                TERCATAT" - kalimat yang disediakan untuk baris lama pra-#88. `resolve()`
+                lolos hanya karena kebetulan ikut menyiarkan `ResponderRosterChanged`.
+                FIX: event BARU `ReportRecordChanged` (ABA-ABA saja, `reportId`, tanpa data -
+                alasan sama dengan ReportFeedChanged: channel itu juga didengar pelapor &
+                relawan), disiarkan dari `attachAgencies()` (SENGAJA di helper, bukan di kedua
+                pemanggilnya, supaya pemanggil ketiga kelak tak perlu ingat), `removeAgency`,
+                `confirmAgency`, resolution store & destroy, dan `ReportController::update`.
+                Di layar: satu `reloadIncident()` = `only: ['report','reportAgencies',
+                'resolutions']` dipakai KETIGA sinyal. SATU daftar prop untuk semuanya itu
+                DISENGAJA: `resolve()` menyiarkan status & roster hampir bersamaan dan Inertia
+                membatalkan kunjungan yang masih terbang, jadi daftar yang berbeda-beda membuat
+                sinyal belakangan membatalkan permintaan yang lebih lengkap.
+                #46 (lonceng) SEKALIGUS: `AppLayout` berlangganan
+                `Echo.private('App.Models.User.{id}').notification()` lalu memuat ulang
+                `notifications` + `unread_notifications_count`. Baru bisa dikerjakan sejak #55
+                (2026-08-11) mendaftarkan /broadcasting/auth. BATASNYA: hanya notifikasi
+                ber-`via()` memuat 'broadcast' yang membangunkannya, jadi LONCENG PELAPOR MASIH
+                STATIS - `ReportStatusUpdatedNotification` sengaja TIDAK ditambahi 'broadcast'
+                (temuan BARU #114 OPEN): payloadnya tanpa `alert_stage`, dan aturan TASK_50
+                "payload tak dikenal TETAP sirine" akan membuat .exe OPERATOR bersirine tiap
+                transisi laporan yang ia ketik sendiri lewat telepon (store() menulis
+                auth()->id(), jadi operator = pelapor). Perbaikannya menuntut penanda tahap
+                sendiri + penyesuaian wrapper desktop = di luar repo ini.
+                TEMUAN BARU LAIN, sengaja tidak dikerjakan: #115 prop `trails` dihitung tiap
+                kali `show()` dibuka tapi NOL pemakai di seluruh resources/js.
+                Yang TIDAK diubah & kenapa: `dispatchUnit`/`releaseUnit` juga bisu tapi panelnya
+                mati di balik `SHOW_ARMADA_PANEL = false`, jadi belum bergejala - menghidupkan
+                panel itu kelak berarti menambahkan siarannya.
+                Penjaga: `ReportDetailRealtimeTest` BARU (8 test), TUJUH dibuktikan MERAH lebih
+                dulu terhadap berkas sebelum perubahan; kelima berkas dipulihkan BYTE-EXACT
+                (md5 dicocokkan). Yang kedelapan (channel & bentuk payload) hijau sejak awal =
+                penjaga regresi, bukan bukti bug. DUA test membaca berkas JSX, sebab di situlah
+                sifatnya hidup - termasuk larangan kembalinya `only: ['report']`.
+                Test 398 -> 406 passed (1562 assertions), Pint PASS (302 berkas), prettier PASS,
+                npm run build lulus. TANPA migrasi, TANPA perubahan route/skema/otorisasi,
+                TANPA permukaan channel baru.
+                DEPLOY 2026-09-06 @145b3d5a, ff dari 0f27a6d9, urutan dev -> staging -> prod.
+                TIGA commit: 14bd8529 petir glyph #106 (pekerjaan sesi sebelumnya yang belum
+                ter-commit, ikut naik) + c2afa38f kode #113/#46 + 145b3d5a aset build.
+                Ketiga branch (main/staging/dev) didorong ke commit yang sama.
+                DEPLOY PALING SEDERHANA: `git status --short database/migrations/ routes/
+                composer.json composer.lock config/` KOSONG, jadi TANPA migrasi, TANPA cadangan
+                DB (nol sentuhan DB), TANPA composer install, TANPA rebuild route cache - cukup
+                `git pull` + `chown`. 0 migrasi pending di ketiga env sebelum & sesudah.
+                REVERB SENGAJA TIDAK DI-RESTART: `routes/channels.php` tak berubah, dan Reverb
+                cuma merelai payload per nama channel - ia tak perlu mengenal kelas event baru.
+                `opcache.validate_timestamps=1` di ketiga env, jadi php-fpm juga tak perlu
+                di-reload; diperiksa, bukan diasumsikan.
+                VERIFIKASI: kelas `ReportRecordChanged` autoload di ketiga env & channelnya
+                `private-report-tracking.{id}`; keenam titik siaran terhitung utuh di ketiganya
+                (3 di ReportActionController, 2 di ReportResolutionController, 1 di
+                ReportController); bundel LIVE `Show-DUMNIE0W.js` memuat `ReportRecordChanged`
+                DAN daftar reload `reportAgencies","resolutions`, bundel LIVE
+                `AppLayout-Dx0TdjlM.js` memuat listener `App.Models.User` &
+                `unread_notifications_count` - jadi yang diperiksa PERILAKUNYA di bundel yang
+                benar-benar disajikan, bukan cuma nama berkasnya; bundel LAMA Show-Yi6mAzJQ.js
+                & AppLayout-C8wK1Szq.js 404 di ketiganya; ketiga domain / & /hydrants 200; POST
+                /broadcasting/auth 403 (terdaftar & menolak yang tak berhak); nginx/php8.2-fpm/
+                reverb/reverb-staging/reverb-dev active; 0 berkas root-owned pasca-chown.
+                DATA PROD UTUH: 89 users / 38 reports / 51 hydrants / 37 pelibatan OPD / 1
+                berita acara - SAMA PERSIS pra-pull & pasca-pull.
+                LOG: 0 ERROR baru dari deploy ini. Satu-satunya ERROR prod hari ini (04:06)
+                adalah "Writing to directory /var/www/.config/psysh is not writable" dari
+                percobaan `php artisan tinker --execute` SAYA sendiri saat mengambil cacah data
+                (gotcha TASK_49 terulang) - bukan dari aplikasi; sesudahnya cacahnya diambil
+                lewat `mysql -N -e`. ERROR terakhir staging/dev tetap 2026-09-02 06:01 = queue
+                worker "Connection refused" lama.
+                SISA: verifikasi di browser dengan Reverb hidup (butuh dua jendela + akun
+                berbeda peran) - khususnya konfirmasi OPD, entri berita acara, dan lonceng.
+               PETIR BRAND JADI IKON NAVIGASI MOBILE - slot "Lapor" di bilah bawah memakai
+                petir SISUPIT lagi, kali ini sebagai GLYPH ber-currentColor (#106 putaran
+                kedelapan). SELESAI (kode) 2026-09-06, BELUM DI-COMMIT & BELUM DIDEPLOY.
+                Dua pesan user: "lihat logo sisupit, kemudian buatkan file png hanya untuk
+                petirnya saja, agar bisa menjadi seperti icon", lalu "gunakan logo itu untuk
+                di mobile nav, dan sesuaikan dengan yang icon yang lain".
+                (A) PETIR DIEKSTRAK DARI LOGO. logo.png itu petir PUTIH di atas plat merah
+                #E0241B, jadi meng-crop-nya akan menghasilkan tepi merah. Alpha dihitung ulang
+                dari kanal biru (latar B=27, petir B=255), konturnya ditelusuri, lalu
+                disederhanakan jadi poligon 7 titik. Penelusuran membaca PUSAT piksel sehingga
+                bentuknya menyusut setengah piksel; tiap sisi digeser keluar 0,3 px - itu yang
+                menaikkan kecocokan 98,5% -> 99,1% IoU. Sisa 0,9% ketidaksepakatan antialias di
+                ambang 0,5 = batas sampling, bukan kesalahan bentuk.
+                Hasil: public/bolt.svg (vektor, currentColor), public/bolt-white.png &
+                public/bolt-red.png (512x512, transparan). Ketiganya di luar React.
+                (B) DIPASANG DI SLOT "LAPOR" sebagai Components/BrandBoltIcon.jsx BARU - <svg>
+                inline ber-stroke="currentColor" + fill="none", kontrak props meniru @tabler
+                (size/stroke/className) supaya SlotContent bisa memanggil kelima slot lewat satu
+                jalur. Path diskala ke kotak 24x24 (tinggi 20 + stroke 2).
+                INI MEMBALIK KEPUTUSAN USER 2026-09-01 ("untuk lapor gunakan ikon api yang non
+                aktif, jangan gunakan logo") dan pembalikannya DIKONFIRMASI user lebih dulu
+                lewat pertanyaan. Yang membuatnya sah: alasan penolakan lama sudah GUGUR. Yang
+                ditolak dulu bukan petirnya melainkan BENTUK ASETNYA - /icon.png adalah petir di
+                dalam kotak merah penuh, jadi keberatan "sudah merah seperti aktif terus" (#106)
+                melekat pada PLATNYA. Glyph ber-currentColor mengembalikan warna ke KODE, jadi
+                ia ikut text-destructive/text-muted-foreground seperti empat tetangganya dan
+                mustahil mengulangi #106.
+                BENTUKNYA GARIS, BUKAN PADAT (user memilih dari dua opsi): petir brand aslinya
+                bidang padat, dan bidang terisi di antara empat glyph garis punya bobot visual
+                lebih berat tanpa alasan - persis yang ditolak di #106 putaran kedua.
+                IconBolt @tabler TETAP tidak dipakai: petir @tabler sudah berarti jenis kejadian
+                LISTRIK (Admin/Dashboard.jsx:339, Admin/Agencies/Index.jsx:145). Nama
+                komponennya sengaja dibedakan supaya keduanya tak tersambar autocomplete sama.
+                YANG BERUBAH DARI ATURAN LAMA: slot ini dulu membaca glyphnya dari `report.create`
+                milik navItems.js; kini DIPAKU seperti empat slot lain (yang memang sudah memakai
+                IconDashboard/IconMapPin/IconHistory/IconMenu2 sendiri). Yang TIDAK boleh dipaku
+                tetap TUJUANNYA - href masih dibaca dari navItems.js (aturan #71).
+                AKIBAT YANG DISENGAJA & HARUS DISADARI: sidebar desktop tetap IconFlame untuk
+                "Lapor Darurat!", jadi satu menu kini memakai DUA ikon di dua permukaan. Kalau
+                itu tak dikehendaki, ubah `report.create` di navItems.js - jangan menambah paku
+                kedua di MobileBottomNav.jsx.
+                Penjaga: MobileNavIconGlyphTest BARU (3 test, KETIGANYA dibuktikan MERAH lewat
+                sabotase; kedua berkas dipulihkan byte-exact, md5 dicocokkan): bilah tak boleh
+                memuat <img>/aset gambar berwarna, slot Lapor memakai BrandBoltIcon bukan
+                IconBolt, dan glyphnya tak boleh punya warna sendiri (hex/rgb/hsl). Tanpa itu,
+                mengembalikan <img src="/icon.png"> ke bilah adalah satu baris yang HIJAU di
+                seluruh suite - persis keadaan saat #106 lahir. Penjaganya membuang komentar
+                lebih dulu (pelajaran #108: penjaga yang tersandung penjelasannya sendiri akan
+                dimatikan orang berikutnya).
+                Test 393 -> 396 passed (1527 assertions; angka 392 di STATUS lama sudah
+                tertinggal satu sebelum sesi ini), Pint PASS, prettier PASS, npm run build lulus
+                & path petir dibuktikan ikut ter-bundle di AppLayout-CB8VvZlB.js.
+                NOL perubahan server: tanpa migrasi, route, skema, controller, atau sentuhan DB.
+                /icon.png TIDAK disentuh - tetap favicon & ApplicationLogo.
+                YANG PERLU DIPERIKSA DI BROWSER: di 16px petir ini terbaca lebih RAMPING dari
+                tetangganya karena bentuk brandnya memang sempit (rasio 0,44 lawan ~1,0 milik
+                ikon persegi); stroke-nya sendiri identik 1,75. Kalau terlalu tipis, pilihannya
+                versi padat atau skala lebih besar - keduanya sudah disiapkan jalannya di
+                docblock komponennya.
+                (C) PADAT SAAT AKTIF (#106 putaran kesembilan). Permintaan user menyusul:
+                "saat active, buat icon menjadi fill merah". Petirnya kini GARIS saat diam dan
+                BIDANG TERISI MERAH saat slotnya halaman yang sedang dibuka.
+                INI MENEKUK ATURAN PUTARAN KETUJUH ("ikon PADAT vs GARIS sengaja tidak dipakai
+                sebagai pembeda aktif") dan sudah DICATAT sebagai PENGECUALIAN_ATURAN #3.
+                Yang membuatnya bisa dikerjakan: alasan aturan itu KEMAMPUAN, bukan prinsip -
+                @tabler tak punya varian padat untuk IconMenu2 & IconHistory, sehingga sebagian
+                slot akan memadat dan sebagian tidak. Petir "Lapor" kini glyph milik repo
+                sendiri, jadi kendala itu tak berlaku untuknya.
+                KENAPA INI BUKAN #106 YANG KEMBALI - pertanyaan yang wajib dijawab benar sebab
+                bentuknya mirip (bidang merah di dalam barisan slot): pembedanya SYARAT
+                munculnya. "Bidang terisi HANYA milik slot aktif" justru aturan yang lahir dari
+                #106 putaran kedua, dan bentuk ini memenuhinya persis - terisi hanya saat aktif,
+                satu slot pada satu waktu. Yang keliru pada #106 adalah bidang merah yang muncul
+                di SETIAP halaman. Merahnya pun tak ditulis di mana pun: fill & stroke sama-sama
+                currentColor, jadi ia ikut text-destructive milik slotnya.
+                `filled` MENAMBAH FILL TANPA MENCABUT STROKE, jadi siluet luarnya identik di
+                kedua keadaan dan ikonnya tidak melompat besar-kecil tiap pindah halaman.
+                Efek samping menguntungkan: keluhan "ramping di 16px" dari (B) hilang justru di
+                keadaan aktif, saat slot itu paling perlu terbaca.
+                JALURNYA: SlotContent/NavItem menerima `iconProps` yang diteruskan apa adanya -
+                empat slot lain NOL tersentuh, tanpa pemeriksaan identitas ikon maupun prop
+                tak-dikenal yang mendarat di DOM sebagai atribut invalid.
+                KONSEKUENSI YANG DITERIMA: penanda aktif TIDAK seragam di lima slot, dan tak
+                bisa diseragamkan ke atas (dua slot lain mustahil memadat selama pakai @tabler).
+                Penjaga keempat di MobileNavIconGlyphTest mengunci KEDUA sisinya (bawaan
+                `filled = false` DAN slot mengikat fill ke keadaan aktifnya) - masing-masing
+                sendirian cukup untuk mengembalikan #106 dari arah berbeda, dan keduanya senyap.
+                Dibuktikan MERAH lewat 3 sabotase; berkas pulih byte-exact.
+                Test 396 -> 397 passed (1529 assertions).
+                (D) KELIMA SLOT MEMADAT, DUA IKON DIGANTI (#106 putaran kesepuluh).
+                Permintaan user menyusul: "bukan hanya aktif untuk lapor saja fill tapi semua
+                yang lain juga". Putaran (C) hanya sanggup memadatkan "Lapor" dan saya catat
+                sebagai "tak bisa diseragamkan ke atas" - ternyata BISA, dengan mengganti dua
+                ikonnya. User memilih itu setelah disodori tiga tingkat cakupan berikut harganya.
+                FAKTA YANG MENENTUKAN, diperiksa langsung di node_modules dan BUKAN dugaan:
+                IconMenu2 itu TIGA GARIS LURUS TERBUKA (M4 6l16 0, M4 12l16 0, M4 18l16 0) dan
+                GARIS TAK PUNYA BAGIAN DALAM, jadi `fill` di atasnya benar-benar tidak
+                menghasilkan apa pun - hamburger tak akan pernah bisa memadat, dengan cara apa
+                pun. IconHistory (M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5) busur terbuka + jarum;
+                mengisinya menghasilkan gumpalan miring, bukan jam. Keduanya juga tak punya
+                kembaran *Filled (dari 944 varian padat @tabler v3.30). Jadi alasan penolakan
+                putaran ketujuh MEMANG BENAR secara fakta; yang berubah keputusannya.
+                GANTI: IconHistory -> IconClock (Riwayat), IconMenu2 -> IconLayoutGrid (Menu).
+                Beranda & Fasilitas TIDAK berubah rupa - IconDashboardFilled & IconMapPinFilled
+                memang sudah ada.
+                MEKANISME DISATUKAN jadi `icon` + `iconActive` yang dipilih di SlotContent,
+                menggantikan `iconProps` yang sempat khusus untuk petir. BrandBoltIconFilled
+                diekspor sebagai komponen tersendiri supaya petir brand dipanggil SAMA PERSIS
+                dengan pasangan @tabler - jalur khusus untuk satu slot persis yang membuat #106
+                hidup lama. `iconActive` sengaja OPSIONAL: slot tamu "Masuk" (IconLogin2, tanpa
+                kembaran padat) luruh rapi ke glyph garis alih-alih pecah; ia satu-satunya slot
+                yang tidak memadat, dan hanya tamu yang melihatnya. Ikon padat @tabler MEMBUANG
+                prop `stroke` sebelum menyentuh DOM (createReactComponent, cabang
+                type === 'filled'), jadi SlotContent boleh mengirim stroke ke keduanya.
+                PENGECUALIAN_ATURAN #3 DITULIS ULANG, bukan ditambahi - isi lamanya ("hanya
+                Lapor yang memadat, tak bisa diseragamkan ke atas") sudah tidak benar lagi.
+                HARGA: dua ikon berubah rupa di KEDUA keadaan, bukan cuma saat aktif.
+                Penjaga kelima mengunci kelima pasangan sekaligus DAN melarang kedua ikon yang
+                mustahil memadat itu kembali; dibuktikan MERAH lewat 2 sabotase, berkas pulih
+                byte-exact. Sidebar desktop TIDAK ikut - ia punya dialek penanda aktifnya
+                sendiri (blok solid bg-destructive di NavLink.jsx).
+                Test 397 -> 398 passed (1536 assertions).
+                SISA: verifikasi visual di ponsel/APK, lalu commit & deploy (frontend saja).
+Task lalu    : PERBAIKAN LEPAS PERAN - ajakan "Daftar Relawan" dicabut, peran hantu
+                `warga` dihapus (#110), `masyarakat` BERGANTI NAMA jadi `warga` (#112),
+                dan peran `opd` yang hilang dari DB ditambahkan (#111).
+                SELESAI & TERDEPLOY 2026-09-02 @0f27a6d9 ke prod/staging/dev.
+                Satu pesan user, dua hal: "hide daftar relawan dari dashboard dan dari profile,
+                kemudian di manajemen pengguna apa perbedaan masyarakat dan warga?", lalu
+                "ya lanjutkan, hapus role warga juga".
+                (A) AJAKAN MENDAFTAR RELAWAN DICABUT DI DUA LAYAR. Yang ada di Dashboard &
+                Profil bukan DAFTAR relawan melainkan AJAKAN mendaftar jadi relawan: kartu
+                "Bantu Sesama" (Pages/Dashboard.jsx, cabang else dari isRelawan) dan banner
+                "Panggilan Kemanusiaan" (Pages/Profile/Edit.jsx), dua-duanya berujung tombol
+                "Daftar Relawan". Keduanya dihapus berikut kode yang ikut mati:
+                handleRegisterVolunteer/isRegistering/IconUsersGroup di Dashboard, dan
+                openRelawan/handleDaftarRelawan/<Dialog>/IconAward/flashMessage/isAdmin di
+                Profil. Kartu Mode Kesiapan milik relawan & editor keahlian TETAP.
+                HARGA YANG DISETUJUI USER: sesudah ini TIDAK ADA SATU PUN pintu pendaftaran
+                relawan mandiri di seluruh aplikasi - peran `relawan` hanya diberikan admin
+                lewat /admin/users. Route & controllernya SENGAJA dibiarkan hidup.
+                YANG DITEMUKAN SAMBIL MENGERJAKAN: kedua tombol itu memanggil ENDPOINT YANG
+                BERBEDA untuk tindakan yang sama - Dashboard ke `volunteer.register`
+                (VolunteerController), Profil ke `admin.relawan.update` (= store_relawan, yang
+                justru endpoint TANPA authorize dari FINDINGS #1, P0). Menghidupkan lagi ajakan
+                itu berarti memilih salah satunya lebih dulu; jangan menyalin yang lama.
+                Endpoint #1 kini tanpa pemanggil di frontend, tapi TETAP TERBUKA - bukan fix.
+                (B) PERAN `warga` DIHAPUS (temuan BARU #110). Pertanyaan user itu sendiri
+                buktinya: dua pilihan bersebelahan yang bedanya tak bisa dijawab siapa pun.
+                Jawabannya TIDAK ADA BEDANYA - `warga` peran hantu: 0 akun memakainya,
+                0 permission, 0 route_accesses, NOL rujukan di seluruh app/ & routes/, dan tak
+                pernah diberikan satu pun alur pendaftaran.
+                AKARNYA DAFTAR PERAN KEDUA: `UserTenantSeeder:17` memelihara daftar perannya
+                sendiri di samping RolePermissionSeeder (yang seluruh dokumen repo ini sebut
+                sebagai sumber peran), dan daftar kedua itu memuat satu nama yang tak ada di
+                daftar pertama. Seeder itu dipanggil SESUDAH RolePermissionSeeder, jadi enam
+                nama lainnya cuma pengulangan tak berefek - satu-satunya efek nyata daftar itu
+                adalah menciptakan `warga`. Seeder yang sama bahkan memberi `masyarakat` kepada
+                user yang dinamainya "Warga Sipil": peran yang ia buat tak pernah ia pakai.
+                KENAPA SAMPAI KE LAYAR: allRoleNames() membaca peran dari TABEL `roles` (benar -
+                peran bisa dibuat lewat /admin/roles), lalu roleOptions() mencetak nama yang tak
+                ada di kamus labelnya lewat cadangan `ucfirst()` - sehingga ia muncul sebagai
+                "Warga", berhuruf kapital, sederajat dengan "Masyarakat". Bentuk yang SAMA dengan
+                #90 & #94: cadangan sebuah kamus adalah KLAIM, bukan "tidak dikenal". Akun yang
+                terlanjur diberi peran itu bukan menjadi warga melainkan akun TANPA peran yang
+                dikenali - profilnya sendiri berbunyi "Peran belum ditetapkan".
+                Gejala ikutan yang sudah menambal dirinya sendiri: ReportSeeder:30 &
+                ResolvedReportSeeder:21 menulis `User::role(['warga','masyarakat'])` - mencari
+                DUA nama untuk satu konsep. Penambalan itu tanda daftar yang menyimpang, dan ia
+                juga yang membuat penghapusan perannya WAJIB disertai perbaikan keduanya:
+                `User::role()` melempar RoleDoesNotExist untuk nama yang tak ada.
+                FIX: UserTenantSeeder tak lagi punya daftar peran (memanggil
+                RolePermissionSeeder), kedua seeder laporan menanyakan `masyarakat` saja, dan
+                barisnya dihapus dari DB DEV LOKAL (0 dependen, diperiksa lebih dulu) +
+                permission:cache-reset. AWAS EFEK SAMPING YANG DISENGAJA: menjalankan
+                UserTenantSeeder sendirian kini ikut menyemai permission & peran `opd`.
+                Penjaga: RoleSourceSingleListTest BARU (2 test). Yang pertama - tak boleh ada
+                Role::firstOrCreate|create di seeder mana pun selain RolePermissionSeeder -
+                dibuktikan MERAH lewat pemulihan berkas lama, lalu dipulihkan byte-exact (md5
+                dicocokkan). Yang kedua (setiap peran nyata punya label di roleOptions) HIJAU
+                sejak awal = penjaga regresi, bukan bukti bug: di test hanya RolePermissionSeeder
+                yang berjalan, dan JUSTRU ITULAH sebabnya peran liar ini hidup bertahun-tahun
+                tanpa satu pun test merah.
+                Test 390 -> 392 passed (1516 assertions; angka 386 di STATUS lama sudah
+                tertinggal oleh #108/#109), Pint PASS, prettier PASS, npm run build lulus.
+                TANPA migrasi, TANPA perubahan route/skema, TANPA sentuhan controller.
+                TEMUAN BARU #111 OPEN (sengaja tidak dikerjakan, aturan emas #6): peran `opd`
+                TIDAK ADA di tabel roles DB dev lokal - RolePermissionSeeder membuatnya sejak
+                TASK_27 tapi DB itu diseed 2026-05-18 dan tak pernah diseed ulang, sehingga
+                seluruh fitur OPD tak bisa dipakai di dev tanpa satu pun galat (daftarnya cuma
+                lebih pendek). Perbaikannya satu perintah idempoten, tapi menambah peran ke DB
+                adalah perubahan data tersendiri.
+                (C) PERAN `masyarakat` BERGANTI NAMA JADI `warga` (#112). Permintaan user
+                menyusul: "ganti kata masyarakat menjadi warga". Kata itu hidup di DUA lapis
+                berbiaya jauh berbeda, jadi pilihannya disodorkan lebih dulu - label saja / nama
+                peran di DB juga / label + semua kalimat. USER MEMILIH NAMA PERAN DI DB JUGA.
+                BENTUKNYA MENGGANTI NAMA BARIS YANG SAMA, bukan membuat peran baru lalu
+                memindahkan akun: `model_has_roles` menunjuk lewat `role_id`, jadi menyunting
+                `roles.name` membuat seluruh penugasan & permission utuh tanpa satu baris pun
+                berpindah - dan tak ada akun yang bisa terlewat pindah lalu jadi akun tanpa peran
+                (bentuk #110 lagi).
+                YANG MEMBUATNYA LEBIH DARI SATU UPDATE, dan ini yang menjawab SISA di (B):
+                `roles` ber-UNIQUE(name, guard_name), sementara nama `warga` MASIH DIPEGANG peran
+                hantu #110 di ketiga VPS. Tanpa penanganan, UPDATE-nya menabrak unique key dan
+                migrasi GAGAL DI TENGAH DEPLOY. Migrasi 2026_09_02_100000 karena itu membuang
+                yang hantu lebih dulu - HANYA bila kosong; kalau ada akun/permission menempel ia
+                BERHENTI dengan pesan yang menyebut jumlahnya, sebab menggabungkan dua peran
+                diam-diam adalah keputusan data, bukan langkah migrasi. down() sengaja TIDAK
+                menghidupkan lagi peran hantu itu. KEDUA CABANG DIBUKTIKAN di DB dev dengan
+                menirukan keadaan VPS (hantu disisipkan ulang; lalu disisipkan lagi berikut satu
+                penugasan -> migrasi berhenti, DB tidak berubah).
+                KENAPA RENAME PERAN BERBAHAYA BILA SETENGAH JALAN: namanya bukan foreign key
+                melainkan STRING yang tersebar di assignRole/hasRole/User::role/kamus label/
+                assignableRoleNames. Satu tertinggal -> assignRole melempar RoleDoesNotExist
+                (PENDAFTARAN WARGA BARU GAGAL TOTAL) sementara hasRole justru DIAM dan memulangkan
+                false = pemeriksaan izin yang senyap-salah. KODE & DB WAJIB NAIK BERSAMAAN di tiap
+                environment; jangan pull kode tanpa langsung `php artisan migrate`.
+                Sebaran: 10 rujukan di app/+routes/+database/ + 78 di tests/ + ROLE_LABELS
+                ("Anggota Masyarakat" -> "Warga") + satu perbandingan di Profile/Edit.jsx. Judul &
+                variabel test yang menyebut nama perannya ikut diluruskan - judul test yang
+                menyatakan fakta salah lebih buruk daripada tak ada judul. utils.js disunting
+                BINARY-SAFE; byte NUL #93 diperiksa masih utuh sesudah prettier.
+                Penjaga: test KETIGA di RoleSourceSingleListTest - tak boleh ada literal
+                'masyarakat' tersisa di app/, routes/, database/seeders/, resources/js/ (migrasinya
+                sendiri dikecualikan: di situlah satu-satunya tempat nama lama wajib tertulis).
+                (D) PERAN `opd` DITAMBAHKAN (#111 FIXED). Permintaan user: "tambahkan peran
+                opd". MASALAHNYA BUKAN KODE - `opd` sudah ada di RolePermissionSeeder sejak
+                TASK_27 (2026-08-12); yang tak ada barisnya di database.
+                KOREKSI SESUDAH VPS DIPERIKSA (user memberi akses root): dugaan saya bahwa
+                prod/staging/dev ikut kehilangan `opd` TERNYATA SALAH. Ketiganya PUNYA `opd`
+                (id 8) berikut 3 akun & permission view_dashboard, jadi fitur OPD memang berjalan
+                di produksi - kalimat "tak pernah bisa dipakai di produksi" yang sempat saya tulis
+                tidak benar. Celahnya HANYA di DB dev LOKAL (laragon, diseed 2026-05-18 & tak
+                pernah diseed ulang). Ketiga env VPS lolos karena ditambal MANUAL di sesi
+                sebelumnya - dan justru ketergantungan pada ingatan itulah yang mau dihapus.
+                YANG TETAP BERLAKU: `db:seed` tak pernah dijalankan saat deploy, jadi peran baru
+                di seeder tak sampai sendiri ke database yang sudah ada.
+                Diperbaiki lewat migrasi 2026_09_02_100100 yang MEMANGGIL RolePermissionSeeder,
+                BUKAN menyalin daftarnya - menuliskan ulang nama peran di dalam migrasi = daftar
+                kedua lagi, persis sebab #110. Seluruh isi seeder itu firstOrCreate, jadi aman
+                berulang; DIBUKTIKAN IDEMPOTEN (sidik jari peran+akun+permission identik sesudah
+                dijalankan dua kali). down() sengaja KOSONG - mencabut peran saat rollback akan
+                melucuti akun yang sudah memakainya.
+                Hasil di dev LOKAL: `opd` (id 10) + permission view_dashboard; keenam peran lain
+                tidak berubah sedikit pun. Efeknya di ketiga env VPS: NOL (sudah lengkap), ia
+                dibawa serta sebagai jaring pengaman untuk database berikutnya.
+                ATURAN TURUNAN (dicatat di CONVENTIONS): peran baru = satu baris di seeder PLUS
+                satu migrasi penyelaras. Tanpa itu peran barunya hanya hidup di mesin yang
+                di-seed dari nol.
+                (E) KEADAAN DEPLOY & KETIGA ENVIRONMENT, DIPERIKSA LANGSUNG 2026-09-02 setelah
+                user berkata "deploy kode saja tanpa migrate" dan memberi akses root.
+                DEPLOY DI SERVER INI 100% MANUAL: NOL git hook, NOL cron, NOL skrip deploy,
+                NOL systemd timer. `deploy/` di folder proyek itu FOLDER DOKUMEN (environments.md
+                + template nginx/reverb), bukan otomatisasi - jangan tertipu namanya. Runbook
+                `deploy/environments.md` memang mencantumkan `php artisan migrate --force`, tapi
+                itu baris yang harus DIINGAT operatornya; rangkaian deploy terakhir cuma
+                `git pull` sebab memang tak ada migrasi yang menunggu.
+                Ketiganya kini sejajar di 50ae042e (main/staging/dev) dengan 0 migrasi pending.
+                ISI TABEL `roles` KETIGA ENV: superadmin/admin/pejabat/petugas/relawan/
+                masyarakat/warga(HANTU, id 7)/opd(id 8). Peran hantu `warga` ADA di ketiganya
+                dengan 0 akun & 0 permission - jadi cabang pembuang di migrasi pertama memang
+                akan terpakai DAN tidak akan berhenti. `masyarakat` memegang akun sungguhan:
+                PROD 19, staging 14, dev 14.
+                KOREKSI CARA KEGAGALANNYA - INI YANG PALING PENTING. Saya sempat menulis "kode
+                naik tanpa migrasi = assignRole melempar RoleDoesNotExist, pendaftaran gagal
+                total". Itu benar secara umum TAPI TIDAK UNTUK KETIGA SERVER INI: justru karena
+                peran hantu `warga` ada di sana, `assignRole('warga')` BERHASIL TANPA GALAT dan
+                menaruh pendaftar baru di peran kosong itu. Yang terjadi bukan kegagalan berisik
+                melainkan POPULASI TERBELAH DUA DIAM-DIAM - 19 akun prod tetap di `masyarakat`
+                yang tak lagi dirujuk kode mana pun (profil mereka berbunyi "Peran belum
+                ditetapkan", lencana perisai muncul keliru), sementara akun baru menumpuk di
+                `warga` hantu. Itu #110 terulang dalam skala lebih besar. DIAM LEBIH BERBAHAYA
+                DARIPADA GAGAL.
+                URUTAN TAK BISA DIBALIK untuk menghindarinya: migrasi lebih dulu membuat kode LAMA
+                yang masih terpasang memanggil `assignRole('masyarakat')` atas peran yang sudah
+                tak ada - dan ITU benar-benar RoleDoesNotExist. Jadi tetap KODE DULU lalu MIGRASI
+                sesegera mungkin; yang bisa dikecilkan cuma lebar jendelanya.
+                (F) DEPLOY 2026-09-02 @0f27a6d9, ff dari 50ae042e, urutan dev -> staging -> prod.
+                DUA commit: 836f813e kode (64 berkas) + 0f27a6d9 aset build. Ketiga branch
+                (main/staging/dev) didorong ke commit yang sama.
+                DUA MIGRASI dijalankan di ketiga env, 0 pending sesudahnya. Cadangan mysqldump
+                ketiga DB lebih dulu di `/root/backup-predeploy-20260902-034743` (18/17/17 MB,
+                "Dump completed"). TANPA composer install & TANPA route cache - `git diff --stat
+                50ae042e..0f27a6d9 -- routes/ composer.json composer.lock config/` KOSONG.
+                HASIL MIGRASI, ketiganya persis seperti yang diramalkan:
+                  prod    masyarakat=19 + warga=0(hantu) -> warga=19, peran 8 -> 7
+                  staging masyarakat=14 + warga=0(hantu) -> warga=14, peran 8 -> 7
+                  dev     masyarakat=14 + warga=0(hantu) -> warga=14, peran 8 -> 7
+                Migrasi kedua no-op di ketiganya (sudah punya `opd`), sesuai dugaan sesudah VPS
+                diperiksa. DATA PROD UTUH: 89 user / 38 laporan, sama persis pra-migrasi.
+                VERIFIKASI: `Role::findByName('warga')` RESOLVE di ketiga env (id 6, 1 permission)
+                sementara `masyarakat` sudah melempar - jadi jalur assignRole() pendaftaran hidup
+                dan jendela "populasi terbelah" tidak pernah terbuka; dropdown /admin/users
+                berbunyi "Admin | Pejabat | Petugas | Relawan | Warga | OPD / Instansi Terkait" di
+                ketiganya; kamus peran di bundel LIVE memuat label:"Warga" & NOL "Anggota
+                Masyarakat"; string "Bantu Sesama" & "Panggilan Kemanusiaan" NOL di bundel live
+                (bukti kartu relawan benar-benar hilang); bundel BARU Dashboard-EYYQaM2o.js 200 &
+                LAMA Dashboard-ksXUHDYj.js 404 di ketiganya; ketiga domain / & /hydrants 200;
+                nginx/php8.2-fpm/reverb/reverb-staging/reverb-dev active; 0 berkas root-owned
+                pasca-chown; permission:cache-reset dijalankan di ketiganya; 0 ERROR hari ini di
+                ketiga log (ERROR terakhir 2026-09-01 06:47 = queue worker "Connection refused"
+                lama, bukan dari deploy ini).
+                SISA: verifikasi visual di browser (kartu relawan hilang di Dashboard & Profil,
+                lencana peran berbunyi "Warga") + sekali coba daftar akun baru sungguhan.
+               PERBAIKAN LEPAS #108 & #109 — SELESAI & TERDEPLOY 2026-09-02 @2f371c32.
+                Dua cacat dilaporkan user ("di buat laporan penanganan saat klik jam aplikasi
+                apk langsung force close, dan di manajemen pengguna paginationnya lewat"),
+                keduanya hidup HANYA di berkas JSX sehingga tak ada test lama yang melihatnya.
+                #108 (P1): form Berita Acara memilih jam lewat <input type="time">. Input itu
+                TIDAK digambar halaman - ia menyerahkan pemilihannya ke dialog NATIVE milik
+                WebView, dan di APK mengetuknya MENUTUP APLIKASI di tengah pengisian dokumen
+                resmi. YANG MENENTUKAN BENTUK PERBAIKANNYA: input itu SATU-SATUNYA input
+                tanggal/jam native di seluruh resources/js (dibuktikan grep) - tanggal yang
+                duduk PERSIS DI SEBELAHNYA dalam flex yang sama, dan setiap tanggal lain di
+                aplikasi ini, sudah lama memakai Components/DatePicker.jsx yang murni
+                JavaScript. Jadi yang menabrak bukan "cara aplikasi memilih waktu" melainkan
+                satu tempat yang menyimpang dari cara aplikasi ini sendiri.
+                AKAR NATIVE-nya SENGAJA TIDAK DIKLAIM: tak ada perangkat tersambung = tak ada
+                logcat, dan mengarang stack trace lebih berbahaya daripada mengakui batasnya.
+                Yang bisa dibuktikan sudah cukup untuk memutuskan: menghapus dialog native
+                menghapus SELURUH kelas kegagalannya, berlaku juga di WebView OEM mana pun,
+                dan tiba lewat `git pull` ke SEMUA pengguna termasuk yang masih memegang APK
+                1.1.2 - tanpa rilis wrapper (versionCode + pscp + pasang ulang tiap perangkat).
+                Fix: Components/TimePicker.jsx BARU, kembaran DatePicker.jsx. MENIT PENUH 0-59
+                dan BUKAN kelipatan 5 - kolom yang sama dipakai MENYUNTING berita acara lama
+                yang jamnya tercatat lewat input native, grid berkelipatan akan membuang
+                menitnya diam-diam. Digulir lewat scrollTop kolomnya sendiri, BUKAN
+                scrollIntoView() yang ikut menggulung setiap leluhur (panel akan menggeser
+                halaman di belakangnya).
+                #109 (P2): PaginationContent dikelasi `fles-wrap`. Itu BUKAN kelas Tailwind,
+                jadi flex-wrap TIDAK PERNAH berlaku sementara komponennya berbasis flex-row
+                yang tak membungkus: 88 akun prod / 10 per halaman = sebelas tautan berjejer
+                satu baris di layar ponsel. Lolos karena salah ketik nama kelas TIDAK PERNAH
+                BERGALAT - Tailwind diam, build hijau, DOM "terbaca benar" (pola senyap #98).
+                Niat aslinya masih tertinggal di sebelahnya: PaginationItem ber-`mb-1 lg:mb-0`,
+                jarak antar-BARIS. Tersalin ke TIGA berkas (Users, Announcements, +
+                Front/Settings yang dead code); ketiganya dibetulkan HANYA supaya penjaganya
+                bisa menuntut seluruh resources/js alih-alih menyebut nama berkas yang bisa
+                dihindari salinan keempat.
+                Penjaga: FormControlNativeDialogTest BARU (4 test, KEEMPATNYA dibuktikan MERAH
+                lewat sabotase; berkas dipulihkan byte-exact, md5 dicocokkan). Penjaga input
+                native MEMBUANG KOMENTAR lebih dulu - tanpa itu ia tersandung berkas yang
+                menjelaskan larangannya sendiri (TimePicker.jsx), dan penjaga yang menjegal
+                dirinya sendiri akan dimatikan orang berikutnya alih-alih dipatuhi.
+                Test 386 -> 390 passed (1507 assertions), Pint PASS, prettier clean, npm run
+                build lulus. NOL perubahan server: tanpa migrasi, route, skema, controller.
+                TERDEPLOY 2026-09-02 @2f371c32 ke prod/staging/dev, ff dari 4d38a85a, urutan
+                dev -> staging -> prod. TIGA commit: c138b8a6 (#106/#107 sesi 2026-09-01 yang
+                belum ter-commit) + 13bda4bb (#108/#109) + 2f371c32 aset build. DEPLOY PALING
+                SEDERHANA: `git status --short database/migrations/ routes/ composer.json
+                composer.lock` KOSONG, jadi TANPA migrasi, TANPA cadangan DB (tak ada yang
+                menyentuh DB), TANPA composer install, TANPA rebuild route cache - cukup
+                `git pull` + `chown`. 0 migrasi pending di ketiga env sebelum & sesudah.
+                Verifikasi: ketiga domain / & /hydrants 200, prod /pumps 200, POST
+                /broadcasting/auth 403; bundel BARU Create-BC6uIkJ_.js 200 & LAMA
+                Create-C0o7-0qe.js 404 di ketiganya; 0 berkas root-owned pasca-chown di ketiga
+                env; nginx/php8.2-fpm/reverb/reverb-staging/reverb-dev active; 0 ERROR baru
+                (ERROR terakhir ketiga env 2026-09-01 06:46-06:47 = queue worker "Connection
+                refused" lama). DATA PROD TIDAK BERUBAH: 89 users / 38 reports / 51 hydrants /
+                6 pompas / 326 banjars / 1 berita acara, sama persis pra-deploy - deploy ini
+                nol sentuhan DB.
+                SISA: uji ketuk pemilih jam di APK SUNGGUHAN (perbaikan ini dibuktikan lewat
+                test, build, & bundel produksi `type:"time"` = 0, BELUM di perangkat), dan
+                periksa paginasi /admin/users di ponsel. Akar native-nya sengaja dibiarkan
+                hidup di wrapper - kalau kelak ada input tanggal/jam native lain yang lolos ia
+                akan menabrak hal yang sama; penjaga di atas ada supaya itu tak terjadi.
+               TASK_53 (prompt/tasks/TASK_53_satu_mode_lokasi_form_lapor.md) — SELESAI
+                (kode) 2026-09-01. Permintaan user: "di form lapor jadikan 1, jangan ada
+                pilih manual atau ikuti peta, peta dan lokasi sinkron, saat pin digeser data
+                mengikuti lokasi pin, mirip seperti /admin/hydrants/create", lalu diperluas
+                "bukan hanya di pusat komando di masyarakatpun sekarang buat seperti itu".
+                Perluasan kedua itu yang menentukan bobotnya.
+                SAKELAR DUA MODE (TASK_28) DICABUT. Mode 'manual' bukan cuma tampilan: ia
+                MEMBLOKIR penulisan kode wilayah dari pin (cabang `keepRegion` di
+                resolveLocation), sehingga laporan bisa tersimpan dengan lat/lng titik A dan
+                kode wilayah B tanpa satu pun tanda di layar - peta petugas menggambar dari
+                lat/lng sementara yurisdiksi, notifikasi & rekap memakai kode wilayah. Itu
+                bentuk yang sama dengan #78, yang dulu harus dibersihkan lewat perintah
+                artisan tersendiri.
+                TEMUAN BARU #105 yang ikut ketahuan & MENGUBAH NILAI TASK INI (FIXED di sini):
+                ReportRequest mewajibkan `village_code` untuk SETIAP laporan baru TANPA
+                membedakan peran, tapi keempat dropdown wilayah digerbangi prop `region_picker`
+                = Pusat Komando saja. Warga karena itu hanya bisa mengandalkan pencocokan nama
+                OSM, dan pencocokan itu KERAP BERHENTI DI KECAMATAN (sudah tercatat sejak
+                TASK_28). Begitu terjadi: penjaga layar meloloskannya (syaratnya
+                `hasRegionPicker && !village_code`), lencana GPS tetap HIJAU "Lokasi
+                terdeteksi" (ambang warga cuma province_code), lalu server menolak pada
+                `village_code` - sebuah <input type="hidden"> yang TAK PERNAH DIRENDER, jadi
+                tak ada pesan yang terlihat di mana pun. Warga tak punya satu pun cara
+                membetulkannya. Gema #94/#95: bukan datanya yang kurang, melainkan satu sisi
+                yang mengaku tahu lebih banyak daripada yang dijaminnya.
+                YANG MENGIKAT: (a) `region_picker` BUKAN LAGI GERBANG, hanya NILAI AWAL kode
+                wilayah bagi operator - menjadikannya gerbang lagi = menghidupkan #105;
+                (b) dropdown TETAP melompatkan pin ke centroid, satu-satunya beda dari
+                /admin/hydrants/create, disengaja karena alur telepon Pusat Komando adalah
+                alasan TASK_28 lahir - hasilnya sinkron DUA ARAH; (c) menggeser pin sesudah
+                memilih dropdown MENIMPA pilihan itu (memang yang diminta) sehingga bila
+                pencocokan OSM meleset di titik baru dropdown bisa ikut kosong - peredamnya
+                dropdown itu terlihat & tombol Kirim menolak tanpa desa; (d) AMBANG LAYAR =
+                AMBANG SERVER, `locState` 'ready' dan penjaga submit sama-sama menuntut
+                `village_code` seperti ReportRequest, jangan longgarkan salah satunya
+                sendirian; (e) `gpsFixRef` (TASK_52) TIDAK tersentuh, `userLocation` tetap
+                berarti "titik yang terakhir dipakai"; (f) `clickToPlace` kini MENYALA untuk
+                warga - pembalikan sadar atas komentar lama di UserLeafletMap.jsx yang
+                berbunyi "supaya sentuhan tak sengaja di form lapor warga tidak menggeser pin
+                darurat"; komentarnya sudah diperbarui, nilai defaultnya tidak.
+                Penjaga: ReportLocationSingleModeTest BARU (4 test); TIGA dibuktikan MERAH
+                terhadap berkas sebelum perubahan, yang keempat (server menolak laporan warga
+                tanpa desa) hijau sejak awal = penjaga regresi, bukan bukti bug.
+                ReportManualRegionPickerTest: nama & komentar diluruskan, ASERSI TIDAK DIUBAH.
+                Test 382 -> 386 passed (1502 assertions), Pint PASS (295 berkas), prettier &
+                npm run build lulus. NOL perubahan server: ReportController, ReportRequest,
+                route, skema, migrasi, channel, notifikasi tak disentuh.
+                TERDEPLOY 2026-09-01 @e41719aa ke prod/staging/dev, ff dari 64a97d3b, urutan
+                dev -> staging -> prod. DUA commit: 6eb8ad43 kode (10 berkas) + e41719aa aset
+                build. DEPLOY PALING SEDERHANA sejauh ini: `git diff --stat 64a97d3b..e41719aa
+                -- database/migrations/ routes/ composer.json composer.lock` KOSONG, jadi TANPA
+                migrasi, TANPA cadangan DB (tak ada yang menyentuh DB), TANPA composer install,
+                TANPA rebuild route cache - cukup `git pull` + `chown`. 0 migrasi pending di
+                ketiga env. Verifikasi: ketiga domain / & /hydrants 200, /reports/create 302
+                (gerbang login, wajar); bundel BARU Create-C0o7-0qe.js 200 & LAMA
+                Create-D8Ndm7-0.js 404 di ketiganya; 0 berkas root-owned pasca-chown;
+                nginx/php8.2-fpm/reverb/reverb-staging/reverb-dev active; 0 ERROR baru (ERROR
+                terakhir prod 2026-08-27 23:42 = gotcha T_NS_SEPARATOR sesi TASK_49,
+                staging/dev 2026-08-26 = queue worker lama).
+                DATA PROD: 88 users / 51 hydrants / 6 pompas / 326 banjars - SAMA PERSIS
+                pra-deploy. `reports` 30 -> 35, dan itu BUKAN efek deploy: laporan terbaru
+                bertanggal 23:09 sementara pull prod jam 23:41, jadi kelimanya lahir dari
+                pemakaian nyata antara deploy 1ed163ff dan ini. Deploy ini nol sentuhan DB.
+                SISA: verifikasi visual §8 file task (butuh browser), termasuk uji sentuh di
+                APK WebView untuk memastikan clickToPlace tidak memindahkan pin saat pengguna
+                sebenarnya hendak menggulir halaman.
+               TASK_52 (prompt/tasks/TASK_52_asal_titik_laporan.md) — SELESAI (kode)
+                2026-08-31. Laporan user: "ada beberapa orang yang lapor tapi tidak dari lokasi
+                kejadian, namun user yang lapor tidak memperhatikan jadi petugas salah menuju
+                lokasi". Usulan user: popup "apakah Anda di lokasi?" saat melapor.
+                USULAN ITU DIPECAH TIGA LAPIS dan user memilih LAPIS 3 SAJA. Popup ya/tidak
+                ditolak sebagai perbaikan tunggal karena TIGA alasan: orang yang jadi masalah
+                justru yang tak memperhatikan — ia mengetuk tombol besar secara refleks,
+                sehingga deklarasi diri adalah sinyal TERLEMAH yang tersedia; ia jadi pajak
+                bagi semua orang demi segelintir kasus (membatalkan sebagian kerja
+                darurat-first Kluster A); dan yang paling menentukan, jawaban "tidak di
+                lokasi" pun TIDAK memberi tahu petugas di mana apinya — pinnya tetap salah,
+                yang berubah cuma labelnya. Lapis 1 (deteksi jarak tanpa bertanya) & lapis 2
+                (menyela hanya saat jauh + mewajibkan patokan) TETAP DITUNDA; form lapor
+                warga TIDAK DISENTUH sama sekali di task ini.
+                EMPAT KEPUTUSAN USER: ambang 300 m; cabang "melapor dari jauh" mewajibkan
+                patokan saja (bukan + telepon); SIMPAN JARAKNYA SAJA (koordinat pelapor tidak
+                disimpan); lapis 3 lebih dulu.
+                YANG DITEMUKAN & MENENTUKAN BENTUK PEKERJAANNYA — `userLocation` di
+                Front/Reports/Create.jsx:147 BUKAN posisi pengguna. Ia ditulis di TIGA tempat
+                dan dua di antaranya MENGIKUTI PIN: resolveLocation() (dipanggil
+                handleMarkerDrag) dan selectRegion() saat pin melompat ke centroid. Maknanya
+                "titik yang terakhir dipakai"; pembacanya cuma locState. Menghitung jarak
+                darinya memulangkan ~0 m untuk hampir semua laporan, sehingga lencana
+                kepercayaan akan SELALU HIJAU — jaminan palsu yang lebih buruk daripada tidak
+                ada lencana. Karena itu posisi GPS asli ditampung `gpsFixRef` BARU yang hanya
+                ditulis di callback sukses getUserLocation(), dan makna `userLocation` TIDAK
+                diubah. JANGAN memakai ulang state itu untuk posisi pelapor.
+                SINYALNYA sebenarnya sudah dihitung lalu dibuang: Create.jsx:414 membaca
+                coords.accuracy, memakainya sekali untuk ambang GEO_ACCURACY_THRESHOLD, lalu
+                melupakannya — angka itu tak pernah dikirim ke server.
+                YANG MENGIKAT: (a) `location_source` diisi SERVER dari BUKTI (jarak pelapor ke
+                pin vs Report::JARAK_PELAPOR_MAKS_M = 300 m), klien cuma mengirim koordinat &
+                akurasi MENTAH — klien yang ikut memutuskan = dua rumus yang bisa menyimpang
+                (#79/#84) sekaligus vonis yang bisa dipalsukan; (b) SENGAJA TIDAK ADA nilai
+                `pemilih_wilayah` untuk alur telepon Pusat Komando — menurunkannya dari PERAN
+                akan mengklaim "titik dipilih operator" pada petugas yang benar-benar melapor
+                dari TKP (bentuk #90), dan laporan telepon memang jatuh dengan benar ke
+                `ditandai_manual`; (c) correctLocation() WAJIB menimpa sumbernya jadi
+                `dikoreksi_petugas` DAN mengosongkan jarak/akurasi — tanpa itu lencana "±3,3 km
+                dari pelapor" tetap menempel pada pin yang baru dibetulkan responder yang
+                BERDIRI DI TKP, persis bentuk #95; IncidentLocationCorrected ikut membawanya
+                supaya lencana berubah tanpa muat ulang; (d) kamus LOCATION_SOURCE_META di
+                lib/utils.js TIDAK BOLEH bercadangan ke salah satu nilainya — sumber tak
+                dikenal & kolom kosong berbunyi "Asal titik tidak tercatat" (#94/#90);
+                (e) koordinat pelapor TIDAK DISIMPAN, dipakai sekali lalu dibuang — jangan
+                "sekalian simpan biar bisa diaudit"; (f) BUKAN status baru, StatusBadge tidak
+                disentuh (pelajaran TASK_51 poin b); (g) NOL yang memblokir — ketiga kolom &
+                ketiga field request nullable, klien lama (APK WebView/.exe) yang tak
+                mengirimnya cukup berlencana "tidak tercatat", tak ada rilis wrapper yang
+                dibutuhkan.
+                Lencana tampil di DUA tempat: kartu Alamat halaman detail (tepat di atas tombol
+                "Navigasi ke Lokasi") dan peringatan di panel verifikasi admin sebelum tombol
+                Broadcast — gerbang terakhir tempat kekeliruan lokasi masih murah diperbaiki,
+                lewat telepon pelapor yang nomornya sudah tertera persis di atasnya.
+                Penjaga: ReportLocationSourceTest BARU (7 test), KETUJUHNYA dibuktikan MERAH
+                lewat sabotase sengaja; keempat berkas yang disabotase dipulihkan byte-exact
+                (checksum md5 dicocokkan). Test 375 -> 382 passed, Pint PASS, prettier
+                "unchanged" untuk ketiga berkas JS, npm run build lulus. SATU MIGRASI aditif &
+                nullable TANPA backfill, sudah dijalankan di DB dev LOKAL (sisupit_dev MySQL;
+                141 laporan tidak berubah, 0 ter-backfill), BELUM di prod/staging/dev VPS.
+                TANPA perubahan route/channel/status/notifikasi.
+                SENGAJA DI LUAR SCOPE (aturan emas #6): kolom asal titik di Export Excel, kartu
+                misi dashboard petugas, popup Peta Pemantauan — ketiganya bisa membaca kolom
+                yang kini sudah ada tanpa migrasi tambahan.
+                TERDEPLOY 2026-09-01 @1ed163ff ke prod/staging/dev, ff dari 350ab043, urutan
+                dev -> staging -> prod. SATU MIGRASI ADITIF & nullable DONE di ketiga env,
+                0 pending, 0 laporan ter-backfill (`location_source is not null` = 0 di prod,
+                memang desainnya). Cadangan mysqldump ketiga DB lebih dulu di VPS
+                `/root/backup-predeploy-20260831-170605` (18/17/17 MB, "Dump completed").
+                Data prod UTUH: 88 users / 30 reports / 51 hydrants / 6 pompas / 326 banjars /
+                1 berita acara - sama persis pra-migrasi. `composer install` DILEWATI & route
+                cache TIDAK dibangun ulang (routes/ & composer.lock tak berubah di rentang ini,
+                diperiksa `git diff --stat`). Verifikasi: ketiga domain / & /hydrants 200;
+                bundel BARU Show-BKfdgJmZ.js 200 & LAMA Show-DDBdmLIX.js 404 di ketiganya;
+                ketiga kolom baru ada & nullable di prod; nginx/php8.2-fpm/reverb/
+                reverb-staging/reverb-dev active; 0 berkas root-owned pasca-chown; 0 ERROR baru
+                (ERROR terakhir prod 2026-08-27 23:42 = gotcha T_NS_SEPARATOR sesi TASK_49,
+                staging/dev 2026-08-26 = queue worker lama).
+                SISA: verifikasi visual §6 file task (6 langkah, butuh browser).
+               TASK_51 (prompt/tasks/TASK_51_wewenang_verifikasi_admin_saja.md) — SELESAI
+                (kode) 2026-08-31. User menyodorkan pembagian peran yang dikehendakinya lalu
+                minta DIPERIKSA ("admin -> verif dan broadcast; petugas -> meluncur,
+                selesaikan laporan, input laporan penanganan, rubah posisi; petugas dapat
+                notif tapi tidak bisa broadcast atau tolak"). Audit: ENAM dari delapan sudah
+                sesuai, DUA justru KEBALIKANNYA — petugas BISA broadcast dan BISA menolak, di
+                server (ReportActionController:38 & :119) MAUPUN di layar (Show.jsx:187
+                `isStaffOrAdmin` memuat 'petugas'). Bukan celah yang kelupaan: seluruh komentar
+                repo menempatkan petugas sebagai "Pusat Komando", dan
+                ReportActionAuthorizationTest MENGUNCINYA lewat test bernama "it lets petugas
+                approve a report". Jadi yang diminta = PERUBAHAN KEPUTUSAN DESAIN, bukan bugfix.
+                KENAPA TAK PERNAH TERLIHAT: /admin/reports ("Verifikasi Laporan") memang
+                tertutup untuk petugas, jadi dari sisi MENU ia tampak tak berwenang. Yang
+                membocorkannya HALAMAN DETAIL, dicapai lewat tiga jalan lain: kartu misi
+                dashboard (DashboardController memasukkan TERLAPOR ke misi aktif), tab "Semua
+                Laporan" (ReportController::index sengaja tak menyembunyikan TERLAPOR dari
+                petugas), dan notifikasi laporan masuk yang memang menyasar petugas.
+                KEPUTUSAN USER: "cabut", petugas TIDAK BISA CABUT OPD, di petugas ada status
+                "menunggu konfirmasi admin", notifikasi petugas TIDAK diubah (nada tahap masuk
+                sudah dibedakan TASK_50), dan ceiling yurisdiksi petugas yang sudah ada di
+                /admin/settings tidak disentuh.
+                ASIMETRI YANG DISENGAJA: notifyAgencies() (MEMINTA OPD) TETAP milik petugas —
+                eskalasi lahir di lapangan ("ada kabel jatuh, panggil PLN"), dan komentar di
+                method itu sudah lama mengatakannya. Yang dicabut removeAgency(): membatalkan
+                permintaan yang sudah dikirim ke instansi luar adalah pencabutan koordinasi.
+                Keduanya diuji dalam SATU test agar tak bisa "dirapikan" jadi seragam tanpa
+                ada yang merah.
+                YANG MENGIKAT: (a) panel verifikasi kini bergerbang prop SERVER `canVerify`
+                (+`canRemoveAgencies`), diturunkan dari $isStaff lewat $isVerifier di
+                ReportController::show — JANGAN dikembalikan jadi daftar peran di JSX; daftar
+                yang ditulis dua kali menyimpang, dan yang menyimpang di sisi layar melahirkan
+                tombol yang selalu berakhir 403 (bentuk #94); (b) KAMUS STATUS TIDAK DIFORK per
+                peran — StatusBadge tetap "Laporan Masuk" untuk semua; yang ditampilkan APA
+                YANG DITUNGGU, bukan nama status kedua; (c) keadaan "Menunggu Konfirmasi Admin"
+                itu WAJIB, bukan hiasan — tanpanya layar petugas atas laporan mentah jadi SEPI
+                dan keadaan yang tak dijelaskan terbaca sebagai fitur rusak (pelajaran
+                TASK_45/#94); (d) urgensi merah di dashboard petugas PINDAH dari TERLAPOR ke
+                `pending` — kalau TERLAPOR cuma dijadikan tidak-mendesak, tak ada satu pun misi
+                merah tersisa dan sinyalnya mati; (e) dua test gerbang STATUS (approve laporan
+                bukan-TERLAPOR, reject insiden resolved) WAJIB pakai admin — dengan petugas
+                keduanya hijau karena tertolak di gerbang PERAN, alasan yang keliru.
+                ENAM berkas test dipindah aktornya ke admin (approve/reject saja; resolve TETAP
+                petugas). Test 370 -> 375 passed (1470 assertions), Pint PASS, prettier PASS,
+                npm run build lulus. TANPA migrasi/route/perubahan skema/sentuhan DB.
+                RISIKO OPERASIONAL yang harus disadari: di wilayah yang TAK punya admin aktif,
+                laporan mentah tak akan pernah disiarkan — dulu petugas bisa menambalnya. Itu
+                konsekuensi langsung keputusan ini, bukan efek samping.
+                DUA TEMUAN BARU, sengaja TIDAK dikerjakan: #102 approve()/reject()/resolve()
+                mem-bypass Tenantable TANPA ensureWithinJurisdiction() padahal delapan aksi
+                tetangganya memanggilnya (tak terjangkau lewat UI karena show() sudah menyaring
+                wilayah — lubang tanpa pintu, tapi melanggar ATURAN EMAS #7); #103 permission
+                Spatie diseed lengkap tapi NOL yang mengeceknya di seluruh app/ & routes/,
+                sehingga /admin/assign-permission memperlihatkan centang yang tak berefek apa
+                pun — jangan pernah "membatasi peran" lewat layar itu.
+                TERDEPLOY 2026-09-01 @1ed163ff ke prod/staging/dev, BERSAMAAN dengan TASK_52
+                (rincian deploy ada di blok TASK_52 di atas). Konsekuensi yang mulai berlaku
+                di produksi sejak commit ini: di wilayah yang TAK punya admin aktif, laporan
+                mentah tak akan pernah disiarkan - dulu petugas bisa menambalnya.
+                SISA: verifikasi visual §6 file task.
+               TASK_50 (prompt/tasks/TASK_50_suara_notifikasi_bertingkat.md) — SELESAI (kode)
+                2026-08-28. Permintaan user: laporan yang BARU MASUK ke admin/petugas harus
+                berbunyi BEDA dari broadcast sesudah verifikasi; sirine hanya untuk broadcast;
+                konfirmasi OPD (PLN) juga dibedakan. Empat keputusan user dijawab lebih dulu:
+                payload tak dikenal TETAP sirine (gagal berisik lebih aman daripada gagal diam
+                untuk layanan kebakaran), notif balik ke PELAPOR pakai bunyi BAWAAN sistem,
+                nada DIBUAT SENDIRI, dan judul tahap masuk boleh diubah.
+                TIGA FAKTA YANG MENENTUKAN BENTUK PEKERJAANNYA, semuanya baru ketahuan setelah
+                menelusuri kode: (1) laporan masuk & broadcast memakai KELAS + JUDUL yang sama
+                persis (ReportController:448 vs ReportActionController:81), jadi keluhan user
+                tepat — tak ada satu pun jalan membedakannya; (2) di ANDROID suara melekat pada
+                notification channel, BUKAN payload, dan setelan channel PERMANEN — server tak
+                bisa mengirim "mainkan berkas X", ia hanya bisa mengirim penanda lalu wrapper
+                memilih channel, sehingga membedakan suara = MENAMBAH channel dan WAJIB rebuild
+                APK; komentar "Tanpa sirine: ini kabar koordinasi" di AgencyConfirmation cuma
+                benar untuk iOS; (3) aplikasi .exe yang dipakai admin TIDAK memakai FCM sama
+                sekali — ia mendengar Reverb di App.Models.User.{id}, sehingga konfirmasi PLN
+                TIDAK PERNAH tiba di layar Pusat Komando (via() kedua kelas Agency tanpa
+                'broadcast'). Ikutan yang ikut terbetulkan: `report_status` juga lewat channel
+                darurat, jadi WARGA PELAPOR selama ini dibangunkan sirine menembus mode senyap
+                tiap kali status laporannya berubah.
+                TIGA TINGKAT, pembedanya TINDAKAN yang diminta — bukan topik (ini yang menjaga
+                daftar suara tidak beranak-pinak): triase (nada NAIK, laporan belum diverifikasi)
+                → panggilan meluncur (SIRINE, tetap) → koordinasi (nada TURUN). Arah nada dipilih
+                karena terbaca tanpa dihafal. Sirine harus tetap berarti SATU hal saja; laporan
+                mentah bisa hoaks, dan sirine untuk yang belum tentu benar melatih orang
+                mengabaikan sirine — lalu broadcast sungguhan ikut terabaikan.
+                YANG MENGIKAT: (a) penanda tahap TIDAK BOLEH bernama `type` —
+                BroadcastNotificationCreated::broadcastWith() melakukan array_merge(data,
+                ['type' => nama kelas]), jadi kunci itu DITIMPA di jalur siaran; Android akan
+                melihat nilai kita dan .exe TIDAK, tanpa galat di mana pun. Namanya `alert_stage`;
+                (b) jeda antar-pengulangan TAK BISA diatur di Android (FLAG_INSISTENT mengulang
+                sampai notifikasi ditutup, tanpa kendali jumlah/jeda) sehingga jeda DIBANGUN KE
+                DALAM masuk.wav (2,4 dtk sunyi di ekor → berdenting tiap ~3,7 dtk); (c) Android
+                tak bisa "5×" — koordinasi berbunyi SEKALI di ponsel, 5× di .exe, disengaja
+                karena pendengarnya berbeda; (d) "berbunyi sampai diklik" tak cukup mengandalkan
+                klik: toast Windows menyingkir sendiri ke Pusat Tindakan, jadi suara juga
+                berhenti saat jendela utama dibuka/difokuskan, lewat tray, atau batas waktu.
+                Nada dibangkitkan docs/sounds/buat_nada.py (WAV 22,05 kHz — satu-satunya format
+                yang diterima Android, Chromium, DAN iOS tanpa konversi; ffmpeg tak terpasang).
+                Penjaga: NotificationSoundStageTest BARU (5 test) yang mengadu payload SIARAN
+                sungguhan, bukan toArray(); EMPAT di antaranya dibuktikan MERAH lewat sabotase
+                sengaja (penanda dinamai `type`, pemanggil lupa tahap, 'broadcast' dicabut).
+                Test 363 → 368 passed (1428 assertions), Pint PASS. npm run build TIDAK perlu
+                (nol berkas resources/js/ berubah). TANPA migrasi/route/perubahan skema.
+                DI LUAR REPO (keduanya tanpa git, catatan di memori): SisupitDesktop —
+                siren.html → suara.html, tabel TINGKAT, judul kini dari SERVER bukan ditulis
+                mati lagi di main.js; ketiga suara dibuktikan berbunyi lewat CDP, konfirmasi
+                tepat 5 putaran. SisupitWebView — tiga channel BARU di samping
+                emergency_channel_v4 yang TIDAK disentuh; gradlew assembleDebug LULUS, APK
+                15,0 MB, ketiga suara terbukti terpaket di res/raw/.
+                TERDEPLOY 2026-08-30 @3e0f8516 ke prod/staging/dev, ff dari a2370058, urutan
+                dev -> staging -> prod. DUA commit: af5c8947 kode + 3e0f8516 aset build.
+                SEKALIGUS memuat perbaikan ikutan yang selama ini belum ter-commit: #98 kontras
+                tautan popup Leaflet, rename badan hukum jadi "PT Tawarin Dimana Saja", seksi
+                nav "Bantuan & Legal" dihapus, dan label status hydrant warga yang terpotong
+                (`longStatusLabels`). TANPA migrasi (0 pending di ketiga env), TANPA
+                `composer install`, TANPA route cache — database/migrations/, routes/, dan
+                composer.lock tidak berubah di rentang ini. Verifikasi: ketiga domain / &
+                /hydrants 200; bundel BARU app-DhoOMq38.js 200 & LAMA app-DUcZWODb.js 404 di
+                ketiganya; POST /broadcasting/auth 403; nginx/php8.2-fpm/reverb/reverb-staging/
+                reverb-dev active; 0 berkas root-owned di public/build; 0 ERROR baru (ERROR
+                terakhir prod 2026-08-27 23:42 = gotcha T_NS_SEPARATOR sesi TASK_49, staging/dev
+                2026-08-26 = queue worker lama). Data prod utuh: 88 users / 30 reports /
+                51 hydrants / 6 pompas / 326 banjars / 1 berita acara. Nama penyedia dibuktikan
+                berbunyi "PT Tawarin Dimana Saja" di ketiga halaman live.
+                KEDUA WRAPPER DIRILIS 2026-09-01 & TERPASANG di prod/staging/dev.
+                APK: `gradlew assembleDebug` (JAVA_HOME wajib diisi ke jbr Android Studio -
+                shell non-IDE tak punya java di PATH), 14.202.482 B, versionName 1.1.3 /
+                versionCode 5, debug-signed; sirine.mp3 + masuk.wav + konfirmasi.wav dibuktikan
+                terpaket di res/raw/. NOMOR VERSI DINAIKKAN 2026-09-01 atas permintaan user
+                (1.1.1/vc3 -> 1.1.2/vc4): versionCode WAJIB ikut naik, sebab itulah bilangan
+                yang dipakai Android mengurutkan pembaruan - versionName cuma teks bagi manusia,
+                menaikkan namanya saja membuat pemasang menganggapnya build yang sama. APK-nya
+                menyusut 818 KB murni karena repack; diperiksa BUKAN kehilangan isi (entri 849
+                vs 849, nol entri hilang, ketiga suara tetap ada). Menimpa public/apk/sisupit.apk (LAMA 4,0 MB 15 Mei
+                dicadangkan ke C:\Users\Admin\backup-sisupit-wrapper\, md5 dicocokkan; di prod
+                ada APK Juni 13,5 MB unggahan tangan yang tak pernah ter-commit, dicadangkan ke
+                /root/backup-predeploy-20260831-170605/sisupit-apk-prod-LAMA.apk).
+                EXE: `npm run dist` SisupitDesktop, versi 1.0.1 (dinaikkan dari 1.0.0
+                2026-09-01 bersama APK), 80.485.941 B, NSIS per-user, TIDAK ditandatangani;
+                asar dibuktikan memuat suara.html. AWAS: `artifactName` memakai ${version},
+                jadi menaikkan versi MENGUBAH NAMA BERKAS dan otomatis mengubah URL unduhannya
+                (Sisupit-Desktop-Setup-1.0.1.exe); yang 1.0.0 dihapus dari ketiga env supaya
+                tak ada dua installer beredar, dan kini balas 404. Ditaruh di public/exe/ tapi
+                SENGAJA DI LUAR GIT (public/exe/.gitignore, pola docker/tiles/data/) supaya blob
+                80 MB tak masuk riwayat selamanya - dikirim ke tiap env lewat pscp SEKALI ke
+                /root lalu disalin ke tiga folder, md5 b8bd8604... cocok di ketiganya. Keduanya
+                terbukti terunduh: /apk/sisupit.apk content-length 14.202.482 dan
+                /exe/Sisupit-Desktop-Setup-1.0.1.exe content-length 80.485.941 (byte awal
+                "MZ") di ketiga domain, @cf90d8a8.
+                BUG DITEMUKAN & DIPERBAIKI 2026-09-01 (APK 1.1.3/vc5, @e71c356e), dilaporkan
+                user: dipasang sebagai PEMBARUAN, notifikasi broadcast ke petugas berbunyi BUKAN
+                sirine; instalasi BERSIH benar. Yang berbeda antara dua jalur itu cuma keadaan
+                yang BERTAHAN di perangkat = NotificationChannel. AKARNYA bukan di kode yang
+                berubah (blok channel darurat tak disentuh sejak sebelum TASK_50) melainkan
+                BENTUK URI suaranya: `android.resource://<pkg>/<ANGKA>` menyimpan ID resource
+                NUMERIK, dan angka itu digeser compiler tiap kali isi res/raw bertambah.
+                Dibuktikan dengan aapt2 atas APK yang benar-benar beredar: build Juni punya
+                raw/sirine = 0x7f0e0001, sedangkan di 1.1.2 angka itu milik raw/konfirmasi
+                (sirine geser ke 0x7f0e0003) - sebab masuk.wav & konfirmasi.wav duduk sebelum
+                "sirine" secara alfabet. Setelan channel PERMANEN, jadi perangkat yang meng-update
+                tetap memegang angka basi yang kini menunjuk NADA KOORDINASI.
+                FIX DUA LAPIS, keduanya wajib: (a) URI suara jadi ber-NAMA (`.../raw/sirine`) -
+                nama tak pernah bergeser, JANGAN dikembalikan ke R.raw.*; (b) ID channel dinaikkan
+                v4 -> v5 (+ ketiga channel TASK_50 v1 -> v2), sebab channel yang terlanjur salah
+                TIDAK BISA diperbaiki di tempat - menghapus lalu membuat ulang dengan ID YANG SAMA
+                justru MEMULIHKAN setelan lamanya (perilaku Android yang disengaja).
+                ID channel darurat ternyata ditulis di TIGA tempat (konstanta service, salinan
+                hardcoded di MainActivity, dan `default_notification_channel_id` di
+                AndroidManifest.xml) - ketiganya WAJIB naik bersamaan, satu tertinggal = FCM
+                menunjuk channel yang tak pernah dibuat lalu suaranya jatuh ke nada bawaan tanpa
+                galat. MainActivity kini MEMBACA konstanta service, tak lagi menyimpan salinan.
+                HARGANYA: penyesuaian per-channel milik pengguna di Setelan Android hilang
+                (preseden sama saat v2 & v3 dipensiunkan). Perangkat yang terlanjur memasang 1.1.2
+                IKUT SEMBUH lewat update ini, tanpa perlu uninstall.
+                SISA: verifikasi di PERANGKAT SUNGGUHAN - pasang APK & jalankan installer,
+                dengarkan ketiga nada, khususnya lewat jalur UPDATE (bukan cuma install bersih). FLAG_INSISTENT di Android O+ MASIH BELUM diuji; kalau
+                ternyata diabaikan, jatuhkan ke bunyi sekali dan catat, JANGAN bangun foreground
+                service.
+               TASK_49 (prompt/tasks/TASK_49_alamat_detail_yurisdiksi_berita_acara.md) — SELESAI
+                (kode) 2026-08-28. Satu pesan user, TUJUH butir; DUA di antaranya ternyata SUDAH
+                selesai sejak TASK_45 dan hanya diverifikasi ulang, tidak dikerjakan lagi:
+                "sumber informasi otomatis" & "OPD masuk tim atensi" (keduanya sudah dikunci
+                ReportResolutionTest). Kalau di layar belum terlihat, itu soal DEPLOY, bukan kode.
+                Empat keputusan ditanyakan lebih dulu & dijawab user: alamat DISIMPAN sebagai kolom
+                baru (bukan di-geocode ulang tiap buka halaman); penerima notif konfirmasi OPD
+                mengikuti aturan siaran yang SUDAH ADA; antrian petugas jadi "belum ada entri sama
+                sekali"; dan patokan tetap bernama "Patokan Lokasi" di kedua layar.
+                (A) ALAMAT DI DETAIL LAPORAN (temuan #95). Panel "Alamat Presisi" adalah KLAIM tanpa
+                penjamin, sebab `reports.address` memikul DUA makna: ReportController::store()
+                menulis patokan yang DIKETIK warga, lalu correctLocation() MENIMPA kolom yang sama
+                dengan `display_name` Nominatim. Akibatnya panel itu bisa kosong (laporan kebakaran
+                sah tanpa patokan — darurat-first), bisa berisi kalimat yang menunjuk tempat lain
+                dari pin tepat di atasnya, dan bisa berubah sendiri setelah responder mengoreksi pin
+                — ketiganya tanpa galat. Tak bisa diperbaiki di layar saja: alamat hasil geocode
+                TAK PERNAH sampai ke server (form sudah lama menghitungnya sebagai state
+                `fullAddress` sejak TASK_28, tapi useForm tak pernah mengirimnya). Kini kolom BARU
+                `reports.geo_address` — mesin menulis ke sana, manusia tetap memegang `address`;
+                detail jadi dua baris (Alamat / Patokan Lokasi). Laporan LAMA di-reverse-geocode
+                SEKALI saat halaman dibuka sebagai cadangan TAMPILAN, tidak ditulis balik ke DB.
+                TIGA hal yang mengikat: (1) payload IncidentLocationCorrected berganti nama
+                `address` → `geoAddress` — nama lama akan mendarat di tempat patokan di layar
+                penerima, persis bug ini; (2) SEMBILAN layar meringkas laporan jadi satu baris
+                "di mana" dengan membaca `address` langsung, dan begitu kolom itu berhenti ditimpa
+                alamat mesin sebagian akan menampilkan baris KOSONG tanpa ada yang sadar — aturannya
+                kini satu tempat, `Report::alamatTampil()` + `alamatLaporan()` di lib/utils.js;
+                (3) `fullAddress` BUKAN lagi state terpisah melainkan field form `geo_address`.
+                (B) YURISDIKSI PETUGAS OTOMATIS KABUPATEN. `defaultLevelFor()` di Users/Index.jsx
+                selalu memilih tingkat TERDALAM milik pengguna, sama untuk semua peran — akun warga
+                berdesa lengkap yang diangkat jadi petugas lahir ber-yurisdiksi SATU DESA, dan
+                yurisdiksi yang terlalu sempit tak pernah bergalat, ia cuma membuat daftar &
+                notifikasi petugas itu sepi tanpa alasan yang terlihat. Kini kamus
+                ROLE_DEFAULT_LEVEL (DATA, bukan cabang `if`). Ia USULAN, bukan kunci: dua penjaga
+                lama tetap berlaku lebih dulu (admin tak boleh memberi lebih luas dari dirinya;
+                pengguna harus punya kode wilayah sampai tingkat itu), dan bila kabupaten tak
+                tersedia ia jatuh ke perilaku lama. Nilainya diadu dengan enum TenantLevel di
+                server — bukan kamus lawan kamus (pelajaran #79).
+                (C) KONFIRMASI OPD (PLN) DIKABARKAN LEBIH LUAS. Dulu hanya admin+petugas sewilayah
+                + `report_officers`. Kini + relawan siaga dengan ceiling-nya SENDIRI
+                (KEY_NOTIFY_LEVEL_RELAWAN + is_standby, persis aturan approve() — menyalin ceiling
+                petugas ke sini diam-diam melebarkan jangkauan relawan di luar setelan admin),
+                + `report_helpers` (tabel ini TIDAK PERNAH dibaca di sini, sehingga relawan yang
+                sudah TIBA di TKP justru satu-satunya yang tak tahu listrik sudah padam), + PELAPOR.
+                Yang mencatat konfirmasi tetap tak dikabari tindakannya sendiri.
+                (D) BERITA ACARA: `volume_air` + `report_victims.kondisi` (Kondisi Korban).
+                `volume_air` sengaja TEKS BEBAS mengikuti preseden `kerugian` ("±1jt") — yang
+                ditulis petugas di lapangan "±3 tangki", bukan bilangan bersatuan tetap. `kondisi`
+                IKUT dihitung sebagai isi baris korban, kalau tidak korban yang baru diketahui
+                kondisinya (belum teridentifikasi namanya) dilewati diam-diam sebagai baris kosong.
+                (E) FINAL = ADMIN. Digerbangi di SERVER (`canFinalize()`), bukan cukup tombol yang
+                disembunyikan. IKUTAN WAJIB: antrian "Menunggu Berita Acara" di dashboard petugas
+                kini menyaring "belum ada entri SAMA SEKALI" — bentuk lama ("belum final") membuat
+                insiden yang sudah petugas isi menggantung selamanya menunggu admin, dan antrian
+                yang tak bisa dibereskan sendiri terbaca sebagai bug (pelajaran TASK_45/#94).
+                Prop `has_draft` ikut DIHAPUS: isi antrian kini selalu satu keadaan, dan flag yang
+                cuma punya satu nilai adalah klaim yang menunggu keliru.
+                Penjaga: ReportAddressPatokanTest BARU (6 test) + AssignRoleDefaultLevelTest BARU
+                (3) + 2 di ReportAgencyTest + 4 di ReportResolutionTest; SEBELAS dari lima belas
+                dibuktikan MERAH dulu. Dua test lama disesuaikan (bukan dilemahkan): aktor entri
+                final di append-only test jadi admin, dan antrian petugas menuntut item HILANG
+                setelah entri sementara.
+                Test 348 → 363 passed (1415 assertions), Pint PASS, npm run build lulus.
+                DUA MIGRASI aditif & nullable, TANPA backfill — sudah dijalankan di DB dev LOKAL
+                (laragon), BELUM di prod/staging/dev VPS. TANPA perubahan route/channel.
+                TERDEPLOY 2026-08-28 @09cbf9fd ke prod/staging/dev, ff dari ead12f76, SEKALIGUS
+                dengan TASK_46, TASK_47, TASK_48 & penyetelan style basemap yang selama ini belum
+                pernah ter-commit. DUA commit: ed47bebe kode + 09cbf9fd aset build. Urutan
+                dev → staging → prod. DUA MIGRASI aditif (geo_address; volume_air + kondisi) DONE
+                di ketiga env, 0 pending. Cadangan mysqldump ketiga DB lebih dulu di VPS
+                `/root/backup-predeploy-20260827-232724` (17 MB per env, "Dump completed").
+                `composer install` DILEWATI & route cache TIDAK dibangun ulang — routes/ dan
+                composer.lock TIDAK berubah di rentang ini (diperiksa dengan git diff --stat).
+                docker/tiles/data/ (1,5 GB: mbtiles, pbf, shapefile pantai, font) TIDAK ikut —
+                dikecualikan .gitignore-nya sendiri; hanya 14 berkas skrip/style yang masuk repo.
+                Verifikasi: data prod UTUH (72 users / 22 reports / 51 hydrants / 320 banjars /
+                1 berita acara, sama persis pra-migrasi); ketiga domain `/` & `/hydrants` 200;
+                bundel BARU Show-CsTXjJ3Y.js 200 & LAMA Show-Dj9hYIh5.js 404 di ketiganya; tile
+                /tiles/styles/sisupit/… 200; POST /broadcasting/auth 403; nginx/php8.2-fpm/reverb/
+                reverb-staging/reverb-dev active + container tileserver healthy; 0 berkas
+                root-owned pasca-chown; 0 ERROR baru (ERROR terakhir ketiga env 2026-08-26 06:07 =
+                queue worker "Connection refused" lama). Ketiga kolom baru & Report::alamatTampil()
+                diperiksa HIDUP di prod lewat skrip bootstrap Laravel.
+                CATATAN DATA: 22 laporan prod semuanya ber-`geo_address` KOSONG (tanpa backfill,
+                memang begitu desainnya) dan 8 di antaranya juga tanpa patokan — kedelapan itu
+                akan mengandalkan cadangan reverse-geocode di layar saat detailnya dibuka, jadi
+                pastikan Nominatim (127.0.0.1:8088) hidup. Laporan BARU langsung terisi sendiri.
+                GOTCHA BARU: `php artisan tinker <berkas.php>` MENGGANTUNG menunggu stdin lewat
+                plink (bukan gagal — ia diam sampai timeout) dan `--execute` dengan nama kelas
+                ber-namespace hancur oleh kutipan berlapis plink→bash→PHP ("T_NS_SEPARATOR").
+                Yang berhasil: skrip PHP berdiri sendiri yang me-require vendor/autoload.php +
+                bootstrap/app.php, di-pscp lalu dijalankan `php` biasa.
+                SISA: verifikasi manual §6 file task (di browser).
+               TASK_48 (prompt/tasks/TASK_48_status_ditolak_verifikasi_laporan.md) — SELESAI
+                (kode) 2026-08-27. Laporan user: laporan yang DITOLAK muncul dengan nama status
+                yang salah di Verifikasi Laporan, plus permintaan chip filter "Ditolak".
+                AKAR (#94): Admin/Reports/Index.jsx memelihara kamus status SENDIRI
+                (`STATUS_META`) — ia ada karena butuh warna pin/titik/legenda yang tak
+                disediakan Components/StatusBadge.jsx — dan kamus itu berhenti di EMPAT status;
+                `ditolak` lahir di #24 tapi tak pernah menyusul ke sini. Karena markerStyle()
+                dan StatusBadge lokal sama-sama bercadangan `|| STATUS_META.pending`, status tak
+                dikenal TIDAK tampil apa adanya melainkan MENGAKU JADI STATUS LAIN: laporan yang
+                sudah ditolak berlencana KUNING "Laporan Terverifikasi" berpin kuning, tanpa
+                galat, tanpa gejala lain. Bentuk yang sama dengan #90 — cadangan sebuah kamus
+                adalah KLAIM, bukan "tidak dikenal".
+                LAYAR KEDUA berakar sama, ikut diperbaiki atas persetujuan user (dipilih dari
+                dua opsi): Monitoring/Map.jsx `REPORT_STATUS` juga berhenti di empat status,
+                padahal MonitoringMapController MEMANG mengirim laporan `ditolak` dan
+                `reportHidden` menyembunyikannya sejak awal. Chip status dirender DARI daftar
+                itu → tak ada saklar untuk menyalakannya, sehingga kejadian yang ditolak TAK
+                PERNAH bisa ditampilkan di Peta Pemantauan meski datanya sampai ke browser;
+                komentar di berkas itu yang berbunyi "tetap bisa dinyalakan lewat chip status"
+                sudah lama tidak benar.
+                SISI SERVER NOL PERUBAHAN: Admin\ReportController::index sudah
+                `where('status', $status)` generik dan ReportsExport::STATUS_LABELS sudah punya
+                'ditolak' => 'Ditolak' sejak TASK_39 — filter DAN Export Excel langsung benar
+                begitu chipnya ada.
+                YANG MENGIKAT: chip "Ditolak" TIDAK ditampilkan ke pemantau (pejabat/relawan,
+                canVerify=false). Mereka memakai halaman yang SAMA lewat front.reports.index,
+                dan ReportController::index menyaring whereNotIn('status',['TERLAPOR','ditolak'])
+                — chip yang selalu memulangkan daftar kosong terbaca sebagai bug (pelajaran
+                TASK_45). Keduanya kini didaftar SEKALI di `MONITOR_HIDDEN_STATUSES` yang dipakai
+                pill MAUPUN legenda; jangan dipecah lagi jadi dua saringan.
+                Penjaga: ReportStatusDictionaryTest BARU (4 test, TIGA dibuktikan merah dulu).
+                Yang pertama sengaja TIDAK mengadu kamus dengan kamus (pelajaran #79): ia
+                MENOLAK laporan lewat endpoint sungguhan, membaca status yang benar-benar
+                tertulis di kolomnya, lalu menuntut kedua kamus layar mengenal string itu. Kamus
+                ekspor dibaca lewat refleksi — konstantanya private dan visibilitas produksi
+                TIDAK dilonggarkan demi test.
+                Daftar "SEMUA peta status" di CONVENTIONS.md ikut dilengkapi: kedua kamus ini
+                dulu tak tercantum di sana, dan itulah sebabnya keduanya menyimpang tanpa ada
+                yang sadar.
+                Test 344 → 348 passed (1350 assertions), Pint PASS, npm run build lulus. TANPA
+                migrasi/route/perubahan skema/sentuhan server.
+                SISA: verifikasi visual §6 file task + deploy (frontend saja).
+               TASK_47 (prompt/tasks/TASK_47_tab_jenis_kejadian_lapor.md) — SELESAI (kode)
+                2026-08-27. Permintaan user: pemilih jenis kejadian di /reports/create dipecah
+                DUA TAB berikon — Kebakaran (aktif otomatis, tombol pilihan seperti sekarang +
+                tombol "Lainnya" yang membuka isian teks) dan Non Kebakaran (langsung isian
+                teks). Ikon IconFiretruck & IconAmbulance; bentuk tab & kelas trigger disalin
+                dari Pages/Info/Terms.jsx — satu-satunya pemakai Tabs yang sudah ada, supaya
+                tab di sini tidak jadi dialek kedua.
+                YANG MENENTUKAN BENTUK PEKERJAANNYA (ditanyakan & disetujui user lebih dulu):
+                tombol "Lainnya" DI DALAM tab kebakaran TIDAK BISA memakai nilai `lainnya`
+                yang sudah ada, sebab satu nilai itu mengikat TIGA perilaku — ReportRequest
+                mewajibkan foto+deskripsi+patokan untuknya, ReportsExport mencetak labelnya
+                "Bukan Kebakaran" di rekap pimpinan, dan Agency::recommendedIdsFor() sengaja
+                tak merekomendasikan OPD untuknya. Memakai ulang nilai itu = kebakaran gudang
+                tercetak "Bukan Kebakaran" di dokumen resmi DAN warganya diwajibkan memotret
+                api. Karena itu jenis BARU `kebakaran_lainnya` (Report::INCIDENT_TYPES), plus
+                konstanta BARU Report::FIRE_INCIDENT_TYPES supaya "jenis kebakaran mana saja"
+                ditulis satu tempat (AgencySeeder dulu menyalinnya tangan).
+                DUA hal yang mengikat: (1) aturan validasi di ReportRequest SENGAJA tidak
+                diubah — pembandingnya tetap SATU nilai (`=== 'lainnya'`), bukan "bukan salah
+                satu jenis kebakaran", karena incident_type nullable dan kosong tak boleh
+                mendadak berarti "wajib foto" bagi laporan lama/klien lama; `kebakaran_lainnya`
+                otomatis jatuh ke aturan kebakaran. (2) Isian judul bebas ditulis SEKALI di
+                luar TabsContent (placeholder-nya saja yang beda per tab) supaya kedua tab tak
+                memelihara isian kembar.
+                Penjaga: ReportIncidentTypeTabTest BARU (4 test, KEEMPATNYA dibuktikan merah
+                dulu), termasuk parity daftar jenis di form vs Rule::in server dan parity label
+                (jenis tanpa label tercetak mentah di Excel — pelajaran #39).
+                Test 340 → 344 passed (1306 assertions), Pint PASS, prettier PASS, npm run
+                build lulus. TANPA migrasi/route/perubahan skema.
+                SISA: verifikasi visual §6 file task + LANGKAH PASCA-DEPLOY §7 — kolom
+                agencies.default_incident_types itu DATA, jadi OPD yang sudah ada di
+                prod/staging/dev TIDAK akan tercentang otomatis untuk "Kebakaran Lainnya"
+                sampai dicentang ulang lewat /admin/agencies, satu kali per environment.
+                SENGAJA tidak ditambal cabang kode yang mengenali nama jenis (aturan TASK_27).
+               TASK_46 (prompt/tasks/TASK_46_basemap_self_host_tileserver.md) — SELESAI &
+                TERPASANG 2026-08-27. Laporan user: "di maps muncul api key required carto.com".
+                BUKAN galat aplikasi — CARTO mulai MENCAP setiap tile-nya ("API KEY REQUIRED /
+                carto.com/basemaps/apikey"); tile tetap dikirim HTTP 200 berisi peta yang benar,
+                cuma bertulisan melintang. Karena itu nol gejala teknis: tak ada galat, tak ada
+                tile gagal muat, tak ada baris log. AKAR: `MAP_TILE_URL` TIDAK PERNAH diisi di
+                environment mana pun, jadi ke-14 peta jatuh ke cadangan CARTO di
+                config/services.php (kembarannya CARTO_VOYAGER di lib/utils.js) — dan ketiga
+                domain live terbukti menyajikan URL itu. PELAJARAN YANG LEBIH BESAR DARI BUG-NYA:
+                nilai cadangan yang menunjuk LAYANAN PIHAK KETIGA TANPA AKUN bukan jaring
+                pengaman, melainkan ketergantungan tak tercatat — selama env tak diisi,
+                "sementara" itu jadi konfigurasi produksi yang sesungguhnya, dan perubahan
+                kebijakan pihak lain mengubah semua peta bersamaan. Mekanisme runtime-inject
+                (TASK_25) sendiri bekerja BENAR; yang keliru isi cadangannya.
+                FIX (keputusan user dari 4 pilihan): basemap DI-SELF-HOST. `docker/tiles/` BARU
+                (TileServer-GL + vector tiles hasil tilemaker dari bali.osm.pbf MILIK NOMINATIM,
+                bbox SAMA dengan extract-bali.ps1 supaya cakupan peta/geocoding/rute tak
+                berbeda-beda; style OSM Bright + font Noto Sans), sepola docker/nominatim &
+                docker/osrm. Cadangan di config & utils.js dipindah ke tile OSM resmi — BUKAN
+                sumber produksi, hanya supaya env yang lupa diisi menampilkan peta terbaca, bukan
+                peta bercap atau layar kosong.
+                EMPAT hal yang mengikat: (1) tile ditarik BROWSER, bukan server — jadi beda dari
+                Nominatim/OSRM yang cukup loopback, tile server WAJIB publik; di VPS disajikan
+                Nginx di /tiles/ dengan proxy_cache + limit_except GET HEAD. (2) TANPA
+                `data/fonts/`, tile TETAP tergambar rapi TAPI TANPA satu pun nama jalan/desa, dan
+                tileserver TIDAK melaporkan galat apa pun — "peta polos" = periksa FONT, bukan
+                style; style bawaan image (basic-preview) juga begitu. (3) tilemaker TANPA --bbox
+                berhenti gagal TAPI ber-EXIT CODE 0, jadi skrip memeriksa keberadaan berkas
+                hasilnya, bukan status keluarnya. (4) Data vektor sampai z14; zoom lebih jauh
+                dioverzoom dan tetap tajam (diuji s/d z19) — jangan naikkan maxzoom "supaya lebih
+                tajam", ukuran mbtiles meledak tanpa perbaikan yang terlihat.
+                DUA KEJUTAN DI SERVER: port 8080/8081/8082 SUDAH DIPAKAI tiga instance Reverb →
+                tile server memakai 8083 dan diikat 127.0.0.1 saja; dan image tileserver-gl tak
+                membawa wget MAUPUN curl sehingga healthcheck-nya gagal selamanya (container
+                "unhealthy" padahal melayani — status palsu yang menyesatkan) → diganti
+                `node -e "fetch(...)"`.
+                Ikutan yang ikut dibetulkan: dari 14 pemanggilan L.tileLayer hanya 5 yang
+                memasang `attribution`; kesembilan sisanya kini memakai string yang PERSIS sama
+                (data tile turunan OSM/ODbL mewajibkan atribusi).
+                Test tetap 340 passed (1284 assertions), Pint PASS, npm run build lulus. TANPA
+                migrasi/route/perubahan skema/sentuhan DB.
+                TERPASANG di prod/staging/dev 2026-08-27: /opt/geo/tiles, location /tiles/ di
+                ketiga situs (cadangan *.bak-tiles-*), proxy_cache_path sebagai berkas BARU
+                /etc/nginx/conf.d/sisupit-tiles-cache.conf (nginx.conf TIDAK disunting — ia sudah
+                meng-include conf.d di dalam http{}), MAP_TILE_URL di ketiga .env menunjuk
+                DOMAINNYA SENDIRI. TANPA deploy kode, TANPA rebuild — persis yang dijanjikan
+                desain runtime-inject TASK_25. Verifikasi: ketiga domain 0 rujukan cartocdn,
+                tile 200 (36.715 B), @2x 200, POST /tiles/ 403, x-tile-cache HIT, kelima service
+                active, 0 ERROR baru. PERUBAHAN KODE BELUM DI-COMMIT & belum dideploy (sengaja —
+                perbaikan petanya murni env var); ikutkan rilis berikutnya.
+                TEMUAN BARU #93 OPEN (sengaja tidak dikerjakan): resources/js/lib/utils.js memuat
+                BYTE NUL MENTAH di dalam regex AKSARA_TAK_TERBACA (TASK_43) — itu sebabnya grep
+                memperlakukannya sebagai berkas biner. Kalau ada tool yang membuang byte itu,
+                regexnya tetap SAH tapi berubah makna dan alamatTerbaca() menyaring alamat secara
+                keliru tanpa gejala. Fix satu baris + test; menunggu keputusan user.
+               TASK_45 (prompt/tasks/TASK_45_berita_acara_otomatis_dan_akun_opd.md) — SELESAI
+                (kode) 2026-08-27. Satu pesan user, LIMA permintaan; dua keputusan ditanyakan
+                lebih dulu (laporan yang diketik operator: kolom sumber DIKOSONGKAN, bukan diisi
+                kalimat umum; OPD di tim atensi DITANDAI "(OPD)").
+                (A) SUMBER INFORMASI BERITA ACARA OTOMATIS. Cabang prefill untuk berita acara
+                PERTAMA tak pernah menyertakan sumber_informasi. Sinyal pembeda yang TERSIMPAN
+                cuma satu: PERAN pemilik reports.user_id — ReportController::store() selalu
+                menulis auth()->id(), jadi laporan yang diketik operator (alur telepon TASK_28)
+                ber-user_id operator itu sendiri. Warga lapor lewat aplikasi → terisi;
+                operator input manual → SENGAJA KOSONG (sumber sebenarnya cuma operator yang
+                tahu, dan kalimat umum yang terisi otomatis cenderung dibiarkan apa adanya).
+                Kalimatnya jadi ReportResolution::SUMBER_APLIKASI — dulu ditulis mati di
+                SeedDemoIncident saja, dan kalimat yang ditulis dua kali menyimpang tanpa
+                gejala (pelajaran #80).
+                (B) OPD MASUK TIM ATENSI, bertanda "(OPD)" supaya mitra luar bisa dibedakan dari
+                armada & personel Damkar di dokumen resmi. Namanya dibaca dari kolom SNAPSHOT
+                report_agencies.agency_name, BUKAN master agencies — berita acara dokumen
+                historis, isinya tak boleh berubah saat master OPD di-rename (aturan yang sama
+                sudah berlaku di ReportsExport). Dikunci test.
+                (C) PROFIL SALAH PERAN (temuan #90). Profile/Edit.jsx memakai tangga tiga
+                cabang relawan → admin/petugas → "Anggota Masyarakat". Datanya tak pernah
+                kurang (auth.user.role membawa SEMUA peran); yang salah bentuk kodenya —
+                cabang terakhir sebuah tangga bukan "tidak dikenal", melainkan sebuah KLAIM.
+                Karena itu BUKAN cuma opd yang salah: pejabat DAN superadmin pun berbunyi
+                "Anggota Masyarakat" sejak peran-peran itu lahir. Kini kamus ROLE_LABELS +
+                roleLabel()/roleTone() di lib/utils.js (pola facilityStatusLabel). TIGA hal
+                yang mengikat: urutan daftarnya BERARTI (akun bisa berperan ganda, yang tampil
+                yang paling menentukan wewenangnya); peran tak dikenal berbunyi "Peran belum
+                ditetapkan" — JANGAN dikembalikan jadi "Anggota Masyarakat", klaim itulah
+                bugnya; lencana perisai ikut "bukan warga biasa", bukan daftar dua peran.
+                (D) RIWAYAT OPD SELALU KOSONG (temuan #91). ReportController::index() cuma
+                punya dua jalur & keduanya mustahil berisi bagi OPD: tab "Riwayat Saya"
+                menyaring user_id (OPD tak pernah membuat laporan) dan tab "Semua Laporan"
+                ber-Tenantable sedangkan akun OPD sengaja TANPA kode wilayah (#44) →
+                whereRaw('1 = 0'). Kini ada agencyIndex(): insiden yang INSTANSINYA diminta
+                membantu, gerbang keanggotaan report_agencies — pola yang SAMA dengan show()
+                ($isAgencyPartner) & dashboard OPD. withoutGlobalScopes() wajib (permintaan
+                bisa datang dari kelurahan mana pun) sehingga re-check ownership-nya agency_id
+                akun itu (ATURAN EMAS #7); akun OPD TANPA instansi melihat KOSONG, bukan
+                semuanya. Kedua tab disembunyikan lewat prop scope:'agency' — tab yang selalu
+                memulangkan daftar kosong terbaca sebagai bug.
+                (E) UBAH PERAN JADI OPD (temuan #89). Frontend & assignRole() SUDAH lengkap
+                sejak TASK_27 (pemilih instansi, validasi agency_id wajib, pelepasan tautan
+                saat peran pindah); yang menghalangi satu nama di satu array —
+                assignableRoleNames() untuk admin non-superadmin tak memuat 'opd'. Janggal,
+                sebab admin kabupaten justru pemegang /admin/agencies: bisa MENDAFTARKAN
+                instansinya tapi tak bisa MEMBUATKAN akunnya. BUKAN eskalasi: opd di luar
+                User::STAFF_ROLES, dan penautan instansinya dijaga Agency::whereKey() yang
+                ber-Tenantable. JANGAN memasukkan admin/superadmin ke daftar itu.
+                Penjaga: RoleLabelParityTest BARU (mengadu ROLE_LABELS dengan peran yang NYATA
+                ada di tabel roles, lalu memastikan Profile/Edit tak menyusun namanya sendiri —
+                pola MobileNavParityTest), + 3 test di masing-masing ReportResolutionTest,
+                OpdDashboardTest, UserAssignRoleTest. SEPULUH dari sebelas dibuktikan merah
+                dulu; yang ke-11 penjaga regresi (kode lama pun memulangkan kosong untuk OPD
+                tanpa instansi, tapi karena alasan keliru).
+                Test 329 → 340 passed (1284 assertions), Pint PASS, npm run build lulus.
+                TANPA migrasi/route/perubahan skema. SISA: verifikasi manual §6 file task.
+                TERDEPLOY 2026-08-27 @221ae7ed ke prod/staging/dev, SEKALIGUS dengan TASK_44.
+               TASK_44 (prompt/tasks/TASK_44_koreksi_pin_peta_detail_jejak_penutup.md) — SELESAI
+                (kode) 2026-08-27. Satu pesan user, tiga permintaan; dua keputusan cakupan
+                ditanyakan lebih dulu (klik marker → popup + tombol, bukan langsung pindah;
+                penutup tampil di detail + ekspor + daftar, sekaligus catat penolaknya).
+                (A) PIN KOREKSI LOKASI MELOMPAT BALIK (temuan #86). Dua lapis di
+                Front/Reports/Show.jsx: effect peta MEMBONGKAR-PASANG marker TKP tiap redraw
+                (remove() lalu bangun ulang dari incidentLocation), dan posisi hasil geseran
+                cuma hidup di `pendingPosition` — state yang TAK PERNAH ikut menggambar
+                marker, ia baru dibaca saat tombol Konfirmasi ditekan. Pemicunya justru orang
+                yang sedang mengoreksi: responder ber-status `arrived` masih
+                isCurrentlyResponding, jadi watchPosition MILIKNYA memanggil setOfficerList
+                tiap tik GPS → officerList ada di dependensi effect → pin kembali ke titik
+                asal. Tanpa galat, tanpa gejala lain. Kini marker DIPAKAI ULANG antar redraw
+                (pola renderMarker yang memang sudah begitu untuk responder) dan posisinya
+                `pendingPosition ?? incidentLocation`. DUA hal yang mengikat: dragstart/dragend
+                menjaga isDraggingIncidentRef sehingga redraw TIDAK memanggil setLatLng selama
+                pin dipegang (tanpa ini pin direnggut persis saat jari masih menahannya), dan
+                `pendingPosition` SENGAJA di luar dependensi effect — effect itu melepas &
+                menyambung ulang channel Echo serta menggambar ulang rute OSRM. setIcon() juga
+                tak lagi dipanggil tiap redraw (ia membangun ulang elemen DOM marker).
+                (B) PETA PEMANTAUAN TAK PUNYA JALAN KE DETAIL (temuan #87): marker kejadian
+                cuma bindPopup. Bukan kekurangan data — MonitoringMapController sudah lama
+                mengirim `id`. Kini popup punya tombol "Lihat Detail". Bentuknya `<a href>`
+                ASLI, bukan hanya handler: popup Leaflet itu HTML mentah sehingga <Link>
+                Inertia tak bisa dipakai, dan bila handler popupopen gagal terpasang tautannya
+                tetap berfungsi (muat ulang penuh); handler hanya menaikkannya jadi
+                router.visit(). Tak ada permukaan otorisasi baru — halaman itu sudah bergerbang
+                petugas|admin|superadmin|pejabat dan ter-scope yurisdiksi, sama dengan
+                ReportController::show.
+                (C) PENUTUP INSIDEN TAK BERJEJAK (temuan #88): resolve() hanya menulis
+                status='resolved' — pertanyaan "siapa yang menutup insiden ini?" TAK BISA
+                dijawab dari data mana pun. reject() setengah jalan sejak #24: menyimpan KAPAN
+                & KENAPA, tidak SIAPA. Kini migrasi ADITIF resolved_by/resolved_at/rejected_by
+                (nullable, nullOnDelete), tampil di halaman detail + daftar /admin/reports +
+                Export Excel (32 → 35 kolom, LAST_COLUMN AF → AI). EMPAT hal yang mengikat:
+                (1) relasinya bernama resolver()/rejector(), BUKAN resolvedBy()/rejectedBy() —
+                model Report dikirim UTUH ke halaman detail dan relasi diserialisasi
+                ter-snake_case, jadi `resolvedBy` akan MENIMPA kolom `resolved_by` di JSON
+                (angka berubah jadi objek tanpa galat); pola yang diikuti
+                ReportResolution::creator(); (2) resolved_at BUKAN kembaran "Jam Selesai" di
+                rekap — yang itu dari finished_at responder terakhir, yang ini saat Pusat
+                Komando menutup, keduanya bisa berjarak jauh; (3) TANPA backfill, laporan lama
+                berbunyi "tidak tercatat"/"-" alih-alih mengarang nama; (4) audiens jejaknya
+                staf/pejabat/relawan lewat satu gerbang canSeeClosureActor — kartu "Laporan
+                Ditolak" sendiri terbuka untuk pelapor, jadi menampilkan nama petugas penolak
+                KE PELAPOR adalah keputusan tersendiri; ubah di satu tempat itu bila
+                dikehendaki. Penjaga: ReportClosureActorTest (6 test, KEENAMNYA dibuktikan
+                merah dulu), salah satunya mengunci panjang TIGA daftar berkas ekspor
+                (heading, nilai map(), columnWidths) supaya penambahan kolom berikutnya tak
+                bisa lolos setengah jalan & menggeser seluruh rekap tanpa galat.
+                Test 323 → 329 passed (1253 assertions), Pint PASS, npm run build lulus.
+                SISA: verifikasi manual §6 file task + jalankan migrasi di dev/staging/prod
+                (aditif; route & channel TIDAK berubah jadi route cache tak wajib dibangun).
+                TERDEPLOY 2026-08-27 @221ae7ed ke prod/staging/dev (dua commit: 43b676a0 kode,
+                221ae7ed aset build), urutan dev → staging → prod. Migrasi closure-actor
+                dijalankan di ketiga env (DONE, 0 pending); cadangan mysqldump ketiga DB di VPS
+                `/root/backup-predeploy-20260827-061314` (17 MB per env, "Dump completed").
+                Data prod TIDAK berubah (72 users / 19 reports / 51 hydrants / 320 banjars, sama
+                persis pra-migrasi). Verifikasi: ketiga domain HTTP 200, bundel BARU
+                Map-CsHP4DWU.js 200 & bundel LAMA Map-Slx_bSFP.js 404 di ketiganya, POST
+                /broadcasting/auth 403, nginx/php8.2-fpm/reverb/reverb-staging/reverb-dev active,
+                0 berkas root-owned pasca-chown, dan 0 ERROR baru (ERROR terakhir di ketiga env
+                bertanggal 2026-08-26 06:07 = queue worker "Connection refused" lama).
+                Route cache TIDAK dibangun ulang — routes/ tak berubah di rentang ini.
+                `composer install` dilewati (composer.json & .lock tak berubah).
+               TASK_43 (prompt/tasks/TASK_43_dashboard_realtime_alamat_thanks.md) — SELESAI
+                (kode) 2026-08-27. Satu pesan user, tiga permintaan; dua keputusan cakupan
+                ditanyakan dan dijawab "ya keduanya".
+                (A) DASHBOARD TAK PERNAH AUTO-UPDATE (temuan #84). Dua lapis: tak ada siaran
+                sama sekali saat laporan DIBUAT (ReportStatusChanged baru lahir pada transisi
+                BERIKUTNYA), dan tak ada channel yang bisa didengar dashboard —
+                report-tracking.{id} itu channel PER-LAPORAN, untuk mendengarnya harus sudah
+                tahu id-nya, padahal yang ditunggu dashboard justru laporan yang belum ada.
+                Kini ada event ReportFeedChanged + channel per tingkat wilayah
+                (reports.{province|city|district|village}.{kode}, reports.all,
+                reports.agency.{id}). EMPAT hal yang mengikat: (1) saringan dashboard dan nama
+                channel WAJIB satu rumus — rumus "tingkat tersempit menang" yang dulu ditulis
+                ulang di 4 tempat kini jadi User::narrowestJurisdictionColumn(), sebab kalau
+                keduanya diturunkan sendiri-sendiri dashboard DIAM saat ada kejadian yang
+                sebenarnya masuk daftarnya, tanpa gejala (bentuk #60/#78); (2) channels.php
+                TIDAK menulis aturannya lagi, ia membandingkan permintaan ke
+                User::reportFeedChannel(); (3) payloadnya ABA-ABA (reportId+status saja) karena
+                penerimanya satu wilayah penuh — yang menampilkan datanya tetap server lewat
+                router.reload(); (4) JANGAN digabung ke ReportStatusChanged: satu payload
+                berlaku untuk semua channel sebuah event, dan payload itu memuat ALASAN
+                PENOLAKAN — menggabungkannya = menyiarkan alasan penolakan ke seluruh wilayah.
+                Superadmin selalu reports.all meski kolom wilayahnya terisi (dashboardnya
+                memang tak disaring); kolom kosong tetap berarti DUA hal (#56): staf=nasional,
+                non-staf=null. OPD memakai channel instansi, bukan wilayah (#44). Halaman
+                warga/relawan MENGGABUNGKAN halaman pertama yang segar (bukan mengganti daftar)
+                dan menembak route('dashboard') alih-alih router.reload(), karena setelah "muat
+                lebih banyak" URL sudah pindah ke ?page=N. SISA RISIKO: dispatch ada di 6 titik
+                (mengikuti pola ReportStatusChanged yang memang 5 titik) — transisi status BARU
+                yang lupa menyiarkannya bikin dashboard diam untuk transisi itu.
+                (B) HURUF KOREA DI FORM LAPOR (adendum #83). Penilaian TASK_42 bahwa "layar lain
+                tidak terdampak" KELIRU: Front/Reports/Create.jsx menaruh display_name mentah di
+                panel "Alamat Lengkap (otomatis)" + tombol "Salin ke patokan" + dropdown, dan
+                ENAM form fasilitas admin menyimpannya ke kolom `address` sehingga aksaranya
+                MASUK KE DATA. Kini satu helper alamatTerbaca() di lib/utils.js membuang SEGMEN
+                (dipisah koma) beraksara di luar rentang Latin; "Café Romano" tetap utuh.
+                CompleteProfile SENGAJA tidak ikut disaring — di sana yang benar bukan "alamat
+                yang disaring" melainkan nama wilayah hasil pencocokan (TASK_42).
+                GeocodeController TETAP tak disentuh.
+                (C) THANKS BERHENTI DI LANGKAH PERTAMA (temuan #85): tahap aktifnya dipaku
+                `i === 0` dan controller bahkan tak mengirim kolom status, jadi laporan yang
+                sudah selesai pun berbunyi "Laporan Masuk". Kini status dikirim, stepper dibaca
+                dari STEP_STATUS yang sejajar dengan STEPS, `ditolak` jadi keterangan tersendiri
+                (jalan buntu, bukan langkah kelima), dan perubahannya masuk lewat channel &
+                event yang SUDAH ADA — tanpa permukaan otorisasi baru.
+                Test 310 → 323 passed (1234 assertions), 13 penjaga baru di
+                ReportFeedRealtimeTest, EMPAT di antaranya dibuktikan merah dulu. Pint PASS,
+                npm run build lulus. Tanpa migrasi/route/perubahan skema.
+                CATATAN: saat mengerjakan ini saya sempat menjalankan `git checkout` pada
+                Pages/Admin/Dashboard.jsx dan itu menghapus perubahan TASK_41 yang belum
+                ter-commit di sana (label "Siaga"/"Non Aktif"); sudah dipulihkan & diperiksa
+                simetris dengan kembarannya. JANGAN pakai git checkout di repo ini selama
+                masih banyak perubahan belum ter-commit.
+                SISA: verifikasi manual §6 file task (butuh dua browser + Reverb hidup).
+                TERDEPLOY 2026-08-27 @2f8a676e ke prod/staging/dev, SEKALIGUS dengan TASK_39,
+                TASK_40, TASK_41, dan TASK_42 yang selama ini belum pernah ter-commit — kelimanya
+                naik dalam satu rentang commit 3efe158d..2f8a676e (8 commit, dipecah per task).
+                Urutannya dev → staging → prod. TIGA MIGRASI baru (banjars, banjar_id, status)
+                dijalankan di ketiga env, semuanya ADITIF sehingga tak ada risiko kehilangan data;
+                cadangan mysqldump ketiga DB tetap diambil lebih dulu di VPS
+                `/root/backup-predeploy-20260827-010411`. `composer install` DILEWATI (composer.json
+                & .lock tak berubah di rentang ini). Verifikasi sesudahnya: data prod TIDAK berubah
+                (59 users / 8 reports / 51 hydrants / 6 pompas / 0 hydrant_wargas; banjars baru = 0
+                baris — MASTER BANJAR PROD & STAGING MASIH KOSONG, jadi saklar kewajiban banjar
+                belum boleh dinyalakan di sana), ketiga domain HTTP 200, POST /broadcasting/auth
+                403 di ketiganya (terdaftar & menolak yang tak berhak — BUKAN 404 seperti #55),
+                REVERB_APP_KEY terisi di ketiga .env, ketiga service reverb aktif, chunk
+                use-report-feed-*.js hadir di ketiga env, dan manifest produksi menunjuk 164 entri
+                tanpa satu pun berkas hilang. Route cache DIBANGUN ULANG di ketiga env — wajib,
+                karena rentang ini mengubah routes/web.php (rute banjar) dan routes/channels.php.
+               TASK_42 (prompt/tasks/TASK_42_aksara_asing_deteksi_lokasi.md) — SELESAI (kode)
+                2026-08-26. Laporan user: "saat pertama daftar ada tulisan korea di otomatis
+                detect lokasi saat akan mengisi yurisdiksi". Layar Lengkapi Profil menaruh
+                `display_name` MENTAH dari Nominatim ke kalimat "Lokasi terdeteksi di sekitar
+                <X>. Wilayah di bawah sudah terisi otomatis" — dan `display_name` SELALU
+                diawali objek terdekat, yang namanya adalah tag `name` OSM apa adanya, ditulis
+                kontributornya dalam aksara apa pun. Nyata di data kita sendiri di koridor
+                Kuta–Pemogan: "Рынок, Jalan Pandawa…", "エアアジア, Sunset Road…",
+                "Длинная улица всякого, Jalan Raya Legian…". PENTING: `accept-language=id`
+                yang sudah dikirim GeocodeController TIDAK bisa menolong — parameter itu hanya
+                memilih di antara varian `name:<lang>`, tak pernah menyentuh tag `name` utama.
+                Jadi JANGAN "perbaiki" ini di GeocodeController: memfilter aksara di sisi server
+                merusak lima layar lain demi satu layar. Fix ada di pemakai datanya: banner kini
+                dirangkai dari NAMA WILAYAH HASIL PENCOCOKAN (matchedVill/Dist/City/Prov, dari
+                tabel indonesia_*), sehingga dijamin berbahasa Indonesia DAN dijamin sama dengan
+                isi dropdown di bawahnya — dulu tak ada yang menjamin keduanya nyambung. Nol
+                yang cocok = banner tidak muncul (dulu ia tetap mengklaim "sudah terisi otomatis"
+                di atas dropdown kosong). Desa gagal dicocokkan = satu baris tambahan yang
+                menyuruh memilih sendiri (permintaan user), dibaca dari `data.village_code`
+                supaya hilang sendiri begitu desanya dipilih. SENGAJA TIDAK diikutkan:
+                Front/Reports/Create.jsx (`fullAddress`) & keempat form fasilitas admin
+                (`address: display_name`) — di sana yang diminta memang ALAMAT, dan nama landmark
+                beraksara apa pun justru menolong responder; yang keliru di CompleteProfile bukan
+                "ada nama POI" melainkan "nama POI dipakai sebagai JUDUL WILAYAH". Satu berkas
+                kode, tanpa migrasi/route/perubahan sisi server. Test tetap 310 passed (1182
+                assertions), npm run build lulus, chunk CompleteProfile diperiksa 0 `display_name`.
+                Temuan #83 FIXED. SISA: verifikasi visual §5 file task.
+               TASK_41 (prompt/tasks/TASK_41_nomor_113_wajah_info_siaga.md) — SELESAI (kode)
+                2026-08-26. Satu pesan user, tiga permintaan. (1) NOMOR DARURAT 112 → 113 (113
+                = nomor pemadam kebakaran nasional; 112 = darurat umum). Angkanya ternyata
+                dipaku di EMPAT BELAS tempat tanpa sumber bersama (temuan #80), jadi mengganti
+                nomor darurat = operasi yang harus tepat 14 kali dan satu yang terlewat membuat
+                aplikasi menyebut DUA nomor darurat berbeda tanpa galat apa pun. Kini ada
+                konstanta tunggal `NOMOR_DARURAT_NASIONAL` di lib/utils.js yang dibaca kesembilan
+                berkas frontend; sisi server SENGAJA masih 4 literal (ReportController,
+                MonitoringMapController, PosPemadamController, TenantSeeder) — menyatukannya
+                menuntut kunci config + HandleInertiaRequests, keputusan tersendiri. Ikutan yang
+                ikut dibetulkan: kalimat "telepon {nomor instansi} atau {nasional}" berbunyi
+                "113 atau 113" bagi tenant yang belum mengisi nomornya, karena cadangannya sama
+                — bagian "atau …" kini muncul hanya bila kedua nomor berbeda.
+                (2) WAJAH LIMA HALAMAN INFO/LEGAL ikut halaman FASILITAS (font, jarak, bentuk
+                kartu). Akarnya di InfoShell.jsx: hero `PublicPageHeader` (judul text-3xl
+                font-black) + pembungkus `max-w-4xl px-4 py-6 sm:py-10` DI DALAM AppLayout yang
+                sudah ber-`max-w-7xl p-4 lg:p-8` — paddingnya bertumpuk. Kini `HeaderTitle` +
+                `flex w-full flex-col space-y-6 pb-32`, kartu `rounded-xl shadow-sm` + `p-5`,
+                judul seksi `text-sm font-bold`, chip InfoNav `rounded-md`. `eyebrow` PINDAH ke
+                slot KANAN baris kepala (tempat yang di halaman fasilitas memang disediakan untuk
+                aksi). DefinitionRow DIBALIK penekanannya: isi yang foreground, label yang muted.
+                ISI dokumen tidak disentuh sama sekali. AKIBAT: `PublicPageHeader` kini TANPA
+                PEMAKAI (temuan #81) — halaman fasilitas berhenti memakainya 2026-08-25; berkasnya
+                SENGAJA tidak dihapus karena CLAUDE.md sendiri menyimpan instruksi "jangan
+                dihapus" yang lahir dari konteks yang kini berubah, jadi pencabutannya keputusan
+                user. Komentar "PublicPageHeader tetap hidup" di tiga berkas fasilitas sudah
+                dibetulkan supaya tidak menyesatkan sesi berikutnya.
+                (3) Kartu "Mode Kesiapan" (dua kartu KEMBAR: Pages/Dashboard.jsx relawan &
+                Pages/Admin/Dashboard.jsx pejabat — selalu ubah keduanya): label jadi
+                "Siaga"/"Non Aktif" menggantikan "Siaga Aktif"/"Mulai Siaga". Bentuk lama tidak
+                simetris — satu keadaan, satu ajakan — sehingga tak jelas mana yang berlaku.
+                Judul kartu "Mode Kesiapan" TETAP.
+                Test tetap 295 passed (1104 assertions), npm run build lulus, Pint PASS. Tanpa
+                migrasi/route/perubahan kontrak API. SISA: verifikasi visual §5 file task.
+               TASK_40 (prompt/tasks/TASK_40_skkl_pompa_dan_master_banjar.md) — SELESAI (kode)
+                2026-08-26. Enam permintaan user sekaligus. (1-3) Hydrant warga KELUAR dari
+                daftar Manajemen SKKL admin — kolom kapasitas & chip "Belum/Sudah Modifikasi"
+                ikut hilang sebagai konsekuensi, dan "Ringkasan Air Desa" PINDAH ke menu Hydrant
+                Warga dengan satu satuan saja (liter). HANYA di menu admin: /pumps publik & layer
+                SKKL Peta Pemantauan TETAP menggabungkan dua sumber (keputusan user, dikunci
+                test) — karena itu chip status di Pages/Pumps/Index.jsx TETAP berisi empat, jangan
+                diseragamkan dengan halaman admin. Karena sumbernya tinggal satu, PompaController
+                kembali ke paginasi Eloquent biasa (paginator manual dibuang). Kartu rekap muncul
+                karena controller MENGIRIM prop `summary`, bukan karena komponen memeriksa
+                `variant === 'warga'`. (4) Bug sidebar: entri hydrant hanya menyorot
+                /admin/hydrants, jadi tab Hydrant Warga membuat sidebar tak menyorot apa pun.
+                (5-6) MASTER BANJAR baru: tabel `banjars` (+ `jenis` dinas/adat nullable, kolom
+                `code` untuk kode SLS bila kelak ada), `banjar_id` NULLABLE di hydrant_wargas &
+                users, CRUD /admin/banjars, GET /api/banjars/{villageCode}, dropdown di form
+                hydrant warga (lewat `showBanjar` di variants.jsx = DATA) & layar Lengkapi Profil,
+                serta perintah `sisupit:import-banjar berkas.csv [--apply]`.
+                EMPAT hal yang mengikat: (a) kolom nullable meski "wajib" — 71 akun prod & semua
+                staf/OPD tak berbanjar, NOT NULL memaksa migrasi mengarang nilai; (b) kewajiban =
+                SAKLAR (Setting::KEY_REQUIRE_BANJAR) default MATI, dan server MENOLAK
+                menyalakannya selama master kosong (dropdown kosong yang diwajibkan = pendaftaran
+                warga terkunci, gema #61); (c) banjar BUKAN tingkat kelima Tenantable — ia
+                deskriptif, bukan alat kontrol akses; (d) /api/banjars WAJIB dikecualikan dari
+                EnsureProfileComplete, kalau tidak halaman lengkapi-profil memantulkan
+                panggilannya sendiri dan dropdown kosong selamanya tanpa galat (ditemukan test).
+                DATA BANJAR: tidak ada unduhan resmi berisi NAMA se-Bali — yang publik hanya
+                rekap JUMLAH (PDF DPMA 2025 diperiksa: 4 halaman). OSM juga tak bisa dipakai
+                (query ke Nominatim kita: hanya 105 objek "Banjar ...", mayoritas balai banjar/
+                halte, cuma 6 batas administratif). Nama diminta ke BPS Kota (banjar = SLS,
+                bernama & BERKODE), Bagian Pemerintahan/Dinas PMD, atau MDA/DPMA untuk adat;
+                rekap publik dipakai sebagai PENGUJI KELENGKAPAN per kecamatan.
+                IMPORTIR: menerima .xlsx & .csv (Laravel Excel sudah jadi dependensi), judul
+                kolom berbahasa Indonesia (Nama Banjar/Kelurahan/Alamat), dan NAMA desa —
+                bukan cuma kode. Nama desa TIDAK unik se-Indonesia (KUTA ada di 8 kabupaten),
+                jadi kecocokan ganda DITOLAK; pakai --city. Beda ejaan hanya diterima dengan
+                --fuzzy dan HANYA bila rangka konsonannya sama persis (Klod=Kelod) — kriteria
+                "jarak huruf" sempat dicoba dan langsung mengusulkan CATUR→SANUR, dua desa yang
+                berbeda; JANGAN diganti levenshtein.
+                Berkas user docs/List Nama Banjar Denpasar.xlsx (138 baris) sudah diimpor ke DB
+                DEV: 123 banjar, tapi baru menutupi 18 DARI 43 desa Denpasar — 25 desa masih
+                kosong, jadi kewajiban banjar BELUM boleh dinyalakan. 11 baris di berkas itu
+                sebenarnya milik Badung (Catur/Blahkiuh/Kuta).
+                Penjaga: BanjarMasterTest (12), HydrantWargaSkklTest & FacilityVillageCodeRepairTest
+                disesuaikan. Test 282 → 295 passed (1104 assertions), npm run build lulus. SISA: verifikasi manual §7 + isi master banjar sebelum menyalakan
+                kewajiban.
+                ADENDUM 2026-08-26 (§9 file task, temuan #82 FIXED): banjar bisa tersimpan di
+                bawah desa yang BUKAN miliknya — `exists:banjars,id` cuma membuktikan barisnya
+                ada, dan effect di kedua form hydrant hanya me-refetch pilihan tanpa
+                mengosongkan `banjar_id`, sehingga menggeser pin (yang menimpa village_code)
+                membuat tandon desa A tercatat di banjar desa B tanpa galat. Kini satu aturan
+                `Banjar::assertBelongsToVillage()`. DUA hal yang mengikat: banjar diadu dengan
+                village_code HASIL withJurisdictionCodes (bukan isi request — akun yang desanya
+                terkunci menang), dan pengosongan di form WAJIB lewat ref (tanpa syarat = layar
+                Edit menghapus banjar yang sedang dibuka). Test 295 → 298 passed (1113
+                assertions). BELUM dikerjakan, menunggu keputusan user: T2 penjaga saklar wajib
+                masih global bukan per-desa (18 dari 43 desa Denpasar terisi → 25 desa akan
+                terkunci), T3 banjar tak bisa diubah setelah diisi, T4 banjar tak tampil di
+                daftar hydrant warga.
+                ADENDUM 2026-08-26 (§10 file task): WARGA BOLEH MENGUSULKAN BANJAR yang belum
+                terdaftar, lewat keadaan kosong dropdown. User sempat mengusulkan tabel usulan
+                TERPISAH; disodori konsekuensinya lalu memilih SATU TABEL + kolom `status`
+                (terverifikasi/usulan). Alasan yang mengikat: dua FK sudah menunjuk `banjars`,
+                jadi tabel terpisah menuntut FK kedua di dua tabel (bentuk #60/#71), dan
+                menyetujui usulan cukup MEMBALIK KOLOM sehingga id tetap & penunjuknya utuh —
+                bandingkan PENGECUALIAN #1 poin 4 (pindah = hapus+buat ulang, id hilang).
+                Baru: POST /api/banjars (wajib login, throttle, DIKECUALIKAN dari
+                EnsureProfileComplete), Banjar::normalkanNama() (semua jadi "Banjar <Nama>"),
+                rangkaNama()+cariSerupa() (vokal dibuang + th=t/dh=d/kh=k; JANGAN diganti
+                Levenshtein), admin verify() + penyaring status. Ketiga layar kini memakai
+                SATU komponen resources/js/Components/BanjarField.jsx — dibuat karena tiga
+                salinan sudah menyimpang dan itulah #82; jangan dipecah lagi. Usulan TETAP
+                muncul di dropdown (bertanda), nama mirip DITAWARKAN bukan digabung, `jenis`
+                tidak ditebak. Test 298 → 305 passed. Data: panen 42 situs desa menghasilkan
+                220 nama di 21 desa (docs/banjar_denpasar_hasil_panen.csv, BELUM di-apply —
+                ada 4 bentrokan ejaan di docs/banjar_denpasar_konflik_ejaan.csv).
+                LANJUTAN (§11 file task): master DEV TERISI — 216 baris diterapkan (123 → 319
+                banjar, 18 → 33 dari 43 desa, 0 duplikat); 4 bentrokan ejaan diselesaikan dengan
+                MEMBUANG salinan panen & mempertahankan ejaan DB. KETIGA ENV VPS TERISI 2026-08-27
+                (prod, staging, dev): 318 baris di 32 desa, diimpor dari snapshot docs/banjar_master_denpasar.csv
+                (ekspor 318 baris `terverifikasi` dari DB dev; baris `usulan` uji coba
+                SENGAJA tidak ikut). Ditinjau dulu tanpa --apply di kedua env: 318 baru,
+                0 ditolak. Integritas nol pelanggaran di keduanya (0 desa tak dikenal,
+                0 rantai kode tak konsisten, 0 duplikat). Denpasar punya 43 desa, jadi
+                cakupannya 32/43 dan SAKLAR KEWAJIBAN BANJAR TETAP MATI di ketiga env
+                (diperiksa: tak ada baris setting `require_banjar` di mana pun = default
+                mati). DB dev LOKAL (laragon) tetap 319/33 desa karena desa ke-33 di sana
+                hanya berisi baris usulan uji itu; dev di VPS ikut 318/32 seperti prod. T4 selesai
+                (banjar tampil di daftar hydrant warga, ikut array meta tersaring — bukan
+                percabangan varian). T3 selesai (PATCH /profile/banjar + kartu di Profile/Edit;
+                DESA TIDAK ikut dikirim, yang berlaku village_code akun). T2: rencana penjaga
+                per-desa DIBATALKAN — setelah ada usulan warga, dropdown kosong bukan jalan
+                buntu, dan menuntut kelengkapan 100% membuat kewajiban tak akan pernah bisa
+                dinyalakan; diganti cakupanDesa() yang menampilkan "33 dari 43 desa" di sebelah
+                saklarnya. Test 310 passed. SISA: verifikasi visual + deploy migrasi & master.
+                DATA CONTOH (§12 file task): HydrantWargaSeeder BARU — 12 tandon di 12 desa,
+                4 kecamatan. Tabel hydrant_wargas kosong sejak TASK_30, itu sebabnya kartu
+                "Ringkasan Air Desa" tak pernah muncul (bukan bug). Aturan seeder: TITIK
+                (centroid desa + geseran TETAP) yang menentukan desa, banjar dirujuk lewat NAMA
+                bukan id (id beda antar env), rantai kode diturunkan dari kode desa — ketiganya
+                buah #78. Satu baris sengaja berkapasitas NULL untuk menguji unknown_capacity.
+                Idempoten (name+village_code). Dev: 12 baris, /pumps publik jadi 18, integritas
+                nol pelanggaran di 5 pemeriksaan.
+               TASK_39 (prompt/tasks/TASK_39_export_excel_laporan.md) — SELESAI (kode)
+                2026-08-26. Permintaan user: isi Export Excel di Verifikasi Laporan sudah
+                tertinggal jauh dari data yang dikumpulkan aplikasi. Dua jenis masalah, yang
+                pertama LEBIH SERIUS dari kelihatannya: (a) SALAH NAMA — label status di berkas
+                masih kosakata lama ("Terlapor (Belum Divalidasi)"/"Menunggu Respons"/"Sedang
+                Ditangani") padahal layar sudah lama memakai kamus kanonik STATUS_META (Laporan
+                Masuk/Laporan Terverifikasi/Penanganan/Selesai), jadi satu laporan punya DUA
+                nama antara layar operator dan berkas yang dikirim ke pimpinan; dan status
+                `ditolak` (#24) tak punya label sama sekali sehingga tercetak mentah + alasan
+                penolakannya tak pernah ikut. (b) KOLOM HILANG — incident_type, OPD terkait +
+                konfirmasinya, armada, jumlah foto, ringkasan Berita Acara belum pernah ada
+                padahal datanya sudah lama terisi. Kini 22 → 32 kolom (LAST_COLUMN 'V' → 'AF';
+                jumlah heading, LAST_COLUMN, dan columnWidths harus SELALU sama — sudah dicek).
+                Catatan yang mengikat: "Taksiran Kerugian" itu TEKS BEBAS ("±1jt"), jangan
+                diformat sebagai angka; nama OPD dibaca dari kolom denormalisasi
+                `report_agencies.agency_name` supaya rekap lama tetap terbaca walau master OPD
+                berganti nama; armada di-withTrashed karena rekap ini dokumen historis;
+                "Konfirmasi OPD" hanya menghitung yang `requires_confirmation` = DATA, JANGAN
+                diganti `if (agency_name === 'PLN')`; jumlah foto punya cadangan ke kolom lama
+                `reports.photo` supaya laporan pra-#17 tak tercatat 0. SENGAJA TIDAK diekspor:
+                identitas korban & KTP (hanya JUMLAH korban — xlsx gampang berpindah tangan
+                sementara KTP dijaga gerbang baca tersendiri; dikunci test), kronologi & tim
+                atensi. Nomor laporan LP-YYYY-NNNNN memakai rumus yang SAMA dengan
+                reportNumber() di lib/utils.js — kalau satu diubah yang lain harus ikut.
+                Tenantable TIDAK disentuh (tak ada withoutGlobalScopes).
+                Test 279 → 282 passed (1072 assertions), ReportExportTest 6 → 9.
+                SISA: verifikasi manual buka berkasnya di Excel (§6 file task).
+               TASK_38 (prompt/tasks/TASK_38_panjang_kode_kecamatan.md) — SELESAI (kode)
+                2026-08-25, permintaan user setelah membaca temuan #79 di TASK_37.
+                ResolvesFacilityJurisdiction::CODE_LENGTHS memakai kecamatan 7 DIGIT padahal
+                SELURUH 7.285 baris indonesia_districts 6 digit (517101), desa 10 digit.
+                Angka 7 itu rupanya diambil dari LEBAR KOLOM char(district_code, 7) di migrasi
+                (dan char(code,7) milik paket laravolt) — kolom longgar BUKAN berarti kodenya
+                sepanjang itu; panjang kode wilayah dibaca dari ISI tabel indonesia_*.
+                Akibatnya parentCode() menurunkan district_code = 5171012, kode yang tak
+                dimiliki kecamatan mana pun, sehingga baris itu tak akan pernah cocok dengan
+                district_code staf (6 digit) dan lenyap dari pandangan staf tingkat kecamatan
+                tanpa gejala (bentuk yang sama dengan #60). str_starts_with() tetap benar apa
+                pun angkanya, jadi tak ada yang menolak apa pun — bug ini hanya terlihat saat
+                kode turunannya diadu dengan indonesia_districts. Fix: konstanta jadi 6, helper
+                BARU districtCodeFromVillage() supaya panjang kode wilayah cuma ditulis SATU
+                tempat (konstanta sementara DISTRICT_CODE_LENGTH di PompaController dihapus),
+                dan FacilityJurisdictionTest dibetulkan — berkas itu ikut mematok 5171012
+                sehingga menghijaukan asumsi yang salah. PELAJARAN: test yang cuma mengadu KODE
+                dengan KODE tidak menjaga apa pun; penjaga barunya mengadu kode turunan dengan
+                TABEL WILAYAH (dibuktikan merah dengan konstanta lama). Kolom char(7) SENGAJA
+                dibiarkan (7 ≥ 6). Temuan #79 FIXED. Test 270 → 271 passed. Tanpa migrasi,
+                tanpa perubahan frontend. Data dev bersih (0 baris berkode 7 digit di 8 tabel).
+                TERDEPLOY 2026-08-25 @76cfccd8 ke prod/staging/dev. Query pemeriksaan §6 sudah
+                dijalankan di produksi: 0 baris berkode kecamatan ≠ 6 digit di kedelapan tabel,
+                jadi fix ini murni pencegahan — tak ada data yang perlu dibetulkan.
+               TASK_37 (prompt/tasks/TASK_37_kode_desa_ringkasan_skkl.md) — SELESAI (kode)
+                2026-08-25. Laporan user: di /admin/pumps kartu "Ringkasan Air Desa" ada baris
+                berjudul ANGKA (5171012001), bukan nama desa. Gejalanya satu baris, akarnya
+                data: seeder fasilitas MENGARANG kode desa — HydrantSeeder menebaknya dari KATA
+                di alamat (33 dari 51 hydrant berkode yang tak pernah ada di indonesia_villages),
+                Pompa/PosPemadamSeeder menulis kode + komentar yang tak cocok (5171012001 diberi
+                komentar "Sanur Kaja", padahal Sanur Kaja = 5171012009). Yang kodenya kebetulan
+                SAH pun banyak menunjuk desa keliru (Pos "Kuta" tersimpan di TUBAN, "Mengwi" di
+                MUNGGU). Kode desa salah tak pernah menghentikan apa pun — daftar tampil, peta
+                menggambar dari lat/lng, Tenantable menyaring per kota — yang meleset senyap:
+                rekap per desa, filter per kecamatan, dan visibilitas bagi staf ber-kecamatan.
+                Fix dua lapis. (1) Layar: waterSummary() TAK PERNAH lagi menampilkan kode; desa
+                tak dikenal berjudul "Desa tidak dikenal · Kec. <nama>". ATURAN: kode wilayah
+                bukan identitas tempat, jangan pernah dijadikan judul cadangan. (2) Data:
+                perintah BARU `php artisan sisupit:fix-facility-village-codes` — default TINJAU,
+                menulis hanya dengan --apply. Desa ditentukan ulang dari TITIK fasilitas lewat
+                reverse-geocode via Api\GeocodeController (JANGAN panggil Nominatim langsung;
+                lewat controller itu supaya cache 24 jam & kunci ~1 req/detik tetap satu pintu),
+                centroid desa terdekat hanya cadangan (--offline). Kode yang SAH tak pernah
+                ditimpa, cuma dilaporkan, kecuali diminta --include-mismatch. Seeder: 
+                HydrantSeeder::getWilayahCodes() DIHAPUS → hydrantRegions() (kode per hydrant,
+                pasangan tetap hydrantCoordinates(), hasil reverse-geocode yang di-hardcode);
+                Pompa & PosPemadam dibetulkan satu per satu. Untuk data contoh, TITIK yang
+                menentukan desa — bukan teks alamat — karena pin itulah yang dipakai peta,
+                yurisdiksi, dan rekap ("Pos Sektor Juanda (Renon)" jadi SUMERTA KELOD, pin tidak
+                digeser). Temuan #78 FIXED; temuan BARU #79 OPEN (sengaja tidak dikerjakan):
+                ResolvesFacilityJurisdiction::CODE_LENGTHS bilang kecamatan 7 digit padahal
+                SELURUH indonesia_districts 6 digit, jadi parentCode() bisa menulis district_code
+                yang tak cocok dengan siapa pun — FacilityJurisdictionTest ikut mematok asumsi
+                salah itu. Test 263 → 270 passed. TANPA perubahan frontend (npm run build tidak
+                perlu). TERDEPLOY 2026-08-25 @76cfccd8 ke prod/staging/dev.
+                DATA SUDAH DIBERSIHKAN di keempat DB (dev lokal + prod/staging/dev VPS):
+                `--include-mismatch --apply`, 64 baris per env, atas persetujuan user setelah
+                membaca tinjauannya; cadangan mysqldump keempat tabel fasilitas ada di VPS
+                `/root/backup-kodedesa-20260825-100727`. Verifikasi sesudahnya: 0 kode desa tak
+                dikenal, rantai kode desa↔kecamatan konsisten, jumlah baris tak berubah
+                (51 hydrant/0 warga/6 pompa/7 pos), rekap produksi kini berbunyi PEMECUTAN,
+                SANUR KAJA, TEGAL KERTHA, SESETAN, BENOA, PETANG. SISA: verifikasi visual §6.
+               TASK_36 (prompt/tasks/TASK_36_keterangan_hidran.md) — SELESAI (kode)
+                2026-08-25. Permintaan user: ganti keterangan dua jenis hidran di menu admin.
+                Hidran = "dimiliki pemerintah <wilayah>, dikelola PDAM & Damkar"; Hidran Warga =
+                "potensi sumber air ... perorangan/swasta". Yang PENTING: nama kota TIDAK
+                dipaku — variants.jsx satu berkas untuk SEMUA tenant, jadi "Kota Denpasar"
+                yang ditulis mati akan terbaca juga oleh admin Badung tanpa gejala apa pun.
+                Ditanyakan ke user → pilih "ikut nama instansi tenant". Tabel tenants tak punya
+                kolom nama wilayah, jadi helper BARU tenantWilayah() mengambil EKOR
+                `nama_instansi` ("...Kota Denpasar" → "Kota Denpasar"); nama instansi bisa
+                disunting admin lewat /admin/tenants sehingga kegagalan pencocokan jatuh ke
+                "daerah setempat" — kalimatnya tetap utuh, tak pernah rusak. `subtitle` kedua
+                varian jadi FUNGSI (bukan string) supaya pemanggil tak perlu tahu varian mana
+                yang dinamis — mencegah lahirnya `if (variant === 'warga')` yang memang
+                dihindari berkas itu. `blurb` dirampingkan jadi "di mana datanya muncul" saja
+                agar tak ada dua kalimat yang mengatakan hal sama di satu halaman. Subtitle
+                halaman publik /hydrants SENGAJA tak disentuh (kalimat pencarian warga, bukan
+                definisi kepemilikan). Penjaga: test di TenantBrandingTest.
+                Test 262 → 263 passed (1012 assertions), npm run build lulus.
+                TERDEPLOY 2026-08-25 @410697e2 ke prod/staging/dev; chunk produksi diperiksa
+                dan NOL memuat "Kota Denpasar" (bukti nama dirangkai runtime, bukan ter-bake).
+                SISA: verifikasi visual §5.
+               TASK_35 (prompt/tasks/TASK_35_bottomnav_tombol_masuk_tamu.md) — SELESAI (kode)
+                2026-08-25. Permintaan user: "saat belum login menu jadi tombol login, jika
+                sudah login baru jadi menu". Slot ke-5 MobileBottomNav kini dua wujud —
+                tombol "Masuk" bagi tamu, popover "Menu" bagi yang sudah login. Bagi pengguna
+                yang sudah login TIDAK ADA yang berubah. Tujuan tombol TIDAK dipaku: diambil
+                dari item `login` navItems.js (aturan #71) dan kalau item itu hilang slotnya
+                jatuh kembali jadi popover, bukan tombol mati; `login` sengaja TIDAK masuk
+                BAR_ITEM_KEYS (daftar itu cuma menyaring isi popover, dan MobileNavParityTest
+                mematok jumlah kuncinya = 8). HARGA yang disetujui user lewat pratinjau dua
+                bentuk (alternatifnya: geser Menu ke slot Riwayat — DITOLAK): bagi tamu empat
+                tautan legal hanya lewat footer AppLayout dan "Daftar Baru" hanya lewat tautan
+                di halaman login. KEDUANYA satu-satunya jalan tersisa — kalau footer legal atau
+                tautan daftar itu dihapus/dipindah, menu-menu itu hilang dari ponsel tanpa
+                gejala apa pun (mekanisme #71). Tabelnya ada di §4 file task.
+                Test 260 → 261 passed, npm run build lulus.
+                TERDEPLOY 2026-08-25 @208c0e26 ke prod/staging/dev (frontend saja, tanpa
+                migrasi/route). SISA: verifikasi visual §6.
+                ADENDUM (§8 file task, permintaan user hari yang sama): tamu yang mengetuk
+                "Fasilitas" KEHILANGAN bilah bawah — bukan salah bilahnya, tapi LAYOUT halaman
+                tujuannya. Tiga halaman fasilitas + Info/Partials/InfoShell.jsx (5 halaman
+                info/legal) memakai layout adaptif `tamu → PublicLayout, login → AppLayout`,
+                dan PublicLayout (chrome landing) memang tak merender MobileBottomNav. Jadi
+                bilah mengantar tamu ke tempat yang membuang bilah itu sendiri — dan sejak
+                TASK_35 jalur footer → halaman legal justru satu-satunya jalan tamu ke sana.
+                Keempat berkas kini SELALU AppLayout; konten halaman tidak disentuh, pengguna
+                yang sudah login tak merasakan apa pun. PublicLayout TIDAK dihapus: pemakainya
+                tinggal Pages/Landing.jsx (/landing) dan docblock-nya kini menyebut dirinya
+                pemakai tunggal — JANGAN pakai ulang untuk halaman yang bisa dicapai dari
+                bilah bawah. Penjaga: test kelima di MobileNavParityTest.
+                Test 261 → 262 passed (1010 assertions). TERDEPLOY 2026-08-25 @6e75dd4e ke
+                prod/staging/dev. LANJUTAN (permintaan user setelah melihat hasilnya):
+                percabangan `isGuest` di BADAN tiga halaman fasilitas IKUT DIBUANG — dulu tamu
+                dapat hero PublicPageHeader + max-w-6xl (bertumpuk dengan container AppLayout),
+                yang login dapat HeaderTitle + lebar penuh; kini satu wajah untuk semua, yaitu
+                wajah yang sudah login. PublicPageHeader dulu TETAP dipakai kelima
+                halaman info/legal lewat InfoShell; sejak TASK_41 (2026-08-26) halaman-halaman
+                itu ikut memakai HeaderTitle, jadi komponen itu kini TANPA PEMAKAI — lihat
+                temuan #81, nasibnya menunggu keputusan user.
+                Penyeragaman ini TERDEPLOY 2026-08-25 @020c4021 ke prod/staging/dev.
+               TASK_34 (prompt/tasks/TASK_34_notifikasi_pejabat.md) — SELESAI (kode)
+                2026-08-25. Temuan #77: peran `pejabat` TIDAK PERNAH menerima notifikasi apa
+                pun — keempat jalur notif (laporan masuk, broadcast, konfirmasi OPD, notif
+                pelapor) tak satu pun menyebutnya, jadi lonceng webnya selalu kosong tanpa
+                gejala. Penyaringan peran ada di PEMANGGIL (`User::role('petugas'|'relawan')`),
+                bukan di scopeNotifiableForReport — scope-nya sendiri sudah siap melayani
+                pejabat lewat User::STAFF_ROLES. Akar kedua: routes/channels.php masih
+                `['admin','superadmin','petugas']` padahal #41 sudah membuka halaman detail
+                insiden untuk pejabat → halamannya terbuka tapi badge status & marker responder
+                DIAM (satu-satunya jejak: /broadcasting/auth 403). Ini kekambuhan bentuk #41;
+                saat menambah peran ke sebuah kemampuan, telusuri SEMUA gerbangnya (halaman,
+                channel, notifikasi, navigasi). Fix: blok penerima ketiga di approve() dengan
+                kunci setting SENDIRI `Setting::KEY_NOTIFY_LEVEL_PEJABAT` (default KABUPATEN —
+                sengaja terpisah supaya menurunkan jangkauan petugas tak diam-diam memutus
+                pejabat; dropdown ketiga di /admin/settings), `pejabat` masuk $isStaff di
+                channels.php (tetap dikunci withinReportJurisdiction → #31 utuh), dan mode
+                siaga dibuka untuk pejabat lewat konstanta BARU `User::STANDBY_ROLES`
+                (['relawan','pejabat']) — TANPA migrasi, kolom `users.is_standby` sudah ada di
+                semua baris dengan default true. `toggleStandby` PINDAH dari VolunteerController
+                ke ProfileController, route `volunteer.standby` → `profile.standby` (pejabat
+                mem-POST ke endpoint bernama "volunteer" akan terbaca sebagai bug); jangan buat
+                alias nama lama. Admin & petugas SENGAJA tidak diberi saklar siaga — mematikan
+                notifikasi Pusat Komando berarti laporan warga menganggur tanpa ada yang tahu.
+                Kartu "Mode Kesiapan" di Admin/Dashboard.jsx meniru persis kartu relawan.
+                Notifikasinya PERSIS milik petugas (EmergencyAlertNotification, sirine ikut),
+                pembedanya cuma `user_role: 'pejabat'` di payload FCM — keputusan user.
+                Test 251 → 260 passed (1004 assertions), npm run build lulus.
+                TERDEPLOY 2026-08-25 @66d4cbca ke prod/staging/dev. TANPA migrasi (kolom
+                is_standby sudah ada); route cache TIDAK aktif di server jadi route baru
+                langsung terpakai — tetap periksa bootstrap/cache/routes-*.php tiap kali
+                sebuah deploy mengubah routes/. Produksi punya 3 akun pejabat, ketiganya
+                siaga aktif → mulai menerima siaran.
+                SISA: verifikasi manual per peran (§6 file task), termasuk memastikan wrapper
+                Android/iOS tidak tersandung nilai user_role baru.
+               TASK_33 (prompt/tasks/TASK_33_hydrant_warga_sumber_air.md) — SELESAI (kode)
+                2026-08-21. Satu pesan user, empat permintaan, SEMUANYA hanya di hydrant warga
+                (`hydrant_wargas`) — tabel `hydrants` tidak disentuh sedikit pun.
+                (1) "Konstruksi" (Stick/Jongkok) → "Sumber Air" (Tandon/Groundtank; user menulis
+                "Grountank", ejaan baku dipilih atas persetujuannya). (2) Status Aktif/Perbaikan
+                → "Terdaftar Belum/Sudah Dimodifikasi" (nilai DB: `Belum Modifikasi`/`Sudah
+                Modifikasi`) — yang ditanya di tandon warga bukan "rusak atau tidak" melainkan
+                apakah mulutnya sudah bisa dihisap mobil pemadam. (3) Kolom `water_pressure`
+                DIBUANG dari hydrant warga (tandon berisi air diam). (4) `debit_lpm` DIBUANG,
+                diganti `capacity_liter` — BUKAN ganti nama: satuannya berubah dari aliran
+                (liter/menit) jadi simpanan (liter). Karena itu rekap desa di /admin/pumps
+                TIDAK bisa lagi menjumlahkan keduanya (TASK_30 sengaja menyamakan satuannya
+                justru supaya bisa) → `debitSummary()` jadi `waterSummary()` yang mengirim DUA
+                pasang angka per desa, dipisahkan kunci BARU `water_metric` dari toSkklRow()
+                (BUKAN `source` — yang menentukan boleh-tidaknya dijumlahkan adalah satuannya,
+                dan nama tabel di logika perhitungan akan pecah begitu ada sumber SKKL ketiga);
+                kartunya jadi "Ringkasan Air Desa" berbaris "Debit pompa" + "Kapasitas warga".
+                Ketiga keputusan di atas (satuan, ejaan, nasib data lama) DITANYAKAN ke user
+                lebih dulu; data lama dikosongkan, angka lama TIDAK dibawa.
+                Konsekuensi: PENGECUALIAN #1 diperbarui — kedua tabel hydrant TIDAK LAGI KEMBAR
+                dan itu disengaja; pertanyaan saat menambah kolom berubah dari "salin ke
+                sebelah" jadi "apakah konsepnya berlaku di kedua sisi?". Beda kosakata hidup
+                sebagai DATA di Admin/Hydrants/variants.jsx (typeLabel/typeOptions/statusOptions/
+                showWaterPressure/waterField...), BUKAN percabangan `if (variant === 'warga')`
+                di dua form. Temuan #76 (dicegah sebelum tayang): enam tempat menulis hukum
+                warna sebagai `status === 'Aktif' ? biru : merah`, yang dengan status ketiga &
+                keempat memerahkan SELURUH hydrant warga padahal tak ada yang rusak → helper
+                tunggal `facilityStatusIsFaulty()`; JANGAN menulis `status === 'Aktif'` lagi.
+                Ikutannya: chip filter status di daftar SKKL (/admin/pumps & /pumps) WAJIB
+                memuat KEEMPAT status — filternya berjalan di level query atas dua tabel, jadi
+                chip yang tak lengkap membuang separuh daftar tanpa gejala apa pun.
+                Test 250 → 251 passed (984 assertions), npm run build lulus.
+                TERDEPLOY 2026-08-21 @1acb0e20 ke prod/staging/dev berikut migrasinya. Karena
+                migrasi ini MENGHAPUS kolom, isi `hydrant_wargas` dihitung dulu di ketiga env
+                (0 baris di semua) sebelum dijalankan — lakukan hal yang sama tiap kali sebuah
+                migrasi drop kolom. Data prod utuh: 71 users/145 reports/51 hydrants/6 pompas.
+                SISA: verifikasi visual manual (§6 file task).
+               TASK_32 (prompt/tasks/TASK_32_form_fasilitas_yurisdiksi.md) — SELESAI (kode)
+                2026-08-20. Satu pesan user, enam permintaan di form fasilitas admin.
+                (1) Tab "Hydrant Resmi" → "Hydrant"; (2) dua pill `rounded-full` diganti
+                <Button size="sm"> yang sebentuk dengan tombol /admin/pumps — riwayat v1–v4
+                ada di komentar Admin/Hydrants/variants.jsx, JANGAN hidupkan lagi bentuk yang
+                sudah ditolak. (3) Temuan #73: chip "1. Klik Area Peta"/"2. Geser Pin" ber-
+                `z-[400]` (angka dari skala z-index INTERNAL Leaflet, padahal chip-nya elemen
+                halaman biasa) menembus dialog "Pakai Lokasi Saat Ini" (z-50) & header sticky
+                (z-40) → jadi z-10 di enam berkas. Aturan turunan: overlay di atas peta hanya
+                boleh z-index satu/dua digit. (4) Temuan #74: menggeser pin terasa "tidak
+                mengisi apa-apa" karena reverse-geocode ber-rate-limit ~1 req/dtk tanpa satu
+                pun indikator, dan kegagalannya cuma masuk console → kini badge "Mendeteksi
+                wilayah...", toast.error saat gagal, plus jurisdictionMismatch() (lib/utils.js)
+                yang MEMPERINGATKAN (bukan memblokir — nama OSM tak selalu selengkap tabel
+                wilayah) bila pin keluar dari wilayah tugas. (5) Temuan #75 (P1, senyap):
+                keempat controller fasilitas hanya menjaga level yang DIKUNCI akun; level
+                terbuka diterima apa adanya sehingga admin kota bisa menyimpan aset ber-desa
+                milik kabupaten lain dan barisnya tetap terlihat olehnya (Tenantable menyaring
+                per kota) → trait BARU app/Traits/ResolvesFacilityJurisdiction.php: rantai kode
+                diperiksa lewat AWALAN kode BPS (51→5171→5171012→5171012006), TANPA query
+                indonesia_* karena tabel itu kosong di test; tidak cocok = ValidationException;
+                level atas yang kosong diturunkan dari kode desa. Jangan lagi menulis
+                `$user->x_code ?? $request->x_code` per controller. Penjaga:
+                tests/Feature/Sisupit/FacilityJurisdictionTest.php (11 test).
+                Test 239 → 250 passed (972 assertions), npm run build lulus.
+                SISA: verifikasi visual/interaktif manual di browser (§6 file task).
+               TASK_31 (prompt/tasks/TASK_31_menu_mobile_lengkap.md) — SELESAI (kode) 2026-08-19.
+                Permintaan user: "pastikan semua menu di desktop muncul di mobile". Audit
+                membuktikan SEMBILAN menu desktop tak pernah muncul di ponsel (Manajemen SKKL,
+                Pos Pemadam, OPD Terkait, Instansi/Kabupaten, 4 tautan Bantuan & Legal, Daftar
+                Baru) — buah dari pengecualian "dua daftar menu" 2026-08-13. Pengecualian itu
+                DICABUT atas persetujuan user: isi kedua popover MobileBottomNav kini dibangun
+                dari buildNavSections() (navItems.js), sumber yang sama dengan sidebar. BENTUK
+                popover melayang TETAP (keputusan user 2026-08-13 tidak dibatalkan) — yang
+                berubah hanya dari mana isinya diambil. Bilah memegang empat jangkar tetap
+                lewat daftar KUNCI (BAR_ITEM_KEYS/FASILITAS_ITEM_KEYS), slot ke-5 "Menu" kini
+                untuk SEMUA peran (dulu admin saja) dan memuat seksi sisanya — sehingga menu
+                baru otomatis mendarat di sana tanpa menyentuh berkas bottom-nav. Harga yang
+                disetujui user: bagi non-admin "Profil" jadi satu ketukan lebih dalam. Temuan
+                #71 dicatat & FIXED; #53/#54 FIXED lagi. Penjaga baru:
+                tests/Feature/Sisupit/MobileNavParityTest.php. Test 236 → 239 passed.
+                ADENDUM (§8 file task, permintaan user "tombol mobile tidak menyatu dengan
+                sistem" → didiskusikan dulu, 3 arah berpratinjau): temuan #72. Bilah bawah
+                berhenti punya bahasa visual sendiri — ikon 20px (dulu 28px), stroke TETAP
+                saat aktif, label 12px (dulu 10px). Ikon diselaraskan: Beranda IconHome→
+                IconDashboard, Fasilitas IconFiretruck→IconMapPin (IconFiretruck kembali
+                berarti Pos Pemadam saja). Popover: panah rotate-45 dibuang, token disamakan
+                dengan DropdownMenuContent, baris min-h-[48px].
+                REVISI (dua putaran, hari yang sama): (a) penanda aktif FINAL = kotak
+                rounded-xl bg-destructive berikon putih (dialek NavLink sidebar) — varian
+                "garis tipis" sempat dicoba lalu ditolak user, jangan dihidupkan lagi;
+                (b) slot "Lapor" FINAL memakai ikon brand /icon.png yang MENGGANTIKAN kotak
+                ikon slot (32px), bukan ditaruh di dalamnya — penumpukan itulah yang tadi
+                memunculkan dua nuansa merah; karena itu slot ini TAK BOLEH diberi latar
+                merah saat aktif, penandanya cincin. Prop imageSrc ditambahkan ke NavItem/
+                SlotContent supaya slot ini tetap satu komponen dengan slot lain;
+                (c) ATURAN BARU yang mengikat halaman lain: MERAH = LOKASI saja. Tombol
+                pembuka popover dulu ikut memerah saat panelnya terbuka sehingga dua slot
+                tampak aktif — kini keadaan "terbuka" memakai bg-accent netral +
+                aria-expanded, hover ikut netral, tautan aktif dapat aria-current="page".
+                REVISI 2026-08-20 (permintaan user, membatalkan sebagian (a)): blok merah
+                solid ternyata hanya dikehendaki di SLOT BILAH. Baris aktif di DALAM popover
+                Fasilitas & Menu kembali ke bentuk production — tint 10% + teks/ikon sewarna
+                jenisnya (bg-teal/10 text-teal dst.; bg-destructive/10 untuk item tanpa warna
+                jenis) + font-semibold + aria-current. Alasan user: di dalam panel, blok merah
+                terbaca seperti tombol darurat, bukan "kamu di sini". Ukuran ikon 20px/label
+                12px hasil #72 SENGAJA tidak dikembalikan ke 28px (ditanyakan & ditolak user).
+                Dua bentuk penanda aktif dalam satu berkas = PENGECUALIAN ATURAN #2
+                (prompt/docs/PENGECUALIAN_ATURAN.md) — jangan "seragamkan" lagi diam-diam.
+                Test tetap 250 passed, npm run build lulus.
+                SISA: verifikasi visual/interaktif manual per peran (§6 + §8 file task).
+               TASK_30 (prompt/tasks/TASK_30_hydrant_warga_skkl.md) — SELESAI (kode) 2026-08-18.
+                Enam permintaan user sekaligus. (1) Status fasilitas kini berbunyi "Berfungsi/
+                Tidak Berfungsi" di SEMUA modul fasilitas — LABEL saja lewat `facilityStatusLabel()`
+                di lib/utils.js, nilai DB tetap 'Aktif'/'Perbaikan' (hukum warna peta & filter tak
+                tersentuh). (2) Kolom BARU `hydrants.water_pressure` (Tekanan Keras/Sedang/Kecil).
+                (3) HYDRANT WARGA: TABEL SENDIRI `hydrant_wargas` + model HydrantWarga + route
+                admin.hydrant-warga.* (revisi 2026-08-19 atas permintaan user; awalnya satu tabel
+                berkolom `ownership`). Pemisahan tabel ini = PENGECUALIAN ATURAN yang disetujui
+                user — daftar lengkap pengecualian ada di prompt/docs/PENGECUALIAN_ATURAN.md,
+                entri #1, termasuk harganya: menambah kolom hydrant = DUA migrasi. Yang TIDAK
+                dikembarkan: komponen React (Admin/Hydrants/{Index,Create,Edit}.jsx melayani dua
+                route lewat prop `variant`; nama route ada di Admin/Hydrants/variants.jsx) →
+                bagi pengguna keduanya tampak satu menu bertab. Dibaca di menu SKKL + /pumps
+                publik + layer SKKL Peta Pemantauan; TIDAK muncul di /hydrants publik. (4) Kolom `debit_lpm` (liter/menit, WAJIB untuk hydrant warga)
+                + kartu "Ringkasan Debit Air" per desa di /admin/pumps — satuannya sengaja sama
+                dengan `pompas.capacity_lpm` supaya bisa dijumlahkan. (5) "Manajemen Pompa" →
+                "Manajemen SKKL" — TEKS UI SAJA, route admin.pumps.*/model Pompa/tabel pompas
+                TETAP. (6) Popup "Pakai Lokasi Saat Ini?" di 3 form Tambah fasilitas admin
+                (Components/UseCurrentLocationDialog.jsx) — form lapor warga & Pusat Komando
+                SENGAJA tidak tersentuh (di sana GPS otomatis memang benar). Plus dua temuan:
+                #63 FIXED (konfirmasi OPD dulu berhenti sebagai flash message — Pusat Komando &
+                petugas di lokasi tak pernah tahu listrik sudah padam; kini AgencyConfirmation-
+                Notification) dan #64 OPEN sebagian (haversine SQL memakai acos/radians yang tak
+                ada di SQLite; sisi /hydrants belum dipindah ke PHP). Ikon responder di peta
+                detail insiden 28→40 px. Test 227 → 236 passed.
+                SISA: verifikasi manual di browser (daftar periksa §6 file task) + jalankan
+                `php artisan migrate` di staging/produksi sebelum deploy frontend.
+               TASK_29 (prompt/tasks/TASK_29_tenantable_hierarkis.md) — SELESAI & TERDEPLOY
+                2026-08-13 (prod/staging/dev @787593c). `Tenantable` jadi HIERARKIS: untuk tiap
+                tingkat yang dimiliki user, baris harus NULL ATAU sama — dulu ia memilih SATU
+                kolom (tersempit) lalu menuntut cocok persis, sehingga master OPD/armada yang
+                disimpan admin tingkat kota (district/village NULL) TIDAK TERLIHAT oleh staf
+                ber-kecamatan/desa: 6 dari 18 staf Denpasar melihat daftar OPD kosong tanpa
+                pesan galat. Bukan aturan baru — `User::scopeNotifiableForReport` sudah lama
+                memakai makna "kolom NULL = wewenang lebih luas"; ini menyelaraskannya.
+                TIDAK mengubah penerima notifikasi (User tak memakai trait ini) dan TIDAK
+                melebarkan visibilitas laporan — dibuktikan di data prod: 0 dari 18 akun
+                berubah, hanya 5 baris data master yang terbuka. Temuan #60 FIXED.
+                Test 215 → 222 passed.
+               TASK_28 (prompt/tasks/TASK_28_pilih_lokasi_manual.md) — SELESAI (kode) 2026-08-13.
+                Pilih lokasi manual saat Pusat Komando input kejadian: dropdown bertingkat
+                Provinsi→Kabupaten→Kecamatan→Desa, pin melompat ke centroid wilayah terpilih
+                (kolom `meta` tabel indonesia_*, ikut terkirim /api/regions/*), lalu digeser
+                sedikit. Provinsi/kabupaten terisi dari YURISDIKSI OPERATOR (bukan string
+                'Bali' di kode) & tetap bisa diganti. Gerbangnya prop `region_picker` dari
+                ReportController::create — null untuk warga, jadi alur pelaporan warga
+                (GPS + geser pin) tidak berubah sama sekali. Aturan penting: di mode manual
+                geser pin TIDAK menimpa kode wilayah (pilihan operator = sumber kebenaran);
+                tombol "Ikuti pin peta" mengembalikan perilaku lama. Test 212 → 215 passed.
+                ADENDUM 2026-08-13 (§ADENDUM file task, permintaan user): keempat dropdown
+                masih terlalu lambat saat operator mengangkat telepon, jadi pola
+                `admin/hydrants/create` disalin ke form lapor — kotak "Cari Lokasi Kejadian"
+                (debounce 1 detik lewat proxy GeocodeController) yang melompatkan pin DAN
+                mengisi provinsi..desa otomatis, plus peta bisa diklik (`UserLeafletMap`
+                prop baru `clickToPlace`, default false = form warga tak berubah). Dropdown
+                tetap ada sebagai koreksi & tetap mengunci mode manual. Guard "lengkapi
+                sampai desa" kini berlaku untuk semua Pusat Komando (server mewajibkan desa,
+                pencocokan nama OSM sering berhenti di kecamatan). Lalu BUG dari user: geser
+                pin terasa "diam" karena `resolveLocation()` menghitung alamat lalu membuangnya
+                di mode manual (`locSubtitle` memilih label wilayah) — kini ada panel read-only
+                "Alamat Lengkap (otomatis)" bertiga keadaan (mencari/ada/belum ada) + tombol
+                "Salin ke patokan"; patokan TIDAK diisi otomatis karena itu teks manusia.
+                Lalu keluhan berikutnya: "gema mer" nihil padahal Google Maps menampilkannya —
+                Nominatim mencocokkan KATA UTUH. `GeocodeController::search` kini punya
+                fallback: bila nihil & query >1 kata, cari ulang TANPA kata terakhir lalu
+                saring hasilnya memakai kata itu sebagai AWALAN (kandidat dikembalikan apa
+                adanya bila awalan tak cocok). Query dipendekkan itu biasanya sudah di cache
+                → nyaris tanpa panggilan tambahan. Test 224 → 227 passed.
+                SISA: verifikasi manual di browser (daftar periksa §6 + §ADENDUM file task).
+               TASK_27 (prompt/tasks/TASK_27_opd_terkait.md) — SELESAI (kode) 2026-08-12.
+                OPD terkait: saat verifikasi/broadcast, operator memilih instansi luar (BPBD/PLN/
+                dst.) yang ikut diberi tahu. Kebakaran → OPD default TERCENTANG OTOMATIS tapi bisa
+                di-uncentang. Daftarnya DINAMIS lewat /admin/agencies; "butuh konfirmasi" (mis. PLN
+                "listrik sudah dipadamkan") juga DATA (`requires_confirmation`+`confirmation_label`),
+                bukan `if` bernama instansi — jangan pernah menulis `if (code === 'pln')`.
+                Auto-centang butuh kolom BARU `reports.incident_type` (dulu dibuang setelah
+                validasi). Akun OPD = peran `opd` + `users.agency_id`; konfirmasi boleh dari OPD
+                sendiri maupun dicatatkan operator (`confirmed_source`). Konfirmasi tertunda TIDAK
+                memblokir "Selesai", hanya peringatan. Test 201 → 212 passed. SISA: verifikasi
+                manual end-to-end + isi master OPD tiap kabupaten lewat /admin/agencies.
+               TASK_26 (prompt/tasks/TASK_26_ios_prasyarat_server.md) — SELESAI (kode) 2026-08-12.
+                Prasyarat server untuk wrapper iOS: (a) payload FCM kini punya blok `apns`
+                di samping `android` — tanpa itu notifikasi darurat TIDAK PERNAH muncul di
+                iPhone karena data-only dianggap background push; (b) verifikasi `aud` Google
+                jadi DAFTAR PUTIH (Web + iOS Client ID) karena GIDSignIn iOS menerbitkan token
+                ber-aud iOS Client ID; (c) `device_type` tak lagi dipaku 'android'.
+                Test 193 → 201 passed. SISA: isi GOOGLE_IOS_CLIENT_ID di server + VERIFIKASI
+                MANUAL di device Android nyata (notif + login Google) sebelum rilis, dan
+                commit ulang public/build (297 berkas) agar device_type sampai ke produksi.
+                Pembangunan app iOS-nya sendiri dipandu docs/ios/PROMPT_SISUPIT_IOS.md (Mac).
+               TASK_24 (prompt/tasks/TASK_24_app_env_produksi.md) — SELESAI 2026-08-11.
+                Produksi tadinya jalan dengan APP_ENV=local + APP_DEBUG=true → jejak galat
+                & isi environment terbuka ke publik, dan halaman ErrorHandling tak pernah
+                terpakai. Kini APP_ENV=production + APP_DEBUG=false (staging/dev ikut
+                APP_DEBUG=false). Perubahan .env server saja, cadangan .env.bak-57-*.
+                Temuan #57 FIXED.
+               TASK_25 (prompt/tasks/TASK_25_reverb_config_runtime.md) — SELESAI 2026-08-11.
+                Konfigurasi Reverb sisi browser dibaca RUNTIME (config/services.php →
+                window.REVERB_CONFIG → echo.js), pola sama dengan MAP_TILE_URL. Sebelumnya
+                dipaku saat build lewat VITE_REVERB_*, sehingga window.Echo TAK PERNAH ada
+                di semua env dan host terpaku satu domain. Temuan #58 FIXED. SISA: cek di
+                browser bahwa WS staging menyambung ke staging.sisupit.com.
+               TASK_22 (prompt/tasks/TASK_22_broadcasting_auth.md) — SELESAI 2026-08-11.
+                `bootstrap/app.php` kini memuat `channels:` sehingga POST /broadcasting/auth
+                terdaftar; sebelumnya SEMUA channel privat mati diam-diam (Echo.private gagal
+                otorisasi tanpa gejala). `routes/channels.php` pakai withoutGlobalScopes agar
+                responder lintas desa tak ikut tertutup Tenantable. Temuan #55 FIXED.
+                SISA: verifikasi end-to-end di produksi setelah deploy (curl /broadcasting/auth
+                harus 419/302, bukan 404) + marker responder bergerak di halaman Show.
+               TASK_23 (prompt/tasks/TASK_23_makna_wilayah_kosong.md) — SELESAI 2026-08-11.
+                Kolom wilayah kosong kini punya aturan bernama: `User::STAFF_ROLES` (staf =
+                sengaja luas) vs non-staf (= profil belum lengkap), tingkat diturunkan lewat
+                `TenantLevel::forCodes()`. Cabang jaring pengaman "keempat kolom NULL = nasional"
+                dibatasi ke staf — relawan berprofil kosong tak lagi dibanjiri siaran darurat
+                se-Indonesia. Temuan #56 FIXED (dua "zona mati" yang dicatat di #56 ternyata
+                by-design & dikunci test — koreksinya ada di entri #56). SISA: jalankan query
+                verifikasi '0'/'' di DB produksi.
+               TASK_21 (prompt/tasks/TASK_21_panel_menu_mobile.md) — DIBALIKKAN 2026-08-13
+                atas permintaan user: MobileBottomNav.jsx dipulihkan ke bentuk pra-TASK_20
+                (commit ea96039) — dua popover melayang, slot ke-5 = popover "Menu" untuk
+                admin/superadmin & tautan Profil/Masuk untuk peran lain. Yang DIPERTAHANKAN:
+                breakpoint md:hidden + padding safe-area (versi lama lg:hidden akan menabrak
+                rail sidebar md di AppLayout). Konsekuensi diterima: #53/#54 terbuka lagi,
+                tautan legal di ponsel hanya lewat footer AppLayout, dan daftar menu jadi dua
+                tempat (navItems.js untuk Sidebar + MobileBottomNav.jsx sendiri).
+                MobileMenuPanel.jsx & hooks/use-sheet-history.js DIHAPUS (pulihkan dari 2a1e2b6).
+                Catatan lengkap: "Catatan pembalikan #53/#54" di FINDINGS_LOG.
+                Isi TASK_21 aslinya, sebagai arsip: SELESAI 2026-08-08,
+                branch `worktree-mobile-menu-drawer`. Panel "Menu" mobile berhenti menuang
+                sidebar desktop ke Sheet: daftar menu pindah ke Partials/navItems.js sebagai
+                satu-satunya sumber DATA, penyajian per permukaan jadi berbeda. Mobile kini
+                drawer-dari-bawah bertitik-henti + kepala identitas + petak aksi cepat +
+                seksi admin terlipat + pencarian; Back perangkat menutup panel; safe-area
+                dihormati. Temuan #54 FIXED. SISA: verifikasi visual/interaktif manual
+                (daftar periksa di file task) — repo tak punya browser automation.
+               TASK_20 (prompt/tasks/TASK_20_navigasi_mobile_tablet.md) — SELESAI 2026-08-07,
+                branch `feat/mobile-nav-legal`. Menu Bantuan & Legal kini terjangkau di
+                mobile lewat Sheet berisi <Sidebar/> yang sama (duplikasi daftar menu
+                dihapus), rail ikon untuk tablet md, tautan legal di footer AppLayout.
+                Temuan #53 FIXED. SISA: verifikasi visual responsif manual (daftar periksa
+                ada di file task) — repo tak punya browser automation.
+               TASK_19 (prompt/tasks/TASK_19_halaman_legal_bantuan.md) — SELESAI 2026-08-04,
+                DI-COMMIT 2026-08-07 (f5793c7). Halaman legal/bantuan publik (S&K, Privasi, Pusat Bantuan,
+                Tentang, Paket & Lisensi) + persetujuan S&K saat daftar. Kolom
+                `tenants.edition`/`features` + enum TenantEdition DIBUAT di sini (bagian
+                data TASK_18 slice 1); temuan #48 FIXED, #49/#50 dicatat OPEN.
+                ADENDUM 2026-08-07 (§6 file task): dua draf legal di `docs/*.docx` digabung ke
+                `/syarat-ketentuan` bertab (Pengguna Umum + Pengguna Berkontrak); penyedia
+                kini `PT Tawarin Dimana Aja`, S&K naik ke versi 2.0. Temuan BARU #51 (PKS
+                masih menyebut MAESA perorangan) & #52 (alamat kantor PT kosong) OPEN.
+               TASK_18 (prompt/tasks/TASK_18_edition_sewa_beli.md) — SISA: guard #45
+                (EnsureTenantHostMatchesStaff), slice 2 (resolver halaman), slice 3 (modul
+                per-tenant), slice 4 (tenant:export). Lapisan data edition sudah ada.
+                TASK_17 multi-tenant subdomain SELESAI slice 1-3 (2026-07-25, belum di-commit).
+                Sebelumnya: TASK_10, 06, 11, 14, 12, 13, 07, 15, 16 SELESAI
+                2026-06-28 (9 task) + TASK_09 armada/Unit SELESAI 2026-06-29.
+                TASK_08 (chat) DITUNDA atas keputusan user.
+                #9 mass-reformat Pint/Prettier SELESAI 2026-06-29 (PR formatting terpisah).
+                Sisa: nihil (hanya TASK_08 chat yang ditunda).
+Backlog (urut prioritas, sumber: prompt/docs/FINDINGS_LOG.md) :
+   1. #24 P1  [SELESAI] Tolak Data rusak (route salah) → status `ditolak` + arsip  (TASK_10)
+   2. #16 P2  [SELESAI] Notif balik ke pelapor tiap transisi status  (TASK_06)
+      + #25 P2 [SELESAI] Lonceng/inbox notifikasi web di header AppLayout  (TASK_11)
+   3. #28 P2  [SELESAI] Broadcast perubahan status → halaman Show update real-time  (TASK_14)
+   4. #26 P2  [SELESAI] take-action/arrive dibatasi ke wilayah laporan  (TASK_12)
+   5. #27 P2  [SELESAI] Aksi "Batal Meluncur" (un-respond) bagi responder  (TASK_13)
+   6. #17 P2  [SELESAI] Laporan multi-foto (galeri report_photos)  (TASK_07)
+   6. #17 P2  Laporan multi-foto (galeri)  (TASK_07)
+   7. #18 P2  Kanal chat/koordinasi per insiden  (TASK_08 — DITUNDA atas keputusan user 2026-06-28)
+   8. #30 P2  [SELESAI] Edit laporan diperbaiki (pelapor+TERLAPOR, konten+kelola foto)  (TASK_16)
+   9. #29 P3  [SELESAI] Batch minor: category dead ref, guard status aksi, casing import  (TASK_15)
+   9. #9  P3  [SELESAI] Mass-reformat Pint/Prettier (81 PHP + 122 JS/JSX, PR terpisah)  2026-06-29
+  10. #19 P3  [SELESAI] Manajemen armada/Unit & dispatch  (TASK_09, 2026-06-29)
+   Temuan lama #1-#8,#10-#15,#20-#23 closed (FIXED).
+Selesai      : TASK_01 (onboarding), TASK_02 (P0 IDOR relawan/profil),
+               TASK_03 (P1 PII feed dashboard), TASK_04 (batch P2/P3: route debug,
+               webpush auth, helper nested, dead code, CI lint informational, naming),
+               TASK_05 Bagian A (dokumentasi keputusan dual-access #6) — semua per 2026-06-25
+Onboarding   : [x] selesai (TASK_01, 2026-06-25)
+```
+
+## Riwayat baseline test (dipindah dari CLAUDE.md § STACK & PERINTAH)
+
+```
+Test      : php artisan test            (baseline 2026-09-27 di main hasil merge semua branch: 523 passed, 2360 assertions = 516 feat/regu-danru + 7 TASK_61;
+            + TASK_62 notifikasi petugas per kabupaten = 531 passed, 2419 assertions;
+            + TASK_63 wilayah efektif petugas = 543 passed, 2461 assertions;
+            + #130/#132/#133/TASK_60 §13 + #134 (2026-09-29) = 555 passed, 2523 assertions.
+            + #135 callback Google tak lagi 500 (2026-09-29) = 557 passed, 2533 assertions.
+            + #138 route /auth/{provider} + #139 retry deadlock GPS = 560 passed, 2540 assertions.
+            + #141 pop-up pilihan Export Excel /admin/reports = 563 passed, 2557 assertions.
+            + #142 akun buatan admin terverifikasi + pilih peran di form = 569 passed, 2578 assertions.
+            + #143 combobox bercari (Danru /regu + 4 dropdown) & rincian calon danru = 570 passed, 2601 assertions.
+            + #144 combobox ponsel tanpa fokus otomatis & tinggi dibatasi layar = 572 passed, 2604 assertions.
+            + #145 pop-up ponsel berjarak & membulat = 575 passed, 2615 assertions.
+            + #146 pencarian Atur Anggota /regu = 576 passed, 2622 assertions.
+            + #147 limiter laporan & batas 2 MB per foto = 583 passed, 2690 assertions.
+            + #149 foto non-kebakaran opsional (test dibalik, bukan ditambah) = 583 passed, 2695 assertions.
+            + TASK_64..68 (2026-09-30) = 610 passed, 2918 assertions.
+            + tombol merah brand (2026-09-30) = 612 passed, 2925 assertions.
+            + #154 arrived_by & #155 header Link (2026-09-30) = 614 passed, 2949 assertions.
+            + #157 hapus akun = anonimisasi (2026-09-30) = 619 passed, 2996 assertions.
+            Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
+            sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
+            seperti semula" tak bisa dibuktikan)
+```
