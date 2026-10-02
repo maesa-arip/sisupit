@@ -258,7 +258,7 @@ export default function Index({
 									))}
 								</div>
 								{summary.some((row) => row.unknown_capacity > 0) && (
-									<p className="mt-3 border-t border-border/70 pt-2 text-[11px] leading-relaxed text-muted-foreground">
+									<p className="mt-3 border-t border-border/70 pt-2 text-xs leading-relaxed text-muted-foreground">
 										Sebagian titik belum mengisi kapasitasnya, jadi angka di atas adalah batas bawah
 										- bukan total sebenarnya.
 									</p>
@@ -294,11 +294,11 @@ export default function Index({
 													</div>
 													<div className="w-full min-w-0 flex-1">
 														<h3
-															className={`truncate text-sm font-semibold ${activeHydrantId === hydrant.id ? 'text-primary' : 'text-foreground'}`}
+															className={`break-words text-[15px] font-semibold leading-snug ${activeHydrantId === hydrant.id ? 'text-primary' : 'text-foreground'}`}
 														>
 															{hydrant.name}
 														</h3>
-														<p className="mt-0.5 truncate text-xs text-muted-foreground">
+														<p className="mt-0.5 text-[13px] leading-snug text-muted-foreground">
 															{hydrant.address}
 														</p>
 														{/* Status berpill seperti /hydrants (permintaan user 2026-09-09), TAPI warnanya
@@ -312,8 +312,8 @@ export default function Index({
 															<span
 																className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${
 																	facilityStatusIsFaulty(hydrant.status)
-																		? 'border-destructive/30 bg-destructive/10 text-destructive'
-																		: 'border-info/30 bg-info/10 text-info'
+																		? 'bg-destructive/10 text-destructive'
+																		: 'bg-info/10 text-info'
 																}`}
 															>
 																{facilityStatusLabel(hydrant.status)}
@@ -331,7 +331,7 @@ export default function Index({
 																dan tetap dipakai /admin/pumps. */}
 															{v.showWaterPressure && (
 																<span
-																	className={`text-[11px] ${hydrant.water_pressure ? 'font-medium text-foreground' : 'italic text-muted-foreground'}`}
+																	className={`text-xs ${hydrant.water_pressure ? 'font-medium text-foreground' : 'italic text-muted-foreground'}`}
 																>
 																	{hydrant.water_pressure
 																		? `Kondisi air: ${hydrant.water_pressure}`
@@ -343,7 +343,7 @@ export default function Index({
 																banjar hanya ada pada hydrant warga - pada hydrant resmi bernilai undefined
 																dan tersaring sendiri. */}
 															{metaTambahan(hydrant) && (
-																<span className="truncate text-[11px] text-muted-foreground">
+																<span className="text-[13px] text-muted-foreground">
 																	{metaTambahan(hydrant)}
 																</span>
 															)}
@@ -353,7 +353,7 @@ export default function Index({
 															riwayat ada tidak membawa `latest_log`, jadi barisnya tidak muncul -
 															bukan diisi nama tebakan. */}
 														{hydrant.latest_log && (
-															<p className="mt-1 flex items-center gap-1 truncate text-[11px] text-muted-foreground">
+															<p className="mt-1 flex items-start gap-1 text-[13px] leading-snug text-muted-foreground">
 																<IconHistory className="h-3 w-3 shrink-0" />
 																<span className="truncate">
 																	{hydrant.latest_log.action === 'dibuat'
@@ -405,7 +405,7 @@ export default function Index({
 								{/* BAGIAN PAGINASI SHADCN-STYLE */}
 								{/* ========================================== */}
 								<div className="mt-4 flex flex-col items-center gap-3 pt-1">
-									<span className="text-[11px] font-medium text-muted-foreground">
+									<span className="text-xs font-medium text-muted-foreground">
 										Menampilkan {hydrants.from} - {hydrants.to} dari {hydrants.total} aset
 									</span>
 

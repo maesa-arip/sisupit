@@ -171,7 +171,7 @@ export default function Index({ pumps, filters, ...props }) {
 										<div
 											className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border ${
 												facilityStatusIsFaulty(pump.status)
-													? 'border-destructive/30 bg-destructive/10 text-destructive'
+													? 'bg-destructive/10 text-destructive'
 													: 'border-info/20 bg-info/10 text-info'
 											}`}
 										>
@@ -184,30 +184,28 @@ export default function Index({ pumps, filters, ...props }) {
 
 										{/* TENGAH: Info Text */}
 										<div className="w-full min-w-0 flex-1 py-1">
-											<h3 className="truncate text-sm font-semibold text-foreground">
+											<h3 className="break-words text-[15px] font-semibold leading-snug text-foreground">
 												{pump.name}
 											</h3>
-											<p className="mt-0.5 truncate text-[11px] text-muted-foreground sm:text-xs">
+											<p className="mt-0.5 text-[13px] leading-snug text-muted-foreground">
 												{pump.address}
 											</p>
 											<div className="mt-1.5 flex flex-wrap items-center gap-1.5">
 												<span
-													className={`whitespace-nowrap rounded-full border px-2 py-0.5 text-xs font-semibold ${
+													className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ${
 														facilityStatusIsFaulty(pump.status)
-															? 'border-destructive/30 bg-destructive/10 text-destructive'
-															: 'border-info/30 bg-info/10 text-info'
+															? 'bg-destructive/10 text-destructive'
+															: 'bg-info/10 text-info'
 													}`}
 												>
 													{facilityStatusLabel(pump.status)}
 												</span>
-												<span className="max-w-[80px] truncate border-l border-border pl-1.5 text-[11px] font-medium text-muted-foreground sm:max-w-none sm:pl-2">
-													{pump.type}
-												</span>
+												<span className="text-[13px] text-muted-foreground">{pump.type}</span>
 												{/* Satu dari dua angka air: pompa membawa debit (aliran, lpm),
 												    hydrant warga membawa kapasitas (simpanan, liter). Yang tak
 												    berlaku pada baris ini bernilai null sehingga badge-nya absen. */}
 												{(debitLabel(pump.debit_lpm) || capacityLabel(pump.capacity_liter)) && (
-													<span className="whitespace-nowrap rounded border border-border bg-muted px-2 py-0.5 text-[11px] font-semibold text-foreground/80">
+													<span className="whitespace-nowrap rounded border border-border bg-muted px-2 py-0.5 text-xs font-semibold text-foreground/80">
 														{debitLabel(pump.debit_lpm) ||
 															capacityLabel(pump.capacity_liter)}
 													</span>
@@ -218,7 +216,7 @@ export default function Index({ pumps, filters, ...props }) {
 										{/* KANAN: Aksi & Jarak */}
 										<div className="flex shrink-0 flex-col items-end justify-center gap-2">
 											{pump.distance !== '-' ? (
-												<span className="whitespace-nowrap rounded-2xl border border-border bg-muted px-2 py-0.5 text-[11px] font-semibold text-foreground/80">
+												<span className="whitespace-nowrap rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-foreground/80">
 													{pump.distance}
 												</span>
 											) : (
@@ -243,7 +241,7 @@ export default function Index({ pumps, filters, ...props }) {
 								</div>
 							))
 						) : (
-							<div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/50 p-10 text-center">
+							<div className="flex flex-col items-center justify-center rounded-2xl border border-border/70 bg-card p-10 text-center shadow-sm">
 								<IconDroplet className="mb-2 h-10 w-10 text-muted-foreground" stroke={1.5} />
 								<h4 className="text-sm font-semibold text-foreground">Tidak ada data SKKL</h4>
 								<p className="mt-1 text-xs text-muted-foreground">

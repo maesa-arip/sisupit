@@ -1,3 +1,4 @@
+import { groupedRowsClass } from '@/Components/GroupedForm';
 import ComboBox from '@/Components/ComboBox';
 import HeaderTitle from '@/Components/HeaderTitle';
 import InputError from '@/Components/InputError';
@@ -50,7 +51,7 @@ export default function Edit(props) {
 			<Card className="mx-auto w-full max-w-2xl">
 				<CardContent className="p-5 sm:p-6">
 					<form
-						className="divide-y divide-border/70 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:py-4"
+						className={groupedRowsClass}
 						onSubmit={onHandleSubmit}
 					>
 						<div className="grid w-full items-center gap-1.5">

@@ -207,7 +207,7 @@ export default function Index({ contacts, filters }) {
 						</div>
 					</>
 				) : (
-					<div className="rounded-2xl border border-dashed border-input p-10 text-center">
+					<div className="rounded-2xl border border-border/70 bg-card p-10 text-center shadow-sm">
 						<span className="text-sm text-muted-foreground">
 							Belum ada penerima terdaftar. Tambahkan pejabat yang berhak menerima surat dinas, atau tarik
 							alamat yang sudah ada di master OPD.

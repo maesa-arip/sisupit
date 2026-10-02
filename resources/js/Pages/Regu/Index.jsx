@@ -201,7 +201,7 @@ export default function Index({ regus, candidates, can }) {
 						))}
 					</div>
 				) : (
-					<div className="rounded-2xl border border-dashed border-input p-10 text-center">
+					<div className="rounded-2xl border border-border/70 bg-card p-10 text-center shadow-sm">
 						<span className="text-sm text-muted-foreground">
 							{can.manage
 								? 'Belum ada regu. Tambahkan regu lalu tunjuk danrunya; danru yang akan mengatur anggotanya.'

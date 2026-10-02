@@ -120,8 +120,8 @@ export default function Index({ stations, filters, ...props }) {
 										<div
 											className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border ${
 												station.status === 'Aktif'
-													? 'border-info/30 bg-info/10 text-info'
-													: 'border-destructive/30 bg-destructive/10 text-destructive'
+													? 'bg-info/10 text-info'
+													: 'bg-destructive/10 text-destructive'
 											}`}
 										>
 											<IconFiretruck className="h-5 w-5" stroke={1.5} />
@@ -129,23 +129,23 @@ export default function Index({ stations, filters, ...props }) {
 
 										{/* TENGAH: Info Text */}
 										<div className="w-full min-w-0 flex-1 py-1">
-											<h3 className="truncate text-sm font-semibold text-foreground">
+											<h3 className="break-words text-[15px] font-semibold leading-snug text-foreground">
 												{station.name}
 											</h3>
-											<p className="mt-0.5 truncate text-[11px] text-muted-foreground sm:text-xs">
+											<p className="mt-0.5 text-[13px] leading-snug text-muted-foreground">
 												{station.address}
 											</p>
 											<div className="mt-1.5 flex flex-wrap items-center gap-1.5">
 												<span
-													className={`whitespace-nowrap rounded-full border px-2 py-0.5 text-xs font-semibold ${
+													className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ${
 														station.status === 'Aktif'
-															? 'border-info/30 bg-info/10 text-info'
-															: 'border-destructive/30 bg-destructive/10 text-destructive'
+															? 'bg-info/10 text-info'
+															: 'bg-destructive/10 text-destructive'
 													}`}
 												>
 													{facilityStatusLabel(station.status)}
 												</span>
-												<span className="border-l border-border pl-1.5 text-[11px] font-medium text-muted-foreground sm:pl-2">
+												<span className="border-l border-border pl-1.5 text-xs font-medium text-muted-foreground sm:pl-2">
 													{station.vehicle_count} Armada
 												</span>
 											</div>
@@ -154,7 +154,7 @@ export default function Index({ stations, filters, ...props }) {
 										{/* KANAN: Jarak & Telepon */}
 										<div className="flex shrink-0 flex-col items-end justify-center gap-2">
 											{station.distance !== '-' ? (
-												<span className="whitespace-nowrap rounded-2xl border border-border bg-muted px-2 py-0.5 text-[11px] font-semibold text-foreground/80">
+												<span className="whitespace-nowrap rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-foreground/80">
 													{station.distance}
 												</span>
 											) : (
@@ -194,7 +194,7 @@ export default function Index({ stations, filters, ...props }) {
 								</div>
 							))
 						) : (
-							<div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/50 p-10 text-center">
+							<div className="flex flex-col items-center justify-center rounded-2xl border border-border/70 bg-card p-10 text-center shadow-sm">
 								<IconFiretruck className="mb-2 h-10 w-10 text-muted-foreground" stroke={1.5} />
 								<h4 className="text-sm font-semibold text-foreground">Tidak ada pos pemadam</h4>
 								<p className="mt-1 text-xs text-muted-foreground">

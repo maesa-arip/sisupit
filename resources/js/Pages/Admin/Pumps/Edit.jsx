@@ -1,3 +1,4 @@
+import { filledFieldsClass } from '@/Components/GroupedForm';
 import HeaderTitle from '@/Components/HeaderTitle';
 import InputError from '@/Components/InputError';
 import { Button } from '@/Components/ui/button';
@@ -388,7 +389,7 @@ export default function Edit({
 
 			<div className="flex w-full flex-col items-start gap-5 lg:flex-row lg:gap-6">
 				<div className="flex w-full shrink-0 flex-col gap-5 lg:w-5/12 xl:w-1/3">
-					<form className="space-y-5" onSubmit={onHandleSubmit}>
+					<form className={`space-y-5 ${filledFieldsClass}`} onSubmit={onHandleSubmit}>
 						<div className="flex items-start gap-3 rounded-2xl border border-border/70 bg-card p-4 text-muted-foreground shadow-sm">
 							<IconInfoCircle className="mt-0.5 h-5 w-5 shrink-0" />
 							<p className="text-xs font-medium leading-relaxed">{getHelperText()}</p>

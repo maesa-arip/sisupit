@@ -1,3 +1,4 @@
+import { groupedRowsClass } from '@/Components/GroupedForm';
 import HeaderTitle from '@/Components/HeaderTitle';
 import InputError from '@/Components/InputError';
 import { Button } from '@/Components/ui/button';
@@ -50,10 +51,9 @@ export default function Create({ pos_options = [], type_options = [] }) {
 
 			<div className="w-full max-w-2xl">
 				<Card className="mx-auto w-full max-w-2xl">
-					
 					<CardContent className="p-5 sm:p-6">
 						<form
-							className="divide-y divide-border/70 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:py-4"
+							className={groupedRowsClass}
 							onSubmit={onHandleSubmit}
 						>
 							<div className="flex items-start gap-3 rounded-2xl border border-border/70 bg-card p-4 text-muted-foreground shadow-sm">

@@ -17,7 +17,12 @@ export function FormSection({ title, description, children, className }) {
 				<h2 className="text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">{title}</h2>
 				{description && <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{description}</p>}
 			</div>
-			<div className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
+			<div
+				className={cn(
+					'divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm',
+					filledFieldsClass,
+				)}
+			>
 				{children}
 			</div>
 		</section>
@@ -89,3 +94,14 @@ export function SegmentedControl({ options, value, onChange, ariaLabel }) {
 }
 
 export const fieldInputClass = 'h-11 rounded-xl';
+
+// Isian TERISI ala iOS untuk semua isian di dalam satu grup (TASK_69 bagian 16): tanpa bingkai, latar abu
+// lembut, sudut besar - isian tak lagi tampak seperti form web berbingkai di dalam kartu. Ditulis sebagai
+// varian keturunan supaya satu kelas di wadah menata input/textarea/pemicu select & combobox sekaligus,
+// tanpa menyentuh logika tiap form. Checkbox, radio & input berkas sengaja dikecualikan.
+// Kelas harus LITERAL (Tailwind memindai teks sumber), jadi jangan dirangkai saat runtime.
+export const filledFieldsClass =
+	'[&_input:not([type=checkbox]):not([type=radio]):not([type=file])]:rounded-xl [&_input:not([type=checkbox]):not([type=radio]):not([type=file])]:border-transparent [&_input:not([type=checkbox]):not([type=radio]):not([type=file])]:bg-muted/60 [&_input:not([type=checkbox]):not([type=radio]):not([type=file])]:shadow-none [&_textarea]:rounded-xl [&_textarea]:border-transparent [&_textarea]:bg-muted/60 [&_textarea]:shadow-none [&_[role=combobox]]:rounded-xl [&_[role=combobox]]:border-transparent [&_[role=combobox]]:bg-muted/60 [&_[role=combobox]]:shadow-none';
+
+// Form satu kartu: tiap ANAK LANGSUNG <form> jadi baris bergaris rambut (pola bagian 12) + isian terisi.
+export const groupedRowsClass = `divide-y divide-border/70 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:py-4 ${filledFieldsClass}`;

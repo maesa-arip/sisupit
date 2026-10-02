@@ -1,3 +1,4 @@
+import { filledFieldsClass } from '@/Components/GroupedForm';
 import InputError from '@/Components/InputError';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
@@ -57,7 +58,7 @@ export default function UpdatePasswordForm({ className = '' }) {
 			</CardHeader>
 
 			<CardContent className="pt-5">
-				<form onSubmit={updatePassword} className="max-w-xl space-y-5">
+				<form onSubmit={updatePassword} className={`max-w-xl space-y-5 ${filledFieldsClass}`}>
 					<div className="space-y-1.5">
 						<Label htmlFor="current_password" className="text-sm font-medium text-foreground">
 							Kata Sandi Saat Ini

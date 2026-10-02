@@ -11,7 +11,6 @@ import {
 	AlertDialogTrigger,
 } from '@/Components/ui/alert-dialog';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink } from '@/Components/ui/pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
@@ -20,16 +19,7 @@ import UseFilter from '@/hooks/UseFilter';
 import AppLayout from '@/Layouts/AppLayout';
 import { flashMessage } from '@/lib/utils';
 import { Link, router } from '@inertiajs/react';
-import {
-	IconArrowsDownUp,
-	IconCalendarTime,
-	IconCircleKey,
-	IconPencil,
-	IconPlus,
-	IconRefresh,
-	IconShieldLock,
-	IconTrash,
-} from '@tabler/icons-react';
+import { IconArrowsDownUp, IconCircleKey, IconPencil, IconPlus, IconRefresh, IconTrash } from '@tabler/icons-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -37,7 +27,12 @@ function DeleteRoleDialog({ role }) {
 	return (
 		<AlertDialog>
 			<AlertDialogTrigger asChild>
-				<Button variant="red" size="sm">
+				<Button
+					variant="ghost"
+					size="icon"
+					aria-label="Hapus"
+					className="h-9 w-9 text-muted-foreground hover:text-destructive"
+				>
 					<IconTrash className="size-4" />
 				</Button>
 			</AlertDialogTrigger>
@@ -68,16 +63,6 @@ function DeleteRoleDialog({ role }) {
 				</AlertDialogFooter>
 			</AlertDialogContent>
 		</AlertDialog>
-	);
-}
-
-function MobileInfo({ icon: Icon, label, value }) {
-	return (
-		<div className="flex items-center gap-2 text-sm">
-			<Icon className="size-4 shrink-0 text-muted-foreground" />
-			<span className="text-muted-foreground">{label}</span>
-			<span className="ml-auto truncate font-medium">{value || '-'}</span>
-		</div>
 	);
 }
 
@@ -114,11 +99,11 @@ export default function Index(props) {
 					</Link>
 				</Button>
 			</div>
-			<Card>
-				<CardHeader>
-					<div className="flex w-full flex-col gap-3 lg:flex-row lg:items-center lg:gap-4">
+			<div className="space-y-4">
+				<div>
+					<div className="flex w-full items-center gap-2 lg:gap-3">
 						<Input
-							className="h-10 w-full rounded-xl lg:w-1/4"
+							className="h-11 min-w-0 flex-1 rounded-xl border-transparent bg-muted/60 lg:max-w-xs"
 							type="search"
 							enterKeyHint="search"
 							placeholder="Cari..."
@@ -126,7 +111,7 @@ export default function Index(props) {
 							onChange={(e) => setParams((prev) => ({ ...prev, search: e.target.value }))}
 						/>
 						<Select value={params?.load} onValueChange={(e) => setParams({ ...params, load: e })}>
-							<SelectTrigger className="w-full lg:w-24">
+							<SelectTrigger className="h-11 w-20 shrink-0 rounded-xl border-transparent bg-muted/60">
 								<SelectValue placeholder="load" />
 							</SelectTrigger>
 							<SelectContent>
@@ -140,14 +125,15 @@ export default function Index(props) {
 						<Button
 							variant="ghost"
 							onClick={() => setParams(props.state)}
-							size="sm"
-							className="w-full lg:w-auto"
+							size="icon"
+							aria-label="Bersihkan"
+							className="h-11 w-11 shrink-0 rounded-xl text-muted-foreground"
 						>
-							<IconRefresh className="size-4" /> Bersihkan
+							<IconRefresh className="size-4" />
 						</Button>
 					</div>
-				</CardHeader>
-				<CardContent className="p-0 [&_td]:px-6 [&_th]:px-6">
+				</div>
+				<div className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm [&_td]:px-6 [&_th]:px-6">
 					{roles.length === 0 ? (
 						<div className="p-10 text-center text-sm text-muted-foreground">Data tidak ditemukan.</div>
 					) : (
@@ -219,7 +205,13 @@ export default function Index(props) {
 												</TableCell>
 												<TableCell>
 													<div className="flex items-center gap-x-1">
-														<Button variant="blue" size="sm" asChild>
+														<Button
+															variant="ghost"
+															size="icon"
+															aria-label="Ubah"
+															className="h-9 w-9 text-muted-foreground hover:text-primary"
+															asChild
+														>
 															<Link href={route('admin.roles.edit', [role])}>
 																<IconPencil className="size-4" />
 															</Link>
@@ -233,48 +225,41 @@ export default function Index(props) {
 								</Table>
 							</div>
 
-							{/* Mobile: daftar kartu (tanpa tabel) */}
-							<div className="space-y-3 p-4 md:hidden">
+							{/* Ponsel: daftar bergrup bergaris rambut (TASK_69 bagian 16) - dulu kartu bertumpuk di dalam kartu. */}
+							<div className="divide-y divide-border/70 md:hidden">
 								{roles.map((role, index) => (
-									<div
-										key={index}
-										className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm"
-									>
-										<div className="flex items-center gap-3 p-4 pb-2">
-											<div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-												<IconCircleKey className="size-5" />
-											</div>
-											<span className="min-w-0 truncate font-semibold leading-tight">
+									<div key={index} className="flex items-center gap-3 px-4 py-3">
+										<div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+											<IconCircleKey className="size-5" />
+										</div>
+										<div className="min-w-0 flex-1">
+											<p className="break-words text-[15px] font-semibold leading-snug">
 												{role.name}
-											</span>
-											<span className="ml-auto shrink-0 text-xs text-muted-foreground">
-												#{rowNumber(index)}
-											</span>
+											</p>
+											<p className="mt-0.5 text-[13px] text-muted-foreground">
+												{role.guard_name} · {role.created_at}
+											</p>
 										</div>
-										<div className="space-y-2 px-4 pb-4">
-											<MobileInfo icon={IconShieldLock} label="Guard" value={role.guard_name} />
-											<MobileInfo
-												icon={IconCalendarTime}
-												label="Dibuat pada"
-												value={role.created_at}
-											/>
-										</div>
-										<div className="flex items-center gap-2 border-t border-border/70 px-4 py-3">
-											<Button variant="blue" size="sm" className="flex-1" asChild>
-												<Link href={route('admin.roles.edit', [role])}>
-													<IconPencil className="size-4" /> Ubah
-												</Link>
-											</Button>
-											<DeleteRoleDialog role={role} />
-										</div>
+										<Button
+											variant="ghost"
+											size="icon"
+											aria-label="Ubah"
+											className="h-9 w-9 text-muted-foreground hover:text-primary"
+											asChild
+										>
+											<Link href={route('admin.roles.edit', [role])}>
+												<IconPencil className="size-4" />
+											</Link>
+										</Button>
+										<DeleteRoleDialog role={role} />
 									</div>
 								))}
 							</div>
 						</>
 					)}
-				</CardContent>
-				<CardFooter className="flex w-full flex-col items-center justify-between border-t py-2 lg:flex-row">
-					<p className="mb-2 text-sm text-muted-foreground">
+				</div>
+				<div className="flex w-full flex-col items-center justify-between gap-2 px-1 lg:flex-row">
+					<p className="text-[13px] text-muted-foreground">
 						Menampilkan <span className="font-medium text-foreground">{meta.from ?? 0}</span> dari{' '}
 						{meta.total} Peran
 					</p>
@@ -293,8 +278,8 @@ export default function Index(props) {
 							</Pagination>
 						)}
 					</div>
-				</CardFooter>
-			</Card>
+				</div>
+			</div>
 		</div>
 	);
 }

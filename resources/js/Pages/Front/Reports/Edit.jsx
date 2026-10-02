@@ -1,3 +1,4 @@
+import { groupedRowsClass } from '@/Components/GroupedForm';
 import InputError from '@/Components/InputError';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
@@ -114,7 +115,7 @@ export default function Edit(props) {
 
 					<CardContent className="p-5 sm:p-6">
 						<form
-							className="divide-y divide-border/70 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:py-4"
+							className={groupedRowsClass}
 							onSubmit={onHandleSubmit}
 						>
 							<div>

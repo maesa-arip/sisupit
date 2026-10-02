@@ -3926,3 +3926,24 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   `motion-reduce:animate-none`), tracking judul, `theme-color` per skema. Ikut terbetulkan: panel
   Fasilitas bilah bawah meluncur menyamping setengah lebarnya tiap dibuka (keyframe menimpa
   `-translate-x-1/2`). Penjaga `AppleDesignMaterialTest` (12). Rincian TASK_69 §7.
+
+### #160 — Rekap "83 halaman dirombak penuh" tidak benar: rombakan bertingkat hanya mengganti pembungkus (FIXED sebagian)
+
+- **Ditemukan:** 2026-10-02, user: "/admin/reports statusnya sudah rombak tapi ternyata belum, cek ulang
+  semuanya". Audit ulang memotret setiap halaman di 390x844 per peran (puppeteer-core + Chrome lokal).
+- **Akar:** bagian 7/12/13 TASK_69 dikerjakan per templat lewat skrip: `<Card>` diganti daftar bergrup &
+  kelas diseragamkan, tapi ISI baris/form tetap lama (lencana bersudut tebal, chip 11px, kotak info
+  bersarang, isian berbingkai web, judul `truncate`). Rekap disusun dari riwayat commit, bukan dari layar,
+  jadi semuanya tercatat "A". Ikut ketahuan: skrip pengganti menulis `\1` harfiah sebagai byte 0x01 di 9
+  berkas (10 titik) - tampil sebagai kotak hitam di form OPD/Kontak Email/Armada/Email Dinas & di depan
+  "GPS gagal"/"Alamat lengkap" pada Form Lapor (commit f5224845 & setelah 0f7a1157).
+- **Fix (TASK_69 bagian 16):** byte dibuang; `filledFieldsClass`/`groupedRowsClass` di GroupedForm (31 form
+  admin + Form Lapor/Profil/Forum: isian terisi ala iOS); Detail Insiden bagian atas, Daftar Relawan, 4
+  halaman RBAC, daftar Pengguna ponsel, 6 daftar fasilitas (judul utuh), keadaan kosong, pop-up lokasi,
+  Forum, Info dirombak sungguhan. Penjaga baru `AppleDesignMaterialTest` (byte kontrol 0x01-0x08 di
+  resources/js; rombakan isi) dibuktikan MERAH terhadap HEAD (62 berkas, pulih `cmp`).
+- **Sisa (OPEN):** Detail Insiden panel kanan, kartu form Profil, Profil Relawan masih B; `/email`, halaman
+  warga, `/admin/settings`, Dashboard OPD, Landing belum diverifikasi visual (rekap bagian "Sisa").
+- **Catatan:** `ReportResolutionSingleEntryTest` sekali gagal `UniqueConstraintViolationException` di suite
+  penuh 2026-10-02, lalu 3x lulus tersendiri - test *flaky* (data acak bertabrakan), belum diselidiki.
+- **Status:** FIXED sebagian 2026-10-02 (branch feat/mobile-native-polish, belum deploy).

@@ -166,7 +166,7 @@ export default function ReportIndex(props) {
 						))}
 					</div>
 				) : (
-					<div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/50 px-4 py-16 text-center">
+					<div className="flex flex-col items-center justify-center rounded-2xl border border-border/70 bg-card px-4 py-16 shadow-sm text-center">
 						<div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-none">
 							<IconShieldCheck className="h-6 w-6" stroke={1.5} />
 						</div>

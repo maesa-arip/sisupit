@@ -1,3 +1,4 @@
+import { groupedRowsClass } from '@/Components/GroupedForm';
 import DatePicker from '@/Components/DatePicker';
 import InputError from '@/Components/InputError';
 import TimePicker from '@/Components/TimePicker';
@@ -242,7 +243,7 @@ export default function Create(props) {
 
 					<CardContent className="p-5 sm:p-6">
 						<form
-							className="divide-y divide-border/70 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:py-4"
+							className={groupedRowsClass}
 							onSubmit={(e) => e.preventDefault()}
 						>
 							<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

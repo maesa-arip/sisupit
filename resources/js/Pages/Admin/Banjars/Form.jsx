@@ -1,3 +1,4 @@
+import { groupedRowsClass } from '@/Components/GroupedForm';
 import HeaderTitle from '@/Components/HeaderTitle';
 import InputError from '@/Components/InputError';
 import { Button } from '@/Components/ui/button';
@@ -89,7 +90,7 @@ export default function Form({ banjar = null, districts = [], jenis_options = []
 				<CardContent className="p-5 sm:p-6">
 					<form
 						onSubmit={onSubmit}
-						className="divide-y divide-border/70 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:py-4"
+						className={groupedRowsClass}
 					>
 						<div className="grid gap-1.5">
 							<Label htmlFor="name">Nama Banjar</Label>

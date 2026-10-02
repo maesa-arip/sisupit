@@ -1,3 +1,4 @@
+import { groupedRowsClass } from '@/Components/GroupedForm';
 import HeaderTitle from '@/Components/HeaderTitle';
 import InputError from '@/Components/InputError';
 import { Button } from '@/Components/ui/button';
@@ -100,10 +101,7 @@ export default function Form(props) {
 
 			<Card className="max-w-3xl">
 				<CardContent className="p-6">
-					<form
-						className="divide-y divide-border/70 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:py-4"
-						onSubmit={onHandleSubmit}
-					>
+					<form className={groupedRowsClass} onSubmit={onHandleSubmit}>
 						<div className="grid w-full items-center gap-1.5">
 							<Label htmlFor="subdomain">Subdomain</Label>
 							<Input
@@ -217,6 +215,7 @@ export default function Form(props) {
 								id="pejabat_foto"
 								accept="image/png,image/jpeg,image/webp"
 								onChange={(e) => setCompressedFile('pejabat_foto', e.target.files?.[0] ?? null)}
+								className="h-auto rounded-xl border-transparent bg-muted/60 p-2 text-[15px] text-muted-foreground file:mr-3 file:rounded-full file:bg-primary/10 file:px-3.5 file:py-1.5 file:text-[13px] file:font-semibold file:text-primary"
 							/>
 							<p className="text-xs text-muted-foreground">
 								Kosongkan bila tidak ingin mengganti. JPG/PNG/WEBP, maks 2MB.

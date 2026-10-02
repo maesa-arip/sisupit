@@ -1,6 +1,6 @@
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Card, CardContent } from '@/Components/ui/card';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Combobox } from '@/Components/ui/combobox';
 import { Dialog, DialogContent } from '@/Components/ui/dialog';
@@ -418,10 +418,10 @@ export default function ReportShow(props) {
 		return (
 			<div key={officer.id} className="flex items-center justify-between gap-3 p-3.5 text-xs">
 				<div className="min-w-0 flex-1">
-					<div className="truncate font-bold text-foreground">{officer.user?.name}</div>
+					<div className="truncate font-semibold text-foreground">{officer.user?.name}</div>
 					{/* Ditandai Tiba oleh rekan seregu (TASK_66) - jejaknya disebut (#154). */}
 					{officer.arriver && officer.arrived_by !== officer.user_id && (
-						<div className="truncate text-[11px] text-muted-foreground">
+						<div className="truncate text-xs text-muted-foreground">
 							Ditandai tiba oleh {officer.arriver.name}
 						</div>
 					)}
@@ -644,9 +644,9 @@ export default function ReportShow(props) {
 		const at = isResolved ? report.resolved_at : report.rejected_at;
 
 		return (
-			<p className={`text-[11px] leading-relaxed text-muted-foreground ${isResolved ? 'text-center' : ''}`}>
+			<p className={`text-xs leading-relaxed text-muted-foreground ${isResolved ? 'text-center' : ''}`}>
 				{isResolved ? 'Ditutup' : 'Ditolak'} oleh{' '}
-				<span className="font-bold text-foreground">{actor ?? 'tidak tercatat'}</span>
+				<span className="font-semibold text-foreground">{actor ?? 'tidak tercatat'}</span>
 				{at ? ` · ${fmtDateTime(at)}` : ''}
 			</p>
 		);
@@ -887,20 +887,20 @@ export default function ReportShow(props) {
 			// memantau peta ini dari jarak layar besar sambil menerima telepon, dan emoji 12 px di
 			// dalam lingkaran 28 px sulit dibedakan antara petugas dan relawan. Marker TKP
 			// (dangerIcon) sudah 36 px, jadi responder tetap tidak menenggelamkannya.
-			const circle = `<div class="${iconColor} text-lg w-10 h-10 font-bold flex items-center justify-center rounded-full border-2 border-card shadow-none">${iconEmoji}</div>`;
+			const circle = `<div class="${iconColor} text-lg w-10 h-10 font-semibold flex items-center justify-center rounded-full border-2 border-card shadow-none">${iconEmoji}</div>`;
 
 			let htmlMarkup = circle;
-			let popupHtml = `<div class="text-xs font-bold">${escapeHtml(name)}</div>`;
+			let popupHtml = `<div class="text-xs font-semibold">${escapeHtml(name)}</div>`;
 			if (regu) {
 				// Label nama regu SELALU terlihat (bukan hanya di popup): 3-4 regu bisa meluncur ke
 				// satu kejadian, dan dispatcher membedakannya dari layar tanpa mengetuk satu per satu.
 				const label = `${regu.name} · ${regu.members.length}`;
-				htmlMarkup = `<div class="relative h-10 w-10">${circle}<div class="absolute left-1/2 top-full mt-1 -translate-x-1/2 whitespace-nowrap rounded-xl border border-border bg-card px-2 py-0.5 text-[11px] font-semibold text-foreground shadow-sm">${escapeHtml(label)}</div></div>`;
+				htmlMarkup = `<div class="relative h-10 w-10">${circle}<div class="absolute left-1/2 top-full mt-1 -translate-x-1/2 whitespace-nowrap rounded-xl border border-border bg-card px-2 py-0.5 text-xs font-semibold text-foreground shadow-sm">${escapeHtml(label)}</div></div>`;
 				const memberItems = regu.members.map((o) => `<li>${escapeHtml(o.user?.name)}</li>`).join('');
 				const leaderLine = regu.leader
 					? `<div class="text-muted-foreground">Danru: ${escapeHtml(regu.leader)}</div>`
 					: '';
-				popupHtml = `<div class="space-y-1 text-xs"><div class="font-bold">${escapeHtml(regu.name)}</div>${leaderLine}<ul class="list-disc pl-4">${memberItems}</ul></div>`;
+				popupHtml = `<div class="space-y-1 text-xs"><div class="font-semibold">${escapeHtml(regu.name)}</div>${leaderLine}<ul class="list-disc pl-4">${memberItems}</ul></div>`;
 			}
 
 			// Pakai ulang marker yang sudah ada → animasikan ke posisi baru (mulus, tidak melompat).
@@ -1229,7 +1229,7 @@ export default function ReportShow(props) {
 										<Badge
 											variant="outline"
 											className={cn(
-												'whitespace-nowrap rounded-lg px-2 py-0.5 font-bold shadow-none',
+												'whitespace-nowrap rounded-lg px-2 py-0.5 font-semibold shadow-none',
 												getReportStatus(mergedIncident.status).color,
 											)}
 										>
@@ -1260,7 +1260,7 @@ export default function ReportShow(props) {
 											'Laporan dipisahkan dan kembali ke antrean verifikasi.',
 										)
 									}
-									className="h-9 gap-1.5 text-xs font-bold text-muted-foreground"
+									className="h-9 gap-1.5 text-xs font-semibold text-muted-foreground"
 								>
 									<IconArrowBackUp className="h-4 w-4" /> Pisahkan
 								</Button>
@@ -1304,7 +1304,7 @@ export default function ReportShow(props) {
 										<Badge
 											variant="outline"
 											className={cn(
-												'whitespace-nowrap rounded-lg px-2 py-0.5 font-bold shadow-none',
+												'whitespace-nowrap rounded-lg px-2 py-0.5 font-semibold shadow-none',
 												getReportStatus(duplicateCandidate.status).color,
 											)}
 										>
@@ -1348,7 +1348,7 @@ export default function ReportShow(props) {
 										'Usulan laporan ganda diabaikan.',
 									)
 								}
-								className="h-9 text-xs font-bold"
+								className="h-9 text-xs font-semibold"
 							>
 								Bukan kejadian yang sama
 							</Button>
@@ -1420,7 +1420,7 @@ export default function ReportShow(props) {
 							<Button
 								onClick={() => setConfirmReject(true)}
 								variant="ghost"
-								className="h-8 gap-1.5 rounded-lg px-2 text-xs font-bold text-destructive/70 transition-colors hover:bg-destructive/10 hover:text-destructive"
+								className="h-8 gap-1.5 rounded-lg px-2 text-xs font-semibold text-destructive/70 transition-colors hover:bg-destructive/10 hover:text-destructive"
 							>
 								<IconX className="h-3.5 w-3.5" /> Tolak laporan
 							</Button>
@@ -1458,157 +1458,126 @@ export default function ReportShow(props) {
 			<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				{/* BLOK KIRI: DOKUMEN & MAP */}
 				<div className="space-y-6 lg:col-span-2">
-					<Card>
-						<CardHeader className="flex flex-row items-center gap-2 border-b border-border/70 p-4 pb-3">
-							<IconFileText className="h-5 w-5 text-muted-foreground" />
-							<CardTitle className="text-[15px] font-semibold text-foreground">
-								Informasi Insiden
-							</CardTitle>
-						</CardHeader>
-						<CardContent className="space-y-5 p-4 sm:p-5">
-							<div className="space-y-1.5 border-b border-border/70 pb-4">
-								<div className="text-[13px] font-medium text-muted-foreground">Judul Insiden:</div>
-								<div className="text-base font-bold leading-snug text-destructive sm:text-lg">
-									{report.title}
+					{/* Informasi insiden ala daftar bergrup iOS (TASK_69 bagian 16): judul grup di LUAR kartu, isi
+					    berbaris garis rambut - dulu kotak abu bersarang di dalam kartu dengan label bertitik dua.
+					    Judul laporan tak diulang di sini: sudah jadi judul besar halaman. */}
+					<section className="space-y-2">
+						<h2 className="flex items-center gap-1.5 px-1 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+							<IconFileText className="h-4 w-4" /> Informasi insiden
+						</h2>
+						<div className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
+							<div className="flex items-center justify-between gap-4 px-4 py-3">
+								<span className="text-[15px] text-muted-foreground">Pelapor</span>
+								<span className="flex min-w-0 items-center gap-1.5 text-right text-[15px] font-medium text-foreground">
+									<IconUser className="h-4 w-4 shrink-0 text-muted-foreground" />
+									<span className="break-words">{report.name}</span>
+								</span>
+							</div>
+							<div className="flex items-center justify-between gap-4 px-4 py-3">
+								<span className="text-[15px] text-muted-foreground">Telepon</span>
+								<a
+									href={`tel:${report.phone}`}
+									className="flex items-center gap-1.5 text-[15px] font-medium text-primary transition-opacity active:opacity-60"
+								>
+									<IconPhone className="h-4 w-4 shrink-0" /> {report.phone}
+								</a>
+							</div>
+							<div className="space-y-0.5 px-4 py-3">
+								<div className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
+									<IconMap className="h-3.5 w-3.5" /> Wilayah administratif
 								</div>
+								<p className="text-[15px] leading-snug text-foreground">
+									{[
+										report.village?.name || report.village_code,
+										report.district?.name || report.district_code,
+										report.city?.name || report.city_code,
+										report.province?.name || report.province_code || 'Bali',
+									]
+										.filter(Boolean)
+										.join(', ')}
+								</p>
 							</div>
 
-							<div className="grid grid-cols-1 gap-4 text-xs sm:grid-cols-2">
-								<div className="space-y-1 rounded-lg border border-border bg-muted p-3">
-									<div className="font-medium text-muted-foreground">Pelapor</div>
-									<div className="flex items-center gap-1.5 font-bold text-foreground">
-										<IconUser className="h-3.5 w-3.5 text-muted-foreground" /> {report.name}
-									</div>
-								</div>
-								<div className="space-y-1 rounded-lg border border-border bg-muted p-3">
-									<div className="font-medium text-muted-foreground">Telepon</div>
-									<a
-										href={`tel:${report.phone}`}
-										className="flex items-center gap-1.5 font-bold text-foreground transition-colors hover:text-info"
+							{/* DUA baris, dua penulis (TASK_49). Atas: alamat yang diturunkan dari TITIK
+							    insiden — dijamin cocok dengan pin di peta. Bawah: patokan yang diketik
+							    pelapor, satu-satunya keterangan yang tak bisa diturunkan dari koordinat
+							    ("gang buntu sebelah warung Bu Made"). Dulu keduanya satu baris berjudul
+							    "Alamat Presisi" yang isinya bisa mana saja di antara keduanya. */}
+							<div className="space-y-3 px-4 py-3">
+								{/* Seberapa boleh pin ini dipercaya (TASK_52, #104). Sengaja DI ATAS alamat
+								    dan tombol "Navigasi ke Lokasi": sebelum ini pin hasil fix GPS di TKP dan
+								    pin yang digeser jauh oleh pelapor yang sedang di rumah terlihat persis
+								    sama, dan keduanya menawarkan navigasi yang sama tegasnya — itulah yang
+								    membuat petugas berangkat ke tempat yang salah. Keterangannya muncul
+								    hanya saat titiknya belum bisa dipercaya, supaya kasus normal tetap
+								    sepi dan peringatannya tidak berubah jadi hiasan. */}
+								<div className="space-y-1">
+									<div
+										className={cn(
+											'inline-flex flex-wrap items-center gap-x-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium',
+											asalTitik.tone,
+										)}
 									>
-										<IconPhone className="h-3.5 w-3.5 text-muted-foreground" /> {report.phone}
-									</a>
-								</div>
-
-								<div className="space-y-2 rounded-lg border border-border bg-muted p-4 sm:col-span-2">
-									<div className="mb-1 flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground">
-										<IconMap className="h-3.5 w-3.5" /> Wilayah Administratif
-									</div>
-									<div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-										<div>
-											<div className="mb-0.5 text-[11px] text-muted-foreground">Provinsi</div>
-											<div className="truncate font-bold text-foreground">
-												{report.province?.name || report.province_code || 'Bali'}
-											</div>
-										</div>
-										<div>
-											<div className="mb-0.5 text-[11px] text-muted-foreground">
-												Kabupaten/Kota
-											</div>
-											<div className="truncate font-bold text-foreground">
-												{report.city?.name || report.city_code || '-'}
-											</div>
-										</div>
-										<div>
-											<div className="mb-0.5 text-[11px] text-muted-foreground">Kecamatan</div>
-											<div className="truncate font-bold text-foreground">
-												{report.district?.name || report.district_code || '-'}
-											</div>
-										</div>
-										<div>
-											<div className="mb-0.5 text-[11px] text-muted-foreground">
-												Desa/Kelurahan
-											</div>
-											<div className="truncate font-bold text-foreground">
-												{report.village?.name || report.village_code || '-'}
-											</div>
-										</div>
-									</div>
-								</div>
-
-								{/* DUA baris, dua penulis (TASK_49). Atas: alamat yang diturunkan dari TITIK
-								    insiden — dijamin cocok dengan pin di peta. Bawah: patokan yang diketik
-								    pelapor, satu-satunya keterangan yang tak bisa diturunkan dari koordinat
-								    ("gang buntu sebelah warung Bu Made"). Dulu keduanya satu baris berjudul
-								    "Alamat Presisi" yang isinya bisa mana saja di antara keduanya. */}
-								<div className="space-y-1 rounded-lg border border-border bg-muted p-3 sm:col-span-2">
-									{/* Seberapa boleh pin ini dipercaya (TASK_52, #104). Sengaja DI ATAS alamat
-									    dan tombol "Navigasi ke Lokasi": sebelum ini pin hasil fix GPS di TKP dan
-									    pin yang digeser jauh oleh pelapor yang sedang di rumah terlihat persis
-									    sama, dan keduanya menawarkan navigasi yang sama tegasnya — itulah yang
-									    membuat petugas berangkat ke tempat yang salah. Keterangannya muncul
-									    hanya saat titiknya belum bisa dipercaya, supaya kasus normal tetap
-									    sepi dan peringatannya tidak berubah jadi hiasan. */}
-									<div className="mb-2 space-y-1">
-										<div
-											className={cn(
-												'inline-flex flex-wrap items-center gap-x-1.5 rounded-xl border px-2 py-1 text-[11px] font-semibold',
-												asalTitik.tone,
-											)}
-										>
-											<span>{asalTitik.label}</span>
-											{asalTitik.detail && (
-												<span className="font-normal opacity-80">· {asalTitik.detail}</span>
-											)}
-										</div>
-										{!asalTitik.terpercaya && (
-											<p className="text-[11px] leading-relaxed text-muted-foreground">
-												{asalTitik.hint}
-											</p>
+										<span>{asalTitik.label}</span>
+										{asalTitik.detail && (
+											<span className="font-normal opacity-80">· {asalTitik.detail}</span>
 										)}
 									</div>
+									{!asalTitik.terpercaya && (
+										<p className="text-[13px] leading-relaxed text-muted-foreground">
+											{asalTitik.hint}
+										</p>
+									)}
+								</div>
 
-									<div className="font-medium text-muted-foreground">Alamat</div>
-									<div className="mt-1 flex items-start gap-1.5 font-bold text-foreground">
+								<div>
+									<div className="text-[13px] text-muted-foreground">Alamat</div>
+									<div className="mt-0.5 flex items-start gap-1.5 text-[15px] font-medium text-foreground">
 										<IconMapPin className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
-										<span className="leading-relaxed">
+										<span className="leading-snug">
 											{incidentLocation.geoAddress || 'Alamat titik belum terbaca'}
 										</span>
 									</div>
-
-									<div className="mt-3 border-t border-border/70 pt-2">
-										<div className="font-medium text-muted-foreground">Patokan Lokasi</div>
-										<div className="mt-1 leading-relaxed text-foreground">
-											{incidentLocation.address || (
-												<span className="italic text-muted-foreground">
-													Tidak diisi pelapor
-												</span>
-											)}
-										</div>
-									</div>
-									{incidentLocation.lat && incidentLocation.lng && (
-										<a
-											href={`https://www.google.com/maps/dir/?api=1&destination=${incidentLocation.lat},${incidentLocation.lng}`}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="mt-2 inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-1.5 text-[13px] font-semibold text-foreground shadow-none transition-colors hover:bg-accent"
-										>
-											<IconMap className="h-3.5 w-3.5 text-destructive" /> Navigasi ke Lokasi
-										</a>
-									)}
 								</div>
+
+								<div>
+									<div className="text-[13px] text-muted-foreground">Patokan Lokasi</div>
+									<div className="mt-0.5 text-[15px] leading-snug text-foreground">
+										{incidentLocation.address || (
+											<span className="italic text-muted-foreground">Tidak diisi pelapor</span>
+										)}
+									</div>
+								</div>
+								{incidentLocation.lat && incidentLocation.lng && (
+									<a
+										href={`https://www.google.com/maps/dir/?api=1&destination=${incidentLocation.lat},${incidentLocation.lng}`}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="flex h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-primary/10 text-[15px] font-semibold text-primary transition-[opacity,transform] active:scale-[0.98] active:opacity-80 sm:w-auto sm:px-5"
+									>
+										<IconMap className="h-4 w-4" /> Navigasi ke Lokasi
+									</a>
+								)}
 							</div>
 
-							<div className="mt-2 space-y-2 border-t border-border/70 pt-4">
-								<label className="text-[13px] font-medium text-muted-foreground">
-									Deskripsi Kejadian:
-								</label>
-								<p className="whitespace-pre-wrap rounded-lg border border-border bg-card p-4 text-sm leading-relaxed text-foreground/80">
+							<div className="space-y-1 px-4 py-3">
+								<div className="text-[13px] text-muted-foreground">Deskripsi kejadian</div>
+								<p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground">
 									{report.description || '-'}
 								</p>
 							</div>
 
 							{photos.length > 0 && (
-								<div className="space-y-2 pt-2">
-									<label className="text-[13px] font-medium text-muted-foreground">
-										Lampiran Foto {photos.length > 1 && `(${photos.length})`}:
-									</label>
+								<div className="space-y-2 px-4 py-3">
+									<div className="text-[13px] text-muted-foreground">
+										Lampiran foto {photos.length > 1 && `(${photos.length})`}
+									</div>
 									<div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
 										{photos.map((path, i) => (
 											<div
 												key={i}
 												onClick={() => setModalPhoto(path)}
-												className="group relative h-32 w-full cursor-zoom-in overflow-hidden rounded-lg border border-border bg-muted"
+												className="group relative h-32 w-full cursor-zoom-in overflow-hidden rounded-xl bg-muted"
 											>
 												<img
 													src={`/storage/${path}`}
@@ -1617,7 +1586,7 @@ export default function ReportShow(props) {
 													alt={`Bukti ${i + 1}`}
 												/>
 												<div className="absolute inset-0 flex items-center justify-center bg-black/5 transition-colors group-hover:bg-black/40">
-													<span className="flex items-center gap-1.5 rounded-lg bg-card/95 px-2.5 py-1 text-[11px] font-bold text-foreground opacity-0 transition-opacity group-hover:opacity-100">
+													<span className="flex items-center gap-1.5 rounded-full bg-card/95 px-2.5 py-1 text-xs font-medium text-foreground opacity-0 transition-opacity group-hover:opacity-100">
 														<IconZoomIn className="h-3.5 w-3.5" /> Perbesar
 													</span>
 												</div>
@@ -1626,18 +1595,18 @@ export default function ReportShow(props) {
 									</div>
 								</div>
 							)}
-						</CardContent>
-					</Card>
+						</div>
+					</section>
 
-					<Card className="relative h-[400px] overflow-hidden">
-						<div className="absolute left-4 top-4 z-10 flex items-center gap-2 rounded-lg border border-border bg-card/95 px-3 py-1.5 text-xs font-bold text-foreground shadow-none">
+					<div className="relative h-[400px] overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
+						<div className="material-chrome absolute left-3 top-3 z-10 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-semibold text-foreground shadow-sm">
 							<IconRadar
 								className={`h-4 w-4 text-destructive ${reportStatus !== 'resolved' ? 'animate-pulse' : ''}`}
 							/>
-							PETA DISPATCHER KOMANDO
+							Peta dispatcher
 						</div>
 						<div ref={mapRef} className="z-0 h-full w-full bg-muted"></div>
-					</Card>
+					</div>
 				</div>
 
 				{/* BLOK KANAN: MANIFEST & KONTROL */}
@@ -1645,7 +1614,7 @@ export default function ReportShow(props) {
 					{reportStatus === 'ditolak' && (
 						<Card>
 							<CardContent className="space-y-2 p-4 sm:p-5">
-								<h2 className="flex items-center gap-1.5 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+								<h2 className="flex items-center gap-2 text-[17px] font-semibold tracking-tight text-foreground">
 									<IconX className="h-4 w-4" /> Laporan Ditolak
 								</h2>
 								<p className="text-xs leading-relaxed text-muted-foreground">
@@ -1656,7 +1625,7 @@ export default function ReportShow(props) {
 								{closureActorLine('rejected')}
 								{rejectedReason && (
 									<div className="mt-1 rounded-lg border border-border bg-muted p-3 text-xs text-foreground/80">
-										<span className="font-bold">Alasan: </span>
+										<span className="font-semibold">Alasan: </span>
 										{rejectedReason}
 									</div>
 								)}
@@ -1670,7 +1639,7 @@ export default function ReportShow(props) {
 					{mergedReports.length > 0 && (
 						<Card>
 							<CardContent className="space-y-3 p-4 sm:p-5">
-								<h2 className="flex items-center gap-1.5 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+								<h2 className="flex items-center gap-2 text-[17px] font-semibold tracking-tight text-foreground">
 									<IconStack2 className="h-4 w-4 text-muted-foreground" /> Laporan Terkait (
 									{mergedReports.length})
 								</h2>
@@ -1681,13 +1650,13 @@ export default function ReportShow(props) {
 									{mergedReports.map((terkait) => (
 										<li key={terkait.id} className="flex items-center justify-between gap-2 py-2">
 											<Link href={route('reports.show', terkait.id)} className="min-w-0 flex-1">
-												<p className="font-mono text-[11px] font-semibold text-muted-foreground">
+												<p className="font-mono text-xs font-semibold text-muted-foreground">
 													{reportNumber(terkait)}
 												</p>
 												<p className="truncate text-sm font-semibold text-foreground">
 													{terkait.reporter || terkait.title}
 												</p>
-												<p className="text-[11px] text-muted-foreground">
+												<p className="text-xs text-muted-foreground">
 													{[
 														new Date(terkait.created_at).toLocaleTimeString('id-ID', {
 															hour: '2-digit',
@@ -1715,7 +1684,7 @@ export default function ReportShow(props) {
 															'Laporan dipisahkan dan kembali ke antrean verifikasi.',
 														)
 													}
-													className="h-8 shrink-0 gap-1 px-2 text-xs font-bold text-muted-foreground"
+													className="h-8 shrink-0 gap-1 px-2 text-xs font-semibold text-muted-foreground"
 												>
 													<IconArrowBackUp className="h-3.5 w-3.5" /> Pisahkan
 												</Button>
@@ -1730,13 +1699,13 @@ export default function ReportShow(props) {
 					{isInResponseFlow && (isRelawan || isStaffOrAdmin) && (
 						<Card>
 							<CardContent className="space-y-4 p-4 sm:p-5">
-								<h2 className="flex items-center gap-1.5 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+								<h2 className="flex items-center gap-2 text-[17px] font-semibold tracking-tight text-foreground">
 									<IconShieldCheck className="h-4 w-4 text-info" /> Panel Tindakan Anda
 								</h2>
 
 								{reportStatus === 'resolved' ? (
 									<div className="space-y-2">
-										<div className="flex items-center justify-center gap-2 rounded-lg border border-info/20 bg-info/10 p-3 text-center text-xs font-bold text-info">
+										<div className="flex items-center justify-center gap-2 rounded-lg border border-info/20 bg-info/10 p-3 text-center text-xs font-semibold text-info">
 											<IconCheck className="h-4 w-4" /> INSIDEN SELESAI DITANGANI
 										</div>
 										{closureActorLine('resolved')}
@@ -1748,7 +1717,7 @@ export default function ReportShow(props) {
 											// Anggota regu yang memilih tinggal (TASK_60): bukan responder, jadi
 											// tak ada tombol Tiba/Koreksi - cukup keadaannya & jalan membatalkan.
 											<>
-												<div className="flex items-center justify-center gap-2 rounded-lg border border-border bg-muted p-3 text-center text-xs font-bold text-foreground">
+												<div className="flex items-center justify-center gap-2 rounded-lg border border-border bg-muted p-3 text-center text-xs font-semibold text-foreground">
 													<IconBuilding className="h-4 w-4" /> Anda Jaga di Kantor -{' '}
 													{myRegu.name}
 												</div>
@@ -1764,7 +1733,7 @@ export default function ReportShow(props) {
 										) : !myRecord ? (
 											<div className="space-y-2">
 												{myRegu && officerList.some((o) => reguKeyOf(o) === myRegu.key) && (
-													<p className="rounded-lg border border-warning/20 bg-warning/10 p-3 text-xs font-bold leading-relaxed text-warning">
+													<p className="rounded-lg border border-warning/20 bg-warning/10 p-3 text-xs font-semibold leading-relaxed text-warning">
 														{myRegu.name} sudah meluncur. Pilih keberangkatan Anda sendiri.
 													</p>
 												)}
@@ -1795,7 +1764,7 @@ export default function ReportShow(props) {
 													)}
 												</div>
 												{myRegu?.stay_taken_by && (
-													<p className="text-center text-[11px] text-muted-foreground">
+													<p className="text-center text-xs text-muted-foreground">
 														{myRegu.stay_taken_by} sudah Jaga di Kantor untuk {myRegu.name}.
 													</p>
 												)}
@@ -1825,12 +1794,12 @@ export default function ReportShow(props) {
 												</Button>
 											</>
 										) : myRecord.status === 'arrived' ? (
-											<div className="rounded-lg border border-info/20 bg-info/10 p-3 text-center text-xs font-bold text-info">
+											<div className="rounded-lg border border-info/20 bg-info/10 p-3 text-center text-xs font-semibold text-info">
 												Anda Sedang di Lokasi.
 											</div>
 										) : (
 											// Status tak terduga (mis. legacy 'waiting') — jangan klaim sudah di lokasi.
-											<div className="rounded-lg border border-border bg-muted p-3 text-center text-xs font-bold text-muted-foreground">
+											<div className="rounded-lg border border-border bg-muted p-3 text-center text-xs font-semibold text-muted-foreground">
 												Status Anda: {getResponderStatus(myRecord.status).label}
 											</div>
 										)}
@@ -1847,7 +1816,7 @@ export default function ReportShow(props) {
 
 										{myRecord?.status === 'arrived' && isCorrectingMode && (
 											<div className="mt-2 space-y-2 rounded-lg border border-warning/20 bg-warning/10 p-3 text-xs text-warning">
-												<p className="font-bold leading-relaxed">
+												<p className="font-semibold leading-relaxed">
 													Titik laporan mungkin belum tepat. Geser pin merah ke lokasi
 													kejadian sebenarnya agar rekan lain menuju titik yang benar, lalu
 													konfirmasi.
@@ -1863,7 +1832,7 @@ export default function ReportShow(props) {
 													<Button
 														onClick={handleConfirmCorrection}
 														disabled={isSubmittingCorrection}
-														className="h-9 flex-1 bg-destructive font-bold text-destructive-foreground hover:bg-destructive/90"
+														className="h-9 flex-1 bg-destructive font-semibold text-destructive-foreground hover:bg-destructive/90"
 													>
 														{isSubmittingCorrection ? (
 															<IconLoader2 className="h-4 w-4 animate-spin" />
@@ -1903,7 +1872,7 @@ export default function ReportShow(props) {
 						reportStatus !== 'resolved' && (
 							<Card>
 								<CardContent className="space-y-3 p-4 sm:p-5">
-									<h2 className="flex items-center gap-1.5 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+									<h2 className="flex items-center gap-2 text-[17px] font-semibold tracking-tight text-foreground">
 										<IconTruck className="h-4 w-4 text-teal-600 dark:text-teal" /> Pengerahan Armada
 									</h2>
 
@@ -1915,10 +1884,10 @@ export default function ReportShow(props) {
 													className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/50 p-2.5"
 												>
 													<div className="min-w-0">
-														<div className="truncate text-xs font-bold text-foreground">
+														<div className="truncate text-xs font-semibold text-foreground">
 															{ru.unit?.name || 'Unit'}
 														</div>
-														<div className="truncate text-[11px] text-muted-foreground">
+														<div className="truncate text-xs text-muted-foreground">
 															{ru.unit?.type}
 														</div>
 													</div>
@@ -1976,7 +1945,7 @@ export default function ReportShow(props) {
 														? 'Semua unit sedang bertugas'
 														: 'Belum ada unit terdaftar di wilayah ini'}
 												</p>
-												<p className="text-[11px] leading-relaxed text-muted-foreground">
+												<p className="text-xs leading-relaxed text-muted-foreground">
 													{allUnitsBusy
 														? 'Tarik salah satu unit dari insiden lain atau tunggu unit selesai bertugas sebelum mengerahkan.'
 														: 'Tambahkan armada terlebih dahulu agar bisa dikerahkan ke insiden.'}
@@ -2008,7 +1977,7 @@ export default function ReportShow(props) {
 							reportStatus !== 'digabung')) && (
 						<Card>
 							<CardContent className="space-y-3 p-4 sm:p-5">
-								<h2 className="flex items-center gap-1.5 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+								<h2 className="flex items-center gap-2 text-[17px] font-semibold tracking-tight text-foreground">
 									<IconBuildingCommunity className="h-4 w-4 text-muted-foreground" /> OPD Terkait
 								</h2>
 
@@ -2026,10 +1995,10 @@ export default function ReportShow(props) {
 												>
 													<div className="flex items-start justify-between gap-2">
 														<div className="min-w-0">
-															<div className="truncate text-xs font-bold text-foreground">
+															<div className="truncate text-xs font-semibold text-foreground">
 																{row.agency_name}
 															</div>
-															<div className="truncate text-[11px] text-muted-foreground">
+															<div className="truncate text-xs text-muted-foreground">
 																Diminta oleh {row.notified_by || 'Pusat Komando'}
 															</div>
 														</div>
@@ -2047,13 +2016,13 @@ export default function ReportShow(props) {
 													{row.requires_confirmation && (
 														<div
 															className={cn(
-																'rounded-xl border px-2.5 py-2 text-[11px] leading-relaxed',
+																'rounded-xl border px-2.5 py-2 text-xs leading-relaxed',
 																row.confirmed_at
 																	? 'border-success/20 bg-success/10 text-success'
 																	: 'border-warning/20 bg-warning/10 text-warning',
 															)}
 														>
-															<div className="flex items-start gap-1.5 font-bold">
+															<div className="flex items-start gap-1.5 font-semibold">
 																{row.confirmed_at ? (
 																	<IconCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />
 																) : (
@@ -2062,7 +2031,7 @@ export default function ReportShow(props) {
 																<span>{row.confirmation_label}</span>
 															</div>
 															{row.confirmed_at ? (
-																<div className="mt-1 pl-5 text-[11px] font-medium opacity-80">
+																<div className="mt-1 pl-5 text-xs font-medium opacity-80">
 																	Dikonfirmasi {row.confirmed_by || '-'}
 																	{row.confirmed_source === 'operator'
 																		? ' (dicatat Pusat Komando)'
@@ -2072,7 +2041,7 @@ export default function ReportShow(props) {
 																		: ''}
 																</div>
 															) : (
-																<div className="mt-1 pl-5 text-[11px] font-medium opacity-80">
+																<div className="mt-1 pl-5 text-xs font-medium opacity-80">
 																	Belum dikonfirmasi.
 																</div>
 															)}
@@ -2143,7 +2112,7 @@ export default function ReportShow(props) {
 														? 'Belum ada master OPD di wilayah ini'
 														: 'Semua OPD sudah dilibatkan'}
 												</p>
-												<p className="text-[11px] leading-relaxed text-muted-foreground">
+												<p className="text-xs leading-relaxed text-muted-foreground">
 													{agencyOptions.length === 0
 														? 'Daftar instansi (BPBD, PLN, PMI, dst.) diisi lebih dulu lewat Manajemen OPD agar bisa diminta ke insiden.'
 														: 'Seluruh instansi yang terdaftar sudah tercatat di insiden ini.'}
@@ -2183,23 +2152,23 @@ export default function ReportShow(props) {
 											<div key={regu.key} className="divide-y divide-border">
 												<div className="flex items-center justify-between gap-3 bg-muted/40 px-3.5 py-2.5 text-xs">
 													<div className="min-w-0 flex-1">
-														<div className="truncate font-bold text-foreground">
+														<div className="truncate font-semibold text-foreground">
 															{regu.name}
 														</div>
 														{regu.leader && (
-															<div className="truncate text-[11px] text-muted-foreground">
+															<div className="truncate text-xs text-muted-foreground">
 																Danru: {regu.leader}
 															</div>
 														)}
 													</div>
-													<span className="shrink-0 text-[11px] font-bold text-muted-foreground">
+													<span className="shrink-0 text-xs font-semibold text-muted-foreground">
 														{anggota.length} meluncur
 													</span>
 												</div>
 												{anggota.map(renderOfficerRow)}
 												{regu.stay && (
 													<div className="flex items-center justify-between gap-3 p-3.5 text-xs">
-														<div className="min-w-0 flex-1 truncate font-bold text-foreground">
+														<div className="min-w-0 flex-1 truncate font-semibold text-foreground">
 															{regu.stay}
 														</div>
 														<Badge className="rounded-xl border border-border bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground shadow-none">
@@ -2208,7 +2177,7 @@ export default function ReportShow(props) {
 													</div>
 												)}
 												{regu.pending.length > 0 && (
-													<div className="p-3.5 text-[11px] leading-relaxed text-muted-foreground">
+													<div className="p-3.5 text-xs leading-relaxed text-muted-foreground">
 														Belum memilih: {regu.pending.join(', ')}
 													</div>
 												)}
@@ -2224,7 +2193,7 @@ export default function ReportShow(props) {
 							{/* Alpha (TASK_66): anggota regu yang tak memilih Meluncur/Jaga di Kantor sampai
 							    kejadian ditutup. Data internal - server hanya mengirimnya ke admin. */}
 							{alphaMembers.length > 0 && (
-								<div className="space-y-1 p-3.5 text-[11px] leading-relaxed">
+								<div className="space-y-1 p-3.5 text-xs leading-relaxed">
 									<div className="font-semibold text-destructive">Alpha (tidak memilih)</div>
 									{alphaMembers.map((row) => (
 										<div key={row.regu} className="text-muted-foreground">
@@ -2246,7 +2215,7 @@ export default function ReportShow(props) {
 											key={helper.id}
 											className="flex items-center justify-between gap-3 p-3.5 text-xs"
 										>
-											<div className="min-w-0 flex-1 truncate font-bold text-foreground">
+											<div className="min-w-0 flex-1 truncate font-semibold text-foreground">
 												{helper.user?.name}
 											</div>
 											<Badge
@@ -2271,7 +2240,7 @@ export default function ReportShow(props) {
 						<Card>
 							<CardContent className="space-y-3 p-4 sm:p-5">
 								<div className="flex items-center justify-between gap-2">
-									<h2 className="flex items-center gap-1.5 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+									<h2 className="flex items-center gap-2 text-[17px] font-semibold tracking-tight text-foreground">
 										<IconFileText className="h-4 w-4 text-info" /> Laporan Kejadian
 									</h2>
 									{canManageResolution && (
@@ -2293,7 +2262,7 @@ export default function ReportShow(props) {
 																report: report.id,
 																status,
 															})}
-															className="inline-flex items-center gap-1 rounded-lg bg-info px-2.5 py-1.5 text-xs font-bold text-info-foreground shadow-none transition-colors hover:bg-info/90"
+															className="inline-flex items-center gap-1 rounded-lg bg-info px-2.5 py-1.5 text-xs font-semibold text-info-foreground shadow-none transition-colors hover:bg-info/90"
 														>
 															{exists ? (
 																<IconPencil className="h-3.5 w-3.5" />
@@ -2310,7 +2279,7 @@ export default function ReportShow(props) {
 								</div>
 
 								{canManageResolution && (
-									<p className="text-[11px] leading-relaxed text-muted-foreground">
+									<p className="text-xs leading-relaxed text-muted-foreground">
 										Tiap kejadian punya satu entri <b>sementara</b> (petugas boleh melengkapinya)
 										dan satu entri <b>final</b> (ditutup admin). Setiap perubahan tercatat di
 										riwayatnya.
@@ -2318,7 +2287,7 @@ export default function ReportShow(props) {
 								)}
 
 								{resolutions.length === 0 ? (
-									<div className="rounded-lg border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+									<div className="rounded-xl bg-muted/40 p-4 text-center text-[13px] text-muted-foreground">
 										{canManageResolution
 											? 'Belum ada berita acara. Klik "Buat" untuk mengisi data kejadian, korban, dan foto.'
 											: 'Belum ada berita acara untuk insiden ini.'}
@@ -2342,7 +2311,7 @@ export default function ReportShow(props) {
 													{/* PDF Laporan Kejadian (TASK_68) - URL dari server, <a> biasa karena ini unduhan. */}
 													<a
 														href={r.pdf_url}
-														className="ml-auto inline-flex items-center gap-1 rounded-xl border border-border bg-card px-2 py-1 text-[11px] font-semibold text-foreground transition-colors hover:bg-accent"
+														className="ml-auto inline-flex items-center gap-1 rounded-xl border border-border bg-card px-2 py-1 text-xs font-semibold text-foreground transition-colors hover:bg-accent"
 													>
 														<IconDownload className="h-3.5 w-3.5" /> PDF
 													</a>
@@ -2359,7 +2328,7 @@ export default function ReportShow(props) {
 														)}
 												</div>
 
-												<div className="mt-1 text-[11px] text-muted-foreground">
+												<div className="mt-1 text-xs text-muted-foreground">
 													{r.creator ? `Dibuat ${r.creator} · ` : ''}
 													{fmtDateTime(r.created_at)}
 												</div>
@@ -2533,7 +2502,7 @@ export default function ReportShow(props) {
 																.map((log) => (
 																	<div
 																		key={log.id}
-																		className="text-[11px] leading-relaxed"
+																		className="text-xs leading-relaxed"
 																	>
 																		<div className="text-muted-foreground">
 																			<span className="font-semibold text-foreground">
@@ -2599,7 +2568,7 @@ export default function ReportShow(props) {
 							<div className="w-full space-y-2 border-t border-border/70 pt-4 text-left">
 								<div className="flex items-baseline justify-between gap-2">
 									<span className="text-[13px] font-medium text-muted-foreground">OPD Terkait</span>
-									<span className="text-[11px] text-muted-foreground">
+									<span className="text-xs text-muted-foreground">
 										{selectedAgencyIds.length} dipilih
 									</span>
 								</div>
@@ -2626,20 +2595,20 @@ export default function ReportShow(props) {
 												/>
 												<span className="min-w-0 flex-1">
 													<span className="flex flex-wrap items-center gap-1.5">
-														<span className="text-xs font-bold text-foreground">
+														<span className="text-xs font-semibold text-foreground">
 															{agency.name}
 														</span>
 														{recommended && (
 															<Badge
 																variant="outline"
-																className="rounded-xl border-info/20 bg-info/10 px-1.5 py-0 text-[11px] font-bold text-info shadow-none"
+																className="rounded-xl border-info/20 bg-info/10 px-1.5 py-0 text-xs font-semibold text-info shadow-none"
 															>
 																Disarankan
 															</Badge>
 														)}
 													</span>
 													{agency.requires_confirmation && agency.confirmation_label && (
-														<span className="mt-0.5 block text-[11px] leading-relaxed text-muted-foreground">
+														<span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground">
 															Perlu konfirmasi: {agency.confirmation_label}
 														</span>
 													)}
@@ -2661,7 +2630,7 @@ export default function ReportShow(props) {
 							</Button>
 							<Button
 								onClick={executeApprove}
-								className="h-10 flex-1 bg-info font-bold text-info-foreground shadow-none hover:bg-info/90"
+								className="h-10 flex-1 bg-info font-semibold text-info-foreground shadow-none hover:bg-info/90"
 								disabled={isProcessing}
 							>
 								{isProcessing ? <IconLoader2 className="h-4 w-4 animate-spin" /> : 'Ya, Siarkan'}
@@ -2704,7 +2673,7 @@ export default function ReportShow(props) {
 							</Button>
 							<Button
 								onClick={executeReject}
-								className="h-10 flex-1 bg-destructive font-bold text-destructive-foreground shadow-none hover:bg-destructive/90"
+								className="h-10 flex-1 bg-destructive font-semibold text-destructive-foreground shadow-none hover:bg-destructive/90"
 								disabled={isProcessing}
 							>
 								{isProcessing ? <IconLoader2 className="h-4 w-4 animate-spin" /> : 'Ya, Tolak'}
@@ -2729,10 +2698,10 @@ export default function ReportShow(props) {
 						    walau OPD belum mengonfirmasi — yang belum terpenuhi ikut tercatat apa adanya. */}
 						{awaitingConfirmations.length > 0 && (
 							<div className="w-full space-y-1 rounded-lg border border-warning/20 bg-warning/10 p-3 text-left">
-								<div className="flex items-center gap-1.5 text-xs font-bold text-warning">
+								<div className="flex items-center gap-1.5 text-xs font-semibold text-warning">
 									<IconAlertCircle className="h-4 w-4 shrink-0" /> Masih ditunggu
 								</div>
-								<ul className="space-y-0.5 pl-5 text-[11px] leading-relaxed text-warning">
+								<ul className="space-y-0.5 pl-5 text-xs leading-relaxed text-warning">
 									{awaitingConfirmations.map((a) => (
 										<li key={a.id} className="list-disc">
 											<b>{a.agency_name}</b> - {a.confirmation_label}
@@ -2751,7 +2720,7 @@ export default function ReportShow(props) {
 							</Button>
 							<Button
 								onClick={executeResolve}
-								className="h-10 flex-1 bg-success font-bold text-success-foreground shadow-none hover:bg-success/90"
+								className="h-10 flex-1 bg-success font-semibold text-success-foreground shadow-none hover:bg-success/90"
 								disabled={isActionLoading}
 							>
 								{isActionLoading ? <IconLoader2 className="h-4 w-4 animate-spin" /> : 'Ya, Selesaikan'}
@@ -2804,7 +2773,7 @@ export default function ReportShow(props) {
 							<Button
 								onClick={handleConfirmAgency}
 								disabled={isAgencyProcessing}
-								className="h-10 flex-1 bg-success font-bold text-success-foreground shadow-none hover:bg-success/90"
+								className="h-10 flex-1 bg-success font-semibold text-success-foreground shadow-none hover:bg-success/90"
 							>
 								{isAgencyProcessing ? <IconLoader2 className="h-4 w-4 animate-spin" /> : 'Ya, Catat'}
 							</Button>
@@ -2837,7 +2806,7 @@ export default function ReportShow(props) {
 							<Button
 								onClick={handleRemoveAgency}
 								disabled={isAgencyProcessing}
-								className="h-10 flex-1 bg-destructive font-bold text-destructive-foreground shadow-none hover:bg-destructive/90"
+								className="h-10 flex-1 bg-destructive font-semibold text-destructive-foreground shadow-none hover:bg-destructive/90"
 							>
 								{isAgencyProcessing ? <IconLoader2 className="h-4 w-4 animate-spin" /> : 'Ya, Lepas'}
 							</Button>
@@ -2869,7 +2838,7 @@ export default function ReportShow(props) {
 							</Button>
 							<Button
 								onClick={handleDeleteResolution}
-								className="h-10 flex-1 bg-destructive font-bold text-destructive-foreground shadow-none hover:bg-destructive/90"
+								className="h-10 flex-1 bg-destructive font-semibold text-destructive-foreground shadow-none hover:bg-destructive/90"
 								disabled={isDeletingResolution}
 							>
 								{isDeletingResolution ? <IconLoader2 className="h-4 w-4 animate-spin" /> : 'Ya, Hapus'}

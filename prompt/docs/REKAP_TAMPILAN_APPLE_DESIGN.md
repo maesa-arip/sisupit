@@ -1,6 +1,6 @@
 # Rekap Tampilan per Peran & Status Rombakan apple-design
 
-> Branch `feat/mobile-native-polish` (TASK_69). Diperbarui 2026-10-02 (bagian 12-13: semua halaman B & C dirombak; bagian 15: peta disembunyikan di ponsel untuk 7 halaman fasilitas & laporan, /admin/reports dirombak ulang). Sumber: `php artisan route:list`
+> Branch `feat/mobile-native-polish` (TASK_69). Diperbarui 2026-10-02 (bagian 12-13: semua halaman B & C dirombak; bagian 15: peta disembunyikan di ponsel untuk 7 halaman fasilitas & laporan, /admin/reports dirombak ulang; bagian 16: AUDIT VISUAL ULANG 390px - label lama terbukti terlalu optimis, lihat "Sisa"). Sumber: `php artisan route:list`
 > (URL + middleware peran) dan komponen Inertia yang dirender tiap controller, lalu digabung dengan
 > riwayat rombakan TASK_69. Route yang hanya bergerbang login dibagi per peran dari logika controller.
 
@@ -23,8 +23,8 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 
 | Status | Jumlah |
 |---|---|
-| A - Dirombak penuh | 83 |
-| B - Dirombak sebagian | 0 |
+| A - Dirombak penuh | 80 |
+| B - Dirombak sebagian | 3 |
 | C - Gaya umum saja | 0 |
 | D - Tidak disentuh | 5 |
 
@@ -53,7 +53,7 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/tentang` | `Info/About.jsx` |
 | D | `/guideline` | `Guideline.jsx` |
 
-### Warga - 27 tampilan (26 dirombak penuh)
+### Warga - 27 tampilan (24 dirombak penuh)
 
 | Status | URL | Berkas halaman |
 |---|---|---|
@@ -71,13 +71,13 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/kebijakan-privasi` | `Info/Privacy.jsx` |
 | A | `/landing` | `Landing.jsx` |
 | A | `/paket-lisensi` | `Info/Pricing.jsx` |
-| A | `/profile` | `Profile/Edit.jsx` |
+| B | `/profile` | `Profile/Edit.jsx` |
 | A | `/pumps` | `Pumps/Index.jsx` |
 | A | `/pusat-bantuan` | `Info/Help.jsx` |
 | A | `/reports` | `Front/Reports/Index.jsx` |
 | A | `/reports/create` | `Front/Reports/Create.jsx` |
 | A | `/reports/edit/{report}` | `Front/Reports/Edit.jsx` |
-| A | `/reports/show/{report}` | `Front/Reports/Show.jsx` |
+| B | `/reports/show/{report}` | `Front/Reports/Show.jsx` |
 | A | `/reports/thanks/{report}` | `Front/Reports/Thanks.jsx` |
 | A | `/spotlight` | `Spotlight.jsx` |
 | A | `/syarat-ketentuan` | `Info/Terms.jsx` |
@@ -85,7 +85,7 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/verify-email` | `Auth/VerifyEmail.jsx` |
 | D | `/guideline` | `Guideline.jsx` |
 
-### Relawan - 28 tampilan (27 dirombak penuh)
+### Relawan - 28 tampilan (25 dirombak penuh)
 
 | Status | URL | Berkas halaman |
 |---|---|---|
@@ -103,14 +103,14 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/kebijakan-privasi` | `Info/Privacy.jsx` |
 | A | `/landing` | `Landing.jsx` |
 | A | `/paket-lisensi` | `Info/Pricing.jsx` |
-| A | `/profile` | `Profile/Edit.jsx` |
+| B | `/profile` | `Profile/Edit.jsx` |
 | A | `/pumps` | `Pumps/Index.jsx` |
 | A | `/pusat-bantuan` | `Info/Help.jsx` |
 | A | `/reports` | `Front/Reports/Index.jsx` |
 | A | `/reports (mode pemantau)` | `Admin/Reports/Index.jsx` |
 | A | `/reports/create` | `Front/Reports/Create.jsx` |
 | A | `/reports/edit/{report}` | `Front/Reports/Edit.jsx` |
-| A | `/reports/show/{report}` | `Front/Reports/Show.jsx` |
+| B | `/reports/show/{report}` | `Front/Reports/Show.jsx` |
 | A | `/reports/thanks/{report}` | `Front/Reports/Thanks.jsx` |
 | A | `/spotlight` | `Spotlight.jsx` |
 | A | `/syarat-ketentuan` | `Info/Terms.jsx` |
@@ -118,7 +118,7 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/verify-email` | `Auth/VerifyEmail.jsx` |
 | D | `/guideline` | `Guideline.jsx` |
 
-### Petugas Damkar - 36 tampilan (35 dirombak penuh)
+### Petugas Damkar - 36 tampilan (32 dirombak penuh)
 
 | Status | URL | Berkas halaman |
 |---|---|---|
@@ -141,16 +141,16 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/landing` | `Landing.jsx` |
 | A | `/paket-lisensi` | `Info/Pricing.jsx` |
 | A | `/peta-pemantauan` | `Monitoring/Map.jsx` |
-| A | `/profile` | `Profile/Edit.jsx` |
+| B | `/profile` | `Profile/Edit.jsx` |
 | A | `/pumps` | `Pumps/Index.jsx` |
 | A | `/pusat-bantuan` | `Info/Help.jsx` |
 | A | `/regu` | `Regu/Index.jsx` |
 | A | `/relawan` | `Volunteers/Index.jsx` |
-| A | `/relawan/{id}` | `Volunteers/Show.jsx` |
+| B | `/relawan/{id}` | `Volunteers/Show.jsx` |
 | A | `/reports` | `Front/Reports/Index.jsx` |
 | A | `/reports/create` | `Front/Reports/Create.jsx` |
 | A | `/reports/edit/{report}` | `Front/Reports/Edit.jsx` |
-| A | `/reports/show/{report}` | `Front/Reports/Show.jsx` |
+| B | `/reports/show/{report}` | `Front/Reports/Show.jsx` |
 | A | `/reports/thanks/{report}` | `Front/Reports/Thanks.jsx` |
 | A | `/reports/{report}/resolution/create` | `Front/Reports/Resolution/Create.jsx` |
 | A | `/spotlight` | `Spotlight.jsx` |
@@ -159,7 +159,7 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/verify-email` | `Auth/VerifyEmail.jsx` |
 | D | `/guideline` | `Guideline.jsx` |
 
-### Admin - 81 tampilan (80 dirombak penuh)
+### Admin - 81 tampilan (77 dirombak penuh)
 
 | Status | URL | Berkas halaman |
 |---|---|---|
@@ -228,15 +228,15 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/landing` | `Landing.jsx` |
 | A | `/paket-lisensi` | `Info/Pricing.jsx` |
 | A | `/peta-pemantauan` | `Monitoring/Map.jsx` |
-| A | `/profile` | `Profile/Edit.jsx` |
+| B | `/profile` | `Profile/Edit.jsx` |
 | A | `/pumps` | `Pumps/Index.jsx` |
 | A | `/pusat-bantuan` | `Info/Help.jsx` |
 | A | `/regu` | `Regu/Index.jsx` |
 | A | `/relawan` | `Volunteers/Index.jsx` |
-| A | `/relawan/{id}` | `Volunteers/Show.jsx` |
+| B | `/relawan/{id}` | `Volunteers/Show.jsx` |
 | A | `/reports/create` | `Front/Reports/Create.jsx` |
 | A | `/reports/edit/{report}` | `Front/Reports/Edit.jsx` |
-| A | `/reports/show/{report}` | `Front/Reports/Show.jsx` |
+| B | `/reports/show/{report}` | `Front/Reports/Show.jsx` |
 | A | `/reports/thanks/{report}` | `Front/Reports/Thanks.jsx` |
 | A | `/reports/{report}/resolution/create` | `Front/Reports/Resolution/Create.jsx` |
 | A | `/spotlight` | `Spotlight.jsx` |
@@ -245,7 +245,7 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/verify-email` | `Auth/VerifyEmail.jsx` |
 | D | `/guideline` | `Guideline.jsx` |
 
-### Superadmin - 81 tampilan (80 dirombak penuh)
+### Superadmin - 81 tampilan (77 dirombak penuh)
 
 | Status | URL | Berkas halaman |
 |---|---|---|
@@ -314,15 +314,15 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/landing` | `Landing.jsx` |
 | A | `/paket-lisensi` | `Info/Pricing.jsx` |
 | A | `/peta-pemantauan` | `Monitoring/Map.jsx` |
-| A | `/profile` | `Profile/Edit.jsx` |
+| B | `/profile` | `Profile/Edit.jsx` |
 | A | `/pumps` | `Pumps/Index.jsx` |
 | A | `/pusat-bantuan` | `Info/Help.jsx` |
 | A | `/regu` | `Regu/Index.jsx` |
 | A | `/relawan` | `Volunteers/Index.jsx` |
-| A | `/relawan/{id}` | `Volunteers/Show.jsx` |
+| B | `/relawan/{id}` | `Volunteers/Show.jsx` |
 | A | `/reports/create` | `Front/Reports/Create.jsx` |
 | A | `/reports/edit/{report}` | `Front/Reports/Edit.jsx` |
-| A | `/reports/show/{report}` | `Front/Reports/Show.jsx` |
+| B | `/reports/show/{report}` | `Front/Reports/Show.jsx` |
 | A | `/reports/thanks/{report}` | `Front/Reports/Thanks.jsx` |
 | A | `/reports/{report}/resolution/create` | `Front/Reports/Resolution/Create.jsx` |
 | A | `/spotlight` | `Spotlight.jsx` |
@@ -331,7 +331,7 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/verify-email` | `Auth/VerifyEmail.jsx` |
 | D | `/guideline` | `Guideline.jsx` |
 
-### Pejabat / Eksekutif - 26 tampilan (25 dirombak penuh)
+### Pejabat / Eksekutif - 26 tampilan (23 dirombak penuh)
 
 | Status | URL | Berkas halaman |
 |---|---|---|
@@ -349,12 +349,12 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/landing` | `Landing.jsx` |
 | A | `/paket-lisensi` | `Info/Pricing.jsx` |
 | A | `/peta-pemantauan` | `Monitoring/Map.jsx` |
-| A | `/profile` | `Profile/Edit.jsx` |
+| B | `/profile` | `Profile/Edit.jsx` |
 | A | `/pumps` | `Pumps/Index.jsx` |
 | A | `/pusat-bantuan` | `Info/Help.jsx` |
 | A | `/reports (mode pemantau)` | `Admin/Reports/Index.jsx` |
 | A | `/reports/create` | `Front/Reports/Create.jsx` |
-| A | `/reports/show/{report}` | `Front/Reports/Show.jsx` |
+| B | `/reports/show/{report}` | `Front/Reports/Show.jsx` |
 | A | `/reports/thanks/{report}` | `Front/Reports/Thanks.jsx` |
 | A | `/spotlight` | `Spotlight.jsx` |
 | A | `/syarat-ketentuan` | `Info/Terms.jsx` |
@@ -362,7 +362,7 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/verify-email` | `Auth/VerifyEmail.jsx` |
 | D | `/guideline` | `Guideline.jsx` |
 
-### OPD / Instansi Terkait - 25 tampilan (24 dirombak penuh)
+### OPD / Instansi Terkait - 25 tampilan (22 dirombak penuh)
 
 | Status | URL | Berkas halaman |
 |---|---|---|
@@ -379,12 +379,12 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | A | `/kebijakan-privasi` | `Info/Privacy.jsx` |
 | A | `/landing` | `Landing.jsx` |
 | A | `/paket-lisensi` | `Info/Pricing.jsx` |
-| A | `/profile` | `Profile/Edit.jsx` |
+| B | `/profile` | `Profile/Edit.jsx` |
 | A | `/pumps` | `Pumps/Index.jsx` |
 | A | `/pusat-bantuan` | `Info/Help.jsx` |
 | A | `/reports` | `Front/Reports/Index.jsx` |
 | A | `/reports/create` | `Front/Reports/Create.jsx` |
-| A | `/reports/show/{report}` | `Front/Reports/Show.jsx` |
+| B | `/reports/show/{report}` | `Front/Reports/Show.jsx` |
 | A | `/reports/thanks/{report}` | `Front/Reports/Thanks.jsx` |
 | A | `/spotlight` | `Spotlight.jsx` |
 | A | `/syarat-ketentuan` | `Info/Terms.jsx` |
@@ -394,7 +394,7 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 
 ## Semua berkas halaman
 
-### A - Dirombak penuh (83)
+### A - Dirombak penuh (80)
 
 | Berkas | Keterangan |
 |---|---|
@@ -459,7 +459,6 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | `resources/js/Pages/Front/Reports/Edit.jsx` | Form bergaris rambut ala iOS |
 | `resources/js/Pages/Front/Reports/Index.jsx` | Satu daftar bergrup (dulu kartu terpisah) |
 | `resources/js/Pages/Front/Reports/Resolution/Create.jsx` | Form bergaris rambut ala iOS |
-| `resources/js/Pages/Front/Reports/Show.jsx` | Bilah navigasi iOS, judul besar, status pil, modal & label apple |
 | `resources/js/Pages/Front/Reports/Thanks.jsx` | Layar konfirmasi iOS: ikon sukses di tengah, nomor & waktu sebagai baris |
 | `resources/js/Pages/Home.jsx` | Petak pintasan bertint, tanpa <hr>, karusel & judul seksi tipografi iOS |
 | `resources/js/Pages/Hydrants/Index.jsx` | Kolom cari ala iOS tanpa kartu, tombol terdekat bertint, daftar bergrup; peta desktop saja |
@@ -475,17 +474,18 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | `resources/js/Pages/Opd/Dashboard.jsx` | Daftar bergrup; ponsel tanpa lokasi & kalimat penjelas |
 | `resources/js/Pages/Petugas/Dashboard.jsx` | Ponsel: baris misi cuma waktu + jarak; kepala peta material |
 | `resources/js/Pages/Profile/CompleteProfile.jsx` | Form bergaris rambut ala iOS |
-| `resources/js/Pages/Profile/Edit.jsx` | Tata letak ala Settings iOS; Keluar jadi baris merah di bawah |
 | `resources/js/Pages/Pumps/Index.jsx` | Kolom cari ala iOS tanpa kartu, tombol terdekat bertint, daftar bergrup; peta desktop saja |
 | `resources/js/Pages/Regu/Index.jsx` | Satu daftar bergrup (dulu kartu terpisah) |
 | `resources/js/Pages/Spotlight.jsx` | Judul besar normal-case, CTA 17px, warna dekorasi ikut mode gelap |
 | `resources/js/Pages/Volunteers/Index.jsx` | Ponsel: baris kontak (avatar bulat, seluruh kartu bisa diketuk); desktop kisi |
-| `resources/js/Pages/Volunteers/Show.jsx` | Kartu kontak iOS: avatar bulat, tombol kontak, baris informasi |
 
-### B - Dirombak sebagian (0)
+### B - Dirombak sebagian (3)
 
 | Berkas | Keterangan |
 |---|---|
+| `resources/js/Pages/Front/Reports/Show.jsx` | Bagian atas ala iOS (Informasi insiden bergrup, peta bermaterial, judul panel 17px); panel kanan (OPD terkait, manifes, Laporan Kejadian) masih sub-kartu bergaris |
+| `resources/js/Pages/Profile/Edit.jsx` | Kepala & wilayah ala Settings iOS, isian terisi; kartu "Informasi Profil"/sandi/hapus akun masih berkepala kartu web |
+| `resources/js/Pages/Volunteers/Show.jsx` | Baris kontak iOS; kartu sampul profil masih gaya web |
 
 ### C - Gaya umum saja (0)
 
@@ -518,4 +518,18 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 
 ## Sisa yang belum dirombak penuh
 
-Tidak ada. Semua halaman berstatus A, kecuali 5 halaman D (panduan & kode mati) yang sengaja tidak dirombak.
+**Audit visual ulang 2026-10-02 (bagian 16).** Rekap sebelumnya menyatakan 83 halaman "dirombak penuh"
+padahal `/admin/reports` dan banyak halaman lain hanya berganti pembungkus (Card -> grup) & kelas.
+Seluruh halaman yang bisa dibuka di lokal dipotret di 390x844 per peran (puppeteer-core + Chrome),
+lalu yang lama dirombak sungguhan: Detail Insiden (bagian atas), Daftar Relawan, 4 halaman RBAC,
+daftar Pengguna di ponsel, 6 daftar fasilitas (judul utuh), 31 form admin (isian terisi), keadaan
+kosong, pop-up lokasi, Forum, halaman Info. Status di atas kini dari FOTO, bukan dari riwayat commit.
+
+Masih B (sebagian): Detail Insiden panel kanan, Profil (kartu form), Profil Relawan.
+
+**Belum diverifikasi visual** (tetap A menurut kode, perlu dicek di HP): `/email` & `/email/tulis`
+(404 di lokal - fitur email mati), halaman milik warga (`/reports` warga, ubah laporan, terima kasih -
+tak ada akun warga di lokal), `/admin/settings` (403 untuk admin), Dashboard OPD (tak ada akun OPD),
+Landing (belum dinilai), halaman galat (lokal memakai halaman 404 bawaan Laravel).
+
+D tetap 5 halaman (panduan & kode mati) yang sengaja tidak dirombak.

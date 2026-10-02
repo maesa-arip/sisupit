@@ -231,26 +231,26 @@ export default function Index({
 										</div>
 										<div className="min-w-0 flex-1">
 											<div className="flex flex-wrap items-center gap-2">
-												<h3 className="truncate text-sm font-semibold text-foreground">
+												<h3 className="break-words text-[15px] font-semibold leading-snug text-foreground">
 													{banjar.name}
 												</h3>
 												{banjar.jenis && (
-													<span className="shrink-0 rounded-2xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
+													<span className="shrink-0 rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
 														{JENIS_LABELS[banjar.jenis] ?? banjar.jenis}
 													</span>
 												)}
 												{banjar.status === 'usulan' && (
-													<span className="shrink-0 rounded-2xl border border-warning/30 bg-warning/10 px-2 py-0.5 text-[11px] font-bold uppercase text-warning">
+													<span className="shrink-0 rounded-full bg-warning/10 px-2.5 py-0.5 text-xs font-semibold text-warning">
 														Usulan Warga
 													</span>
 												)}
 												{!banjar.is_active && (
-													<span className="shrink-0 rounded-2xl border border-border bg-muted px-2 py-0.5 text-[11px] font-bold uppercase text-muted-foreground">
+													<span className="shrink-0 rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
 														Nonaktif
 													</span>
 												)}
 											</div>
-											<p className="mt-0.5 truncate text-xs text-muted-foreground">
+											<p className="mt-0.5 text-[13px] leading-snug text-muted-foreground">
 												{/* Kode desa TIDAK pernah dicetak sebagai judul (aturan #78): kalau
 											    namanya tak dikenal, katakan begitu apa adanya. */}
 												{banjar.village ?? 'Desa tidak dikenal'}
@@ -295,8 +295,8 @@ export default function Index({
 							))}
 						</div>
 
-						<div className="mt-2 flex flex-col items-center gap-3 border-t border-dashed border-border pt-4">
-							<span className="text-[11px] font-medium text-muted-foreground">
+						<div className="mt-2 flex flex-col items-center gap-3 pt-2">
+							<span className="text-xs font-medium text-muted-foreground">
 								Menampilkan {banjars.from} - {banjars.to} dari {banjars.total} banjar
 							</span>
 
@@ -328,7 +328,7 @@ export default function Index({
 						</div>
 					</>
 				) : (
-					<div className="rounded-2xl border border-dashed border-input p-8 text-center">
+					<div className="rounded-2xl border border-border/70 bg-card p-8 text-center shadow-sm">
 						<p className="text-sm font-medium text-foreground">
 							{total > 0
 								? 'Tidak ada banjar yang cocok dengan pencarian.'

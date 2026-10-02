@@ -1,3 +1,4 @@
+import { groupedRowsClass } from '@/Components/GroupedForm';
 import HeaderTitle from '@/Components/HeaderTitle';
 import InputError from '@/Components/InputError';
 import { Button } from '@/Components/ui/button';
@@ -67,7 +68,7 @@ export default function Create({ wilayah, needsApproval }) {
 			<Card className="max-w-3xl">
 				<CardContent className="p-5">
 					<form
-						className="divide-y divide-border/70 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:py-4"
+						className={groupedRowsClass}
 						onSubmit={handleSubmit}
 					>
 						<div className="grid gap-1.5">

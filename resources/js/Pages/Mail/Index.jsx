@@ -131,7 +131,7 @@ export default function Index({ messages, filters, mailbox }) {
 						</div>
 					</>
 				) : (
-					<div className="rounded-2xl border border-dashed border-input p-10 text-center">
+					<div className="rounded-2xl border border-border/70 bg-card p-10 text-center shadow-sm">
 						<span className="text-sm text-muted-foreground">Belum ada surat yang dikirim dari sini.</span>
 					</div>
 				)}

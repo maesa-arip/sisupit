@@ -129,7 +129,7 @@ export default function Help({ instansi, legal }) {
 			<Section number="1" title="Empat langkah mengirim laporan">
 				<div className="grid gap-3 sm:grid-cols-2">
 					{LANGKAH.map((langkah, index) => (
-						<div key={langkah.title} className="rounded-lg border border-border bg-card p-4">
+						<div key={langkah.title} className="rounded-xl bg-muted/50 p-4">
 							<div className="flex items-center gap-2.5">
 								<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-destructive/10">
 									<langkah.icon className="size-5 text-destructive" stroke={1.8} />
@@ -171,7 +171,7 @@ export default function Help({ instansi, legal }) {
 
 			<Section number="6" title="Masih perlu bantuan?">
 				<div className="grid gap-3 sm:grid-cols-2">
-					<div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4">
+					<div className="rounded-xl bg-destructive/10 p-4">
 						<div className="flex items-center gap-2">
 							<IconPhoneCall className="size-4 text-destructive" stroke={2} />
 							<p className="text-[15px] font-semibold text-foreground">Keadaan darurat</p>
@@ -187,7 +187,7 @@ export default function Help({ instansi, legal }) {
 							nasional: {NOMOR_DARURAT_NASIONAL}.
 						</p>
 					</div>
-					<div className="rounded-lg border border-border bg-card p-4">
+					<div className="rounded-xl bg-muted/50 p-4">
 						<div className="flex items-center gap-2">
 							<IconMail className="size-4 text-muted-foreground" stroke={2} />
 							<p className="text-[15px] font-semibold text-foreground">Kendala akun & aplikasi</p>

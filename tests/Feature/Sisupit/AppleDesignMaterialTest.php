@@ -235,7 +235,9 @@ it('reworks the remaining front pages into grouped lists and iOS-style screens',
     expect(appleSource('resources/js/Pages/Volunteers/Index.jsx'))->toContain('after:absolute after:inset-0');
     expect(appleSource('resources/js/Pages/ErrorHandling.jsx'))->not->toMatch('/<Card\b/');
     expect(appleSource('resources/js/Pages/Spotlight.jsx'))->not->toMatch('/\b(bg-white|border-white|border-neutral-200)\b/');
-    expect(appleSource('resources/js/Pages/Admin/Roles/Create.jsx'))->toContain('divide-y divide-border/70 [&>*:first-child]:pt-0');
+    // Pola baris pindah ke satu konstanta (bagian 16) - halaman memakainya, polanya dijaga di sumbernya.
+    expect(appleSource('resources/js/Pages/Admin/Roles/Create.jsx'))->toContain('className={groupedRowsClass}');
+    expect(appleSource('resources/js/Components/GroupedForm.jsx'))->toContain('divide-y divide-border/70 [&>*:first-child]:pt-0');
 });
 
 it('groups every sign-in field in one iOS-style card and keeps the marketing pages on theme tokens', function () {
@@ -300,4 +302,60 @@ it('hides the map on phones for the facility and report list pages', function ()
     expect($reports)->toContain("router.visit(route('reports.show', report.id))")
         ->and($reports)->toContain('<AppEmpty')
         ->and($reports)->not->toContain('rounded-lg px-2 py-0.5 font-bold');
+});
+
+// TASK_69 bagian 16 (audit visual ulang 2026-10-02): halaman berlabel "dirombak penuh" ternyata hanya
+// berganti pembungkus. Penjaga ini mengunci rombakan isi yang sesungguhnya.
+it('keeps stray control bytes out of the frontend sources', function () {
+    $offenders = [];
+    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(resource_path('js'))) as $file) {
+        if (! in_array($file->getExtension(), ['jsx', 'js'], true)) {
+            continue;
+        }
+        // utils.js SENGAJA memuat byte NUL (lihat CLAUDE.md); yang dijaga byte 0x01-0x08 - jejak `\1`
+        // yang tercetak harfiah oleh skrip pengganti dan tampil sebagai kotak di layar.
+        if (preg_match('/[\x01-\x08]/', file_get_contents($file->getPathname()))) {
+            $offenders[] = $file->getFilename();
+        }
+    }
+    expect($offenders)->toBe([]);
+});
+
+it('fills grouped form fields and reworks the remaining old screens for real', function () {
+    $grouped = appleSource('resources/js/Components/GroupedForm.jsx');
+    expect($grouped)->toContain('export const filledFieldsClass')
+        ->and($grouped)->toContain('[&_[role=combobox]]:bg-muted/60')
+        ->and($grouped)->toMatch('/export const groupedRowsClass = `[^`]*\$\{filledFieldsClass\}`/');
+    foreach (['Admin/Agencies/Create', 'Admin/Tenants/Form', 'Forum/Create', 'Front/Reports/Resolution/Create'] as $page) {
+        expect(appleSource("resources/js/Pages/{$page}.jsx"))->toContain('className={groupedRowsClass}');
+    }
+    foreach (['Hydrants', 'Pumps', 'FireStations'] as $module) {
+        foreach (['Create', 'Edit'] as $page) {
+            expect(appleSource("resources/js/Pages/Admin/{$module}/{$page}.jsx"))->toContain('${filledFieldsClass}');
+        }
+    }
+
+    $show = appleSource('resources/js/Pages/Front/Reports/Show.jsx');
+    expect($show)->not->toContain('Judul Insiden:')
+        ->and($show)->not->toContain('PETA DISPATCHER KOMANDO')
+        ->and($show)->not->toContain('CardHeader')
+        ->and($show)->toContain('Informasi insiden');
+
+    $volunteers = appleSource('resources/js/Pages/Volunteers/Index.jsx');
+    expect($volunteers)->not->toMatch('/<Card\b/')
+        ->and($volunteers)->toContain('aria-expanded={showFilters}');
+
+    foreach (['Roles', 'Permissions', 'RouteAccesses', 'AssignPermissions'] as $module) {
+        $src = appleSource("resources/js/Pages/Admin/{$module}/Index.jsx");
+        expect($src)->not->toMatch('/<Card\b/')
+            ->and($src)->toContain('<div className="divide-y divide-border/70 md:hidden">')
+            ->and($src)->not->toMatch('/variant="(blue|red)"/');
+    }
+
+    foreach (['Hydrants', 'Pumps', 'FireStations', 'Admin/Hydrants', 'Admin/Pumps', 'Admin/FireStations'] as $page) {
+        expect(appleSource("resources/js/Pages/{$page}/Index.jsx"))->not->toContain('truncate text-sm font-semibold');
+    }
+
+    expect(appleSource('resources/js/Pages/Admin/Users/Index.jsx'))->not->toContain('function MobileInfo');
+    expect(appleSource('resources/js/Components/UseCurrentLocationDialog.jsx'))->not->toMatch('/\bbg-info\b|rounded-md/');
 });

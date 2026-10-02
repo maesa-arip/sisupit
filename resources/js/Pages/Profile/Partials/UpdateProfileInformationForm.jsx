@@ -1,3 +1,4 @@
+import { filledFieldsClass } from '@/Components/GroupedForm';
 import InputError from '@/Components/InputError';
 import { Alert, AlertDescription } from '@/Components/ui/alert';
 import { Button } from '@/Components/ui/button';
@@ -87,7 +88,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 			</CardHeader>
 
 			<CardContent className="pt-5">
-				<form onSubmit={onHandleSubmit} className="space-y-5">
+				<form onSubmit={onHandleSubmit} className={`space-y-5 ${filledFieldsClass}`}>
 					<div className="grid grid-cols-1 gap-5 md:grid-cols-2">
 						<div className="space-y-1.5">
 							<Label htmlFor="name" className="text-sm font-medium text-foreground">

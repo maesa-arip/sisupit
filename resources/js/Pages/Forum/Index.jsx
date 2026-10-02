@@ -145,7 +145,7 @@ export default function Index({ threads, filters, wilayah, canModerate, pendingC
 						</div>
 
 						{threads.links && threads.links.length > 3 && (
-							<div className="mt-2 flex flex-wrap justify-center gap-1 border-t border-dashed border-border pt-4">
+							<div className="mt-2 flex flex-wrap justify-center gap-1 pt-2">
 								{threads.links.map((link, index) =>
 									link.url ? (
 										<Link
@@ -172,7 +172,7 @@ export default function Index({ threads, filters, wilayah, canModerate, pendingC
 						)}
 					</>
 				) : (
-					<div className="rounded-2xl border border-dashed border-input p-8 text-center">
+					<div className="rounded-2xl border border-border/70 bg-card p-8 text-center shadow-sm">
 						<p className="text-sm font-medium text-foreground">
 							{filters.search
 								? 'Tidak ada pertanyaan yang cocok dengan pencarian.'

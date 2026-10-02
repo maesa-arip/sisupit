@@ -1,3 +1,4 @@
+import { groupedRowsClass } from '@/Components/GroupedForm';
 import BanjarField from '@/Components/BanjarField';
 import InputError from '@/Components/InputError';
 import { Button } from '@/Components/ui/button';
@@ -218,7 +219,7 @@ export default function CompleteProfile({ provinces, user, banjar_required = fal
 				<CardContent>
 					<form
 						onSubmit={onSubmit}
-						className="divide-y divide-border/70 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:py-4"
+						className={groupedRowsClass}
 					>
 						{isDetecting && (
 							<div className="flex items-center gap-2 rounded-lg border border-border bg-muted p-3 text-xs font-medium text-muted-foreground">

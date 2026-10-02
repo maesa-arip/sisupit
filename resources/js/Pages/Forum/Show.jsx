@@ -1,3 +1,4 @@
+import { filledFieldsClass } from '@/Components/GroupedForm';
 import InputError from '@/Components/InputError';
 import {
 	AlertDialog,
@@ -47,18 +48,22 @@ const withToast = {
 };
 
 function AuthorLine({ name, roles, isMine, createdAt, official }) {
+	// Waktu di barisnya sendiri (TASK_69 bagian 16): dulu "· 22 Sep" ikut membungkus dan jatuh sendirian
+	// di awal baris kedua.
 	return (
-		<div className="flex flex-wrap items-center gap-2 text-xs">
-			<span className="font-semibold text-foreground">{isMine ? `${name} (Anda)` : name}</span>
-			<span className={cn('rounded-full border px-2 py-0.5 text-[11px] font-semibold', roleTone(roles))}>
-				{roleLabel(roles)}
-			</span>
-			{official && (
-				<span className="flex items-center gap-1 rounded-full border border-success/20 bg-success/10 px-2 py-0.5 text-[11px] font-semibold text-success">
-					<IconShieldCheck className="size-3" /> Jawaban Resmi Damkar
+		<div>
+			<div className="flex flex-wrap items-center gap-1.5">
+				<span className="text-[15px] font-semibold text-foreground">{isMine ? `${name} (Anda)` : name}</span>
+				<span className={cn('rounded-full border px-2 py-0.5 text-xs font-semibold', roleTone(roles))}>
+					{roleLabel(roles)}
 				</span>
-			)}
-			<span className="text-muted-foreground">· {timeAgo(createdAt)}</span>
+				{official && (
+					<span className="flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-xs font-semibold text-success">
+						<IconShieldCheck className="size-3" /> Jawaban Resmi Damkar
+					</span>
+				)}
+			</div>
+			<p className="mt-0.5 text-[13px] text-muted-foreground">{timeAgo(createdAt)}</p>
 		</div>
 	);
 }
@@ -404,7 +409,7 @@ export default function Show({ thread, posts, can, flagReasons }) {
 			{can.reply ? (
 				<Card>
 					<CardContent className="p-4">
-						<form onSubmit={handleReply} className="space-y-2">
+						<form onSubmit={handleReply} className={`space-y-2 ${filledFieldsClass}`}>
 							<Textarea
 								id="reply-body"
 								rows={4}
@@ -419,7 +424,11 @@ export default function Show({ thread, posts, can, flagReasons }) {
 							/>
 							{errors.body && <InputError message={errors.body} />}
 							<div className="flex justify-end">
-								<Button type="submit" size="sm" disabled={processing || !data.body.trim()}>
+								<Button
+									type="submit"
+									disabled={processing || !data.body.trim()}
+									className="h-11 w-full rounded-xl text-[15px] sm:w-auto sm:px-6"
+								>
 									Kirim Balasan
 								</Button>
 							</div>

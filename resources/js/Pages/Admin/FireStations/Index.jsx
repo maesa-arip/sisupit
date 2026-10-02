@@ -209,11 +209,11 @@ export default function Index({ stations, filters, tenant_location }) {
 													</div>
 													<div className="w-full min-w-0 flex-1">
 														<h3
-															className={`truncate text-sm font-semibold ${activeStationId === station.id ? 'text-primary' : 'text-foreground'}`}
+															className={`break-words text-[15px] font-semibold leading-snug ${activeStationId === station.id ? 'text-primary' : 'text-foreground'}`}
 														>
 															{station.name}
 														</h3>
-														<p className="mt-0.5 truncate text-xs text-muted-foreground">
+														<p className="mt-0.5 text-[13px] leading-snug text-muted-foreground">
 															{station.type ? `${station.type} · ` : ''}
 															{station.address}
 														</p>
@@ -248,7 +248,7 @@ export default function Index({ stations, filters, tenant_location }) {
 								</div>
 
 								<div className="mt-4 flex flex-col items-center gap-3 pt-1">
-									<span className="text-[11px] font-medium text-muted-foreground">
+									<span className="text-xs font-medium text-muted-foreground">
 										Menampilkan {stations.from} - {stations.to} dari {stations.total} aset
 									</span>
 

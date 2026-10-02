@@ -88,13 +88,13 @@ export function Bullets({ items }) {
 export function Callout({ tone = 'muted', title, children }) {
 	const toneClass =
 		tone === 'destructive'
-			? 'border-destructive/40 bg-destructive/5'
+			? 'bg-destructive/10'
 			: tone === 'info'
-				? 'border-info/40 bg-info/5'
-				: 'border-border bg-accent/40';
+				? 'bg-info/10'
+				: 'bg-muted/60';
 
 	return (
-		<div className={`rounded-2xl border p-5 shadow-sm ${toneClass}`}>
+		<div className={`rounded-2xl p-5 ${toneClass}`}>
 			{title && <p className="text-[15px] font-semibold text-foreground">{title}</p>}
 			<div className="mt-1.5 text-[15px] leading-relaxed text-muted-foreground">{children}</div>
 		</div>

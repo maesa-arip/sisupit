@@ -41,8 +41,9 @@ Task aktif   : RILIS GOOGLE PLAY (2026-09-30). Akun Play Console PRIBADI (tanpa 
 Terakhir     : #159/TASK_69 lapisan platform ponsel (hover sentuh, tap, active Button, 16px iOS,
                 tema toast, dvh) + apple-design penuh (material kaca, pegas, cross-fade; PENGECUALIAN #5
                 KHUSUS branch ini; bagian 15: peta hanya desktop di 7 halaman fasilitas/laporan +
-                /admin/reports dirombak ulang) di branch feat/mobile-native-polish - TERDEPLOY ke DEV @9e4deaad
-                (2026-10-02); belum merge main/staging/prod, butuh uji HP.
+                /admin/reports dirombak ulang; bagian 16: audit visual ulang 390px - rekap lama terlalu optimis, isi
+                dirombak sungguhan, #160) di branch feat/mobile-native-polish - bagian 15 TERDEPLOY ke DEV
+                @9e4deaad, bagian 16 BELUM; belum merge main/staging/prod, butuh uji HP.
                 #158 push iOS (kabar status pelapor & nada OPD) TERDEPLOY @9988587e.
                 #157 hapus akun = ANONIMISASI TERDEPLOY @43479a4e.
 SEMENTARA    : #149 menu "Jangkauan Petugas" disembunyikan + foto laporan non-kebakaran
@@ -53,7 +54,7 @@ Belum dicek  : visual di ponsel/APK untuk banyak perubahan UI (tombol merah bran
 Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115 #119 #121
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148.
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
-Test         : 656 passed, 3257 assertions (2026-10-02, branch feat/mobile-native-polish; main 621/3003).
+Test         : 658 passed, 3298 assertions (2026-10-02, branch feat/mobile-native-polish; main 621/3003).
 ```
 
 ### Peringatan operasional (dari riwayat, masih berlaku)
@@ -78,7 +79,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-10-02: 656 passed, 3257 assertions - main 621/3003;
+Test      : php artisan test            (baseline 2026-10-02: 658 passed, 3298 assertions - main 621/3003;
             lokal: php -d memory_limit=1G -d extension=php_sqlite3.dll -d extension=pdo_sqlite vendor/bin/pest.
             Perbarui angka ini tiap kali test bertambah - baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan. Riwayat angkanya di STATUS_LOG.md)

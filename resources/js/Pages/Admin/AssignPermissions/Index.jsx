@@ -1,7 +1,6 @@
 import HeaderTitle from '@/Components/HeaderTitle';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink } from '@/Components/ui/pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
@@ -52,11 +51,11 @@ export default function Index(props) {
 					icon={IconKeyframe}
 				/>
 			</div>
-			<Card>
-				<CardHeader>
-					<div className="flex w-full flex-col gap-3 lg:flex-row lg:items-center lg:gap-4">
+			<div className="space-y-4">
+				<div>
+					<div className="flex w-full items-center gap-2 lg:gap-3">
 						<Input
-							className="h-10 w-full rounded-xl lg:w-1/4"
+							className="h-11 min-w-0 flex-1 rounded-xl border-transparent bg-muted/60 lg:max-w-xs"
 							type="search"
 							enterKeyHint="search"
 							placeholder="Cari..."
@@ -64,7 +63,7 @@ export default function Index(props) {
 							onChange={(e) => setParams((prev) => ({ ...prev, search: e.target.value }))}
 						/>
 						<Select value={params?.load} onValueChange={(e) => setParams({ ...params, load: e })}>
-							<SelectTrigger className="w-full lg:w-24">
+							<SelectTrigger className="h-11 w-20 shrink-0 rounded-xl border-transparent bg-muted/60">
 								<SelectValue placeholder="load" />
 							</SelectTrigger>
 							<SelectContent>
@@ -78,14 +77,15 @@ export default function Index(props) {
 						<Button
 							variant="ghost"
 							onClick={() => setParams(props.state)}
-							size="sm"
-							className="w-full lg:w-auto"
+							size="icon"
+							aria-label="Bersihkan"
+							className="h-11 w-11 shrink-0 rounded-xl text-muted-foreground"
 						>
-							<IconRefresh className="size-4" /> Bersihkan
+							<IconRefresh className="size-4" />
 						</Button>
 					</div>
-				</CardHeader>
-				<CardContent className="p-0 [&_td]:px-6 [&_th]:px-6">
+				</div>
+				<div className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm [&_td]:px-6 [&_th]:px-6">
 					{roles.length === 0 ? (
 						<div className="p-10 text-center text-sm text-muted-foreground">Data tidak ditemukan.</div>
 					) : (
@@ -135,7 +135,13 @@ export default function Index(props) {
 												</TableCell>
 												<TableCell>
 													<div className="flex items-center gap-x-1">
-														<Button variant="blue" size="sm" asChild>
+														<Button
+															variant="ghost"
+															size="icon"
+															aria-label="Ubah"
+															className="h-9 w-9 text-muted-foreground hover:text-primary"
+															asChild
+														>
 															<Link href={route('admin.assign-permissions.edit', [role])}>
 																<IconRefresh className="size-4" />
 															</Link>
@@ -148,47 +154,37 @@ export default function Index(props) {
 								</Table>
 							</div>
 
-							{/* Mobile: daftar kartu (tanpa tabel) */}
-							<div className="space-y-3 p-4 md:hidden">
+							{/* Ponsel: daftar bergrup bergaris rambut (TASK_69 bagian 16) - dulu kartu bertumpuk di dalam kartu. */}
+							<div className="divide-y divide-border/70 md:hidden">
 								{roles.map((role, index) => (
-									<div
+									<Link
 										key={index}
-										className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm"
+										href={route('admin.assign-permissions.edit', [role])}
+										className="flex items-start gap-3 px-4 py-3 transition-colors active:bg-muted"
 									>
-										<div className="flex items-center gap-3 p-4 pb-2">
-											<div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-												<IconKeyframe className="size-5" />
-											</div>
-											<span className="min-w-0 truncate font-semibold leading-tight">
-												{role.name}
-											</span>
-											<span className="ml-auto shrink-0 text-xs text-muted-foreground">
-												#{rowNumber(index)}
-											</span>
+										<div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+											<IconKeyframe className="size-5" />
 										</div>
-										<div className="space-y-2 px-4 pb-4">
-											<p className="text-xs font-medium text-muted-foreground">
+										<div className="min-w-0 flex-1">
+											<p className="break-words text-[15px] font-semibold leading-snug">
+												{role.name}
+											</p>
+											<p className="mt-0.5 text-[13px] text-muted-foreground">
 												Izin ({role.permissions?.length ?? 0})
 											</p>
-											<div className="flex flex-wrap items-center">
+											<div className="mt-2 flex flex-wrap items-center">
 												<PermissionBadges permissions={role.permissions} />
 											</div>
 										</div>
-										<div className="flex items-center gap-2 border-t border-border/70 px-4 py-3">
-											<Button variant="blue" size="sm" className="flex-1" asChild>
-												<Link href={route('admin.assign-permissions.edit', [role])}>
-													<IconRefresh className="size-4" /> Sinkronkan Izin
-												</Link>
-											</Button>
-										</div>
-									</div>
+										<IconChevronRight className="mt-2.5 size-4 shrink-0 text-muted-foreground/50" />
+									</Link>
 								))}
 							</div>
 						</>
 					)}
-				</CardContent>
-				<CardFooter className="flex w-full flex-col items-center justify-between border-t py-2 lg:flex-row">
-					<p className="mb-2 text-sm text-muted-foreground">
+				</div>
+				<div className="flex w-full flex-col items-center justify-between gap-2 px-1 lg:flex-row">
+					<p className="text-[13px] text-muted-foreground">
 						Menampilkan <span className="font-medium text-foreground">{meta.from ?? 0}</span> dari{' '}
 						{meta.total} Tetapkan Izin
 					</p>
@@ -207,8 +203,8 @@ export default function Index(props) {
 							</Pagination>
 						)}
 					</div>
-				</CardFooter>
-			</Card>
+				</div>
+			</div>
 		</div>
 	);
 }

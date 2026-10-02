@@ -194,7 +194,7 @@ export default function Index({ units, filters }) {
 							})}
 						</div>
 
-						<div className="mt-2 flex flex-col items-center gap-3 border-t border-dashed border-border pt-4">
+						<div className="mt-2 flex flex-col items-center gap-3 pt-2">
 							<span className="text-[11px] font-medium text-muted-foreground">
 								Menampilkan {units.from} - {units.to} dari {units.total} unit
 							</span>
@@ -227,7 +227,7 @@ export default function Index({ units, filters }) {
 						</div>
 					</>
 				) : (
-					<div className="rounded-2xl border border-dashed border-input p-10 text-center">
+					<div className="rounded-2xl border border-border/70 bg-card p-10 text-center shadow-sm">
 						<span className="text-sm text-muted-foreground">Belum ada unit terdaftar.</span>
 					</div>
 				)}

@@ -34,15 +34,10 @@ import { cn, flashMessage, roleLabel, roleTone } from '@/lib/utils';
 import { Link, router, useForm } from '@inertiajs/react';
 import {
 	IconArrowsSort,
-	IconCalendarTime,
 	IconChevronDown,
 	IconChevronUp,
-	IconGenderBigender,
 	IconInfoCircle,
-	IconMail,
-	IconMapPin,
 	IconPencil,
-	IconPhone,
 	IconPlus,
 	IconRefresh,
 	IconSearch,
@@ -153,15 +148,6 @@ function UserActions({ user, onAssignRole }) {
 				</Link>
 			</Button>
 			<DeleteUserDialog user={user} />
-		</div>
-	);
-}
-
-function MobileInfo({ icon: Icon, value }) {
-	return (
-		<div className="flex min-w-0 items-center gap-2 text-sm">
-			<Icon className="size-4 shrink-0 text-muted-foreground" />
-			<span className="truncate">{value || '-'}</span>
 		</div>
 	);
 }
@@ -392,64 +378,62 @@ export default function Index(props) {
 				)}
 			</div>
 
-			{/* Ponsel: satu kartu per pengguna */}
-			<div className="space-y-3 md:hidden">
-				{users.length === 0 && (
-					<p className="rounded-2xl border border-border/70 bg-card px-4 py-10 text-center text-sm text-muted-foreground">
+			{/* Ponsel: satu daftar bergrup (TASK_69 bagian 16) - dulu satu kartu besar per pengguna dengan enam
+			    baris ikon & bilah tombol. Ketuk baris = Ubah; Peran & Hapus jadi tombol ikon di kanan. */}
+			<div className="md:hidden">
+				{users.length === 0 ? (
+					<p className="rounded-2xl border border-border/70 bg-card px-4 py-10 text-center text-[15px] text-muted-foreground">
 						Tidak ada pengguna yang cocok.
 					</p>
-				)}
-				{users.map((user, index) => (
-					<div key={index} className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
-						<div className="flex items-center gap-3 p-4">
-							<Avatar className="size-11">
-								<AvatarImage src={user.avatar} />
-								<AvatarFallback>{user.name.substring(0, 1)}</AvatarFallback>
-							</Avatar>
-							<div className="flex min-w-0 flex-1 flex-col">
-								<span className="truncate font-semibold leading-tight">{user.name}</span>
-								<span className="truncate text-xs text-muted-foreground">@{user.username}</span>
+				) : (
+					<div className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
+						{users.map((user, index) => (
+							<div key={index} className="relative flex items-start gap-3 px-4 py-3 active:bg-muted">
+								<Avatar className="size-11">
+									<AvatarImage src={user.avatar} />
+									<AvatarFallback>{user.name.substring(0, 1)}</AvatarFallback>
+								</Avatar>
+								<div className="min-w-0 flex-1">
+									<Link
+										href={route('admin.users.edit', [user])}
+										className="block break-words text-[15px] font-semibold leading-snug after:absolute after:inset-0"
+									>
+										{user.name}
+									</Link>
+									<p className="break-all text-[13px] text-muted-foreground">@{user.username}</p>
+									<div className="mt-1.5">
+										<RoleBadges roles={user.roles} />
+									</div>
+									<p className="mt-1.5 break-all text-[13px] leading-snug text-muted-foreground">
+										{user.email || '-'}
+									</p>
+									<p className="text-[13px] leading-snug text-muted-foreground">
+										{[user.phone, user.region].filter(Boolean).join(' · ') || '-'}
+									</p>
+								</div>
+								<div className="relative z-10 flex shrink-0 items-center">
+									<button
+										type="button"
+										onClick={() => openRoleDialog(user)}
+										aria-label={`Atur peran ${user.name}`}
+										className="flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-colors active:bg-muted"
+									>
+										<IconUserShield className="size-5" />
+									</button>
+									<DeleteUserDialog user={user}>
+										<button
+											type="button"
+											aria-label={`Hapus ${user.name}`}
+											className="flex h-10 w-10 items-center justify-center rounded-full text-destructive transition-colors active:bg-destructive/10"
+										>
+											<IconTrash className="size-5" />
+										</button>
+									</DeleteUserDialog>
+								</div>
 							</div>
-							<span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-								#{rowNumber(index)}
-							</span>
-						</div>
-						<div className="space-y-3 px-4 pb-4">
-							<RoleBadges roles={user.roles} />
-							<div className="grid gap-2">
-								<MobileInfo icon={IconMail} value={user.email} />
-								<MobileInfo icon={IconPhone} value={user.phone} />
-								<MobileInfo icon={IconMapPin} value={user.region} />
-								<MobileInfo icon={IconGenderBigender} value={user.gender} />
-								<MobileInfo icon={IconCalendarTime} value={user.created_at} />
-							</div>
-						</div>
-						<div className="grid grid-cols-[1fr_1fr_auto] divide-x divide-border/70 border-t border-border/70">
-							<button
-								type="button"
-								onClick={() => openRoleDialog(user)}
-								className="flex h-12 items-center justify-center gap-2 text-sm font-medium text-foreground transition-colors active:bg-muted"
-							>
-								<IconUserShield className="size-4 text-muted-foreground" /> Peran
-							</button>
-							<Link
-								href={route('admin.users.edit', [user])}
-								className="flex h-12 items-center justify-center gap-2 text-sm font-medium text-foreground transition-colors active:bg-muted"
-							>
-								<IconPencil className="size-4 text-muted-foreground" /> Ubah
-							</Link>
-							<DeleteUserDialog user={user}>
-								<button
-									type="button"
-									aria-label={`Hapus ${user.name}`}
-									className="flex h-12 w-14 items-center justify-center text-destructive transition-colors active:bg-destructive/10"
-								>
-									<IconTrash className="size-4" />
-								</button>
-							</DeleteUserDialog>
-						</div>
+						))}
 					</div>
-				))}
+				)}
 			</div>
 
 			<div className="mt-4 flex w-full flex-col items-center justify-between gap-3 lg:flex-row">

@@ -379,3 +379,36 @@ admin/fire-stations jangan tampilkan mapsnya, sekalian ubah tampilan /admin/repo
 - Penjaga baru `AppleDesignMaterialTest` "hides the map on phones..." dibuktikan MERAH terhadap HEAD (7 berkas),
   dipulihkan byte-exact (`cmp`). Build lulus. Suite 655 -> 656 passed (3257).
 - Belum dicek: tampilan di HP/APK.
+
+## 22. Bagian 16 - audit visual ulang & rombakan isi sungguhan (user 2026-10-02: "/admin/reports statusnya sudah rombak tapi ternyata belum, cek ulang semuanya" -> "lanjut kerjakan")
+
+Audit: setiap halaman yang bisa dibuka di lokal dipotret 390x844 per peran (tamu, relawan, petugas, admin,
+superadmin) memakai puppeteer-core di tmp job + Chrome lokal; label rekap terbukti terlalu optimis (FINDINGS
+#160). Cara memotret ada di memori #159 (waitUntil domcontentloaded; login Inertia = XHR).
+- **Byte 0x01** (jejak `\1` skrip pengganti) dibuang dari 9 berkas - tampil sebagai kotak hitam.
+- **Form (31 + 4):** `GroupedForm.jsx` kini mengekspor `filledFieldsClass` (varian keturunan: input/textarea/
+  pemicu select & combobox tanpa bingkai, latar `bg-muted/60`, `rounded-xl`; checkbox/radio/berkas
+  dikecualikan) dan `groupedRowsClass` (pola baris bagian 12 + isian terisi). 25 form `divide-y [&>*]:py-4`
+  memakai `className={groupedRowsClass}`; `FormSection` (Pengguna) ikut; 6 form fasilitas, Form Lapor,
+  2 partial Profil & balasan Forum memakai `${filledFieldsClass}`. Input berkas Tenant & Pengguna: tombol
+  pil bertint (`file:`), bukan "Choose File" mentah.
+- **Detail Insiden:** "Informasi insiden" jadi grup iOS (judul grup di luar kartu, baris label-nilai
+  Pelapor/Telepon, wilayah satu baris, alamat/patokan/asal titik tetap, Navigasi tombol tint); baris
+  "Judul Insiden:" dibuang karena mengulang judul besar halaman; peta berlabel pil material; 6 judul panel
+  kapital -> judul kartu 17px; 25 teks 11px -> 12px; `font-bold` -> `font-semibold` (kecuali h1).
+- **Daftar Relawan:** cari iOS + tombol "Filter" (5 ComboBox terlipat, terbuka sendiri bila ada filter
+  aktif, penghitung), daftar bergrup bertanda panah. Logika useForm/reset tidak disentuh.
+- **RBAC (Peran, Izin, Akses Rute, Sinkronisasi Izin):** kontrol keluar dari kartu (isian terisi, reset
+  ikon), tabel & daftar ponsel satu kartu, ponsel = baris bergaris rambut (bukan kartu dalam kartu),
+  tombol `blue`/`red` -> ikon polos. Skrip `rbac.py` di tmp job.
+- **Halaman setengah jadi:** 6 daftar fasilitas judul & alamat utuh (tanpa `truncate`), pemisah garis tegak
+  dibuang, pil status tanpa bingkai; daftar Pengguna ponsel = satu grup (ketuk = Ubah, Peran & Hapus ikon);
+  lencana Banjar tanpa kapital tebal; keadaan kosong putus-putus -> kartu (11 halaman); pop-up "Pakai
+  Lokasi Saat Ini" merah brand ala alert iOS; Forum: waktu di baris sendiri, tombol balas 44px; Info:
+  Callout & kotak langkah tint tanpa bingkai.
+- **Rekap** `REKAP_TAMPILAN_APPLE_DESIGN.md` dikoreksi dari foto: A 80, B 3 (Detail Insiden panel kanan,
+  Profil, Profil Relawan), D 5; daftar halaman yang BELUM diverifikasi visual dicatat.
+- **Verifikasi:** foto ulang 390px (Detail Insiden, Peran, Relawan, Pengguna, SKKL, form hydrant +
+  pop-up); 2 penjaga baru `AppleDesignMaterialTest` MERAH terhadap HEAD (62 berkas ditukar, pulih `cmp`);
+  satu asersi lama disesuaikan (pola baris kini di GroupedForm). Build lulus.
+- **Belum dicek:** di HP/APK sungguhan; dark mode isian terisi.

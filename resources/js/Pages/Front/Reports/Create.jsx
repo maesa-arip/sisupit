@@ -1,3 +1,4 @@
+import { filledFieldsClass } from '@/Components/GroupedForm';
 import InputError from '@/Components/InputError';
 import { Button } from '@/Components/ui/button';
 import { Combobox } from '@/Components/ui/combobox';
@@ -848,7 +849,7 @@ export default function Create(props) {
 					</p>
 				</div>
 
-				<form id="reportForm" className="space-y-7" onSubmit={onHandleSubmit}>
+				<form id="reportForm" className={`space-y-7 ${filledFieldsClass}`} onSubmit={onHandleSubmit}>
 					{/* --- BAGIAN LOKASI --- */}
 					<section className="space-y-2">
 						<h2 className="px-4 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -876,7 +877,7 @@ export default function Create(props) {
 								)}
 
 								<div className="min-w-0 flex-1 pb-2">
-									<p className="text-[15px] font-semibold text-foreground">{locTitle}</p>
+									<p className="text-[15px] font-semibold text-foreground">{locTitle}</p>
 									{locSubtitle && !locationLoading && (
 										<p className="mt-0.5 truncate text-[13px] text-muted-foreground">
 											{locSubtitle}
@@ -912,7 +913,7 @@ export default function Create(props) {
 								<div className="flex items-start justify-between gap-2">
 									<div className="min-w-0">
 										<p className="text-[13px] font-semibold text-foreground">
-											Alamat lengkap (otomatis)
+											Alamat lengkap (otomatis)
 										</p>
 										<p className="mt-0.5 break-words text-[13px] text-muted-foreground">
 											{locationLoading

@@ -74,24 +74,24 @@ export default function UseCurrentLocationDialog({ onUse, assetLabel = 'aset ini
 
 	return (
 		<AlertDialog open={open} onOpenChange={setOpen}>
-			<AlertDialogContent className="rounded-xl border-border bg-card shadow-sm">
+			<AlertDialogContent className="max-w-sm rounded-2xl">
 				<AlertDialogHeader>
-					<div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-md border border-info/20 bg-info/10">
-						<IconCurrentLocation className="h-6 w-6 text-info" />
+					<div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+						<IconCurrentLocation className="h-7 w-7 text-primary" />
 					</div>
-					<AlertDialogTitle className="text-center text-lg font-semibold text-foreground">
+					<AlertDialogTitle className="text-center text-[17px] font-semibold text-foreground">
 						Pakai Lokasi Saat Ini?
 					</AlertDialogTitle>
-					<AlertDialogDescription className="mt-1.5 text-center text-sm text-muted-foreground">
+					<AlertDialogDescription className="mt-1.5 text-center text-[15px] leading-relaxed text-muted-foreground">
 						Jika Anda sedang berada di titik {assetLabel}, lokasi perangkat Anda bisa langsung dipakai
 						sebagai koordinatnya. Pin tetap bisa digeser setelahnya.
 					</AlertDialogDescription>
 				</AlertDialogHeader>
 
-				<AlertDialogFooter className="mt-6 flex gap-2 sm:justify-center">
+				<AlertDialogFooter className="mt-4 flex gap-2 sm:flex-col-reverse sm:space-x-0">
 					<AlertDialogCancel
 						disabled={loading}
-						className="h-9 w-full rounded-md border border-border bg-card font-medium text-foreground hover:bg-accent sm:w-auto"
+						className="h-11 w-full rounded-xl border-0 bg-muted/60 text-[15px] font-medium text-foreground hover:bg-muted"
 					>
 						Nanti Saja
 					</AlertDialogCancel>
@@ -99,7 +99,7 @@ export default function UseCurrentLocationDialog({ onUse, assetLabel = 'aset ini
 					<AlertDialogAction
 						onClick={handleUse}
 						disabled={loading}
-						className="h-9 w-full rounded-md bg-info font-medium text-info-foreground hover:bg-info/90 sm:w-auto"
+						className="h-11 w-full rounded-xl text-[15px] font-semibold"
 					>
 						{loading ? (
 							<>

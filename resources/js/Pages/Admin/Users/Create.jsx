@@ -211,7 +211,7 @@ export default function Create(props) {
 							type="file"
 							accept="image/*"
 							ref={fileInputAvatar}
-							className="h-11 rounded-xl py-2.5"
+							className="h-auto rounded-xl border-transparent bg-muted/60 p-2 text-[15px] text-muted-foreground file:mr-3 file:rounded-full file:bg-primary/10 file:px-3.5 file:py-1.5 file:text-[13px] file:font-semibold file:text-primary"
 							onChange={(e) => setCompressedFile(e.target.name, e.target.files[0])}
 						/>
 					</FormField>
