@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ReportFeedChanged;
 use App\Events\ReportRecordChanged;
 use App\Models\Report;
 use App\Models\ReportResolution;
@@ -269,6 +270,10 @@ class ReportResolutionController extends Controller
         // petugas mengisi entri `sementara`, lalu admin - satu-satunya yang boleh
         // mem-final-kannya sejak TASK_49 - menatap layar yang masih kosong.
         broadcast(new ReportRecordChanged($report->id));
+        // Antrian "Menunggu Berita Acara" di dashboard petugas lain di wilayah ini juga
+        // harus tahu insiden ini sudah punya entri - siaran di atas hanya didengar halaman
+        // detail, jadi tanpa ini kartunya tertinggal berbunyi "Buat Laporan" sampai di-refresh.
+        broadcast(ReportFeedChanged::for($report));
 
         return to_route('reports.show', $report->id)
             ->with('success', "Berita acara ($label) berhasil disimpan.");
@@ -305,6 +310,8 @@ class ReportResolutionController extends Controller
         });
 
         broadcast(new ReportRecordChanged($report->id));
+        // Entri terakhir yang dihapus mengembalikan insiden ke antrian dashboard petugas.
+        broadcast(ReportFeedChanged::for($report));
 
         return back()->with('success', 'Entri berita acara dihapus.');
     }

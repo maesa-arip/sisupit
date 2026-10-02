@@ -6,12 +6,11 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import useReportFeed from '@/hooks/use-report-feed';
 import AppLayout from '@/Layouts/AppLayout';
+import { reportIcon } from '@/lib/report-icon';
 import { cn } from '@/lib/utils';
 import { Head, Link, router } from '@inertiajs/react';
 import {
 	IconAlertCircle,
-	IconBolt,
-	IconBug,
 	IconCheck,
 	IconChevronRight,
 	IconDroplet,
@@ -20,7 +19,6 @@ import {
 	IconMapPin,
 	IconMapSearch,
 	IconShieldCheck,
-	IconTree,
 	IconUsersGroup,
 } from '@tabler/icons-react';
 import { useState } from 'react';
@@ -304,21 +302,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 					</p>
 					<AppList className="max-md:[&>a:nth-of-type(n+6)]:hidden">
 						{reports.map((report) => {
-							const t = report.title.toLowerCase();
-							let ReportIcon = IconFlame;
-							let colorStyle = 'text-destructive bg-destructive/10';
-
-							if (t.includes('pohon')) {
-								ReportIcon = IconTree;
-								// Teal - selaras warna teks "Hydrant" di kartu Peta Pemantauan.
-								colorStyle = 'text-teal bg-teal/10';
-							} else if (t.includes('hewan') || t.includes('ular') || t.includes('tawon')) {
-								ReportIcon = IconBug;
-								colorStyle = 'text-warning bg-warning/10';
-							} else if (t.includes('listrik') || t.includes('korsleting')) {
-								ReportIcon = IconBolt;
-								colorStyle = 'text-info bg-info/10';
-							}
+							const { Icon: ReportIcon, className: colorStyle } = reportIcon(report);
 
 							return (
 								<AppListRow

@@ -32,7 +32,7 @@ it('never renders a colored image asset in the mobile bottom bar', function () u
 
 // Slot "Lapor" memakai petir brand — permintaan user 2026-09-06, membalik IconFlame yang
 // dipasang 2026-09-01. `IconBolt` milik @tabler SENGAJA tidak dipakai: di repo ini petir @tabler
-// sudah berarti jenis kejadian LISTRIK (`Admin/Dashboard.jsx`), dan satu ikon tak boleh punya
+// sudah berarti jenis kejadian LISTRIK (`lib/report-icon.js`), dan satu ikon tak boleh punya
 // dua makna.
 it('draws the brand bolt in the Lapor slot, not the tabler bolt', function () use ($stripComments) {
     $source = $stripComments(file_get_contents(resource_path('js/Layouts/Partials/MobileBottomNav.jsx')));

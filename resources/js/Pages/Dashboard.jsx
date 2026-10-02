@@ -6,6 +6,7 @@ import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import useReportFeed from '@/hooks/use-report-feed';
 import AppLayout from '@/Layouts/AppLayout';
+import { reportIcon } from '@/lib/report-icon';
 import { cn, GEO_OPTIONS, timeAgo } from '@/lib/utils';
 import { Link, router } from '@inertiajs/react';
 import {
@@ -165,33 +166,43 @@ export default function Dashboard(props) {
 		>
 			<AppList className="max-md:[&>a:nth-of-type(n+4)]:hidden">
 				{myReports && myReports.length > 0 ? (
-					myReports.map((report) => (
-						<AppListRow
-							key={report.id}
-							href={route('reports.show', report.id)}
-							title={report.title}
-							aside={
-								<>
-									<span className="md:hidden">{timeAgo(report.created_at)}</span>
-									<span className="hidden md:inline">
-										{new Date(report.created_at).toLocaleDateString('id-ID', {
-											day: 'numeric',
-											month: 'short',
-											hour: '2-digit',
-											minute: '2-digit',
-										})}
+					myReports.map((report) => {
+						// Ikon jenis kejadian - sama dengan halaman Arsip & Riwayat (#161).
+						const { Icon: ReportIcon, className: iconStyle } = reportIcon(report);
+
+						return (
+							<AppListRow
+								key={report.id}
+								href={route('reports.show', report.id)}
+								leading={
+									<div className={cn('shrink-0 rounded-xl p-2 md:p-2.5', iconStyle)}>
+										<ReportIcon className="h-5 w-5" stroke={2} />
+									</div>
+								}
+								title={report.title}
+								aside={
+									<>
+										<span className="md:hidden">{timeAgo(report.created_at)}</span>
+										<span className="hidden md:inline">
+											{new Date(report.created_at).toLocaleDateString('id-ID', {
+												day: 'numeric',
+												month: 'short',
+												hour: '2-digit',
+												minute: '2-digit',
+											})}
+										</span>
+									</>
+								}
+								meta={
+									<span className="flex items-start gap-1.5">
+										<IconMapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+										<span>{report.address || 'Lokasi Terdeteksi'}</span>
 									</span>
-								</>
-							}
-							meta={
-								<span className="flex items-start gap-1.5">
-									<IconMapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-									<span>{report.address || 'Lokasi Terdeteksi'}</span>
-								</span>
-							}
-							badges={<StatusBadge status={report.status} />}
-						/>
-					))
+								}
+								badges={<StatusBadge status={report.status} />}
+							/>
+						);
+					})
 				) : (
 					<AppEmpty
 						icon={IconHistory}

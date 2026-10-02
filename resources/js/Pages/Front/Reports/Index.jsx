@@ -1,20 +1,12 @@
+import { AppEmpty, AppList, AppListRow } from '@/Components/AppSection';
 import StatusBadge from '@/Components/StatusBadge';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
-import { alamatLaporan, cn } from '@/lib/utils';
-import { Head, Link, router } from '@inertiajs/react';
-import {
-	IconChevronRight,
-	IconClock,
-	IconFlame,
-	IconHistory,
-	IconList,
-	IconMapPin,
-	IconSearch,
-	IconShieldCheck,
-	IconX,
-} from '@tabler/icons-react';
+import { reportIcon } from '@/lib/report-icon';
+import { alamatLaporan, cn, timeAgo } from '@/lib/utils';
+import { Head, router } from '@inertiajs/react';
+import { IconHistory, IconList, IconMapPin, IconSearch, IconShieldCheck, IconX } from '@tabler/icons-react';
 import { useState } from 'react';
 
 export default function ReportIndex(props) {
@@ -119,31 +111,28 @@ export default function ReportIndex(props) {
 				</div>
 			)}
 
-			{/* --- DAFTAR LAPORAN (List View) --- */}
-			<div className="flex flex-col">
+			{/* --- DAFTAR LAPORAN --- Baris & ikon jenis kejadian SAMA dengan dashboard
+			    (AppListRow + reportIcon): dulu halaman ini punya markup baris sendiri dan api
+			    untuk semua jenis, sehingga satu insiden terlihat beda di dua layar (2026-10-02). */}
+			<AppList>
 				{reports?.data?.length > 0 ? (
-					<div className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
-						{reports.data.map((report) => (
-							<Link
+					reports.data.map((report) => {
+						const { Icon: ReportIcon, className: iconStyle } = reportIcon(report);
+
+						return (
+							<AppListRow
 								key={report.id}
 								href={route('reports.show', report.id)}
-								className="group flex flex-col justify-between px-4 py-3.5 transition-colors hover:bg-muted/40 active:bg-muted sm:flex-row sm:items-center sm:px-5"
-							>
-								<div className="flex min-w-0 flex-1 flex-col pr-4">
-									<div className="mb-1 flex items-center gap-2">
-										<IconFlame className="h-4 w-4 shrink-0 text-destructive" stroke={2.5} />
-										<h4 className="truncate text-[15px] font-semibold text-foreground">
-											{report.title}
-										</h4>
+								leading={
+									<div className={cn('shrink-0 rounded-xl p-2 md:p-2.5', iconStyle)}>
+										<ReportIcon className="h-5 w-5" stroke={2} />
 									</div>
-									<div className="mt-1 flex flex-col gap-1.5 text-xs font-medium text-muted-foreground sm:flex-row sm:items-center sm:gap-3">
-										<span className="flex items-center gap-1.5 truncate">
-											<IconMapPin className="h-3.5 w-3.5 shrink-0" />
-											<span className="truncate">{alamatLaporan(report)}</span>
-										</span>
-										<span className="hidden text-muted-foreground/50 sm:inline">•</span>
-										<span className="flex shrink-0 items-center gap-1.5">
-											<IconClock className="h-3.5 w-3.5 shrink-0" />
+								}
+								title={report.title}
+								aside={
+									<>
+										<span className="md:hidden">{timeAgo(report.created_at)}</span>
+										<span className="hidden md:inline">
 											{new Date(report.created_at).toLocaleDateString('id-ID', {
 												day: 'numeric',
 												month: 'short',
@@ -152,31 +141,26 @@ export default function ReportIndex(props) {
 												minute: '2-digit',
 											})}
 										</span>
-									</div>
-								</div>
-
-								<div className="mt-4 flex w-full items-center justify-between gap-4 border-t border-border pt-3 sm:mt-0 sm:w-auto sm:justify-end sm:border-t-0 sm:pt-0">
-									<StatusBadge status={report.status} className="whitespace-nowrap" />
-
-									<div className="flex h-8 w-8 items-center justify-center rounded-full border border-transparent bg-transparent transition-colors group-hover:border-border group-hover:bg-card">
-										<IconChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-destructive" />
-									</div>
-								</div>
-							</Link>
-						))}
-					</div>
+									</>
+								}
+								meta={
+									<span className="flex items-start gap-1.5">
+										<IconMapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+										<span>{alamatLaporan(report)}</span>
+									</span>
+								}
+								badges={<StatusBadge status={report.status} />}
+							/>
+						);
+					})
 				) : (
-					<div className="flex flex-col items-center justify-center rounded-2xl border border-border/70 bg-card px-4 py-16 shadow-sm text-center">
-						<div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-none">
-							<IconShieldCheck className="h-6 w-6" stroke={1.5} />
-						</div>
-						<h3 className="text-[15px] font-semibold text-foreground">Pencarian Kosong</h3>
-						<p className="mt-1 max-w-[280px] text-xs text-muted-foreground">
-							Tidak ada data laporan yang ditemukan berdasarkan filter atau kata kunci tersebut.
-						</p>
-					</div>
+					<AppEmpty
+						icon={IconShieldCheck}
+						title="Pencarian Kosong"
+						description="Tidak ada data laporan yang ditemukan berdasarkan filter atau kata kunci tersebut."
+					/>
 				)}
-			</div>
+			</AppList>
 
 			{/* --- PAGINASI (Jika ada lebih dari 10 data) --- */}
 			{reports?.meta?.has_pages && (

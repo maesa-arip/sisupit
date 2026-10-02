@@ -1,5 +1,6 @@
 <?php
 
+use App\Events\ReportFeedChanged;
 use App\Events\ReportRecordChanged;
 use App\Models\Agency;
 use App\Models\Report;
@@ -141,6 +142,35 @@ it('broadcasts ReportRecordChanged when a berita acara entry is created and when
         ->assertRedirect();
 
     Event::assertDispatched(ReportRecordChanged::class, fn ($e) => $e->reportId === $this->report->id);
+});
+
+// Antrian "Menunggu Berita Acara" di dashboard petugas mendengar channel WILAYAH, bukan
+// channel detail. Dulu hanya ReportRecordChanged yang disiarkan, sehingga kartu insiden yang
+// sudah diisi petugas lain tetap berbunyi "Buat Laporan" sampai halaman di-refresh.
+it('broadcasts ReportFeedChanged to the region when a berita acara entry is created and when it is deleted', function () {
+    $this->report->update(['status' => 'resolved']);
+
+    Event::fake([ReportFeedChanged::class]);
+
+    $this->actingAs($this->petugas)
+        ->post("/reports/{$this->report->id}/resolution", [
+            'status' => 'sementara',
+            'jenis_kejadian' => 'kebakaran rumah warga',
+        ])
+        ->assertRedirect(route('reports.show', $this->report->id));
+
+    Event::assertDispatched(ReportFeedChanged::class, fn ($e) => $e->reportId === $this->report->id
+        && in_array('reports.village.5171012006', $e->channelNames, true));
+
+    $resolution = ReportResolution::where('report_id', $this->report->id)->firstOrFail();
+
+    Event::fake([ReportFeedChanged::class]);
+
+    $this->actingAs($this->petugas)
+        ->delete("/reports/{$this->report->id}/resolution/{$resolution->id}")
+        ->assertRedirect();
+
+    Event::assertDispatched(ReportFeedChanged::class, fn ($e) => $e->reportId === $this->report->id);
 });
 
 // Pelapor menyunting laporannya saat masih TERLAPOR — yaitu justru saat Pusat Komando sedang

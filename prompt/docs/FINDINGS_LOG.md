@@ -3785,7 +3785,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   menjalankan `composer install --no-dev --optimize-autoloader` HANYA bila berubah (sebelum migrate,
   sebelum chown). Salinan resminya kini ADA DI REPO: `deploy/deploy-env.sh` - dulu skrip itu hanya
   hidup di server, jadi perbaikannya pun tak punya riwayat. Runbook `deploy/environments.md` diperbarui.
-- **Status:** FIXED 2026-09-30.
+- **Status:** FIXED & TERDEPLOY 2026-09-30 @7b2dacc8 ke dev/staging/prod.
 
 ### #154 — "Tiba" seregu tanpa jejak siapa yang menandainya (FIXED)
 
@@ -3800,7 +3800,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   snake_case tak menimpa kolom `arrived_by` (pola `Report::resolver()`). Manifes menulis "Ditandai
   tiba oleh X" di bawah nama anggota bila penandanya orang lain. Penjaga di `ReguAttendanceTest`
   (sabotase MERAH).
-- **Status:** FIXED 2026-09-30.
+- **Status:** FIXED & TERDEPLOY 2026-09-30 @7b2dacc8 ke dev/staging/prod.
 
 ### #155 — Membuka Profil di VPS = 502 Bad Gateway: header respons melewati buffer FastCGI Nginx (FIXED)
 
@@ -3827,7 +3827,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   header respons sempat ditulis lalu DIBUANG: di lingkungan test Vite tak menghasilkan daftar preload,
   jadi ia tetap hijau walau middleware dipasang lagi (dibuktikan sabotase) - penjaga yang tak bisa merah
   tidak menjaga apa pun.
-- **Status:** FIXED 2026-09-30.
+- **Status:** FIXED & TERDEPLOY 2026-09-30 @7b2dacc8 ke dev/staging/prod.
 
 ### #156 — SEMENTARA: menu admin "Daftar Penerima Email" & "Pengaturan Email Dinas" disembunyikan (KEPUTUSAN USER, 2026-09-30)
 
@@ -3838,7 +3838,11 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   daftar putih penerima & kredensial kotak surat yang sudah tersimpan, dan menu "Email Dinas" milik
   pengirim (tetap tampil bila fitur kabupaten menyala & kotak surat sudah disetel - `mailEnabled`).
   URL langsung masih terbuka bagi admin.
-- **Mengembalikan:** ubah konstanta ke `true` + `npm run build`.
+- **Mengembalikan:** ubah konstanta ke `true` + `npm run build` + deploy.
+- **Status:** TERDEPLOY 2026-09-30 @130535ab ke dev/staging/prod (lewat `deploy-env.sh` baru #153).
+  Diverifikasi di bundel live `AppLayout-*.js` ketiga domain: nol "Daftar Penerima Email" & nol
+  "Pengaturan Email Dinas", "Email Dinas" pengirim tetap ada; `/admin/mail-contacts` masih menjawab
+  (302 ke login bagi tamu) - route utuh sesuai keputusan.
 
 
 ### #157 — Hapus akun tak terjangkau pengguna, dan kalaupun terjangkau gagal bagi pelapor & akun Google (FIXED)
@@ -3947,3 +3951,25 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Catatan:** `ReportResolutionSingleEntryTest` sekali gagal `UniqueConstraintViolationException` di suite
   penuh 2026-10-02, lalu 3x lulus tersendiri - test *flaky* (data acak bertabrakan), belum diselidiki.
 - **Status:** FIXED sebagian 2026-10-02 (branch feat/mobile-native-polish, belum deploy).
+
+### #161 — Antrian "Menunggu Berita Acara" tertinggal di dashboard petugas lain; Riwayat berikon api semua (FIXED)
+
+- **Ditemukan:** 2026-10-02, user: "ada bug untuk Menunggu Berita Acara di dashboard, padahal petugas lain
+  sudah buat tapi tombolnya masih buat laporan" + "di riwayat iconnya masih api semua tidak seperti di
+  dashboard".
+- **Akar (1):** query antrian benar (`DashboardController` `whereDoesntHave('resolutions')`, refresh
+  menghilangkannya), tapi `ReportResolutionController::store()/destroy()` hanya menyiarkan
+  `ReportRecordChanged` (channel detail). Dashboard petugas mendengar `ReportFeedChanged` (channel wilayah),
+  jadi kartu milik petugas lain tak pernah ikut di-reload.
+- **Akar (2):** pemilih ikon jenis kejadian (kata kunci judul: pohon/hewan/listrik/selain itu api) hanya
+  hidup di `Admin/Dashboard.jsx`; `Front/Reports/Index.jsx` (Arsip & Riwayat) memasang `IconFlame` untuk
+  semua baris dengan markup baris sendiri.
+- **Fix:** store/destroy ikut `broadcast(ReportFeedChanged::for($report))` (test di
+  `ReportDetailRealtimeTest`). Pemilih ikon dipindah ke `resources/js/lib/report-icon.js` (sumber tunggal);
+  Admin Dashboard & Arsip & Riwayat memakainya, dan Riwayat kini memakai `AppList`/`AppListRow` seperti
+  dashboard.
+- **Lanjutan (permintaan user "perbaiki poin 4"):** Dashboard Petugas (dulu truk untuk semua baris, merah =
+  mendesak) & "Riwayat Laporan Saya" dashboard warga (dulu tanpa ikon) ikut memakai `reportIcon`. Urgensi
+  misi tetap dibawa waktu merah + pil "Tanggapi". Antrian Berita Acara sengaja tetap ikon dokumen.
+  Penjaga di `AppleDesignMaterialTest`.
+- **Status:** FIXED 2026-10-02 (branch feat/mobile-native-polish, belum deploy).

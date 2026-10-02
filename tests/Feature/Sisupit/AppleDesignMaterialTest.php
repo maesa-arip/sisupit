@@ -228,9 +228,19 @@ it('keeps the mobile dashboards to the essentials and leaves the detail for larg
 
 it('reworks the remaining front pages into grouped lists and iOS-style screens', function () {
     $group = 'divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm';
-    foreach (['Mail/Index', 'Front/Reports/Index', 'Forum/Index', 'Regu/Index', 'Admin/Reports/Index', 'Admin/Agencies/Index'] as $page) {
+    foreach (['Mail/Index', 'Forum/Index', 'Regu/Index', 'Admin/Reports/Index', 'Admin/Agencies/Index'] as $page) {
         expect(appleSource("resources/js/Pages/{$page}.jsx"))->toContain($group);
     }
+    // Arsip & Riwayat memakai daftar bersama dashboard (#161), yang membawa kelas grup yang sama.
+    expect(appleSource('resources/js/Components/AppSection.jsx'))->toContain($group);
+    expect(appleSource('resources/js/Pages/Front/Reports/Index.jsx'))->toContain('<AppList>')
+        ->toContain('reportIcon(report)')
+        ->not->toContain('<IconFlame');
+    // Satu insiden = satu ikon jenis kejadian di setiap daftar laporan (#161).
+    foreach (['Dashboard', 'Admin/Dashboard', 'Petugas/Dashboard'] as $page) {
+        expect(appleSource("resources/js/Pages/{$page}.jsx"))->toContain("from '@/lib/report-icon'");
+    }
+    expect(appleSource('resources/js/Pages/Petugas/Dashboard.jsx'))->not->toContain('IconFiretruck');
     expect(appleSource('resources/js/Pages/Front/Reports/Thanks.jsx'))->toContain('rounded-full bg-success/10');
     expect(appleSource('resources/js/Pages/Volunteers/Index.jsx'))->toContain('after:absolute after:inset-0');
     expect(appleSource('resources/js/Pages/ErrorHandling.jsx'))->not->toMatch('/<Card\b/');

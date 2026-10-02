@@ -5,13 +5,13 @@ import { Card, CardContent } from '@/Components/ui/card';
 import useReportFeed from '@/hooks/use-report-feed';
 import AppLayout from '@/Layouts/AppLayout';
 import { escapeHtml } from '@/lib/escape-html';
+import { reportIcon } from '@/lib/report-icon';
 import { cn, GEO_OPTIONS, MAP_TILE_URL, reportNumber } from '@/lib/utils';
 import { Head, router } from '@inertiajs/react';
 import {
 	IconAlertCircle,
 	IconCheck,
 	IconFileText,
-	IconFiretruck,
 	IconHourglass,
 	IconMapPin,
 	IconRadar,
@@ -219,85 +219,84 @@ export default function PetugasDashboard({
 			<AppSection title="Daftar Misi Operasional" icon={IconRadar}>
 				<AppList>
 					{activeMissions.length > 0 ? (
-						missions.map((mission) => (
-							<AppListRow
-								key={mission.id}
-								href={route('reports.show', mission.id)}
-								leading={
-									<div
-										className={cn(
-											'shrink-0 rounded-xl p-2 md:p-2.5',
-											mission.isUrgent
-												? 'bg-destructive/10 text-destructive'
-												: 'bg-muted text-muted-foreground',
-										)}
-									>
-										<IconFiretruck className="h-5 w-5" stroke={2} />
-									</div>
-								}
-								title={mission.title}
-								aside={
-									<span className={cn(mission.isUrgent && 'font-semibold text-destructive')}>
-										{mission.time}
-									</span>
-								}
-								meta={
-									<>
-										<span className="hidden font-mono font-semibold md:inline">
-											{reportNumber(mission)}
+						missions.map((mission) => {
+							// Ikon = JENIS kejadian, sama dengan dashboard admin & Arsip/Riwayat (#161).
+							// Urgensi tetap dibawa waktu merah + pil "Tanggapi" di bawah, bukan ikonnya.
+							const { Icon: MissionIcon, className: iconStyle } = reportIcon(mission);
+
+							return (
+								<AppListRow
+									key={mission.id}
+									href={route('reports.show', mission.id)}
+									leading={
+										<div className={cn('shrink-0 rounded-xl p-2 md:p-2.5', iconStyle)}>
+											<MissionIcon className="h-5 w-5" stroke={2} />
+										</div>
+									}
+									title={mission.title}
+									aside={
+										<span className={cn(mission.isUrgent && 'font-semibold text-destructive')}>
+											{mission.time}
 										</span>
-										<span className="flex items-start gap-1.5">
-											<IconMapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-											<span>{mission.location}</span>
-										</span>
-										{mission.distKm != null && (
-											<span className="flex shrink-0 items-center gap-1.5 font-semibold text-foreground">
-												<IconRoute className="h-3.5 w-3.5 shrink-0" /> ±{' '}
-												{mission.distKm < 10
-													? mission.distKm.toFixed(1)
-													: Math.round(mission.distKm)}{' '}
-												km
+									}
+									meta={
+										<>
+											<span className="hidden font-mono font-semibold md:inline">
+												{reportNumber(mission)}
 											</span>
-										)}
-										{/* Regu yang sudah meluncur ke insiden ini (TASK_60). */}
-										{mission.regus?.length > 0 && (
-											<span className="flex items-start gap-1.5 font-semibold text-foreground">
-												<IconUsers className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-												<span>{mission.regus.join(', ')} meluncur</span>
+											<span className="flex items-start gap-1.5">
+												<IconMapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+												<span>{mission.location}</span>
 											</span>
-										)}
-									</>
-								}
-								badges={
-									<>
-										<StatusBadge status={mission.status} />
-										{/* Ajakan bertindak TETAP ada di ponsel (TASK_51): merah "Tanggapi" adalah
+											{mission.distKm != null && (
+												<span className="flex shrink-0 items-center gap-1.5 font-semibold text-foreground">
+													<IconRoute className="h-3.5 w-3.5 shrink-0" /> ±{' '}
+													{mission.distKm < 10
+														? mission.distKm.toFixed(1)
+														: Math.round(mission.distKm)}{' '}
+													km
+												</span>
+											)}
+											{/* Regu yang sudah meluncur ke insiden ini (TASK_60). */}
+											{mission.regus?.length > 0 && (
+												<span className="flex items-start gap-1.5 font-semibold text-foreground">
+													<IconUsers className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+													<span>{mission.regus.join(', ')} meluncur</span>
+												</span>
+											)}
+										</>
+									}
+									badges={
+										<>
+											<StatusBadge status={mission.status} />
+											{/* Ajakan bertindak TETAP ada di ponsel (TASK_51): merah "Tanggapi" adalah
 										    sinyal urgensi dashboard ini. Kini di baris lencana sendiri, bukan
 										    dijejalkan di kolom kanan (keluhan user 2026-10-02). */}
-										<span
-											className={cn(
-												'inline-flex h-7 items-center gap-1 rounded-full px-3 text-[13px] font-semibold transition-colors',
-												mission.isUrgent && 'bg-destructive text-destructive-foreground',
-												mission.isAwaitingAdmin && 'bg-warning/10 text-warning',
-												!mission.isUrgent &&
-													!mission.isAwaitingAdmin &&
-													'bg-muted text-foreground/80',
-											)}
-										>
-											{mission.isAwaitingAdmin ? (
-												<>
-													<IconHourglass className="h-3.5 w-3.5" /> Menunggu Admin
-												</>
-											) : mission.isUrgent ? (
-												'Tanggapi'
-											) : (
-												'Pantau'
-											)}
-										</span>
-									</>
-								}
-							/>
-						))
+											<span
+												className={cn(
+													'inline-flex h-7 items-center gap-1 rounded-full px-3 text-[13px] font-semibold transition-colors',
+													mission.isUrgent && 'bg-destructive text-destructive-foreground',
+													mission.isAwaitingAdmin && 'bg-warning/10 text-warning',
+													!mission.isUrgent &&
+														!mission.isAwaitingAdmin &&
+														'bg-muted text-foreground/80',
+												)}
+											>
+												{mission.isAwaitingAdmin ? (
+													<>
+														<IconHourglass className="h-3.5 w-3.5" /> Menunggu Admin
+													</>
+												) : mission.isUrgent ? (
+													'Tanggapi'
+												) : (
+													'Pantau'
+												)}
+											</span>
+										</>
+									}
+								/>
+							);
+						})
 					) : (
 						<AppEmpty
 							icon={IconCheck}
