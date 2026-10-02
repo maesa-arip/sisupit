@@ -1,7 +1,7 @@
+import { AppEmpty } from '@/Components/AppSection';
 import HeaderTitle from '@/Components/HeaderTitle';
 import InputError from '@/Components/InputError';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent } from '@/Components/ui/card';
 import {
 	Dialog,
 	DialogContent,
@@ -68,7 +68,7 @@ export default function Index({ tab, items, counts }) {
 					subtitle="Tinjau pertanyaan warga dan tindak laporan konten di kabupaten Anda."
 					icon={IconShieldCheck}
 				/>
-				<Button variant="outline" size="sm" asChild>
+				<Button variant="ghost" className="h-10 rounded-xl bg-muted/60" asChild>
 					<Link href={route('forum.index')}>
 						<IconExternalLink /> Buka Forum
 					</Link>
@@ -96,48 +96,51 @@ export default function Index({ tab, items, counts }) {
 				))}
 			</div>
 
-			<div className="flex flex-col gap-3">
-				{items.length === 0 && (
-					<div className="rounded-2xl border border-border/70 bg-card p-8 text-center shadow-sm">
-						<p className="text-sm font-medium text-foreground">
-							{tab === 'menunggu'
+			{/* Antrean moderasi = satu daftar bergrup (TASK_69 bagian 24) - dulu satu kartu per tulisan dengan
+			    meta 11px & tombol bergaris. Aksi bertint di baris sendiri, logika & rute tidak berubah. */}
+			{items.length === 0 ? (
+				<div className="rounded-2xl border border-border/70 bg-card shadow-sm">
+					<AppEmpty
+						icon={IconShieldCheck}
+						title={
+							tab === 'menunggu'
 								? 'Tidak ada pertanyaan yang menunggu tinjauan.'
 								: tab === 'dilaporkan'
 									? 'Tidak ada laporan konten yang terbuka.'
-									: 'Belum ada pertanyaan yang disembunyikan.'}
-						</p>
-					</div>
-				)}
-
-				{tab !== 'dilaporkan' &&
-					items.map((thread) => (
-						<Card key={thread.id}>
-							<CardContent className="space-y-2 p-4">
+									: 'Belum ada pertanyaan yang disembunyikan.'
+						}
+					/>
+				</div>
+			) : (
+				<div className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
+					{tab !== 'dilaporkan' &&
+						items.map((thread) => (
+							<div key={thread.id} className="space-y-1.5 px-4 py-3.5">
 								<div className="flex flex-wrap items-center gap-2">
 									<ForumStatusBadge status={thread.status} />
-									<span className="text-[11px] text-muted-foreground">
+									<span className="text-[13px] text-muted-foreground">
 										{thread.author} · {timeAgo(thread.created_at)}
 									</span>
 								</div>
 								<Link href={route('forum.show', thread.id)} className="block">
-									<h3 className="text-[15px] font-semibold text-foreground hover:underline">
+									<h3 className="break-words text-[15px] font-semibold leading-snug text-foreground hover:underline">
 										{thread.title}
 									</h3>
 								</Link>
-								<p className="whitespace-pre-line text-[13px] text-muted-foreground">
+								<p className="whitespace-pre-line text-[13px] leading-snug text-muted-foreground">
 									{thread.excerpt}
 								</p>
 								{thread.moderation_reason && (
-									<p className="text-[11px] text-muted-foreground">
+									<p className="text-[13px] text-muted-foreground">
 										Alasan: {thread.moderation_reason}
 										{thread.moderator ? ` - oleh ${thread.moderator}` : ''}
 									</p>
 								)}
-								<div className="flex flex-wrap gap-2 pt-1">
+								<div className="flex flex-wrap gap-2 pt-1.5">
 									{thread.status === 'menunggu' && (
 										<Button
-											size="sm"
 											variant="green"
+											className="h-9 rounded-xl"
 											onClick={() => act(route('admin.forum.threads.approve', thread.id))}
 										>
 											<IconCircleCheck /> Setujui
@@ -145,44 +148,46 @@ export default function Index({ tab, items, counts }) {
 									)}
 									{thread.status === 'disembunyikan' ? (
 										<Button
-											size="sm"
-											variant="outline"
+											variant="ghost"
+											className="h-9 rounded-xl bg-muted/60"
 											onClick={() => act(route('admin.forum.threads.restore', thread.id))}
 										>
 											<IconEye /> Pulihkan
 										</Button>
 									) : (
 										<Button
-											size="sm"
-											variant="outline"
+											variant="ghost"
+											className="h-9 rounded-xl bg-muted/60"
 											onClick={() => setHideTarget(route('admin.forum.threads.hide', thread.id))}
 										>
 											<IconEyeOff /> Tolak / Sembunyikan
 										</Button>
 									)}
 								</div>
-							</CardContent>
-						</Card>
-					))}
+							</div>
+						))}
 
-				{tab === 'dilaporkan' &&
-					items.map((item) => (
-						<Card key={item.key}>
-							<CardContent className="space-y-2 p-4">
+					{tab === 'dilaporkan' &&
+						items.map((item) => (
+							<div key={item.key} className="space-y-1.5 px-4 py-3.5">
 								<div className="flex flex-wrap items-center gap-2">
-									<span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+									<span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
 										{item.type === 'post' ? 'Balasan' : 'Pertanyaan'}
 									</span>
 									{item.status !== 'tampil' && <ForumStatusBadge status={item.status} />}
-									<span className="text-[11px] font-semibold text-destructive">
+									<span className="rounded-full bg-destructive/10 px-2.5 py-0.5 text-xs font-semibold text-destructive">
 										{item.reports.length} laporan
 									</span>
 								</div>
 								<Link href={route('forum.show', item.thread_id)} className="block">
-									<p className="text-xs text-muted-foreground hover:underline">{item.thread_title}</p>
+									<p className="text-[13px] text-muted-foreground hover:underline">
+										{item.thread_title}
+									</p>
 								</Link>
-								<p className="whitespace-pre-line text-[15px] text-foreground">{item.excerpt}</p>
-								<ul className="space-y-1 rounded-xl bg-muted/40 p-3 text-[13px] text-muted-foreground">
+								<p className="whitespace-pre-line text-[15px] leading-snug text-foreground">
+									{item.excerpt}
+								</p>
+								<ul className="space-y-1 rounded-xl bg-muted/50 p-3 text-[13px] text-muted-foreground">
 									{item.reports.map((report, index) => (
 										<li key={index}>
 											<span className="font-semibold text-foreground">{report.reason}</span>
@@ -190,11 +195,11 @@ export default function Index({ tab, items, counts }) {
 										</li>
 									))}
 								</ul>
-								<div className="flex flex-wrap gap-2 pt-1">
+								<div className="flex flex-wrap gap-2 pt-1.5">
 									{item.status === 'tampil' && (
 										<Button
-											size="sm"
 											variant="red"
+											className="h-9 rounded-xl"
 											onClick={() =>
 												setHideTarget(
 													route(
@@ -210,17 +215,17 @@ export default function Index({ tab, items, counts }) {
 										</Button>
 									)}
 									<Button
-										size="sm"
-										variant="outline"
+										variant="ghost"
+										className="h-9 rounded-xl bg-muted/60"
 										onClick={() => act(route('admin.forum.flags.dismiss', [item.type, item.id]))}
 									>
 										<IconX /> Abaikan Laporan
 									</Button>
 								</div>
-							</CardContent>
-						</Card>
-					))}
-			</div>
+							</div>
+						))}
+				</div>
+			)}
 
 			<Dialog open={Boolean(hideTarget)} onOpenChange={(open) => !open && closeHide()}>
 				<DialogContent>

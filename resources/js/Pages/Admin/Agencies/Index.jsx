@@ -122,7 +122,7 @@ export default function Index({ agencies, filters }) {
 												)}
 											</div>
 
-											<p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+											<p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-muted-foreground">
 												{agency.category && <span>{agency.category}</span>}
 												{agency.phone && (
 													<span className="flex items-center gap-1">
@@ -134,21 +134,18 @@ export default function Index({ agencies, filters }) {
 											{/* Dua baris di bawah inilah isi "dinamis"-nya: aturan auto-centang &
 										    konfirmasi berkondisi tersimpan sebagai data, bukan sebagai kode. */}
 											{agency.default_incident_types?.length > 0 && (
-												<p className="mt-1.5 flex flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
-													<span className="font-semibold">Auto-centang:</span>
-													{agency.default_incident_types.map((t) => (
-														<span
-															key={t}
-															className="rounded border border-info/20 bg-info/10 px-1.5 py-0.5 font-medium text-info"
-														>
-															{INCIDENT_LABELS[t] || t}
-														</span>
-													))}
+												<p className="mt-1 text-[13px] leading-snug text-muted-foreground">
+													<span className="font-medium text-foreground/80">
+														Auto-centang:
+													</span>{' '}
+													{agency.default_incident_types
+														.map((t) => INCIDENT_LABELS[t] || t)
+														.join(' · ')}
 												</p>
 											)}
 											{agency.requires_confirmation && (
-												<p className="mt-1 flex items-start gap-1 text-[11px] font-medium text-warning">
-													<IconBolt className="mt-0.5 h-3 w-3 shrink-0" />
+												<p className="mt-1 flex items-start gap-1 text-[13px] font-medium leading-snug text-warning">
+													<IconBolt className="mt-0.5 h-3.5 w-3.5 shrink-0" />
 													{agency.confirmation_label}
 												</p>
 											)}

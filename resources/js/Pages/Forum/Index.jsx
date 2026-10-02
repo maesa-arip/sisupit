@@ -49,13 +49,13 @@ export default function Index({ threads, filters, wilayah, canModerate, pendingC
 				/>
 				<div className="flex gap-2">
 					{canModerate && (
-						<Button variant="outline" size="sm" asChild>
+						<Button variant="ghost" className="h-10 rounded-xl bg-muted/60" asChild>
 							<Link href={route('admin.forum.index')}>
 								<IconShieldCheck /> Moderasi{pendingCount > 0 ? ` (${pendingCount})` : ''}
 							</Link>
 						</Button>
 					)}
-					<Button size="sm" asChild>
+					<Button className="h-10 rounded-xl px-5 text-[15px]" asChild>
 						<Link href={route('forum.create')}>
 							<IconPlus /> Tanya
 						</Link>

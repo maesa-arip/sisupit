@@ -160,62 +160,69 @@ export default function Index({
 						)}
 					</div>
 					<Button
-						size="sm"
-						variant={require_banjar ? 'default' : 'outline'}
+						variant={require_banjar ? 'default' : 'ghost'}
 						disabled={total === 0 && !require_banjar}
 						onClick={toggleRequirement}
-						className="shrink-0"
+						className={`h-10 shrink-0 rounded-xl ${require_banjar ? '' : 'bg-primary/10 text-primary hover:bg-primary/15'}`}
 					>
 						{require_banjar ? 'Wajib - matikan' : 'Nyalakan kewajiban'}
 					</Button>
 				</CardContent>
 			</Card>
 
-			<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+			<div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
 				<form onSubmit={handleSearch} className="relative w-full max-w-md">
 					<IconSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 					<Input
-						type="text"
+						type="search"
+						enterKeyHint="search"
 						placeholder="Cari nama atau kode banjar..."
-						className="h-10 pl-9"
+						className="h-11 rounded-xl border-transparent bg-muted/60 pl-9"
 						value={data.search}
 						onChange={(e) => setData('search', e.target.value)}
 					/>
 				</form>
 				{/* Penyaring status — pintu masuk antrean tinjauan. Usulan warga yang tak pernah
-				    ditinjau akan menumpuk diam-diam, jadi jumlahnya dicetak di chip-nya. */}
-				<div className="flex gap-2">
-					{['Semua', ...status_options].map((status) => (
-						<button
-							key={status}
-							type="button"
-							onClick={() => applyFilter('status', status)}
-							className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-all ${
-								data.status === status
-									? 'border-primary/30 bg-primary/10 text-primary'
-									: 'border-input bg-transparent text-muted-foreground hover:bg-accent'
-							}`}
-						>
-							{STATUS_LABELS[status] ?? status}
-							{status === 'usulan' && jumlah_usulan > 0 ? ` (${jumlah_usulan})` : ''}
-						</button>
-					))}
+				    ditinjau akan menumpuk diam-diam, jadi jumlahnya dicetak di chip-nya. Dua penyaring kini
+				    segmented control berlabel (TASK_69 bagian 24) - dulu dua baris chip sama-sama berawalan "Semua". */}
+				<div className="flex items-center gap-2">
+					<span className="w-12 shrink-0 text-[13px] text-muted-foreground sm:w-auto">Status</span>
+					<div className="no-scrollbar flex flex-1 gap-1 overflow-x-auto rounded-xl bg-muted p-1 sm:flex-none">
+						{['Semua', ...status_options].map((status) => (
+							<button
+								key={status}
+								type="button"
+								onClick={() => applyFilter('status', status)}
+								className={`h-8 flex-1 shrink-0 whitespace-nowrap rounded-lg px-3 text-[13px] font-semibold transition-colors ${
+									data.status === status
+										? 'bg-card text-foreground shadow-sm'
+										: 'text-muted-foreground hover:text-foreground'
+								}`}
+							>
+								{STATUS_LABELS[status] ?? status}
+								{status === 'usulan' && jumlah_usulan > 0 ? ` (${jumlah_usulan})` : ''}
+							</button>
+						))}
+					</div>
 				</div>
-				<div className="flex gap-2">
-					{['Semua', ...jenis_options].map((jenis) => (
-						<button
-							key={jenis}
-							type="button"
-							onClick={() => applyFilter('jenis', jenis)}
-							className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-all ${
-								data.jenis === jenis
-									? 'border-primary/30 bg-primary/10 text-primary'
-									: 'border-input bg-transparent text-muted-foreground hover:bg-accent'
-							}`}
-						>
-							{JENIS_LABELS[jenis] ?? jenis}
-						</button>
-					))}
+				<div className="flex items-center gap-2">
+					<span className="w-12 shrink-0 text-[13px] text-muted-foreground sm:w-auto">Jenis</span>
+					<div className="no-scrollbar flex flex-1 gap-1 overflow-x-auto rounded-xl bg-muted p-1 sm:flex-none">
+						{['Semua', ...jenis_options].map((jenis) => (
+							<button
+								key={jenis}
+								type="button"
+								onClick={() => applyFilter('jenis', jenis)}
+								className={`h-8 flex-1 shrink-0 whitespace-nowrap rounded-lg px-3 text-[13px] font-semibold transition-colors ${
+									data.jenis === jenis
+										? 'bg-card text-foreground shadow-sm'
+										: 'text-muted-foreground hover:text-foreground'
+								}`}
+							>
+								{JENIS_LABELS[jenis] ?? jenis}
+							</button>
+						))}
+					</div>
 				</div>
 			</div>
 

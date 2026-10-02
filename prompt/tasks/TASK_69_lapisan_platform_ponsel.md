@@ -433,3 +433,21 @@ Akses Rute, Tetapkan Izin, Tenant) - kolom terakhir lengket kanan, kepala mengul
 Profil & Info tetap di tengah karena judulnya ikut di kolom itu.
 Hasil: 1440 & 1920 tabel Pengguna tak meluap; 1366 meluap 33px tapi Aksi tetap terlihat. Penjaga baru
 "lets desktop pages use the full width..." MERAH terhadap HEAD (30 berkas, pulih `cmp`). Suite 660 (3309).
+
+## 24. Lima halaman dicek ulang (user 2026-10-02: "cek /admin/agencies, /admin/hydrants, /admin/banjars, /admin/forum, /forum")
+
+Foto 390px + 1440px dari kode terbaru: hanya /admin/hydrants yang tuntas. Dikerjakan ("lanjut"):
+- **/admin/forum:** antrean moderasi (Menunggu/Disembunyikan & Dilaporkan) = satu daftar bergrup - dulu
+  `<Card>` per tulisan, meta 11px, tombol bergaris (rekap lama menyebutnya "sengaja dipertahankan").
+  Aksi bertint 36px, kosong = `AppEmpty`, "Buka Forum" abu. Handler/rute/dialog tak berubah. Diverifikasi
+  dengan satu pertanyaan UJI sementara di DB lokal (`[UJI TASK_69]`, dibuat & dihapus permanen lewat skrip
+  `forum_seed.php` di tmp job).
+- **/admin/agencies:** chip "Auto-centang" kotak bergaris -> satu baris teks 13px "Rumah · Toko · ...";
+  meta & label konfirmasi 13px.
+- **/forum:** `EmergencyNotice` tint tanpa bingkai; tombol Tanya/Moderasi 40px.
+- **/admin/banjars:** dua baris chip berawalan "Semua" -> dua segmented control berlabel Status/Jenis;
+  cari `type=search` terisi; "Nyalakan kewajiban" bertint primer.
+- **/admin/hydrants:** tab aktif teal padat -> `variant="default"` (merah brand). Bentuk v4 (keputusan user
+  2026-08-20) DIPERTAHANKAN - segmented control sempat dicoba lalu diurungkan karena tab non-aktifnya
+  mengulang kegagalan v1 (teks tanpa bentuk tombol), dicatat di komentar `variants.jsx`.
+Penjaga baru MERAH terhadap HEAD (6 berkas, pulih `cmp`). Suite 661 (3319). Belum dicek di HP.

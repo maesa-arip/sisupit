@@ -154,6 +154,10 @@ export const hydrantVariant = (variant) => HYDRANT_VARIANTS[variant] ?? HYDRANT_
  *   v4 (ini, permintaan user 2026-08-20) memakai <Button> yang sama persis dengan tombol
  *      "Hydrant Warga" & "Tambah Aset SKKL" di /admin/pumps — sudut `rounded-lg`, tinggi `sm`.
  *      Halaman ini dan SKKL saling merujuk terus-menerus, jadi tombolnya wajib sebentuk.
+ *   v4.1 (TASK_69 bagian 24, 2026-10-02): bentuk v4 TETAP; hanya tab aktif yang dulu teal padat kini
+ *      warna primer brand (`variant="default"`) - satu-satunya pemilih yang tak memakai merah brand.
+ *      Segmented control sempat dicoba lalu DIURUNGKAN: tab non-aktifnya teks di atas latar abu,
+ *      persis bentuk yang gagal di v1.
  *
  * `counts` ditempel inline dalam kurung, bukan sebagai baris kedua — menambah informasi
  * "ini dua kumpulan data" tanpa menambah tinggi.
@@ -178,11 +182,6 @@ export function HydrantTabs({ active, counts = {}, target = 'index', showWarga =
 							key={key}
 							size="sm"
 							variant={isActive ? 'default' : 'secondary'}
-							className={
-								isActive
-									? 'border-none bg-teal-600 text-white shadow-none hover:bg-teal-700 dark:bg-teal dark:hover:bg-teal/90'
-									: undefined
-							}
 							asChild
 						>
 							<Link href={route(config.routes[target])} aria-current={isActive ? 'page' : undefined}>

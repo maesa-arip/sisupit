@@ -400,3 +400,25 @@ it('lets desktop pages use the full width and keeps table actions in view', func
     // Form tetap sempit tapi sejajar judul halaman (bukan melayang di tengah layar lebar).
     expect(appleSource('resources/js/Pages/Admin/Roles/Create.jsx'))->toContain('<Card className="w-full max-w-2xl">');
 });
+
+// TASK_69 bagian 24 (user 2026-10-02: cek /admin/agencies, /admin/hydrants, /admin/banjars, /admin/forum, /forum).
+it('finishes the forum moderation, OPD, banjar, forum and hydrant tab screens', function () {
+    $moderation = appleSource('resources/js/Pages/Admin/Forum/Index.jsx');
+    expect($moderation)->not->toMatch('/<Card\b/')
+        ->and($moderation)->not->toContain('text-[11px]')
+        ->and($moderation)->toContain('<AppEmpty');
+
+    $agencies = appleSource('resources/js/Pages/Admin/Agencies/Index.jsx');
+    expect($agencies)->toContain(".join(' · ')")
+        ->and($agencies)->not->toContain('rounded border border-info/20');
+
+    $banjars = appleSource('resources/js/Pages/Admin/Banjars/Index.jsx');
+    expect($banjars)->toContain('rounded-xl bg-muted p-1')
+        ->and($banjars)->not->toContain("variant={require_banjar ? 'default' : 'outline'}");
+
+    expect(appleSource('resources/js/Pages/Forum/Partials/ForumParts.jsx'))->not->toContain('border border-destructive/30 bg-destructive/5');
+    // Bentuk tab v4 (keputusan user 2026-08-20) tetap; hanya warna teal padatnya yang diganti primer brand.
+    $tabs = appleSource('resources/js/Pages/Admin/Hydrants/variants.jsx');
+    expect($tabs)->toContain("variant={isActive ? 'default' : 'secondary'}")
+        ->and($tabs)->not->toContain('bg-teal-600');
+});

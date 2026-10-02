@@ -28,7 +28,7 @@ export function EmergencyNotice({ className }) {
 	return (
 		<div
 			className={cn(
-				'flex flex-col gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4 sm:flex-row sm:items-center sm:justify-between',
+				'flex flex-col gap-3 rounded-2xl bg-destructive/10 p-4 sm:flex-row sm:items-center sm:justify-between',
 				className,
 			)}
 		>

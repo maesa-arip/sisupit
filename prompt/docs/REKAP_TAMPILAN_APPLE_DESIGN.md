@@ -412,7 +412,7 @@ Total **88 halaman** (tanpa Partials & berkas konfigurasi).
 | `resources/js/Pages/Admin/FireStations/Create.jsx` | Kartu tunggal dipecah: Cari lokasi, Area yurisdiksi, Detail fasilitas, Koordinat |
 | `resources/js/Pages/Admin/FireStations/Edit.jsx` | Kartu tunggal dipecah: Cari lokasi, Area yurisdiksi, Detail fasilitas, Koordinat |
 | `resources/js/Pages/Admin/FireStations/Index.jsx` | Daftar satu kartu bergrup, AlertDialog, cari type=search, chip & paginasi primer; peta desktop saja |
-| `resources/js/Pages/Admin/Forum/Index.jsx` | Tab segmented control, pil, tipografi baca; kartu moderasi sengaja dipertahankan |
+| `resources/js/Pages/Admin/Forum/Index.jsx` | Tab segmented control; antrean moderasi satu daftar bergrup, aksi bertint (bagian 24) |
 | `resources/js/Pages/Admin/Hydrants/Create.jsx` | Kartu tunggal dipecah: Cari lokasi, Area yurisdiksi, Detail fasilitas, Koordinat |
 | `resources/js/Pages/Admin/Hydrants/Edit.jsx` | Kartu tunggal dipecah: Cari lokasi, Area yurisdiksi, Detail fasilitas, Koordinat |
 | `resources/js/Pages/Admin/Hydrants/Index.jsx` | Daftar satu kartu bergrup, AlertDialog, cari type=search, chip & paginasi primer; peta desktop saja |
