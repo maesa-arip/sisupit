@@ -412,3 +412,9 @@ superadmin) memakai puppeteer-core di tmp job + Chrome lokal; label rekap terbuk
   pop-up); 2 penjaga baru `AppleDesignMaterialTest` MERAH terhadap HEAD (62 berkas ditukar, pulih `cmp`);
   satu asersi lama disesuaikan (pola baris kini di GroupedForm). Build lulus.
 - **Belum dicek:** di HP/APK sungguhan; dark mode isian terisi.
+- **Susulan 2026-10-02 (dilaporkan user di dev):** `/admin/assign-permissions` layar putih "IconChevronRight is
+  not defined" - `rbac.py` menyisipkan impor dengan asumsi impor ikon multi-baris, padahal berkas itu satu
+  baris; `/admin/permissions` sama (ikon `IconLock` dari konfigurasi skrip, tak diimpor). Fix: impor
+  ditambah, Izin kembali ke ikon aslinya `IconVersions`. Penjaga baru "imports every tabler icon a page
+  renders" (MERAH terhadap HEAD, 2 berkas pulih `cmp`). Pelajaran: foto 844px setelah rombakan = layar
+  galat - foto WAJIB dibuka, bukan hanya status 200. Suite 659 passed (3299).

@@ -359,3 +359,31 @@ it('fills grouped form fields and reworks the remaining old screens for real', f
     expect(appleSource('resources/js/Pages/Admin/Users/Index.jsx'))->not->toContain('function MobileInfo');
     expect(appleSource('resources/js/Components/UseCurrentLocationDialog.jsx'))->not->toMatch('/\bbg-info\b|rounded-md/');
 });
+
+// Skrip rombakan bagian 16 menyisipkan ikon baru ke JSX tanpa impornya (Sinkronisasi Izin, Izin) -
+// halaman putih "IconChevronRight is not defined" yang tak tertangkap test mana pun karena semua
+// penjaga hanya membaca teks sumber. Penjaga ini: setiap Icon* yang dipakai halaman wajib diimpor.
+it('imports every tabler icon a page renders', function () {
+    $offenders = [];
+    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(resource_path('js/Pages'))) as $file) {
+        if ($file->getExtension() !== 'jsx') {
+            continue;
+        }
+        $src = appleSource(substr($file->getPathname(), strlen(base_path()) + 1));
+        preg_match_all('/\b(Icon[A-Z]\w*)\b/', $src, $used);
+        preg_match_all('/import\s*\{([^}]*)\}\s*from/', $src, $imports);
+        $known = [];
+        foreach ($imports[1] as $list) {
+            foreach (explode(',', $list) as $name) {
+                $parts = preg_split('/\s+as\s+/', trim($name));
+                $known[] = trim(end($parts));
+            }
+        }
+        preg_match_all('/(?:function|const|let)\s+(Icon[A-Z]\w*)|:\s*(Icon[A-Z]\w*)\s*[,}]/', $src, $defs);
+        $known = array_merge($known, $defs[1], $defs[2]);
+        foreach (array_diff(array_unique($used[1]), $known) as $missing) {
+            $offenders[] = $file->getFilename().': '.$missing;
+        }
+    }
+    expect($offenders)->toBe([]);
+});

@@ -230,7 +230,7 @@ export default function Index(props) {
 								{permissions.map((permission, index) => (
 									<div key={index} className="flex items-center gap-3 px-4 py-3">
 										<div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-											<IconLock className="size-5" />
+											<IconVersions className="size-5" />
 										</div>
 										<div className="min-w-0 flex-1">
 											<p className="break-words text-[15px] font-semibold leading-snug">
