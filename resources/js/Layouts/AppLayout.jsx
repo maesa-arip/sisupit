@@ -134,7 +134,7 @@ export default function AppLayout({ title, children }) {
 	return (
 		<>
 			<Head title={title} />
-			<Toaster position="top-center" richColors />
+			<Toaster position="top-center" />
 			<SoundNotificationControl />
 
 			<div className="flex min-h-screen w-full bg-background">

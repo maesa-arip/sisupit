@@ -100,7 +100,6 @@ export default function Login({ status, canResetPassword }) {
 					<div className="mx-auto w-full max-w-sm space-y-8">
 						{/* Judul */}
 						<div className="text-center">
-							<img src="/icon.png" alt="" className="mx-auto mb-5 h-16 w-16 rounded-2xl shadow-sm" />
 							<h1 className="text-3xl font-bold tracking-tight text-foreground">Selamat Datang</h1>
 							<p className="mt-2 text-sm text-muted-foreground">Portal Akses Sistem Pelaporan Darurat</p>
 						</div>
@@ -143,6 +142,7 @@ export default function Login({ status, canResetPassword }) {
 										onChange={(e) => setData(e.target.name, e.target.value)}
 										className="h-9 w-full rounded-none border-0 bg-transparent p-0 text-[17px] shadow-none focus-visible:ring-0"
 									/>
+									{errors.email && <InputError message={errors.email} />}
 								</div>
 								<div className="relative px-4 pb-2 pt-3">
 									<Label
@@ -151,32 +151,35 @@ export default function Login({ status, canResetPassword }) {
 									>
 										Kata Sandi
 									</Label>
-									<Input
-										id="password"
-										name="password"
-										type={showPassword ? 'text' : 'password'}
-										autoComplete="current-password"
-										value={data.password}
-										placeholder="Masukkan kata sandi"
-										onChange={(e) => setData(e.target.name, e.target.value)}
-										className="h-9 w-full rounded-none border-0 bg-transparent p-0 pr-12 text-[17px] shadow-none focus-visible:ring-0"
-									/>
-									<button
-										type="button"
-										onClick={() => setShowPassword(!showPassword)}
-										className="absolute right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground focus:outline-none active:bg-muted"
-										aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
-									>
-										{showPassword ? (
-											<IconEyeOff className="h-5 w-5" stroke={1.5} />
-										) : (
-											<IconEye className="h-5 w-5" stroke={1.5} />
-										)}
-									</button>
+									<div className="relative">
+										<Input
+											id="password"
+											name="password"
+											type={showPassword ? 'text' : 'password'}
+											autoComplete="current-password"
+											value={data.password}
+											placeholder="Masukkan kata sandi"
+											onChange={(e) => setData(e.target.name, e.target.value)}
+											className="h-9 w-full rounded-none border-0 bg-transparent p-0 pr-12 text-[17px] shadow-none focus-visible:ring-0"
+										/>
+										<button
+											type="button"
+											onClick={() => setShowPassword(!showPassword)}
+											className="absolute right-1 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground focus:outline-none active:bg-muted"
+											aria-label={
+												showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'
+											}
+										>
+											{showPassword ? (
+												<IconEyeOff className="h-5 w-5" stroke={1.5} />
+											) : (
+												<IconEye className="h-5 w-5" stroke={1.5} />
+											)}
+										</button>
+									</div>
+									{errors.password && <InputError message={errors.password} />}
 								</div>
 							</div>
-							{errors.email && <InputError message={errors.email} />}
-							{errors.password && <InputError message={errors.password} />}
 
 							<div className="flex items-center justify-between gap-3 px-1">
 								<div className="flex items-center space-x-2">

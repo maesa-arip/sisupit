@@ -432,3 +432,16 @@ it('finishes the forum moderation, OPD, banjar, forum and hydrant tab screens', 
     expect($tabs)->toContain("variant={isActive ? 'default' : 'secondary'}")
         ->and($tabs)->not->toContain('bg-teal-600');
 });
+
+// Toast ala notifikasi iOS (user 2026-10-03: "toast belum dirombak pakai apple-design"): kartu material,
+// jenis dibedakan lewat warna ikon - BUKAN latar penuh richColors - dan tombol aksi berbentuk pil.
+it('renders toasts as a floating material card instead of rich color fills', function () {
+    $sonner = appleSource('resources/js/Components/ui/sonner.jsx');
+    expect($sonner)->toContain('material-thick')
+        ->and($sonner)->toContain('rounded-2xl')
+        ->and($sonner)->toContain('ease-spring')
+        ->and($sonner)->toContain('safe-area-inset-top');
+
+    expect(appleSource('resources/js/Layouts/AppLayout.jsx'))->not->toContain('richColors');
+    expect(appleSource('resources/css/app.css'))->toContain("[data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-button]");
+});

@@ -223,6 +223,28 @@
 			border-color: hsl(var(--foreground) / 0.5);
 		}
 	}
+
+	/* Tombol aksi toast (Components/ui/sonner.jsx): pil penuh + umpan balik tekan. Selektor sonner
+	   untuk [data-button] TIDAK ber-:where() (spesifisitas 0,3,0), jadi utilitas di classNames kalah;
+	   di sini dinaikkan ke 0,4,0 alih-alih !important. */
+	[data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-button] {
+		align-self: center;
+		height: 2rem;
+		padding: 0 0.875rem;
+		border-radius: 9999px;
+		font-size: 13px;
+		font-weight: 600;
+		background: hsl(var(--primary));
+		color: hsl(var(--primary-foreground));
+		transition: transform 100ms ease-out;
+	}
+	[data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-button][data-cancel] {
+		background: hsl(var(--muted));
+		color: hsl(var(--muted-foreground));
+	}
+	[data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-button]:active {
+		transform: scale(0.97);
+	}
 }
 
 /* REDUCED MOTION = CROSS-FADE, BUKAN DIAM (apple-design §14). Animasi masuk/keluar

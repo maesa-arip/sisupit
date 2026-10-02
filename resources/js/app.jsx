@@ -6,6 +6,7 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 import { toast } from 'sonner';
 import { ThemeProvider } from './Components/ThemeProvider';
+import { focusFirstError } from './lib/focus-first-error';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -22,6 +23,10 @@ if (typeof window !== 'undefined') {
 		event.preventDefault();
 		toast.error('Ukuran foto terlalu besar. Kurangi jumlah foto atau pilih foto lain, lalu simpan lagi.');
 	});
+
+	// Galat validasi di form mana pun -> fokus & gulir ke isian teratas yang bermasalah.
+	// Ditunggu satu frame supaya <InputError> yang baru sempat dirender React.
+	router.on('error', () => requestAnimationFrame(focusFirstError));
 }
 
 createInertiaApp({
