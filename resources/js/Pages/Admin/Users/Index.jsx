@@ -27,7 +27,15 @@ import { Label } from '@/Components/ui/label';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink } from '@/Components/ui/pagination';
 import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
+import {
+	stickyActionsClass,
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from '@/Components/ui/table';
 import UseFilter from '@/hooks/UseFilter';
 import AppLayout from '@/Layouts/AppLayout';
 import { cn, flashMessage, roleLabel, roleTone } from '@/lib/utils';
@@ -301,7 +309,7 @@ export default function Index(props) {
 			{/* Tablet & desktop: tabel */}
 			<div className="hidden overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm md:block">
 				<div className="overflow-x-auto">
-					<Table className="w-full [&_td]:px-4 [&_th]:px-4">
+					<Table className={`w-full [&_td]:px-4 [&_th]:px-4 ${stickyActionsClass}`}>
 						<TableHeader className="bg-muted/40">
 							<TableRow className="hover:bg-transparent">
 								<SortHead field="id" className="w-14">
@@ -318,10 +326,10 @@ export default function Index(props) {
 								<TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
 									Wilayah
 								</TableHead>
-								<SortHead field="gender" className="hidden lg:table-cell">
+								<SortHead field="gender" className="hidden 2xl:table-cell">
 									Jenis kelamin
 								</SortHead>
-								<SortHead field="created_at" className="hidden lg:table-cell">
+								<SortHead field="created_at" className="hidden 2xl:table-cell">
 									Dibuat
 								</SortHead>
 								<TableHead className="text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -357,10 +365,10 @@ export default function Index(props) {
 										<RoleBadges roles={user.roles} />
 									</TableCell>
 									<TableCell className="text-muted-foreground">{user.region || '-'}</TableCell>
-									<TableCell className="hidden text-muted-foreground lg:table-cell">
+									<TableCell className="hidden text-muted-foreground 2xl:table-cell">
 										{user.gender || '-'}
 									</TableCell>
-									<TableCell className="hidden whitespace-nowrap text-muted-foreground lg:table-cell">
+									<TableCell className="hidden whitespace-nowrap text-muted-foreground 2xl:table-cell">
 										{user.created_at}
 									</TableCell>
 									<TableCell>

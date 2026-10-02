@@ -14,7 +14,15 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink } from '@/Components/ui/pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+	stickyActionsClass,
+} from '@/Components/ui/table';
 import UseFilter from '@/hooks/UseFilter';
 import AppLayout from '@/Layouts/AppLayout';
 import { flashMessage } from '@/lib/utils';
@@ -140,7 +148,7 @@ export default function Index(props) {
 						<>
 							{/* Tablet & desktop: tabel */}
 							<div className="hidden overflow-x-auto md:block">
-								<Table className="w-full">
+								<Table className={`w-full ${stickyActionsClass}`}>
 									<TableHeader>
 										<TableRow>
 											<TableHead>

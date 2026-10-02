@@ -136,7 +136,7 @@ export default function Create(props) {
 					</Link>
 				</Button>
 			</div>
-			<form className="mx-auto w-full max-w-2xl space-y-8" onSubmit={onHandleSubmit}>
+			<form className="w-full max-w-2xl space-y-8" onSubmit={onHandleSubmit}>
 				<FormSection title="Identitas">
 					<FormField label="Nama lengkap" htmlFor="name" error={errors.name}>
 						<Input

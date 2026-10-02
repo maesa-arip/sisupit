@@ -418,3 +418,18 @@ superadmin) memakai puppeteer-core di tmp job + Chrome lokal; label rekap terbuk
   ditambah, Izin kembali ke ikon aslinya `IconVersions`. Penjaga baru "imports every tabler icon a page
   renders" (MERAH terhadap HEAD, 2 berkas pulih `cmp`). Pelajaran: foto 844px setelah rombakan = layar
   galat - foto WAJIB dibuka, bukan hanya status 200. Suite 659 passed (3299).
+
+## 23. Lebar desktop (user 2026-10-02: "banyak yang diisi max-w ... /admin/users ... harus scroll ke kanan untuk cari tombol editnya")
+
+Diukur dengan puppeteer di 1366/1440/1920: `<main className="mx-auto w-full max-w-7xl">` (sejak April, juga
+di main) memusatkan SEMUA halaman di 1280px - di 1920 isi hanya 1280 dari ~1660px yang tersedia; tabel
+Pengguna butuh 1304px tapi dapat 1118-1214px, jadi kolom Aksi (Ubah/Hapus) terpotong di kanan.
+Keputusan user (rekomendasi): (1) batas global dibuang -> `<main className="w-full flex-1">`; tabel, daftar,
+peta & dashboard kini selebar layar, form & teks bacaan tetap sempit lewat `max-w-*` halamannya;
+(2) `stickyActionsClass` di `ui/table.jsx` dipasang di 7 tabel admin (Pengguna, Pengumuman, Peran, Izin,
+Akses Rute, Tetapkan Izin, Tenant) - kolom terakhir lengket kanan, kepala mengulang tint thead;
+(3) kolom Jenis kelamin & Dibuat di tabel Pengguna hanya `2xl:`; (4) efek samping yang ikut dibereskan:
+21 form admin ber-`mx-auto` kini sejajar judul halaman (dulu melayang di tengah layar lebar). Form Lapor,
+Profil & Info tetap di tengah karena judulnya ikut di kolom itu.
+Hasil: 1440 & 1920 tabel Pengguna tak meluap; 1366 meluap 33px tapi Aksi tetap terlihat. Penjaga baru
+"lets desktop pages use the full width..." MERAH terhadap HEAD (30 berkas, pulih `cmp`). Suite 660 (3309).

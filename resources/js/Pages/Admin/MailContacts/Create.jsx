@@ -52,7 +52,7 @@ export default function Create() {
 			</div>
 
 			<div className="w-full max-w-2xl">
-				<Card className="mx-auto w-full max-w-2xl">
+				<Card className="w-full max-w-2xl">
 					<CardContent className="p-5 sm:p-6">
 						<form
 							className={groupedRowsClass}

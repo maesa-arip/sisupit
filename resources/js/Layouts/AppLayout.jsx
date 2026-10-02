@@ -321,7 +321,10 @@ export default function AppLayout({ title, children }) {
 					)}
 
 					{/* MAIN CONTENT */}
-					<main className="mx-auto w-full max-w-7xl flex-1">
+					{/* Tanpa batas lebar global (2026-10-02, keputusan user): dulu max-w-7xl memusatkan isi di 1280px
+					    sehingga layar lebar kosong di kiri-kanan, sementara tabel Pengguna terpotong & harus digulir
+					    untuk mencapai tombol Ubah. Form & teks bacaan tetap sempit lewat max-w milik halamannya. */}
+					<main className="w-full flex-1">
 						<div className="p-4 lg:p-8">{children}</div>
 					</main>
 

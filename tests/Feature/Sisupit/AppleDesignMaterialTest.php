@@ -387,3 +387,16 @@ it('imports every tabler icon a page renders', function () {
     }
     expect($offenders)->toBe([]);
 });
+
+// Keputusan user 2026-10-02: tanpa batas lebar global. Dulu `max-w-7xl` di <main> memusatkan isi di
+// 1280px - layar lebar kosong di kiri-kanan sementara tabel Pengguna terpotong & tombol Ubah harus
+// dicari dengan menggulir ke kanan. Kolom Aksi tiap tabel admin lengket di kanan.
+it('lets desktop pages use the full width and keeps table actions in view', function () {
+    expect(appleSource('resources/js/Layouts/AppLayout.jsx'))->not->toMatch('/<main className="[^"]*\bmax-w-/');
+    expect(appleSource('resources/js/Components/ui/table.jsx'))->toContain('[&_td:last-child]:sticky [&_td:last-child]:right-0');
+    foreach (['Users', 'Announcements', 'Roles', 'Permissions', 'RouteAccesses', 'AssignPermissions', 'Tenants'] as $module) {
+        expect(appleSource("resources/js/Pages/Admin/{$module}/Index.jsx"))->toContain('${stickyActionsClass}');
+    }
+    // Form tetap sempit tapi sejajar judul halaman (bukan melayang di tengah layar lebar).
+    expect(appleSource('resources/js/Pages/Admin/Roles/Create.jsx'))->toContain('<Card className="w-full max-w-2xl">');
+});

@@ -9,6 +9,12 @@ const Table = React.forwardRef(({ className, ...props }, ref) => (
 ));
 Table.displayName = 'Table';
 
+// Kolom terakhir (Aksi) lengket di kanan (2026-10-02): tombol Ubah/Hapus selalu terlihat walau tabel
+// lebih lebar dari layarnya dan harus digeser. Sel kepala mengulang tint `thead` (muted/40) di atas latar
+// kartu yang padat supaya warnanya tak belang saat isi tabel lewat di bawahnya. Kelas harus LITERAL.
+export const stickyActionsClass =
+	'[&_td:last-child]:sticky [&_td:last-child]:right-0 [&_td:last-child]:bg-card [&_td:last-child]:shadow-[-8px_0_8px_-8px_hsl(var(--border))] [&_th:last-child]:sticky [&_th:last-child]:right-0 [&_th:last-child]:bg-card [&_th:last-child]:bg-[linear-gradient(hsl(var(--muted)/0.4),hsl(var(--muted)/0.4))] [&_th:last-child]:shadow-[-8px_0_8px_-8px_hsl(var(--border))]';
+
 const TableHeader = React.forwardRef(({ className, ...props }, ref) => (
 	<thead ref={ref} className={cn('bg-muted/40 [&_tr]:border-b', className)} {...props} />
 ));

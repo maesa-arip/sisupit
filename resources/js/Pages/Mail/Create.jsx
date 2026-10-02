@@ -65,7 +65,7 @@ export default function Create({ contacts = [], mailbox }) {
 			</div>
 
 			<div className="w-full max-w-2xl">
-				<Card className="mx-auto w-full max-w-2xl">
+				<Card className="w-full max-w-2xl">
 					<CardContent className="p-5 sm:p-6">
 						{contacts.length === 0 ? (
 							<div className="flex items-start gap-3 rounded-2xl border border-warning/20 bg-warning/10 p-3 text-warning">

@@ -111,7 +111,7 @@ export default function Edit(props) {
 					</Link>
 				</Button>
 			</div>
-			<form className="mx-auto w-full max-w-2xl space-y-8" onSubmit={onHandleSubmit}>
+			<form className="w-full max-w-2xl space-y-8" onSubmit={onHandleSubmit}>
 				<div className="flex items-center gap-4 px-1">
 					<Avatar className="size-16 border border-border/70">
 						<AvatarImage src={props.user.avatar} />

@@ -13,7 +13,15 @@ import {
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardFooter } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+	stickyActionsClass,
+} from '@/Components/ui/table';
 import AppLayout from '@/Layouts/AppLayout';
 import { cn, flashMessage } from '@/lib/utils';
 import { Link, router, useForm } from '@inertiajs/react';
@@ -143,7 +151,7 @@ export default function Index(props) {
 						)}
 					</ul>
 					<div className="hidden md:block">
-						<Table className="w-full">
+						<Table className={`w-full ${stickyActionsClass}`}>
 							<TableHeader>
 								<TableRow>
 									<TableHead className="hidden md:table-cell">#</TableHead>

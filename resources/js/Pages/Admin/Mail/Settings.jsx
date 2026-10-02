@@ -97,7 +97,7 @@ export default function Settings({ settings, encryption_options = [], feature_en
 			)}
 
 			<div className="w-full max-w-2xl">
-				<Card className="mx-auto w-full max-w-2xl">
+				<Card className="w-full max-w-2xl">
 					<CardContent className="p-5 sm:p-6">
 						<form
 							className={groupedRowsClass}
