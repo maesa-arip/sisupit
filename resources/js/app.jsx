@@ -7,6 +7,7 @@ import { createRoot, hydrateRoot } from 'react-dom/client';
 import { toast } from 'sonner';
 import { ThemeProvider } from './Components/ThemeProvider';
 import { focusFirstError } from './lib/focus-first-error';
+import { installNavigationTracking } from './lib/navigation';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -27,6 +28,10 @@ if (typeof window !== 'undefined') {
 	// Galat validasi di form mana pun -> fokus & gulir ke isian teratas yang bermasalah.
 	// Ditunggu satu frame supaya <InputError> yang baru sempat dirender React.
 	router.on('error', () => requestAnimationFrame(focusFirstError));
+
+	// Navigasi instan (TASK_70): kerangka halaman tujuan + menu aktif langsung saat diketuk,
+	// dan cache prefetch dibuang setiap kali data berubah. Lihat lib/navigation.js.
+	installNavigationTracking();
 }
 
 createInertiaApp({

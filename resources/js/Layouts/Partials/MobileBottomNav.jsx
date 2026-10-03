@@ -1,7 +1,8 @@
 import BrandBoltIcon, { BrandBoltIconFilled } from '@/Components/BrandBoltIcon';
+import { useNavUrl } from '@/lib/navigation';
 import PullToRefreshLock from '@/lib/pull-to-refresh-lock';
 import { cn } from '@/lib/utils';
-import { Link, usePage } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import {
 	IconClock,
 	IconClockFilled,
@@ -160,7 +161,8 @@ const FASILITAS_ITEM_TONE = {
 const MENU_ACTIVE_TONE = 'bg-destructive/10 text-destructive';
 
 export default function MobileBottomNav({ auth }) {
-	const { url } = usePage();
+	// URL tujuan selama navigasi berjalan (TASK_70): slot yang diketuk langsung aktif.
+	const url = useNavUrl();
 
 	// Peran & gating tidak dihitung di sini lagi (dulu detektor role disalin dari
 	// navItems.js) — buildNavSections sudah menyaring item sesuai peran.

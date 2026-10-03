@@ -4053,3 +4053,25 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   milik sendiri & masih berjalan; reload realtime + impor komponen bersama.
 - **Status:** FIXED 2026-10-04, TERDEPLOY DEV @9ab56742 (konsol Hostinger; diverifikasi HTTPS: bundel live = build
   lokal). Staging/prod belum. Uji visual di HP belum.
+
+### #166 — Prefetch @inertiajs/core 2.0.3: link yang prefetch-nya gagal/disela tak bisa diklik lagi (OPEN)
+
+- **Ditemukan (2026-10-04, TASK_70):** saat menyiapkan navigasi instan, prefetch dipasang di bilah bawah (sentuh)
+  dan sidebar (hover). Uji Chrome 390px: sentuh Beranda dalam keadaan offline -> prefetch gagal; klik berikutnya
+  ke link itu memicu `inertia:before` lalu SUNYI (tanpa start/finish/exception), layar tak berpindah, `pageerror`.
+- **Akar (sumber `@inertiajs/core` 2.0.3 dari sourcemap, `prefetched.ts`):** `add()` hanya membuang entri dari
+  `inFlightRequests` di jalur SUKSES (`.then`). `onCancel`/`onError` memanggil `remove()` yang cuma menyentuh
+  `cached`, jadi entri in-flight dengan promise yang sudah ditolak tertinggal. `visit()` -> `get()` menemukannya ->
+  `use()` menunggu promise itu selamanya. Pemicu: offline sesaat, ATAU prefetch disela - `router.prefetch()`
+  sendiri memanggil `asyncRequestStream.interruptInFlight()` (hover menu A lalu B = A mati), begitu juga reload
+  async (siaran Reverb). Selain itu prefetch 2.0.3 memutus reload Reverb yang sedang jalan dan cache-nya tak
+  dibuang setelah POST.
+- **Keputusan:** prefetch DILEPAS dari TASK_70 (sesuai klausul rencana); navigasi instan berjalan dari kerangka
+  halaman saja. Keuntungan prefetch di ponsel memang kecil (sentuh -> klik ~60-100 ms).
+- **Penjaga:** `NavigasiInstanTest` "never prefetches while @inertiajs/core is still 2.0.3" (memindai
+  `router.prefetch(` & `<Link prefetch`); otomatis di-skip bila versi di package-lock berubah, dengan pesan untuk
+  memeriksa ulang temuan ini.
+- **Tindak lanjut:** upgrade `@inertiajs/react`/`core` + `inertiajs/inertia-laravel` ke 2.x terbaru = task
+  tersendiri (MASTER_PROMPT: upgrade dependency); sesudahnya ulangi skenario offline & hover cepat di Chrome sebelum
+  memasang prefetch.
+- **Status:** OPEN (dimitigasi: tak ada prefetch di kode).

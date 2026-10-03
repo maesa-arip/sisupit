@@ -2537,6 +2537,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + #154 arrived_by & #155 header Link (2026-09-30) = 614 passed, 2949 assertions.
             + #157 hapus akun = anonimisasi (2026-09-30) = 619 passed, 2996 assertions.
             + #165 status pelapor di detail & Beranda (2026-10-04, feat/mobile-native-polish) = 673 passed, 3429 assertions.
+            + TASK_70 navigasi instan (NavigasiInstanTest, 2026-10-04) = 679 passed, 3454 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

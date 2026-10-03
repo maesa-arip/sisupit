@@ -1,8 +1,10 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import Banner from '@/Components/Banner';
+import PageSkeleton from '@/Components/PageSkeleton';
 import SoundNotificationControl from '@/Components/SoundNotificationControl';
 import ThemeSwitcher from '@/Components/ThemeSwitcher';
 import { Toaster } from '@/Components/ui/sonner';
+import { useNavUrl, usePendingVisit } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { IconBell } from '@tabler/icons-react';
@@ -13,7 +15,9 @@ import Sidebar from './Partials/Sidebar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/Components/ui/dropdown-menu';
 
 export default function AppLayout({ title, children }) {
-	const { url } = usePage();
+	// URL tujuan selama navigasi berjalan (TASK_70) - menu langsung menandai tujuan aktif.
+	const url = useNavUrl();
+	const pendingVisit = usePendingVisit();
 	const announcemet = usePage().props.announcemet;
 	const auth = usePage().props.auth?.user ?? null;
 	const notifications = usePage().props.notifications ?? [];
@@ -325,7 +329,14 @@ export default function AppLayout({ title, children }) {
 					    sehingga layar lebar kosong di kiri-kanan, sementara tabel Pengguna terpotong & harus digulir
 					    untuk mencapai tombol Ubah. Form & teks bacaan tetap sempit lewat max-w milik halamannya. */}
 					<main className="w-full flex-1">
-						<div className="p-4 lg:p-8">{children}</div>
+						<div className="p-4 lg:p-8">
+							{/* Navigasi instan (TASK_70): kerangka tujuan tampil sebelum respons tiba. Halaman lama
+							    DISEMBUNYIKAN, bukan dilepas - kalau kunjungan gagal (sinyal putus), isian form yang
+							    sudah diketik & peta tetap utuh saat ia muncul kembali. `contents` = pembungkus ini tak
+							    punya kotak, tata letak halaman (sticky, flex) persis seperti tanpa dia. */}
+							{pendingVisit?.skeleton && <PageSkeleton url={pendingVisit.url} />}
+							<div className={pendingVisit?.skeleton ? 'hidden' : 'contents'}>{children}</div>
+						</div>
 					</main>
 
 					{/* FOOTER — tautan legal di sini adalah jaring pengaman yang muncul di SEMUA
