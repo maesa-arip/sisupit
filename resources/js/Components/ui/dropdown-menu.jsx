@@ -2,6 +2,7 @@ import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
 import { Check, ChevronRight, Circle } from 'lucide-react';
 import * as React from 'react';
 
+import PullToRefreshLock from '@/lib/pull-to-refresh-lock';
 import { cn } from '@/lib/utils';
 
 const DropdownMenu = DropdownMenuPrimitive.Root;
@@ -44,7 +45,7 @@ const DropdownMenuSubContent = React.forwardRef(({ className, ...props }, ref) =
 ));
 DropdownMenuSubContent.displayName = DropdownMenuPrimitive.SubContent.displayName;
 
-const DropdownMenuContent = React.forwardRef(({ className, sideOffset = 4, ...props }, ref) => (
+const DropdownMenuContent = React.forwardRef(({ className, sideOffset = 4, children, ...props }, ref) => (
 	<DropdownMenuPrimitive.Portal>
 		<DropdownMenuPrimitive.Content
 			ref={ref}
@@ -55,7 +56,10 @@ const DropdownMenuContent = React.forwardRef(({ className, sideOffset = 4, ...pr
 				className,
 			)}
 			{...props}
-		/>
+		>
+			<PullToRefreshLock />
+			{children}
+		</DropdownMenuPrimitive.Content>
 	</DropdownMenuPrimitive.Portal>
 ));
 DropdownMenuContent.displayName = DropdownMenuPrimitive.Content.displayName;

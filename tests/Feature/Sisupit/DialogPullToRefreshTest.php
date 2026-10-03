@@ -23,8 +23,32 @@ it('pauses native pull-to-refresh only while a dialog is actually open', functio
 
     expect($jsx)->toMatch('~<DialogPrimitive\.Content[^>]*>\s*<PullToRefreshLock\s*/>~s');
     expect(substr_count($jsx, '<PullToRefreshLock'))->toBe(1);
-    expect($jsx)->toMatch("~typeof bridge\.setPullToRefreshEnabled === 'function'~");
-    expect($jsx)->toMatch('~openDialogCount === 0\) setNativePullToRefresh\(true\)~');
+
+    $lock = jsxWithoutComments('js/lib/pull-to-refresh-lock.js');
+    expect($lock)->toMatch("~typeof bridge\.setPullToRefreshEnabled === 'function'~");
+    expect($lock)->toMatch('~openPanelCount === 0\) setNativePullToRefresh\(true\)~');
+});
+
+/*
+ * Keluhan user 2026-10-03: "klik menu muncul list menu, scroll ke bawah lalu ke atas bukan
+ * menunya yang ke-scroll tapi tarik layar untuk refresh". Popover Menu/Fasilitas bilah bawah
+ * (dan panel melayang bergulir lain) tak pernah memasang kunci yang sama dengan dialog.
+ */
+it('pauses native pull-to-refresh inside every scrollable floating panel', function () {
+    foreach ([
+        'js/Components/ui/dropdown-menu.jsx' => '~<DropdownMenuPrimitive\.Content[^>]*>\s*<PullToRefreshLock\s*/>~s',
+        'js/Components/ui/popover.jsx' => '~<PopoverPrimitive\.Content[^>]*>\s*<PullToRefreshLock\s*/>~s',
+        'js/Components/ui/select.jsx' => '~<SelectPrimitive\.Content[^>]*>\s*<PullToRefreshLock\s*/>~s',
+        'js/Components/ui/sheet.jsx' => '~</SheetPrimitive\.Close>\s*<PullToRefreshLock\s*/>~s',
+        'js/Layouts/Partials/MobileBottomNav.jsx' => '~function FloatingPanel\(.*?<PullToRefreshLock\s*/>\s*\{children\}~s',
+    ] as $path => $pattern) {
+        expect(jsxWithoutComments($path))->toMatch($pattern);
+    }
+
+    // FloatingPanel hanya boleh ada selama panelnya terbuka (dirender bersyarat).
+    $nav = jsxWithoutComments('js/Layouts/Partials/MobileBottomNav.jsx');
+    expect($nav)->toMatch('~\{showMenu && \(\s*<FloatingPanel~');
+    expect($nav)->toMatch('~\{showFasilitas && \(\s*<FloatingPanel~');
 });
 
 it('lets the regu member list scroll on its own', function () {

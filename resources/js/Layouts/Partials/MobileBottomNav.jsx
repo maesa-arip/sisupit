@@ -1,4 +1,5 @@
 import BrandBoltIcon, { BrandBoltIconFilled } from '@/Components/BrandBoltIcon';
+import PullToRefreshLock from '@/lib/pull-to-refresh-lock';
 import { cn } from '@/lib/utils';
 import { Link, usePage } from '@inertiajs/react';
 import {
@@ -515,6 +516,9 @@ function FloatingPanel({ className, children }) {
 				className,
 			)}
 		>
+			{/* Panel ini dirender bersyarat (hanya selama terbuka), jadi kuncinya ikut lepas saat
+			    ditutup. Tanpanya, menggulir daftar Menu ke atas memuat ulang halaman di APK. */}
+			<PullToRefreshLock />
 			{children}
 		</div>
 	);

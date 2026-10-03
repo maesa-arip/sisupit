@@ -4,6 +4,7 @@ import * as SelectPrimitive from '@radix-ui/react-select';
 import { Check, ChevronDown, ChevronUp } from 'lucide-react';
 import * as React from 'react';
 
+import PullToRefreshLock from '@/lib/pull-to-refresh-lock';
 import { cn } from '@/lib/utils';
 
 const Select = SelectPrimitive.Root;
@@ -82,6 +83,7 @@ const SelectContent = React.forwardRef(({ className, children, position = 'poppe
 			position={position}
 			{...props}
 		>
+			<PullToRefreshLock />
 			<SelectScrollUpButton />
 			<SelectPrimitive.Viewport
 				className={cn(

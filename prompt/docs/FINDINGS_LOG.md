@@ -3973,3 +3973,17 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   misi tetap dibawa waktu merah + pil "Tanggapi". Antrian Berita Acara sengaja tetap ikon dokumen.
   Penjaga di `AppleDesignMaterialTest`.
 - **Status:** FIXED 2026-10-02 (branch feat/mobile-native-polish, belum deploy).
+
+### #162 — Menggulir popover Menu bilah bawah ke atas memuat ulang halaman di APK (FIXED)
+
+- **Keluhan user 2026-10-03:** "waktu klik menu muncul list menu, saat scroll ke bawah menunya lalu mau
+  scroll ke atas bukan menunya yang ke-scroll tapi malah seperti tarik layar untuk refresh halaman".
+- **Akar:** sama dengan TASK_65 - `SwipeRefreshLayout` APK hanya melihat posisi gulir HALAMAN. Dialog sudah
+  mematikannya lewat `AndroidBridge.setPullToRefreshEnabled(false)`, tapi `FloatingPanel` di
+  `MobileBottomNav.jsx` (popover Menu & Fasilitas) adalah div biasa, bukan Dialog, jadi tak pernah memanggilnya.
+  Celah sama ada di Dropdown (lonceng notifikasi), Popover (combobox), Select, dan Sheet.
+- **Fix (web saja, tanpa rebuild APK - method bridge sudah ada sejak APK 1.1.4):** kunci dipindah dari
+  `ui/dialog.jsx` ke `resources/js/lib/pull-to-refresh-lock.js` (penghitung bersama, panel bertumpuk aman)
+  dan dipasang di dalam FloatingPanel + Content Dropdown/Popover/Select/Sheet. Penjaga di
+  `DialogPullToRefreshTest`.
+- **Status:** FIXED 2026-10-03 (branch feat/mobile-native-polish, belum deploy; belum diuji di HP).

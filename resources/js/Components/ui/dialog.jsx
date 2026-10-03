@@ -4,6 +4,7 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import * as React from 'react';
 
+import PullToRefreshLock from '@/lib/pull-to-refresh-lock';
 import { cn } from '@/lib/utils';
 
 const Dialog = DialogPrimitive.Root;
@@ -14,32 +15,7 @@ const DialogPortal = DialogPrimitive.Portal;
 
 const DialogClose = DialogPrimitive.Close;
 
-// Tarik-untuk-refresh milik APK (SwipeRefreshLayout) merebut SETIAP tarikan ke bawah selama
-// HALAMAN berada di puncak - ia tak tahu ada daftar bergulir di dalam dialog, jadi menggulir
-// "Atur Anggota" ke atas malah memuat ulang halaman (permintaan user TASK_65). Selama sebuah
-// dialog terbuka, halaman meminta APK mematikannya lewat AndroidBridge. Pemanggilannya
-// OPSIONAL: APK lama tanpa method ini, browser, dan .exe tak terpengaruh. Hitungan dipakai
-// karena dialog bisa bertumpuk - yang pertama tertutup tak boleh menyalakannya lagi.
-let openDialogCount = 0;
-const setNativePullToRefresh = (enabled) => {
-	const bridge = typeof window !== 'undefined' ? window.AndroidBridge : null;
-	if (bridge && typeof bridge.setPullToRefreshEnabled === 'function') bridge.setPullToRefreshEnabled(enabled);
-};
-
-// Dirender DI DALAM Content, yang hanya terpasang selama dialog terbuka - bukan di
-// DialogContent sendiri, yang ikut dirender induknya walau dialog tertutup.
-function PullToRefreshLock() {
-	React.useEffect(() => {
-		openDialogCount += 1;
-		if (openDialogCount === 1) setNativePullToRefresh(false);
-		return () => {
-			openDialogCount -= 1;
-			if (openDialogCount === 0) setNativePullToRefresh(true);
-		};
-	}, []);
-	return null;
-}
-
+// Tarik-untuk-refresh APK dimatikan selama dialog terbuka - lihat lib/pull-to-refresh-lock.js.
 const DialogOverlay = React.forwardRef(({ className, ...props }, ref) => (
 	<DialogPrimitive.Overlay
 		ref={ref}
