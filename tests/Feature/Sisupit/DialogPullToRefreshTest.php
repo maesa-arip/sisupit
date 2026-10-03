@@ -26,7 +26,10 @@ it('pauses native pull-to-refresh only while a dialog is actually open', functio
 
     $lock = jsxWithoutComments('js/lib/pull-to-refresh-lock.js');
     expect($lock)->toMatch("~typeof bridge\.setPullToRefreshEnabled === 'function'~");
-    expect($lock)->toMatch('~openPanelCount === 0\) setNativePullToRefresh\(true\)~');
+    expect($lock)->toMatch("~openPanelCount === 0\) \{\s*window\.removeEventListener\('touchstart', reassertLock~");
+    expect($lock)->toMatch('~setNativePullToRefresh\(true\);\s*\}~');
+    // #162: APK <= 1.1.5 menyalakan refresh lagi di tengah gulir - kunci diulang tiap sentuhan.
+    expect($lock)->toMatch("~window\.addEventListener\('touchstart', reassertLock, \{ capture: true, passive: true \}\)~");
 });
 
 /*

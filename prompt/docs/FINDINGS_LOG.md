@@ -3986,4 +3986,10 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   `ui/dialog.jsx` ke `resources/js/lib/pull-to-refresh-lock.js` (penghitung bersama, panel bertumpuk aman)
   dan dipasang di dalam FloatingPanel + Content Dropdown/Popover/Select/Sheet. Penjaga di
   `DialogPullToRefreshTest`.
-- **Status:** FIXED 2026-10-03 (branch feat/mobile-native-polish, belum deploy; belum diuji di HP).
+- **Lanjutan (uji HP user, APK dev 1.1.5):** masih refresh, JUGA di dialog "Atur Anggota" (TASK_65 ternyata
+  tak pernah bekerja di HP). Akar kedua: Inertia mendengar `scroll` (capture, debounce 100 ms) dari elemen
+  APA PUN dan memanggil `history.replaceState`; WebView menganggapnya navigasi dan memanggil
+  `onPageFinished`, yang di APK menyalakan refresh lagi di tengah gulir. Fix: APK 1.1.6/vc8 memakai bendera
+  + `setOnChildScrollUpCallback`, reset di `onPageStarted` (lihat `mobile/CHANGELOG_ANDROID.md`); web
+  mengulang `false` di setiap `touchstart` selama terkunci (penambal APK lama).
+- **Status:** FIXED 2026-10-03 (branch feat/mobile-native-polish; web di DEV; APK dev 1.1.6 menunggu uji HP).

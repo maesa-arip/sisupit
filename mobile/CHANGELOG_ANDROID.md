@@ -8,6 +8,22 @@ iOS** sebagai daftar centang. Sisi iOS mencentang (`[x]`) saat sudah di-port.
 
 ---
 
+## 1.1.6 / versionCode 8 - 2026-10-03 - tarik-untuk-refresh tak lagi menyala di tengah gulir (#162)
+
+- `MainActivity.java`: `setPullToRefreshEnabled(bool)` kini menyetel bendera `pullToRefreshBlocked`
+  yang dibaca `SwipeRefreshLayout.setOnChildScrollUpCallback`, bukan `setEnabled()`. Bendera direset
+  di `onPageStarted` (dokumen baru), BUKAN `onPageFinished`: WebView memanggil `onPageFinished` juga
+  saat Inertia menyimpan posisi gulir (`history.replaceState`), sehingga di 1.1.4/1.1.5 refresh
+  menyala lagi di tengah gulir daftar dialog/menu. Terbukti di HP user: dialog "Atur Anggota" tetap
+  me-refresh di 1.1.5.
+- Web (bersamaan): kunci dipasang juga di popover Menu/Fasilitas bilah bawah, Dropdown, Popover,
+  Select, Sheet (`lib/pull-to-refresh-lock.js`), dan diulang di setiap `touchstart` selama terkunci
+  (penambal untuk APK <= 1.1.5).
+
+**Yang harus dilakukan iOS**
+- [ ] Bila memakai `UIRefreshControl`: kunci jangan dilepas oleh callback navigasi satu dokumen
+      (pushState/replaceState) - hanya saat dokumen baru dimuat.
+
 ## (belum dirilis) - 2026-10-01 - warna status bar & bilah navigasi di Android 15+
 
 - **Bug 1.1.5 (targetSdk 36):** Android 15+ memaksa edge-to-edge dan MENGABAIKAN

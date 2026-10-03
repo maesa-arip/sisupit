@@ -51,7 +51,7 @@ window.AndroidBridge = {
 |---|---|---|---|---|
 | 1 | `postToken('')` | `AppLayout.jsx` - di-**poll** tiap 500 ms sampai jembatan terdeteksi, menyerah setelah 15 dtk; hanya saat login | ambil token FCM (retry 4× backoff 2/4/6 dtk), lalu panggil `window.receiveFcmTokenFromNative(token)` | lama |
 | 2 | `signInWithGoogle()` | `Auth/Login.jsx`, `Auth/Register.jsx` | buka account picker Google native; hasil lewat callback §2.2 | lama |
-| 3 | `setPullToRefreshEnabled(bool)` | `Components/ui/dialog.jsx` - `false` saat dialog pertama terbuka, `true` saat dialog terakhir tertutup (dihitung, dialog bisa bertumpuk) | matikan/nyalakan tarik-untuk-refresh. Android juga **menyalakannya lagi di setiap `onPageFinished`** (halaman yang ditinggal saat dialog terbuka tak sempat menyalakan kembali) | **1.1.4 (TASK_65)** |
+| 3 | `setPullToRefreshEnabled(bool)` | `lib/pull-to-refresh-lock.js` (dialog, Sheet, Dropdown, Popover, Select, popover bilah bawah) - `false` saat panel pertama terbuka DAN di setiap `touchstart` selama terbuka, `true` saat panel terakhir tertutup (dihitung, panel bisa bertumpuk) | matikan/nyalakan tarik-untuk-refresh. Sejak 1.1.6 Android memakai bendera + `setOnChildScrollUpCallback` dan meresetnya di **`onPageStarted`** (1.1.4/1.1.5 menyalakan lagi di `onPageFinished`, yang ikut terpanggil oleh `history.replaceState` - #162) | **1.1.4 (TASK_65)** |
 | 4 | `onBackgroundColorDetected(rgb, isLight)` | **bukan web** - skrip yang disuntik native sendiri tiap `onPageFinished` (MutationObserver + interval 1 dtk membaca `background-color` body/html) | warnai status bar & navigation bar, ikon terang/gelap menurut `isLight` | lama |
 
 Metode 3 bersifat opsional di web (`typeof … === 'function'`); iOS **wajib** memasangnya
