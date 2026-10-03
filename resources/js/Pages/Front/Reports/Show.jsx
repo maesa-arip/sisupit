@@ -1028,9 +1028,11 @@ export default function ReportShow(props) {
 		// SATU MARKER PER REGU (§13 TASK_60, permintaan user): satu regu bisa 8 petugas dan 3-4
 		// regu bisa meluncur ke satu kejadian - marker & rute per orang menumpuk jadi puluhan di
 		// titik yang sama (mereka satu mobil). Anggota regu dilebur jadi satu marker berlabel nama
-		// regu; posisinya GPS DANRU bila ia ikut meluncur & punya lokasi, selain itu anggota
-		// pertama yang punya lokasi. Wakilnya dipilih TETAP (bukan "yang terakhir bergerak")
-		// supaya marker tidak melompat antar-anggota. Petugas tanpa regu & relawan tetap per orang.
+		// regu; posisinya GPS anggota yang PALING DEKAT ke TKP. Dulu GPS danru - dibuang atas
+		// permintaan user 2026-10-03: danru bisa menekan Meluncur tapi tetap diam di pos, lalu seluruh
+		// regu tampak belum berangkat. Yang benar-benar di mobil selalu lebih dekat ke TKP daripada
+		// yang tertinggal, dan sesama penumpang satu mobil hanya berselisih beberapa meter, jadi
+		// pergantian wakil tidak membuat marker melompat. Petugas tanpa regu & relawan tetap per orang.
 		const activeMarkerKeys = new Set();
 		const reguGroups = new Map();
 		officerList.forEach((o) => {
@@ -1050,8 +1052,13 @@ export default function ReportShow(props) {
 			const located = group.members.filter(
 				(o) => !isNaN(parseFloat(o.location_lat)) && !isNaN(parseFloat(o.location_lng)),
 			);
+			const distToIncident = (o) =>
+				isNaN(incLat) || isNaN(incLng)
+					? 0
+					: distanceMeters(parseFloat(o.location_lat), parseFloat(o.location_lng), incLat, incLng);
 			const anchor =
-				located.find((o) => info?.leader_id && o.user_id === info.leader_id) || located[0] || group.members[0];
+				located.reduce((best, o) => (!best || distToIncident(o) < distToIncident(best) ? o : best), null) ||
+				group.members[0];
 			const markerKey = `regu:${key}`;
 			const regu = { name: info?.name || group.name, leader: info?.leader || null, members: group.members };
 			const m = renderMarker(markerKey, regu.name, 'petugas', anchor.location_lat, anchor.location_lng, regu);
@@ -1603,7 +1610,11 @@ export default function ReportShow(props) {
 							<IconRadar
 								className={`h-4 w-4 text-destructive ${reportStatus !== 'resolved' ? 'animate-pulse' : ''}`}
 							/>
-							Peta dispatcher
+							{/* "Peta dispatcher" istilah internal - pelapor/warga melihat "Posisi Bantuan"
+							    (permintaan user 2026-10-03). */}
+							{isStaffOrAdmin || isRelawan || userRoles.includes('pejabat')
+								? 'Peta dispatcher'
+								: 'Posisi Bantuan'}
 						</div>
 						<div ref={mapRef} className="z-0 h-full w-full bg-muted"></div>
 					</div>

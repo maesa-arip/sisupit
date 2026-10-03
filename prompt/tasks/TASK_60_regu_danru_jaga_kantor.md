@@ -270,3 +270,11 @@ Keputusan user ("setuju semua"): posisi marker regu = GPS DANRU; popup memuat da
   lain yang belum di-commit. Pint/prettier/build lulus.
 - SISA: verifikasi visual dengan dua+ regu meluncur (label tak saling tutup saat dua regu
   berdekatan; zoom jauh), lalu commit + deploy (tanpa migrasi; `git pull` + `chown`).
+
+## 14. Adendum 2026-10-03 - posisi marker regu tidak lagi dari danru (#163)
+
+Membalik keputusan §13 "posisi marker regu = GPS DANRU". Laporan user: danru bisa menekan Meluncur
+tapi tetap diam di pos. Kini wakil = anggota ber-lokasi yang paling dekat ke TKP (garis rute regu ikut
+dari titik itu); popup tetap menyebut Danru. Penjaga lama `info?.leader_id` di `ReguTest` diganti test
+yang menuntut `located.reduce(...)` + `distanceMeters(..., incLat, incLng)` dan melarang `leader_id` di
+blok `reguGroups.forEach`. Rincian di FINDINGS_LOG #163.

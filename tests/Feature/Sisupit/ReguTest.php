@@ -308,9 +308,10 @@ it('shows no regu on the petugas dashboard for a petugas without one', function 
 });
 
 // Peta detail insiden (§13 TASK_60, permintaan user): satu regu bisa 8 petugas dan 3-4 regu bisa
-// meluncur - satu marker per orang menumpuk puluhan marker & rute di satu titik. Marker regu
-// diletakkan di GPS danru, jadi server wajib mengirim id-nya (nama petugas tidak unik).
-it('sends the danru id of each regu so the detail map can anchor the regu marker on him', function () {
+// meluncur - satu marker per orang menumpuk puluhan marker & rute di satu titik. Server tetap
+// mengirim id danru (popup marker menyebut danru), tapi POSISI marker tidak lagi diambil dari danru
+// (2026-10-03) - lihat test berikutnya.
+it('sends the danru id of each regu to the detail map', function () {
     $this->actingAs($this->danru)->post(route('reports.take-action', $this->report));
     $this->actingAs($this->anggota1)->post(route('reports.take-action', $this->report));
 
@@ -331,11 +332,23 @@ it('draws one marker per regu on the detail map instead of one per member', func
     // Petugas beregu tidak digambar per orang: kuncinya dibaca dulu, lalu dikumpulkan ke regunya.
     expect($block)->toMatch('/const key = reguKeyOf\(o\);\s*if \(!key\) \{/')
         ->and($block)->toContain('reguGroups.get(key).members.push(o)')
-        // Satu marker & satu rute per regu, berlabel & diletakkan di danru.
+        // Satu marker & satu rute per regu, berlabel.
         ->and($block)->toContain('const markerKey = `regu:${key}`;')
         ->and($block)->toMatch('/renderMarker\(markerKey, [^;]*, regu\)/')
-        ->and($block)->toMatch('/drawResponderRoute\(markerKey,/')
-        ->and($block)->toContain('info?.leader_id');
+        ->and($block)->toMatch('/drawResponderRoute\(markerKey,/');
+});
+
+// Permintaan user 2026-10-03: danru bisa menekan Meluncur tapi tetap diam di pos. Posisi & titik
+// berangkat rute regu diambil dari anggota yang PALING DEKAT ke TKP, bukan dari danru.
+it('anchors the regu marker on the member nearest the incident, not on the danru', function () {
+    $source = preg_replace(['~/\*.*?\*/~s', '~^\s*//.*$~m'], '', file_get_contents(resource_path('js/Pages/Front/Reports/Show.jsx')));
+
+    $start = strpos($source, 'reguGroups.forEach((group, key) => {');
+    $block = substr($source, $start, strpos($source, 'helperList.forEach', $start) - $start);
+
+    expect($block)->toMatch('/distanceMeters\([^;]*incLat, incLng\)/')
+        ->and($block)->toMatch('/const anchor =\s*located\.reduce\(/')
+        ->and($block)->not->toContain('leader_id');
 });
 
 it('shows contact details of danru candidates to admins only, never to a danru', function () {
@@ -362,4 +375,38 @@ it('lets the member dialog be searched without dropping members hidden by the se
         ->and($source)->toMatch('/checked=\{selectedIds\.includes\(c\.id\)\}/')
         ->and($source)->toMatch('/\{ member_ids: selectedIds \}/')
         ->and($source)->toMatch("/setMemberQuery\(''\);\s+setSelectedIds\(regu\.members/");
+});
+
+// Halaman Thanks pelapor (permintaan user 2026-10-03): tanpa peta, tapi satu baris "Regu A sedang
+// menuju lokasi" dan label tombol yang mengikuti perkembangan. Regu disebut lewat namanya, petugas
+// tanpa regu & relawan hanya dihitung.
+it('tells the reporter on the thanks page which regu is on the way and which has arrived', function () {
+    $solo = ($this->petugas)(['name' => 'Petugas Lepas']);
+
+    $this->actingAs($this->anggota1)->post(route('reports.take-action', $this->report));
+    $this->actingAs($this->danru)->post(route('reports.take-action', $this->report));
+    $this->actingAs($solo)->post(route('reports.take-action', $this->report));
+
+    $this->actingAs($this->reporter)->get(route('front.reports.thanks', $this->report))
+        ->assertInertia(fn ($page) => $page
+            ->where('responders.en_route.regus', ['Regu A'])
+            ->where('responders.en_route.petugas', 1)
+            ->where('responders.arrived.regus', []));
+
+    // Satu anggota menekan Tiba = seregu tiba (TASK_66): Regu A pindah ke "sudah tiba", sekali saja.
+    $this->actingAs($this->anggota1)->post(route('reports.arrive', $this->report));
+
+    $this->actingAs($this->reporter)->get(route('front.reports.thanks', $this->report))
+        ->assertInertia(fn ($page) => $page
+            ->where('responders.arrived.regus', ['Regu A'])
+            ->where('responders.en_route.regus', [])
+            ->where('responders.en_route.petugas', 1));
+});
+
+it('refreshes the thanks page responder line live and keeps the map on the detail page only', function () {
+    $source = file_get_contents(resource_path('js/Pages/Front/Reports/Thanks.jsx'));
+
+    expect($source)->toContain(".listen('ResponderRosterChanged', () => router.reload({ only: ['responders'] }))")
+        ->and($source)->toContain('{ctaLabel}')
+        ->and($source)->not->toContain('L.map(');
 });

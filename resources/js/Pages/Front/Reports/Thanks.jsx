@@ -3,7 +3,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import AppLayout from '@/Layouts/AppLayout';
 import { cn, NOMOR_DARURAT_NASIONAL, reportNumber } from '@/lib/utils';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { IconArrowRight, IconInfoCircle, IconPhoneCall, IconShieldCheckFilled } from '@tabler/icons-react';
 import { Fragment, useEffect, useState } from 'react';
 
@@ -38,7 +38,24 @@ const STEP_TONE = {
 // Foto pejabat: path publik statis (/images/..) atau hasil upload di disk public (tenants/..).
 const fotoUrl = (path) => (!path || path.startsWith('http') || path.startsWith('/') ? path : `/storage/${path}`);
 
-export default function ReportThanks({ report, pejabat, namaInstansi, teleponDarurat, cityCode, isPartner }) {
+// "Regu Garuda, Regu Elang dan 2 relawan" dari satu tahap ringkasan responder (thanksResponders).
+const describeUnits = (stage) => {
+	if (!stage) return '';
+	const parts = [...stage.regus];
+	if (stage.petugas > 0) parts.push(`${stage.petugas} petugas`);
+	if (stage.relawan > 0) parts.push(`${stage.relawan} relawan`);
+	return parts.length > 1 ? `${parts.slice(0, -1).join(', ')} dan ${parts[parts.length - 1]}` : parts[0] || '';
+};
+
+export default function ReportThanks({
+	report,
+	responders,
+	pejabat,
+	namaInstansi,
+	teleponDarurat,
+	cityCode,
+	isPartner,
+}) {
 	const submittedAt = new Intl.DateTimeFormat('id-ID', {
 		dateStyle: 'long',
 		timeStyle: 'short',
@@ -59,7 +76,10 @@ export default function ReportThanks({ report, pejabat, namaInstansi, teleponDar
 		if (!window.Echo) return;
 
 		const name = `report-tracking.${report.id}`;
-		window.Echo.private(name).listen('ReportStatusChanged', (e) => setStatus(e.status));
+		window.Echo.private(name)
+			.listen('ReportStatusChanged', (e) => setStatus(e.status))
+			// Meluncur/Batal/Tiba/Selesai - baris "sedang menuju lokasi" ikut berubah tanpa reload.
+			.listen('ResponderRosterChanged', () => router.reload({ only: ['responders'] }));
 
 		return () => window.Echo.leave(name);
 	}, [report.id]);
@@ -67,6 +87,19 @@ export default function ReportThanks({ report, pejabat, namaInstansi, teleponDar
 	const isDitolak = status === STATUS_DITOLAK;
 	const isDigabung = status === STATUS_DIGABUNG;
 	const currentStep = STEP_STATUS.indexOf(status);
+
+	// Tombol & keterangan mengikuti perkembangan (permintaan user 2026-10-03). Petanya tetap hanya
+	// di halaman detail - halaman ini dibuka warga yang sedang panik, tombol telepon jangan terdorong.
+	const isClosed = ['resolved', STATUS_DITOLAK, STATUS_DIGABUNG].includes(status);
+	const arrivedUnits = isClosed ? '' : describeUnits(responders?.arrived);
+	const enRouteUnits = isClosed ? '' : describeUnits(responders?.en_route);
+	const ctaLabel = isClosed
+		? 'Lihat Detail Laporan'
+		: arrivedUnits
+			? 'Lihat Petugas di Lokasi'
+			: enRouteUnits
+				? 'Lihat Petugas Menuju Lokasi'
+				: 'Pantau Bantuan';
 
 	return (
 		<>
@@ -181,10 +214,25 @@ export default function ReportThanks({ report, pejabat, namaInstansi, teleponDar
 						</div>
 
 						<div className="space-y-2 pt-2">
+							{(arrivedUnits || enRouteUnits) && (
+								<p className="text-[15px] leading-relaxed text-foreground">
+									{arrivedUnits && (
+										<>
+											<span className="font-semibold">{arrivedUnits}</span> sudah tiba di
+											lokasi.{' '}
+										</>
+									)}
+									{enRouteUnits && (
+										<>
+											<span className="font-semibold">{enRouteUnits}</span> sedang menuju lokasi.
+										</>
+									)}
+								</p>
+							)}
 							<div className="flex flex-col gap-3 sm:flex-row">
 								<Button asChild className="h-12 flex-1 rounded-xl text-base font-semibold">
 									<Link href={route('reports.show', report.id)}>
-										Pantau Bantuan
+										{ctaLabel}
 										<IconArrowRight className="ml-2 h-5 w-5" />
 									</Link>
 								</Button>

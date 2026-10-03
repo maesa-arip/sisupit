@@ -3993,3 +3993,36 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   + `setOnChildScrollUpCallback`, reset di `onPageStarted` (lihat `mobile/CHANGELOG_ANDROID.md`); web
   mengulang `false` di setiap `touchstart` selama terkunci (penambal APK lama).
 - **Status:** FIXED 2026-10-03 (branch feat/mobile-native-polish; web di DEV; APK dev 1.1.6 menunggu uji HP).
+
+### #163 — Marker regu di peta detail insiden mengikuti GPS danru, padahal danru bisa tetap di pos (FIXED)
+
+- **Laporan user (2026-10-03):** "untuk detect lokasi berangkat jangan danru, karena kemungkinan danru diam
+  ditempat tapi klik meluncur".
+- **Akar:** `Show.jsx` (effect peta, §13 TASK_60) meletakkan marker regu - dan titik awal garis rute OSRM-nya -
+  di GPS danru bila danru ikut menekan Meluncur. Danru yang menekan tapi tinggal di pos membuat seluruh regu
+  tampak belum berangkat. `start_lat/start_lng` (TASK_66) per orang, tidak terdampak.
+- **Fix (keputusan user):** wakil regu = anggota ber-lokasi yang PALING DEKAT ke TKP (`distanceMeters` ke
+  `incLat/incLng`); tanpa koordinat TKP/lokasi, cadangan anggota pertama. Satu mobil = selisih beberapa meter,
+  jadi pergantian wakil tak membuat marker melompat. Popup tetap menyebut Danru; `reguRoster[].leader_id`
+  tetap dikirim server (tak lagi dipakai peta).
+- **Penjaga:** `ReguTest` "anchors the regu marker on the member nearest the incident, not on the danru".
+- **Status:** FIXED 2026-10-03 (branch feat/mobile-native-polish, belum deploy). Uji visual: dua anggota satu
+  regu meluncur, danru diam di pos -> marker regu ikut anggota yang bergerak.
+
+### #164 — Halaman Thanks pelapor: tombol & keterangan mengikuti perkembangan; judul peta warga "Posisi Bantuan" (FIXED)
+
+- **Permintaan user (2026-10-03):** pantauan regu untuk warga - tombol di Thanks atau pindah ke detail? Keputusan
+  (saran disetujui "setuju"): peta & pantauan tetap HANYA di halaman detail (sudah tampil untuk pelapor); Thanks
+  tidak diberi peta (dibuka saat panik, tombol telepon tak boleh terdorong; satu sumber logika peta, lihat #163).
+- **Perubahan:**
+  - `ReportController::thanks()` mengirim prop `responders` = `{en_route, arrived}` masing-masing `{regus[], petugas,
+    relawan}` (`thanksResponders()`); regu disebut lewat `regu_name`, regu "tiba" bila ada anggotanya tiba (TASK_66);
+    petugas tanpa regu & relawan hanya dihitung (nama orang tidak ke pelapor). Tanpa migrasi.
+  - `Thanks.jsx`: satu baris "Regu A sudah tiba di lokasi. / ... sedang menuju lokasi." di atas tombol; label tombol:
+    Pantau Bantuan -> Lihat Petugas Menuju Lokasi -> Lihat Petugas di Lokasi -> Lihat Detail Laporan (selesai/
+    ditolak/digabung). Realtime: `ResponderRosterChanged` di channel `report-tracking.{id}` yang sudah dipakai
+    -> `router.reload({ only: ['responders'] })`.
+  - `Show.jsx`: judul peta "Peta dispatcher" hanya untuk staf/relawan/pejabat; selain itu "Posisi Bantuan".
+- **Penjaga:** 2 test di `ReguTest` (ringkasan en_route -> arrived; listener + tanpa peta di Thanks). Sabotase
+  ringkasan kosong -> MERAH, pulih byte-exact.
+- **Status:** FIXED 2026-10-03 (branch feat/mobile-native-polish, belum deploy). Uji visual di HP belum.

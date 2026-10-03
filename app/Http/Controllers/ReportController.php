@@ -818,6 +818,10 @@ class ReportController extends Controller
                 // report-tracking.{id} yang sudah ada (pelapor memang sudah berhak di sana).
                 'status' => $report->status,
             ],
+            // Siapa yang sedang menuju / sudah di lokasi, untuk satu baris keterangan di atas tombol
+            // "Pantau Bantuan" (permintaan user 2026-10-03). Petanya sengaja HANYA di halaman detail.
+            // Dimuat ulang lewat ResponderRosterChanged di channel yang sama dengan status.
+            'responders' => $this->thanksResponders($report->id),
             'pejabat' => $tenant && $tenant->pejabat_nama ? [
                 'nama' => $tenant->pejabat_nama,
                 'jabatan' => $tenant->pejabat_jabatan,
@@ -828,6 +832,44 @@ class ReportController extends Controller
             'cityCode' => $report->city_code,
             'isPartner' => (bool) $tenant,
         ]);
+    }
+
+    /**
+     * Ringkasan responder aktif untuk halaman Thanks, dikelompokkan per tahap: `en_route` dan
+     * `arrived`. Petugas beregu disebut lewat NAMA REGU (snapshot `regu_name`); satu anggota
+     * Tiba = seregu tiba (TASK_66), jadi regu dihitung tiba bila ada anggotanya yang tiba.
+     * Petugas tanpa regu & relawan cukup dihitung - nama orang tidak perlu sampai ke pelapor.
+     */
+    private function thanksResponders(int $reportId): array
+    {
+        $empty = ['regus' => [], 'petugas' => 0, 'relawan' => 0];
+        $out = ['en_route' => $empty, 'arrived' => $empty];
+
+        $officers = DB::table('report_officers')->where('report_id', $reportId)
+            ->whereIn('status', ['en_route', 'arrived'])->get(['status', 'regu_name']);
+
+        $reguStage = [];
+        foreach ($officers as $o) {
+            if ($o->regu_name) {
+                if (($reguStage[$o->regu_name] ?? null) !== 'arrived') {
+                    $reguStage[$o->regu_name] = $o->status;
+                }
+            } else {
+                $out[$o->status]['petugas']++;
+            }
+        }
+        foreach ($reguStage as $name => $stage) {
+            $out[$stage]['regus'][] = $name;
+        }
+
+        DB::table('report_helpers')->where('report_id', $reportId)
+            ->whereIn('status', ['en_route', 'arrived'])
+            ->selectRaw('status, count(*) as total')->groupBy('status')->get()
+            ->each(function ($h) use (&$out) {
+                $out[$h->status]['relawan'] = (int) $h->total;
+            });
+
+        return $out;
     }
 
     /**
