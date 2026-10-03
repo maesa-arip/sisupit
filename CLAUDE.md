@@ -42,14 +42,14 @@ Terakhir     : #159/TASK_69 lapisan platform ponsel (hover sentuh, tap, active B
                 tema toast, dvh) + apple-design penuh (material kaca, pegas, cross-fade; PENGECUALIAN #5
                 KHUSUS branch ini; bagian 15: peta hanya desktop di 7 halaman fasilitas/laporan +
                 /admin/reports dirombak ulang; bagian 16: audit visual ulang 390px - rekap lama terlalu optimis, isi
-                dirombak sungguhan, #160) di branch feat/mobile-native-polish - TERDEPLOY ke DEV @3395b501
-                (2026-10-02); belum merge main/staging/prod, butuh uji HP.
+                dirombak sungguhan, #160) di branch feat/mobile-native-polish - TERDEPLOY ke DEV @9ab56742
+                (2026-10-04, termasuk #161-#165); belum merge main/staging/prod, butuh uji HP.
                 #161 antrian BA tertinggal (ReportFeedChanged di store/destroy BA) + Riwayat pakai
-                AppListRow & ikon jenis lib/report-icon.js di 4 daftar (2026-10-02, branch sama, belum deploy).
+                AppListRow & ikon jenis lib/report-icon.js di 4 daftar (2026-10-02, branch sama).
                 #163 marker regu di peta detail = anggota terdekat ke TKP, bukan GPS danru; #164 Thanks pelapor: tombol &
-                keterangan regu mengikuti status, peta tetap di detail ("Posisi Bantuan") (2026-10-03, belum deploy).
+                keterangan regu mengikuti status, peta tetap di detail ("Posisi Bantuan") (2026-10-03).
                 #165 status pelapor di luar Thanks: kartu "Perkembangan Laporan Anda" di detail (khusus pelapor) +
-                kartu "Laporan Anda" (laporan aktif) di Beranda warga, komponen ReportProgress (2026-10-04, belum deploy).
+                kartu "Laporan Anda" (laporan aktif) di Beranda warga, komponen ReportProgress (2026-10-04).
                 #158 push iOS (kabar status pelapor & nada OPD) TERDEPLOY @9988587e.
                 #157 hapus akun = ANONIMISASI TERDEPLOY @43479a4e.
 SEMENTARA    : #149 menu "Jangkauan Petugas" disembunyikan + foto laporan non-kebakaran

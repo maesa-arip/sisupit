@@ -4051,4 +4051,5 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   - Tanpa migrasi, tanpa route baru, tanpa permukaan otorisasi baru (channel pelapor sudah ada).
 - **Penjaga:** `ReporterProgressTest` (4): responders ke pelapor di detail; `null` untuk admin; `activeReports` hanya
   milik sendiri & masih berjalan; reload realtime + impor komponen bersama.
-- **Status:** FIXED 2026-10-04 (branch feat/mobile-native-polish, belum deploy). Uji visual di HP belum.
+- **Status:** FIXED 2026-10-04, TERDEPLOY DEV @9ab56742 (konsol Hostinger; diverifikasi HTTPS: bundel live = build
+  lokal). Staging/prod belum. Uji visual di HP belum.
