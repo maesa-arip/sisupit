@@ -1,51 +1,17 @@
-import StatusBadge from '@/Components/StatusBadge';
+import { describeUnits, isClosedStatus, ReportStepper, ResponderSummary } from '@/Components/ReportProgress';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import AppLayout from '@/Layouts/AppLayout';
-import { cn, NOMOR_DARURAT_NASIONAL, reportNumber } from '@/lib/utils';
+import { NOMOR_DARURAT_NASIONAL, reportNumber } from '@/lib/utils';
 import { Head, Link, router } from '@inertiajs/react';
 import { IconArrowRight, IconInfoCircle, IconPhoneCall, IconShieldCheckFilled } from '@tabler/icons-react';
-import { Fragment, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-// Alur pasca-lapor, memakai label status kanonik (lihat StatusBadge). Kedua deret ini
-// SEJAJAR: STEP_STATUS[i] adalah status yang membuat STEPS[i] jadi tahap berjalan.
-//
-// Halaman ini ber-ID dan bisa dibuka ulang kapan saja, jadi tahap berjalannya harus dibaca
-// dari status laporan — dulu ia dipaku di indeks 0, sehingga laporan yang sudah ditangani
-// atau selesai pun tetap berhenti di "Laporan Masuk".
-const STEP_STATUS = ['TERLAPOR', 'pending', 'handling', 'resolved'];
-const STEPS = ['Laporan Masuk', 'Terverifikasi', 'Penanganan', 'Selesai'];
-
-// `ditolak` SENGAJA tidak punya tahap: ia bukan kemajuan di alur ini melainkan jalan buntu,
-// jadi ditampilkan sebagai keterangan tersendiri, bukan sebagai langkah kelima.
-const STATUS_DITOLAK = 'ditolak';
-
-// `digabung` (TASK_55) juga bukan tahap: laporannya digabung ke laporan warga lain atas
-// kejadian yang sama. Kalimatnya menegaskan laporannya DITERIMA - pelapor jujur yang hanya
-// membaca "digabung" bisa mengira laporannya dianggap salah.
-const STATUS_DIGABUNG = 'digabung';
-
-// Warna per tahap mengikuti kamus status kanonik (StatusBadge): Laporan Masuk merah,
-// Terverifikasi kuning, Penanganan hijau, Selesai biru — jangan diseragamkan jadi satu warna,
-// itu memutus hubungan visual dengan badge & peta.
-const STEP_TONE = {
-	TERLAPOR: { solid: 'bg-destructive text-destructive-foreground', tint: 'bg-destructive/15 text-destructive' },
-	pending: { solid: 'bg-warning text-warning-foreground', tint: 'bg-warning/15 text-warning' },
-	handling: { solid: 'bg-success text-success-foreground', tint: 'bg-success/15 text-success' },
-	resolved: { solid: 'bg-info text-info-foreground', tint: 'bg-info/15 text-info' },
-};
+// Stepper status & ringkasan responder ada di Components/ReportProgress (#165) - dipakai juga
+// oleh detail laporan & Beranda warga, karena halaman ini hanya dicapai sekali sesudah kirim.
 
 // Foto pejabat: path publik statis (/images/..) atau hasil upload di disk public (tenants/..).
 const fotoUrl = (path) => (!path || path.startsWith('http') || path.startsWith('/') ? path : `/storage/${path}`);
-
-// "Regu Garuda, Regu Elang dan 2 relawan" dari satu tahap ringkasan responder (thanksResponders).
-const describeUnits = (stage) => {
-	if (!stage) return '';
-	const parts = [...stage.regus];
-	if (stage.petugas > 0) parts.push(`${stage.petugas} petugas`);
-	if (stage.relawan > 0) parts.push(`${stage.relawan} relawan`);
-	return parts.length > 1 ? `${parts.slice(0, -1).join(', ')} dan ${parts[parts.length - 1]}` : parts[0] || '';
-};
 
 export default function ReportThanks({
 	report,
@@ -84,13 +50,9 @@ export default function ReportThanks({
 		return () => window.Echo.leave(name);
 	}, [report.id]);
 
-	const isDitolak = status === STATUS_DITOLAK;
-	const isDigabung = status === STATUS_DIGABUNG;
-	const currentStep = STEP_STATUS.indexOf(status);
-
 	// Tombol & keterangan mengikuti perkembangan (permintaan user 2026-10-03). Petanya tetap hanya
 	// di halaman detail - halaman ini dibuka warga yang sedang panik, tombol telepon jangan terdorong.
-	const isClosed = ['resolved', STATUS_DITOLAK, STATUS_DIGABUNG].includes(status);
+	const isClosed = isClosedStatus(status);
 	const arrivedUnits = isClosed ? '' : describeUnits(responders?.arrived);
 	const enRouteUnits = isClosed ? '' : describeUnits(responders?.en_route);
 	const ctaLabel = isClosed
@@ -156,79 +118,10 @@ export default function ReportThanks({
 						</div>
 
 						{/* Mini-stepper: tahap yang SEDANG berlaku, bergerak sendiri lewat WebSocket. */}
-						<div className="rounded-xl bg-muted/40 p-4">
-							<div className="mb-3 flex items-center justify-between gap-2">
-								<p className="text-[13px] font-medium text-muted-foreground">Status laporan</p>
-								<StatusBadge status={status} />
-							</div>
-
-							{isDitolak ? (
-								<p className="text-xs leading-relaxed text-muted-foreground">
-									Laporan ini ditandai tidak dapat ditindaklanjuti oleh Pusat Komando. Bila keadaan
-									daruratnya masih berlangsung, segera telepon Damkar.
-								</p>
-							) : isDigabung ? (
-								<p className="text-xs leading-relaxed text-muted-foreground">
-									Kejadian ini sudah dilaporkan warga lain dan sedang diproses Pusat Komando. Laporan
-									Anda digabungkan dengannya, dan perkembangannya tetap dikabarkan ke Anda.
-								</p>
-							) : (
-								<ol className="flex items-start">
-									{STEPS.map((step, i) => {
-										const tone = STEP_TONE[STEP_STATUS[i]];
-										const isCurrent = i === currentStep;
-										const isDone = i < currentStep;
-
-										return (
-											<Fragment key={step}>
-												<li className="flex flex-col items-center gap-1.5">
-													<span
-														className={cn(
-															'flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold',
-															isCurrent && tone.solid,
-															isDone && tone.tint,
-															!isCurrent && !isDone && 'bg-muted text-muted-foreground',
-														)}
-													>
-														{i + 1}
-													</span>
-													<span
-														className={cn(
-															'text-center text-[11px] font-medium leading-tight sm:text-[11px]',
-															isCurrent
-																? 'font-bold text-foreground'
-																: 'text-muted-foreground',
-														)}
-													>
-														{step}
-													</span>
-												</li>
-												{i < STEPS.length - 1 && (
-													<span className="mt-3 h-px flex-1 bg-border" />
-												)}
-											</Fragment>
-										);
-									})}
-								</ol>
-							)}
-						</div>
+						<ReportStepper status={status} />
 
 						<div className="space-y-2 pt-2">
-							{(arrivedUnits || enRouteUnits) && (
-								<p className="text-[15px] leading-relaxed text-foreground">
-									{arrivedUnits && (
-										<>
-											<span className="font-semibold">{arrivedUnits}</span> sudah tiba di
-											lokasi.{' '}
-										</>
-									)}
-									{enRouteUnits && (
-										<>
-											<span className="font-semibold">{enRouteUnits}</span> sedang menuju lokasi.
-										</>
-									)}
-								</p>
-							)}
+							<ResponderSummary status={status} responders={responders} />
 							<div className="flex flex-col gap-3 sm:flex-row">
 								<Button asChild className="h-12 flex-1 rounded-xl text-base font-semibold">
 									<Link href={route('reports.show', report.id)}>

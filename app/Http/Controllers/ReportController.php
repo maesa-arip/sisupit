@@ -500,6 +500,10 @@ class ReportController extends Controller
             'myRegu' => $myRegu,
             'canStayAtBase' => $canStayAtBase,
             'alphaMembers' => $alphaMembers,
+            // Kartu "Perkembangan Laporan Anda" (#165): ringkasan yang sama dengan halaman Thanks,
+            // khusus PELAPOR - Thanks hanya dicapai sekali, sedangkan semua jalan masuk lain menuju
+            // halaman ini. Bukan untuk staf/relawan: mereka sudah punya manifest regu lengkap.
+            'responders' => $isReporter ? $this->thanksResponders($report->id) : null,
         ]);
     }
 
@@ -835,7 +839,8 @@ class ReportController extends Controller
     }
 
     /**
-     * Ringkasan responder aktif untuk halaman Thanks, dikelompokkan per tahap: `en_route` dan
+     * Ringkasan responder aktif untuk pelapor (halaman Thanks & kartu perkembangan di detail,
+     * #165), dikelompokkan per tahap: `en_route` dan
      * `arrived`. Petugas beregu disebut lewat NAMA REGU (snapshot `regu_name`); satu anggota
      * Tiba = seregu tiba (TASK_66), jadi regu dihitung tiba bila ada anggotanya yang tiba.
      * Petugas tanpa regu & relawan cukup dihitung - nama orang tidak perlu sampai ke pelapor.

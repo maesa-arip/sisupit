@@ -207,6 +207,17 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
+        // 1b. Laporan milik sendiri yang MASIH berjalan (#165) - kartu "Laporan Anda" di puncak
+        // Beranda supaya pelapor tak perlu mencari status lewat Riwayat. Bypass Tenantable sama
+        // seperti 1.: kepemilikan (`user_id`) adalah gerbangnya. Digabung tidak ikut - yang
+        // bergerak adalah laporan induknya, dan Riwayat tetap menampilkannya.
+        $activeReports = Report::withoutGlobalScopes()
+            ->where('user_id', $user->id)
+            ->whereIn('status', ['TERLAPOR', 'pending', 'handling'])
+            ->latest('created_at')
+            ->limit(3)
+            ->get(['id', 'title', 'status', 'created_at']);
+
         // 2. Data Radar Khusus Relawan (Di-filter berdasarkan area relawan)
         $nearbyEmergencies = [];
         if ($user->hasRole('relawan')) {
@@ -255,6 +266,7 @@ class DashboardController extends Controller
 
         return Inertia::render('Dashboard', [
             'myReports' => $myReports,
+            'activeReports' => $activeReports,
             'isRelawan' => $user->hasRole('relawan'),
             'nearbyEmergencies' => $nearbyEmergencies,
             'myTasks' => $myTasks,

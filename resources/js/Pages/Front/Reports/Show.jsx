@@ -1,3 +1,4 @@
+import { ReportStepper, ResponderSummary } from '@/Components/ReportProgress';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
@@ -331,6 +332,7 @@ export default function ReportShow(props) {
 				'myRegu',
 				'canStayAtBase',
 				'alphaMembers',
+				'responders',
 			],
 		});
 	};
@@ -1211,6 +1213,23 @@ export default function ReportShow(props) {
 					</div>
 				</div>
 			</div>
+
+			{/* --- PERKEMBANGAN LAPORAN ANDA (#165) --- */}
+			{/* Stepper & "Regu A sedang menuju lokasi" yang dulu HANYA ada di halaman Thanks, padahal
+			    Thanks cuma dicapai sekali sesudah kirim - Riwayat, Beranda, push notif & "Pantau
+			    Bantuan" semuanya menuju halaman ini. `responders` hanya dikirim server untuk pelapor.
+			    Ditolak & digabung tidak di sini: keduanya sudah punya kartu penjelasannya sendiri. */}
+			{props.responders && !['ditolak', 'digabung'].includes(reportStatus) && (
+				<Card>
+					<CardContent className="space-y-3 p-4 sm:p-5">
+						<h2 className="text-[17px] font-semibold tracking-tight text-foreground">
+							Perkembangan Laporan Anda
+						</h2>
+						<ReportStepper status={reportStatus} />
+						<ResponderSummary status={reportStatus} responders={props.responders} />
+					</CardContent>
+				</Card>
+			)}
 
 			{/* --- LAPORAN INI SUDAH DIGABUNG (TASK_55) --- */}
 			{/* Ditaruh di ATAS, bukan di kolom kanan: di ponsel kolom kanan baru terlihat setelah

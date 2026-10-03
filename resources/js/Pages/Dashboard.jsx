@@ -1,5 +1,6 @@
 import { AppEmpty, AppGreeting, AppList, AppListRow, AppSection } from '@/Components/AppSection';
 import ReportCard from '@/Components/ReportCard';
+import { ReportStepper } from '@/Components/ReportProgress';
 import StandbyCard from '@/Components/StandbyCard';
 import StatusBadge from '@/Components/StatusBadge';
 import { Badge } from '@/Components/ui/badge';
@@ -7,7 +8,7 @@ import { Button } from '@/Components/ui/button';
 import useReportFeed from '@/hooks/use-report-feed';
 import AppLayout from '@/Layouts/AppLayout';
 import { reportIcon } from '@/lib/report-icon';
-import { cn, GEO_OPTIONS, timeAgo } from '@/lib/utils';
+import { cn, GEO_OPTIONS, reportNumber, timeAgo } from '@/lib/utils';
 import { Link, router } from '@inertiajs/react';
 import {
 	IconAlertCircle,
@@ -17,6 +18,7 @@ import {
 	IconHistory,
 	IconLoader2,
 	IconMapPin,
+	IconRadar,
 	IconRefresh,
 	IconShieldCheck,
 	IconUserCheck,
@@ -29,6 +31,8 @@ export default function Dashboard(props) {
 	const firstName = auth?.name ? auth.name.split(' ').find((word) => word.length >= 3) || 'Warga' : 'Warga';
 
 	const myReports = props.myReports || [];
+	// Laporan milik sendiri yang masih berjalan (#165) - status & tahapnya di puncak Beranda.
+	const activeReports = props.activeReports || [];
 	// Tugas relawan ini (lintas wilayah, bypass scope desa) — dipakai khusus tab "Tugas Saya"
 	// agar tugasnya sendiri tak hilang saat insidennya di luar desanya.
 	const myTasks = props.myTasks || [];
@@ -67,7 +71,7 @@ export default function Dashboard(props) {
 			route('dashboard'),
 			{},
 			{
-				only: ['page_data', 'myReports', 'myTasks'],
+				only: ['page_data', 'myReports', 'myTasks', 'activeReports'],
 				preserveState: true,
 				preserveScroll: true,
 				replace: true,
@@ -75,6 +79,24 @@ export default function Dashboard(props) {
 			},
 		),
 	);
+
+	// Feed wilayah di atas tidak menjangkau laporan sendiri yang lokasinya di luar wilayah akun,
+	// jadi kartu "Laporan Anda" berlangganan channel tiap laporannya sendiri - channel yang sama
+	// dengan halaman Thanks & detail (pelapor memang berhak di sana). Isinya tetap dimuat ulang
+	// dari server, bukan disusun dari payload siaran.
+	const activeIds = activeReports.map((r) => r.id).join(',');
+	useEffect(() => {
+		if (!activeIds || !window.Echo) return;
+
+		const names = activeIds.split(',').map((id) => `report-tracking.${id}`);
+		names.forEach((name) =>
+			window.Echo.private(name).listen('ReportStatusChanged', () =>
+				router.reload({ only: ['activeReports', 'myReports'] }),
+			),
+		);
+
+		return () => names.forEach((name) => window.Echo.leave(name));
+	}, [activeIds]);
 
 	const userRoles = Array.isArray(auth?.role) ? auth.role : auth?.role ? [auth.role] : [];
 	const isRelawan = userRoles.includes('relawan');
@@ -357,6 +379,39 @@ export default function Dashboard(props) {
 				</div>
 				<IconChevronRight className="h-5 w-5 shrink-0" />
 			</Link>
+
+			{/* LAPORAN ANDA YANG MASIH BERJALAN (#165). Halaman Thanks hanya dicapai sekali sesudah
+			    kirim; tanpa kartu ini pelapor harus mencari statusnya lewat Riwayat. Ketuk = detail
+			    laporan, yang memuat stepper yang sama + posisi bantuan di peta. */}
+			{activeReports.length > 0 && (
+				<AppSection title="Laporan Anda" icon={IconRadar}>
+					<div className="space-y-3">
+						{activeReports.map((report) => (
+							<Link
+								key={report.id}
+								href={route('reports.show', report.id)}
+								className="block rounded-2xl border border-border/70 bg-card p-4 shadow-sm transition-transform active:scale-[0.98] motion-reduce:active:scale-100"
+							>
+								<div className="flex items-start justify-between gap-3">
+									<div className="min-w-0">
+										<h3 className="truncate text-[15px] font-semibold text-foreground">
+											{report.title}
+										</h3>
+										<p className="mt-0.5 text-xs text-muted-foreground">
+											<span className="font-mono">{reportNumber(report)}</span> -{' '}
+											{timeAgo(report.created_at)}
+										</p>
+									</div>
+									<span className="flex shrink-0 items-center gap-0.5 text-[13px] font-medium text-primary">
+										Lihat <IconChevronRight className="h-4 w-4" />
+									</span>
+								</div>
+								<ReportStepper status={report.status} className="mt-3" />
+							</Link>
+						))}
+					</div>
+				</AppSection>
+			)}
 
 			{/* Kartu Mode Kesiapan - HANYA relawan. Cabang sebelahnya dulu berisi ajakan
 			    "Daftar Relawan" bagi warga; DICABUT 2026-09-02 atas permintaan user, sehingga

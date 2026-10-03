@@ -4026,3 +4026,29 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Penjaga:** 2 test di `ReguTest` (ringkasan en_route -> arrived; listener + tanpa peta di Thanks). Sabotase
   ringkasan kosong -> MERAH, pulih byte-exact.
 - **Status:** FIXED 2026-10-03 (branch feat/mobile-native-polish, belum deploy). Uji visual di HP belum.
+
+### #165 — Status laporan pelapor hilang begitu ia meninggalkan halaman Thanks (FIXED)
+
+- **Laporan user (2026-10-04):** warga melapor, halaman Thanks menampilkan status yang auto-update; setelah klik
+  "Pantau Bantuan" atau menu lain, halaman itu tak bisa dilihat lagi padahal statusnya diperlukan.
+- **Akar:** Thanks (`/reports/thanks/{id}`) memang bisa dibuka ulang, tapi SATU-SATUNYA jalan masuknya redirect
+  sekali sesudah `store()` (`ReportController.php` ~772). Riwayat, Beranda, ReportCard, tombol "Pantau Bantuan" &
+  push notif status (`ReportStatusUpdatedNotification`) semuanya menuju `reports.show`, yang tidak punya stepper
+  status maupun ringkasan "Regu A sedang menuju lokasi" (#164).
+- **Fix (saran disetujui user "setuju, kerjakan sekaligus"):** status pelacakan ditaruh di halaman yang dirujuk
+  semua jalan masuk, bukan menambah link ke Thanks (dua halaman status = dua hal yang dirawat, push notif tetap
+  ke detail).
+  - `Components/ReportProgress.jsx` (baru): `ReportStepper` + `ResponderSummary` + `describeUnits`/`isClosedStatus`
+    dipindah dari `Thanks.jsx` apa adanya (tampilan Thanks tak berubah).
+  - Detail: `show()` mengirim `responders` (pakai ulang `thanksResponders()`) HANYA untuk pelapor, `null` untuk
+    lainnya. `Show.jsx` kartu "Perkembangan Laporan Anda" di bawah top bar (tidak untuk ditolak/digabung - sudah
+    punya kartu sendiri); `'responders'` masuk satu-daftar `reloadIncident` (#113).
+  - Beranda warga/relawan: `DashboardController` JALUR 3 prop `activeReports` (milik sendiri, TERLAPOR/pending/
+    handling, maks 3, bypass Tenantable dengan gerbang `user_id`). `Dashboard.jsx` kartu "Laporan Anda" di bawah
+    CTA Lapor Darurat, ketuk = detail. Realtime: berlangganan `report-tracking.{id}` tiap laporan aktif
+    (`ReportStatusChanged` -> reload `activeReports`,`myReports`) karena feed wilayah tak menjangkau laporan sendiri
+    di luar wilayah akun; `activeReports` juga ikut reload feed.
+  - Tanpa migrasi, tanpa route baru, tanpa permukaan otorisasi baru (channel pelapor sudah ada).
+- **Penjaga:** `ReporterProgressTest` (4): responders ke pelapor di detail; `null` untuk admin; `activeReports` hanya
+  milik sendiri & masih berjalan; reload realtime + impor komponen bersama.
+- **Status:** FIXED 2026-10-04 (branch feat/mobile-native-polish, belum deploy). Uji visual di HP belum.
