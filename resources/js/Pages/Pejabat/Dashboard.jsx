@@ -206,22 +206,22 @@ export default function PejabatDashboard({
 								note={`${performance.resolved ?? 0} dari ${performance.total ?? 0} kejadian`}
 							/>
 							<Kpi
-								label="Median respons"
+								label="Biasanya merespons"
 								value={performance.median_response?.minutes ?? '-'}
 								unit={performance.median_response ? 'mnt' : null}
 								note={
 									performance.median_response
-										? `Lapor ke petugas meluncur, ${performance.median_response.sample} kejadian`
+										? `Lapor ke petugas meluncur, nilai tengah ${performance.median_response.sample} kejadian`
 										: 'Belum ada data'
 								}
 							/>
 							<Kpi
-								label="Median tiba"
+								label="Biasanya tiba"
 								value={performance.median_arrival?.minutes ?? '-'}
 								unit={performance.median_arrival ? 'mnt' : null}
 								note={
 									performance.median_arrival
-										? `Lapor ke petugas tiba, ${performance.median_arrival.sample} kejadian`
+										? `Lapor ke petugas tiba, nilai tengah ${performance.median_arrival.sample} kejadian`
 										: 'Belum ada data'
 								}
 							/>

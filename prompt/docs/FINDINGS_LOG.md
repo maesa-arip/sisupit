@@ -4203,3 +4203,19 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   mengirim `POST /fcm-token` (`route('fcm.store')`, retry 4x, `device_type` android/ios). Jalur itu benar & berjalan.
 - **Dampak:** tidak ada pada notifikasi. Hanya kode mati yang menyesatkan pembaca (seolah ada jalur kedua yang rusak).
 - **Pilihan:** hapus `sendTokenToServer()` saat rilis APK berikutnya. **Status:** OPEN (P3).
+
+### #178 — Sisa bahasa Inggris di UI & teks bawaan Laravel ("2 hours ago", galat, email, validasi) (FIXED)
+
+- **Ditemukan (2026-10-05, permintaan user "ganti semua ke bahasa Indonesia"):** lokal sudah `id`, tapi `.env` server
+  yang disalin dari `.env.example` lama (`APP_LOCALE=en`) membuat `diffForHumans()` tampil "2 hours ago"; `lang/id.json`
+  tidak ada (email Hello!/Regards/reset sandi/verifikasi email Inggris); ~40 aturan validasi Laravel 9-11 hilang di
+  `lang/id/validation.php` (mis. `Password::letters()` jatuh ke kunci mentah); paginasi "Prev/Next"; 419 "The page
+  expired"; halaman galat (`messages` di `lib/utils.js`) Inggris; teks shadcn/MultiSelect, tooltip zoom Leaflet,
+  "Edit ...", "Simpan Update", "Export Excel", "Antrian queue/Job gagal", "Median ...", "Live".
+- **Fix:** `AppServiceProvider` memaksa `App::setLocale('id')` + `Carbon::setLocale('id')` (tak bergantung `.env`),
+  `.env.example` -> `id`; `lang/id.json` baru; validasi dilengkapi (`password` kini array, "Kata sandi salah" pindah ke
+  `current_password`); paginasi "Sebelumnya/Berikutnya"; Leaflet `L.Control.Zoom.mergeOptions` di `app.blade.php`;
+  "Edit" -> "Ubah"; Median -> "Biasanya diverifikasi/merespons/tiba" + catatan "nilai tengah"; Live -> "Langsung".
+- **Keputusan user:** "Dashboard" dan "Realtime/Real-time" TETAP. Email/Menu/Login tetap (kata serapan lazim).
+- **Tidak disentuh:** halaman internal `/guideline`, kode template mati (`app-sidebar`, `data-table`, dll.), pesan JSON
+  `FcmController` ("FCM Token registered." - dibaca APK, bukan pengguna). **Status:** FIXED 2026-10-05.

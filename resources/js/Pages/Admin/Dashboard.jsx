@@ -138,7 +138,7 @@ function Kpi({ label, value, unit, note, href }) {
 }
 
 function median(stat) {
-	return stat ? { value: stat.minutes, unit: 'mnt', note: `7 hari, dari ${stat.sample} laporan` } : null;
+	return stat ? { value: stat.minutes, unit: 'mnt', note: `nilai tengah 7 hari, dari ${stat.sample} laporan` } : null;
 }
 
 function TriageRow({ report, now, fresh }) {
@@ -432,7 +432,7 @@ export default function AdminDashboard({
 									</span>
 								</div>
 								<div className="flex items-center justify-between gap-3 px-4 py-3.5 md:px-5">
-									<span className="text-[15px] font-medium text-foreground">Antrian queue</span>
+									<span className="text-[15px] font-medium text-foreground">Antrian proses</span>
 									<span className="text-right text-[13px] text-muted-foreground">
 										{systemHealth.queue_pending == null
 											? 'tidak terbaca'
@@ -442,7 +442,7 @@ export default function AdminDashboard({
 									</span>
 								</div>
 								<div className="flex items-center justify-between gap-3 px-4 py-3.5 md:px-5">
-									<span className="text-[15px] font-medium text-foreground">Job gagal</span>
+									<span className="text-[15px] font-medium text-foreground">Proses gagal</span>
 									<span
 										className={cn(
 											'text-right text-[13px]',
@@ -470,13 +470,13 @@ export default function AdminDashboard({
 								href={route('admin.reports.index', { status: 'aktif' })}
 							/>
 							<Kpi
-								label="Median verifikasi"
+								label="Biasanya diverifikasi"
 								value={approval?.value ?? '-'}
 								unit={approval?.unit}
 								note={approval?.note ?? 'Belum ada data 7 hari'}
 							/>
 							<Kpi
-								label="Median respons"
+								label="Biasanya merespons"
 								value={response?.value ?? '-'}
 								unit={response?.unit}
 								note={

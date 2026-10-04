@@ -70,8 +70,8 @@ class AnnouncementController extends Controller
     {
         return inertia('Admin/Announcements/Edit', [
             'page_settings' => [
-                'title' => 'Edit Pengumuman',
-                'subtitle' => 'Edit pengumuman baru disini. Klik simpan setelah selesai.',
+                'title' => 'Ubah Pengumuman',
+                'subtitle' => 'Ubah pengumuman di sini. Klik simpan setelah selesai.',
                 'method' => 'PUT',
                 'action' => route('admin.announcements.update', $announcement),
             ],

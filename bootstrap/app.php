@@ -53,7 +53,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return back();
             } elseif ($response->getStatusCode() === 419) {
                 return back()->with([
-                    'message' => 'The page expired, please try again',
+                    'message' => 'Halaman kedaluwarsa, silakan coba lagi.',
                 ]);
             }
 

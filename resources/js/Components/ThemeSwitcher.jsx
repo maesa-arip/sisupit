@@ -22,7 +22,7 @@ export default function ThemeSwitcher() {
 			variant="outline"
 			size="icon"
 			onClick={toggleTheme}
-			aria-label="Toggle Theme"
+			aria-label="Ganti tema"
 			// PERBAIKAN: Hapus mr-auto, ubah jadi rounded-full, tambah efek hover Amber
 			className="h-10 w-10 shrink-0 rounded-full border-border bg-card text-muted-foreground shadow-sm outline-none transition-all hover:bg-warning/10 hover:text-warning focus-visible:ring-2 focus-visible:ring-warning"
 		>

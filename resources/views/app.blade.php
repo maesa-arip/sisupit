@@ -53,6 +53,12 @@
         src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         defer
         ></script>
+        <!-- Tooltip tombol zoom bawaan Leaflet ("Zoom in"/"Zoom out") dalam bahasa Indonesia, untuk semua peta. -->
+        <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.L) L.Control.Zoom.mergeOptions({ zoomInTitle: 'Perbesar', zoomOutTitle: 'Perkecil' });
+        });
+        </script>
     </head>
     <body class="max-h-screen font-sans antialiased">
         @inertia

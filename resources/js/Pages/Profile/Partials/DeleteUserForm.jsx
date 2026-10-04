@@ -100,7 +100,7 @@ export default function DeleteUserForm({ className = '', hasPassword = true }) {
 
 						<div className="mt-5">
 							<Label htmlFor={field} className="sr-only">
-								{hasPassword ? 'Password' : 'Konfirmasi'}
+								{hasPassword ? 'Kata Sandi' : 'Konfirmasi'}
 							</Label>
 							<Input
 								id={field}

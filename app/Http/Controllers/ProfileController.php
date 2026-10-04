@@ -27,7 +27,7 @@ class ProfileController extends Controller
     {
         return Inertia::render('Profile/Edit', [
             'page_settings' => [
-                'title' => 'Profile',
+                'title' => 'Profil',
                 'subtitle' => 'Perbarui profil melalui halaman ini',
             ],
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,

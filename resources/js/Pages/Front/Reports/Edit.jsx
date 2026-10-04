@@ -264,4 +264,4 @@ export default function Edit(props) {
 	);
 }
 
-Edit.layout = (page) => <AppLayout children={page} title="Edit Laporan" />;
+Edit.layout = (page) => <AppLayout children={page} title="Ubah Laporan" />;

@@ -95,8 +95,8 @@ class RouteAccessController extends Controller
     {
         return inertia('Admin/RouteAccesses/Edit', [
             'page_settings' => [
-                'title' => 'Edit Akses Rute',
-                'subtitle' => 'Edit akses rute baru disini. Klik simpan setelah selesai',
+                'title' => 'Ubah Akses Rute',
+                'subtitle' => 'Ubah akses rute di sini. Klik simpan setelah selesai',
                 'method' => 'PUT',
                 'action' => route('admin.route-accesses.update', $routeAccess),
             ],

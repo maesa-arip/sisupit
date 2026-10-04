@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
@@ -27,6 +28,11 @@ class AppServiceProvider extends ServiceProvider
         Gate::before(function ($user, $ability) {
             return $user->hasRole('superadmin') ? true : null;
         });
+        // Aplikasi hanya berbahasa Indonesia. Dipaksa di sini, bukan lewat APP_LOCALE, karena
+        // .env server yang disalin dari .env.example lama masih berisi "en" - akibatnya
+        // diffForHumans() tampil "2 hours ago" (2026-10-05).
+        App::setLocale('id');
+        Carbon::setLocale('id');
         Vite::prefetch(concurrency: 3);
         JsonResource::withoutWrapping();
 

@@ -134,7 +134,7 @@ export default function Edit({ unit, pos_options = [], type_options = [] }) {
 									<Link href={route('admin.units.index')}>Batal</Link>
 								</Button>
 								<Button type="submit" disabled={processing} className="h-11 rounded-xl px-6">
-									<IconDeviceFloppy className="mr-2 h-4 w-4" /> Simpan Update
+									<IconDeviceFloppy className="mr-2 h-4 w-4" /> Simpan Perubahan
 								</Button>
 							</div>
 						</form>

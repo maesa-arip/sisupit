@@ -174,7 +174,7 @@ function ExportDialog({ open, onOpenChange, search }) {
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="max-h-[85vh] overflow-y-auto">
 				<DialogHeader>
-					<DialogTitle>Export Excel</DialogTitle>
+					<DialogTitle>Ekspor Excel</DialogTitle>
 					<DialogDescription>Pilih laporan mana yang ingin diunduh.</DialogDescription>
 				</DialogHeader>
 				<RadioGroup value={status} onValueChange={setStatus} className="gap-2">
@@ -413,7 +413,7 @@ export default function Index(props) {
 				{canExport && (
 					<>
 						<Button size="sm" variant="outline" onClick={() => setExportOpen(true)}>
-							<IconFileSpreadsheet className="mr-1.5 h-4 w-4" /> Export Excel
+							<IconFileSpreadsheet className="mr-1.5 h-4 w-4" /> Ekspor Excel
 						</Button>
 						<ExportDialog open={exportOpen} onOpenChange={setExportOpen} search={params?.search} />
 					</>

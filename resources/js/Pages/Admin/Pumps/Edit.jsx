@@ -681,7 +681,7 @@ export default function Edit({
 								<Link href={route('admin.pumps.index')}>Batal</Link>
 							</Button>
 							<Button type="submit" disabled={processing} className="h-11 rounded-xl px-6">
-								<IconDeviceFloppy className="h-4 w-4" /> Simpan Update
+								<IconDeviceFloppy className="h-4 w-4" /> Simpan Perubahan
 							</Button>
 						</div>
 					</form>

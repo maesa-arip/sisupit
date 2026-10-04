@@ -364,7 +364,7 @@ export function buildNavSections({ auth, url = '' }) {
 				? [
 						{
 							key: 'admin.roles',
-							title: 'Manajemen Role',
+							title: 'Manajemen Peran',
 							icon: IconShieldLock,
 							url: route('admin.roles.index'),
 							active: startsWith('/admin/roles'),
@@ -378,14 +378,14 @@ export function buildNavSections({ auth, url = '' }) {
 						},
 						{
 							key: 'admin.assign-permissions',
-							title: 'Assign Hak Akses',
+							title: 'Atur Hak Akses',
 							icon: IconLockAccess,
 							url: route('admin.assign-permissions.index'),
 							active: startsWith('/admin/assign-permissions'),
 						},
 						{
 							key: 'admin.route-accesses',
-							title: 'Akses Route',
+							title: 'Akses Rute',
 							icon: IconRoute,
 							url: route('admin.route-accesses.index'),
 							active: startsWith('/admin/route-accesses'),
@@ -431,7 +431,7 @@ export function buildNavSections({ auth, url = '' }) {
 						},
 						{
 							key: 'logout',
-							title: 'Keluar (Logout)',
+							title: 'Keluar',
 							icon: IconLogout,
 							url: route('logout'),
 							active: false,

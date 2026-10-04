@@ -916,7 +916,7 @@ class ReportController extends Controller
 
         return inertia('Front/Reports/Edit', [
             'page_settings' => [
-                'title' => 'Edit Laporan',
+                'title' => 'Ubah Laporan',
                 'subtitle' => 'Perbarui judul, deskripsi, patokan, dan foto. Klik simpan setelah selesai.',
                 'method' => 'PUT',
                 'action' => route('front.reports.update', $report->id),

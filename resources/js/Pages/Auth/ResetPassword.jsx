@@ -163,10 +163,10 @@ export default function ResetPassword({ token, email }) {
 			{/* PANE KANAN: AREA GAMBAR */}
 			<div className="relative z-0 hidden border-l border-border bg-muted lg:block">
 				<div className="absolute inset-0 z-10 bg-black/10 mix-blend-multiply dark:bg-black/60"></div>
-				<img src="/images/login.webp" alt="Reset Password" className="h-full w-full object-cover" />
+				<img src="/images/login.webp" alt="Atur ulang kata sandi" className="h-full w-full object-cover" />
 			</div>
 		</div>
 	);
 }
 
-ResetPassword.layout = (page) => <GuestLayout children={page} title="Reset Password" />;
+ResetPassword.layout = (page) => <GuestLayout children={page} title="Atur Ulang Kata Sandi" />;

@@ -145,8 +145,8 @@ class UserController extends Controller
 
         return inertia('Admin/Users/Edit', [
             'page_settings' => [
-                'title' => 'Edit Pengguna',
-                'subtitle' => 'Edit pengguna disini. Klik simpan setelah selesai',
+                'title' => 'Ubah Pengguna',
+                'subtitle' => 'Ubah pengguna di sini. Klik simpan setelah selesai',
                 'method' => 'PUT',
                 'action' => route('admin.users.update', $user),
             ],

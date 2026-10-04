@@ -77,8 +77,8 @@ class RoleController extends Controller
     {
         return inertia('Admin/Roles/Edit', [
             'page_settings' => [
-                'title' => 'Edit Peran',
-                'subtitle' => 'Edit peran disini. Klik simpan setelah selesai',
+                'title' => 'Ubah Peran',
+                'subtitle' => 'Ubah peran di sini. Klik simpan setelah selesai',
                 'method' => 'PUT',
                 'action' => route('admin.roles.update', $role),
             ],

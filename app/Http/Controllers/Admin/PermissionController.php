@@ -77,8 +77,8 @@ class PermissionController extends Controller
     {
         return inertia('Admin/Permissions/Edit', [
             'page_settings' => [
-                'title' => 'Edit Izin',
-                'subtitle' => 'Edit izin disini. Klik simpan setelah selesai',
+                'title' => 'Ubah Izin',
+                'subtitle' => 'Ubah izin di sini. Klik simpan setelah selesai',
                 'method' => 'PUT',
                 'action' => route('admin.permissions.update', $permission),
             ],

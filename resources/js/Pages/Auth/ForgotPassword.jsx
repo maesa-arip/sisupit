@@ -98,7 +98,7 @@ export default function ForgotPassword({ status }) {
 				<div className="absolute inset-0 z-10 bg-black/10 mix-blend-multiply dark:bg-black/60"></div>
 				<img
 					src="/images/login.webp"
-					alt="Forgot Password Illustration"
+					alt="Ilustrasi lupa kata sandi"
 					className="h-full w-full object-cover"
 				/>
 			</div>

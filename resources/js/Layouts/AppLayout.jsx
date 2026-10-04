@@ -260,7 +260,7 @@ export default function AppLayout({ title, children }) {
 												{auth.avatar ? (
 													<img
 														src={auth.avatar}
-														alt="Avatar"
+														alt="Foto profil"
 														className="object-cover w-full h-full"
 													/>
 												) : (
@@ -282,7 +282,7 @@ export default function AppLayout({ title, children }) {
 												{auth.avatar ? (
 													<img
 														src={auth.avatar}
-														alt="User Avatar"
+														alt="Foto profil pengguna"
 														className="object-cover w-full h-full"
 													/>
 												) : (

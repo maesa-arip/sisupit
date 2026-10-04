@@ -56,7 +56,7 @@ export default function Landing({ page_data }) {
 		},
 		{
 			icon: IconRoute,
-			title: 'Respons & Pelacakan Live',
+			title: 'Respons & Pelacakan Langsung',
 			desc: 'Petugas dan relawan meluncur ke lokasi dengan posisi terpantau secara real-time.',
 		},
 		{
@@ -74,7 +74,7 @@ export default function Landing({ page_data }) {
 		},
 		{
 			icon: IconRoute,
-			title: 'Pelacakan Lokasi Live',
+			title: 'Pelacakan Lokasi Langsung',
 			desc: 'Pantau pergerakan responder menuju lokasi kejadian secara langsung.',
 		},
 		{

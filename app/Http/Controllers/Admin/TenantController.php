@@ -102,7 +102,7 @@ class TenantController extends Controller
             'editions' => TenantEdition::options(),
             'feature_options' => $this->featureOptions(),
             'page_settings' => [
-                'title' => 'Edit Instansi / Kabupaten',
+                'title' => 'Ubah Instansi / Kabupaten',
                 'subtitle' => 'Perbarui identitas publik kabupaten ini. Klik simpan setelah selesai.',
                 'method' => 'PUT',
                 'action' => route('admin.tenants.update', $tenant),

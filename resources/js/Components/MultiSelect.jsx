@@ -45,7 +45,7 @@ export const MultiSelect = React.forwardRef(
 			onValueChange,
 			variant,
 			defaultValue = [],
-			placeholder = 'Select options',
+			placeholder = 'Pilih opsi',
 			animation = 0,
 			maxCount = 3,
 			modalPopover = false,
@@ -149,7 +149,7 @@ export const MultiSelect = React.forwardRef(
 											)}
 											style={{ animationDuration: `${animation}s` }}
 										>
-											{`+ ${selectedValues.length - maxCount} more`}
+											{`+ ${selectedValues.length - maxCount} lainnya`}
 											<XCircle
 												className="ml-2 h-4 w-4 cursor-pointer"
 												onClick={(event) => {
@@ -182,9 +182,9 @@ export const MultiSelect = React.forwardRef(
 				</PopoverTrigger>
 				<PopoverContent className="w-auto p-0" align="start" onEscapeKeyDown={() => setIsPopoverOpen(false)}>
 					<Command>
-						<CommandInput placeholder="Search..." className="my-2" onKeyDown={handleInputKeyDown} />
+						<CommandInput placeholder="Cari..." className="my-2" onKeyDown={handleInputKeyDown} />
 						<CommandList>
-							<CommandEmpty>No results found.</CommandEmpty>
+							<CommandEmpty>Tidak ada hasil.</CommandEmpty>
 							<CommandGroup>
 								<CommandItem key="all" onSelect={toggleAll} className="cursor-pointer">
 									<div
@@ -197,7 +197,7 @@ export const MultiSelect = React.forwardRef(
 									>
 										<CheckIcon className="h-4 w-4" />
 									</div>
-									<span>(Select All)</span>
+									<span>(Pilih Semua)</span>
 								</CommandItem>
 								{options.map((option) => {
 									const isSelected = selectedValues.includes(option.value);
@@ -234,7 +234,7 @@ export const MultiSelect = React.forwardRef(
 												onSelect={handleClear}
 												className="flex-1 cursor-pointer justify-center"
 											>
-												Clear
+												Bersihkan
 											</CommandItem>
 											<Separator orientation="vertical" className="flex h-full min-h-6" />
 										</>
@@ -243,7 +243,7 @@ export const MultiSelect = React.forwardRef(
 										onSelect={() => setIsPopoverOpen(false)}
 										className="max-w-full flex-1 cursor-pointer justify-center"
 									>
-										Close
+										Tutup
 									</CommandItem>
 								</div>
 							</CommandGroup>
