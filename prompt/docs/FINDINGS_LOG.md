@@ -2399,6 +2399,11 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **Tanpa test penjaga** — sama seperti PENGECUALIAN #2, ini rupa; `MobileNavParityTest`
   menjaga isi menu, bukan warnanya. Verifikasinya visual di ponsel.
 
+- **Catatan 2026-10-05:** keputusan "bilah bawah padat, tanpa tembus pandang" (bagian dari rangkaian keputusan rupa
+  di sekitar temuan ini) DITIMPA PENGECUALIAN_ATURAN #5 - apple-design penuh (material tembus pandang di header &
+  bilah bawah) - yang kini PERMANEN setelah `feat/mobile-native-polish` di-merge ke `main`. Jangan "memperbaiki" bilah
+  bawah kembali padat tanpa keputusan user.
+
 ---
 
 ### #107 — Tombol "Kirim Laporan Darurat" menyalin gayanya sendiri & melayang berjarak dari bilah (FIXED)

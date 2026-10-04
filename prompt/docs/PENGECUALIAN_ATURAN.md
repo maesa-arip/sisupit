@@ -224,9 +224,9 @@
   `theme-color` per skema warna.
 - **Disetujui:** user, **2026-10-01** - "khusus branch baru ini gunakan apple-design dan pengecualian
   desain sebelumnya boleh diabaikan, khusus branch ini saja".
-- **Batas:** HANYA branch `feat/mobile-native-polish`. Merge ke `main` = keputusan tersendiri; kalau user
-  memutuskan merge, entri ini berubah jadi pengecualian permanen dan #106 di FINDINGS harus dirujuk ke
-  sini. Yang TIDAK disentuh meski boleh: tombol merah brand (#4), bentuk & ikon padat bilah bawah (#2,
+- **Batas:** semula HANYA branch `feat/mobile-native-polish`. **PERMANEN sejak 2026-10-05**: user memerintahkan
+  "merge semua ke main" - branch itu di-merge (fast-forward) ke `main`, jadi pengecualian ini kini berlaku untuk
+  seluruh aplikasi; FINDINGS #106 sudah merujuk ke sini. Yang TIDAK disentuh meski boleh: tombol merah brand (#4), bentuk & ikon padat bilah bawah (#2,
   #3), kerangka dashboard (#118 - apple-design tidak menuntut tepi-ke-tepi), dan aturan dependensi
   (pegas ditiru kurva CSS, bukan pustaka baru).
 - **Konsekuensi yang diterima:** konten kini terlihat samar di balik header & bilah bawah saat digulir

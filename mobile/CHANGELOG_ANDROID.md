@@ -8,6 +8,17 @@ iOS** sebagai daftar centang. Sisi iOS mencentang (`[x]`) saat sudah di-port.
 
 ---
 
+## 1.1.6 / versionCode 8 (build Play Store) - 2026-10-04 - minSdk 21 -> 24, alamat produksi
+
+- Play Console menolak AAB: "Play automatic protection requires a minimum SDK version of 24".
+  `app/build.gradle` `minSdk 21` -> `24` (cadangan `build.gradle.bak-minsdk21`). Android 5.x-6.x
+  (API 21-23) tak lagi didukung. versionCode tetap 8 (unggahan yang ditolak tak memakai kode versi).
+- Dibangun `gradlew clean bundleRelease` TANPA `-PsisupitBaseUrl` -> `BASE_URL` = `https://sisupit.com/`
+  (diverifikasi di DEX), ditandatangani kunci unggah (SHA-1 `CA:6F:A8:...`).
+
+**Yang harus dilakukan iOS**
+- Tidak ada (khusus Android).
+
 ## 1.1.6 / versionCode 8 - 2026-10-03 - tarik-untuk-refresh tak lagi menyala di tengah gulir (#162)
 
 - `MainActivity.java`: `setPullToRefreshEnabled(bool)` kini menyetel bendera `pullToRefreshBlocked`
