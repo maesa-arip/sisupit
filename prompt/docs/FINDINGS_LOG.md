@@ -4185,3 +4185,14 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   tersedia", "Belum Ada Kejadian"; Riwayat menyaring laporan yang sudah tampil di "Laporan Anda" dan seksinya
   disembunyikan bila isinya hanya itu.
 - **Penjaga:** `DashboardPerPeranTest` #176. **Status:** FIXED 2026-10-04.
+
+### #177 — APK: `sendTokenToServer()` memanggil `api/fcm-token` yang tidak ada (404 di produksi) (OPEN)
+
+- **Ditemukan (2026-10-04, saat menangani APK dev yang kena 401 gerbang basic auth):** `MainActivity.java`
+  (`SisupitWebView`, di luar git) mengirim token FCM lewat `HttpURLConnection` ke `BASE_URL + "api/fcm-token"` dengan
+  header `Authorization: Bearer ...`. Route itu DIKOMENTARI di `routes/api.php:11`; yang hidup adalah `POST /fcm-token`
+  di `routes/web.php` (grup `auth`, sesi). Bukti: `POST https://sisupit.com/api/fcm-token` = 404, `POST /fcm-token` = 302.
+- **Dampak:** jalur native itu selalu gagal diam-diam; token kemungkinan hanya terdaftar lewat jalur WebView (JS ->
+  `/fcm-token`). Perlu dipastikan sebelum mengandalkan push di perangkat yang belum pernah membuka WebView setelah login.
+- **Tidak dikerjakan** (di luar scope TASK_72, menyentuh APK). Pilihan: hapus jalur native, atau arahkan ke route yang
+  benar dengan otentikasi yang cocok (Sanctum vs sesi). **Status:** OPEN.

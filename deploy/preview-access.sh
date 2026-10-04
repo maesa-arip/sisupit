@@ -33,7 +33,9 @@ else
     echo "basic auth: memakai $HT yang sudah ada (user: sisupit)"
 fi
 mkdir -p /etc/nginx/snippets
-printf 'auth_basic "Sisupit Pratinjau";\nauth_basic_user_file %s;\n' "$HT" > "$SNIP"
+# Snippet hanya dibuat bila belum ada: preview-apk-exempt.sh menggantinya dengan versi ber-variabel (APK
+# dikecualikan) - menjalankan ulang skrip ini tak boleh diam-diam mencabut pengecualian itu.
+[ -f "$SNIP" ] || printf 'auth_basic "Sisupit Pratinjau";\nauth_basic_user_file %s;\n' "$HT" > "$SNIP"
 
 if grep -q "sisupit-preview-auth.conf" "$VHOST"; then
     echo "vhost sudah memuat gerbang - tidak diubah"
