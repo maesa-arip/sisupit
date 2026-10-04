@@ -82,6 +82,39 @@ it('hides the Inertia progress bar only when a layout that draws the skeleton is
     expect(navSource('resources/js/app.jsx'))->toContain('progress: {');
 });
 
+it('transitions page content with opacity only and no hard cut', function () {
+    $nav = navSource('resources/js/lib/navigation.js');
+    expect(preg_match('/export function usePageTransition\(ref, pendingVisit\) \{(.*?)\n\}/s', $nav, $m))->toBe(1);
+    $hook = $m[1];
+
+    // Hanya opacity (data yang dibaca tak boleh bergeser); tak ada transform/translate/scale.
+    preg_match_all('/el\.animate\(\s*\[(.*?)\]/s', $hook, $frames);
+    expect($frames[1])->toHaveCount(3);
+    foreach ($frames[1] as $keyframes) {
+        expect($keyframes)->toContain('opacity')->not->toMatch('/transform|translate|scale/');
+    }
+
+    // Halaman lama memudar keluar selama jeda kerangka; kunjungan gagal = fade dilepas (cancel).
+    expect($hook)->toMatch('/duration: SKELETON_DELAY_MS,\s*easing: PAGE_FADE_EASING,\s*fill: \'forwards\'/')
+        ->and($hook)->toContain('leaving.current?.cancel();')
+        // Fade masuk sesudah frame berat: dua requestAnimationFrame bersarang + gaya inline dibersihkan.
+        ->and($hook)->toMatch('/requestAnimationFrame\(\(\) => \{\s*second = requestAnimationFrame\(\(\) => \{\s*el\.style\.opacity = \'\';\s*el\.animate/')
+        ->and($hook)->toMatch('/return \(\) => \{\s*cancelAnimationFrame\(first\);\s*cancelAnimationFrame\(second\);\s*el\.style\.opacity = \'\';/');
+
+    // Kurva = token ease-spring repo, bukan kurva baru.
+    expect($nav)->toContain("const PAGE_FADE_EASING = 'cubic-bezier(0.32, 0.72, 0, 1)';");
+    expect(file_get_contents(base_path('tailwind.config.js')))->toContain("spring: 'cubic-bezier(0.32, 0.72, 0, 1)'");
+
+    expect(navSource('resources/js/Layouts/AppLayout.jsx'))->toContain('usePageTransition(contentRef, pendingVisit);')
+        ->toContain('<div ref={contentRef} className="p-4 lg:p-8">');
+    expect(navSource('resources/js/Components/PageSkeleton.jsx'))->toMatch('/className="[^"]*\banimate-in\b[^"]*\bfade-in-0\b[^"]*"/');
+});
+
+it('does not animate the petugas dashboard mini map zoom while the page arrives', function () {
+    expect(navSource('resources/js/Pages/Petugas/Dashboard.jsx'))
+        ->toContain('map.fitBounds(group.getBounds().pad(0.3), { animate: false });');
+});
+
 it('marks the destination active in both navigation surfaces', function () {
     expect(navSource('resources/js/Layouts/AppLayout.jsx'))->toContain('const url = useNavUrl();')
         ->toContain('<Sidebar url={url}');

@@ -1,5 +1,5 @@
 import { router, usePage } from '@inertiajs/react';
-import { useEffect, useSyncExternalStore } from 'react';
+import { useEffect, useLayoutEffect, useRef, useSyncExternalStore } from 'react';
 
 /**
  * Navigasi instan (TASK_70). Inertia baru mengganti layar setelah respons server tiba, jadi
@@ -20,13 +20,22 @@ import { useEffect, useSyncExternalStore } from 'react';
  * 2026-10-04 (FINDINGS #166). Pakai `prefetch` hanya setelah Inertia di-upgrade.
  */
 
-const SKELETON_DELAY_MS = 80;
+// 120 ms: respons yang tiba sedikit di atas ambang membuat kerangka berkedip sekilas lalu langsung
+// diganti - dua lompatan beruntun itulah yang terasa "patah-patah" (keluhan user 2026-10-04 di dev).
+// Menu aktif tetap berubah seketika; ambang ini hanya untuk kerangka.
+const SKELETON_DELAY_MS = 120;
+// Masuknya halaman baru setelah kerangka (skill animate: pencegah perubahan mendadak, puluhan kali
+// sehari -> opacity saja, singkat). Kurvanya = token `ease-spring` di tailwind.config.js.
+const PAGE_FADE_EASING = 'cubic-bezier(0.32, 0.72, 0, 1)';
+const ARRIVAL_FADE = { duration: 200, easing: PAGE_FADE_EASING };
 
 let pending = null; // { url: '/path?query', skeleton: boolean }
 let skeletonTimer = null;
 let asyncInFlight = 0;
 // Jumlah AppLayout yang terpasang = yang sanggup menggambar kerangka (Auth, Landing tidak).
 let skeletonHosts = 0;
+// Kerangka sempat tampil untuk kunjungan yang baru selesai -> halaman berikutnya masuk dengan fade.
+let arrivedFromSkeleton = false;
 const listeners = new Set();
 
 function emit(next) {
@@ -46,7 +55,9 @@ const pathOf = (url) => url.pathname + url.search;
 
 function clearPending() {
 	clearTimeout(skeletonTimer);
-	if (pending) emit(null);
+	if (!pending) return;
+	if (pending.skeleton) arrivedFromSkeleton = true;
+	emit(null);
 }
 
 function isPageVisit(visit) {
@@ -126,6 +137,66 @@ export function useSkeletonHost() {
 			skeletonHosts--;
 		};
 	}, []);
+}
+
+/**
+ * Transisi isi halaman (skill animate: pencegah perubahan mendadak, puluhan kali sehari -> opacity
+ * saja, singkat, kurva token `ease-spring`; data yang dibaca tak boleh bergeser demi gaya; reduced
+ * motion tetap fade). WAAPI pada opacity berjalan di compositor (dicek di trace Chrome). Urutan tanpa
+ * satu pun potongan keras (dulu tiga, terasa "patah-patah"):
+ *   1. ketukan        -> halaman lama memudar keluar selama jeda kerangka;
+ *   2. kerangka tampil -> fade keluar dilepas (halaman lama sudah tersembunyi), kerangka memudar masuk
+ *                         lewat kelas CSS-nya sendiri;
+ *   3. respons tiba    -> halaman baru memudar masuk. Bila datang dari kerangka, fade ditunda DUA frame:
+ *                         frame pertama halaman baru itu berat (render, layout awal, peta - 0,5-1 dtk
+ *                         pada CPU 4x lebih lambat) dan fade yang dimulai saat commit habis di dalamnya.
+ * Kunjungan gagal/batal = halaman lama kembali penuh.
+ */
+export function usePageTransition(ref, pendingVisit) {
+	const leaving = useRef(null);
+	const navigating = Boolean(pendingVisit);
+	const skeleton = Boolean(pendingVisit?.skeleton);
+
+	useLayoutEffect(() => {
+		const el = ref.current;
+		if (!el?.animate) return;
+
+		if (navigating && !skeleton) {
+			leaving.current = el.animate([{ opacity: 1 }, { opacity: 0 }], {
+				duration: SKELETON_DELAY_MS,
+				easing: PAGE_FADE_EASING,
+				fill: 'forwards',
+			});
+			return;
+		}
+
+		// Opasitas terakhir halaman lama (respons yang tiba sebelum kerangka sempat tampil).
+		const from = leaving.current ? Number(getComputedStyle(el).opacity) : 1;
+		leaving.current?.cancel();
+		leaving.current = null;
+		if (navigating) return; // kerangka tampil: ia memudar masuk sendiri
+
+		if (!arrivedFromSkeleton) {
+			if (from < 1) el.animate([{ opacity: from }, { opacity: 1 }], ARRIVAL_FADE);
+			return;
+		}
+		arrivedFromSkeleton = false;
+
+		el.style.opacity = '0';
+		let second;
+		const first = requestAnimationFrame(() => {
+			second = requestAnimationFrame(() => {
+				el.style.opacity = '';
+				el.animate([{ opacity: 0 }, { opacity: 1 }], ARRIVAL_FADE);
+			});
+		});
+
+		return () => {
+			cancelAnimationFrame(first);
+			cancelAnimationFrame(second);
+			el.style.opacity = '';
+		};
+	}, [navigating, skeleton, ref]);
 }
 
 /** Kunjungan halaman yang sedang berjalan, atau null. */

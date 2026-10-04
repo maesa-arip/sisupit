@@ -144,6 +144,21 @@ Commit A, B, (C) terpisah -> `git revert` per bagian. A cukup dilepas dari AppLa
   AppLayout->/login = kerangka tanpa progress bar; /login<->/register = progress bar tampil (tak ada status bocor).
   Penjaga: test ke-7 `NavigasiInstanTest`, sabotase 2x MERAH (tanpa syarat host; host tak didaftarkan).
   Suite 680 passed, 3459 assertions; build lulus.
+- **Lanjutan 2 (2026-10-04) - "animasinya tidak smooth seperti patah2" setelah deploy dev.** Skill emilkowalski
+  diarsipkan lengkap di `.claude/skills-archive/emilkowalski/` (14 skill + cheatsheet, MIT); `animate` &
+  `improve-animations` diaktifkan di `.claude/skills/`. Diagnosis (Chrome, CPU 4x, jaringan lambat):
+  - perpindahan = TIGA potongan keras (halaman lama -> kerangka di 80 ms -> halaman baru), tanpa transisi;
+  - frame pertama halaman baru berat (render + layout awal + peta, 0,5-1 dtk di CPU 4x) - fade yang dimulai saat
+    commit habis di dalamnya (sampler rAF: 0 -> 0,99);
+  - peta mini dashboard petugas melakukan zoom beranimasi (`fitBounds`) tepat di frame itu (`_tryAnimatedZoom` di
+    profil; 34 animasi transform marker/tile, 3 gagal composite).
+  Perbaikan: `usePageTransition` (lib/navigation.js) - halaman lama memudar keluar selama jeda kerangka, kerangka
+  memudar masuk (`animate-in fade-in-0 duration-150 ease-spring`), halaman baru memudar masuk 200 ms setelah DUA
+  frame; jeda kerangka 80 -> 120 ms; `fitBounds(..., { animate: false })`. Trace: fade WAAPI ter-composite (tanpa
+  `compositeFailed`). Screencast compositor (kecerahan area isi per frame): sebelum = 227 -> 250 dalam satu
+  frame; sesudah = 228 -> 237 -> 246 -> 248 -> 249 -> 250 (bertahap). Kunjungan gagal sebelum/sesudah kerangka:
+  opacity kembali 1, tanpa gaya inline tersisa, isian form utuh. Penjaga: 2 test baru, sabotase 3x MERAH.
+  Temuan di luar scope: #167 (denyut marker di dalam drop-shadow). Suite 682 passed, 3477 assertions; build lulus.
 
 **B dibatalkan:** prefetch sempat dipasang (sentuh di bilah bawah, hover di sidebar) lalu uji Chrome offline
 membuktikan bug Inertia 2.0.3: prefetch gagal/disela meninggalkan entri in-flight yang ditolak, klik berikutnya

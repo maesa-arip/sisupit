@@ -120,7 +120,9 @@ export default function PetugasDashboard({
 
 		if (markers.length > 0) {
 			const group = new window.L.featureGroup(markers);
-			map.fitBounds(group.getBounds().pad(0.3));
+			// Tanpa animasi zoom: peta ini dibuat tepat saat halaman masuk, dan zoom beranimasi (puluhan
+			// transform marker & tile) berjalan di frame tersibuk -> terasa patah di ponsel (TASK_70).
+			map.fitBounds(group.getBounds().pad(0.3), { animate: false });
 		}
 
 		return () => {

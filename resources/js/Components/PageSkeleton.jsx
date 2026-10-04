@@ -102,7 +102,13 @@ export default function PageSkeleton({ url }) {
 	const Variant = VARIANTS[skeletonVariant(url)];
 
 	return (
-		<div role="status" aria-busy="true" aria-label="Memuat halaman" className="relative flex w-full flex-col space-y-6">
+		<div
+			role="status"
+			aria-busy="true"
+			aria-label="Memuat halaman"
+			// Masuk dengan fade, bukan muncul mendadak (CSS animation = di luar main thread).
+			className="relative flex w-full flex-col space-y-6 duration-150 ease-spring animate-in fade-in-0"
+		>
 			<Variant />
 		</div>
 	);

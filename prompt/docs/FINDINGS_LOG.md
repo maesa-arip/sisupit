@@ -4075,3 +4075,16 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   tersendiri (MASTER_PROMPT: upgrade dependency); sesudahnya ulangi skenario offline & hover cepat di Chrome sebelum
   memasang prefetch.
 - **Status:** OPEN (dimitigasi: tak ada prefetch di kode).
+
+### #167 — Marker peta mini dashboard petugas: `animate-pulse` di dalam `filter: drop-shadow` digambar ulang tiap frame (OPEN)
+
+- **Ditemukan (2026-10-04, TASK_70 lanjutan, keluhan user "animasinya tidak smooth seperti patah2"):** trace
+  Chrome dashboard petugas mencatat ~31 animasi `pulse` pada `divIcon` marker
+  (`<div class="text-destructive animate-pulse">` di dalam ikon `className: 'bg-transparent border-none filter
+  drop-shadow-md'`, `Pages/Petugas/Dashboard.jsx` ~105). Filter pada INDUK elemen yang opasitasnya beranimasi
+  harus di-raster ulang setiap frame - beban terus-menerus selama dashboard terbuka, terasa di ponsel kelas bawah.
+- **Yang sudah dikerjakan di TASK_70:** hanya `fitBounds(..., { animate: false })` - zoom beranimasi saat peta
+  dibuat jatuh tepat di frame tersibuk kedatangan halaman. Rupa marker TIDAK diubah (keputusan desain).
+- **Usul (butuh keputusan user):** pindahkan bayangan ke dalam SVG (atau buang), atau denyutkan hanya marker
+  terbaru, atau hentikan denyut di ponsel. Ukur ulang dengan trace CPU 4x.
+- **Status:** OPEN.

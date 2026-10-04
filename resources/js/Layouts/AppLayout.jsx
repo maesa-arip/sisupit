@@ -4,11 +4,11 @@ import PageSkeleton from '@/Components/PageSkeleton';
 import SoundNotificationControl from '@/Components/SoundNotificationControl';
 import ThemeSwitcher from '@/Components/ThemeSwitcher';
 import { Toaster } from '@/Components/ui/sonner';
-import { useNavUrl, usePendingVisit, useSkeletonHost } from '@/lib/navigation';
+import { useNavUrl, usePageTransition, usePendingVisit, useSkeletonHost } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { IconBell } from '@tabler/icons-react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import MobileBottomNav from './Partials/MobileBottomNav';
 import Sidebar from './Partials/Sidebar';
 
@@ -20,6 +20,8 @@ export default function AppLayout({ title, children }) {
 	const pendingVisit = usePendingVisit();
 	// Kerangka menggantikan progress bar Inertia selama layout ini terpasang (lib/navigation.js).
 	useSkeletonHost();
+	const contentRef = useRef(null);
+	usePageTransition(contentRef, pendingVisit);
 	const announcemet = usePage().props.announcemet;
 	const auth = usePage().props.auth?.user ?? null;
 	const notifications = usePage().props.notifications ?? [];
@@ -331,7 +333,7 @@ export default function AppLayout({ title, children }) {
 					    sehingga layar lebar kosong di kiri-kanan, sementara tabel Pengguna terpotong & harus digulir
 					    untuk mencapai tombol Ubah. Form & teks bacaan tetap sempit lewat max-w milik halamannya. */}
 					<main className="w-full flex-1">
-						<div className="p-4 lg:p-8">
+						<div ref={contentRef} className="p-4 lg:p-8">
 							{/* Navigasi instan (TASK_70): kerangka tujuan tampil sebelum respons tiba. Halaman lama
 							    DISEMBUNYIKAN, bukan dilepas - kalau kunjungan gagal (sinyal putus), isian form yang
 							    sudah diketik & peta tetap utuh saat ia muncul kembali. `contents` = pembungkus ini tak
