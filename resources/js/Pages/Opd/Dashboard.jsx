@@ -1,4 +1,5 @@
 import { AppEmpty, AppGreeting, AppList, AppListRow, AppSection } from '@/Components/AppSection';
+import StatusBadge from '@/Components/StatusBadge';
 import useReportFeed from '@/hooks/use-report-feed';
 import AppLayout from '@/Layouts/AppLayout';
 import { cn } from '@/lib/utils';
@@ -87,14 +88,15 @@ export default function OpdDashboard({ agencyName, requests = [], feed_channel =
 										</div>
 									}
 									title={item.title}
+									aside={item.time}
 									meta={
 										<>
-											<span className="hidden min-w-0 items-center gap-1.5 md:flex">
-												<IconMapPin className="h-3.5 w-3.5 shrink-0" />
-												<span className="truncate">{item.location}</span>
+											{/* Lokasi tampil juga di ponsel: mitra yang dimintai bantuan perlu tahu
+											    KE MANA, dan ponsel justru alat utamanya di lapangan. */}
+											<span className="flex min-w-0 items-start gap-1.5">
+												<IconMapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+												<span>{item.location}</span>
 											</span>
-											<span className="hidden text-muted-foreground/60 md:inline">•</span>
-											<span className="shrink-0">{item.time}</span>
 											{item.requires_confirmation && (
 												<span
 													className={cn(
@@ -114,6 +116,11 @@ export default function OpdDashboard({ agencyName, requests = [], feed_channel =
 												</span>
 											)}
 										</>
+									}
+									badges={
+										/* Status insiden (sudah dikirim server sejak TASK_27, dulu tak dipakai):
+										   tanpa ini OPD tak tahu apakah kejadiannya masih berlangsung. */
+										<StatusBadge status={item.status} />
 									}
 								/>
 							);

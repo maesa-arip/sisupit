@@ -125,7 +125,9 @@ it('animates only the arrival after a skeleton, with opacity, and never fades th
 
 it('does not animate the petugas dashboard mini map zoom while the page arrives', function () {
     expect(navSource('resources/js/Pages/Petugas/Dashboard.jsx'))
-        ->toContain('map.fitBounds(group.getBounds().pad(0.3), { animate: false });');
+        // Sejak TASK_71 bingkainya = misi + posisi petugas (fitMissionsAndMe); tetap tanpa animasi.
+        ->toContain('map.fitBounds(bounds.pad(0.3), { animate: false });')
+        ->toContain('map.setView(myMarkerRef.current.getLatLng(), 13, { animate: false });');
 });
 
 it('never animates Leaflet markers (FINDINGS #167)', function () {

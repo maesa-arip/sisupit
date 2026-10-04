@@ -7,6 +7,7 @@ import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import useReportFeed from '@/hooks/use-report-feed';
 import AppLayout from '@/Layouts/AppLayout';
+import { firstName as getFirstName } from '@/lib/first-name';
 import { reportIcon } from '@/lib/report-icon';
 import { cn, GEO_OPTIONS, reportNumber, timeAgo } from '@/lib/utils';
 import { Link, router } from '@inertiajs/react';
@@ -28,11 +29,18 @@ import { toast } from 'sonner';
 
 export default function Dashboard(props) {
 	const auth = props.auth.user;
-	const firstName = auth?.name ? auth.name.split(' ').find((word) => word.length >= 3) || 'Warga' : 'Warga';
+	const firstName = getFirstName(auth?.name, 'Warga');
 
 	const myReports = props.myReports || [];
 	// Laporan milik sendiri yang masih berjalan (#165) - status & tahapnya di puncak Beranda.
 	const activeReports = props.activeReports || [];
+	// Riwayat tanpa laporan yang sudah tampil di kartu "Laporan Anda" - dulu laporan yang baru
+	// dikirim muncul dua kali di layar yang sama (TASK_71).
+	const activeReportIds = new Set(activeReports.map((r) => r.id));
+	const historyReports = myReports.filter((r) => !activeReportIds.has(r.id));
+	// Seksi riwayat kosong tepat di bawah laporan aktif ("Belum ada riwayat") menyangkal kartu di
+	// atasnya; ia baru tampil bila ada isinya, atau bila pengguna memang belum pernah melapor.
+	const showHistory = historyReports.length > 0 || activeReports.length === 0;
 	// Tugas relawan ini (lintas wilayah, bypass scope desa) — dipakai khusus tab "Tugas Saya"
 	// agar tugasnya sendiri tak hilang saat insidennya di luar desanya.
 	const myTasks = props.myTasks || [];
@@ -180,15 +188,20 @@ export default function Dashboard(props) {
 		);
 	};
 
-	const RenderMyHistory = () => (
+	// Fungsi render biasa, BUKAN komponen: komponen yang dideklarasikan di dalam render adalah
+	// tipe baru tiap render, sehingga React membongkar & memasang ulang seluruh seksi (beserta
+	// state tiap ReportCard) setiap ganti tab atau tiap siaran Reverb.
+	const renderMyHistory = () => (
 		<AppSection
 			title="Riwayat Laporan Saya"
 			icon={IconHistory}
-			action={myReports?.length > 3 ? { href: route('front.reports.index'), label: 'Lihat semua' } : undefined}
+			action={
+				historyReports.length > 3 ? { href: route('front.reports.index'), label: 'Lihat semua' } : undefined
+			}
 		>
 			<AppList className="max-md:[&>a:nth-of-type(n+4)]:hidden">
-				{myReports && myReports.length > 0 ? (
-					myReports.map((report) => {
+				{historyReports.length > 0 ? (
+					historyReports.map((report) => {
 						// Ikon jenis kejadian - sama dengan halaman Arsip & Riwayat (#161).
 						const { Icon: ReportIcon, className: iconStyle } = reportIcon(report);
 
@@ -218,7 +231,7 @@ export default function Dashboard(props) {
 								meta={
 									<span className="flex items-start gap-1.5">
 										<IconMapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-										<span>{report.address || 'Lokasi Terdeteksi'}</span>
+										<span>{report.address || 'Alamat belum tersedia'}</span>
 									</span>
 								}
 								badges={<StatusBadge status={report.status} />}
@@ -236,7 +249,7 @@ export default function Dashboard(props) {
 		</AppSection>
 	);
 
-	const RenderRadarFeed = () => (
+	const renderRadarFeed = () => (
 		<AppSection title={isRelawan ? 'Radar Insiden' : 'Kejadian di Sekitar'} icon={IconCheckupList}>
 			{isRelawan && (
 				<div className="no-scrollbar flex space-x-1 overflow-x-auto rounded-xl bg-muted p-1">
@@ -286,14 +299,14 @@ export default function Dashboard(props) {
 								? 'Kondisi Terkendali'
 								: activeTab === 'tugas_saya'
 									? 'Belum Ada Tugas'
-									: 'Data Kosong'
+									: 'Belum Ada Kejadian'
 						}
 						description={
 							activeTab === 'menunggu'
 								? 'Tidak ada laporan baru di sekitar yang membutuhkan respons.'
 								: activeTab === 'tugas_saya'
 									? 'Anda belum mengambil tugas penyelamatan apa pun saat ini.'
-									: 'Tidak ada data laporan tersedia.'
+									: 'Belum ada kejadian di sekitar Anda.'
 						}
 					/>
 				</div>
@@ -348,11 +361,15 @@ export default function Dashboard(props) {
 							variant="outline"
 							className={cn(
 								'rounded-full border px-2.5 py-0.5 text-xs font-semibold shadow-none',
-								isRelawan ? 'bg-volunteer text-volunteer-foreground' : 'bg-muted text-foreground/80',
+								isRelawan && isStandby
+									? 'bg-volunteer text-volunteer-foreground'
+									: 'bg-muted text-foreground/80',
 							)}
 						>
 							<IconShieldCheck className="mr-1 h-3.5 w-3.5" stroke={2.5} />{' '}
-							{isRelawan ? 'Relawan Siaga' : 'Warga Umum'}
+							{/* Lencana mengikuti saklar StandbyCard di bawahnya - dulu selalu "Siaga"
+							    walau siaga sedang dimatikan. */}
+							{isRelawan ? (isStandby ? 'Relawan Siaga' : 'Relawan - Tidak Siaga') : 'Warga Umum'}
 						</Badge>
 						<span className="hidden items-center gap-1.5 text-xs font-medium text-muted-foreground md:flex">
 							<IconMapPin className="h-3.5 w-3.5 text-destructive" /> Layanan Darurat Sisupit
@@ -423,13 +440,13 @@ export default function Dashboard(props) {
 			    (AppSection), dan garis mendatar selebar halaman adalah idiom dokumen. */}
 			{isRelawan ? (
 				<>
-					<RenderRadarFeed />
-					<RenderMyHistory />
+					{renderRadarFeed()}
+					{showHistory && renderMyHistory()}
 				</>
 			) : (
 				<>
-					<RenderMyHistory />
-					<RenderRadarFeed />
+					{showHistory && renderMyHistory()}
+					{renderRadarFeed()}
 				</>
 			)}
 		</div>

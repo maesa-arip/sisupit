@@ -7,6 +7,7 @@ use App\Models\Hydrant;
 use App\Models\Regu;
 use App\Models\Report;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
@@ -143,6 +144,10 @@ class DashboardController extends Controller
                 'pendingResolutions' => $pendingResolutions->toArray(),
                 'myRegu' => $myRegu ? ['name' => $myRegu->name, 'is_leader' => $myRegu->isLeader($user)] : null,
                 'feed_channel' => $user->reportFeedChannel(),
+                // Titik awal peta taktis = pusat wilayah tersempit akun (kolom `meta` laravolt:
+                // {lat, long} per kecamatan/kabupaten). Dulu koordinat Denpasar ditulis mati di JSX,
+                // keliru untuk tenant lain. `users` tak punya kolom lat/lng (lihat FINDINGS #174).
+                'tenant_location' => $this->regionCenter($user),
             ]);
         }
 
@@ -275,5 +280,25 @@ class DashboardController extends Controller
             ],
             'feed_channel' => $user->reportFeedChannel(),
         ]);
+    }
+
+    /**
+     * Pusat wilayah akun dari data laravolt (`indonesia_districts`/`indonesia_cities`.meta),
+     * dari yang tersempit. Cadangan Denpasar bila kode wilayah kosong atau meta tak berisi.
+     */
+    private function regionCenter(User $user): array
+    {
+        foreach (['indonesia_districts' => $user->district_code, 'indonesia_cities' => $user->city_code] as $table => $code) {
+            if (! $code) {
+                continue;
+            }
+
+            $meta = json_decode((string) DB::table($table)->where('code', $code)->value('meta'), true);
+            if (isset($meta['lat'], $meta['long'])) {
+                return ['lat' => (float) $meta['lat'], 'lng' => (float) $meta['long']];
+            }
+        }
+
+        return ['lat' => -8.65, 'lng' => 115.22];
     }
 }

@@ -4096,3 +4096,88 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Penjaga:** `NavigasiInstanTest` "never animates Leaflet markers (FINDINGS #167)" - memindai `html:` tiap
   berkas ber-`divIcon(` + kamus `marker:` Peta Pemantauan; sabotase 2x MERAH.
 - **Status:** FIXED 2026-10-04 (branch feat/mobile-native-polish). Suite 683 passed, 3485 assertions.
+
+### #168 — Dashboard petugas menyapa "Siaga, I!" untuk nama Bali (FIXED)
+
+- **Ditemukan (2026-10-04, TASK_71 review dashboard):** `Petugas/Dashboard.jsx` mengambil nama sapaan dengan
+  `split(' ')[0]` -> "I Wayan ..." jadi "Siaga, I!", "Ni Luh ..." jadi "Siaga, Ni!". Beranda warga sudah punya
+  aturan benar (kata pertama >= 3 huruf) tapi hanya di filenya sendiri.
+- **Fix:** `resources/js/lib/first-name.js` `firstName(name, fallback)`, dipakai petugas ('Komandan') & warga ('Warga').
+- **Penjaga:** `DashboardPerPeranTest` #168. **Status:** FIXED 2026-10-04 (feat/mobile-native-polish).
+
+### #169 — Lencana "Relawan Siaga" tidak mengikuti saklar siaga (FIXED)
+
+- **Ditemukan (2026-10-04, TASK_71):** `Pages/Dashboard.jsx` menampilkan "Relawan Siaga" untuk semua relawan,
+  sementara StandbyCard tepat di bawahnya bisa menyatakan siaga NONAKTIF.
+- **Fix:** lencana "Relawan Siaga" (warna volunteer) / "Relawan - Tidak Siaga" (muted) dari `isStandby`.
+- **Penjaga:** `DashboardPerPeranTest` #169. **Status:** FIXED 2026-10-04.
+
+### #170 — Dashboard OPD: lokasi tersembunyi di ponsel & status insiden tak tampil (FIXED)
+
+- **Ditemukan (2026-10-04, TASK_71):** `Opd/Dashboard.jsx` lokasi `hidden md:flex`; `status` sudah dikirim
+  `DashboardController` (jalur OPD) tetapi tak dirender - mitra tak tahu ke mana & apakah kejadian masih berlangsung.
+- **Fix:** lokasi tampil di semua ukuran, waktu ke slot `aside`, `StatusBadge` di slot `badges`. Tanpa perubahan server.
+- **Penjaga:** `DashboardPerPeranTest` #170. **Status:** FIXED 2026-10-04.
+
+### #171 — Banner merah dashboard petugas menghitung laporan `TERLAPOR` (FIXED)
+
+- **Ditemukan (2026-10-04, TASK_71):** banner "Ada N Insiden Aktif!" (berdenyut) memakai `activeMissions.length`,
+  termasuk `TERLAPOR` yang sejak TASK_51/#101 menunggu verifikasi ADMIN - petugas tak bisa bertindak atasnya.
+- **Fix:** merah = `pending`/`handling` saja (+ baris "+N laporan menunggu verifikasi admin"); hanya TERLAPOR =
+  banner kuning tanpa denyut; kosong = hijau.
+- **Penjaga:** `DashboardPerPeranTest` #171. **Status:** FIXED 2026-10-04.
+
+### #172 — Beranda warga/relawan: komponen dideklarasikan di dalam render (FIXED)
+
+- **Ditemukan (2026-10-04, TASK_71):** `RenderMyHistory`/`RenderRadarFeed` dipakai sebagai `<RenderX />` -> tipe
+  komponen baru tiap render; seksi & semua `ReportCard` dibongkar-pasang tiap ganti tab / siaran Reverb (state lokal hilang).
+- **Fix:** jadi fungsi render biasa `renderMyHistory()` / `renderRadarFeed()`; rupa tidak berubah.
+- **Penjaga:** `DashboardPerPeranTest` #172. **Status:** FIXED 2026-10-04.
+
+### #173 — "Sistem Online" di dashboard admin ditulis mati (FIXED)
+
+- **Ditemukan (2026-10-04, TASK_71):** titik hijau berdenyut "Sistem Online" statis - tetap hijau walau Reverb/queue mati.
+- **Keputusan user (2026-10-04):** opsi (a) - sambungkan ke status koneksi sungguhan, bukan dibuang.
+- **Fix:** `resources/js/hooks/use-realtime-status.js` membaca `window.Echo.connector.pusher.connection` (`state` +
+  event `state_change`); label "Realtime aktif" / "Menyambung ulang..." / "Realtime terputus" / "Realtime nonaktif".
+  Catatan: yang diukur hanya WebSocket peramban ini ke Reverb, BUKAN kesehatan queue/DB.
+- **Penjaga:** `DashboardPerPeranTest` #173. **Status:** FIXED 2026-10-04 (belum dicek visual dgn Reverb dimatikan).
+
+### #174 — `getTenantDefaultLocation()` di 5 controller fasilitas selalu Denpasar: `users` tak punya kolom lat/lng (OPEN)
+
+- **Ditemukan (2026-10-04, TASK_71 butir 6):** `Admin/HydrantController`, `HydrantWargaController`, `PompaController`,
+  `PosPemadamController`, `Admin/ReportController` mengembalikan `['lat' => $user->lat ?? -8.65, 'lng' => $user->lng ?? 115.22]`,
+  padahal migrasi `users` tidak punya kolom `lat`/`lng` -> peta fasilitas & laporan tenant di luar Denpasar selalu
+  dibuka di Denpasar.
+- **Usulan fix:** pakai pusat wilayah laravolt (`indonesia_districts`/`indonesia_cities`.meta `{lat, long}`), sama dengan
+  `DashboardController::regionCenter()` (TASK_71); idealnya satu helper bersama. TIDAK dikerjakan (di luar scope dashboard).
+- **Status:** OPEN.
+
+### #175 — Peta taktis petugas: terkunci di ponsel, pusat Denpasar mati, tanpa posisi sendiri, pin seragam (FIXED)
+
+- **Ditemukan (2026-10-04, TASK_71 butir 6):** `Petugas/Dashboard.jsx` `dragging: !L.Browser.mobile` (tak bisa digeser
+  di HP), `setView([-8.65, 115.216667])` ditulis mati (multi-tenant), GPS petugas diambil tapi tak digambar, semua pin
+  merah, popup ber-emoji, jarak haversine berikon `IconRoute` (terbaca sebagai jarak tempuh).
+- **Fix:** geser aktif di ponsel; titik awal = prop `tenant_location` dari `DashboardController::regionCenter()` (meta
+  laravolt kecamatan -> kabupaten -> cadangan Denpasar); titik biru "Posisi Anda" (effect terpisah, tanpa membangun
+  ulang peta) ikut dalam `fitBounds` - tanpa misi peta berpusat ke petugas; warna pin = kamus Peta Pemantauan
+  (TERLAPOR merah, pending kuning, handling hijau); emoji dibuang; `IconRuler2` + "km garis lurus". Animasi tetap mati
+  (#167 / TASK_70 - penjaga NavigasiInstanTest disesuaikan ke `fitMissionsAndMe`).
+- **Penjaga:** `DashboardPerPeranTest` #175 (fitur + sumber). **Status:** FIXED 2026-10-04.
+
+### #176 — Kosmetik dashboard admin/pejabat/warga yang menyesatkan (FIXED)
+
+- **Ditemukan (2026-10-04, TASK_71 butir 8-14):**
+  - kartu "Selesai Bulan Ini" menampilkan `resolved_this_month` yang query-nya menghitung SEMUA laporan selesai, dan
+    satu-satunya kartu yang tak bisa diketuk;
+  - admin disapa nama lengkap; subjudul "Pos Armada - Distribusi Kendaraan" padahal membuka daftar pos; komentar
+    "BENTO GRID" untuk satu tombol; pejabat: `<Head>` "Dashboard Eksekutif" vs judul layout "Pusat Komando";
+  - komentar ikon kartu statistik "kiri di ponsel" padahal ikon `hidden` di ponsel;
+  - warga: alamat kosong ditulis "Lokasi Terdeteksi", empty state "Data Kosong", laporan aktif tampil dua kali
+    (kartu "Laporan Anda" + Riwayat).
+- **Fix:** kartu jadi "Total Selesai" + tautan `status=resolved` (admin & arsip publik untuk pejabat); sapaan pakai
+  `lib/first-name.js`; subjudul "Daftar Pos Pemadam"; judul layout ikut `isPejabat`; ikon kartu TETAP disembunyikan
+  di ponsel (keputusan #159 bagian 16, dijaga AppleDesignMaterialTest) - hanya komentarnya dibenarkan; "Alamat belum
+  tersedia", "Belum Ada Kejadian"; Riwayat menyaring laporan yang sudah tampil di "Laporan Anda" dan seksinya
+  disembunyikan bila isinya hanya itu.
+- **Penjaga:** `DashboardPerPeranTest` #176. **Status:** FIXED 2026-10-04.

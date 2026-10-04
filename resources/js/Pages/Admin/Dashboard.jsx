@@ -4,8 +4,10 @@ import StatusBadge from '@/Components/StatusBadge';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
+import useRealtimeStatus from '@/hooks/use-realtime-status';
 import useReportFeed from '@/hooks/use-report-feed';
 import AppLayout from '@/Layouts/AppLayout';
+import { firstName as getFirstName } from '@/lib/first-name';
 import { reportIcon } from '@/lib/report-icon';
 import { cn } from '@/lib/utils';
 import { Head, Link, router } from '@inertiajs/react';
@@ -24,8 +26,16 @@ import {
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+const REALTIME_META = {
+	connected: { label: 'Realtime aktif', text: 'text-success', dot: 'bg-success' },
+	connecting: { label: 'Menyambung ulang...', text: 'text-warning', dot: 'bg-warning' },
+	offline: { label: 'Realtime terputus', text: 'text-destructive', dot: 'bg-destructive' },
+	disabled: { label: 'Realtime nonaktif', text: 'text-muted-foreground', dot: 'bg-muted-foreground' },
+};
+
 export default function AdminDashboard({ auth, stats, recentReports, isPejabat = false, feed_channel = null }) {
 	const isTopLevelAdmin = !auth?.user?.city_code;
+	const realtimeStatus = useRealtimeStatus();
 
 	// Kejadian baru masuk / status berubah di wilayah ini — segarkan kartu statistik & daftar
 	// laporan terbaru tanpa perlu me-reload halaman.
@@ -99,8 +109,9 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 			>
 				<CardContent className="p-3.5 md:p-5 lg:p-6">
 					<div className="flex items-center justify-between gap-2">
-						{/* Ikon: kiri di ponsel, kanan di desktop - urutannya dibalik lewat `order`
-						    supaya markupnya tetap satu, bukan dua cabang tata letak. */}
+						{/* Ikon: HANYA mulai `md` (kanan) - di ponsel sengaja disembunyikan supaya keempat
+						    angka muat sekaligus (#159 bagian 16, dijaga AppleDesignMaterialTest). Komentar
+						    lama menyebut "kiri di ponsel", keliru sejak ikon disembunyikan (TASK_71). */}
 						<div
 							className={cn(
 								'order-1 hidden shrink-0 rounded-xl p-2 md:order-2 md:block md:rounded-2xl md:p-3.5',
@@ -179,7 +190,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 			    halaman berbingkai adalah hal pertama yang membuat layar ponsel terbaca sebagai
 			    halaman web, dan di sini ia memakan sepertiga layar sebelum ada satu data pun. */}
 			<AppGreeting
-				title={`Halo, ${auth.user.name}`}
+				title={`Halo, ${getFirstName(auth.user.name, 'Admin')}`}
 				meta={
 					<>
 						<Badge
@@ -209,9 +220,22 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 									year: 'numeric',
 								}).format(new Date())}
 							</div>
-							<div className="flex items-center justify-end gap-1 text-xs font-medium text-success">
-								<span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success"></span> Sistem
-								Online
+							{/* Status koneksi Reverb sungguhan (useRealtimeStatus) - dulu "Sistem Online"
+							    yang ditulis mati dan tetap hijau walau realtime putus. */}
+							<div
+								className={cn(
+									'flex items-center justify-end gap-1 text-xs font-medium',
+									REALTIME_META[realtimeStatus].text,
+								)}
+							>
+								<span
+									className={cn(
+										'h-1.5 w-1.5 rounded-full',
+										REALTIME_META[realtimeStatus].dot,
+										realtimeStatus === 'connected' && 'animate-pulse',
+									)}
+								></span>{' '}
+								{REALTIME_META[realtimeStatus].label}
 							</div>
 						</div>
 						{/* Pejabat bersifat read-only (pemantau) — sembunyikan aksi input insiden */}
@@ -270,14 +294,18 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 				    pernah ada kartu yang menampilkannya - nilai yang dihitung lalu dibuang
 				    (bentuk ringan #115). Ia dipasang di sini karena barisnya kini memang butuh
 				    isi keempat, dan datanya sudah terlanjur dibayar tiap kali halaman dibuka.
-				    Biru mengikuti hukum warna repo: Selesai = biru/air. */}
+				    Biru mengikuti hukum warna repo: Selesai = biru/air.
+				    Meski bernama `_this_month`, query-nya menghitung SEMUA laporan selesai
+				    (DashboardController $queryReportsResolved), jadi judulnya "Total Selesai" -
+				    dulu "Selesai Bulan Ini" (TASK_71). Tautannya = daftar status=resolved, isi sama. */}
 				<StatCard
-					title="Selesai Bulan Ini"
+					title="Total Selesai"
 					value={currentStats.resolved_this_month}
 					icon={IconCheck}
 					colorClass="text-info"
 					bgIconClass="bg-info/10"
 					subtitle="Insiden Ditutup"
+					href={route(isPejabat ? 'front.reports.index' : 'admin.reports.index', { status: 'resolved' })}
 				/>
 			</div>
 
@@ -408,7 +436,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 						</Card>
 					</Link>
 
-					{/* BENTO GRID HANYA MUNCUL UNTUK ADMIN (Disembunyikan untuk Pejabat Eksekutif) */}
+					{/* Pintasan Pos Pemadam - hanya admin tingkat atas (tanpa city_code), tidak untuk pejabat. */}
 					{!isPejabat && isTopLevelAdmin && (
 						<div className="grid grid-cols-1 gap-3">
 							<Button
@@ -422,7 +450,7 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 									</div>
 									<div className="ml-1 text-left">
 										<div className="text-[15px] font-semibold text-foreground">Pos Armada</div>
-										<div className="text-[11px] text-muted-foreground">Distribusi Kendaraan</div>
+										<div className="text-[11px] text-muted-foreground">Daftar Pos Pemadam</div>
 									</div>
 								</Link>
 							</Button>
@@ -434,4 +462,8 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 	);
 }
 
-AdminDashboard.layout = (page) => <AppLayout children={page} title="Pusat Komando" />;
+// Judul layout mengikuti peran, sama dengan <Head> - dulu pejabat melihat "Dashboard Eksekutif" di
+// tab peramban tetapi "Pusat Komando" di kepala aplikasi.
+AdminDashboard.layout = (page) => (
+	<AppLayout children={page} title={page.props.isPejabat ? 'Dashboard Eksekutif' : 'Pusat Komando'} />
+);

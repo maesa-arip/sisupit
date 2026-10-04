@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/Components/ui/card';
 import useReportFeed from '@/hooks/use-report-feed';
 import AppLayout from '@/Layouts/AppLayout';
 import { escapeHtml } from '@/lib/escape-html';
+import { firstName as getFirstName } from '@/lib/first-name';
 import { reportIcon } from '@/lib/report-icon';
 import { cn, GEO_OPTIONS, MAP_TILE_URL, reportNumber } from '@/lib/utils';
 import { Head, router } from '@inertiajs/react';
@@ -15,12 +16,20 @@ import {
 	IconHourglass,
 	IconMapPin,
 	IconRadar,
-	IconRoute,
+	IconRuler2,
 	IconShieldCheck,
 	IconShieldHalf,
 	IconUsers,
 } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
+
+// Warna pin misi = kamus status Peta Pemantauan (Monitoring/Map.jsx REPORT_STATUS): Laporan
+// Masuk merah, Terverifikasi kuning, Penanganan hijau. Dulu semua pin merah sama rata.
+const MISSION_PIN_COLOR = {
+	TERLAPOR: 'text-destructive',
+	pending: 'text-warning',
+	handling: 'text-success',
+};
 
 // Jarak garis-lurus (km) haversine dari posisi petugas ke titik insiden — cukup untuk
 // menaksir kedekatan misi di dashboard tanpa memanggil OSRM per baris.
@@ -39,6 +48,7 @@ export default function PetugasDashboard({
 	pendingResolutions = [],
 	myRegu = null,
 	feed_channel = null,
+	tenant_location = null,
 }) {
 	const user = auth.user;
 
@@ -47,12 +57,14 @@ export default function PetugasDashboard({
 	useReportFeed(feed_channel, () => router.reload({ only: ['activeMissions', 'pendingResolutions'] }));
 
 	// Ambil nama depan saja untuk sapaan
-	const firstName = user?.name ? user.name.split(' ')[0] : 'Komandan';
+	const firstName = getFirstName(user?.name, 'Komandan');
 
 	// Peta taktis misi — petugas adalah peran lapangan yang paling butuh peta.
 	// Pola Leaflet manual mengikuti Admin/Dashboard (window.L sudah dimuat global di app.blade.php).
 	const miniMapRef = useRef(null);
 	const mapInstanceRef = useRef(null);
+	const missionBoundsRef = useRef(null);
+	const myMarkerRef = useRef(null);
 	const missionsWithCoords = activeMissions.filter((m) => m.lat && m.lng);
 
 	// Ambil satu fix GPS petugas untuk menaksir jarak ke tiap TKP (senyap bila ditolak).
@@ -79,6 +91,9 @@ export default function PetugasDashboard({
 		distKm: myPos && m.lat && m.lng ? distanceKm(myPos.lat, myPos.lng, parseFloat(m.lat), parseFloat(m.lng)) : null,
 	}));
 
+	const awaitingCount = missions.filter((m) => m.isAwaitingAdmin).length;
+	const actionableCount = missions.length - awaitingCount;
+
 	useEffect(() => {
 		if (!miniMapRef.current || !window.L) return;
 
@@ -87,12 +102,13 @@ export default function PetugasDashboard({
 			mapInstanceRef.current = null;
 		}
 
+		// Peta bisa digeser di ponsel - dulu `dragging: !mobile` mengunci peta justru di alat utama
+		// petugas. Titik awal = lokasi akun (pola getTenantDefaultLocation), bukan Denpasar yang
+		// ditulis mati di aplikasi multi-tenant.
 		const map = window.L.map(miniMapRef.current, {
 			zoomControl: false,
 			scrollWheelZoom: false,
-			dragging: !window.L.Browser.mobile,
-			tap: !window.L.Browser.mobile,
-		}).setView([-8.65, 115.216667], 12);
+		}).setView([tenant_location?.lat ?? -8.65, tenant_location?.lng ?? 115.22], 12);
 
 		window.L.tileLayer(MAP_TILE_URL, { attribution: '&copy; OpenStreetMap' }).addTo(map);
 		mapInstanceRef.current = map;
@@ -103,8 +119,11 @@ export default function PetugasDashboard({
 			const lng = parseFloat(mission.lng);
 			if (isNaN(lat) || isNaN(lng)) return;
 
+			// Kelas warna milik kode (kamus di atas), bukan data - nama `statusClass` terdaftar aman
+			// di LeafletPopupEscapeTest.
+			const statusClass = MISSION_PIN_COLOR[mission.status] ?? 'text-destructive';
 			const incidentIcon = window.L.divIcon({
-				html: `<div class="text-destructive"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7.58 2 4 5.58 4 10c0 4.42 8 12 8 12s8-7.58 8-12c0-4.42-3.58-8-8-8zm0 11c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/></svg></div>`,
+				html: `<div class="${statusClass}"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7.58 2 4 5.58 4 10c0 4.42 8 12 8 12s8-7.58 8-12c0-4.42-3.58-8-8-8zm0 11c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/></svg></div>`,
 				className: 'bg-transparent border-none filter drop-shadow-md',
 				iconSize: [32, 32],
 				iconAnchor: [16, 32],
@@ -113,17 +132,14 @@ export default function PetugasDashboard({
 			const marker = window.L.marker([lat, lng], { icon: incidentIcon })
 				.addTo(map)
 				.bindPopup(
-					`<div class="text-xs font-bold text-destructive font-sans">⚠️ ${escapeHtml(mission.title)}</div>`,
+					`<div class="text-xs font-bold text-foreground font-sans">${escapeHtml(mission.title)}</div>`,
 				);
 			markers.push(marker);
 		});
 
-		if (markers.length > 0) {
-			const group = new window.L.featureGroup(markers);
-			// Tanpa animasi zoom: peta ini dibuat tepat saat halaman masuk, dan zoom beranimasi (puluhan
-			// transform marker & tile) berjalan di frame tersibuk -> terasa patah di ponsel (TASK_70).
-			map.fitBounds(group.getBounds().pad(0.3), { animate: false });
-		}
+		missionBoundsRef.current = markers.length > 0 ? new window.L.featureGroup(markers).getBounds() : null;
+		myMarkerRef.current = null;
+		fitMissionsAndMe(map);
 
 		return () => {
 			if (mapInstanceRef.current) {
@@ -132,6 +148,42 @@ export default function PetugasDashboard({
 			}
 		};
 	}, [activeMissions]);
+
+	// Posisi petugas sendiri (titik biru) - GPS-nya sudah diambil untuk jarak, kini juga tampil
+	// di peta supaya TKP terbaca relatif terhadap dirinya. Effect terpisah: fix GPS datang
+	// belakangan dan tak boleh membangun ulang seluruh peta.
+	useEffect(() => {
+		const map = mapInstanceRef.current;
+		if (!map || !myPos) return;
+
+		myMarkerRef.current?.remove();
+		myMarkerRef.current = window.L.marker([myPos.lat, myPos.lng], {
+			icon: window.L.divIcon({
+				html: '<div class="h-3.5 w-3.5 rounded-full border-2 border-white bg-info shadow-md"></div>',
+				className: 'bg-transparent border-none',
+				iconSize: [14, 14],
+				iconAnchor: [7, 7],
+			}),
+			keyboard: false,
+			zIndexOffset: 1000,
+		})
+			.addTo(map)
+			.bindPopup('<div class="text-xs font-bold text-foreground font-sans">Posisi Anda</div>');
+		fitMissionsAndMe(map);
+	}, [myPos, activeMissions]);
+
+	// Bingkai peta = semua misi + posisi petugas. Tanpa animasi zoom: peta ini dibuat tepat saat
+	// halaman masuk, dan zoom beranimasi berjalan di frame tersibuk -> terasa patah di ponsel (TASK_70).
+	function fitMissionsAndMe(map) {
+		const bounds = missionBoundsRef.current ? window.L.latLngBounds(missionBoundsRef.current) : null;
+		if (!bounds) {
+			// Tanpa misi: pusatkan ke petugas sendiri, bukan ke titik awal akun.
+			if (myMarkerRef.current) map.setView(myMarkerRef.current.getLatLng(), 13, { animate: false });
+			return;
+		}
+		if (myMarkerRef.current) bounds.extend(myMarkerRef.current.getLatLng());
+		map.fitBounds(bounds.pad(0.3), { animate: false });
+	}
 
 	return (
 		<div className="flex w-full flex-col space-y-5 pb-32 md:space-y-6">
@@ -161,8 +213,11 @@ export default function PetugasDashboard({
 				}
 			/>
 
-			{/* --- BANNER STATUS SIAGA --- */}
-			{activeMissions.length > 0 ? (
+			{/* --- BANNER STATUS SIAGA --- Merah HANYA untuk misi yang bisa petugas tindak
+			    (`pending`/`handling`). `TERLAPOR` menunggu verifikasi admin sejak TASK_51, jadi
+			    ikut menghitungnya di banner merah berdenyut = menyuruh panik atas laporan yang
+			    belum boleh ia sentuh; ia dapat banner kuning yang tenang. */}
+			{actionableCount > 0 ? (
 				<Card className="overflow-hidden border border-destructive/30 bg-destructive/10">
 					<CardContent className="flex flex-col justify-between gap-4 p-4 sm:flex-row sm:items-center md:p-5">
 						<div className="flex items-center gap-3 md:gap-4">
@@ -171,10 +226,33 @@ export default function PetugasDashboard({
 							</div>
 							<div>
 								<h3 className="text-[15px] font-semibold text-destructive">
-									Ada {activeMissions.length} Insiden Aktif!
+									Ada {actionableCount} Insiden Aktif!
 								</h3>
 								<p className="hidden text-[13px] text-destructive/80 sm:block">
 									Segera pantau dan ambil tindakan operasional.
+								</p>
+								{awaitingCount > 0 && (
+									<p className="mt-0.5 text-[13px] text-destructive/80">
+										+{awaitingCount} laporan menunggu verifikasi admin
+									</p>
+								)}
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+			) : awaitingCount > 0 ? (
+				<Card className="overflow-hidden border-warning/30 bg-warning/10">
+					<CardContent className="flex flex-col justify-between gap-4 p-4 sm:flex-row sm:items-center md:p-5">
+						<div className="flex items-center gap-3 md:gap-4">
+							<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-warning/15 text-warning">
+								<IconHourglass className="h-6 w-6" stroke={2} />
+							</div>
+							<div>
+								<h3 className="text-[15px] font-semibold text-warning">
+									{awaitingCount} Laporan Menunggu Verifikasi Admin
+								</h3>
+								<p className="hidden text-[13px] text-warning/80 sm:block">
+									Belum ada tindakan untuk Anda. Misi muncul merah begitu admin memverifikasi.
 								</p>
 							</div>
 						</div>
@@ -252,11 +330,11 @@ export default function PetugasDashboard({
 											</span>
 											{mission.distKm != null && (
 												<span className="flex shrink-0 items-center gap-1.5 font-semibold text-foreground">
-													<IconRoute className="h-3.5 w-3.5 shrink-0" /> ±{' '}
+													<IconRuler2 className="h-3.5 w-3.5 shrink-0" /> ±{' '}
 													{mission.distKm < 10
 														? mission.distKm.toFixed(1)
 														: Math.round(mission.distKm)}{' '}
-													km
+													km garis lurus
 												</span>
 											)}
 											{/* Regu yang sudah meluncur ke insiden ini (TASK_60). */}
