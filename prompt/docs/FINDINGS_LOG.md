@@ -4191,13 +4191,15 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   disembunyikan bila isinya hanya itu.
 - **Penjaga:** `DashboardPerPeranTest` #176. **Status:** FIXED 2026-10-04.
 
-### #177 — APK: `sendTokenToServer()` memanggil `api/fcm-token` yang tidak ada (404 di produksi) (OPEN)
+### #177 — APK: fungsi mati `sendTokenToServer()` menunjuk ke `api/fcm-token` yang tidak ada (OPEN - P3, kode mati)
 
 - **Ditemukan (2026-10-04, saat menangani APK dev yang kena 401 gerbang basic auth):** `MainActivity.java`
-  (`SisupitWebView`, di luar git) mengirim token FCM lewat `HttpURLConnection` ke `BASE_URL + "api/fcm-token"` dengan
-  header `Authorization: Bearer ...`. Route itu DIKOMENTARI di `routes/api.php:11`; yang hidup adalah `POST /fcm-token`
-  di `routes/web.php` (grup `auth`, sesi). Bukti: `POST https://sisupit.com/api/fcm-token` = 404, `POST /fcm-token` = 302.
-- **Dampak:** jalur native itu selalu gagal diam-diam; token kemungkinan hanya terdaftar lewat jalur WebView (JS ->
-  `/fcm-token`). Perlu dipastikan sebelum mengandalkan push di perangkat yang belum pernah membuka WebView setelah login.
-- **Tidak dikerjakan** (di luar scope TASK_72, menyentuh APK). Pilihan: hapus jalur native, atau arahkan ke route yang
-  benar dengan otentikasi yang cocok (Sanctum vs sesi). **Status:** OPEN.
+  (`SisupitWebView`, di luar git) punya `sendTokenToServer()` yang mengirim token FCM lewat `HttpURLConnection` ke
+  `BASE_URL + "api/fcm-token"` (header `Authorization: Bearer ...`). Route itu DIKOMENTARI di `routes/api.php:11`; yang
+  hidup adalah `POST /fcm-token` di `routes/web.php` (grup `auth`). Bukti: `POST https://sisupit.com/api/fcm-token` = 404.
+- **KOREKSI 2026-10-05:** catatan awal menyebut jalur ini "selalu gagal diam-diam" - KELIRU. `sendTokenToServer()` TIDAK
+  PERNAH DIPANGGIL (satu-satunya kemunculannya adalah definisinya). Pendaftaran token yang sebenarnya: APK mengambil token
+  FCM (retry 2/4/6 dtk) -> menyuntikkannya ke halaman lewat `window.receiveFcmTokenFromNative(...)` -> `AppLayout.jsx`
+  mengirim `POST /fcm-token` (`route('fcm.store')`, retry 4x, `device_type` android/ios). Jalur itu benar & berjalan.
+- **Dampak:** tidak ada pada notifikasi. Hanya kode mati yang menyesatkan pembaca (seolah ada jalur kedua yang rusak).
+- **Pilihan:** hapus `sendTokenToServer()` saat rilis APK berikutnya. **Status:** OPEN (P3).
