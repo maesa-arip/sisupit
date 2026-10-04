@@ -4219,3 +4219,25 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Keputusan user:** "Dashboard" dan "Realtime/Real-time" TETAP. Email/Menu/Login tetap (kata serapan lazim).
 - **Tidak disentuh:** halaman internal `/guideline`, kode template mati (`app-sidebar`, `data-table`, dll.), pesan JSON
   `FcmController` ("FCM Token registered." - dibaca APK, bukan pengguna). **Status:** FIXED 2026-10-05.
+
+### #179 — Dashboard admin, ikon jenis kejadian, paginasi seragam, email kontak tunggal (FIXED)
+
+- **Permintaan user 2026-10-05:** tombol "Input Laporan Telepon" -> "BUAT LAPORAN DARURAT" merah (seperti dashboard
+  lama); baris "N hydrant dalam perbaikan" dihapus, Hydrant cukup satu angka total; "Siaga di Wilayah" -> "Daftar Aset
+  Damkar"; "Angka Kunci" -> "Ringkasan Laporan"; semua paginasi meniru /hydrants; semua email kontak ->
+  tawarinfirst@gmail.com (satu-satunya email user).
+- **Ikon salah (bug):** `lib/report-icon.js` menebak dari potongan huruf judul dan jatuh ke API untuk judul tak
+  dikenal ("tokek" = api, "ular" = serangga, `includes('ular')` juga kena "seluler"). Kini: `incident_type` kebakaran
+  -> selalu api; selain itu dicocokkan per KATA (pohon/hewan -> IconPaw/serangga/listrik); `lainnya` tak dikenali ->
+  IconAlertTriangle. `DashboardController` kini mengirim `incident_type` di 10 payload laporan.
+- **Paginasi /reports tak pernah tampil (bug):** `Front/Reports/Index.jsx` menjaga `reports.meta.has_pages`, padahal
+  controller mengirim paginator mentah (tanpa `meta`) - laporan setelah 10 pertama tak bisa dibuka. Kini
+  `Components/PaginationLinks.jsx` (salinan pola /hydrants) dipakai di 21 halaman, termasuk /hydrants sendiri.
+- **Email:** default `config/legal.php` (support@sisupit.com, legal@tawarindimanaja.com), `config/webpush.php`
+  (VAPID subject) dan `.env.example`. Nilai di `.env` server & kolom `tenants.email_kontak` adalah DATA - diganti
+  lewat konsol, bukan kode. Contoh isian ("nama@email.com") & akun demo @sisupit.com bukan kontak, tidak diganti.
+- **DIBATALKAN SEBAGIAN (2026-10-05, beberapa menit kemudian):** user meminta "kembalikan tampilan dashboard ke
+  sebelumnya" -> SEMUA dashboard dipulihkan ke tag `pra-task72-dashboard` (lihat TASK_72 bagian 24). Butir tombol
+  darurat, hydrant, "Daftar Aset Damkar" & "Ringkasan Laporan" ikut hilang bersama dashboard TASK_72. Yang TETAP:
+  ikon (`lib/report-icon.js` + `incident_type` di 5 payload dashboard lama), paginasi, email.
+- **Status:** FIXED 2026-10-05.

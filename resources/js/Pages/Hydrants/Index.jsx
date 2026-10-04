@@ -1,10 +1,11 @@
 import HeaderTitle from '@/Components/HeaderTitle';
+import PaginationLinks from '@/Components/PaginationLinks';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
 import { facilityStatusLabel, GEO_OPTIONS } from '@/lib/utils';
-import { Link, router, useForm } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import { IconFireHydrant, IconLoader2, IconMapPinFilled, IconRadar, IconRoute, IconSearch } from '@tabler/icons-react';
 import { useState } from 'react';
 
@@ -264,25 +265,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 					</div>
 
 					{/* PERBAIKAN 3: PAGINASI RESPONSIF (Berlaku untuk Mobile dan Desktop) */}
-					{hydrants.links && hydrants.links.length > 3 && (
-						<div className="scrollbar-hide flex justify-center overflow-x-auto pb-4 pt-4">
-							<div className="flex gap-1">
-								{hydrants.links.map((link, index) => (
-									<Link
-										key={index}
-										href={link.url}
-										preserveScroll
-										className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
-											link.active
-												? 'bg-primary text-primary-foreground'
-												: 'border border-border bg-card text-foreground/80 hover:bg-muted'
-										} ${!link.url && 'pointer-events-none cursor-not-allowed opacity-50'}`}
-										dangerouslySetInnerHTML={{ __html: link.label }}
-									/>
-								))}
-							</div>
-						</div>
-					)}
+					<PaginationLinks links={hydrants.links} />
 				</div>
 
 				{/* --- KOLOM KANAN: Peta Interaktif (Sticky). Desktop saja - di ponsel peta disembunyikan (permintaan user 2026-10-02, TASK_69 bagian 15) --- */}

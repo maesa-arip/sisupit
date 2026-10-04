@@ -1,1 +1,0 @@
-const c=()=>new Promise(t=>{if(typeof navigator>"u"||!navigator.geolocation)return t({});const a=setTimeout(()=>t({}),4e3);navigator.geolocation.getCurrentPosition(o=>{clearTimeout(a),t({lat:o.coords.latitude,lng:o.coords.longitude,accuracy:Math.round(o.coords.accuracy)})},()=>{clearTimeout(a),t({})},{enableHighAccuracy:!0,timeout:3e3,maximumAge:3e4})});export{c as g};

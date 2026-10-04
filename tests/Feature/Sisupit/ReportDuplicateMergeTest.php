@@ -381,9 +381,8 @@ it('takes merged reports out of the active counts', function () {
             ->where('reports.data.0.id', $induk->id)
             ->where('reports.data.0.merged_children_count', 1));
 
-    // Dashboard Pusat Komando (TASK_72): angka "Aktif sekarang" & antrian triase - laporan digabung tak ikut.
     $this->actingAs($admin)->get(route('dashboard'))
-        ->assertInertia(fn ($page) => $page->where('kpis.active_now', 1)->where('triageTotal', 1));
+        ->assertInertia(fn ($page) => $page->where('stats.active_reports', 1));
 });
 
 it('keeps merged reports out of the monitors list and the public feed', function () {
@@ -396,11 +395,9 @@ it('keeps merged reports out of the monitors list and the public feed', function
     $this->actingAs($pejabat)->get(route('front.reports.index', ['status' => 'Semua']))
         ->assertInertia(fn ($page) => $page->has('reports.data', 1)->where('reports.data.0.id', $induk->id));
 
-    // Feed publik lama diganti "Kejadian di Kecamatan Anda" (TASK_72): induknya tampil, anak yang digabung tidak.
     $this->actingAs(pelaporGanda())->get(route('dashboard'))
         ->assertInertia(fn ($page) => $page
-            ->where('areaIncidents', fn ($rows) => collect($rows)->pluck('id')->contains($induk->id)
-                && collect($rows)->pluck('id')->doesntContain($anak->id)));
+            ->where('page_data.reports.data', fn ($rows) => collect($rows)->pluck('id')->doesntContain($anak->id)));
 });
 
 it('offers the merge panel only to the verifier, decided by the server', function () {

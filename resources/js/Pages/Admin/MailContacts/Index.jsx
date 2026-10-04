@@ -1,4 +1,5 @@
 import HeaderTitle from '@/Components/HeaderTitle';
+import PaginationLinks from '@/Components/PaginationLinks';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -179,31 +180,7 @@ export default function Index({ contacts, filters }) {
 								Menampilkan {contacts.from} - {contacts.to} dari {contacts.total} penerima
 							</span>
 
-							{contacts.links && contacts.links.length > 3 && (
-								<div className="flex flex-wrap justify-center gap-1">
-									{contacts.links.map((link, index) =>
-										link.url ? (
-											<Link
-												key={index}
-												href={link.url}
-												preserveScroll
-												className={`rounded-2xl border px-3 py-1.5 text-xs font-semibold transition-colors ${
-													link.active
-														? 'border-primary bg-primary text-primary-foreground shadow-sm'
-														: 'border-input bg-background text-muted-foreground hover:bg-accent hover:text-foreground'
-												}`}
-												dangerouslySetInnerHTML={{ __html: link.label }}
-											/>
-										) : (
-											<span
-												key={index}
-												className="rounded-2xl border border-input px-3 py-1.5 text-xs font-semibold text-muted-foreground/40"
-												dangerouslySetInnerHTML={{ __html: link.label }}
-											/>
-										),
-									)}
-								</div>
-							)}
+							<PaginationLinks links={contacts.links} />
 						</div>
 					</>
 				) : (

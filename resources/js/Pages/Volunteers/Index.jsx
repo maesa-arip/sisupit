@@ -2,6 +2,7 @@ import { AppEmpty } from '@/Components/AppSection';
 import ComboBox from '@/Components/ComboBox';
 import { filledFieldsClass } from '@/Components/GroupedForm';
 import HeaderTitle from '@/Components/HeaderTitle';
+import PaginationLinks from '@/Components/PaginationLinks';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
@@ -221,25 +222,7 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 			)}
 
 			{/* --- PAGINASI --- */}
-			{volunteers.links && volunteers.links.length > 3 && (
-				<div className="scrollbar-hide flex justify-center overflow-x-auto pt-2">
-					<div className="flex gap-1">
-						{volunteers.links.map((link, index) => (
-							<Link
-								key={index}
-								href={link.url || ''}
-								preserveScroll
-								className={`rounded-full px-3 py-1.5 text-[13px] font-semibold transition-colors ${
-									link.active
-										? 'bg-primary text-primary-foreground'
-										: 'bg-muted/60 text-foreground/80 hover:bg-muted'
-								} ${!link.url && 'pointer-events-none cursor-not-allowed opacity-50'}`}
-								dangerouslySetInnerHTML={{ __html: link.label }}
-							/>
-						))}
-					</div>
-				</div>
-			)}
+			<PaginationLinks links={volunteers.links} />
 		</div>
 	);
 }

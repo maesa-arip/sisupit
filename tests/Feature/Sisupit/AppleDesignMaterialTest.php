@@ -201,8 +201,7 @@ it('lays out the report form as grouped sections and the incident page with an i
 });
 
 it('shares one standby control between dashboards and floats the monitoring map controls on the standard materials', function () {
-    // Saklar siaga pejabat ikut pindah bersama dashboard lamanya ke Pejabat/Dashboard.jsx (TASK_72).
-    foreach (['resources/js/Pages/Dashboard.jsx', 'resources/js/Pages/Pejabat/Dashboard.jsx'] as $path) {
+    foreach (['resources/js/Pages/Dashboard.jsx', 'resources/js/Pages/Admin/Dashboard.jsx'] as $path) {
         $src = appleSource($path);
         expect($src)->toContain('<StandbyCard')
             ->and($src)->not->toContain('Mode Kesiapan');
@@ -219,10 +218,8 @@ it('keeps the mobile dashboards to the essentials and leaves the detail for larg
     expect(appleSource('resources/js/Pages/Dashboard.jsx'))->toContain('max-md:[&>a:nth-of-type(n+4)]:hidden')
         ->toContain('timeAgo(report.created_at)')
         ->toContain('active:scale-[0.98]');
-    // Pejabat (TASK_72 fase 5): petak statistik lama diganti ringkasan; yang esensial di ponsel = satu kalimat
-    // situasi + pemilih periode satu baris di atas angka yang diaturnya.
-    expect(appleSource('resources/js/Pages/Pejabat/Dashboard.jsx'))->toContain('{situationSentence(situation)}')
-        ->toContain('aria-label="Periode"');
+    expect(appleSource('resources/js/Pages/Admin/Dashboard.jsx'))->toContain('max-md:[&>a:nth-of-type(n+6)]:hidden')
+        ->toContain('order-1 hidden shrink-0');
     expect(appleSource('resources/js/Pages/Petugas/Dashboard.jsx'))->toContain('hidden font-mono font-semibold md:inline')
         ->not->toContain('Wilayah Yurisdiksi')
         ->not->toContain('PETUGAS DAMKAR');

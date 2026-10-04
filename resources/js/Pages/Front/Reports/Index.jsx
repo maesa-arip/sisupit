@@ -1,6 +1,6 @@
 import { AppEmpty, AppList, AppListRow } from '@/Components/AppSection';
+import PaginationLinks from '@/Components/PaginationLinks';
 import StatusBadge from '@/Components/StatusBadge';
-import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
 import { reportIcon } from '@/lib/report-icon';
@@ -162,30 +162,9 @@ export default function ReportIndex(props) {
 				)}
 			</AppList>
 
-			{/* --- PAGINASI (Jika ada lebih dari 10 data) --- */}
-			{reports?.meta?.has_pages && (
-				<div className="flex items-center justify-between border-t border-border pt-4">
-					<Button
-						variant="outline"
-						disabled={!reports.links?.prev}
-						onClick={() => router.get(reports.links.prev, {}, { preserveScroll: true })}
-						className="border-border bg-card text-xs font-semibold shadow-none"
-					>
-						Sebelumnya
-					</Button>
-					<span className="text-xs font-semibold text-muted-foreground">
-						Halaman {reports.meta.current_page} dari {reports.meta.last_page}
-					</span>
-					<Button
-						variant="outline"
-						disabled={!reports.links?.next}
-						onClick={() => router.get(reports.links.next, {}, { preserveScroll: true })}
-						className="border-border bg-card text-xs font-semibold shadow-none"
-					>
-						Selanjutnya
-					</Button>
-				</div>
-			)}
+			{/* --- PAGINASI. Dulu dijaga `reports.meta.has_pages`, padahal controller mengirim paginator mentah
+			    (tanpa `meta`) - tombolnya tak pernah tampil (2026-10-05). Kini pola /hydrants. --- */}
+			<PaginationLinks links={reports?.links} />
 		</div>
 	);
 }

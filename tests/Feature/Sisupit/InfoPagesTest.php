@@ -50,14 +50,14 @@ it('writes the terms from the tenant resolved by subdomain', function () {
 it('carries the provider legal identity into the terms page', function () {
     config([
         'legal.penyedia.nama' => 'PT Tawarin Dimana Saja',
-        'legal.penyedia.email_legal' => 'legal@tawarindimanaja.com',
+        'legal.penyedia.email_legal' => 'tawarinfirst@gmail.com',
     ]);
 
     $this->get(route('info.terms'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('legal.penyedia.nama', 'PT Tawarin Dimana Saja')
-            ->where('legal.penyedia.email_legal', 'legal@tawarindimanaja.com')
+            ->where('legal.penyedia.email_legal', 'tawarinfirst@gmail.com')
             ->has('legal.penyedia.alamat')
             ->has('legal.dokumen.syarat_versi'));
 });

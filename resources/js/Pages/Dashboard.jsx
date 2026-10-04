@@ -1,131 +1,31 @@
 import { AppEmpty, AppGreeting, AppList, AppListRow, AppSection } from '@/Components/AppSection';
+import ReportCard from '@/Components/ReportCard';
 import { ReportStepper } from '@/Components/ReportProgress';
 import StandbyCard from '@/Components/StandbyCard';
 import StatusBadge from '@/Components/StatusBadge';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
-import { Card } from '@/Components/ui/card';
 import useReportFeed from '@/hooks/use-report-feed';
 import AppLayout from '@/Layouts/AppLayout';
-import { getClickLocation } from '@/lib/click-location';
 import { firstName as getFirstName } from '@/lib/first-name';
 import { reportIcon } from '@/lib/report-icon';
-import { cn, GEO_OPTIONS, NOMOR_DARURAT_NASIONAL, reportNumber, timeAgo } from '@/lib/utils';
+import { cn, GEO_OPTIONS, reportNumber, timeAgo } from '@/lib/utils';
 import { Link, router } from '@inertiajs/react';
 import {
-	IconCheck,
+	IconAlertCircle,
+	IconCheckupList,
 	IconChevronRight,
-	IconFireHydrant,
-	IconFiretruck,
 	IconFlame,
-	IconHeartHandshake,
 	IconHistory,
+	IconLoader2,
 	IconMapPin,
-	IconMessages,
-	IconNavigation,
-	IconPhone,
 	IconRadar,
+	IconRefresh,
 	IconShieldCheck,
+	IconUserCheck,
 } from '@tabler/icons-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-
-/**
- * Beranda warga & relawan - TASK_72 fase 3, dirancang ulang dari nol.
- *
- * Warga: "kalau terjadi sesuatu, saya tahu harus apa, dan laporan saya diurus". Laporan aktif
- * mengambil alih puncak; dua aksi darurat (Lapor + 113); fasilitas terdekat; kejadian TERVERIFIKASI di
- * kecamatan (tanpa data pelapor); riwayat.
- * Relawan: "apakah saya dibutuhkan sekarang, dan apakah saya siaga?". Tugas berjalan mengambil alih
- * puncak; sakelar siaga; daftar butuh bantuan dari server, urut jarak; kontribusi.
- *
- * Feed paginasi "Semua Laporan" lama DIBUANG (keputusan user 2026-10-04): bising, dan menampilkan
- * laporan orang lain.
- */
-
-const LIVE_PROPS = ['areaIncidents', 'needHelp', 'activeTasks', 'activeReports', 'myReports'];
-
-function distanceKm(lat1, lng1, lat2, lng2) {
-	const R = 6371;
-	const toRad = (d) => (d * Math.PI) / 180;
-	const dLat = toRad(lat2 - lat1);
-	const dLng = toRad(lng2 - lng1);
-	const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-	return 2 * R * Math.asin(Math.sqrt(a));
-}
-
-function formatKm(km) {
-	return km < 1 ? `${Math.round(km * 1000)} m` : `${km < 10 ? km.toFixed(1) : Math.round(km)} km`;
-}
-
-function directionsUrl(lat, lng) {
-	return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
-}
-
-/** Elemen terdekat dari `origin` (posisi GPS, atau pusat wilayah akun bila GPS belum ada). */
-function nearest(items, origin) {
-	if (!items?.length || !origin) return null;
-	return items
-		.map((item) => ({ ...item, km: distanceKm(origin.lat, origin.lng, item.lat, item.lng) }))
-		.sort((a, b) => a.km - b.km)[0];
-}
-
-function minutesLabel(iso) {
-	const then = new Date(iso).getTime();
-	if (!iso || isNaN(then)) return '-';
-	const m = Math.max(0, Math.floor((Date.now() - then) / 60000));
-	return m < 1 ? 'baru saja' : m < 60 ? `${m} mnt` : `${Math.floor(m / 60)} j ${m % 60} mnt`;
-}
-
-function ActiveTaskCard({ task, busy, onArrive, onCancel }) {
-	const arrived = task.my_status === 'arrived';
-
-	return (
-		<Card className="overflow-hidden rounded-2xl border-volunteer/30 bg-volunteer/[0.06] p-4 shadow-sm md:p-5">
-			<div className="text-xs font-bold uppercase tracking-wide text-volunteer">
-				Tugas berjalan -{' '}
-				{arrived ? `di lokasi ${minutesLabel(task.arrived_at)}` : `meluncur ${minutesLabel(task.started_at)}`}
-			</div>
-			<h2 className="mt-1 text-[19px] font-bold leading-snug tracking-tight text-foreground">{task.title}</h2>
-			<p className="mt-1 flex items-start gap-1.5 text-[13px] text-muted-foreground">
-				<IconMapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" stroke={2} />
-				<span>{task.location || 'Lokasi belum terbaca'}</span>
-			</p>
-			<div className="mt-4 grid grid-cols-2 gap-2 sm:flex">
-				{!arrived && (
-					<Button
-						className="col-span-2 h-11 rounded-xl sm:col-span-1"
-						disabled={busy}
-						onClick={() => onArrive(task)}
-					>
-						<IconCheck className="mr-1.5 h-4 w-4" /> Saya Tiba
-					</Button>
-				)}
-				{task.lat && task.lng && (
-					<Button variant="outline" className="h-11 rounded-xl" asChild>
-						<a href={directionsUrl(task.lat, task.lng)} target="_blank" rel="noreferrer">
-							<IconNavigation className="mr-1.5 h-4 w-4" /> Navigasi
-						</a>
-					</Button>
-				)}
-				<Button variant="outline" className="h-11 rounded-xl" asChild>
-					<Link href={route('reports.show', task.id)}>Detail</Link>
-				</Button>
-				{/* Batal hanya selama masih meluncur - pola endpoint cancel-response (#27). */}
-				{!arrived && (
-					<Button
-						variant="ghost"
-						className="h-11 rounded-xl text-muted-foreground"
-						disabled={busy}
-						onClick={() => onCancel(task)}
-					>
-						Batal
-					</Button>
-				)}
-			</div>
-		</Card>
-	);
-}
 
 export default function Dashboard(props) {
 	const auth = props.auth.user;
@@ -134,26 +34,64 @@ export default function Dashboard(props) {
 	const myReports = props.myReports || [];
 	// Laporan milik sendiri yang masih berjalan (#165) - status & tahapnya di puncak Beranda.
 	const activeReports = props.activeReports || [];
-	// Riwayat tanpa laporan yang sudah tampil di kartu "Laporan Anda" (TASK_71).
+	// Riwayat tanpa laporan yang sudah tampil di kartu "Laporan Anda" - dulu laporan yang baru
+	// dikirim muncul dua kali di layar yang sama (TASK_71).
 	const activeReportIds = new Set(activeReports.map((r) => r.id));
 	const historyReports = myReports.filter((r) => !activeReportIds.has(r.id));
-	const areaIncidents = props.areaIncidents || [];
-	const needHelp = props.needHelp || [];
-	const activeTasks = props.activeTasks || [];
-	const facilities = props.facilities || { stations: [], hydrants: [], center: null };
+	// Seksi riwayat kosong tepat di bawah laporan aktif ("Belum ada riwayat") menyangkal kartu di
+	// atasnya; ia baru tampil bila ada isinya, atau bila pengguna memang belum pernah melapor.
+	const showHistory = historyReports.length > 0 || activeReports.length === 0;
+	// Tugas relawan ini (lintas wilayah, bypass scope desa) — dipakai khusus tab "Tugas Saya"
+	// agar tugasnya sendiri tak hilang saat insidennya di luar desanya.
+	const myTasks = props.myTasks || [];
+	const initialReports = props.page_data?.reports?.data || [];
+	const initialNextPageUrl = props.page_data?.reports?.links?.next || null;
 
-	const userRoles = Array.isArray(auth?.role) ? auth.role : auth?.role ? [auth.role] : [];
-	const isRelawan = userRoles.includes('relawan');
-	const isStandby = auth?.is_standby ?? true;
-	const [isTogglingStandby, setIsTogglingStandby] = useState(false);
-	const [busyId, setBusyId] = useState(null);
+	const [reports, setReports] = useState(initialReports);
+	const [nextPageUrl, setNextPageUrl] = useState(initialNextPageUrl);
+	const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-	// Kejadian baru / status berubah di wilayah ini -> muat ulang bagian yang hidup dari server.
-	useReportFeed(props.feed_channel, () => router.reload({ only: LIVE_PROPS }));
+	// Kejadian baru / status berubah di wilayah ini. Feed halaman ini punya state LOKAL karena
+	// gulir-tak-berujung menambahkan halaman berikutnya ke dalamnya, jadi memuat ulang prop saja
+	// tidak cukup — sementara mengganti seluruh daftar akan merenggut halaman-halaman yang sudah
+	// digulir pengguna. Karena itu halaman PERTAMA yang segar digabungkan: baris yang sudah ada
+	// diperbarui di tempatnya, yang benar-benar baru masuk di puncak (server mengurutkan
+	// created_at menurun, jadi yang baru memang milik puncak).
+	const mergeFreshPage = (incoming) => {
+		if (!Array.isArray(incoming)) return;
 
-	// Feed wilayah tidak menjangkau laporan sendiri yang lokasinya di luar wilayah akun, jadi kartu
-	// "Laporan Anda" berlangganan channel tiap laporannya sendiri - channel yang sama dengan halaman
-	// Thanks & detail (pelapor memang berhak di sana). Isinya tetap dimuat ulang dari server.
+		setReports((prev) => {
+			const fresh = new Map(incoming.map((report) => [report.id, report]));
+			const known = new Set(prev.map((report) => report.id));
+
+			return [
+				...incoming.filter((report) => !known.has(report.id)),
+				...prev.map((report) => fresh.get(report.id) ?? report),
+			];
+		});
+	};
+
+	// Sengaja menembak route('dashboard'), bukan router.reload(): setelah "muat lebih banyak"
+	// URL halaman ini sudah berpindah ke ?page=N, dan memuat ulang URL ITU akan mengambil
+	// halaman N — padahal kejadian baru selalu ada di halaman pertama.
+	useReportFeed(props.feed_channel, () =>
+		router.get(
+			route('dashboard'),
+			{},
+			{
+				only: ['page_data', 'myReports', 'myTasks', 'activeReports'],
+				preserveState: true,
+				preserveScroll: true,
+				replace: true,
+				onSuccess: (page) => mergeFreshPage(page.props.page_data?.reports?.data),
+			},
+		),
+	);
+
+	// Feed wilayah di atas tidak menjangkau laporan sendiri yang lokasinya di luar wilayah akun,
+	// jadi kartu "Laporan Anda" berlangganan channel tiap laporannya sendiri - channel yang sama
+	// dengan halaman Thanks & detail (pelapor memang berhak di sana). Isinya tetap dimuat ulang
+	// dari server, bukan disusun dari payload siaran.
 	const activeIds = activeReports.map((r) => r.id).join(',');
 	useEffect(() => {
 		if (!activeIds || !window.Echo) return;
@@ -168,29 +106,23 @@ export default function Dashboard(props) {
 		return () => names.forEach((name) => window.Echo.leave(name));
 	}, [activeIds]);
 
-	// Satu fix GPS (senyap bila ditolak): fasilitas terdekat untuk semua, jarak kejadian untuk relawan.
+	const userRoles = Array.isArray(auth?.role) ? auth.role : auth?.role ? [auth.role] : [];
+	const isRelawan = userRoles.includes('relawan');
+
+	const [activeTab, setActiveTab] = useState(isRelawan ? 'menunggu' : 'semua');
+	const isStandby = auth?.is_standby ?? true;
+	const [isTogglingStandby, setIsTogglingStandby] = useState(false);
+
+	// Fix GPS relawan (sekali) untuk menaksir jarak ke tiap insiden di feed (senyap bila ditolak).
 	const [myPos, setMyPos] = useState(null);
 	useEffect(() => {
-		if (!navigator.geolocation) return;
+		if (!isRelawan || !navigator.geolocation) return;
 		navigator.geolocation.getCurrentPosition(
 			(p) => setMyPos({ lat: p.coords.latitude, lng: p.coords.longitude }),
 			() => {},
 			GEO_OPTIONS.oneShot,
 		);
-	}, []);
-
-	const origin = myPos || facilities.center;
-	const station = nearest(facilities.stations, origin);
-	const hydrant = nearest(facilities.hydrants, origin);
-
-	const helpList = needHelp
-		.map((r) => ({
-			...r,
-			km: myPos && r.lat && r.lng ? distanceKm(myPos.lat, myPos.lng, parseFloat(r.lat), parseFloat(r.lng)) : null,
-		}))
-		.sort((a, b) => (a.km != null && b.km != null ? a.km - b.km : new Date(a.created_at) - new Date(b.created_at)));
-
-	const hasLiveSituation = activeReports.length > 0 || activeTasks.length > 0;
+	}, [isRelawan]);
 
 	const handleToggleStandby = () => {
 		setIsTogglingStandby(true);
@@ -212,48 +144,53 @@ export default function Dashboard(props) {
 		);
 	};
 
-	// Meluncur dari Beranda lalu langsung ke halaman insiden: pelacakan GPS langsung hanya hidup di sana.
-	const dispatch = async (report) => {
-		setBusyId(report.id);
-		const location = await getClickLocation();
-		router.post(route('reports.take-action', report.id), location, {
-			preserveScroll: true,
-			onSuccess: () => {
-				toast.success('Meluncur ke lokasi. Pelacakan posisi berjalan di halaman insiden.');
-				router.visit(route('reports.show', report.id));
-			},
-			onError: () => toast.error('Gagal meluncur. Coba lagi dari halaman insiden.'),
-			onFinish: () => setBusyId(null),
+	useEffect(() => {
+		if (!isRelawan) setActiveTab('semua');
+	}, [isRelawan]);
+
+	// Feed ter-scope desa untuk tab "Butuh Respons" & "Semua Laporan".
+	const feedReports = useMemo(() => {
+		return reports.filter((report) => {
+			if (activeTab === 'menunggu') {
+				// "Butuh Respons" = insiden yang MASIH aktif (belum selesai) dan belum kamu
+				// ikuti — bukan sekadar "tanpa helper". Jadi banyak relawan bisa merespons satu
+				// insiden, dan baru hilang dari antrianmu saat kamu bergabung atau insiden selesai.
+				const isMyTask = report.helpers?.some((h) => h.user_id === auth.id);
+				return report.status !== 'resolved' && !isMyTask;
+			}
+			return true; // 'semua'
 		});
-	};
+	}, [reports, activeTab, auth.id]);
 
-	const arrive = (task) => {
-		setBusyId(task.id);
-		router.post(
-			route('reports.arrive', task.id),
+	// "Tugas Saya" memakai sumber terpisah (myTasks, lintas wilayah); tab lain pakai feed.
+	const displayedReports = activeTab === 'tugas_saya' ? myTasks : feedReports;
+
+	const handleLoadMore = () => {
+		if (!nextPageUrl) return;
+		setIsLoadingMore(true);
+		router.get(
+			nextPageUrl,
 			{},
 			{
+				preserveState: true,
 				preserveScroll: true,
-				onSuccess: () => toast.success('Status diperbarui: Tiba di lokasi.'),
-				onFinish: () => setBusyId(null),
+				only: ['page_data'],
+				onSuccess: (page) => {
+					setReports((prev) => [...prev, ...page.props.page_data.reports.data]);
+					setNextPageUrl(page.props.page_data.reports.links.next || null);
+					setIsLoadingMore(false);
+				},
+				onError: () => {
+					setIsLoadingMore(false);
+					toast.error('Gagal memuat data tambahan.');
+				},
 			},
 		);
 	};
 
-	const cancelTask = (task) => {
-		setBusyId(task.id);
-		router.post(
-			route('reports.cancel-response', task.id),
-			{},
-			{
-				preserveScroll: true,
-				onSuccess: () => toast.success('Keberangkatan dibatalkan.'),
-				onFinish: () => setBusyId(null),
-			},
-		);
-	};
-
-	// Fungsi render biasa, BUKAN komponen yang dideklarasikan di dalam render (#172).
+	// Fungsi render biasa, BUKAN komponen: komponen yang dideklarasikan di dalam render adalah
+	// tipe baru tiap render, sehingga React membongkar & memasang ulang seluruh seksi (beserta
+	// state tiap ReportCard) setiap ganti tab atau tiap siaran Reverb.
 	const renderMyHistory = () => (
 		<AppSection
 			title="Riwayat Laporan Saya"
@@ -265,6 +202,7 @@ export default function Dashboard(props) {
 			<AppList className="max-md:[&>a:nth-of-type(n+4)]:hidden">
 				{historyReports.length > 0 ? (
 					historyReports.map((report) => {
+						// Ikon jenis kejadian - sama dengan halaman Arsip & Riwayat (#161).
 						const { Icon: ReportIcon, className: iconStyle } = reportIcon(report);
 
 						return (
@@ -277,7 +215,19 @@ export default function Dashboard(props) {
 									</div>
 								}
 								title={report.title}
-								aside={timeAgo(report.created_at)}
+								aside={
+									<>
+										<span className="md:hidden">{timeAgo(report.created_at)}</span>
+										<span className="hidden md:inline">
+											{new Date(report.created_at).toLocaleDateString('id-ID', {
+												day: 'numeric',
+												month: 'short',
+												hour: '2-digit',
+												minute: '2-digit',
+											})}
+										</span>
+									</>
+								}
 								meta={
 									<span className="flex items-start gap-1.5">
 										<IconMapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
@@ -299,335 +249,206 @@ export default function Dashboard(props) {
 		</AppSection>
 	);
 
+	const renderRadarFeed = () => (
+		<AppSection title={isRelawan ? 'Radar Insiden' : 'Kejadian di Sekitar'} icon={IconCheckupList}>
+			{isRelawan && (
+				<div className="no-scrollbar flex space-x-1 overflow-x-auto rounded-xl bg-muted p-1">
+					<button
+						onClick={() => setActiveTab('menunggu')}
+						className={cn(
+							'flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-[13px] font-semibold outline-none transition-colors',
+							activeTab === 'menunggu'
+								? 'border border-border bg-card text-destructive'
+								: 'border border-transparent text-muted-foreground hover:text-foreground',
+						)}
+					>
+						<IconAlertCircle className="h-4 w-4" stroke={activeTab === 'menunggu' ? 2 : 1.5} /> Butuh
+						Respons
+					</button>
+					<button
+						onClick={() => setActiveTab('tugas_saya')}
+						className={cn(
+							'flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-[13px] font-semibold outline-none transition-colors',
+							activeTab === 'tugas_saya'
+								? 'border border-border bg-card text-foreground'
+								: 'border border-transparent text-muted-foreground hover:text-foreground',
+						)}
+					>
+						<IconUserCheck className="h-4 w-4" stroke={activeTab === 'tugas_saya' ? 2 : 1.5} /> Tugas Saya
+					</button>
+					<button
+						onClick={() => setActiveTab('semua')}
+						className={cn(
+							'flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-[13px] font-semibold outline-none transition-colors',
+							activeTab === 'semua'
+								? 'border border-border bg-card text-foreground'
+								: 'border border-transparent text-muted-foreground hover:text-foreground',
+						)}
+					>
+						<IconCheckupList className="h-4 w-4" stroke={activeTab === 'semua' ? 2 : 1.5} /> Semua Laporan
+					</button>
+				</div>
+			)}
+
+			{displayedReports.length === 0 ? (
+				<div className="rounded-2xl border border-border/70 bg-card shadow-sm">
+					<AppEmpty
+						icon={IconShieldCheck}
+						title={
+							activeTab === 'menunggu'
+								? 'Kondisi Terkendali'
+								: activeTab === 'tugas_saya'
+									? 'Belum Ada Tugas'
+									: 'Belum Ada Kejadian'
+						}
+						description={
+							activeTab === 'menunggu'
+								? 'Tidak ada laporan baru di sekitar yang membutuhkan respons.'
+								: activeTab === 'tugas_saya'
+									? 'Anda belum mengambil tugas penyelamatan apa pun saat ini.'
+									: 'Belum ada kejadian di sekitar Anda.'
+						}
+					/>
+				</div>
+			) : (
+				<>
+					<div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+						{displayedReports.map((report) => (
+							<ReportCard
+								key={report.id}
+								report={report}
+								currentUser={auth}
+								isRelawan={isRelawan}
+								myPos={myPos}
+								onSuccess={() => router.reload({ only: ['page_data'] })}
+							/>
+						))}
+					</div>
+					{nextPageUrl && activeTab !== 'tugas_saya' && (
+						<div className="flex w-full justify-center pt-4">
+							<Button
+								variant="outline"
+								onClick={handleLoadMore}
+								disabled={isLoadingMore}
+								className="flex h-10 items-center gap-2 rounded-full border border-border/70 bg-card px-5 text-[13px] font-semibold text-foreground/80 shadow-sm transition-colors hover:bg-muted sm:h-8"
+							>
+								{isLoadingMore ? (
+									<>
+										<IconLoader2 className="h-3.5 w-3.5 animate-spin" /> Memuat...
+									</>
+								) : (
+									<>
+										<IconRefresh className="h-3.5 w-3.5" /> Muat Lebih Banyak
+									</>
+								)}
+							</Button>
+						</div>
+					)}
+				</>
+			)}
+		</AppSection>
+	);
+
 	return (
-		<div className="flex w-full flex-col space-y-6 pb-32 lg:space-y-8">
+		<div className="flex w-full flex-col space-y-5 pb-32 md:space-y-6">
+			{/* Pembungkus `mx-auto max-w-7xl` dicabut: AppLayout sudah memberi max-width DAN
+			    padding halaman, jadi yang kedua cuma menumpuk. */}
 			<AppGreeting
 				title={`Halo, ${firstName}!`}
 				meta={
-					<Badge
-						variant="outline"
-						className={cn(
-							'rounded-full border px-2.5 py-0.5 text-xs font-semibold shadow-none',
-							isRelawan && isStandby
-								? 'bg-volunteer text-volunteer-foreground'
-								: 'bg-muted text-foreground/80',
-						)}
-					>
-						<IconShieldCheck className="mr-1 h-3.5 w-3.5" stroke={2.5} />{' '}
-						{/* Lencana mengikuti saklar StandbyCard - dulu selalu "Siaga" walau siaga dimatikan. */}
-						{isRelawan ? (isStandby ? 'Relawan Siaga' : 'Relawan - Tidak Siaga') : 'Warga'}
-					</Badge>
+					<>
+						<Badge
+							variant="outline"
+							className={cn(
+								'rounded-full border px-2.5 py-0.5 text-xs font-semibold shadow-none',
+								isRelawan && isStandby
+									? 'bg-volunteer text-volunteer-foreground'
+									: 'bg-muted text-foreground/80',
+							)}
+						>
+							<IconShieldCheck className="mr-1 h-3.5 w-3.5" stroke={2.5} />{' '}
+							{/* Lencana mengikuti saklar StandbyCard di bawahnya - dulu selalu "Siaga"
+							    walau siaga sedang dimatikan. */}
+							{isRelawan ? (isStandby ? 'Relawan Siaga' : 'Relawan - Tidak Siaga') : 'Warga Umum'}
+						</Badge>
+						<span className="hidden items-center gap-1.5 text-xs font-medium text-muted-foreground md:flex">
+							<IconMapPin className="h-3.5 w-3.5 text-destructive" /> Layanan Darurat Sisupit
+						</span>
+					</>
 				}
 			/>
 
-			<div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
-				<div className="space-y-6 lg:col-span-2 lg:space-y-8">
-					{/* MODE DARURAT: tugas relawan & laporan sendiri yang berjalan mengambil alih puncak. */}
-					{activeTasks.map((task) => (
-						<ActiveTaskCard
-							key={task.id}
-							task={task}
-							busy={busyId === task.id}
-							onArrive={arrive}
-							onCancel={cancelTask}
-						/>
-					))}
-
-					{activeReports.length > 0 && (
-						<AppSection title="Laporan Anda" icon={IconRadar}>
-							<div className="space-y-3">
-								{activeReports.map((report) => (
-									<Link
-										key={report.id}
-										href={route('reports.show', report.id)}
-										className="block rounded-2xl border border-border/70 bg-card p-4 shadow-sm transition-transform active:scale-[0.98] motion-reduce:active:scale-100"
-									>
-										<div className="flex items-start justify-between gap-3">
-											<div className="min-w-0">
-												<h3 className="text-[15px] font-semibold text-foreground">
-													{report.title}
-												</h3>
-												<p className="mt-0.5 text-xs text-muted-foreground">
-													<span className="font-mono">{reportNumber(report)}</span> -{' '}
-													{timeAgo(report.created_at)}
-												</p>
-											</div>
-											<span className="flex shrink-0 items-center gap-0.5 text-[13px] font-medium text-primary">
-												Lihat <IconChevronRight className="h-4 w-4" />
-											</span>
-										</div>
-										<ReportStepper status={report.status} className="mt-3" />
-									</Link>
-								))}
-							</div>
-						</AppSection>
-					)}
-
-					{/* Dua aksi darurat di zona jempol. Saat ada keadaan berjalan, Lapor turun jadi garis -
-					    tetap ada, tapi tak lagi bersaing dengan kartu di atasnya. */}
-					<div className="grid grid-cols-2 gap-3">
-						<Link
-							href={route('front.reports.create')}
-							className={cn(
-								'flex min-h-[64px] items-center justify-center gap-2 rounded-2xl border p-4 text-[16px] font-semibold shadow-sm transition-transform active:scale-[0.98] motion-reduce:active:scale-100',
-								hasLiveSituation
-									? 'border-destructive/40 bg-card text-destructive'
-									: 'border-destructive bg-destructive text-destructive-foreground',
-							)}
-						>
-							<IconFlame className="h-5 w-5" stroke={2} /> Lapor Darurat
-						</Link>
-						<a
-							href={`tel:${NOMOR_DARURAT_NASIONAL}`}
-							className="flex min-h-[64px] items-center justify-center gap-2 rounded-2xl border border-border/70 bg-card p-4 text-[16px] font-semibold text-foreground shadow-sm transition-transform active:scale-[0.98] motion-reduce:active:scale-100"
-						>
-							<IconPhone className="h-5 w-5" stroke={2} /> Telepon {NOMOR_DARURAT_NASIONAL}
-						</a>
+			{/* CTA UTAMA: LAPOR DARURAT - aksi inti yang harus paling menonjol bagi warga */}
+			<Link
+				href={route('front.reports.create')}
+				className="group flex items-center justify-between gap-3 rounded-2xl border border-destructive bg-destructive p-4 text-destructive-foreground shadow-sm transition-colors hover:bg-destructive/90 active:scale-[0.98] active:bg-destructive/90 motion-reduce:active:scale-100"
+			>
+				<div className="flex items-center gap-3">
+					<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-destructive-foreground/15">
+						<IconFlame className="h-5 w-5" stroke={2} />
 					</div>
-
-					{/* Sakelar siaga - HANYA relawan. Ajakan "Daftar Relawan" bagi warga DICABUT 2026-09-02
-					    atas permintaan user; jangan hidupkan lagi tanpa menanyakan user. */}
-					{isRelawan && (
-						<StandbyCard isStandby={isStandby} busy={isTogglingStandby} onToggle={handleToggleStandby} />
-					)}
-
-					{isRelawan && (
-						<AppSection title="Butuh Bantuan Sekarang" count={helpList.length || undefined}>
-							<AppList>
-								{helpList.map((report) => {
-									const { Icon: ReportIcon, className: iconStyle } = reportIcon(report);
-									const responders = report.officers_count + report.helpers_count;
-
-									return (
-										<div key={report.id}>
-											<AppListRow
-												href={route('reports.show', report.id)}
-												leading={
-													<div className={cn('shrink-0 rounded-xl p-2 md:p-2.5', iconStyle)}>
-														<ReportIcon className="h-5 w-5" stroke={2} />
-													</div>
-												}
-												title={report.title}
-												aside={
-													report.km != null ? formatKm(report.km) : timeAgo(report.created_at)
-												}
-												meta={
-													<span className="flex items-start gap-1.5">
-														<IconMapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-														<span>{report.location}</span>
-													</span>
-												}
-												badges={
-													<>
-														<StatusBadge status={report.status} />
-														<span className="text-xs font-semibold text-muted-foreground">
-															{responders === 0
-																? 'Belum ada yang menuju'
-																: `${report.officers_count} petugas, ${report.helpers_count} relawan menuju`}
-														</span>
-													</>
-												}
-											/>
-											<div className="px-4 pb-3.5 md:px-5 md:pb-4">
-												<Button
-													className="h-10 w-full rounded-xl bg-volunteer text-volunteer-foreground hover:bg-volunteer/90"
-													disabled={busyId === report.id}
-													onClick={() => dispatch(report)}
-												>
-													Bantu - Meluncur
-												</Button>
-											</div>
-										</div>
-									);
-								})}
-								{helpList.length === 0 && (
-									<AppEmpty
-										icon={IconShieldCheck}
-										title="Tidak ada yang butuh bantuan"
-										description="Kejadian terverifikasi di wilayah Anda yang butuh relawan akan muncul di sini."
-									/>
-								)}
-							</AppList>
-						</AppSection>
-					)}
-
-					{!isRelawan && (
-						<AppSection
-							title={
-								props.areaLevel === 'kecamatan'
-									? 'Kejadian di Kecamatan Anda'
-									: 'Kejadian di Wilayah Anda'
-							}
-						>
-							<AppList>
-								{areaIncidents.map((report) => {
-									const { Icon: ReportIcon, className: iconStyle } = reportIcon(report);
-
-									// SENGAJA bukan tautan: detail laporan orang lain tertutup bagi warga
-									// (ReportController::show -> 403). Baris ini kabar situasi, bukan pintu.
-									return (
-										<div
-											key={report.id}
-											className="flex items-start gap-3 px-4 py-3.5 md:px-5 md:py-4"
-										>
-											<div className={cn('shrink-0 rounded-xl p-2 md:p-2.5', iconStyle)}>
-												<ReportIcon className="h-5 w-5" stroke={2} />
-											</div>
-											<div className="min-w-0 flex-1">
-												<div className="flex items-start gap-3">
-													<div className="min-w-0 flex-1 text-[15px] font-semibold leading-snug text-foreground">
-														{report.title}
-													</div>
-													<div className="shrink-0 text-[13px] text-muted-foreground">
-														{timeAgo(report.created_at)}
-													</div>
-												</div>
-												{report.location && (
-													<div className="mt-1 text-[13px] leading-snug text-muted-foreground">
-														{report.location}
-													</div>
-												)}
-												<div className="mt-2.5">
-													<StatusBadge status={report.status} />
-												</div>
-											</div>
-										</div>
-									);
-								})}
-								{areaIncidents.length === 0 && (
-									<AppEmpty
-										icon={IconShieldCheck}
-										title="Tidak ada kejadian aktif"
-										description="Hanya kejadian yang sudah diverifikasi petugas yang tampil di sini."
-									/>
-								)}
-							</AppList>
-						</AppSection>
-					)}
-
-					{(historyReports.length > 0 || activeReports.length === 0) && renderMyHistory()}
+					<div>
+						<h3 className="text-[17px] font-semibold tracking-tight">Lapor Darurat</h3>
+						<p className="mt-0.5 text-xs font-medium text-destructive-foreground/80">
+							Kebakaran atau keadaan darurat lain? Laporkan sekarang.
+						</p>
+					</div>
 				</div>
+				<IconChevronRight className="h-5 w-5 shrink-0" />
+			</Link>
 
-				<div className="space-y-6 lg:space-y-8">
-					{(station || hydrant) && (
-						<AppSection title="Terdekat dari Anda">
-							<AppList>
-								{station && (
-									<div className="flex items-start gap-3 px-4 py-3.5 md:px-5 md:py-4">
-										<div className="shrink-0 rounded-xl bg-destructive/10 p-2.5 text-destructive">
-											<IconFiretruck className="h-5 w-5" stroke={2} />
-										</div>
-										<div className="min-w-0 flex-1">
-											<div className="text-[15px] font-semibold leading-snug text-foreground">
-												{station.name}
-											</div>
-											<div className="mt-0.5 text-[13px] text-muted-foreground">
-												{formatKm(station.km)}
-												{myPos ? ' dari Anda' : ' dari pusat wilayah'}
-												{station.address && ` - ${station.address}`}
-											</div>
-											<div className="mt-2.5 flex flex-wrap gap-2">
-												{station.phone && (
-													<Button variant="outline" size="sm" className="rounded-xl" asChild>
-														<a href={`tel:${station.phone}`}>
-															<IconPhone className="mr-1 h-4 w-4" /> {station.phone}
-														</a>
-													</Button>
-												)}
-												<Button variant="outline" size="sm" className="rounded-xl" asChild>
-													<a
-														href={directionsUrl(station.lat, station.lng)}
-														target="_blank"
-														rel="noreferrer"
-													>
-														<IconNavigation className="mr-1 h-4 w-4" /> Arah
-													</a>
-												</Button>
-											</div>
-										</div>
+			{/* LAPORAN ANDA YANG MASIH BERJALAN (#165). Halaman Thanks hanya dicapai sekali sesudah
+			    kirim; tanpa kartu ini pelapor harus mencari statusnya lewat Riwayat. Ketuk = detail
+			    laporan, yang memuat stepper yang sama + posisi bantuan di peta. */}
+			{activeReports.length > 0 && (
+				<AppSection title="Laporan Anda" icon={IconRadar}>
+					<div className="space-y-3">
+						{activeReports.map((report) => (
+							<Link
+								key={report.id}
+								href={route('reports.show', report.id)}
+								className="block rounded-2xl border border-border/70 bg-card p-4 shadow-sm transition-transform active:scale-[0.98] motion-reduce:active:scale-100"
+							>
+								<div className="flex items-start justify-between gap-3">
+									<div className="min-w-0">
+										<h3 className="truncate text-[15px] font-semibold text-foreground">
+											{report.title}
+										</h3>
+										<p className="mt-0.5 text-xs text-muted-foreground">
+											<span className="font-mono">{reportNumber(report)}</span> -{' '}
+											{timeAgo(report.created_at)}
+										</p>
 									</div>
-								)}
-								{hydrant && (
-									<a
-										href={directionsUrl(hydrant.lat, hydrant.lng)}
-										target="_blank"
-										rel="noreferrer"
-										className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-muted/50 active:bg-muted md:px-5 md:py-4"
-									>
-										<div className="shrink-0 rounded-xl bg-teal/10 p-2.5 text-teal">
-											<IconFireHydrant className="h-5 w-5" stroke={2} />
-										</div>
-										<div className="min-w-0 flex-1">
-											<div className="text-[15px] font-semibold leading-snug text-foreground">
-												Hydrant terdekat
-											</div>
-											<div className="mt-0.5 text-[13px] text-muted-foreground">
-												{formatKm(hydrant.km)}
-												{hydrant.water_pressure &&
-													` - tekanan ${hydrant.water_pressure.toLowerCase()}`}
-											</div>
-										</div>
-										<IconNavigation className="h-4 w-4 shrink-0 text-muted-foreground" />
-									</a>
-								)}
-							</AppList>
-							{!myPos && (
-								<p className="px-1 text-xs text-muted-foreground">
-									Izinkan akses lokasi agar jarak dihitung dari posisi Anda.
-								</p>
-							)}
-						</AppSection>
-					)}
-
-					{isRelawan && (
-						<AppSection title="Kontribusi Anda">
-							<div className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
-								<div className="flex items-center gap-3">
-									<div className="shrink-0 rounded-xl bg-volunteer/10 p-2.5 text-volunteer">
-										<IconHeartHandshake className="h-5 w-5" stroke={2} />
-									</div>
-									<div>
-										<div className="text-[28px] font-bold tabular-nums leading-none tracking-tight text-foreground">
-											{props.tasksDone ?? 0}
-										</div>
-										<div className="mt-1 text-[13px] text-muted-foreground">
-											tugas selesai, sepanjang waktu
-										</div>
-									</div>
+									<span className="flex shrink-0 items-center gap-0.5 text-[13px] font-medium text-primary">
+										Lihat <IconChevronRight className="h-4 w-4" />
+									</span>
 								</div>
-								<div className="mt-3 flex flex-wrap gap-1.5">
-									{(auth?.skills || []).map((skill) => (
-										<span
-											key={skill}
-											className="rounded-full border border-volunteer/30 bg-volunteer/10 px-2.5 py-0.5 text-xs font-semibold text-volunteer"
-										>
-											{skill}
-										</span>
-									))}
-									<Link href={route('profile.edit')} className="text-xs font-medium text-primary">
-										{auth?.skills?.length ? 'Ubah keahlian' : 'Tambahkan keahlian'}
-									</Link>
-								</div>
-							</div>
-						</AppSection>
-					)}
+								<ReportStepper status={report.status} className="mt-3" />
+							</Link>
+						))}
+					</div>
+				</AppSection>
+			)}
 
-					{auth?.forum_enabled && (
-						<AppList>
-							<AppListRow
-								href={route('forum.index')}
-								leading={
-									<div className="rounded-xl bg-info/10 p-2.5 text-info">
-										<IconMessages className="h-5 w-5" stroke={2} />
-									</div>
-								}
-								title="Forum Warga"
-								meta="Kabar & diskusi warga di wilayah Anda"
-							/>
-						</AppList>
-					)}
-				</div>
-			</div>
+			{/* Kartu Mode Kesiapan - HANYA relawan. Cabang sebelahnya dulu berisi ajakan
+			    "Daftar Relawan" bagi warga; DICABUT 2026-09-02 atas permintaan user, sehingga
+			    peran relawan kini hanya diberikan admin lewat /admin/users. Jangan hidupkan
+			    lagi tanpa menanyakan user. */}
+			{isRelawan && <StandbyCard isStandby={isStandby} busy={isTogglingStandby} onToggle={handleToggleStandby} />}
+
+			{/* Pemisah `<hr>` antar-seksi dicabut: tiap seksi kini membawa labelnya sendiri
+			    (AppSection), dan garis mendatar selebar halaman adalah idiom dokumen. */}
+			{isRelawan ? (
+				<>
+					{renderRadarFeed()}
+					{showHistory && renderMyHistory()}
+				</>
+			) : (
+				<>
+					{showHistory && renderMyHistory()}
+					{renderRadarFeed()}
+				</>
+			)}
 		</div>
 	);
 }

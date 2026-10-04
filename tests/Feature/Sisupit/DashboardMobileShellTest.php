@@ -17,7 +17,6 @@ $shell = 'js/Components/AppSection.jsx';
 $dashboards = [
     'js/Pages/Dashboard.jsx',
     'js/Pages/Admin/Dashboard.jsx',
-    'js/Pages/Pejabat/Dashboard.jsx',
     'js/Pages/Petugas/Dashboard.jsx',
     'js/Pages/Opd/Dashboard.jsx',
 ];

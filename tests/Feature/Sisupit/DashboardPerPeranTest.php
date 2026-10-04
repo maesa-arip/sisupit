@@ -44,10 +44,8 @@ it('shows location and status to OPD on phones (#170)', function () {
 it('keeps TERLAPOR out of the red petugas banner (#171)', function () {
     $src = dashSource('resources/js/Pages/Petugas/Dashboard.jsx');
 
-    // TASK_72: banner "Ada N Insiden Aktif!" diganti seksi Butuh Unit / Sedang Ditangani - aturannya tetap:
-    // TERLAPOR hanya dihitung di baris "menunggu verifikasi admin", tak pernah jadi misi yang bisa ditindak.
-    expect($src)->toContain("const awaitingCount = missions.filter((m) => m.status === 'TERLAPOR').length;")
-        ->and($src)->toContain("missions.filter((m) => m.status !== 'TERLAPOR' && !myIds.has(m.id))")
+    expect($src)->toContain('const actionableCount = missions.length - awaitingCount;')
+        ->and($src)->toContain('Ada {actionableCount} Insiden Aktif!')
         ->and($src)->not->toContain('Ada {activeMissions.length} Insiden Aktif!');
 });
 
@@ -114,19 +112,15 @@ it('lets petugas pan the tactical map on phones and shows status colors and own 
         ->and($src)->not->toContain('⚠️');
 });
 
-// Kartu statistik lama pindah bersama dashboard pejabat (TASK_72); admin punya Pusat Komando baru.
-// #176 menuntut angka yang jujur. Sejak TASK_72 fase 5 kartu lama ("Total Selesai") diganti kinerja per
-// periode; kejujurannya tetap dijaga: tiap angka berlabel periode/sumbernya, tak ada "bulan ini" yang
-// sebenarnya sepanjang waktu, dan kerugian (teks bebas) tak pernah dijumlahkan.
-it('keeps the official dashboard numbers honest and readable (#176)', function () {
-    $src = dashSource('resources/js/Pages/Pejabat/Dashboard.jsx');
+it('keeps admin stat cards honest and readable (#176)', function () {
+    $src = dashSource('resources/js/Pages/Admin/Dashboard.jsx');
 
     expect($src)->not->toContain('Selesai Bulan Ini')
-        ->and($src)->toContain('title={`Kinerja - ${periodLabel}`}')
-        ->and($src)->toContain('note="Dari Laporan Kejadian final"')
-        ->and($src)->not->toMatch('/kerugian/i')
+        ->and($src)->toContain('title="Total Selesai"')
+        ->and($src)->toContain("{ status: 'resolved' }")
+        ->and($src)->toContain("getFirstName(auth.user.name, 'Admin')")
         ->and($src)->not->toContain('Distribusi Kendaraan')
-        ->and($src)->toContain('<AppLayout children={page} title="Dashboard Eksekutif" />');
+        ->and($src)->toContain("page.props.isPejabat ? 'Dashboard Eksekutif' : 'Pusat Komando'");
 });
 
 it('shows each citizen report once and speaks plainly when empty (#176)', function () {

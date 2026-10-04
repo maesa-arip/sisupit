@@ -1,9 +1,9 @@
 import HeaderTitle from '@/Components/HeaderTitle';
+import PaginationLinks from '@/Components/PaginationLinks';
 import { Alert, AlertDescription } from '@/Components/ui/alert';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink } from '@/Components/ui/pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Switch } from '@/Components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
@@ -193,19 +193,7 @@ export default function Index(props) {
 						Pengaturan
 					</p>
 					<div className="overflow-x-auto">
-						{meta.has_pages && (
-							<Pagination>
-								<PaginationContent className="flex flex-wrap justify-center lg:justify-end">
-									{meta.links.map((link, index) => (
-										<PaginationItem key={index} className="mx-1 mb-1 lg:mb-0">
-											<PaginationLink href={link.url} isActive={link.active}>
-												{link.label}
-											</PaginationLink>
-										</PaginationItem>
-									))}
-								</PaginationContent>
-							</Pagination>
-						)}
+						<PaginationLinks links={meta.links} />
 					</div>
 				</CardFooter>
 			</Card>

@@ -25,12 +25,12 @@ return [
         'nama' => env('LEGAL_PENYEDIA_NAMA', 'PT Tawarin Dimana Saja'),
 
         // Kontak dukungan teknis (bukan kanal darurat — darurat selalu ke nomor instansi).
-        'email' => env('LEGAL_PENYEDIA_EMAIL', 'support@sisupit.com'),
+        'email' => env('LEGAL_PENYEDIA_EMAIL', 'tawarinfirst@gmail.com'),
         'whatsapp' => env('LEGAL_PENYEDIA_WHATSAPP', null),
 
         // Kanal legal/kontraktual: pelaporan pelanggaran & verifikasi Pengguna Berkontrak.
         // Terpisah dari `email` supaya keluhan teknis tidak masuk ke antrean hukum.
-        'email_legal' => env('LEGAL_PENYEDIA_EMAIL_LEGAL', 'legal@tawarindimanaja.com'),
+        'email_legal' => env('LEGAL_PENYEDIA_EMAIL_LEGAL', 'tawarinfirst@gmail.com'),
 
         // Alamat kantor pusat — ikut menentukan yurisdiksi Pengadilan Negeri di klausul
         // penyelesaian sengketa. WAJIB diisi sebelum dokumen dipakai untuk tanda tangan.

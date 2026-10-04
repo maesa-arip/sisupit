@@ -85,8 +85,7 @@
 		--input: 0 0% 15%;
 		--ring: 216 12.2% 83.9%;
 		--chart-1: 220 70% 50%;
-		/* TASK_72: 45% -> 40% - validator dataviz: L 0.699 di luar pita gelap 0.48-0.67 (grafik pejabat). */
-		--chart-2: 160 60% 40%;
+		--chart-2: 160 60% 45%;
 		--chart-3: 30 80% 55%;
 		--chart-4: 280 65% 60%;
 		--chart-5: 340 75% 55%;

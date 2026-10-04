@@ -1,4 +1,5 @@
 import HeaderTitle from '@/Components/HeaderTitle';
+import PaginationLinks from '@/Components/PaginationLinks';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -409,31 +410,7 @@ export default function Index({
 										Menampilkan {hydrants.from} - {hydrants.to} dari {hydrants.total} aset
 									</span>
 
-									{hydrants.links && hydrants.links.length > 3 && (
-										<div className="flex flex-wrap justify-center gap-1">
-											{hydrants.links.map((link, index) => {
-												return link.url ? (
-													<Link
-														key={index}
-														href={link.url}
-														preserveScroll
-														className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
-															link.active
-																? 'border-primary bg-primary text-primary-foreground shadow-sm'
-																: 'border-input bg-background text-muted-foreground hover:bg-accent hover:text-foreground'
-														}`}
-														dangerouslySetInnerHTML={{ __html: link.label }}
-													/>
-												) : (
-													<span
-														key={index}
-														className="cursor-not-allowed rounded-lg border border-transparent px-3 py-1.5 text-xs font-semibold text-muted-foreground opacity-50"
-														dangerouslySetInnerHTML={{ __html: link.label }}
-													/>
-												);
-											})}
-										</div>
-									)}
+									<PaginationLinks links={hydrants.links} />
 								</div>
 							</>
 						) : (

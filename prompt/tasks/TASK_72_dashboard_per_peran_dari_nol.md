@@ -469,3 +469,20 @@ ke dev dan staging".
 - Verifikasi HTTPS: /login 200; bundel app-CnBjJK7H.js (manifest 3d1e56e3) dirujuk, app-C8PQ5Ntg.js lama tidak; chunk
   Pejabat/Dashboard 200; chunk Admin/Dashboard memuat "Menunggu Verifikasi"; data publik utuh (51 hydrant / 6 SKKL / 7 pos);
   staging tetap dashboard sebelumnya, dev tetap dashboard baru.
+
+## 24. DIKEMBALIKAN ke tampilan sebelum TASK_72 (2026-10-05)
+
+Permintaan user: "kembalikan tampilan dashboard ke sebelumnya" - dikonfirmasi lewat pertanyaan: SEMUA dashboard ke
+`pra-task72-dashboard` (bukan hanya perubahan #179 hari itu). Dijalankan sesuai bagian 13:
+- Dipulihkan per berkas (`git show pra-task72-dashboard:<path> > <path>`): `DashboardController.php`,
+  `Pages/{Dashboard,Admin/Dashboard,Petugas/Dashboard,Opd/Dashboard,Front/Reports/Show}.jsx`, `resources/css/app.css`
+  (`--chart-2` gelap 45%), dan test `AppleDesignMaterialTest`, `DashboardMobileShellTest`, `DashboardPerPeranTest`,
+  `DashboardStandbyCountTest`, `ReportDuplicateMergeTest`, `DashboardReportFeedTenantScopeTest`.
+- Dihapus: `Pages/Pejabat/Dashboard.jsx`, `lib/click-location.js`, `AdminCommandCenterTest`, `PetugasDashboardTest`,
+  `WargaRelawanDashboardTest`, `OpdDashboardConfirmTest`, `PejabatDashboardTest`, `SuperadminDashboardTest`.
+- DIPERTAHANKAN (data, bukan tampilan): kolom `reports.approved_at/approved_by` + penulisannya di `approve()`; test-nya
+  dipindah ke `ReportApprovalActorTest` (1 test).
+- Ditambahkan di atas versi lama: `incident_type` di 5 payload laporan `DashboardController` - agar perbaikan ikon #179
+  (`lib/report-icon.js`) tetap tepat di dashboard lama. Tampilan tidak berubah.
+- Terjemahan #178 di dashboard TASK_72 (Median -> "Biasanya ...") ikut hilang; dashboard lama tidak memuat teks itu.
+- Kembali ke dashboard TASK_72: pulihkan berkas di atas dari commit `dde8c6a4` (terakhir sebelum pengembalian).

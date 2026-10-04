@@ -1,4 +1,5 @@
 import HeaderTitle from '@/Components/HeaderTitle';
+import PaginationLinks from '@/Components/PaginationLinks';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -12,7 +13,6 @@ import {
 } from '@/Components/ui/alert-dialog';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink } from '@/Components/ui/pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import {
 	Table,
@@ -272,19 +272,7 @@ export default function Index(props) {
 						{meta.total} Peran
 					</p>
 					<div className="overflow-x-auto">
-						{meta.has_pages && (
-							<Pagination>
-								<PaginationContent className="flex flex-wrap justify-center lg:justify-end">
-									{meta.links.map((link, index) => (
-										<PaginationItem key={index} className="mx-1 mb-1 lg:mb-0">
-											<PaginationLink href={link.url} isActive={link.active}>
-												{link.label}
-											</PaginationLink>
-										</PaginationItem>
-									))}
-								</PaginationContent>
-							</Pagination>
-						)}
+						<PaginationLinks links={meta.links} />
 					</div>
 				</div>
 			</div>

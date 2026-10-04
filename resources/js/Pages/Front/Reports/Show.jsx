@@ -8,7 +8,6 @@ import { Dialog, DialogContent } from '@/Components/ui/dialog';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
-import { getClickLocation } from '@/lib/click-location';
 import { escapeHtml } from '@/lib/escape-html';
 import { alamatTerbaca, asalTitikLaporan, cn, GEO_OPTIONS, MAP_TILE_URL, reportNumber } from '@/lib/utils';
 import { Head, Link, router } from '@inertiajs/react';
@@ -83,6 +82,31 @@ function animateMarkerTo(marker, to, duration = 1500) {
 	};
 	marker._moveRaf = requestAnimationFrame(tick);
 }
+
+// Posisi perangkat saat tombol Meluncur / Jaga di Kantor ditekan (TASK_66). Ditunggu SEBENTAR
+// lalu tombol tetap jalan tanpa lokasi - aksi darurat tak boleh tertahan GPS. Penjaga waktu
+// kedua ada karena getCurrentPosition bisa tak pernah memanggil balik selama prompt izin
+// lokasi WebView belum dijawab.
+const getClickLocation = () =>
+	new Promise((resolve) => {
+		if (typeof navigator === 'undefined' || !navigator.geolocation) return resolve({});
+		const guard = setTimeout(() => resolve({}), 4000);
+		navigator.geolocation.getCurrentPosition(
+			(pos) => {
+				clearTimeout(guard);
+				resolve({
+					lat: pos.coords.latitude,
+					lng: pos.coords.longitude,
+					accuracy: Math.round(pos.coords.accuracy),
+				});
+			},
+			() => {
+				clearTimeout(guard);
+				resolve({});
+			},
+			{ enableHighAccuracy: true, timeout: 3000, maximumAge: 30000 },
+		);
+	});
 
 export default function ReportShow(props) {
 	const auth = props.auth;

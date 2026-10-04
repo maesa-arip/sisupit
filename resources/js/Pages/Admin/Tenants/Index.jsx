@@ -1,4 +1,5 @@
 import HeaderTitle from '@/Components/HeaderTitle';
+import PaginationLinks from '@/Components/PaginationLinks';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -224,31 +225,7 @@ export default function Index(props) {
 						{props.tenants.total} tenant
 					</p>
 					<div className="overflow-x-auto">
-						{props.tenants.links && props.tenants.links.length > 3 && (
-							<div className="flex flex-wrap justify-center gap-1 lg:justify-end">
-								{props.tenants.links.map((link, index) =>
-									link.url ? (
-										<Link
-											key={index}
-											href={link.url}
-											preserveScroll
-											className={`rounded-2xl border px-3 py-1.5 text-xs font-semibold transition-colors ${
-												link.active
-													? 'border-warning bg-warning text-warning-foreground'
-													: 'border-input bg-background text-muted-foreground hover:bg-accent'
-											}`}
-											dangerouslySetInnerHTML={{ __html: link.label }}
-										/>
-									) : (
-										<span
-											key={index}
-											className="cursor-not-allowed rounded-2xl border border-transparent px-3 py-1.5 text-xs font-semibold text-muted-foreground opacity-50"
-											dangerouslySetInnerHTML={{ __html: link.label }}
-										/>
-									),
-								)}
-							</div>
-						)}
+						<PaginationLinks links={props.tenants.links} />
 					</div>
 				</CardFooter>
 			</Card>

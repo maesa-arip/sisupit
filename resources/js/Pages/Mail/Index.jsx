@@ -1,4 +1,5 @@
 import HeaderTitle from '@/Components/HeaderTitle';
+import PaginationLinks from '@/Components/PaginationLinks';
 import { Button } from '@/Components/ui/button';
 import { CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
@@ -103,31 +104,7 @@ export default function Index({ messages, filters, mailbox }) {
 								Menampilkan {messages.from} - {messages.to} dari {messages.total} surat
 							</span>
 
-							{messages.links && messages.links.length > 3 && (
-								<div className="flex flex-wrap justify-center gap-1">
-									{messages.links.map((link, index) =>
-										link.url ? (
-											<Link
-												key={index}
-												href={link.url}
-												preserveScroll
-												className={`rounded-2xl border px-3 py-1.5 text-xs font-semibold transition-colors ${
-													link.active
-														? 'border-primary bg-primary text-primary-foreground shadow-sm'
-														: 'border-input bg-background text-muted-foreground hover:bg-accent hover:text-foreground'
-												}`}
-												dangerouslySetInnerHTML={{ __html: link.label }}
-											/>
-										) : (
-											<span
-												key={index}
-												className="rounded-2xl border border-input px-3 py-1.5 text-xs font-semibold text-muted-foreground/40"
-												dangerouslySetInnerHTML={{ __html: link.label }}
-											/>
-										),
-									)}
-								</div>
-							)}
+							<PaginationLinks links={messages.links} />
 						</div>
 					</>
 				) : (

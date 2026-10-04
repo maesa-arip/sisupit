@@ -68,6 +68,8 @@ Terakhir     : #159/TASK_69 lapisan platform ponsel (hover sentuh, tap, active B
                 sebelumnya" = SEMUA dashboard ke tag pra-task72-dashboard (TASK_72 bagian 13).
                 #158 push iOS (kabar status pelapor & nada OPD) TERDEPLOY @9988587e.
                 #157 hapus akun = ANONIMISASI TERDEPLOY @43479a4e.
+DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
+                kolom approved_at tetap. #178 i18n TERDEPLOY prod @dde8c6a4; #179 (ikon, paginasi PaginationLinks, email).
 SEMENTARA    : #149 menu "Jangkauan Petugas" disembunyikan + foto laporan non-kebakaran
                 opsional; #156 menu admin "Daftar Penerima Email" & "Pengaturan Email Dinas"
                 disembunyikan (flag di navItems.js). Cara mengembalikan: FINDINGS_LOG #149/#156.
@@ -76,7 +78,7 @@ Belum dicek  : visual di ponsel/APK untuk banyak perubahan UI (tombol merah bran
 Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115 #119 #121
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174.
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
-Test         : 734 passed, 3736 assertions (2026-10-04; main = feat/mobile-native-polish sejak merge 2026-10-05).
+Test         : 695 passed, 3560 assertions (2026-10-05, sesudah dashboard dikembalikan ke pra-TASK_72).
 Lingkungan   : PROD @3d1e56e3 (dashboard baru) | DEV @672b6a10 (dashboard baru) | STAGING @6d1dc8ea (dashboard
                 sebelumnya, untuk perbandingan). Dev & staging: data salinan prod, basic auth (APK dikecualikan), sandi "password".
 ```
@@ -103,7 +105,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-10-04: 734 passed, 3736 assertions - main sama sejak merge 2026-10-05;
+Test      : php artisan test            (baseline 2026-10-05: 695 passed, 3560 assertions - dashboard pra-TASK_72;
             lokal: php -d memory_limit=1G -d extension=php_sqlite3.dll -d extension=pdo_sqlite vendor/bin/pest.
             Perbarui angka ini tiap kali test bertambah - baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan. Riwayat angkanya di STATUS_LOG.md)

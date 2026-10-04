@@ -1,4 +1,5 @@
 import HeaderTitle from '@/Components/HeaderTitle';
+import PaginationLinks from '@/Components/PaginationLinks';
 import { Button } from '@/Components/ui/button';
 import { CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
@@ -144,32 +145,7 @@ export default function Index({ threads, filters, wilayah, canModerate, pendingC
 							))}
 						</div>
 
-						{threads.links && threads.links.length > 3 && (
-							<div className="mt-2 flex flex-wrap justify-center gap-1 pt-2">
-								{threads.links.map((link, index) =>
-									link.url ? (
-										<Link
-											key={index}
-											href={link.url}
-											preserveScroll
-											className={cn(
-												'rounded-2xl border px-3 py-1.5 text-xs font-semibold transition-colors',
-												link.active
-													? 'border-primary bg-primary text-primary-foreground shadow-sm'
-													: 'border-input bg-background text-muted-foreground hover:bg-accent hover:text-foreground',
-											)}
-											dangerouslySetInnerHTML={{ __html: link.label }}
-										/>
-									) : (
-										<span
-											key={index}
-											className="cursor-not-allowed rounded-2xl border border-transparent px-3 py-1.5 text-xs font-semibold text-muted-foreground opacity-50"
-											dangerouslySetInnerHTML={{ __html: link.label }}
-										/>
-									),
-								)}
-							</div>
-						)}
+						<PaginationLinks links={threads.links} />
 					</>
 				) : (
 					<div className="rounded-2xl border border-border/70 bg-card p-8 text-center shadow-sm">

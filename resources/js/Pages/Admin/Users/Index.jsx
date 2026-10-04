@@ -1,5 +1,6 @@
 import HeaderTitle from '@/Components/HeaderTitle';
 import InputError from '@/Components/InputError';
+import PaginationLinks from '@/Components/PaginationLinks';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -24,7 +25,6 @@ import {
 } from '@/Components/ui/dialog';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink } from '@/Components/ui/pagination';
 import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import {
@@ -452,19 +452,7 @@ export default function Index(props) {
 					</span>{' '}
 					dari <span className="font-medium tabular-nums text-foreground">{meta.total}</span> pengguna
 				</p>
-				{meta.has_pages && (
-					<Pagination>
-						<PaginationContent className="flex flex-wrap justify-center lg:justify-end">
-							{meta.links.map((link, index) => (
-								<PaginationItem key={index} className="mx-0.5 mb-1 lg:mb-0">
-									<PaginationLink href={link.url} isActive={link.active} className="rounded-lg">
-										{link.label}
-									</PaginationLink>
-								</PaginationItem>
-							))}
-						</PaginationContent>
-					</Pagination>
-				)}
+				<PaginationLinks links={meta.links} />
 			</div>
 
 			<Dialog open={!!roleUser} onOpenChange={(open) => !open && closeRoleDialog()}>
