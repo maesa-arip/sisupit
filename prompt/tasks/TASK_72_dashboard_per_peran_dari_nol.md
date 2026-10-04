@@ -458,3 +458,14 @@ ke dev dan staging".
   gerbang `off` untuk UA berisi `SisupitApp`. Harga yang diterima user: UA bisa ditiru.
 - Verifikasi HTTPS: dev & staging tanpa UA APK = 401, dengan UA APK = 200 (halaman & aset); produksi 200 apa pun UA-nya.
 - Temuan sampingan: #177 (APK `sendTokenToServer()` ke `api/fcm-token` = 404 di produksi) - OPEN.
+
+## 23. Merge ke main & deploy produksi (2026-10-05)
+
+- User: "merge semua ke main dan commit dan push". `feat/mobile-native-polish` di-merge FAST-FORWARD ke `main`
+  (71c29390 -> 3d1e56e3, tanpa merge commit/konflik). `feat/email-dinas` SENGAJA tidak di-merge: salinan basi 2026-09-22 yang
+  isinya sudah ada di main dalam bentuk lebih baru (merge = regresi). PENGECUALIAN_ATURAN #5 kini PERMANEN, FINDINGS #106 merujuk.
+- User: "deploy". Produksi sebelumnya menyajikan bundel `43479a4e` (#157); lompatan 100 commit, SATU migrasi (approved_at),
+  tanpa perubahan composer/.env.example/config/routes/package.json. User menjalankan `deploy-env.sh /var/www/sisupit main`.
+- Verifikasi HTTPS: /login 200; bundel app-CnBjJK7H.js (manifest 3d1e56e3) dirujuk, app-C8PQ5Ntg.js lama tidak; chunk
+  Pejabat/Dashboard 200; chunk Admin/Dashboard memuat "Menunggu Verifikasi"; data publik utuh (51 hydrant / 6 SKKL / 7 pos);
+  staging tetap dashboard sebelumnya, dev tetap dashboard baru.

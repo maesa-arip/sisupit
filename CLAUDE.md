@@ -43,7 +43,7 @@ Terakhir     : #159/TASK_69 lapisan platform ponsel (hover sentuh, tap, active B
                 KHUSUS branch ini; bagian 15: peta hanya desktop di 7 halaman fasilitas/laporan +
                 /admin/reports dirombak ulang; bagian 16: audit visual ulang 390px - rekap lama terlalu optimis, isi
                 dirombak sungguhan, #160) di branch feat/mobile-native-polish - TERDEPLOY ke DEV @9ab56742
-                (2026-10-04, termasuk #161-#165); MERGE ke main 2026-10-05 (prod belum di-deploy), butuh uji HP.
+                (2026-10-04, termasuk #161-#165); MERGE ke main & TERDEPLOY ke PRODUKSI @3d1e56e3 2026-10-05 (terverifikasi HTTPS), butuh uji HP.
                 #161 antrian BA tertinggal (ReportFeedChanged di store/destroy BA) + Riwayat pakai
                 AppListRow & ikon jenis lib/report-icon.js di 4 daftar (2026-10-02, branch sama).
                 #163 marker regu di peta detail = anggota terdekat ke TKP, bukan GPS danru; #164 Thanks pelapor: tombol &
@@ -77,6 +77,8 @@ Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174.
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
 Test         : 734 passed, 3736 assertions (2026-10-04; main = feat/mobile-native-polish sejak merge 2026-10-05).
+Lingkungan   : PROD @3d1e56e3 (dashboard baru) | DEV @672b6a10 (dashboard baru) | STAGING @6d1dc8ea (dashboard
+                sebelumnya, untuk perbandingan). Dev & staging: data salinan prod, basic auth (APK dikecualikan), sandi "password".
 ```
 
 ### Peringatan operasional (dari riwayat, masih berlaku)

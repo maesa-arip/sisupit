@@ -2552,6 +2552,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + TASK_72 fase 6 superadmin papan wilayah & kesehatan sistem (SuperadminDashboardTest) = 732 passed, 3731 assertions.
             (TASK_72 deploy 2026-10-04: DEV @5b7482f6 dashboard baru, STAGING @6d1dc8ea dashboard sebelumnya.)
             + TASK_72 lanjutan: papan regu danru dibatasi 3 kartu + ringkas (PetugasDashboardTest +2) = 734 passed, 3736 assertions.
+            (2026-10-05: feat/mobile-native-polish di-merge ff ke main @3d1e56e3 & TERDEPLOY ke PRODUKSI; migrasi approved_at.)
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)
