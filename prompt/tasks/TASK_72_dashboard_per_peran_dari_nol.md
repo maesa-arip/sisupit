@@ -443,3 +443,18 @@ ke dev dan staging".
   produksi/dev/staging (51/6/7; sidik isi id+nama+status+tekanan sama persis); kode tak berubah (dev app-CnBjJK7H.js, staging
   app-CUzoOKeo.js). Laporan, pengguna & foto TIDAK bisa diperiksa tanpa login - angka `produksi` = `target pasca` di keluaran
   skrip yang menjadi buktinya.
+
+## 22. Akses pratinjau dev & staging: sandi seragam + basic auth + pengecualian APK (2026-10-04/05)
+
+- Permintaan user: "ubah semua password di dev dan staging menjadi 'password'". Risiko disampaikan (dev/staging berisi salinan
+  data pribadi produksi & terbuka ke internet); user memilih "Semua + pengaman", lalu menyetujui tegas setelah pemeriksa
+  keamanan menahan: "ya, izinkan ubah semua password dev dan staging jadi 'password' dan pasang basic auth".
+- `deploy/preview-access.sh` (commit `5b2e64f7`): gerbang basic auth Nginx DIPASANG DULU (snippet
+  `/etc/nginx/snippets/sisupit-preview-auth.conf`, user `sisupit`, sandi acak dicetak sekali, `/etc/nginx/.htpasswd-sisupit-preview`;
+  vhost dicadangkan ke /root, dikembalikan bila `nginx -t` gagal; `/app` & `/apps` Reverb `auth_basic off`), BARU semua sandi
+  -> "password" (Hash::make). Menolak target produksi.
+- APK yang memuat dev kena 401 (WebView tanpa `onReceivedHttpAuthRequest`). User memilih "Kecualikan APK di Nginx":
+  `deploy/preview-apk-exempt.sh` (commit `33cba8ab`) - `map $http_user_agent` di `/etc/nginx/conf.d/sisupit-preview-map.conf`,
+  gerbang `off` untuk UA berisi `SisupitApp`. Harga yang diterima user: UA bisa ditiru.
+- Verifikasi HTTPS: dev & staging tanpa UA APK = 401, dengan UA APK = 200 (halaman & aset); produksi 200 apa pun UA-nya.
+- Temuan sampingan: #177 (APK `sendTokenToServer()` ke `api/fcm-token` = 404 di produksi) - OPEN.
