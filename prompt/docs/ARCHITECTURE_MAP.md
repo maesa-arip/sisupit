@@ -94,7 +94,8 @@ resources/js/
                   Navigasi instan (TASK_70): lib/navigation.js (installNavigationTracking dari app.jsx)
                   -> AppLayout menampilkan Components/PageSkeleton.jsx selama kunjungan GET ke path lain
                   berjalan (halaman lama disembunyikan, bukan dilepas); menu membaca useNavUrl();
-                  progress bar Inertia dimatikan selama AppLayout terpasang (useSkeletonHost).
+                  progress bar Inertia dimatikan selama AppLayout terpasang (useSkeletonHost);
+                  kerangka hanya bila tunggu > 300 ms, ditahan min. 300 ms (SKELETON_DELAY_MS/MIN_MS).
                   Tanpa prefetch selama @inertiajs/core 2.0.3 (FINDINGS #166).
                   Navigasi SEMUA UKURAN = SATU daftar di Partials/navItems.js
                   (buildNavSections), dua permukaan:

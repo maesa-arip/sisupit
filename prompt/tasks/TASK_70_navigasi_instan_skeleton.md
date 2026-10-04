@@ -161,6 +161,20 @@ Commit A, B, (C) terpisah -> `git revert` per bagian. A cukup dilepas dari AppLa
   Temuan di luar scope: #167 (denyut marker di dalam drop-shadow). Suite 682 passed, 3477 assertions; build lulus.
 - **#167 (2026-10-04, keputusan user "matikan saja denyut di semuanya"):** denyut dilepas dari marker ketiga peta
   (dashboard petugas, detail insiden, Peta Pemantauan) - rincian di FINDINGS #167. Suite 683 passed, 3485 assertions.
+- **Lanjutan 3 (2026-10-04) - "jika halaman bisa muncul cepat tanpa skeleton, skeleton tidak harus tampil".**
+  Kajian dulu (disetujui user): batas respons 0,1/1/10 dtk (Nielsen Norman Group); React mempertahankan tampilan
+  lama selama transisi (useTransition) & menahan Suspense ~300 ms; pola "delay + durasi minimum" (spin-delay).
+  Bentuk lama salah di tiga hal: halaman lama dipudarkan begitu diketuk (halaman cepat pun tampak memuat),
+  kerangka di 120 ms (berkedip untuk respons 150-300 ms), tanpa durasi minimum.
+  Kini: menu aktif seketika, halaman lama UTUH; respons < 300 ms -> ganti langsung tanpa kerangka/fade; 300 ms ->
+  kerangka memudar masuk; kerangka ditahan min. 300 ms (`holdTimer`), lalu halaman baru memudar masuk; ketukan
+  beruntun saat kerangka tampil -> kerangka dipertahankan; `resize` dikirim saat isi dimunculkan (peta Leaflet yang
+  terpasang selagi tersembunyi menghitung ulang ukurannya).
+  Uji Chrome dengan respons direkam & disajikan ulang pada jeda terkendali: 100 ms -> tanpa kerangka, halaman baru
+  ~160 ms, opasitas halaman lama tetap 1; 320 ms -> kerangka ~300 ms tanpa kedip; 1000 ms -> kerangka selama
+  menunggu; ketukan beruntun Riwayat->Lapor -> kerangka tanpa celah 320..1653 ms; peta Beranda lewat kerangka =
+  356x298, 9 tile, cakupan 100% (sama dengan muat penuh). Regresi offline/filter/kembali/progress bar/gagal hijau.
+  Penjaga: 2 test ditulis ulang, sabotase 3x MERAH. Suite 684 passed, 3488 assertions; build lulus.
 
 **B dibatalkan:** prefetch sempat dipasang (sentuh di bilah bawah, hover di sidebar) lalu uji Chrome offline
 membuktikan bug Inertia 2.0.3: prefetch gagal/disela meninggalkan entri in-flight yang ditolak, klik berikutnya

@@ -1,5 +1,5 @@
 import { router, usePage } from '@inertiajs/react';
-import { useEffect, useLayoutEffect, useRef, useSyncExternalStore } from 'react';
+import { useEffect, useLayoutEffect, useSyncExternalStore } from 'react';
 
 /**
  * Navigasi instan (TASK_70). Inertia baru mengganti layar setelah respons server tiba, jadi
@@ -20,10 +20,17 @@ import { useEffect, useLayoutEffect, useRef, useSyncExternalStore } from 'react'
  * 2026-10-04 (FINDINGS #166). Pakai `prefetch` hanya setelah Inertia di-upgrade.
  */
 
-// 120 ms: respons yang tiba sedikit di atas ambang membuat kerangka berkedip sekilas lalu langsung
-// diganti - dua lompatan beruntun itulah yang terasa "patah-patah" (keluhan user 2026-10-04 di dev).
-// Menu aktif tetap berubah seketika; ambang ini hanya untuk kerangka.
-const SKELETON_DELAY_MS = 120;
+// KAPAN KERANGKA TAMPIL (keputusan user 2026-10-04, setelah kajian: batas respons 0,1/1/10 dtk
+// Nielsen Norman Group; React mempertahankan tampilan lama selama transisi & menahan Suspense
+// ~300 ms; pola "delay + durasi minimum"). Halaman yang tiba cepat langsung diganti TANPA kerangka -
+// kerangka yang muncul sekejap justru terasa lebih lambat dan berkedip.
+//  - 0 ms   : menu langsung aktif di tujuan (tanda ketukan diterima); halaman lama tetap utuh.
+//  - < 300  : respons tiba -> ganti langsung, tanpa kerangka, tanpa fade.
+//  - 300 ms : masih menunggu -> kerangka memudar masuk.
+//  - kerangka yang sudah tampil ditahan minimal 300 ms (tak berkedip), lalu halaman baru memudar masuk.
+// Dua angka ini yang disetel bila hasil di ponsel belum pas.
+const SKELETON_DELAY_MS = 300;
+const SKELETON_MIN_MS = 300;
 // Masuknya halaman baru setelah kerangka (skill animate: pencegah perubahan mendadak, puluhan kali
 // sehari -> opacity saja, singkat). Kurvanya = token `ease-spring` di tailwind.config.js.
 const PAGE_FADE_EASING = 'cubic-bezier(0.32, 0.72, 0, 1)';
@@ -31,6 +38,9 @@ const ARRIVAL_FADE = { duration: 200, easing: PAGE_FADE_EASING };
 
 let pending = null; // { url: '/path?query', skeleton: boolean }
 let skeletonTimer = null;
+let skeletonShownAt = 0;
+// Penahan durasi minimum kerangka; selama berjalan, kunjungan dianggap belum selesai di layar.
+let holdTimer = null;
 let asyncInFlight = 0;
 // Jumlah AppLayout yang terpasang = yang sanggup menggambar kerangka (Auth, Landing tidak).
 let skeletonHosts = 0;
@@ -53,11 +63,25 @@ const getServerSnapshot = () => null;
 
 const pathOf = (url) => url.pathname + url.search;
 
-function clearPending() {
-	clearTimeout(skeletonTimer);
+function reveal() {
 	if (!pending) return;
 	if (pending.skeleton) arrivedFromSkeleton = true;
 	emit(null);
+}
+
+function clearPending() {
+	clearTimeout(skeletonTimer);
+	if (!pending || holdTimer) return;
+
+	const remaining = pending.skeleton ? SKELETON_MIN_MS - (performance.now() - skeletonShownAt) : 0;
+	if (remaining > 0) {
+		holdTimer = setTimeout(() => {
+			holdTimer = null;
+			reveal();
+		}, remaining);
+		return;
+	}
+	reveal();
 }
 
 function isPageVisit(visit) {
@@ -93,9 +117,17 @@ export function installNavigationTracking() {
 			if (event.defaultPrevented) return;
 
 			clearTimeout(skeletonTimer);
-			emit({ url, skeleton: false });
+			clearTimeout(holdTimer);
+			holdTimer = null;
+			// Kerangka sedang tampil (ketukan beruntun): biarkan tetap tampil - mencopotnya
+			// memperlihatkan halaman setengah jadi sekejap. Hitungan minimumnya tetap berjalan.
+			const keepSkeleton = Boolean(pending?.skeleton);
+			emit({ url, skeleton: keepSkeleton });
+			if (keepSkeleton) return;
 			skeletonTimer = setTimeout(() => {
-				if (pending?.url === url) emit({ url, skeleton: true });
+				if (pending?.url !== url) return;
+				skeletonShownAt = performance.now();
+				emit({ url, skeleton: true });
 			}, SKELETON_DELAY_MS);
 		});
 	});
@@ -140,47 +172,27 @@ export function useSkeletonHost() {
 }
 
 /**
- * Transisi isi halaman (skill animate: pencegah perubahan mendadak, puluhan kali sehari -> opacity
- * saja, singkat, kurva token `ease-spring`; data yang dibaca tak boleh bergeser demi gaya; reduced
- * motion tetap fade). WAAPI pada opacity berjalan di compositor (dicek di trace Chrome). Urutan tanpa
- * satu pun potongan keras (dulu tiga, terasa "patah-patah"):
- *   1. ketukan        -> halaman lama memudar keluar selama jeda kerangka;
- *   2. kerangka tampil -> fade keluar dilepas (halaman lama sudah tersembunyi), kerangka memudar masuk
- *                         lewat kelas CSS-nya sendiri;
- *   3. respons tiba    -> halaman baru memudar masuk. Bila datang dari kerangka, fade ditunda DUA frame:
- *                         frame pertama halaman baru itu berat (render, layout awal, peta - 0,5-1 dtk
- *                         pada CPU 4x lebih lambat) dan fade yang dimulai saat commit habis di dalamnya.
- * Kunjungan gagal/batal = halaman lama kembali penuh.
+ * Masuknya halaman baru SETELAH kerangka (skill animate: pencegah perubahan mendadak, puluhan kali
+ * sehari -> opacity saja, singkat, kurva token `ease-spring`; data yang dibaca tak boleh bergeser
+ * demi gaya; reduced motion tetap fade). Tanpa kerangka tidak ada animasi sama sekali: halaman yang
+ * tiba cepat diganti langsung, seperti pindah tab di aplikasi native. Halaman lama juga TIDAK
+ * dipudarkan saat diketuk - itu membuat halaman cepat pun tampak sedang memuat.
+ *
+ * - `resize`: selama kerangka ditahan, halaman baru sudah terpasang tapi tersembunyi (display:none),
+ *   jadi peta Leaflet di dalamnya mengukur dirinya 0x0. Leaflet mendengar resize jendela
+ *   (`trackResize`, bawaan) lalu menghitung ulang ukurannya.
+ * - DUA requestAnimationFrame: frame pertama halaman baru itu berat (layout awal, peta - 0,5-1 dtk
+ *   pada CPU 4x lebih lambat); fade yang dimulai saat commit habis di dalamnya. WAAPI pada opacity
+ *   berjalan di compositor (dicek di trace Chrome).
  */
 export function usePageTransition(ref, pendingVisit) {
-	const leaving = useRef(null);
-	const navigating = Boolean(pendingVisit);
-	const skeleton = Boolean(pendingVisit?.skeleton);
-
 	useLayoutEffect(() => {
+		if (pendingVisit || !arrivedFromSkeleton) return;
+		arrivedFromSkeleton = false;
+		window.dispatchEvent(new Event('resize'));
+
 		const el = ref.current;
 		if (!el?.animate) return;
-
-		if (navigating && !skeleton) {
-			leaving.current = el.animate([{ opacity: 1 }, { opacity: 0 }], {
-				duration: SKELETON_DELAY_MS,
-				easing: PAGE_FADE_EASING,
-				fill: 'forwards',
-			});
-			return;
-		}
-
-		// Opasitas terakhir halaman lama (respons yang tiba sebelum kerangka sempat tampil).
-		const from = leaving.current ? Number(getComputedStyle(el).opacity) : 1;
-		leaving.current?.cancel();
-		leaving.current = null;
-		if (navigating) return; // kerangka tampil: ia memudar masuk sendiri
-
-		if (!arrivedFromSkeleton) {
-			if (from < 1) el.animate([{ opacity: from }, { opacity: 1 }], ARRIVAL_FADE);
-			return;
-		}
-		arrivedFromSkeleton = false;
 
 		el.style.opacity = '0';
 		let second;
@@ -196,7 +208,7 @@ export function usePageTransition(ref, pendingVisit) {
 			cancelAnimationFrame(second);
 			el.style.opacity = '';
 		};
-	}, [navigating, skeleton, ref]);
+	}, [pendingVisit, ref]);
 }
 
 /** Kunjungan halaman yang sedang berjalan, atau null. */

@@ -82,21 +82,34 @@ it('hides the Inertia progress bar only when a layout that draws the skeleton is
     expect(navSource('resources/js/app.jsx'))->toContain('progress: {');
 });
 
-it('transitions page content with opacity only and no hard cut', function () {
+it('shows the skeleton only for slow visits and never as a flash', function () {
+    $nav = navSource('resources/js/lib/navigation.js');
+
+    // Kajian 2026-10-04 (disetujui user): < 300 ms = ganti langsung tanpa kerangka; kerangka yang
+    // sudah tampil ditahan minimal 300 ms.
+    expect($nav)->toContain('const SKELETON_DELAY_MS = 300;')
+        ->and($nav)->toContain('const SKELETON_MIN_MS = 300;')
+        ->and($nav)->toMatch('/skeletonShownAt = performance\.now\(\);\s*emit\(\{ url, skeleton: true \}\);/')
+        ->and($nav)->toMatch('/const remaining = pending\.skeleton \? SKELETON_MIN_MS - \(performance\.now\(\) - skeletonShownAt\) : 0;/')
+        ->and($nav)->toMatch('/holdTimer = setTimeout\(\(\) => \{\s*holdTimer = null;\s*reveal\(\);\s*\}, remaining\);/')
+        // Ketukan beruntun saat kerangka tampil: kerangka tetap, bukan halaman setengah jadi.
+        ->and($nav)->toMatch('/const keepSkeleton = Boolean\(pending\?\.skeleton\);\s*emit\(\{ url, skeleton: keepSkeleton \}\);\s*if \(keepSkeleton\) return;/');
+});
+
+it('animates only the arrival after a skeleton, with opacity, and never fades the old page', function () {
     $nav = navSource('resources/js/lib/navigation.js');
     expect(preg_match('/export function usePageTransition\(ref, pendingVisit\) \{(.*?)\n\}/s', $nav, $m))->toBe(1);
     $hook = $m[1];
 
-    // Hanya opacity (data yang dibaca tak boleh bergeser); tak ada transform/translate/scale.
-    preg_match_all('/el\.animate\(\s*\[(.*?)\]/s', $hook, $frames);
-    expect($frames[1])->toHaveCount(3);
-    foreach ($frames[1] as $keyframes) {
-        expect($keyframes)->toContain('opacity')->not->toMatch('/transform|translate|scale/');
-    }
-
-    // Halaman lama memudar keluar selama jeda kerangka; kunjungan gagal = fade dilepas (cancel).
-    expect($hook)->toMatch('/duration: SKELETON_DELAY_MS,\s*easing: PAGE_FADE_EASING,\s*fill: \'forwards\'/')
-        ->and($hook)->toContain('leaving.current?.cancel();')
+    // Satu-satunya animasi: fade masuk opasitas, hanya bila kerangka sempat tampil.
+    expect(substr_count($nav, '.animate('))->toBe(1)
+        ->and($hook)->toContain('el.animate([{ opacity: 0 }, { opacity: 1 }], ARRIVAL_FADE);')
+        ->and($hook)->toMatch('/if \(pendingVisit \|\| !arrivedFromSkeleton\) return;/')
+        ->and($nav)->not->toMatch('/transform|translate|scale\(/')
+        // Halaman lama tidak dipudarkan saat diketuk (membuat halaman cepat tampak memuat).
+        ->and($nav)->not->toContain('{ opacity: 1 }, { opacity: 0 }')
+        // Peta Leaflet yang terpasang saat tersembunyi menghitung ulang ukurannya.
+        ->and($hook)->toContain("window.dispatchEvent(new Event('resize'));")
         // Fade masuk sesudah frame berat: dua requestAnimationFrame bersarang + gaya inline dibersihkan.
         ->and($hook)->toMatch('/requestAnimationFrame\(\(\) => \{\s*second = requestAnimationFrame\(\(\) => \{\s*el\.style\.opacity = \'\';\s*el\.animate/')
         ->and($hook)->toMatch('/return \(\) => \{\s*cancelAnimationFrame\(first\);\s*cancelAnimationFrame\(second\);\s*el\.style\.opacity = \'\';/');
