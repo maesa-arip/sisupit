@@ -4076,7 +4076,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   memasang prefetch.
 - **Status:** OPEN (dimitigasi: tak ada prefetch di kode).
 
-### #167 — Marker peta mini dashboard petugas: `animate-pulse` di dalam `filter: drop-shadow` digambar ulang tiap frame (OPEN)
+### #167 — Marker peta mini dashboard petugas: `animate-pulse` di dalam `filter: drop-shadow` digambar ulang tiap frame (FIXED)
 
 - **Ditemukan (2026-10-04, TASK_70 lanjutan, keluhan user "animasinya tidak smooth seperti patah2"):** trace
   Chrome dashboard petugas mencatat ~31 animasi `pulse` pada `divIcon` marker
@@ -4085,6 +4085,14 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   harus di-raster ulang setiap frame - beban terus-menerus selama dashboard terbuka, terasa di ponsel kelas bawah.
 - **Yang sudah dikerjakan di TASK_70:** hanya `fitBounds(..., { animate: false })` - zoom beranimasi saat peta
   dibuat jatuh tepat di frame tersibuk kedatangan halaman. Rupa marker TIDAK diubah (keputusan desain).
-- **Usul (butuh keputusan user):** pindahkan bayangan ke dalam SVG (atau buang), atau denyutkan hanya marker
-  terbaru, atau hentikan denyut di ponsel. Ukur ulang dengan trace CPU 4x.
-- **Status:** OPEN.
+- **Keputusan user (2026-10-04):** "matikan saja denyut di semuanya" - semua marker Leaflet, bukan hanya dashboard.
+- **Fix:** denyut dilepas dari ketiga marker berdenyut: `Petugas/Dashboard.jsx` (marker misi; drop-shadow tetap,
+  kini statis = digambar sekali), `Front/Reports/Show.jsx` (pin TKP - beserta `incidentPulseRef` + `setIcon` yang
+  hanya ada untuk menukar ikon berdenyut/diam saat status ke/dari `resolved`, kini kode mati), dan
+  `Monitoring/Map.jsx` (`REPORT_STATUS.TERLAPOR.marker`). Pengecualian ekspresi `animate-pulse` di
+  `LeafletPopupEscapeTest` ikut dibuang. Titik status kecil, tombol & stepper form (bukan marker) tidak disentuh.
+- **Verifikasi:** Chrome - `getAnimations()` pada `.leaflet-marker-icon`: dashboard petugas 31 marker / 0 animasi,
+  Peta Pemantauan 31 / 0, detail insiden 2 / 0.
+- **Penjaga:** `NavigasiInstanTest` "never animates Leaflet markers (FINDINGS #167)" - memindai `html:` tiap
+  berkas ber-`divIcon(` + kamus `marker:` Peta Pemantauan; sabotase 2x MERAH.
+- **Status:** FIXED 2026-10-04 (branch feat/mobile-native-polish). Suite 683 passed, 3485 assertions.

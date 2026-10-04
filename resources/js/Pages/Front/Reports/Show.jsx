@@ -119,10 +119,6 @@ export default function ReportShow(props) {
 	// Pin TKP sedang dipegang responder? Redraw peta (yang jalan tiap tik GPS) tidak boleh
 	// memindahkan pin di tengah geseran — lihat FINDINGS #86.
 	const isDraggingIncidentRef = useRef(false);
-	// Ikon TKP hanya perlu diganti saat status insiden berpindah dari/ke 'resolved' (kelas
-	// animate-pulse). setIcon() membangun ulang elemen DOM markernya, jadi jangan dipanggil
-	// tiap redraw.
-	const incidentPulseRef = useRef(null);
 	// Garis rute jalan asli (mengikuti jalan via OSRM) dari posisi responder ke titik insiden
 	const routeLinesRef = useRef({});
 	// Cache rute per responder: { originLat, originLng, incLat, incLng, coords } agar tidak
@@ -820,7 +816,7 @@ export default function ReportShow(props) {
 		const boundsGroup = [];
 
 		const dangerIcon = window.L.divIcon({
-			html: `<div class="text-destructive ${reportStatus !== 'resolved' ? 'animate-pulse' : ''}"><svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7.58 2 4 5.58 4 10c0 4.42 8 12 8 12s8-7.58 8-12c0-4.42-3.58-8-8-8zm0 11c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/></svg></div>`,
+			html: `<div class="text-destructive"><svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7.58 2 4 5.58 4 10c0 4.42 8 12 8 12s8-7.58 8-12c0-4.42-3.58-8-8-8zm0 11c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/></svg></div>`,
 			className: 'bg-transparent border-none',
 			iconSize: [36, 36],
 			iconAnchor: [16, 36],
@@ -836,7 +832,6 @@ export default function ReportShow(props) {
 			lat: parseFloat(incidentLocation.lat),
 			lng: parseFloat(incidentLocation.lng),
 		};
-		const incidentPulsing = reportStatus !== 'resolved';
 
 		let incidentMarker = incidentMarkerRef.current;
 		if (!incidentMarker) {
@@ -854,12 +849,7 @@ export default function ReportShow(props) {
 				setPendingPosition({ lat, lng });
 			});
 			incidentMarkerRef.current = incidentMarker;
-			incidentPulseRef.current = incidentPulsing;
 		} else {
-			if (incidentPulseRef.current !== incidentPulsing) {
-				incidentMarker.setIcon(dangerIcon);
-				incidentPulseRef.current = incidentPulsing;
-			}
 			// Jangan merenggut pin yang sedang dipegang.
 			if (!isDraggingIncidentRef.current) {
 				incidentMarker.setLatLng([incidentTarget.lat, incidentTarget.lng]);

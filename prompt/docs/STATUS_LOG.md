@@ -2540,6 +2540,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + TASK_70 navigasi instan (NavigasiInstanTest, 2026-10-04) = 679 passed, 3454 assertions.
             + TASK_70 lanjutan: progress bar disembunyikan saat kerangka tampil = 680 passed, 3459 assertions.
             + TASK_70 lanjutan 2: transisi fade tanpa potongan keras + peta tanpa zoom beranimasi = 682 passed, 3477 assertions.
+            + #167 denyut marker peta dimatikan (semua peta) = 683 passed, 3485 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

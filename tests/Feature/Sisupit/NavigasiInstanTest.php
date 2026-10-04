@@ -115,6 +115,32 @@ it('does not animate the petugas dashboard mini map zoom while the page arrives'
         ->toContain('map.fitBounds(group.getBounds().pad(0.3), { animate: false });');
 });
 
+it('never animates Leaflet markers (FINDINGS #167)', function () {
+    // Denyut di dalam marker digambar ulang tiap frame selama peta terbuka - di dashboard petugas
+    // ~31 marker sekaligus, di dalam filter drop-shadow (keputusan user 2026-10-04: matikan semua).
+    $offenders = [];
+    foreach (\Illuminate\Support\Facades\File::allFiles(resource_path('js')) as $file) {
+        if ($file->getExtension() !== 'jsx' || ! str_contains($file->getContents(), 'divIcon(')) {
+            continue;
+        }
+        $src = navSource('resources/js/'.str_replace(DIRECTORY_SEPARATOR, '/', $file->getRelativePathname()));
+        preg_match_all('/html:\s*`([^`]*)`/s', $src, $html);
+        foreach ($html[1] as $markup) {
+            if (preg_match('/\banimate-(pulse|ping|bounce|spin)\b/', $markup)) {
+                $offenders[] = $file->getRelativePathname();
+            }
+        }
+    }
+    expect($offenders)->toBe([]);
+
+    // Kamus warna marker Peta Pemantauan diteruskan ke divIcon lewat glyphIcon(meta.marker, ...).
+    preg_match_all("/marker: '([^']*)'/", navSource('resources/js/Pages/Monitoring/Map.jsx'), $markers);
+    expect($markers[1])->not->toBeEmpty();
+    foreach ($markers[1] as $classes) {
+        expect($classes)->not->toContain('animate-');
+    }
+});
+
 it('marks the destination active in both navigation surfaces', function () {
     expect(navSource('resources/js/Layouts/AppLayout.jsx'))->toContain('const url = useNavUrl();')
         ->toContain('<Sidebar url={url}');

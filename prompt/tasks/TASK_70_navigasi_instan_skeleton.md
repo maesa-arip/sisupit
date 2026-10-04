@@ -159,6 +159,8 @@ Commit A, B, (C) terpisah -> `git revert` per bagian. A cukup dilepas dari AppLa
   frame; sesudah = 228 -> 237 -> 246 -> 248 -> 249 -> 250 (bertahap). Kunjungan gagal sebelum/sesudah kerangka:
   opacity kembali 1, tanpa gaya inline tersisa, isian form utuh. Penjaga: 2 test baru, sabotase 3x MERAH.
   Temuan di luar scope: #167 (denyut marker di dalam drop-shadow). Suite 682 passed, 3477 assertions; build lulus.
+- **#167 (2026-10-04, keputusan user "matikan saja denyut di semuanya"):** denyut dilepas dari marker ketiga peta
+  (dashboard petugas, detail insiden, Peta Pemantauan) - rincian di FINDINGS #167. Suite 683 passed, 3485 assertions.
 
 **B dibatalkan:** prefetch sempat dipasang (sentuh di bilah bawah, hover di sidebar) lalu uji Chrome offline
 membuktikan bug Inertia 2.0.3: prefetch gagal/disela meninggalkan entri in-flight yang ditolak, klik berikutnya

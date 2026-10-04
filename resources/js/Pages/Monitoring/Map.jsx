@@ -25,7 +25,7 @@ const REPORT_STATUS = [
 	{
 		key: 'TERLAPOR',
 		label: 'Laporan Masuk',
-		marker: 'bg-destructive animate-pulse',
+		marker: 'bg-destructive',
 		dot: 'bg-destructive',
 		badge: 'bg-destructive/10 text-destructive border-destructive/30',
 	},

@@ -16,7 +16,6 @@ const POPUP_SAFE_EXPRESSIONS = [
     // Warna/ikon marker - kelas & SVG yang ditulis kode, bukan data.
     'arrowColor', 'bgColor', 'borderColor', 'fgColor', 'svgIcon', 'titleColorClass', 'iconColor',
     'iconEmoji', 'bgClass', 'glyph', 'statusClass',
-    "reportStatus !== 'resolved' ? 'animate-pulse' : ''",
     // Kamus status tetap REPORT_META di Monitoring/Map.jsx.
     'meta.badge', 'meta.label',
     // Potongan HTML yang tiap nilai datanya SUDAH di-escape di tempat ia dirangkai.
