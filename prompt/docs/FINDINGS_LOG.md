@@ -4240,4 +4240,8 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   sebelumnya" -> SEMUA dashboard dipulihkan ke tag `pra-task72-dashboard` (lihat TASK_72 bagian 24). Butir tombol
   darurat, hydrant, "Daftar Aset Damkar" & "Ringkasan Laporan" ikut hilang bersama dashboard TASK_72. Yang TETAP:
   ikon (`lib/report-icon.js` + `incident_type` di 5 payload dashboard lama), paginasi, email.
+- **Susulan (2026-10-05):** `PaginationLinks` menampilkan SEMUA nomor dalam satu baris tak-terlipat -> di HP seluruh
+  halaman bisa digeser kanan-kiri. Kini di ponsel hanya panah kiri, aktif +-1, panah kanan (Sebelumnya/Berikutnya jadi ikon
+  chevron + aria-label atas permintaan user) (`hidden sm:inline-block`) +
+  `flex-wrap`. Diukur di iframe 390px pada /hydrants: lebar dokumen 375, tombol tampil 4-5 dari 8.
 - **Status:** FIXED 2026-10-05.
