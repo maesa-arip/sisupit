@@ -158,3 +158,30 @@ it('opens the incident page after dispatching from the dashboard, where live GPS
         ->toContain("import { getClickLocation } from '@/lib/click-location';")
         ->not->toContain('const getClickLocation = () =>');
 });
+
+// Papan regu dibatasi (permintaan user 2026-10-04: "terlalu panjang di HP"). Karena hanya 3 kartu pertama
+// yang tampil, urutan server menentukan apa yang dilihat danru: insiden dengan anggota belum memilih dulu.
+it('puts incidents with undecided members first on the danru board, ahead of newer settled ones', function () {
+    $older = ($this->makeReport)(['title' => 'Masih ada yang belum memilih']);
+    $older->forceFill(['created_at' => now()->subHour()])->save();
+    $newer = ($this->makeReport)(['title' => 'Semua sudah memilih']);
+    $this->actingAs($this->anggota1)->post(route('reports.take-action', $older->id));
+    foreach ([$this->danru, $this->anggota1] as $member) {
+        $this->actingAs($member)->post(route('reports.take-action', $newer->id));
+    }
+    $this->actingAs($this->anggota2)->post(route('reports.stay-at-base', $newer->id));
+
+    $board = petugasProps($this, $this->danru)['reguBoard'];
+
+    expect(array_column($board, 'id'))->toBe([$older->id, $newer->id]);
+});
+
+it('shows at most three regu cards on the dashboard until the danru expands the list', function () {
+    $src = file_get_contents(resource_path('js/Pages/Petugas/Dashboard.jsx'));
+
+    expect($src)->toContain('const REGU_BOARD_LIMIT = 3;')
+        ->and($src)->toContain('reguBoard.slice(0, REGU_BOARD_LIMIT)')
+        ->and($src)->toContain('Tampilkan semua (${reguBoard.length})')
+        // Kartu ringkas: hanya yang belum memilih disebut namanya.
+        ->and($src)->toContain("row.members.filter((m) => m.state === 'belum')");
+});

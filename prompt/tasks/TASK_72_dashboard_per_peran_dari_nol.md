@@ -415,3 +415,14 @@ Permintaan user: "deploy tampilan dashboard sebelumnya ke staging dan tampilan d
 - Verifikasi HTTPS (tanpa SSH): /login 200 di keduanya; bundel app sesuai manifest commit masing-masing (dev app-qXQqK8K2.js,
   staging app-CUzoOKeo.js, 200); chunk Pejabat/Dashboard 200 di dev & 404 di staging; isi chunk Admin/Dashboard dev memuat
   "Menunggu Verifikasi" (baru), staging memuat "Laporan Insiden Terbaru" (lama).
+
+## 20. Lanjutan - papan regu danru dibatasi (2026-10-04)
+
+Permintaan user: "papan regu danru dibatasi saja, terlalu panjang di HP" (14 kartu di data lokal).
+- Server: `reguBoard` diurutkan - insiden yang masih punya anggota "belum memilih" di atas (sort PHP 8 stabil, terbaru-dulu tetap
+  di dalam kelompok). Isi prop tidak berubah.
+- `Petugas/Dashboard.jsx`: maks `REGU_BOARD_LIMIT = 3` kartu + tombol "Tampilkan semua (N)" / "Tampilkan lebih sedikit"; kartu
+  diringkas jadi satu baris hitungan ("4 meluncur, 1 jaga kantor") dan HANYA anggota yang belum memilih disebut namanya
+  (yang perlu dihubungi danru), atau "Semua anggota sudah memilih".
+- Test: `PetugasDashboardTest` +2 (urutan: insiden lama berangota belum-memilih mendahului insiden baru yang tuntas; batas 3 +
+  kartu ringkas). Sabotase terhadap HEAD -> 2/2 MERAH, dipulihkan & `cmp`. Suite **734 passed, 3736 assertions**; build lulus.

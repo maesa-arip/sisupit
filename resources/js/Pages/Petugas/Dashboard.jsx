@@ -56,6 +56,10 @@ const REALTIME_META = {
 
 const LIVE_PROPS = ['activeMissions', 'pendingResolutions', 'myMissions', 'reguBoard'];
 
+// Papan regu danru dibatasi (permintaan user 2026-10-04: "terlalu panjang di HP" - 14 kartu di data lokal).
+// Server sudah menaruh insiden dengan anggota yang belum memilih di atas, jadi 3 kartu pertama = yang penting.
+const REGU_BOARD_LIMIT = 3;
+
 const REGU_STATE = {
 	tiba: { label: 'Tiba', className: 'border-success/30 bg-success/10 text-success' },
 	meluncur: { label: 'Meluncur', className: 'border-warning/30 bg-warning/10 text-warning' },
@@ -302,6 +306,8 @@ export default function PetugasDashboard({
 	const now = useNow();
 	const realtime = REALTIME_META[useRealtimeStatus()];
 	const [busyId, setBusyId] = useState(null);
+	const [showAllRegu, setShowAllRegu] = useState(false);
+	const visibleReguBoard = showAllRegu ? reguBoard : reguBoard.slice(0, REGU_BOARD_LIMIT);
 
 	// Misi baru muncul / berubah / selesai di wilayah penugasan -> muat ulang bagian yang hidup.
 	useReportFeed(feed_channel, () => router.reload({ only: LIVE_PROPS }));
@@ -631,26 +637,58 @@ export default function PetugasDashboard({
 					{reguBoard.length > 0 && (
 						<AppSection title={`Regu ${myRegu?.name ?? ''}`.trim()}>
 							<div className="space-y-3">
-								{reguBoard.map((row) => (
-									<div
-										key={row.id}
-										className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm"
-									>
-										<Link
-											href={route('reports.show', row.id)}
-											className="text-[15px] font-semibold text-foreground hover:underline"
+								{visibleReguBoard.map((row) => {
+									// Ringkas: hitungan per keadaan dalam satu baris; HANYA yang belum memilih disebut
+									// namanya - merekalah yang perlu dihubungi danru.
+									const count = (state) => row.members.filter((m) => m.state === state).length;
+									const undecided = row.members.filter((m) => m.state === 'belum');
+									const summary = [
+										count('tiba') && `${count('tiba')} tiba`,
+										count('meluncur') && `${count('meluncur')} meluncur`,
+										count('jaga') && `${count('jaga')} jaga kantor`,
+									]
+										.filter(Boolean)
+										.join(', ');
+
+									return (
+										<div
+											key={row.id}
+											className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm"
 										>
-											{row.title}
-										</Link>
-										<div className="mt-2 flex flex-wrap gap-2">
-											{row.members.map((m) => (
-												<Chip key={m.id} className={REGU_STATE[m.state].className}>
-													{getFirstName(m.name, m.name)} - {REGU_STATE[m.state].label}
-												</Chip>
-											))}
+											<Link
+												href={route('reports.show', row.id)}
+												className="text-[15px] font-semibold text-foreground hover:underline"
+											>
+												{row.title}
+											</Link>
+											<div className="mt-1 text-[13px] text-muted-foreground">{summary}</div>
+											{undecided.length > 0 ? (
+												<div className="mt-2 flex flex-wrap gap-1.5">
+													{undecided.map((m) => (
+														<Chip key={m.id} className={REGU_STATE.belum.className}>
+															{getFirstName(m.name, m.name)} - belum memilih
+														</Chip>
+													))}
+												</div>
+											) : (
+												<div className="mt-1 text-[13px] font-medium text-success">
+													Semua anggota sudah memilih
+												</div>
+											)}
 										</div>
-									</div>
-								))}
+									);
+								})}
+								{reguBoard.length > REGU_BOARD_LIMIT && (
+									<Button
+										variant="outline"
+										className="h-10 w-full rounded-xl"
+										onClick={() => setShowAllRegu((v) => !v)}
+									>
+										{showAllRegu
+											? 'Tampilkan lebih sedikit'
+											: `Tampilkan semua (${reguBoard.length})`}
+									</Button>
+								)}
 							</div>
 						</AppSection>
 					)}

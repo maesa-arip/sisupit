@@ -134,6 +134,9 @@ class DashboardController extends Controller
                 $reguBoard = $activeMissions->where('status', '!=', 'TERLAPOR')
                     ->map(fn ($m) => ['id' => $m['id'], 'title' => $m['title'], 'members' => $this->reguManifest($m['id'], $reguMembers)])
                     ->filter(fn ($row) => collect($row['members'])->contains(fn ($x) => $x['state'] !== 'belum'))
+                    // Insiden yang masih punya anggota "belum memilih" di atas - itulah yang perlu diingatkan
+                    // danru. Sort PHP 8 stabil, jadi urutan terbaru-dulu tetap di dalam tiap kelompok.
+                    ->sortBy(fn ($row) => collect($row['members'])->contains(fn ($x) => $x['state'] === 'belum') ? 0 : 1)
                     ->values()
                     ->toArray();
             }
