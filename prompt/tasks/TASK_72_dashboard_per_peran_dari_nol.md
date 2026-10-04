@@ -428,3 +428,18 @@ Permintaan user: "papan regu danru dibatasi saja, terlalu panjang di HP" (14 kar
   kartu ringkas). Sabotase terhadap HEAD -> 2/2 MERAH, dipulihkan & `cmp`. Suite **734 passed, 3736 assertions**; build lulus.
 - Deploy dev @672b6a10 (user via konsol Hostinger). Verifikasi HTTPS: /login 200, bundel app-CnBjJK7H.js sesuai manifest,
   chunk Petugas/Dashboard memuat "Tampilkan semua" & "belum memilih"; staging tetap @6d1dc8ea (app-CUzoOKeo.js).
+
+## 21. Salin data produksi ke dev & staging (2026-10-04)
+
+Permintaan user: "copy data di production ke dev dan staging, saya mau lihat tampilannya dengan data yang sama". Pertama kali
+ditahan pemeriksa keamanan (menimpa DB + menyebar data pribadi); user lalu menyetujui tegas: "ya, izinkan salin data produksi
+ke dev dan staging".
+- `deploy/copy-prod-data.sh` (commit `4f339c89`): tolak target produksi / DB sama dengan produksi, cek alat sebelum langkah
+  merusak, cadangkan DB target, dump produksi, kosongkan & impor, `migrate` target, kosongkan `fcm_tokens`/`push_subscriptions`/
+  `sessions`/`jobs`/`failed_jobs`/`cache`/`cache_locks` (notifikasi dev/staging tak boleh sampai ke ponsel pengguna sungguhan;
+  job produksi tak boleh dijalankan ulang), salin `storage/app/public` tanpa menghapus. TIDAK menyalin `storage/app/private` (KTP).
+- Diambil ke `/root` lewat `git fetch` + `git show FETCH_HEAD:...` (CR dibuang `sed`: blob di repo ber-CRLF meski .gitattributes eol=lf).
+- User menjalankan untuk dev lalu staging. Verifikasi HTTPS tanpa SSH: /hydrants, /pumps, /fire-stations identik di
+  produksi/dev/staging (51/6/7; sidik isi id+nama+status+tekanan sama persis); kode tak berubah (dev app-CnBjJK7H.js, staging
+  app-CUzoOKeo.js). Laporan, pengguna & foto TIDAK bisa diperiksa tanpa login - angka `produksi` = `target pasca` di keluaran
+  skrip yang menjadi buktinya.
