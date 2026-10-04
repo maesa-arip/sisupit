@@ -63,7 +63,7 @@ Terakhir     : #159/TASK_69 lapisan platform ponsel (hover sentuh, tap, active B
                 Butuh Unit, sumber air terdekat, papan regu danru). Fase 3 Warga & Relawan SELESAI (feed paginasi dibuang, kejadian
                 terverifikasi sekecamatan, fasilitas terdekat, Butuh Bantuan relawan dari server). Fase 4 OPD SELESAI (konfirmasi langsung dari dashboard). Fase 5 Pejabat
                 (ringkasan strategis + tren) & 6 Superadmin (papan wilayah + kesehatan sistem) SELESAI - TASK_72 DONE.
-                DEPLOY 2026-10-04 (permintaan user): DEV @5b7482f6 = dashboard baru (migrasi approved_at jalan); STAGING @6d1dc8ea
+                DEPLOY 2026-10-04 (permintaan user): DEV @672b6a10 = dashboard baru (+ papan regu danru maks 3 kartu) (migrasi approved_at jalan); STAGING @6d1dc8ea
                 = dashboard SEBELUMNYA (tag pra-task72-dashboard, +84 commit branch ini, tanpa migrasi). Terverifikasi HTTPS. "Kembalikan ke tampilan
                 sebelumnya" = SEMUA dashboard ke tag pra-task72-dashboard (TASK_72 bagian 13).
                 #158 push iOS (kabar status pelapor & nada OPD) TERDEPLOY @9988587e.

@@ -426,3 +426,5 @@ Permintaan user: "papan regu danru dibatasi saja, terlalu panjang di HP" (14 kar
   (yang perlu dihubungi danru), atau "Semua anggota sudah memilih".
 - Test: `PetugasDashboardTest` +2 (urutan: insiden lama berangota belum-memilih mendahului insiden baru yang tuntas; batas 3 +
   kartu ringkas). Sabotase terhadap HEAD -> 2/2 MERAH, dipulihkan & `cmp`. Suite **734 passed, 3736 assertions**; build lulus.
+- Deploy dev @672b6a10 (user via konsol Hostinger). Verifikasi HTTPS: /login 200, bundel app-CnBjJK7H.js sesuai manifest,
+  chunk Petugas/Dashboard memuat "Tampilkan semua" & "belum memilih"; staging tetap @6d1dc8ea (app-CUzoOKeo.js).
