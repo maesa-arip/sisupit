@@ -24,7 +24,7 @@ it('counts the same standby volunteers the card links to', function () {
 
     $card = $this->actingAs($admin)->get('/dashboard')
         ->assertInertia(fn (Assert $page) => $page->component('Admin/Dashboard'))
-        ->viewData('page')['props']['stats']['standby_helpers'];
+        ->viewData('page')['props']['resources']['standby_volunteers'];
 
     $listed = $this->actingAs($admin)->get(route('front.volunteers.index', ['status' => 'siaga']))
         ->viewData('page')['props']['volunteers']['total'];

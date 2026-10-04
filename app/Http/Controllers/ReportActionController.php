@@ -69,7 +69,8 @@ class ReportActionController extends Controller
         }
 
         DB::transaction(function () use ($report) {
-            $report->update(['status' => 'pending']);
+            // Jejak verifikasi (TASK_72): sumber angka "median waktu verifikasi" di dashboard admin.
+            $report->update(['status' => 'pending', 'approved_at' => now(), 'approved_by' => auth()->id()]);
 
             // Siaran ke petugas, relawan, & pejabat disiarkan terpisah, masing-masing pakai tingkat
             // wilayah sendiri (petugas: per kabupaten laporan, TASK_62; relawan & pejabat: Setting

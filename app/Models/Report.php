@@ -104,6 +104,9 @@ class Report extends Model
         'location_accuracy_m',
         'reporter_distance_m',
         'status',
+        // Jejak verifikasi (TASK_72) - ditulis approve(), nullable tanpa backfill.
+        'approved_by',
+        'approved_at',
         // Laporan ganda (TASK_55). Kandidat ditulis mesin, sisanya ditulis admin.
         'duplicate_candidate_of_id',
         'merged_into_id',
@@ -124,6 +127,7 @@ class Report extends Model
     protected $casts = [
         'rejected_at' => 'datetime',
         'resolved_at' => 'datetime',
+        'approved_at' => 'datetime',
         'merged_at' => 'datetime',
     ];
 
@@ -151,6 +155,12 @@ class Report extends Model
     public function rejector(): BelongsTo
     {
         return $this->belongsTo(User::class, 'rejected_by');
+    }
+
+    // Pemverifikasi (TASK_72). `approver`, bukan `approvedBy` - alasan yang sama dengan `resolver`.
+    public function approver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 
     /**

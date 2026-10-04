@@ -1,469 +1,622 @@
 import { AppEmpty, AppGreeting, AppList, AppListRow, AppSection } from '@/Components/AppSection';
-import StandbyCard from '@/Components/StandbyCard';
 import StatusBadge from '@/Components/StatusBadge';
-import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent } from '@/Components/ui/card';
 import useRealtimeStatus from '@/hooks/use-realtime-status';
 import useReportFeed from '@/hooks/use-report-feed';
 import AppLayout from '@/Layouts/AppLayout';
-import { firstName as getFirstName } from '@/lib/first-name';
 import { reportIcon } from '@/lib/report-icon';
 import { cn } from '@/lib/utils';
 import { Head, Link, router } from '@inertiajs/react';
 import {
 	IconAlertCircle,
-	IconCheck,
-	IconChevronRight,
-	IconDroplet,
-	IconFiretruck,
-	IconFlame,
+	IconBuildingCommunity,
+	IconChecks,
+	IconFileText,
+	IconFireHydrant,
+	IconHeartHandshake,
 	IconMapPin,
 	IconMapSearch,
-	IconShieldCheck,
-	IconUsersGroup,
+	IconPhoto,
+	IconShieldHalf,
 } from '@tabler/icons-react';
-import { useState } from 'react';
-import { toast } from 'sonner';
+import { useEffect, useRef, useState } from 'react';
+
+/**
+ * Dashboard Pusat Komando (admin & superadmin) - TASK_72, dirancang ulang dari nol.
+ *
+ * Pertanyaan utamanya: "laporan mana yang harus saya putuskan sekarang?". Urutan di ponsel =
+ * urutan prioritas: antrian verifikasi -> kejadian aktif -> angka kunci -> perlu ditindaklanjuti ->
+ * siaga -> peta. Desktop: dua kolom, kerja di kiri, angka & konteks di kanan.
+ *
+ * Verifikasi SENGAJA tidak dikerjakan dari sini: menyetujui laporan membunyikan sirine se-wilayah dan
+ * memilih OPD yang dilibatkan (dialog di halaman detail). Keputusan itu harus diambil sambil melihat
+ * foto & peta, jadi baris antrian membawa pratinjau foto lalu membuka detailnya.
+ */
 
 const REALTIME_META = {
-	connected: { label: 'Realtime aktif', text: 'text-success', dot: 'bg-success' },
-	connecting: { label: 'Menyambung ulang...', text: 'text-warning', dot: 'bg-warning' },
-	offline: { label: 'Realtime terputus', text: 'text-destructive', dot: 'bg-destructive' },
-	disabled: { label: 'Realtime nonaktif', text: 'text-muted-foreground', dot: 'bg-muted-foreground' },
+	connected: { label: 'Realtime aktif', className: 'bg-success/10 text-success', dot: 'bg-success' },
+	connecting: { label: 'Menyambung ulang...', className: 'bg-warning/10 text-warning', dot: 'bg-warning' },
+	offline: { label: 'Realtime terputus', className: 'bg-destructive/10 text-destructive', dot: 'bg-destructive' },
+	disabled: { label: 'Realtime nonaktif', className: 'bg-muted text-muted-foreground', dot: 'bg-muted-foreground' },
 };
 
-export default function AdminDashboard({ auth, stats, recentReports, isPejabat = false, feed_channel = null }) {
-	const isTopLevelAdmin = !auth?.user?.city_code;
-	const realtimeStatus = useRealtimeStatus();
+// Prop yang dimuat ulang saat feed wilayah berubah. `resources` tidak ikut: siaran laporan tak mengubahnya.
+// `regions` & `systemHealth` hanya dikirim untuk superadmin; meminta prop yang tak ada tidak apa-apa.
+const LIVE_PROPS = ['triage', 'triageTotal', 'activeIncidents', 'kpis', 'pendingWork', 'regions', 'systemHealth'];
 
-	// Kejadian baru masuk / status berubah di wilayah ini — segarkan kartu statistik & daftar
-	// laporan terbaru tanpa perlu me-reload halaman.
-	useReportFeed(feed_channel, () => router.reload({ only: ['stats', 'recentReports'] }));
+const CHIP_TONE = {
+	danger: 'border-destructive/30 bg-destructive/10 text-destructive',
+	warn: 'border-warning/30 bg-warning/10 text-warning',
+	ok: 'border-success/30 bg-success/10 text-success',
+	muted: 'border-border bg-muted text-muted-foreground',
+	primary: 'border-primary bg-primary text-primary-foreground',
+};
 
-	// Siaga notifikasi pejabat — kembaran kartu "Mode Kesiapan" relawan di Pages/Dashboard.jsx,
-	// endpoint & kolom yang sama (profile.standby / users.is_standby). Hanya pejabat & relawan
-	// yang punya saklar ini; admin/petugas Pusat Komando sengaja tidak (User::STANDBY_ROLES).
-	const isStandby = auth?.user?.is_standby ?? true;
-	const [isTogglingStandby, setIsTogglingStandby] = useState(false);
+function Chip({ tone = 'muted', icon: Icon, children }) {
+	return (
+		<span
+			className={cn(
+				'inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold',
+				CHIP_TONE[tone],
+			)}
+		>
+			{Icon && <Icon className="h-3.5 w-3.5" stroke={2} />}
+			{children}
+		</span>
+	);
+}
 
-	const handleToggleStandby = () => {
-		setIsTogglingStandby(true);
-		router.post(
-			route('profile.standby'),
-			{},
-			{
-				preserveScroll: true,
-				onSuccess: () => {
-					toast.success(
-						isStandby
-							? 'Siaga dinonaktifkan. Anda tidak akan menerima notifikasi insiden.'
-							: 'Siaga diaktifkan. Anda akan menerima notifikasi insiden.',
-					);
-				},
-				onError: () => toast.error('Gagal mengubah status siaga. Silakan coba lagi.'),
-				onFinish: () => setIsTogglingStandby(false),
-			},
-		);
-	};
+/** Jam yang berdetak tiap 30 detik, supaya umur laporan terus bertambah tanpa memuat ulang. */
+function useNow(intervalMs = 30000) {
+	const [now, setNow] = useState(() => Date.now());
+	useEffect(() => {
+		const id = setInterval(() => setNow(Date.now()), intervalMs);
+		return () => clearInterval(id);
+	}, [intervalMs]);
+	return now;
+}
 
-	const getAdminLevelName = () => {
-		if (auth?.user?.village_code) return `Desa/Kelurahan`;
-		if (auth?.user?.district_code) return `Kecamatan`;
-		if (auth?.user?.city_code) return `Kabupaten/Kota`;
-		if (auth?.user?.province_code) return `Provinsi`;
-		// Hanya superadmin yang benar-benar nasional; admin tanpa wilayah = belum diisi (#44).
-		return (auth?.user?.role || []).includes('superadmin') ? 'Pusat (Nasional)' : 'Belum diisi';
-	};
+function minutesSince(iso, now) {
+	const then = new Date(iso).getTime();
+	return isNaN(then) ? 0 : Math.max(0, Math.floor((now - then) / 60000));
+}
 
-	const currentStats = stats || { active_reports: 0, standby_helpers: 0, active_hydrants: 0, resolved_this_month: 0 };
-	const reports = recentReports || [];
+function formatAge(minutes) {
+	if (minutes < 1) return 'Baru saja';
+	if (minutes < 60) return `${minutes} mnt`;
+	const jam = Math.floor(minutes / 60);
+	if (jam < 24) return `${jam} j ${minutes % 60} mnt`;
+	return `${Math.floor(jam / 24)} hari`;
+}
 
-	// Petak statistik. Di ponsel ia PETAK 2 KOLOM yang ringkas (ikon kiri, angka kanan, label
-	// di bawah) supaya ketiga angka terbaca sekaligus tanpa menggulir - bentuk lama menumpuk
-	// tiga kartu setinggi `p-5` + angka `text-3xl` secara vertikal, sehingga daftar insiden
-	// baru terlihat setelah melewati semuanya. Gulir mendatar sengaja TIDAK dipakai (pilihan
-	// user 2026-09-09): di aplikasi darurat angka "Darurat Aktif" tak boleh bisa tersembunyi
-	// di luar layar. Mulai `md` bentuknya kembali persis seperti sebelumnya.
-	const StatCard = ({
-		title,
-		value,
-		icon: Icon,
-		colorClass,
-		bgIconClass,
-		subtitle,
-		isCritical = false,
-		href,
-		className,
-	}) => {
-		const hasEmergency = isCritical && value > 0;
-		const card = (
-			<Card
-				className={cn(
-					'h-full rounded-2xl border shadow-sm transition-all',
-					hasEmergency
-						? 'border-destructive bg-destructive text-destructive-foreground shadow-destructive/20 duration-500 animate-in zoom-in-95'
-						: 'border-border/70 bg-card hover:border-border',
-					href && 'cursor-pointer hover:shadow-md',
-				)}
-			>
-				<CardContent className="p-3.5 md:p-5 lg:p-6">
-					<div className="flex items-center justify-between gap-2">
-						{/* Ikon: HANYA mulai `md` (kanan) - di ponsel sengaja disembunyikan supaya keempat
-						    angka muat sekaligus (#159 bagian 16, dijaga AppleDesignMaterialTest). Komentar
-						    lama menyebut "kiri di ponsel", keliru sejak ikon disembunyikan (TASK_71). */}
-						<div
-							className={cn(
-								'order-1 hidden shrink-0 rounded-xl p-2 md:order-2 md:block md:rounded-2xl md:p-3.5',
-								hasEmergency ? 'bg-destructive-foreground/20' : bgIconClass,
-							)}
-						>
-							<Icon
-								className={cn(
-									'h-5 w-5 md:h-6 md:w-6',
-									hasEmergency ? 'text-destructive-foreground' : colorClass,
-								)}
-								stroke={2}
-							/>
-						</div>
-						<div className="order-2 min-w-0 md:order-1 md:space-y-1.5">
-							<p
-								className={cn(
-									'hidden text-sm font-medium md:block',
-									hasEmergency ? 'text-destructive-foreground/80' : 'text-muted-foreground',
-								)}
-							>
-								{title}
-							</p>
-							<div
-								className={cn(
-									'text-3xl font-bold tabular-nums tracking-tight md:text-4xl',
-									hasEmergency ? 'text-destructive-foreground' : 'text-foreground',
-								)}
-							>
-								{value}
-							</div>
-						</div>
-					</div>
-					<p
-						className={cn(
-							'mt-0.5 truncate text-[13px] font-medium md:hidden',
-							hasEmergency ? 'text-destructive-foreground/80' : 'text-muted-foreground',
-						)}
-					>
-						{title}
-					</p>
-					{subtitle && (
-						<div
-							className={cn(
-								'mt-3 hidden text-xs text-muted-foreground md:block',
-								hasEmergency ? 'text-destructive-foreground/70' : 'text-muted-foreground',
-							)}
-						>
-							{subtitle}
-						</div>
-					)}
-				</CardContent>
-			</Card>
-		);
+/** Ambang umur antrian: 2 menit kuning, 5 menit merah. Laporan menunggu = sirine yang belum bunyi. */
+function ageTone(minutes) {
+	if (minutes >= 5) return 'text-destructive font-bold';
+	if (minutes >= 2) return 'text-warning font-bold';
+	return 'text-muted-foreground';
+}
 
-		if (!href) return <div className={className}>{card}</div>;
+/** Id yang baru muncul sejak render sebelumnya - diberi animasi masuk. Muatan pertama tidak. */
+function useFreshIds(items) {
+	const seen = useRef(null);
+	const ids = items.map((i) => i.id);
+	const fresh = seen.current ? new Set(ids.filter((id) => !seen.current.has(id))) : new Set();
+	useEffect(() => {
+		seen.current = new Set(ids);
+	});
+	return fresh;
+}
 
-		return (
-			<Link
-				href={href}
-				className={cn(
-					'block rounded-2xl outline-none transition-transform focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] motion-reduce:active:scale-100',
-					className,
-				)}
-			>
-				{card}
-			</Link>
-		);
-	};
+const ENTER = 'duration-500 ease-spring animate-in fade-in slide-in-from-top-2 motion-reduce:slide-in-from-top-0';
+
+function Kpi({ label, value, unit, note, href }) {
+	const body = (
+		<>
+			<div className="text-[13px] font-medium leading-snug text-muted-foreground">{label}</div>
+			<div className="mt-1 text-[28px] font-bold tabular-nums leading-none tracking-tight text-foreground">
+				{value}
+				{unit && <span className="ml-1 text-sm font-semibold text-muted-foreground">{unit}</span>}
+			</div>
+			{note && <div className="mt-1.5 text-xs leading-snug text-muted-foreground">{note}</div>}
+		</>
+	);
+	const classes = 'block rounded-2xl border border-border/70 bg-card p-3.5 shadow-sm md:p-4';
+
+	if (!href) return <div className={classes}>{body}</div>;
 
 	return (
-		<div className="h-full w-full space-y-5 pb-10 md:space-y-6 lg:space-y-8">
-			<Head title={isPejabat ? 'Dashboard Eksekutif' : 'Pusat Komando'} />
+		<Link
+			href={href}
+			className={cn(
+				classes,
+				'outline-none transition-colors hover:border-border focus-visible:ring-2 focus-visible:ring-ring active:bg-muted',
+			)}
+		>
+			{body}
+		</Link>
+	);
+}
 
-			{/* KEPALA HALAMAN — bingkai kartunya hanya mulai `md` (lihat AppGreeting): kepala
-			    halaman berbingkai adalah hal pertama yang membuat layar ponsel terbaca sebagai
-			    halaman web, dan di sini ia memakan sepertiga layar sebelum ada satu data pun. */}
+function median(stat) {
+	return stat ? { value: stat.minutes, unit: 'mnt', note: `7 hari, dari ${stat.sample} laporan` } : null;
+}
+
+function TriageRow({ report, now, fresh }) {
+	const age = minutesSince(report.created_at, now);
+	const { Icon: ReportIcon, className: iconStyle } = reportIcon(report);
+
+	return (
+		<AppListRow
+			href={route('reports.show', report.id)}
+			className={cn(fresh && ENTER, age >= 5 && 'bg-destructive/[0.04]')}
+			leading={
+				report.photo ? (
+					<img
+						src={`/storage/${report.photo}`}
+						alt=""
+						loading="lazy"
+						className="h-12 w-12 rounded-xl border border-border/70 object-cover"
+					/>
+				) : (
+					<div className={cn('flex h-12 w-12 items-center justify-center rounded-xl', iconStyle)}>
+						<ReportIcon className="h-5 w-5" stroke={2} />
+					</div>
+				)
+			}
+			title={report.title}
+			aside={<span className={cn('tabular-nums', ageTone(age))}>{formatAge(age)}</span>}
+			meta={
+				<span className="flex items-start gap-1.5">
+					<IconMapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" stroke={2} />
+					<span>{report.location || 'Lokasi belum terbaca'}</span>
+				</span>
+			}
+			badges={
+				<>
+					<Chip tone="primary">Tinjau & verifikasi</Chip>
+					<Chip tone={report.photos_count ? 'muted' : 'warn'} icon={IconPhoto}>
+						{report.photos_count ? `${report.photos_count} foto` : 'Tanpa foto'}
+					</Chip>
+					{!report.has_coords && (
+						<Chip tone="warn" icon={IconMapPin}>
+							Tanpa titik
+						</Chip>
+					)}
+					{report.duplicate_of && <Chip tone="warn">Mungkin ganda: {report.duplicate_of.title}</Chip>}
+				</>
+			}
+		/>
+	);
+}
+
+function ActiveRow({ incident, now, fresh }) {
+	const age = minutesSince(incident.created_at, now);
+	const responders = incident.officers_count + incident.helpers_count;
+	const { Icon: ReportIcon, className: iconStyle } = reportIcon(incident);
+
+	return (
+		<AppListRow
+			href={route('reports.show', incident.id)}
+			className={cn(fresh && ENTER)}
+			leading={
+				<div className={cn('rounded-xl p-2.5', iconStyle)}>
+					<ReportIcon className="h-5 w-5" stroke={2} />
+				</div>
+			}
+			title={incident.title}
+			aside={
+				<span className={cn('tabular-nums', responders === 0 ? ageTone(age) : 'text-muted-foreground')}>
+					{formatAge(age)}
+				</span>
+			}
+			meta={
+				<span className="flex items-start gap-1.5">
+					<IconMapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" stroke={2} />
+					<span>{incident.location || 'Lokasi belum terbaca'}</span>
+				</span>
+			}
+			badges={
+				<>
+					<StatusBadge status={incident.status} />
+					{responders === 0 ? (
+						<Chip tone="danger">Belum ada yang meluncur</Chip>
+					) : (
+						<>
+							{incident.officers_count > 0 && (
+								<Chip tone="ok">
+									{incident.officers_count} petugas
+									{incident.officers_arrived_count > 0 &&
+										` - ${incident.officers_arrived_count} tiba`}
+								</Chip>
+							)}
+							{incident.helpers_count > 0 && <Chip>{incident.helpers_count} relawan</Chip>}
+						</>
+					)}
+					{incident.agencies_waiting_count > 0 && (
+						<Chip tone="warn" icon={IconBuildingCommunity}>
+							{incident.agencies_waiting_count} OPD belum konfirmasi
+						</Chip>
+					)}
+				</>
+			}
+		/>
+	);
+}
+
+export default function AdminDashboard({
+	auth,
+	triage = [],
+	triageTotal = 0,
+	activeIncidents = [],
+	kpis = {},
+	pendingWork = {},
+	resources = {},
+	regions = null,
+	systemHealth = null,
+	feed_channel = null,
+}) {
+	const now = useNow();
+	const realtime = REALTIME_META[useRealtimeStatus()];
+	const freshTriage = useFreshIds(triage);
+	const freshActive = useFreshIds(activeIncidents);
+
+	// Laporan masuk / status berubah di wilayah ini -> muat ulang bagian yang hidup saja.
+	useReportFeed(feed_channel, () => router.reload({ only: LIVE_PROPS }));
+
+	const isSuperadmin = (auth?.user?.role || []).includes('superadmin');
+	const approval = median(kpis.median_approval);
+	const response = median(kpis.median_response);
+	const baItems = pendingWork.ba_items || [];
+	const agencyItems = pendingWork.agency_items || [];
+	const moreBa = (pendingWork.ba_total || 0) - baItems.length;
+	const moreAgency = (pendingWork.agency_total || 0) - agencyItems.length;
+	const hasPending = baItems.length > 0 || agencyItems.length > 0 || pendingWork.hydrant_repair > 0;
+
+	return (
+		<div className="h-full w-full space-y-6 pb-10 lg:space-y-8">
+			<Head title="Pusat Komando" />
+
 			<AppGreeting
-				title={`Halo, ${getFirstName(auth.user.name, 'Admin')}`}
+				title="Pusat Komando"
 				meta={
 					<>
-						<Badge
-							variant="secondary"
+						<span className="text-[13px] font-medium text-muted-foreground md:text-sm">
+							{isSuperadmin ? 'Semua wilayah' : 'Wilayah yurisdiksi Anda'}
+						</span>
+						{/* Status koneksi Reverb sungguhan - di ponsel juga, karena tanpa realtime antrian ini basi. */}
+						<span
 							className={cn(
-								'rounded-full border-none px-2.5 py-0.5 font-semibold',
-								isPejabat ? 'bg-info/10 text-info' : 'bg-destructive/10 text-destructive',
+								'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold',
+								realtime.className,
 							)}
 						>
-							<IconShieldCheck className="mr-1 h-3.5 w-3.5" stroke={2.5} />{' '}
-							{isPejabat ? 'Pejabat/Eksekutif' : 'Administrator'}
-						</Badge>
-						<span className="hidden items-center gap-1 text-xs font-medium text-muted-foreground md:flex md:text-sm">
-							<IconMapPin className="h-3.5 w-3.5 text-muted-foreground md:h-4 md:w-4" />
-							Yurisdiksi: <strong className="text-foreground">{getAdminLevelName()}</strong>
+							<span className={cn('h-1.5 w-1.5 rounded-full', realtime.dot)} />
+							{realtime.label}
 						</span>
 					</>
 				}
 				trailing={
-					<div className="flex w-full items-center gap-3 md:w-auto">
-						<div className="mr-2 hidden text-right lg:block">
-							<div className="text-[15px] font-semibold text-foreground">
-								{new Intl.DateTimeFormat('id-ID', {
-									weekday: 'long',
-									day: 'numeric',
-									month: 'long',
-									year: 'numeric',
-								}).format(new Date())}
-							</div>
-							{/* Status koneksi Reverb sungguhan (useRealtimeStatus) - dulu "Sistem Online"
-							    yang ditulis mati dan tetap hijau walau realtime putus. */}
-							<div
-								className={cn(
-									'flex items-center justify-end gap-1 text-xs font-medium',
-									REALTIME_META[realtimeStatus].text,
-								)}
-							>
-								<span
-									className={cn(
-										'h-1.5 w-1.5 rounded-full',
-										REALTIME_META[realtimeStatus].dot,
-										realtimeStatus === 'connected' && 'animate-pulse',
-									)}
-								></span>{' '}
-								{REALTIME_META[realtimeStatus].label}
-							</div>
-						</div>
-						{/* Pejabat bersifat read-only (pemantau) — sembunyikan aksi input insiden */}
-						{!isPejabat && (
-							<Button
-								className="h-11 w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 md:h-10 md:w-auto"
-								asChild
-							>
-								<Link href="/reports/create">
-									<IconAlertCircle className="mr-2 h-4 w-4" /> Input Insiden Manual
-								</Link>
-							</Button>
-						)}
-					</div>
+					<Button variant="outline" className="h-11 w-full rounded-xl md:h-10 md:w-auto" asChild>
+						<Link href={route('front.reports.create')}>
+							<IconAlertCircle className="mr-2 h-4 w-4" /> Input Laporan Telepon
+						</Link>
+					</Button>
 				}
 			/>
 
-			{/* MODE KESIAPAN PEJABAT — pejabat memantau, jadi ia boleh memilih tidak dibangunkan */}
-			{isPejabat && <StandbyCard isStandby={isStandby} busy={isTogglingStandby} onToggle={handleToggleStandby} />}
+			<div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
+				{/* KIRI: pekerjaan */}
+				<div className="space-y-6 lg:col-span-2 lg:space-y-8">
+					{/* Superadmin (fase 6): wilayah yang laporannya paling lama menunggu di atas. Baris bukan
+					    tautan - daftar laporan admin belum bisa disaring per kabupaten, jadi tautan akan membuka
+					    daftar yang hitungannya tak sama dengan baris ini (#133). */}
+					{regions && (
+						<AppSection title="Per Wilayah" count={regions.length}>
+							<AppList>
+								{regions.map((region) => {
+									const age = region.oldest_waiting_at
+										? minutesSince(region.oldest_waiting_at, now)
+										: null;
 
-			{/* KARTU STATISTIK - petak 2 kolom di ponsel supaya keempat angka terbaca
-			    sekaligus tanpa digeser. Gulir mendatar sempat dipasang 2026-09-09 lalu
-			    DICABUT atas koreksi user: gulir mendatar bersarang di dalam gulir vertikal
-			    membuat halaman terasa berlapis ("scrollnya menumpuk"), dan di layar darurat
-			    angka yang harus digeser dulu untuk terlihat adalah angka yang bisa terlewat. */}
-			<div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
-				<StatCard
-					title="Darurat Aktif"
-					value={currentStats.active_reports}
-					icon={IconFlame}
-					colorClass="text-destructive"
-					bgIconClass="bg-destructive/10"
-					subtitle="Membutuhkan Respons"
-					isCritical={true}
-					href={route(isPejabat ? 'front.reports.index' : 'admin.reports.index', { status: 'aktif' })}
-				/>
-				<StatCard
-					title="Relawan Standby"
-					value={currentStats.standby_helpers}
-					icon={IconUsersGroup}
-					colorClass="text-info"
-					bgIconClass="bg-info/10"
-					subtitle="Terverifikasi di Area"
-					href={isPejabat ? undefined : route('front.volunteers.index', { status: 'siaga' })}
-				/>
-				<StatCard
-					title="Hydrant Siaga"
-					value={currentStats.active_hydrants}
-					icon={IconDroplet}
-					colorClass="text-teal"
-					bgIconClass="bg-teal/10"
-					subtitle="Sumber Air Aktif"
-					href={route(isPejabat ? 'front.hydrants.index' : 'admin.hydrants.index')}
-				/>
-				{/* `resolved_this_month` SUDAH dihitung DashboardController sejak dulu tapi tak
-				    pernah ada kartu yang menampilkannya - nilai yang dihitung lalu dibuang
-				    (bentuk ringan #115). Ia dipasang di sini karena barisnya kini memang butuh
-				    isi keempat, dan datanya sudah terlanjur dibayar tiap kali halaman dibuka.
-				    Biru mengikuti hukum warna repo: Selesai = biru/air.
-				    Meski bernama `_this_month`, query-nya menghitung SEMUA laporan selesai
-				    (DashboardController $queryReportsResolved), jadi judulnya "Total Selesai" -
-				    dulu "Selesai Bulan Ini" (TASK_71). Tautannya = daftar status=resolved, isi sama. */}
-				<StatCard
-					title="Total Selesai"
-					value={currentStats.resolved_this_month}
-					icon={IconCheck}
-					colorClass="text-info"
-					bgIconClass="bg-info/10"
-					subtitle="Insiden Ditutup"
-					href={route(isPejabat ? 'front.reports.index' : 'admin.reports.index', { status: 'resolved' })}
-				/>
-			</div>
+									return (
+										<div
+											key={region.city_code}
+											className="flex items-start gap-3 px-4 py-3.5 md:px-5 md:py-4"
+										>
+											<div className="min-w-0 flex-1">
+												<div className="text-[15px] font-semibold leading-snug text-foreground">
+													{region.name}
+												</div>
+												<div className="mt-0.5 text-[13px] text-muted-foreground">
+													{region.has_tenant
+														? region.city
+														: `${region.city} - belum ada tenant`}
+												</div>
+												<div className="mt-2 flex flex-wrap gap-2">
+													{region.waiting > 0 && (
+														<Chip tone="danger">{region.waiting} menunggu verifikasi</Chip>
+													)}
+													{region.active > 0 && (
+														<Chip tone="ok">{region.active} ditangani</Chip>
+													)}
+													{region.waiting === 0 && region.active === 0 && <Chip>Tenang</Chip>}
+												</div>
+											</div>
+											{age != null && (
+												<span className={cn('shrink-0 text-[13px] tabular-nums', ageTone(age))}>
+													{formatAge(age)}
+												</span>
+											)}
+										</div>
+									);
+								})}
+								{regions.length === 0 && (
+									<AppEmpty
+										icon={IconChecks}
+										title="Belum ada wilayah"
+										description="Tenant aktif & wilayah berkejadian tampil di sini."
+									/>
+								)}
+							</AppList>
+						</AppSection>
+					)}
 
-			<div className="grid grid-cols-1 gap-5 md:gap-6 lg:grid-cols-3">
-				{/* KIRI: LAPORAN TERBARU - daftar menempel tepi layar di ponsel (AppList), bukan
-				    kartu berbingkai yang duduk di dalam padding halaman. Bentuk lama juga menaruh
-				    <Link> di dalam <Link> (jangkar bersarang, HTML tak sah) demi baris yang bisa
-				    diketuk; AppListRow membuat SELURUH barisnya satu jangkar, jadi lapisan itu
-				    tak perlu lagi. */}
-				<AppSection
-					className="lg:col-span-2"
-					title="Laporan Insiden Terbaru"
-					action={{
-						/* Pejabat (read-only) tidak punya akses ke antrean verifikasi admin
-						   (role:admin|superadmin) -> arahkan ke arsip publik agar tidak 403 */
-						href: route(isPejabat ? 'front.reports.index' : 'admin.reports.index'),
-						label: 'Lihat semua',
-					}}
-				>
-					<p className="hidden px-1 text-[13px] text-muted-foreground md:block">
-						Pemantauan waktu nyata dari masyarakat & relawan.
-					</p>
-					<AppList className="max-md:[&>a:nth-of-type(n+6)]:hidden">
-						{reports.map((report) => {
-							const { Icon: ReportIcon, className: colorStyle } = reportIcon(report);
-
-							return (
-								<AppListRow
+					<AppSection
+						title="Menunggu Verifikasi"
+						count={triageTotal}
+						action={
+							triageTotal > triage.length
+								? { href: route('admin.reports.index', { status: 'TERLAPOR' }), label: 'Lihat semua' }
+								: undefined
+						}
+					>
+						<AppList>
+							{triage.map((report) => (
+								<TriageRow
 									key={report.id}
-									href={route('reports.show', report.id)}
+									report={report}
+									now={now}
+									fresh={freshTriage.has(report.id)}
+								/>
+							))}
+							{triage.length === 0 && (
+								<AppEmpty
+									icon={IconChecks}
+									title="Tidak ada laporan menunggu"
+									description="Semua laporan masuk sudah diputuskan. Laporan baru muncul di sini tanpa memuat ulang."
+								/>
+							)}
+						</AppList>
+					</AppSection>
+
+					<AppSection
+						title="Kejadian Aktif"
+						count={activeIncidents.length}
+						action={{ href: route('admin.reports.index', { status: 'aktif' }), label: 'Semua laporan' }}
+					>
+						<AppList>
+							{activeIncidents.map((incident) => (
+								<ActiveRow
+									key={incident.id}
+									incident={incident}
+									now={now}
+									fresh={freshActive.has(incident.id)}
+								/>
+							))}
+							{activeIncidents.length === 0 && (
+								<AppEmpty
+									icon={IconChecks}
+									title="Tidak ada kejadian aktif"
+									description="Belum ada laporan terverifikasi yang sedang ditangani."
+								/>
+							)}
+						</AppList>
+					</AppSection>
+				</div>
+
+				{/* KANAN: angka & konteks */}
+				<div className="space-y-6 lg:space-y-8">
+					{/* Superadmin (fase 6): hanya angka yang bisa dibuktikan - koneksi realtime klien & tabel queue. */}
+					{systemHealth && (
+						<AppSection title="Kesehatan Sistem">
+							<AppList>
+								<div className="flex items-center justify-between gap-3 px-4 py-3.5 md:px-5">
+									<span className="text-[15px] font-medium text-foreground">Realtime</span>
+									<span
+										className={cn(
+											'rounded-full px-2.5 py-0.5 text-xs font-semibold',
+											realtime.className,
+										)}
+									>
+										{realtime.label}
+									</span>
+								</div>
+								<div className="flex items-center justify-between gap-3 px-4 py-3.5 md:px-5">
+									<span className="text-[15px] font-medium text-foreground">Antrian queue</span>
+									<span className="text-right text-[13px] text-muted-foreground">
+										{systemHealth.queue_pending == null
+											? 'tidak terbaca'
+											: systemHealth.queue_pending === 0
+												? 'kosong'
+												: `${systemHealth.queue_pending} job, tertua ${formatAge(minutesSince(systemHealth.queue_oldest_at, now))}`}
+									</span>
+								</div>
+								<div className="flex items-center justify-between gap-3 px-4 py-3.5 md:px-5">
+									<span className="text-[15px] font-medium text-foreground">Job gagal</span>
+									<span
+										className={cn(
+											'text-right text-[13px]',
+											systemHealth.failed_24h > 0
+												? 'font-semibold text-destructive'
+												: 'text-muted-foreground',
+										)}
+									>
+										{systemHealth.failed_24h == null
+											? 'tidak terbaca'
+											: `${systemHealth.failed_24h} dalam 24 jam, ${systemHealth.failed_total} total`}
+									</span>
+								</div>
+							</AppList>
+						</AppSection>
+					)}
+
+					<AppSection title="Angka Kunci">
+						<div className="grid grid-cols-2 gap-3">
+							<Kpi label="Masuk hari ini" value={kpis.incoming_today ?? 0} note="Sejak 00.00 WITA" />
+							<Kpi
+								label="Aktif sekarang"
+								value={kpis.active_now ?? 0}
+								note="Menunggu + terverifikasi + ditangani"
+								href={route('admin.reports.index', { status: 'aktif' })}
+							/>
+							<Kpi
+								label="Median verifikasi"
+								value={approval?.value ?? '-'}
+								unit={approval?.unit}
+								note={approval?.note ?? 'Belum ada data 7 hari'}
+							/>
+							<Kpi
+								label="Median respons"
+								value={response?.value ?? '-'}
+								unit={response?.unit}
+								note={
+									response ? `Lapor ke petugas meluncur, ${response.note}` : 'Belum ada data 7 hari'
+								}
+							/>
+						</div>
+					</AppSection>
+
+					<AppSection title="Perlu Ditindaklanjuti">
+						<AppList>
+							{agencyItems.map((item) => (
+								<AppListRow
+									key={`opd-${item.report_id}-${item.agency_name}`}
+									href={route('reports.show', item.report_id)}
 									leading={
-										<div className={cn('shrink-0 rounded-xl p-2 md:p-2.5', colorStyle)}>
-											<ReportIcon className="h-5 w-5" stroke={2} />
+										<div className="rounded-xl bg-warning/10 p-2.5 text-warning">
+											<IconBuildingCommunity className="h-5 w-5" stroke={2} />
 										</div>
 									}
-									title={report.title}
-									aside={report.time}
-									meta={
-										<span className="flex items-start gap-1.5">
-											<IconMapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" stroke={2} />
-											<span>{report.location}</span>
-										</span>
+									title={`${item.agency_name} belum konfirmasi`}
+									meta={[item.label, item.title].filter(Boolean).join(' - ')}
+								/>
+							))}
+							{moreAgency > 0 && (
+								<div className="px-4 py-2.5 text-[13px] text-muted-foreground md:px-5">
+									dan {moreAgency} konfirmasi OPD lainnya
+								</div>
+							)}
+							{baItems.map((item) => (
+								<AppListRow
+									key={`ba-${item.id}`}
+									href={route('reports.show', item.id)}
+									leading={
+										<div className="rounded-xl bg-info/10 p-2.5 text-info">
+											<IconFileText className="h-5 w-5" stroke={2} />
+										</div>
 									}
-									badges={
-										/* Badge status (selaras admin/reports). Status "Penanganan" memakai teal
-										   seperti teks "Hydrant" pada kartu Peta Pemantauan. */
-										<StatusBadge
-											status={report.status}
-											className={
-												report.status === 'handling'
-													? 'border-teal/30 bg-teal/10 text-teal'
-													: undefined
-											}
-										/>
+									title={item.title}
+									meta={
+										item.has_draft
+											? 'Laporan Kejadian sementara sudah diisi - tinggal difinalkan'
+											: 'Laporan Kejadian belum diisi petugas'
 									}
 								/>
-							);
-						})}
-						{reports.length === 0 && (
-							<AppEmpty
-								icon={IconCheck}
-								title="Tidak ada laporan insiden"
-								description="Wilayah Anda saat ini aman terkendali."
+							))}
+							{moreBa > 0 && (
+								<div className="px-4 py-2.5 text-[13px] text-muted-foreground md:px-5">
+									dan {moreBa} Laporan Kejadian lainnya (30 hari terakhir)
+								</div>
+							)}
+							{pendingWork.hydrant_repair > 0 && (
+								<AppListRow
+									href={route('admin.hydrants.index', { status: 'Perbaikan' })}
+									leading={
+										<div className="rounded-xl bg-destructive/10 p-2.5 text-destructive">
+											<IconFireHydrant className="h-5 w-5" stroke={2} />
+										</div>
+									}
+									title={`${pendingWork.hydrant_repair} hydrant dalam perbaikan`}
+									meta={`dari ${resources.hydrants_total ?? 0} hydrant terdata`}
+								/>
+							)}
+							{!hasPending && (
+								<AppEmpty
+									icon={IconChecks}
+									title="Tidak ada yang tertunda"
+									description="Laporan Kejadian sudah final, OPD sudah menjawab, dan tak ada hydrant dalam perbaikan."
+								/>
+							)}
+						</AppList>
+					</AppSection>
+
+					<AppSection title="Siaga di Wilayah">
+						<AppList>
+							<AppListRow
+								href={route('front.volunteers.index', { status: 'siaga' })}
+								leading={
+									<div className="rounded-xl bg-volunteer/10 p-2.5 text-volunteer">
+										<IconHeartHandshake className="h-5 w-5" stroke={2} />
+									</div>
+								}
+								title="Relawan siaga"
+								aside={
+									<span className="text-[15px] font-semibold tabular-nums text-foreground">
+										{resources.standby_volunteers ?? 0}
+									</span>
+								}
 							/>
-						)}
+							<AppListRow
+								href={route('regu.index')}
+								leading={
+									<div className="rounded-xl bg-destructive/10 p-2.5 text-destructive">
+										<IconShieldHalf className="h-5 w-5" stroke={2} />
+									</div>
+								}
+								title="Regu petugas"
+								aside={
+									<span className="text-[15px] font-semibold tabular-nums text-foreground">
+										{resources.regus ?? 0}
+									</span>
+								}
+							/>
+							<AppListRow
+								href={route('admin.hydrants.index')}
+								leading={
+									<div className="rounded-xl bg-teal/10 p-2.5 text-teal">
+										<IconFireHydrant className="h-5 w-5" stroke={2} />
+									</div>
+								}
+								title="Hydrant aktif"
+								aside={
+									<span className="text-[15px] font-semibold tabular-nums text-foreground">
+										{resources.hydrants_active ?? 0}
+										<span className="font-normal text-muted-foreground">
+											{' '}
+											/ {resources.hydrants_total ?? 0}
+										</span>
+									</span>
+								}
+							/>
+						</AppList>
+					</AppSection>
+
+					<AppList>
+						<AppListRow
+							href={route('front.monitoring.map')}
+							leading={
+								<div className="rounded-xl bg-teal/10 p-2.5 text-teal">
+									<IconMapSearch className="h-5 w-5" stroke={2} />
+								</div>
+							}
+							title="Peta Pemantauan"
+							meta="Kejadian, hydrant, pos, pompa & relawan"
+						/>
 					</AppList>
-				</AppSection>
-
-				{/* KANAN: PINTASAN PETA PEMANTAUAN & AKSI */}
-				<div className="flex flex-col gap-5 md:gap-6">
-					{/* CTA menuju halaman Peta Pemantauan terpadu (menggantikan mini-peta lama) */}
-					<Link
-						href={route('front.monitoring.map')}
-						className="group block rounded-2xl outline-none transition-transform focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.99] motion-reduce:active:scale-100"
-					>
-						<Card className="relative overflow-hidden transition-colors hover:bg-muted/30">
-							<CardContent className="flex flex-row items-center gap-3 p-4 md:flex-col md:items-stretch md:gap-4 md:p-5 lg:p-6">
-								{/* Di ponsel kartu ini jadi SATU BARIS yang bisa diketuk (ikon, judul, panah);
-								    uraian panjang & lencana lapisannya baru muncul mulai `md` - di layar sempit
-								    keduanya kalimat pemasaran yang mendorong daftar insiden turun tanpa menambah
-								    satu pun keputusan. */}
-								<div className="flex shrink-0 items-center justify-between md:w-full">
-									<div className="rounded-xl bg-teal/10 p-2.5 md:rounded-2xl md:p-3.5">
-										<IconMapSearch className="h-5 w-5 text-teal md:h-6 md:w-6" stroke={2} />
-									</div>
-									<IconChevronRight className="hidden h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground md:block" />
-								</div>
-								<div className="min-w-0 flex-1">
-									<h3 className="text-[15px] font-semibold text-foreground md:text-[17px]">
-										Peta Pemantauan
-									</h3>
-									<p className="mt-1 hidden text-[13px] leading-relaxed text-muted-foreground md:block">
-										Peta terpadu dengan filter lengkap - kejadian, hydrant, pos pemadam, pompa, &
-										relawan di seluruh yurisdiksi Anda.
-									</p>
-									<p className="mt-0.5 truncate text-xs font-medium text-muted-foreground md:hidden">
-										Kejadian, hydrant, pos, pompa & relawan
-									</p>
-								</div>
-								<IconChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/60 md:hidden" />
-								<div className="hidden flex-wrap gap-1.5 md:flex">
-									<Badge
-										variant="secondary"
-										className="rounded-full border-none bg-destructive/10 text-destructive"
-									>
-										Kejadian
-									</Badge>
-									<Badge
-										variant="secondary"
-										className="rounded-full border-none bg-teal/10 text-teal"
-									>
-										Hydrant
-									</Badge>
-									<Badge
-										variant="secondary"
-										className="rounded-full border-none bg-info/10 text-info"
-									>
-										Pos & Pompa
-									</Badge>
-									<Badge
-										variant="secondary"
-										className="rounded-full border-none bg-info/10 text-info"
-									>
-										Relawan
-									</Badge>
-								</div>
-							</CardContent>
-						</Card>
-					</Link>
-
-					{/* Pintasan Pos Pemadam - hanya admin tingkat atas (tanpa city_code), tidak untuk pejabat. */}
-					{!isPejabat && isTopLevelAdmin && (
-						<div className="grid grid-cols-1 gap-3">
-							<Button
-								variant="outline"
-								className="group flex h-auto flex-row items-center justify-start gap-3 rounded-2xl border-border/70 bg-card px-4 py-3 shadow-sm hover:bg-muted/40"
-								asChild
-							>
-								<Link href={route('admin.hydrants.index', { type: 'pos' })}>
-									<div className="rounded-lg bg-destructive/10 p-2 transition-colors group-hover:bg-destructive/20">
-										<IconFiretruck className="h-5 w-5 text-destructive" />
-									</div>
-									<div className="ml-1 text-left">
-										<div className="text-[15px] font-semibold text-foreground">Pos Armada</div>
-										<div className="text-[11px] text-muted-foreground">Daftar Pos Pemadam</div>
-									</div>
-								</Link>
-							</Button>
-						</div>
-					)}
 				</div>
 			</div>
 		</div>
 	);
 }
 
-// Judul layout mengikuti peran, sama dengan <Head> - dulu pejabat melihat "Dashboard Eksekutif" di
-// tab peramban tetapi "Pusat Komando" di kepala aplikasi.
-AdminDashboard.layout = (page) => (
-	<AppLayout children={page} title={page.props.isPejabat ? 'Dashboard Eksekutif' : 'Pusat Komando'} />
-);
+AdminDashboard.layout = (page) => <AppLayout children={page} title="Pusat Komando" />;

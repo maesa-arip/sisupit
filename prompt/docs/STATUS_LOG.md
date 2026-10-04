@@ -2544,6 +2544,12 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + TASK_70 lanjutan 3: kerangka hanya bila tunggu > 300 ms, ditahan min. 300 ms = 684 passed, 3488 assertions.
             + TASK_71 dashboard per peran #168-#173 (DashboardPerPeranTest) = 690 passed, 3507 assertions.
             + TASK_71 lanjutan butir 6 & 8-14 (#175/#176) = 694 passed, 3556 assertions.
+            + TASK_72 fase 1 dashboard Pusat Komando admin + approved_at (AdminCommandCenterTest) = 704 passed, 3610 assertions.
+            + TASK_72 fase 2 dashboard petugas (PetugasDashboardTest) = 711 passed, 3640 assertions.
+            + TASK_72 fase 3 Beranda warga & relawan (WargaRelawanDashboardTest, feed test ditulis ulang) = 719 passed, 3666 assertions.
+            + TASK_72 fase 4 dashboard OPD, konfirmasi dari dashboard (OpdDashboardConfirmTest) = 722 passed, 3680 assertions.
+            + TASK_72 fase 5 dashboard pejabat strategis (PejabatDashboardTest) = 728 passed, 3702 assertions.
+            + TASK_72 fase 6 superadmin papan wilayah & kesehatan sistem (SuperadminDashboardTest) = 732 passed, 3731 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)
