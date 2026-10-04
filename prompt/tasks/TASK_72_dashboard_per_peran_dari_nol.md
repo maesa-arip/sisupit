@@ -8,7 +8,7 @@
 | Tipe | fitur / desain ulang UI (tujuh dashboard) |
 | Sumber | permintaan user 2026-10-04: "saya beri kamu kebebasan, pakai skill apple-design ... tentukan apa saja yang best practice ditampilkan di dashboard masing2 role, jangan pakai tampilan saat ini sebagai referensi, mulai dari 0" |
 | Branch | `feat/mobile-native-polish` (PENGECUALIAN #5 berlaku di sini) |
-| Status | DONE 2026-10-04 - keenam fase selesai; belum commit/deploy, belum cek visual ponsel |
+| Status | DONE 2026-10-04 - keenam fase selesai; DEV @5b7482f6 (dashboard baru), STAGING @6d1dc8ea (dashboard sebelumnya); belum cek visual ponsel |
 
 ---
 
@@ -403,3 +403,15 @@ Lalu `npm run build` + suite penuh.
 
 Sisa sebelum rilis: cek visual 390px & desktop tiap peran (mode tenang & darurat), keputusan commit/deploy (migrasi `approved_at`
 WAJIB bersama kode + cadangan DB), papan regu danru yang bisa panjang (14 baris di data lokal).
+
+## 19. Deploy 2026-10-04
+
+Permintaan user: "deploy tampilan dashboard sebelumnya ke staging dan tampilan dashboard ini ke dev" (perbandingan berdampingan).
+- Commit `0aa89b63` (kode+test+docs) + `5b7482f6` (build) di `feat/mobile-native-polish`.
+- Push GitHub (semua fast-forward, tanpa force): `dev` & `feat/mobile-native-polish` 6d1dc8ea -> 5b7482f6; `staging` 9988587e ->
+  6d1dc8ea (= tag `pra-task72-dashboard`, kini juga ada di GitHub). Staging ikut menerima 84 commit branch ini (#159-#176,
+  TASK_69-71) - tanpa perubahan composer.lock/.env.example/config/routes/migrasi.
+- User menjalankan `deploy-env.sh` di konsol Hostinger (dev lalu staging). Migrasi `approved_at` jalan di dev.
+- Verifikasi HTTPS (tanpa SSH): /login 200 di keduanya; bundel app sesuai manifest commit masing-masing (dev app-qXQqK8K2.js,
+  staging app-CUzoOKeo.js, 200); chunk Pejabat/Dashboard 200 di dev & 404 di staging; isi chunk Admin/Dashboard dev memuat
+  "Menunggu Verifikasi" (baru), staging memuat "Laporan Insiden Terbaru" (lama).

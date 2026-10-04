@@ -64,7 +64,7 @@ Terakhir     : #159/TASK_69 lapisan platform ponsel (hover sentuh, tap, active B
                 terverifikasi sekecamatan, fasilitas terdekat, Butuh Bantuan relawan dari server). Fase 4 OPD SELESAI (konfirmasi langsung dari dashboard). Fase 5 Pejabat
                 (ringkasan strategis + tren) & 6 Superadmin (papan wilayah + kesehatan sistem) SELESAI - TASK_72 DONE.
                 DEPLOY 2026-10-04 (permintaan user): DEV @5b7482f6 = dashboard baru (migrasi approved_at jalan); STAGING @6d1dc8ea
-                = dashboard SEBELUMNYA (tag pra-task72-dashboard, +84 commit branch ini, tanpa migrasi). Terverifikasi HTTPS. Belum commit/deploy. "Kembalikan ke tampilan
+                = dashboard SEBELUMNYA (tag pra-task72-dashboard, +84 commit branch ini, tanpa migrasi). Terverifikasi HTTPS. "Kembalikan ke tampilan
                 sebelumnya" = SEMUA dashboard ke tag pra-task72-dashboard (TASK_72 bagian 13).
                 #158 push iOS (kabar status pelapor & nada OPD) TERDEPLOY @9988587e.
                 #157 hapus akun = ANONIMISASI TERDEPLOY @43479a4e.

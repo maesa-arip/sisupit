@@ -2550,6 +2550,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + TASK_72 fase 4 dashboard OPD, konfirmasi dari dashboard (OpdDashboardConfirmTest) = 722 passed, 3680 assertions.
             + TASK_72 fase 5 dashboard pejabat strategis (PejabatDashboardTest) = 728 passed, 3702 assertions.
             + TASK_72 fase 6 superadmin papan wilayah & kesehatan sistem (SuperadminDashboardTest) = 732 passed, 3731 assertions.
+            (TASK_72 deploy 2026-10-04: DEV @5b7482f6 dashboard baru, STAGING @6d1dc8ea dashboard sebelumnya.)
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)
