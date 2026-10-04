@@ -4143,7 +4143,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   Catatan: yang diukur hanya WebSocket peramban ini ke Reverb, BUKAN kesehatan queue/DB.
 - **Penjaga:** `DashboardPerPeranTest` #173. **Status:** FIXED 2026-10-04 (belum dicek visual dgn Reverb dimatikan).
 
-### #174 — `getTenantDefaultLocation()` di 5 controller fasilitas selalu Denpasar: `users` tak punya kolom lat/lng (OPEN)
+### #174 — `getTenantDefaultLocation()` di 5 controller fasilitas selalu Denpasar: `users` tak punya kolom lat/lng (OPEN - DITUNDA)
 
 - **Ditemukan (2026-10-04, TASK_71 butir 6):** `Admin/HydrantController`, `HydrantWargaController`, `PompaController`,
   `PosPemadamController`, `Admin/ReportController` mengembalikan `['lat' => $user->lat ?? -8.65, 'lng' => $user->lng ?? 115.22]`,
@@ -4151,7 +4151,11 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   dibuka di Denpasar.
 - **Usulan fix:** pakai pusat wilayah laravolt (`indonesia_districts`/`indonesia_cities`.meta `{lat, long}`), sama dengan
   `DashboardController::regionCenter()` (TASK_71); idealnya satu helper bersama. TIDAK dikerjakan (di luar scope dashboard).
-- **Status:** OPEN.
+- **Keputusan user (2026-10-04):** DITUNDA - "belum akan dikerjakan karena sekarang memang aplikasi masih dipakai di
+  Denpasar saja". Cadangan Denpasar kebetulan benar untuk satu-satunya tenant aktif, jadi dampaknya nol hari ini.
+- **Pemicu untuk mengerjakan:** tenant/kabupaten kedua mulai dipakai (onboarding tenant baru, lihat TenantSeeder #61) -
+  kerjakan SEBELUM tenant itu live, karena semua peta fasilitas & laporan adminnya akan terbuka di Denpasar.
+- **Status:** OPEN - DITUNDA.
 
 ### #175 — Peta taktis petugas: terkunci di ponsel, pusat Denpasar mati, tanpa posisi sendiri, pin seragam (FIXED)
 

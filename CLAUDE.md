@@ -56,7 +56,7 @@ Terakhir     : #159/TASK_69 lapisan platform ponsel (hover sentuh, tap, active B
                 TASK_71 dashboard per peran (review "roasting"): #168-#173, #175-#176 FIXED - sapaan nama Bali, lencana
                 relawan ikut siaga, OPD lokasi+status, banner petugas tanpa TERLAPOR, indikator Realtime sungguhan, peta
                 taktis petugas (geser HP, pusat wilayah laravolt, posisi sendiri), kartu "Total Selesai" (2026-10-04, branch
-                sama, belum di-commit). #174 OPEN: getTenantDefaultLocation selalu Denpasar.
+                sama, TERDEPLOY ke DEV @61a32c7f, terverifikasi HTTPS). #174 DITUNDA (hanya Denpasar): peta fasilitas selalu Denpasar - kerjakan sebelum tenant ke-2 live.
                 #158 push iOS (kabar status pelapor & nada OPD) TERDEPLOY @9988587e.
                 #157 hapus akun = ANONIMISASI TERDEPLOY @43479a4e.
 SEMENTARA    : #149 menu "Jangkauan Petugas" disembunyikan + foto laporan non-kebakaran
