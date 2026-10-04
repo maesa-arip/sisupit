@@ -4244,4 +4244,6 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   halaman bisa digeser kanan-kiri. Kini di ponsel hanya panah kiri, aktif +-1, panah kanan (Sebelumnya/Berikutnya jadi ikon
   chevron + aria-label atas permintaan user) (`hidden sm:inline-block`) +
   `flex-wrap`. Diukur di iframe 390px pada /hydrants: lebar dokumen 375, tombol tampil 4-5 dari 8.
+- **Ikon disederhanakan (2026-10-05, usul user):** tebakan dari kata di judul dibuang - kini HANYA dua ikon dari
+  `incident_type`: kebakaran = api merah, `lainnya` = tanda peringatan (IconAlertTriangle) kuning; tanpa jenis = api.
 - **Status:** FIXED 2026-10-05.
