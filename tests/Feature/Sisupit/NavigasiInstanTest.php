@@ -69,6 +69,19 @@ it('waits for other before-listeners and always clears the skeleton when the vis
         ->and($nav)->toMatch("/router\.on\('navigate'/");
 });
 
+it('hides the Inertia progress bar only when a layout that draws the skeleton is mounted', function () {
+    $nav = navSource('resources/js/lib/navigation.js');
+
+    // Sinkron di listener `before` (sebelum microtask) - router.visit menyalin objek visit sesudahnya.
+    expect($nav)->toMatch("/router\.on\('before', \(event\) => \{\s*const visit = event\.detail\.visit;\s*if \(!isPageVisit\(visit\)\) return;\s*if \(skeletonHosts > 0\) visit\.showProgress = false;/")
+        ->and(substr_count($nav, 'showProgress'))->toBe(1)
+        ->and($nav)->toMatch('/skeletonHosts\+\+;[\s\S]*?skeletonHosts--;/');
+
+    // Halaman tanpa AppLayout (Auth, Landing) tak memanggilnya -> progress bar tetap tampil di sana.
+    expect(navSource('resources/js/Layouts/AppLayout.jsx'))->toContain('useSkeletonHost();');
+    expect(navSource('resources/js/app.jsx'))->toContain('progress: {');
+});
+
 it('marks the destination active in both navigation surfaces', function () {
     expect(navSource('resources/js/Layouts/AppLayout.jsx'))->toContain('const url = useNavUrl();')
         ->toContain('<Sidebar url={url}');

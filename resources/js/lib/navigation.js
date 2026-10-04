@@ -1,5 +1,5 @@
 import { router, usePage } from '@inertiajs/react';
-import { useSyncExternalStore } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 
 /**
  * Navigasi instan (TASK_70). Inertia baru mengganti layar setelah respons server tiba, jadi
@@ -25,6 +25,8 @@ const SKELETON_DELAY_MS = 80;
 let pending = null; // { url: '/path?query', skeleton: boolean }
 let skeletonTimer = null;
 let asyncInFlight = 0;
+// Jumlah AppLayout yang terpasang = yang sanggup menggambar kerangka (Auth, Landing tidak).
+let skeletonHosts = 0;
 const listeners = new Set();
 
 function emit(next) {
@@ -69,6 +71,12 @@ export function installNavigationTracking() {
 		const visit = event.detail.visit;
 		if (!isPageVisit(visit)) return;
 
+		// Kerangka sudah jadi penanda memuat -> progress bar oranye Inertia tidak ikut tampil
+		// (permintaan user 2026-10-04). Halaman tanpa AppLayout tak punya kerangka, jadi
+		// progress bar tetap satu-satunya penanda di sana. Harus diubah SINKRON di sini:
+		// router.visit menyalin objek visit tepat setelah event `before`.
+		if (skeletonHosts > 0) visit.showProgress = false;
+
 		const url = pathOf(visit.url);
 		queueMicrotask(() => {
 			if (event.defaultPrevented) return;
@@ -108,6 +116,16 @@ export function installNavigationTracking() {
 		}
 	});
 
+}
+
+/** Dipanggil AppLayout: menandai bahwa layar ini akan menggambar kerangka saat pindah halaman. */
+export function useSkeletonHost() {
+	useEffect(() => {
+		skeletonHosts++;
+		return () => {
+			skeletonHosts--;
+		};
+	}, []);
 }
 
 /** Kunjungan halaman yang sedang berjalan, atau null. */

@@ -4,7 +4,7 @@ import PageSkeleton from '@/Components/PageSkeleton';
 import SoundNotificationControl from '@/Components/SoundNotificationControl';
 import ThemeSwitcher from '@/Components/ThemeSwitcher';
 import { Toaster } from '@/Components/ui/sonner';
-import { useNavUrl, usePendingVisit } from '@/lib/navigation';
+import { useNavUrl, usePendingVisit, useSkeletonHost } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { IconBell } from '@tabler/icons-react';
@@ -18,6 +18,8 @@ export default function AppLayout({ title, children }) {
 	// URL tujuan selama navigasi berjalan (TASK_70) - menu langsung menandai tujuan aktif.
 	const url = useNavUrl();
 	const pendingVisit = usePendingVisit();
+	// Kerangka menggantikan progress bar Inertia selama layout ini terpasang (lib/navigation.js).
+	useSkeletonHost();
 	const announcemet = usePage().props.announcemet;
 	const auth = usePage().props.auth?.user ?? null;
 	const notifications = usePage().props.notifications ?? [];

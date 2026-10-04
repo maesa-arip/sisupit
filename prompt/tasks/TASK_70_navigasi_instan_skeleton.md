@@ -137,7 +137,13 @@ Commit A, B, (C) terpisah -> `git revert` per bagian. A cukup dilepas dari AppLa
 - `Layouts/AppLayout.jsx` - kerangka di `<main>`, halaman lama dibungkus `hidden`/`contents` (tidak dilepas);
   `url` = `useNavUrl()` untuk Sidebar.
 - `Layouts/Partials/MobileBottomNav.jsx` - `useNavUrl()` menggantikan `usePage().url`.
-- Progress bar oranye dibiarkan apa adanya (tetap jadi penanda di halaman tanpa AppLayout).
+- Progress bar oranye: **lanjutan 2026-10-04 (permintaan user)** - "jika halaman sudah isi loading skeleton maka
+  hilangkan loading bawaan inertianya, jika tidak tetap munculkan". `AppLayout` memanggil `useSkeletonHost()`; di
+  listener `before` kunjungan halaman diberi `visit.showProgress = false` bila ada host (router.visit menyalin objek
+  visit sesudah event itu, jadi harus sinkron). Uji Chrome satu sesi tanpa reload: AppLayout->AppLayout dan
+  AppLayout->/login = kerangka tanpa progress bar; /login<->/register = progress bar tampil (tak ada status bocor).
+  Penjaga: test ke-7 `NavigasiInstanTest`, sabotase 2x MERAH (tanpa syarat host; host tak didaftarkan).
+  Suite 680 passed, 3459 assertions; build lulus.
 
 **B dibatalkan:** prefetch sempat dipasang (sentuh di bilah bawah, hover di sidebar) lalu uji Chrome offline
 membuktikan bug Inertia 2.0.3: prefetch gagal/disela meninggalkan entri in-flight yang ditolak, klik berikutnya
