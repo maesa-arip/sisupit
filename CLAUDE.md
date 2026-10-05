@@ -74,7 +74,7 @@ TASK_73/#181 : (2026-10-05, TERDEPLOY PROD @198d6c0f, HTTPS terverifikasi) token
                 Aturan baca: mobile/ATURAN_NOTIFIKASI.md.
 TASK_74/#182 : (2026-10-05, TERDEPLOY PROD @198d6c0f) Profil > "Notifikasi di HP ini" (status + uji bunyi per peran, fcm.test hanya ke HP
                 sendiri) + banner dashboard petugas/relawan siaga saat HP belum siap. Butir 3 kolom "HP Notifikasi" di
-                Kelola Pengguna TERDEPLOY PROD @48772c7c; lalu dibatasi SUPERADMIN SAJA (2026-10-06, LOKAL).
+                Kelola Pengguna TERDEPLOY PROD @48772c7c; lalu dibatasi SUPERADMIN SAJA, TERDEPLOY PROD @6d57d090 (2026-10-06).
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
                 kolom approved_at tetap. #178 i18n TERDEPLOY prod @dde8c6a4; #179 (ikon, paginasi PaginationLinks, email).
                 #180 terjemahan bawaan Laravel dari paket laravel-lang/common (DEV) TERDEPLOY prod @9bf7b103; paginasi tetap versi #178 -
@@ -88,7 +88,7 @@ Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174.
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
 Test         : 725 passed, 3709 assertions (2026-10-06, + kolom HP superadmin saja).
-Lingkungan   : PROD @48772c7c (dashboard pra-TASK_72 + #178-#180 + TASK_73/74) | DEV @672b6a10 (dashboard baru) | STAGING @6d1dc8ea (dashboard
+Lingkungan   : PROD @6d57d090 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74) | DEV @672b6a10 (dashboard baru) | STAGING @6d1dc8ea (dashboard
                 sebelumnya, untuk perbandingan). Dev & staging: data salinan prod, basic auth (APK dikecualikan), sandi "password".
 ```
 

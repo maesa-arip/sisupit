@@ -12,7 +12,8 @@ per entri). File ini TIDAK dimuat otomatis tiap sesi — baca saat butuh konteks
 
 ```
 KOLOM HP SUPERADMIN SAJA (2026-10-06): permintaan user - show_phones + withCount/withMax hanya untuk superadmin, admin
-                tak menerima datanya. Test 725/3709. LOKAL.
+                tak menerima datanya. Test 725/3709. TERDEPLOY PROD @6d57d090 (konsol user; HTTPS: app-ySuweLr6.js
+                = build lokal, Admin/Users Index-BRCjmpQo.js 200 berisi show_phones).
 TASK_74 BUTIR 3 (2026-10-06): Kelola Pengguna admin kolom "HP Notifikasi" (jumlah HP + terakhir aktif; "Belum ada HP"
                 kuning untuk petugas/relawan/pejabat). withCount/withMax di UserController::index. Test 723/3696. TERDEPLOY PROD @48772c7c (konsol user; HTTPS: /login
                 memuat app-BOYrbUuC.js = build lokal, Admin/Users Index-DkV9H7y1.js 200 berisi "HP Notifikasi").

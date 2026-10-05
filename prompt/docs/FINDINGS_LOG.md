@@ -4307,6 +4307,6 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   `Admin\UserController::index`, `phones` di `Admin\UserResource`). "Belum ada HP" kuning hanya untuk peran
   bersirine (petugas/relawan/pejabat). Hanya baca - admin tak bisa mengirim uji ke HP orang lain. TERDEPLOY PROD @48772c7c (2026-10-06).
   **Lalu dibatasi SUPERADMIN SAJA** (permintaan user 2026-10-06): `show_phones` + withCount/withMax hanya dimuat untuk
-  superadmin, jadi admin tak menerima datanya sama sekali (bukan sekadar disembunyikan). LOKAL.
+  superadmin, jadi admin tak menerima datanya sama sekali (bukan sekadar disembunyikan). TERDEPLOY PROD @6d57d090.
 - **Belum:** uji di HP.
 - **Status:** FIXED 2026-10-05, TERDEPLOY PROD @198d6c0f. Test `NotifikasiHpIniTest` (10).
