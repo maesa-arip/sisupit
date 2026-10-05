@@ -69,6 +69,9 @@ sirine berbunyi adalah menunggu kejadian sungguhan. `FLAG_INSISTENT` belum perna
   "Belum ada HP" kuning hanya untuk `SIREN_ROLES` (petugas, relawan, pejabat); peran lain "-".
 - Test +2 (`NotifikasiHpIniTest`); sabotase (withCount dihapus) -> 1 merah, dipulihkan byte-exact.
   Full suite 723 passed / 3696 assertions.
+- **Superadmin saja (2026-10-06, permintaan user):** `$showPhones = hasRole('superadmin')` di `index()`; data hanya
+  dimuat bila true, prop `show_phones` menyembunyikan kepala & sel kolom. Test +2; sabotase (`$showPhones = true`)
+  -> 1 merah, dipulihkan. Full suite 725 passed / 3709 assertions.
 
 ## 6. Rollback
 

@@ -11,6 +11,8 @@ per entri). File ini TIDAK dimuat otomatis tiap sesi — baca saat butuh konteks
 ## Riwayat STATUS (salinan verbatim per 2026-10-01)
 
 ```
+KOLOM HP SUPERADMIN SAJA (2026-10-06): permintaan user - show_phones + withCount/withMax hanya untuk superadmin, admin
+                tak menerima datanya. Test 725/3709. LOKAL.
 TASK_74 BUTIR 3 (2026-10-06): Kelola Pengguna admin kolom "HP Notifikasi" (jumlah HP + terakhir aktif; "Belum ada HP"
                 kuning untuk petugas/relawan/pejabat). withCount/withMax di UserController::index. Test 723/3696. TERDEPLOY PROD @48772c7c (konsol user; HTTPS: /login
                 memuat app-BOYrbUuC.js = build lokal, Admin/Users Index-DkV9H7y1.js 200 berisi "HP Notifikasi").
@@ -2577,6 +2579,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + TASK_73 sesi aplikasi & token FCM (SesiAplikasiTokenFcmTest) = 711 passed, 3606 assertions.
             + TASK_74 notifikasi di HP ini & uji bunyi (NotifikasiHpIniTest) = 721 passed, 3683 assertions.
             + TASK_74 butir 3 kolom "HP Notifikasi" Kelola Pengguna (2026-10-06) = 723 passed, 3696 assertions.
+            + kolom HP Notifikasi dibatasi superadmin saja (2026-10-06) = 725 passed, 3709 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

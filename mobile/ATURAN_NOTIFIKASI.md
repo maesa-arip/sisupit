@@ -166,7 +166,7 @@ nada masuk) **berhenti begitu notifikasi disentuh atau digeser**.
 
 - Dashboard petugas & relawan siaga menampilkan peringatan kuning **hanya** bila HP ini belum
   terdaftar, atau (di browser) akun ini belum punya satu HP pun yang terdaftar.
-- **Admin > Kelola Pengguna** kolom **HP Notifikasi**: jumlah HP terdaftar tiap akun + kapan
+- **Kelola Pengguna, khusus SUPERADMIN** (admin biasa tidak melihatnya) kolom **HP Notifikasi**: jumlah HP terdaftar tiap akun + kapan
   aplikasinya terakhir dibuka. "Belum ada HP" (kuning) pada petugas/relawan/pejabat = orang itu
   **tidak akan menerima sirine**. Hanya untuk dilihat - admin tak bisa mengirim uji ke HP orang lain.
 
