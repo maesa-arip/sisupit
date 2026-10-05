@@ -140,3 +140,34 @@ it('shows the banner on both dashboards and the card on the profile', function (
         ->and($profil)->toContain('id="notifikasi-hp"')
         ->and($profil)->toContain('<NotificationDeviceCard tests={props.notificationTests ?? []} />');
 });
+
+// --- Butir 3: kesiapan HP di Kelola Pengguna admin ---------------------------------------
+
+it('shows each user phone readiness in the admin user list', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('superadmin');
+
+    $siap = penggunaHp('petugas');
+    $siap->fcmTokens()->create(['token' => 'token-hp-kedua', 'device_type' => 'android']);
+    FcmToken::where('user_id', $siap->id)->update(['updated_at' => now()->subDays(3)]);
+
+    $tanpaHp = User::factory()->create(['name' => 'Relawan Tanpa HP']);
+    $tanpaHp->assignRole('relawan');
+
+    $this->actingAs($admin)->get(route('admin.users.index', ['load' => 50]))
+        ->assertInertia(function ($page) use ($siap, $tanpaHp) {
+            $users = collect($page->toArray()['props']['users']['data'])->keyBy('id');
+
+            expect($users[$siap->id]['phones'])->toBe(['count' => 2, 'last_seen' => '3 hari yang lalu'])
+                ->and($users[$tanpaHp->id]['phones'])->toBe(['count' => 0, 'last_seen' => null]);
+        });
+});
+
+it('renders the phone column on desktop and the phone line on mobile', function () {
+    $src = file_get_contents(base_path('resources/js/Pages/Admin/Users/Index.jsx'));
+
+    expect(substr_count($src, '<PhoneReadiness user={user}'))->toBe(2)
+        ->and($src)->toContain('HP Notifikasi')
+        // "Belum ada HP" kuning hanya untuk peran yang disiarkan sirine.
+        ->and($src)->toContain("const SIREN_ROLES = ['petugas', 'relawan', 'pejabat'];");
+});

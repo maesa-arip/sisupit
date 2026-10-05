@@ -36,6 +36,10 @@ class UserController extends Controller
         $users = User::query()
             ->select(['id', 'name', 'username', 'email', 'phone', 'avatar', 'gender', 'date_of_birth', 'address', 'created_at', 'province_code', 'city_code', 'district_code', 'village_code', 'agency_id'])
             ->with(['roles:id,name', 'province:code,name', 'city:code,name', 'district:code,name', 'village:code,name'])
+            // Kesiapan HP (#182 butir 3): jumlah HP terdaftar FCM + kapan terakhir terlihat
+            // (fcm_tokens.updated_at, disentuh saat aplikasi dibuka dalam keadaan masuk).
+            ->withCount('fcmTokens')
+            ->withMax('fcmTokens', 'updated_at')
             ->isAdmin()
             ->filter(request()->only(['search']))
             ->sorting(request()->only(['field', 'direction']))

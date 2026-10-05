@@ -4,6 +4,7 @@ namespace App\Http\Resources\Admin;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
 class UserResource extends JsonResource
@@ -38,6 +39,14 @@ class UserResource extends JsonResource
             // Instansi yang diwakili akun berperan `opd` (TASK_27) — dipakai dialog penetapan
             // peran agar pilihan instansi ikut terisi saat dibuka ulang.
             'agency_id' => $this->agency_id,
+            // Kesiapan HP menerima notifikasi (#182 butir 3) - hanya bila controller memuat
+            // withCount/withMax-nya (Admin\UserController::index).
+            'phones' => $this->when(isset($this->fcm_tokens_count), fn () => [
+                'count' => (int) $this->fcm_tokens_count,
+                'last_seen' => $this->fcm_tokens_max_updated_at
+                    ? Carbon::parse($this->fcm_tokens_max_updated_at)->diffForHumans()
+                    : null,
+            ]),
         ];
     }
 }

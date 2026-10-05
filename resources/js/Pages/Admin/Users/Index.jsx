@@ -44,6 +44,7 @@ import {
 	IconArrowsSort,
 	IconChevronDown,
 	IconChevronUp,
+	IconDeviceMobile,
 	IconInfoCircle,
 	IconPencil,
 	IconPlus,
@@ -80,6 +81,38 @@ function RoleBadges({ roles }) {
 				</span>
 			))}
 		</div>
+	);
+}
+
+// Peran yang disiarkan SIRINE (mobile/ATURAN_NOTIFIKASI.md §3) - tanpa HP terdaftar, mereka tak akan
+// tahu ada panggilan meluncur, jadi "Belum ada HP" ditandai kuning hanya untuk mereka.
+const SIREN_ROLES = ['petugas', 'relawan', 'pejabat'];
+
+// Kesiapan HP menerima notifikasi (#182 butir 3): jumlah HP terdaftar FCM + kapan aplikasinya
+// terakhir dibuka dalam keadaan masuk. Hanya baca - admin tak bisa mengirim uji ke HP orang lain.
+function PhoneReadiness({ user, className }) {
+	const phones = user.phones;
+	if (!phones) return null;
+
+	if (phones.count === 0) {
+		const needsSiren = (user.roles ?? []).some((role) => SIREN_ROLES.includes(role));
+		return (
+			<span
+				className={cn('text-xs', needsSiren ? 'font-medium text-warning' : 'text-muted-foreground', className)}
+			>
+				{needsSiren ? 'Belum ada HP' : '-'}
+			</span>
+		);
+	}
+
+	return (
+		<span className={cn('inline-flex items-center gap-1 text-xs text-muted-foreground', className)}>
+			<IconDeviceMobile className="size-3.5 shrink-0 text-success" />
+			<span>
+				<span className="font-medium tabular-nums text-foreground">{phones.count} HP</span>
+				{phones.last_seen && ` · aktif ${phones.last_seen}`}
+			</span>
+		</span>
 	);
 }
 
@@ -323,6 +356,12 @@ export default function Index(props) {
 								<TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
 									Peran
 								</TableHead>
+								<TableHead
+									className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+									title="HP yang terdaftar menerima notifikasi. Aktif = terakhir aplikasi dibuka dalam keadaan masuk."
+								>
+									HP Notifikasi
+								</TableHead>
 								<TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
 									Wilayah
 								</TableHead>
@@ -363,6 +402,9 @@ export default function Index(props) {
 									</TableCell>
 									<TableCell>
 										<RoleBadges roles={user.roles} />
+									</TableCell>
+									<TableCell>
+										<PhoneReadiness user={user} />
 									</TableCell>
 									<TableCell className="text-muted-foreground">{user.region || '-'}</TableCell>
 									<TableCell className="hidden text-muted-foreground 2xl:table-cell">
@@ -418,6 +460,7 @@ export default function Index(props) {
 									<p className="text-[13px] leading-snug text-muted-foreground">
 										{[user.phone, user.region].filter(Boolean).join(' · ') || '-'}
 									</p>
+									<PhoneReadiness user={user} className="mt-1 text-[13px]" />
 								</div>
 								<div className="relative z-10 flex shrink-0 items-center">
 									<button
