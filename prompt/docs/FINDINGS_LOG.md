@@ -4302,5 +4302,9 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   token HP itu (`fcm.test`, token wajib milik akun). Payload uji MENIRU `type`/`alert_stage` asli supaya APK memilih
   channel yang sama. Banner di dashboard petugas & relawan siaga hanya saat bermasalah.
 - **Batasan:** "Aktif" = terdaftar; izin notifikasi Android yang dimatikan tak terlihat dari web - itu fungsi tombol uji.
-- **Belum:** butir 3 (kolom kesiapan HP di Kelola Pengguna admin) belum diminta. Uji di HP belum dilakukan.
+- **Butir 3 (2026-10-06, permintaan user):** Kelola Pengguna admin kolom "HP Notifikasi" (desktop) + baris di daftar
+  ponsel: jumlah HP terdaftar + "aktif <waktu>" (`withCount`/`withMax('fcmTokens','updated_at')` di
+  `Admin\UserController::index`, `phones` di `Admin\UserResource`). "Belum ada HP" kuning hanya untuk peran
+  bersirine (petugas/relawan/pejabat). Hanya baca - admin tak bisa mengirim uji ke HP orang lain. LOKAL, belum deploy.
+- **Belum:** uji di HP.
 - **Status:** FIXED 2026-10-05, TERDEPLOY PROD @198d6c0f. Test `NotifikasiHpIniTest` (10).

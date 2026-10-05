@@ -61,6 +61,15 @@ sirine berbunyi adalah menunggu kejadian sungguhan. `FLAG_INSISTENT` belum perna
       BERULANG sampai disentuh (FLAG_INSISTENT); ketuk notifikasi → kembali ke kartu.
       Banner: matikan internet saat buka aplikasi/hapus token → banner muncul di dashboard.
 
+## 5b. Butir 3 - kolom kesiapan HP di admin (2026-10-06)
+
+- `Admin\UserController::index`: `withCount('fcmTokens')` + `withMax('fcmTokens', 'updated_at')` (satu query, tanpa N+1).
+- `Admin\UserResource`: `phones: {count, last_seen}` (diffForHumans), hanya bila count dimuat.
+- `Admin/Users/Index.jsx`: `PhoneReadiness` - kolom "HP Notifikasi" di tabel + satu baris di daftar ponsel.
+  "Belum ada HP" kuning hanya untuk `SIREN_ROLES` (petugas, relawan, pejabat); peran lain "-".
+- Test +2 (`NotifikasiHpIniTest`); sabotase (withCount dihapus) -> 1 merah, dipulihkan byte-exact.
+  Full suite 723 passed / 3696 assertions.
+
 ## 6. Rollback
 
 Revert commit TASK_74. Tanpa migrasi.

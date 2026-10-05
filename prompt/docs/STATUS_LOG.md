@@ -11,6 +11,8 @@ per entri). File ini TIDAK dimuat otomatis tiap sesi — baca saat butuh konteks
 ## Riwayat STATUS (salinan verbatim per 2026-10-01)
 
 ```
+TASK_74 BUTIR 3 (2026-10-06): Kelola Pengguna admin kolom "HP Notifikasi" (jumlah HP + terakhir aktif; "Belum ada HP"
+                kuning untuk petugas/relawan/pejabat). withCount/withMax di UserController::index. Test 723/3696. LOKAL.
 DEPLOY 2026-10-05: TASK_73 + TASK_74 TERDEPLOY PROD @198d6c0f (konsol user, deploy-env.sh; tanpa migrasi). HTTPS:
                 /login 200 memuat app-BDJiz0rj.js (= build lokal), Edit/Login baru 200, /fcm-token/release, /fcm-token/test,
                 /profile/logout-everywhere = 405 pada GET (rute ada), POST tamu tanpa CSRF -> 419 dibelokkan ke / (benar).
@@ -2573,6 +2575,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             (2026-10-05: dashboard dikembalikan ke pra-TASK_72 + #178-#180 = 695 passed, 3560 assertions.)
             + TASK_73 sesi aplikasi & token FCM (SesiAplikasiTokenFcmTest) = 711 passed, 3606 assertions.
             + TASK_74 notifikasi di HP ini & uji bunyi (NotifikasiHpIniTest) = 721 passed, 3683 assertions.
+            + TASK_74 butir 3 kolom "HP Notifikasi" Kelola Pengguna (2026-10-06) = 723 passed, 3696 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)
