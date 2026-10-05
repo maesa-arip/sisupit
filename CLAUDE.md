@@ -70,6 +70,8 @@ Terakhir     : #159/TASK_69 lapisan platform ponsel (hover sentuh, tap, active B
                 #157 hapus akun = ANONIMISASI TERDEPLOY @43479a4e.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
                 kolom approved_at tetap. #178 i18n TERDEPLOY prod @dde8c6a4; #179 (ikon, paginasi PaginationLinks, email).
+                #180 terjemahan bawaan Laravel dari paket laravel-lang/common (DEV); paginasi tetap versi #178 -
+                pulihkan lagi tiap `lang:update` (FINDINGS #180).
 SEMENTARA    : #149 menu "Jangkauan Petugas" disembunyikan + foto laporan non-kebakaran
                 opsional; #156 menu admin "Daftar Penerima Email" & "Pengaturan Email Dinas"
                 disembunyikan (flag di navItems.js). Cara mengembalikan: FINDINGS_LOG #149/#156.

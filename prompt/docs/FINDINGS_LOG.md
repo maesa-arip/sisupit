@@ -4251,3 +4251,21 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Ikon disederhanakan (2026-10-05, usul user):** tebakan dari kata di judul dibuang - kini HANYA dua ikon dari
   `incident_type`: kebakaran = api merah, `lainnya` = tanda peringatan (IconAlertTriangle) kuning; tanpa jenis = api.
 - **Status:** FIXED 2026-10-05.
+
+### #180 — Terjemahan bawaan Laravel diganti paket Laravel-Lang (FIXED)
+
+- **Permintaan user 2026-10-05:** "https://github.com/Laravel-Lang/lang gunakan ini untuk bahasa indonesianya" -
+  terjemahan tulisan tangan #178 diganti versi komunitas. Keputusan user: paket DEV, paginasi Sebelumnya/Berikutnya
+  TETAP yang sekarang.
+- **Fix:** `composer require laravel-lang/common --dev` (^6.8; lock hanya +23 paket, tak ada versi lama berubah) lalu
+  `php artisan lang:add id`. Hasilnya di-commit: `lang/id/{auth,passwords,validation,actions,http-statuses}.php` +
+  `lang/id.json` (262 kunci). Produksi cukup membaca `lang/`, tak butuh paketnya. Validasi kini 258 kunci, termasuk
+  127 nama atribut (`password` -> "kata sandi"; `email` tetap "email", lihat Wording).
+- **Dipertahankan (ditimpa publisher, dipulihkan manual):** `lang/id/pagination.php` byte-identik versi #178 (publisher
+  memberi `&laquo; Sebelumnya`/`Berikutnya &raquo;`); di `id.json` kunci paginasi `"to"` = "sampai" (publisher:
+  "kepada" -> "Menampilkan 1 kepada 10") dan `"Pagination Navigation"` = "Navigasi Halaman" (publisher: "Navigasi Paginasi").
+- **WAJIB setelah `php artisan lang:update`:** pulihkan ketiga butir di atas + "surel" -> "email" (butir berikut) - publisher menimpa nilai kunci yang ada.
+- **Wording (keputusan user 2026-10-05):** "surel" Laravel-Lang DIGANTI "email" di seluruh `lang/id` (16 tempat, mis.
+  "Email harus berupa alamat email yang valid."); "Halaman Kadaluwarsa" DIBIARKAN (bukan "kedaluwarsa"); "Forbidden" =
+  "Dilarang", "pengaturan ulang" tetap. Ikut WAJIB dipulihkan tiap `lang:update`. Teks UI React tak terpengaruh.
+- **Status:** FIXED 2026-10-05. Test 695 passed / 3560 assertions (sama dengan baseline).
