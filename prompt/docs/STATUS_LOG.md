@@ -12,7 +12,8 @@ per entri). File ini TIDAK dimuat otomatis tiap sesi — baca saat butuh konteks
 
 ```
 TASK_74 BUTIR 3 (2026-10-06): Kelola Pengguna admin kolom "HP Notifikasi" (jumlah HP + terakhir aktif; "Belum ada HP"
-                kuning untuk petugas/relawan/pejabat). withCount/withMax di UserController::index. Test 723/3696. LOKAL.
+                kuning untuk petugas/relawan/pejabat). withCount/withMax di UserController::index. Test 723/3696. TERDEPLOY PROD @48772c7c (konsol user; HTTPS: /login
+                memuat app-BOYrbUuC.js = build lokal, Admin/Users Index-DkV9H7y1.js 200 berisi "HP Notifikasi").
 DEPLOY 2026-10-05: TASK_73 + TASK_74 TERDEPLOY PROD @198d6c0f (konsol user, deploy-env.sh; tanpa migrasi). HTTPS:
                 /login 200 memuat app-BDJiz0rj.js (= build lokal), Edit/Login baru 200, /fcm-token/release, /fcm-token/test,
                 /profile/logout-everywhere = 405 pada GET (rute ada), POST tamu tanpa CSRF -> 419 dibelokkan ke / (benar).

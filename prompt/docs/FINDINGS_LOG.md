@@ -4305,6 +4305,6 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Butir 3 (2026-10-06, permintaan user):** Kelola Pengguna admin kolom "HP Notifikasi" (desktop) + baris di daftar
   ponsel: jumlah HP terdaftar + "aktif <waktu>" (`withCount`/`withMax('fcmTokens','updated_at')` di
   `Admin\UserController::index`, `phones` di `Admin\UserResource`). "Belum ada HP" kuning hanya untuk peran
-  bersirine (petugas/relawan/pejabat). Hanya baca - admin tak bisa mengirim uji ke HP orang lain. LOKAL, belum deploy.
+  bersirine (petugas/relawan/pejabat). Hanya baca - admin tak bisa mengirim uji ke HP orang lain. TERDEPLOY PROD @48772c7c (2026-10-06).
 - **Belum:** uji di HP.
 - **Status:** FIXED 2026-10-05, TERDEPLOY PROD @198d6c0f. Test `NotifikasiHpIniTest` (10).
