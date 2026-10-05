@@ -156,6 +156,7 @@ it('shows each user phone readiness in the admin user list', function () {
 
     $this->actingAs($admin)->get(route('admin.users.index', ['load' => 50]))
         ->assertInertia(function ($page) use ($siap, $tanpaHp) {
+            expect($page->toArray()['props']['show_phones'])->toBeTrue();
             $users = collect($page->toArray()['props']['users']['data'])->keyBy('id');
 
             expect($users[$siap->id]['phones'])->toBe(['count' => 2, 'last_seen' => '3 hari yang lalu'])
@@ -170,4 +171,29 @@ it('renders the phone column on desktop and the phone line on mobile', function 
         ->and($src)->toContain('HP Notifikasi')
         // "Belum ada HP" kuning hanya untuk peran yang disiarkan sirine.
         ->and($src)->toContain("const SIREN_ROLES = ['petugas', 'relawan', 'pejabat'];");
+});
+
+it('never sends phone readiness to a regular admin', function () {
+    // Permintaan user 2026-10-06: kolom HP Notifikasi untuk superadmin saja.
+    $admin = User::factory()->create(['city_code' => '5171']);
+    $admin->assignRole('admin');
+
+    $petugas = penggunaHp('petugas');
+    $petugas->update(['city_code' => '5171']);
+
+    $this->actingAs($admin)->get(route('admin.users.index', ['load' => 50]))
+        ->assertInertia(function ($page) use ($petugas) {
+            $props = $page->toArray()['props'];
+            $rows = collect($props['users']['data'])->keyBy('id');
+
+            expect($props['show_phones'])->toBeFalse()
+                ->and($rows->has($petugas->id))->toBeTrue()
+                ->and($rows[$petugas->id])->not->toHaveKey('phones');
+        });
+});
+
+it('gates the phone column on show_phones', function () {
+    $src = file_get_contents(base_path('resources/js/Pages/Admin/Users/Index.jsx'));
+
+    expect(substr_count($src, '{props.show_phones && ('))->toBe(2);
 });

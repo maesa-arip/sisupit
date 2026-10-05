@@ -356,12 +356,15 @@ export default function Index(props) {
 								<TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
 									Peran
 								</TableHead>
-								<TableHead
-									className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-									title="HP yang terdaftar menerima notifikasi. Aktif = terakhir aplikasi dibuka dalam keadaan masuk."
-								>
-									HP Notifikasi
-								</TableHead>
+								{/* Superadmin saja (show_phones dari server) - admin tak menerima datanya. */}
+								{props.show_phones && (
+									<TableHead
+										className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+										title="HP yang terdaftar menerima notifikasi. Aktif = terakhir aplikasi dibuka dalam keadaan masuk."
+									>
+										HP Notifikasi
+									</TableHead>
+								)}
 								<TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
 									Wilayah
 								</TableHead>
@@ -403,9 +406,11 @@ export default function Index(props) {
 									<TableCell>
 										<RoleBadges roles={user.roles} />
 									</TableCell>
-									<TableCell>
-										<PhoneReadiness user={user} />
-									</TableCell>
+									{props.show_phones && (
+										<TableCell>
+											<PhoneReadiness user={user} />
+										</TableCell>
+									)}
 									<TableCell className="text-muted-foreground">{user.region || '-'}</TableCell>
 									<TableCell className="hidden text-muted-foreground 2xl:table-cell">
 										{user.gender || '-'}

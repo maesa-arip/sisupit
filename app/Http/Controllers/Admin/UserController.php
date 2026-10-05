@@ -33,13 +33,17 @@ class UserController extends Controller
 
     public function index(): Response
     {
+        // Kesiapan HP (#182 butir 3) HANYA untuk superadmin (permintaan user 2026-10-06) - admin
+        // tidak dikirimi datanya sama sekali, bukan sekadar disembunyikan di layar.
+        $showPhones = auth()->user()->hasRole('superadmin');
+
         $users = User::query()
             ->select(['id', 'name', 'username', 'email', 'phone', 'avatar', 'gender', 'date_of_birth', 'address', 'created_at', 'province_code', 'city_code', 'district_code', 'village_code', 'agency_id'])
             ->with(['roles:id,name', 'province:code,name', 'city:code,name', 'district:code,name', 'village:code,name'])
-            // Kesiapan HP (#182 butir 3): jumlah HP terdaftar FCM + kapan terakhir terlihat
-            // (fcm_tokens.updated_at, disentuh saat aplikasi dibuka dalam keadaan masuk).
-            ->withCount('fcmTokens')
-            ->withMax('fcmTokens', 'updated_at')
+            // Jumlah HP terdaftar FCM + kapan terakhir terlihat (fcm_tokens.updated_at, disentuh
+            // saat aplikasi dibuka dalam keadaan masuk). UserResource hanya mengirim `phones`
+            // bila hitungan ini dimuat.
+            ->when($showPhones, fn ($q) => $q->withCount('fcmTokens')->withMax('fcmTokens', 'updated_at'))
             ->isAdmin()
             ->filter(request()->only(['search']))
             ->sorting(request()->only(['field', 'direction']))
@@ -63,6 +67,8 @@ class UserController extends Controller
             'jurisdictional_roles' => self::JURISDICTIONAL_ROLES,
             // Pilihan instansi saat menetapkan peran `opd` (TASK_27), ter-scope Tenantable.
             'agencies' => Agency::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            // Kolom "HP Notifikasi" (#182 butir 3) - superadmin saja.
+            'show_phones' => $showPhones,
             'state' => [
                 'page' => request()->page ?? 1,
                 'search' => request()->search ?? '',
