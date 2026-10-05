@@ -49,7 +49,7 @@ window.AndroidBridge = {
 
 | # | Metode | Dipanggil dari | Native harus | Sejak APK |
 |---|---|---|---|---|
-| 1 | `postToken('')` | `AppLayout.jsx` - di-**poll** tiap 500 ms sampai jembatan terdeteksi, menyerah setelah 15 dtk; hanya saat login | ambil token FCM (retry 4× backoff 2/4/6 dtk), lalu panggil `window.receiveFcmTokenFromNative(token)` | lama |
+| 1 | `postToken('')` | `AppLayout.jsx` - di-**poll** tiap 500 ms sampai jembatan terdeteksi, menyerah setelah 15 dtk; saat login (mendaftarkan) **dan** sejak TASK_73 di halaman tamu (`lib/release-fcm-token.js`, melepas) | ambil token FCM (retry 4× backoff 2/4/6 dtk), lalu panggil `window.receiveFcmTokenFromNative(token)` | lama |
 | 2 | `signInWithGoogle()` | `Auth/Login.jsx`, `Auth/Register.jsx` | buka account picker Google native; hasil lewat callback §2.2 | lama |
 | 3 | `setPullToRefreshEnabled(bool)` | `lib/pull-to-refresh-lock.js` (dialog, Sheet, Dropdown, Popover, Select, popover bilah bawah) - `false` saat panel pertama terbuka DAN di setiap `touchstart` selama terbuka, `true` saat panel terakhir tertutup (dihitung, panel bisa bertumpuk) | matikan/nyalakan tarik-untuk-refresh. Sejak 1.1.6 Android memakai bendera + `setOnChildScrollUpCallback` dan meresetnya di **`onPageStarted`** (1.1.4/1.1.5 menyalakan lagi di `onPageFinished`, yang ikut terpanggil oleh `history.replaceState` - #162) | **1.1.4 (TASK_65)** |
 | 4 | `onBackgroundColorDetected(rgb, isLight)` | **bukan web** - skrip yang disuntik native sendiri tiap `onPageFinished` (MutationObserver + interval 1 dtk membaca `background-color` body/html) | warnai status bar & navigation bar, ikon terang/gelap menurut `isLight` | lama |
@@ -88,7 +88,10 @@ sudah dikomentari di `routes/api.php:11`. Jangan ditiru.)
 | `/fcm-token` (`fcm.store`) | POST | `{ token, device_type }` | web | token per-PERANGKAT: token yang sama dipindah dari akun lain ke akun yang sedang login (`FcmController`) |
 | `/auth/google/native` (`google.native`) | POST | `{ credential: <ID token> }` | web | server memverifikasi `aud` terhadap DAFTAR: Web Client ID + `GOOGLE_IOS_CLIENT_ID` (`SocialiteController.php:86`). **iOS Client ID wajib terisi di `.env` server** |
 | `/auth/google` | GET | - | browser biasa | redirect OAuth, BUKAN untuk wrapper (Google menolak OAuth di WebView) |
-| `/logout` | POST | `{ fcm_token }` | web | melepas token perangkat supaya HP berhenti menerima sirine setelah keluar |
+| `/logout` | POST | `{ fcm_token }` | web | melepas token perangkat supaya HP berhenti menerima sirine setelah keluar. Sejak TASK_73 `fcm_token` boleh kosong (server memakai token yang dicatat sesi) dan hanya perangkat ini yang dikeluarkan |
+| `/fcm-token/release` (`fcm.release`) | POST | `{ token }` | web, **hanya tamu** | TASK_73: halaman tamu di aplikasi meminta token lewat `postToken('')` lalu melepasnya - "layar masuk = tidak ada notifikasi". iOS cukup memasang `postToken` + `receiveFcmTokenFromNative` seperti biasa |
+| `/profile/logout-everywhere` | POST | - | web | TASK_73: keluar dari semua perangkat + lepas semua token |
+| `/fcm-token/test` (`fcm.test`) | POST | `{ token, tier }` | web | TASK_74: notifikasi uji ke HP ini saja. Payload meniru `type`/`alert_stage` asli + `is_test: "1"`, `action_url` = `/profile#notifikasi-hp`. Native tak perlu apa-apa: channel/suara dipilih dari penanda yang sama |
 | `/reports/show/{id}` (`reports.show`) | GET | - | deep-link notifikasi | **bukan** `/reports/{id}` (dulu 404) |
 | `/profile#hapus-akun` | - | - | halaman web | hapus akun mandiri (#157, syarat Play & App Store). Murni web, tak butuh native |
 | `/apk/sisupit.apk` | GET | - | tombol unduh di browser | disembunyikan di dalam aplikasi |

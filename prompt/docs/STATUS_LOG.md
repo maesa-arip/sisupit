@@ -11,6 +11,14 @@ per entri). File ini TIDAK dimuat otomatis tiap sesi — baca saat butuh konteks
 ## Riwayat STATUS (salinan verbatim per 2026-10-01)
 
 ```
+TASK_74/#182 NOTIFIKASI DI HP INI (2026-10-05): butir 1+2 pilihan user - kartu Profil #notifikasi-hp (status + uji bunyi
+                per peran via fcm.test, payload meniru type/alert_stage asli) + banner dashboard petugas/relawan siaga.
+                lib/fcm-device.js diisi AppLayout. Test 721/3683 (+10). Lokal, belum commit. Butir 3 (kolom admin) belum diminta.
+TASK_73/#181 SESI APLIKASI & TOKEN FCM (2026-10-05): keluhan "sesi habis, tampak keluar, tetap bersirine". Riset praktik
+                native (Firebase token mgmt, PagerDuty mobile 210 hr/5 th, Active911, OWASP) -> user pilih butir 1-5:
+                isNativeApp() remember, logoutCurrentDevice + session('fcm_token'), profile.logout-everywhere,
+                User::signOutEverywhere (ganti/reset sandi), fcm.release tamu, DeleteInvalidFcmToken + Prunable 270 hr.
+                Test 711/3606 (+16). Lokal, belum commit. Cek di VPS: SESSION_DRIVER & cron schedule:run. #182 OPEN.
 #180 LARAVEL-LANG (2026-10-05): terjemahan bawaan Laravel #178 diganti paket laravel-lang/common (DEV,
                 ^6.8) + `php artisan lang:add id`; lang/id/* & id.json di-commit (server --no-dev tak butuh paket).
                 Paginasi tetap versi #178 (pagination.php + id.json "to"/"Pagination Navigation") + "surel"->"email" - WAJIB dipulihkan
@@ -2558,6 +2566,9 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             (TASK_72 deploy 2026-10-04: DEV @5b7482f6 dashboard baru, STAGING @6d1dc8ea dashboard sebelumnya.)
             + TASK_72 lanjutan: papan regu danru dibatasi 3 kartu + ringkas (PetugasDashboardTest +2) = 734 passed, 3736 assertions.
             (2026-10-05: feat/mobile-native-polish di-merge ff ke main @3d1e56e3 & TERDEPLOY ke PRODUKSI; migrasi approved_at.)
+            (2026-10-05: dashboard dikembalikan ke pra-TASK_72 + #178-#180 = 695 passed, 3560 assertions.)
+            + TASK_73 sesi aplikasi & token FCM (SesiAplikasiTokenFcmTest) = 711 passed, 3606 assertions.
+            + TASK_74 notifikasi di HP ini & uji bunyi (NotifikasiHpIniTest) = 721 passed, 3683 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

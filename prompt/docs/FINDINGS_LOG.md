@@ -4270,3 +4270,37 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   "Dilarang", "pengaturan ulang" tetap. Ikut WAJIB dipulihkan tiap `lang:update`. Teks UI React tak terpengaruh.
 - **Status:** FIXED 2026-10-05, TERDEPLOY PROD @9bf7b103 (diverifikasi HTTPS: POST /forgot-password -> 422 "Email harus
   berupa alamat email yang valid."). Test 695 passed / 3560 assertions (sama dengan baseline).
+
+### #181 — APK tampak keluar (sesi habis) tapi tetap menerima notifikasi/sirine (FIXED)
+
+- **Laporan user 2026-10-05:** "fcm sudah terdaftar tapi karena session bawaan laravel habis jadi logout otomatis tapi
+  masih menerima notif ... jika logout sendiri notifikasi tidak akan muncul".
+- **Akar:** `fcm_tokens` terikat ke user, bukan ke status login perangkat; satu-satunya penghapus = `destroy()` dengan
+  `fcm_token` di body. Empat jalan meninggalkan token: (1) login email/daftar di APK tanpa "ingat saya" -> sesi 120 mnt;
+  (2) `SessionGuard::logout()` mengganti `remember_token` (SATU per user) -> keluar di laptop membatalkan "ingat saya" di
+  HP, termasuk login Google; (3) tombol Keluar di Profil/VerifyEmail/AuthenticatedLayout tak mengirim `fcm_token`;
+  (4) reset sandi mengganti remember_token tanpa melepas token. Plus token mati tak pernah dibersihkan.
+- **Fix (TASK_73, butir 1-5 pilihan user):** APK selalu "ingat saya" (`isNativeApp()`); Keluar = `logoutCurrentDevice()`
+  + token dicadangkan di sesi; "Keluar dari semua perangkat" di Profil; `User::signOutEverywhere()` dipakai keluar-semua,
+  ganti sandi (perangkat ini dikecualikan), reset sandi; halaman tamu di aplikasi melepas tokennya (`fcm.release`);
+  listener `DeleteInvalidFcmToken` + `FcmToken` Prunable 270 hari (`model:prune` harian - butuh cron).
+- **Dasar praktik (riset 2026-10-05):** Firebase "Best practices for FCM registration token management"; PagerDuty
+  Session Timeouts (mobile 210 hari/5 tahun vs web 15 mnt/1 jam); Active911 (status terhubung + tes paging); OWASP
+  Session Management (pencabutan sisi server saat keluar/ganti sandi).
+- **Belum dipastikan di VPS:** `SESSION_DRIVER` (pemutusan sesi perangkat lain hanya untuk `database`) & cron
+  `schedule:run` (prune). Ambang prune sengaja 270 hari, bukan "basi 1 bulan": petugas yang jarang membuka aplikasi
+  tetap harus menerima sirine.
+- **Status:** FIXED 2026-10-05 (lokal, belum di-commit/deploy). Test: `SesiAplikasiTokenFcmTest` (16).
+
+### #182 — Tidak ada status "notifikasi aktif di HP ini" & notifikasi uji (FIXED - butir 1+2)
+
+- Butir 6 riset TASK_73: petugas/relawan tak bisa memastikan HP-nya terdaftar & sirinenya benar-benar berbunyi
+  (pola Active911 "Connected" + tes paging). Sekalian menguji `FLAG_INSISTENT` yang belum pernah diuji di HP.
+  User 2026-10-05: dikerjakan sebagai task terpisah sesudah TASK_73.
+- **Fix (TASK_74, butir 1+2 pilihan user):** Profil > "Notifikasi di HP ini" (`#notifikasi-hp`) untuk semua peran:
+  status HP ini + tombol uji per bunyi yang diterima perannya (`DeviceTestNotification::tiersFor`), dikirim hanya ke
+  token HP itu (`fcm.test`, token wajib milik akun). Payload uji MENIRU `type`/`alert_stage` asli supaya APK memilih
+  channel yang sama. Banner di dashboard petugas & relawan siaga hanya saat bermasalah.
+- **Batasan:** "Aktif" = terdaftar; izin notifikasi Android yang dimatikan tak terlihat dari web - itu fungsi tombol uji.
+- **Belum:** butir 3 (kolom kesiapan HP di Kelola Pengguna admin) belum diminta. Uji di HP belum dilakukan.
+- **Status:** FIXED 2026-10-05 (lokal, belum commit/deploy). Test `NotifikasiHpIniTest` (10).

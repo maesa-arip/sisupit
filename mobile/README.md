@@ -14,6 +14,7 @@ kontraknya disimpan.
 
 | Berkas | Isi | Siapa yang memperbarui |
 |---|---|---|
+| [`ATURAN_NOTIFIKASI.md`](ATURAN_NOTIFIKASI.md) | Versi ringkas untuk dibaca: siapa dapat notifikasi apa, kapan, bunyinya apa (laporan masuk, verifikasi, OPD, status pelapor) | siapa pun yang mengubah notifikasi/suara |
 | [`KONTRAK.md`](KONTRAK.md) | Kontrak web ↔ native: User-Agent, jembatan JS `window.AndroidBridge`, endpoint, payload push, deep-link | siapa pun yang mengubah web ATAU wrapper |
 | [`PERILAKU_WEBVIEW.md`](PERILAKU_WEBVIEW.md) | Perilaku native yang dipasang Android dan WAJIB ditiru iOS (cookie, GPS, kamera/foto, unduhan, tautan luar, inset, tarik-untuk-refresh) | sisi Android saat menambah perilaku |
 | [`CHANGELOG_ANDROID.md`](CHANGELOG_ANDROID.md) | Riwayat rilis APK + apa yang harus di-port ke iOS per rilis | sisi Android, SETIAP rilis APK |
