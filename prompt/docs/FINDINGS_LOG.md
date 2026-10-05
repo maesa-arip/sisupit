@@ -4244,6 +4244,10 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   halaman bisa digeser kanan-kiri. Kini di ponsel hanya panah kiri, aktif +-1, panah kanan (Sebelumnya/Berikutnya jadi ikon
   chevron + aria-label atas permintaan user) (`hidden sm:inline-block`) +
   `flex-wrap`. Diukur di iframe 390px pada /hydrants: lebar dokumen 375, tombol tampil 4-5 dari 8.
+- **Penomoran (2026-10-05, keluhan user):** versi "aktif +-1 di ponsel" menampilkan "< 1 2 >" di hal. 1 Pengguna seolah
+  hanya 2 halaman. Kini pola baku: pertama & terakhir selalu tampil, aktif +-1, "..." untuk celah > 1 halaman (celah
+  satu halaman ditulis nomornya); URL nomor di luar jendela Laravel dibentuk dengan mengganti `page` (aman SSR).
+  Disimulasikan untuk 2-120 halaman (mis. hal. 1/20 = "< 1 2 ... 20 >", hal. 7/20 = "< 1 ... 6 7 8 ... 20 >").
 - **Ikon disederhanakan (2026-10-05, usul user):** tebakan dari kata di judul dibuang - kini HANYA dua ikon dari
   `incident_type`: kebakaran = api merah, `lainnya` = tanda peringatan (IconAlertTriangle) kuning; tanpa jenis = api.
 - **Status:** FIXED 2026-10-05.
