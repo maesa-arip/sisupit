@@ -4290,7 +4290,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Belum dipastikan di VPS:** `SESSION_DRIVER` (pemutusan sesi perangkat lain hanya untuk `database`) & cron
   `schedule:run` (prune). Ambang prune sengaja 270 hari, bukan "basi 1 bulan": petugas yang jarang membuka aplikasi
   tetap harus menerima sirine.
-- **Status:** FIXED 2026-10-05 (lokal, belum di-commit/deploy). Test: `SesiAplikasiTokenFcmTest` (16).
+- **Status:** FIXED 2026-10-05, TERDEPLOY PROD @198d6c0f (HTTPS terverifikasi). Test: `SesiAplikasiTokenFcmTest` (16).
 
 ### #182 — Tidak ada status "notifikasi aktif di HP ini" & notifikasi uji (FIXED - butir 1+2)
 
@@ -4303,4 +4303,4 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   channel yang sama. Banner di dashboard petugas & relawan siaga hanya saat bermasalah.
 - **Batasan:** "Aktif" = terdaftar; izin notifikasi Android yang dimatikan tak terlihat dari web - itu fungsi tombol uji.
 - **Belum:** butir 3 (kolom kesiapan HP di Kelola Pengguna admin) belum diminta. Uji di HP belum dilakukan.
-- **Status:** FIXED 2026-10-05 (lokal, belum commit/deploy). Test `NotifikasiHpIniTest` (10).
+- **Status:** FIXED 2026-10-05, TERDEPLOY PROD @198d6c0f. Test `NotifikasiHpIniTest` (10).

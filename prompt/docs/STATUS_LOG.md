@@ -11,6 +11,10 @@ per entri). File ini TIDAK dimuat otomatis tiap sesi — baca saat butuh konteks
 ## Riwayat STATUS (salinan verbatim per 2026-10-01)
 
 ```
+DEPLOY 2026-10-05: TASK_73 + TASK_74 TERDEPLOY PROD @198d6c0f (konsol user, deploy-env.sh; tanpa migrasi). HTTPS:
+                /login 200 memuat app-BDJiz0rj.js (= build lokal), Edit/Login baru 200, /fcm-token/release, /fcm-token/test,
+                /profile/logout-everywhere = 405 pada GET (rute ada), POST tamu tanpa CSRF -> 419 dibelokkan ke / (benar).
+                BELUM dikonfirmasi (keluaran konsol tak ditempel): SESSION_DRIVER, bootstrap/cache/events.php, cron schedule:run.
 TASK_74/#182 NOTIFIKASI DI HP INI (2026-10-05): butir 1+2 pilihan user - kartu Profil #notifikasi-hp (status + uji bunyi
                 per peran via fcm.test, payload meniru type/alert_stage asli) + banner dashboard petugas/relawan siaga.
                 lib/fcm-device.js diisi AppLayout. Test 721/3683 (+10). Lokal, belum commit. Butir 3 (kolom admin) belum diminta.
