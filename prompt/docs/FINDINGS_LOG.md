@@ -4268,4 +4268,5 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Wording (keputusan user 2026-10-05):** "surel" Laravel-Lang DIGANTI "email" di seluruh `lang/id` (16 tempat, mis.
   "Email harus berupa alamat email yang valid."); "Halaman Kadaluwarsa" DIBIARKAN (bukan "kedaluwarsa"); "Forbidden" =
   "Dilarang", "pengaturan ulang" tetap. Ikut WAJIB dipulihkan tiap `lang:update`. Teks UI React tak terpengaruh.
-- **Status:** FIXED 2026-10-05. Test 695 passed / 3560 assertions (sama dengan baseline).
+- **Status:** FIXED 2026-10-05, TERDEPLOY PROD @9bf7b103 (diverifikasi HTTPS: POST /forgot-password -> 422 "Email harus
+  berupa alamat email yang valid."). Test 695 passed / 3560 assertions (sama dengan baseline).

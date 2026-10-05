@@ -15,7 +15,7 @@ per entri). File ini TIDAK dimuat otomatis tiap sesi — baca saat butuh konteks
                 ^6.8) + `php artisan lang:add id`; lang/id/* & id.json di-commit (server --no-dev tak butuh paket).
                 Paginasi tetap versi #178 (pagination.php + id.json "to"/"Pagination Navigation") + "surel"->"email" - WAJIB dipulihkan
                 lagi tiap `lang:update`. Test 695 passed / 3560 (= baseline). Deploy: composer.lock berubah ->
-                deploy-env.sh menjalankan composer install --no-dev sendiri; tanpa migrasi. Rincian FINDINGS #180.
+                deploy-env.sh menjalankan composer install --no-dev sendiri; tanpa migrasi. TERDEPLOY PROD @9bf7b103 (konsol user; HTTPS: 422 "Email harus berupa alamat email yang valid."). Rincian FINDINGS #180.
 Task aktif   : RILIS GOOGLE PLAY (2026-09-30). Akun Play Console PRIBADI (tanpa D-U-N-S) di
                 tawarineverywhere@gmail.com -> wajib uji tertutup 12 penguji x 14 hari. APK 1.1.5/vc7
                 (targetSdk 36, kunci unggah sisupit-upload.jks di proyek SisupitWebView + cadangan

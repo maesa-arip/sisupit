@@ -70,7 +70,7 @@ Terakhir     : #159/TASK_69 lapisan platform ponsel (hover sentuh, tap, active B
                 #157 hapus akun = ANONIMISASI TERDEPLOY @43479a4e.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
                 kolom approved_at tetap. #178 i18n TERDEPLOY prod @dde8c6a4; #179 (ikon, paginasi PaginationLinks, email).
-                #180 terjemahan bawaan Laravel dari paket laravel-lang/common (DEV); paginasi tetap versi #178 -
+                #180 terjemahan bawaan Laravel dari paket laravel-lang/common (DEV) TERDEPLOY prod @9bf7b103; paginasi tetap versi #178 -
                 pulihkan lagi tiap `lang:update` (FINDINGS #180).
 SEMENTARA    : #149 menu "Jangkauan Petugas" disembunyikan + foto laporan non-kebakaran
                 opsional; #156 menu admin "Daftar Penerima Email" & "Pengaturan Email Dinas"
@@ -81,7 +81,7 @@ Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174.
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
 Test         : 695 passed, 3560 assertions (2026-10-05, sesudah dashboard dikembalikan ke pra-TASK_72).
-Lingkungan   : PROD @3d1e56e3 (dashboard baru) | DEV @672b6a10 (dashboard baru) | STAGING @6d1dc8ea (dashboard
+Lingkungan   : PROD @9bf7b103 (dashboard pra-TASK_72 + #178-#180) | DEV @672b6a10 (dashboard baru) | STAGING @6d1dc8ea (dashboard
                 sebelumnya, untuk perbandingan). Dev & staging: data salinan prod, basic auth (APK dikecualikan), sandi "password".
 ```
 
