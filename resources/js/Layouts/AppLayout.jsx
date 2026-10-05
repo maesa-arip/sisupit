@@ -4,6 +4,7 @@ import PageSkeleton from '@/Components/PageSkeleton';
 import SoundNotificationControl from '@/Components/SoundNotificationControl';
 import ThemeSwitcher from '@/Components/ThemeSwitcher';
 import { Toaster } from '@/Components/ui/sonner';
+import { setFcmDevice } from '@/lib/fcm-device';
 import { useNavUrl, usePageTransition, usePendingVisit, useSkeletonHost } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
 import { Head, Link, router, usePage } from '@inertiajs/react';
@@ -48,8 +49,12 @@ export default function AppLayout({ title, children }) {
 					token: token,
 					device_type: deviceType,
 				})
-				.then(() => {
+				.then((response) => {
 					console.log('Token FCM berhasil disimpan ke database');
+					// Kartu "Notifikasi di HP ini" & banner dashboard (#182, lib/fcm-device.js).
+					// Cek isi balasan: akun berprofil belum lengkap dibelokkan EnsureProfileComplete,
+					// dan axios mengikuti belokan itu sebagai 200 berisi HTML - tokennya tak tersimpan.
+					setFcmDevice({ status: response.data?.status === 'success' ? 'active' : 'inactive', token });
 				})
 				.catch((error) => {
 					console.error(
@@ -58,6 +63,8 @@ export default function AppLayout({ title, children }) {
 					);
 					if (attempt < maxAttempts) {
 						setTimeout(() => postTokenWithRetry(token, attempt + 1), attempt * 2000);
+					} else {
+						setFcmDevice({ status: 'inactive', token });
 					}
 				});
 		};
@@ -68,6 +75,7 @@ export default function AppLayout({ title, children }) {
 		window.receiveFcmTokenFromNative = (token) => {
 			if (!token) {
 				console.warn('Token FCM kosong dari native, diabaikan');
+				setFcmDevice({ status: 'inactive' });
 				return;
 			}
 			// Simpan token device agar bisa DILEPAS saat logout (dikirim sebagai body
@@ -83,10 +91,15 @@ export default function AppLayout({ title, children }) {
 				console.log('AndroidBridge terdeteksi, meminta token FCM...');
 				window.AndroidBridge.postToken('');
 				clearInterval(interval);
+				clearTimeout(timeout);
 			}
 		}, 500);
 
-		const timeout = setTimeout(() => clearInterval(interval), 15000);
+		// Aplikasi tanpa jembatan setelah 15 dtk = HP ini tak akan menerima notifikasi (#182).
+		const timeout = setTimeout(() => {
+			clearInterval(interval);
+			if (/SisupitApp/i.test(navigator.userAgent || '')) setFcmDevice({ status: 'inactive' });
+		}, 15000);
 
 		return () => {
 			clearInterval(interval);

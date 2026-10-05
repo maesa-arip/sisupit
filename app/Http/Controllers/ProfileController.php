@@ -34,6 +34,8 @@ class ProfileController extends Controller
             'status' => session('status'),
             // Menentukan konfirmasi hapus akun: password, atau ketik HAPUS bagi akun Google.
             'hasPassword' => filled($request->user()->getAuthPassword()),
+            // Kartu "Notifikasi di HP ini" (#182): bunyi yang boleh diuji sesuai peran.
+            'notificationTests' => \App\Notifications\DeviceTestNotification::tiersFor($request->user()),
             'jurisdiction' => $this->resolveJurisdiction($request->user()),
             // Banjar hanya relevan bagi akun yang punya desa. Staf kabupaten/kecamatan sengaja
             // tak berbanjar (#56), jadi kartunya tak perlu muncul sama sekali bagi mereka.
@@ -294,6 +296,24 @@ class ProfileController extends Controller
         });
 
         Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return Redirect::to('/');
+    }
+
+    /**
+     * "Keluar dari semua perangkat" (TASK_73). Tombol Keluar biasa kini hanya mengeluarkan
+     * perangkat yang dipakai (logoutCurrentDevice); inilah jalan mencabut semuanya - mis. HP
+     * hilang atau dipinjam orang. Semua HP berhenti menerima notifikasi seketika. Tanpa
+     * konfirmasi sandi: akun Google tak punya sandi, dan tindakannya tidak menghapus data.
+     */
+    public function logoutEverywhere(Request $request): RedirectResponse
+    {
+        $request->user()->signOutEverywhere();
+
+        Auth::guard('web')->logoutCurrentDevice();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

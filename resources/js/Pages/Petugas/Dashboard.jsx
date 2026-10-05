@@ -1,4 +1,5 @@
 import { AppEmpty, AppGreeting, AppList, AppListRow, AppSection } from '@/Components/AppSection';
+import NotificationDeviceBanner from '@/Components/NotificationDeviceBanner';
 import StatusBadge from '@/Components/StatusBadge';
 import { Badge } from '@/Components/ui/badge';
 import { Card, CardContent } from '@/Components/ui/card';
@@ -49,6 +50,7 @@ export default function PetugasDashboard({
 	myRegu = null,
 	feed_channel = null,
 	tenant_location = null,
+	fcm_device_count = null,
 }) {
 	const user = auth.user;
 
@@ -212,6 +214,9 @@ export default function PetugasDashboard({
 					</>
 				}
 			/>
+
+			{/* HP belum siap menerima sirine (#182) - tak tampil saat semuanya normal. */}
+			<NotificationDeviceBanner deviceCount={fcm_device_count} />
 
 			{/* --- BANNER STATUS SIAGA --- Merah HANYA untuk misi yang bisa petugas tindak
 			    (`pending`/`handling`). `TERLAPOR` menunggu verifikasi admin sejak TASK_51, jadi

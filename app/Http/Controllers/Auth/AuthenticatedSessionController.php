@@ -48,7 +48,10 @@ class AuthenticatedSessionController extends Controller
         // device lain milik user yang sama. Dijalankan SEBELUM logout(), selagi
         // Auth::user() masih tersedia. Ini sisi simetris dari FcmController::store
         // yang memindahkan token ke user saat login.
-        $token = $request->input('fcm_token');
+        // Cadangan dari sesi (dicatat FcmController::store, TASK_73): tombol Keluar di Profil,
+        // VerifyEmail, dan AuthenticatedLayout tak pernah mengirim fcm_token, sehingga keluar
+        // lewat sana dulu meninggalkan token - HP tampak keluar tapi tetap bersirine.
+        $token = $request->input('fcm_token') ?: $request->session()->get('fcm_token');
         if ($token && $request->user()) {
             $deleted = $request->user()->fcmTokens()->where('token', $token)->delete();
 
@@ -59,7 +62,12 @@ class AuthenticatedSessionController extends Controller
             ]);
         }
 
-        Auth::guard('web')->logout();
+        // logoutCurrentDevice, BUKAN logout (TASK_73): logout() mengganti remember_token yang
+        // hanya SATU per user, sehingga keluar di laptop diam-diam mencabut "ingat saya" di HP.
+        // HP itu lalu terlempar ke halaman masuk setelah sesinya habis - dengan token FCM yang
+        // tertinggal, jadi sirine tetap datang. Cabut semua perangkat = Profil > "Keluar dari
+        // semua perangkat" (ProfileController::logoutEverywhere).
+        Auth::guard('web')->logoutCurrentDevice();
 
         $request->session()->invalidate();
 

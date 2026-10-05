@@ -47,11 +47,18 @@ use Illuminate\Support\Facades\Route;
  */
 Route::middleware('auth')->group(function () {
     Route::post('/fcm-token', [FcmController::class, 'store'])->name('fcm.store');
+    // Notifikasi uji ke HP sendiri (#182, Profil > Notifikasi di HP ini).
+    Route::post('/fcm-token/test', [FcmController::class, 'test'])->middleware('throttle:6,1')->name('fcm.test');
 
     // Lonceng notifikasi web (tandai-baca). Daftar di-share via HandleInertiaRequests.
     Route::post('/notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.readAll');
 });
+
+// Aplikasi yang tampil sebagai tamu melepas token FCM perangkatnya (TASK_73).
+Route::post('/fcm-token/release', [FcmController::class, 'release'])
+    ->middleware(['guest', 'throttle:10,1'])
+    ->name('fcm.release');
 Route::middleware(['auth', 'verified'])->group(function () {
 
     // Rute tunggal se-arah untuk memisahkan view dashboard secara otomatis
@@ -339,6 +346,7 @@ Route::middleware(['auth'])->controller(ProfileController::class)->group(functio
     Route::get('profile', 'edit')->name('profile.edit');
     Route::patch('profile', 'update')->name('profile.update');
     Route::delete('profile', 'destroy')->name('profile.destroy');
+    Route::post('profile/logout-everywhere', 'logoutEverywhere')->name('profile.logout-everywhere');
     // Banjar bisa diubah SETELAH profil lengkap — warga pindah banjar, atau salah pilih saat
     // mendaftar. Sebelum 2026-08-26 kolom ini hanya bisa diisi sekali di layar Lengkapi Profil
     // dan tak ada satu pun jalan memperbaikinya, admin sekalipun.

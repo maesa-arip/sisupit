@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { ThemeProvider } from './Components/ThemeProvider';
 import { focusFirstError } from './lib/focus-first-error';
 import { installNavigationTracking } from './lib/navigation';
+import { releaseFcmTokenIfGuest } from './lib/release-fcm-token';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -32,6 +33,9 @@ if (typeof window !== 'undefined') {
 	// Navigasi instan (TASK_70): kerangka halaman tujuan + menu aktif langsung saat diketuk,
 	// dan cache prefetch dibuang setiap kali data berubah. Lihat lib/navigation.js.
 	installNavigationTracking();
+
+	// Aplikasi yang tampil sebagai tamu melepas token FCM-nya (TASK_73, lib/release-fcm-token.js).
+	router.on('navigate', (event) => releaseFcmTokenIfGuest(event.detail.page));
 }
 
 createInertiaApp({

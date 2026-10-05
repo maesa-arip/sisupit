@@ -49,7 +49,11 @@ class LoginRequest extends FormRequest
             ]);
         }
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        // Di aplikasi Android/iOS login SELALU "ingat saya" (TASK_73): HP yang sudah
+        // mendaftarkan token FCM harus tetap masuk sampai pengguna menekan Keluar. Tanpa ini
+        // sesi habis setelah 120 menit diam, layar kembali ke halaman masuk, padahal sirine
+        // tetap berbunyi. Browser biasa tetap mengikuti centang.
+        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember') || isNativeApp($this))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

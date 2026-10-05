@@ -1,4 +1,5 @@
 import { AppEmpty, AppGreeting, AppList, AppListRow, AppSection } from '@/Components/AppSection';
+import NotificationDeviceBanner from '@/Components/NotificationDeviceBanner';
 import ReportCard from '@/Components/ReportCard';
 import { ReportStepper } from '@/Components/ReportProgress';
 import StandbyCard from '@/Components/StandbyCard';
@@ -377,6 +378,10 @@ export default function Dashboard(props) {
 					</>
 				}
 			/>
+
+			{/* HP belum siap menerima sirine (#182) - hanya relawan siaga, sebab hanya mereka yang
+			    disiarkan sirine; tak tampil saat semuanya normal. */}
+			{isRelawan && isStandby && <NotificationDeviceBanner deviceCount={props.fcm_device_count} />}
 
 			{/* CTA UTAMA: LAPOR DARURAT - aksi inti yang harus paling menonjol bagi warga */}
 			<Link

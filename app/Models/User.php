@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Laravolt\Indonesia\Models\City;
 use Laravolt\Indonesia\Models\District;
 use Laravolt\Indonesia\Models\Province;
@@ -370,6 +372,38 @@ class User extends Authenticatable implements MustVerifyEmail
     public function routeNotificationForFcm()
     {
         return $this->fcmTokens()->pluck('token')->toArray();
+    }
+
+    /**
+     * Cabut login akun ini di SEMUA perangkat (TASK_73): token FCM, cookie "ingat saya",
+     * dan sesi database. Ketiganya wajib bersamaan - mencabut login tanpa melepas token
+     * menghasilkan HP yang tampak keluar tapi tetap bersirine (keluhan asal TASK_73),
+     * sedangkan melepas token tanpa mencabut login membuat petugas kehilangan sirine
+     * diam-diam sementara layarnya masih masuk.
+     *
+     * $keepToken / $keepSessionId = perangkat yang sedang dipakai (mis. ganti sandi):
+     * perangkat itu tetap masuk dan tetap menerima notifikasi.
+     */
+    public function signOutEverywhere(?string $keepToken = null, ?string $keepSessionId = null): void
+    {
+        $this->fcmTokens()
+            ->when($keepToken, fn ($q) => $q->where('token', '!=', $keepToken))
+            ->delete();
+
+        // Laravel hanya menyimpan SATU remember_token per user; menggantinya membatalkan
+        // cookie "ingat saya" di semua perangkat sekaligus.
+        $this->setRememberToken(Str::random(60));
+        $this->save();
+
+        // Sesi yang sedang hidup di perangkat lain baru bisa diputus bila sesi disimpan di
+        // database (driver lain tak bisa dicari per user; sesinya habis sendiri <= 120 menit).
+        if (config('session.driver') === 'database') {
+            DB::connection(config('session.connection'))
+                ->table(config('session.table', 'sessions'))
+                ->where('user_id', $this->getKey())
+                ->when($keepSessionId, fn ($q) => $q->where('id', '!=', $keepSessionId))
+                ->delete();
+        }
     }
 
     public function scopeFilter(Builder $query, array $filters): void

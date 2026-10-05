@@ -151,6 +151,8 @@ class DashboardController extends Controller
                 // {lat, long} per kecamatan/kabupaten). Dulu koordinat Denpasar ditulis mati di JSX,
                 // keliru untuk tenant lain. `users` tak punya kolom lat/lng (lihat FINDINGS #174).
                 'tenant_location' => $this->regionCenter($user),
+                // Banner "HP belum siap menerima sirine" (#182): 0 = tak satu HP pun terdaftar.
+                'fcm_device_count' => $user->fcmTokens()->count(),
             ]);
         }
 
@@ -284,6 +286,8 @@ class DashboardController extends Controller
                 'reports' => $reportsFeed,  // Sekarang page_data.reports terisi dengan sempurna!
             ],
             'feed_channel' => $user->reportFeedChannel(),
+            // Banner "HP belum siap menerima sirine" (#182) - hanya relawan yang menerima sirine.
+            'fcm_device_count' => $user->hasRole('relawan') ? $user->fcmTokens()->count() : null,
         ]);
     }
 

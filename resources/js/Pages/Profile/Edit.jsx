@@ -1,4 +1,14 @@
 import BanjarField from '@/Components/BanjarField';
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from '@/Components/ui/alert-dialog';
 import { Button } from '@/Components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import AppLayout from '@/Layouts/AppLayout';
@@ -7,6 +17,7 @@ import { Link, router, useForm, usePage } from '@inertiajs/react';
 import {
 	IconBrandAndroid,
 	IconChevronRight,
+	IconDeviceDesktopOff,
 	IconDeviceFloppy,
 	IconDownload,
 	IconHistory,
@@ -22,6 +33,7 @@ import {
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
+import NotificationDeviceCard from '@/Components/NotificationDeviceCard';
 import DeleteUserForm from './Partials/DeleteUserForm';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
@@ -58,6 +70,7 @@ export default function Edit(props) {
 	const SKILL_OPTIONS = Array.isArray(props.skillOptions) ? props.skillOptions : [];
 	const [skills, setSkills] = useState(Array.isArray(user?.skills) ? user.skills : []);
 	const [isSavingSkills, setIsSavingSkills] = useState(false);
+	const [confirmLogoutEverywhere, setConfirmLogoutEverywhere] = useState(false);
 
 	const toggleSkill = (skill) => {
 		setSkills((prev) => (prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]));
@@ -277,6 +290,17 @@ export default function Edit(props) {
 				</section>
 
 				{/* --- APLIKASI --- */}
+				{/* #182: status notifikasi HP ini + uji bunyi. Ditaut banner dashboard & ketukan
+				    notifikasi uji lewat #notifikasi-hp - jangan ganti id-nya. */}
+				<div id="notifikasi-hp" className="scroll-mt-20">
+					<Group
+						title="Notifikasi di HP ini"
+						footer="Tidak berbunyi? Matikan optimasi baterai untuk Sisupit, naikkan volume alarm, dan izinkan Sisupit menembus mode Jangan Ganggu di Setelan HP."
+					>
+						<NotificationDeviceCard tests={props.notificationTests ?? []} />
+					</Group>
+				</div>
+
 				{!isWebView && (
 					<Group title="Aplikasi">
 						<a
@@ -306,7 +330,38 @@ export default function Edit(props) {
 						<IconLogout size={18} stroke={2} />
 						Keluar
 					</Link>
+					{/* TASK_73: Keluar di atas hanya mengeluarkan perangkat ini. */}
+					<button
+						type="button"
+						onClick={() => setConfirmLogoutEverywhere(true)}
+						className="flex min-h-[52px] w-full items-center justify-center gap-2 px-4 py-3 text-[15px] font-medium text-muted-foreground transition-colors hover:bg-muted/50 active:bg-muted"
+					>
+						<IconDeviceDesktopOff size={18} stroke={2} />
+						Keluar dari semua perangkat
+					</button>
 				</Group>
+
+				<AlertDialog open={confirmLogoutEverywhere} onOpenChange={setConfirmLogoutEverywhere}>
+					<AlertDialogContent>
+						<AlertDialogHeader>
+							<AlertDialogTitle>Keluar dari semua perangkat?</AlertDialogTitle>
+							<AlertDialogDescription>
+								Akun Anda dikeluarkan dari semua HP, aplikasi, dan browser - termasuk yang ini. Semua
+								perangkat berhenti menerima notifikasi sampai Anda masuk lagi. Pakai ini bila HP hilang
+								atau pernah dipinjam orang lain.
+							</AlertDialogDescription>
+						</AlertDialogHeader>
+						<AlertDialogFooter>
+							<AlertDialogCancel className="rounded-xl">Batal</AlertDialogCancel>
+							<AlertDialogAction
+								className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+								onClick={() => router.post(route('profile.logout-everywhere'))}
+							>
+								Keluar dari semua
+							</AlertDialogAction>
+						</AlertDialogFooter>
+					</AlertDialogContent>
+				</AlertDialog>
 
 				{/* Syarat Google Play: hapus akun dari dalam aplikasi. Tautan web yang didaftarkan
 				    ke Play Console = /profile#hapus-akun - jangan ganti id-nya tanpa memperbarui Play. */}

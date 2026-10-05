@@ -54,7 +54,8 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
-        Auth::login($user);
+        // Di aplikasi: langsung "ingat saya", sama dengan LoginRequest (TASK_73).
+        Auth::login($user, isNativeApp($request));
 
         return redirect(route('dashboard', absolute: false));
     }

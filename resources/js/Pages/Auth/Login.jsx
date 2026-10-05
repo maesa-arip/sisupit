@@ -13,6 +13,8 @@ import { useEffect, useState } from 'react';
 
 export default function Login({ status, canResetPassword }) {
 	const [isWebView, setIsWebView] = useState(true);
+	// Di aplikasi Android/iOS server selalu login "ingat saya" (TASK_73), jadi kotaknya disembunyikan.
+	const [isNativeApp, setIsNativeApp] = useState(false);
 	useEffect(() => {
 		const checkWebView = () => {
 			const ua = navigator.userAgent || navigator.vendor || window.opera;
@@ -24,6 +26,7 @@ export default function Login({ status, canResetPassword }) {
 			return isAndroidWebView || isIOSWebView || isInAppBrowser || isMyOwnApp;
 		};
 		setIsWebView(checkWebView());
+		setIsNativeApp(/SisupitApp/i.test(navigator.userAgent || ''));
 	}, []);
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 	const [googleError, setGoogleError] = useState(null);
@@ -182,22 +185,26 @@ export default function Login({ status, canResetPassword }) {
 							</div>
 
 							<div className="flex items-center justify-between gap-3 px-1">
-								<div className="flex items-center space-x-2">
-									<Checkbox
-										id="remember"
-										name="remember"
-										checked={data.remember}
-										onChange={(e) => setData('remember', e.target.checked)}
-										onCheckedChange={(checked) => setData('remember', checked)}
-										className="rounded"
-									/>
-									<Label
-										htmlFor="remember"
-										className="cursor-pointer select-none text-[15px] font-normal text-foreground/80"
-									>
-										Ingat saya
-									</Label>
-								</div>
+								{isNativeApp ? (
+									<span />
+								) : (
+									<div className="flex items-center space-x-2">
+										<Checkbox
+											id="remember"
+											name="remember"
+											checked={data.remember}
+											onChange={(e) => setData('remember', e.target.checked)}
+											onCheckedChange={(checked) => setData('remember', checked)}
+											className="rounded"
+										/>
+										<Label
+											htmlFor="remember"
+											className="cursor-pointer select-none text-[15px] font-normal text-foreground/80"
+										>
+											Ingat saya
+										</Label>
+									</div>
+								)}
 								{canResetPassword && (
 									<Link
 										href={route('password.request')}

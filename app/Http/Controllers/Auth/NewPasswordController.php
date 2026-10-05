@@ -51,6 +51,10 @@ class NewPasswordController extends Controller
                     'remember_token' => Str::random(60),
                 ])->save();
 
+                // Sandi direset = semua perangkat yang masih masuk dicabut, termasuk token
+                // FCM-nya, supaya tak ada HP yang tampak keluar tapi tetap bersirine (TASK_73).
+                $user->signOutEverywhere();
+
                 event(new PasswordReset($user));
             }
         );

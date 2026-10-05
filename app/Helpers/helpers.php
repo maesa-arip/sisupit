@@ -19,6 +19,16 @@ if (! function_exists('currentTenant')) {
     }
 }
 
+if (! function_exists('isNativeApp')) {
+    // Request datang dari wrapper Android/iOS: UA-nya wajib memuat token 'SisupitApp'
+    // (mobile/KONTRAK.md §1). Dipakai untuk kebijakan sesi aplikasi (TASK_73): di aplikasi,
+    // login selalu "ingat saya" - sesi web 120 menit tak cocok untuk HP yang menerima sirine.
+    function isNativeApp(?\Illuminate\Http\Request $request = null): bool
+    {
+        return str_contains(($request ?? request())->userAgent() ?? '', 'SisupitApp');
+    }
+}
+
 if (! function_exists('usernameGenerator')) {
     function usernameGenerator(string $name): string
     {
