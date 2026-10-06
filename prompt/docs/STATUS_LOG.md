@@ -2586,6 +2586,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + #185-#187 (baseline 2026-10-07 sebelum #188) = 745 passed, 3755 assertions.
             + #188/TASK_75 peta form lapor gaya Google + jl/jln/gg (GeocodeControllerTest +11, ReportFormMapGoogleStyleTest 4) = 760 passed, 3798 assertions.
             + #188 lanjutan kartu Wilayah Kejadian digabung ke kartu peta (+1 penjaga; AppleDesignMaterialTest tak lagi menuntut bagian Wilayah) = 761 passed, 3800 assertions.
+            + #189 bilah bawah ditulis ulang apple-design (5 berkas test penjaga diarahkan ke bentuk baru, +1 penjaga lembar) = 761 passed, 3801 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

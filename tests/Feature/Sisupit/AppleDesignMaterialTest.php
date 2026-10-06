@@ -46,7 +46,7 @@ it('builds the header and the bottom bar from the chrome material, never a solid
         ->and(preg_grep('/^bg-/', $classes))->toBe([]);
 })->with([
     ['resources/js/Layouts/AppLayout.jsx', 'sticky top-0 z-40'],
-    ['resources/js/Layouts/Partials/MobileBottomNav.jsx', 'fixed bottom-0 left-0 z-50'],
+    ['resources/js/Layouts/Partials/MobileBottomNav.jsx', 'pointer-events-auto relative grid h-14'],
 ]);
 
 it('grows every floating surface from its trigger out of the thick material', function (string $path, string $needle, string $origin) {
@@ -59,8 +59,16 @@ it('grows every floating surface from its trigger out of the thick material', fu
     ['resources/js/Components/ui/popover.jsx', 'w-72 origin-', 'origin-[--radix-popover-content-transform-origin]'],
     ['resources/js/Components/ui/dropdown-menu.jsx', 'min-w-[8rem] origin-', 'origin-[--radix-dropdown-menu-content-transform-origin]'],
     ['resources/js/Components/ui/select.jsx', 'max-h-96 min-w-[8rem]', 'origin-[--radix-select-content-transform-origin]'],
-    ['resources/js/Layouts/Partials/MobileBottomNav.jsx', 'absolute bottom-[72px]', 'origin-bottom'],
 ]);
+
+// Redesign bilah bawah 2026-10-07: panel Fasilitas & Menu kini lembar bawah (ui/drawer) yang naik
+// dari tepi bawah - asalnya tepi layar itu sendiri, jadi yang dijaga materialnya, bukan origin.
+it('builds the bottom-nav sheets from the thick material over a dimming scrim', function () {
+    $sheet = appleClassesAround('resources/js/Components/ui/drawer.jsx', 'fixed inset-x-0 bottom-0 z-50');
+    expect($sheet)->toContain('material-thick')
+        ->and(preg_grep('/^bg-/', $sheet))->toBe([]);
+    expect(appleClassesAround('resources/js/Components/ui/drawer.jsx', 'fixed inset-0 z-50'))->toContain('bg-black/40');
+});
 
 it('keeps the solid command surface out of the material popovers that host it', function () {
     expect(appleClassesAround('resources/js/Components/ui/command.jsx', 'flex h-full w-full flex-col'))
@@ -84,7 +92,7 @@ it('turns reduced motion into a cross-fade without un-centering translated dialo
 });
 
 it('gives the bottom bar slots press feedback and defines the spring curve', function () {
-    $slot = appleClassesAround('resources/js/Layouts/Partials/MobileBottomNav.jsx', 'group relative flex h-full w-full');
+    $slot = appleClassesAround('resources/js/Layouts/Partials/MobileBottomNav.jsx', 'relative z-10 flex h-full w-full');
     expect($slot)->toContain('active:scale-[0.92]')->and($slot)->toContain('motion-reduce:active:scale-100');
 
     expect(appleSource('tailwind.config.js'))->toMatch("/transitionTimingFunction:\s*\{\s*spring:\s*'cubic-bezier\(0\.32, 0\.72, 0, 1\)'/");

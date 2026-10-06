@@ -39,7 +39,7 @@ it('draws the brand bolt in the Lapor slot, not the tabler bolt', function () us
 
     expect($source)
         ->toContain("from '@/Components/BrandBoltIcon'")
-        ->toContain('icon={BrandBoltIcon}')
+        ->toContain('<BrandBoltIconFilled')
         ->not->toContain('IconBolt');
 });
 
@@ -59,17 +59,17 @@ it('keeps the brand bolt a glyph that inherits its color', function () use ($str
     expect(preg_match('/#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(/', $source))->toBe(0);
 });
 
-// Permintaan user 2026-09-06: petir MEMADAT saat slotnya aktif. Syarat "hanya saat aktif" itulah
-// yang membuatnya sah — "bidang terisi HANYA milik slot aktif" adalah aturan yang lahir dari #106
-// putaran kedua. Kalau bawaan `filled` suatu saat dibalik jadi true, atau slot itu berhenti
-// mengikat fill-nya ke keadaan aktifnya, petir kembali terisi di SETIAP halaman: bentuk #106
-// persis, cuma dari arah yang berbeda, dan tanpa satu pun gejala lain.
-it('fills the brand bolt only while its slot is the active page', function () use ($stripComments) {
+// Redesign apple-design 2026-10-07 (permintaan user, "bebas tanpa pengecualian"): "Lapor" kini
+// TOMBOL AKSI bulat merah terpisah dari kapsul tab, dengan petir PADAT putih di setiap halaman.
+// Aturan lama "padat hanya saat aktif" sengaja gugur - tombol aksi bukan slot navigasi. Yang tetap
+// dijaga: bawaan glyph tetap garis, dan putihnya datang dari KELAS tombol (currentColor), bukan
+// dari aset/nilai warna - inti #106.
+it('paints the Lapor action bolt from its button class, never from the glyph', function () use ($stripComments) {
     $icon = $stripComments(file_get_contents(resource_path('js/Components/BrandBoltIcon.jsx')));
     $nav = $stripComments(file_get_contents(resource_path('js/Layouts/Partials/MobileBottomNav.jsx')));
 
     expect($icon)->toContain('filled = false');
-    expect($nav)->toContain('iconActive={BrandBoltIconFilled}');
+    expect($nav)->toMatch('/bg-destructive text-destructive-foreground[^"]*"[^<]*<BrandBoltIconFilled|bg-destructive text-destructive-foreground.*?<BrandBoltIconFilled/s');
 });
 
 // Permintaan user 2026-09-06 yang menyusul: BUKAN cuma "Lapor" — kelima slot memadat saat aktif.
@@ -83,11 +83,10 @@ it('gives every bottom-bar slot a filled twin for its active state', function ()
     $nav = $stripComments(file_get_contents(resource_path('js/Layouts/Partials/MobileBottomNav.jsx')));
 
     foreach ([
-        'iconActive={IconDashboardFilled}',
-        'iconActive={IconMapPinFilled}',
-        'iconActive={BrandBoltIconFilled}',
-        'iconActive={IconClockFilled}',
-        'iconActive={IconLayoutGridFilled}',
+        'iconActive: IconDashboardFilled',
+        'iconActive: IconMapPinFilled',
+        'iconActive: IconClockFilled',
+        'iconActive: IconLayoutGridFilled',
     ] as $pair) {
         expect($nav)->toContain($pair);
     }

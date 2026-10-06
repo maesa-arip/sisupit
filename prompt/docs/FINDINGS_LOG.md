@@ -4450,3 +4450,27 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   hasil "jln gatot subroto" -> pin & desa 5171022005 terisi. **Belum diuji di HP sungguhan** (geser satu jari di APK).
 - **Status:** FIXED 2026-10-07, TERDEPLOY PROD @eb006bb1 (2026-10-07; Create-CiTebKPd.js terverifikasi HTTPS, tanpa migrasi). Test `GeocodeControllerTest` (+11) &
   `ReportFormMapGoogleStyleTest` (4). Rincian: `prompt/tasks/TASK_75_peta_form_lapor_gaya_google.md`.
+
+### #189 — Bilah bawah ditulis ulang dari nol dengan apple-design (FIXED - branch feat/bottomnav-apple-design, belum dideploy)
+
+- **Permintaan user 2026-10-07:** "redesign untuk mobilebottomnav menggunakan apple-design, buat dari 0 sesuai apple
+  design buat branch baru" + "bebas tanpa pengecualian ... jika saya tidak suka dan minta dikembalikan kamu langsung paham".
+- **Titik pulih:** tag git `pra-bottomnav-apple-design` (2ab9cd1f). "Kembalikan bilah bawah" = `git restore
+  --source=pra-bottomnav-apple-design --` atas berkas di bawah (BUKAN `git checkout <file>`).
+- **Bentuk baru (pola tab bar iOS 26):** kapsul kaca `material-chrome` melayang berisi 4 tab (Beranda, Fasilitas,
+  Riwayat, Menu/tamu: Masuk) dengan lensa aktif yang bergeser lewat transisi CSS `ease-spring` (bisa disela, memudar di
+  tempat bila tak ada tab aktif, reduced motion = fade) + tombol aksi bulat "Lapor" merah brand terpisah di kanan.
+  Gradien scroll-edge ke `--background` di bawah kapsul menggantikan garis pemisah. Fasilitas & Menu = lembar bawah
+  `ui/drawer` (vaul: seret 1:1, lempar menutup, mantul) bergaya iOS Settings - ubin ikon berwarna, chevron, centang
+  untuk halaman aktif, kartu profil di puncak Menu, "Keluar" berdiri sendiri.
+- **Yang tetap:** isi dari `buildNavSections()` (#71), slot Masuk dari item `login`, `useNavUrl` (TASK_70),
+  `md:hidden`, safe-area, sembunyi saat keyboard (#187), PullToRefreshLock di panel bergulir, petir glyph `currentColor`.
+- **Angka terikat:** bilah 72px + safe-area (kapsul 56px, puncak di 64px) -> `AppLayout` pb 5rem & bar Kirim
+  `Create.jsx` 4rem TIDAK berubah.
+- **Pengecualian yang dilampaui:** PENGECUALIAN #2, #3 (diberi catatan). Konsekuensi yang diterima: tombol Lapor merah
+  tampil di setiap halaman (bentuk #106 lama ditolak karena tampak seperti tab aktif; kini bentuknya tombol aksi terpisah).
+- **Berkas:** `Layouts/Partials/MobileBottomNav.jsx` (tulis ulang), `Components/ui/drawer.jsx` (material, scrim 40%,
+  PullToRefreshLock, scale latar mati; sebelumnya tanpa pemakai). Test diperbarui ke bentuk baru:
+  `AppleDesignMaterialTest`, `MobileNavIconGlyphTest`, `DialogPullToRefreshTest`, `KeyboardOpenLayoutTest`.
+- **Verifikasi:** Playwright headless 390x844 terang & gelap (admin & tamu): lensa pindah Beranda -> Riwayat, lembar
+  Menu/Fasilitas terbuka & menavigasi, Keluar di dasar Menu, bar Kirim form lapor rapat di atas kapsul. Belum diuji di HP.

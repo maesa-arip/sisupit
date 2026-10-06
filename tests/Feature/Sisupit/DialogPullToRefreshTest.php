@@ -43,15 +43,16 @@ it('pauses native pull-to-refresh inside every scrollable floating panel', funct
         'js/Components/ui/popover.jsx' => '~<PopoverPrimitive\.Content[^>]*>\s*<PullToRefreshLock\s*/>~s',
         'js/Components/ui/select.jsx' => '~<SelectPrimitive\.Content[^>]*>\s*<PullToRefreshLock\s*/>~s',
         'js/Components/ui/sheet.jsx' => '~</SheetPrimitive\.Close>\s*<PullToRefreshLock\s*/>~s',
-        'js/Layouts/Partials/MobileBottomNav.jsx' => '~function FloatingPanel\(.*?<PullToRefreshLock\s*/>\s*\{children\}~s',
+        'js/Components/ui/drawer.jsx' => '~<DrawerPrimitive\.Content[^>]*>\s*<PullToRefreshLock\s*/>~s',
     ] as $path => $pattern) {
         expect(jsxWithoutComments($path))->toMatch($pattern);
     }
 
-    // FloatingPanel hanya boleh ada selama panelnya terbuka (dirender bersyarat).
+    // Redesign 2026-10-07: panel Fasilitas & Menu bilah bawah = lembar ui/drawer (konten vaul hanya
+    // terpasang selama terbuka, jadi kuncinya ikut lepas saat ditutup).
     $nav = jsxWithoutComments('js/Layouts/Partials/MobileBottomNav.jsx');
-    expect($nav)->toMatch('~\{showMenu && \(\s*<FloatingPanel~');
-    expect($nav)->toMatch('~\{showFasilitas && \(\s*<FloatingPanel~');
+    expect($nav)->toContain("from '@/Components/ui/drawer'")
+        ->toMatch('~function NavSheet\(.*?<DrawerContent>~s');
 });
 
 it('lets the regu member list scroll on its own', function () {

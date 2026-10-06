@@ -29,7 +29,7 @@ it('installs the keyboard flag in AppLayout', function () {
 
 it('hides the bottom nav while the keyboard is open', function () {
     expect(keyboardSource('Layouts/Partials/MobileBottomNav.jsx'))
-        ->toMatch('/className="material-chrome fixed bottom-0[^"]*\[html\[data-keyboard=open\]_&\]:hidden/');
+        ->toMatch('/className="[^"]*fixed inset-x-0 bottom-0[^"]*\[html\[data-keyboard=open\]_&\]:hidden/');
 });
 
 it('drops the report submit bar onto the keyboard', function () {

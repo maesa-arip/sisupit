@@ -84,6 +84,10 @@
 
 ## #2 — Baris aktif di popover bottom-nav memakai tint, bukan blok merah solid seperti sidebar
 
+> **DILAMPAUI 2026-10-07 (FINDINGS #189):** bilah bawah ditulis ulang dari nol dengan apple-design atas
+> permintaan user ("bebas tanpa pengecualian"). Bentuk yang diatur pengecualian ini kini hanya hidup di tag git
+> `pra-bottomnav-apple-design`; berlaku lagi bila user meminta bilah bawah dikembalikan.
+
 - **Aturan yang ditekuk:** "SATU dialek penanda aktif di semua permukaan" — blok solid
   `bg-destructive` + `text-destructive-foreground` + `rounded-xl`, ditulis di
   `.claude/skills/sisupit-ui/SKILL.md` (baris "Penanda 'aktif' navigasi") dan lahir dari
@@ -125,6 +129,10 @@
 ---
 
 ## #3 — Penanda aktif bilah bawah memakai IKON PADAT, dan dua ikon diganti supaya bisa
+
+> **DILAMPAUI 2026-10-07 (FINDINGS #189):** bilah bawah ditulis ulang dari nol dengan apple-design atas
+> permintaan user ("bebas tanpa pengecualian"). Bentuk yang diatur pengecualian ini kini hanya hidup di tag git
+> `pra-bottomnav-apple-design`; berlaku lagi bila user meminta bilah bawah dikembalikan.
 
 - **Aturan yang ditekuk:** "penanda aktif bilah bawah = WARNA + TEBAL HURUF saja", khususnya
   alasan tertulisnya di `MobileBottomNav.jsx` (`slotClass`) dan `.claude/skills/sisupit-ui/SKILL.md`:
