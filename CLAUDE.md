@@ -81,7 +81,8 @@ TASK_74/#182 : (2026-10-05, TERDEPLOY PROD @198d6c0f) Profil > "Notifikasi di HP
                 AppLayout + tombol tutup (localStorage id:updated_at); admin Index/Create/Edit dirapikan (lencana, Textarea, Switch,
                 pratinjau). Penjaga AnnouncementBannerTest. Di-push ke main (deploy prod via konsol user).
 #185         : (2026-10-06) tautan pengumuman: seluruh kartu bisa diketuk (web @5b8b6a2a); APK 1.1.7/vc9 membuka Play Store/market:/
-                intent: di luar WebView (dulu halaman Play terbuka di dalam app). AAB di Desktop\sisupit-1.1.7-vc9-prod.aab, butuh uji HP + unggah.
+                intent: di luar WebView (dulu halaman Play terbuka di dalam app). AAB 9 (1.1.7) DIKIRIM KE REVIEW Play (Closed testing - Alpha,
+                full rollout, managed publishing off) 2026-10-06; belum diuji di HP.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
                 kolom approved_at tetap. #178 i18n TERDEPLOY prod @dde8c6a4; #179 (ikon, paginasi PaginationLinks, email).
                 #180 terjemahan bawaan Laravel dari paket laravel-lang/common (DEV) TERDEPLOY prod @9bf7b103; paginasi tetap versi #178 -
