@@ -9,6 +9,7 @@ import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
 import { escapeHtml } from '@/lib/escape-html';
+import { fitBoundsWhenSized } from '@/lib/leaflet-fit';
 import { alamatTerbaca, asalTitikLaporan, cn, GEO_OPTIONS, MAP_TILE_URL, reportNumber } from '@/lib/utils';
 import { Head, Link, router } from '@inertiajs/react';
 import {
@@ -1079,7 +1080,7 @@ export default function ReportShow(props) {
 		// Pas-kan batas peta sekali saja di awal (saat sudah ada marker) supaya tidak melompat
 		// tiap update posisi — pengguna bebas menggeser/zoom setelahnya.
 		if (!hasFitRef.current && boundsGroup.length > 0) {
-			map.fitBounds(new window.L.featureGroup(boundsGroup).getBounds().pad(0.3));
+			fitBoundsWhenSized(map, new window.L.featureGroup(boundsGroup).getBounds().pad(0.3));
 			hasFitRef.current = true;
 		}
 

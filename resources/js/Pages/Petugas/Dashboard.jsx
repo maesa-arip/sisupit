@@ -7,6 +7,7 @@ import useReportFeed from '@/hooks/use-report-feed';
 import AppLayout from '@/Layouts/AppLayout';
 import { escapeHtml } from '@/lib/escape-html';
 import { firstName as getFirstName } from '@/lib/first-name';
+import { fitBoundsWhenSized } from '@/lib/leaflet-fit';
 import { reportIcon } from '@/lib/report-icon';
 import { cn, GEO_OPTIONS, MAP_TILE_URL, reportNumber } from '@/lib/utils';
 import { Head, router } from '@inertiajs/react';
@@ -184,7 +185,7 @@ export default function PetugasDashboard({
 			return;
 		}
 		if (myMarkerRef.current) bounds.extend(myMarkerRef.current.getLatLng());
-		map.fitBounds(bounds.pad(0.3), { animate: false });
+		fitBoundsWhenSized(map, bounds.pad(0.3), { animate: false });
 	}
 
 	return (

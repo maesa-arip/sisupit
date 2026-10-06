@@ -19,6 +19,7 @@ import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
 import UseFilter from '@/hooks/UseFilter';
 import AppLayout from '@/Layouts/AppLayout';
 import { escapeHtml } from '@/lib/escape-html';
+import { fitBoundsWhenSized } from '@/lib/leaflet-fit';
 import { alamatLaporan, cn, MAP_TILE_URL, reportNumber, timeAgo } from '@/lib/utils';
 import { Link, router } from '@inertiajs/react';
 import {
@@ -363,7 +364,8 @@ export default function Index(props) {
 					bounds.push([lat, lng]);
 				}
 			});
-			if (bounds.length > 0 && !activeReportId) mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50] });
+			if (bounds.length > 0 && !activeReportId)
+				fitBoundsWhenSized(mapInstanceRef.current, bounds, { padding: [50, 50] });
 		}
 	}, [reports]);
 

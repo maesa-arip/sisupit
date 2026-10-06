@@ -14,6 +14,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
 import { escapeHtml } from '@/lib/escape-html';
+import { fitBoundsWhenSized } from '@/lib/leaflet-fit';
 import { debitLabel, facilityStatusIsFaulty, facilityStatusLabel, MAP_TILE_URL, waterPressureLabel } from '@/lib/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { IconDroplet, IconEdit, IconMapPinFilled, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react';
@@ -89,7 +90,8 @@ export default function Index({ pumps, filters, tenant_location }) {
 					bounds.push([lat, lng]);
 				}
 			});
-			if (bounds.length > 0 && !activePumpId) mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50] });
+			if (bounds.length > 0 && !activePumpId)
+				fitBoundsWhenSized(mapInstanceRef.current, bounds, { padding: [50, 50] });
 		}
 	}, [pumps.data]);
 

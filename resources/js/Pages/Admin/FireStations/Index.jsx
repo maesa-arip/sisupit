@@ -14,6 +14,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
 import { escapeHtml } from '@/lib/escape-html';
+import { fitBoundsWhenSized } from '@/lib/leaflet-fit';
 import { facilityStatusLabel, MAP_TILE_URL } from '@/lib/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { IconEdit, IconFiretruck, IconMapPinFilled, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react';
@@ -68,7 +69,8 @@ export default function Index({ stations, filters, tenant_location }) {
 					bounds.push([lat, lng]);
 				}
 			});
-			if (bounds.length > 0 && !activeStationId) mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50] });
+			if (bounds.length > 0 && !activeStationId)
+				fitBoundsWhenSized(mapInstanceRef.current, bounds, { padding: [50, 50] });
 		}
 	}, [stations.data]);
 

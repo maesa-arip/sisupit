@@ -1,6 +1,7 @@
 import { Button } from '@/Components/ui/button';
 import AppLayout from '@/Layouts/AppLayout';
 import { escapeHtml } from '@/lib/escape-html';
+import { fitBoundsWhenSized } from '@/lib/leaflet-fit';
 import { cn, facilityStatusLabel, MAP_TILE_URL, NOMOR_DARURAT_NASIONAL } from '@/lib/utils';
 import { Head, router } from '@inertiajs/react';
 import {
@@ -334,7 +335,7 @@ export default function MonitoringMap({ layers }) {
 		// padding kecil (px) agar mepet ke marker; maxZoom cegah over-zoom saat 1 marker.
 		if (allMarkers.length > 0) {
 			const bounds = new window.L.featureGroup(allMarkers).getBounds();
-			map.fitBounds(bounds, { padding: [24, 24], maxZoom: 16 });
+			fitBoundsWhenSized(map, bounds, { padding: [24, 24], maxZoom: 16 });
 		}
 	}, [
 		visible,

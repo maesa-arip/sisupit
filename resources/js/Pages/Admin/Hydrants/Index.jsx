@@ -14,6 +14,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
 import { escapeHtml } from '@/lib/escape-html';
+import { fitBoundsWhenSized } from '@/lib/leaflet-fit';
 import {
 	capacityLabel,
 	facilityStatusIsFaulty,
@@ -112,7 +113,8 @@ export default function Index({
 					bounds.push([lat, lng]);
 				}
 			});
-			if (bounds.length > 0 && !activeHydrantId) mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50] });
+			if (bounds.length > 0 && !activeHydrantId)
+				fitBoundsWhenSized(mapInstanceRef.current, bounds, { padding: [50, 50] });
 		}
 	}, [hydrants.data]);
 
