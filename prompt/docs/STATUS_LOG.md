@@ -2582,6 +2582,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + TASK_74 butir 3 kolom "HP Notifikasi" Kelola Pengguna (2026-10-06) = 723 passed, 3696 assertions.
             + kolom HP Notifikasi dibatasi superadmin saja (2026-10-06) = 725 passed, 3709 assertions.
             + #183 peta zoom dunia setelah kerangka, fitBoundsWhenSized (LeafletFitBoundsTest) = 727 passed, 3714 assertions.
+            + #184 Pengumuman Sistem jadi kartu di alur halaman (AnnouncementBannerTest) = 730 passed, 3733 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

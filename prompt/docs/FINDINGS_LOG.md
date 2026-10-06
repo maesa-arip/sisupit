@@ -4324,3 +4324,23 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   `resize` peta (permintaan terakhir menang). Dipasang di 7 pemanggil: Monitoring/Map, Admin Reports/Hydrants/Pumps/
   FireStations Index, Front/Reports/Show, Petugas/Dashboard. Kerangka/transisi TASK_70 tidak diubah (pilihan user).
 - **Status:** FIXED 2026-10-06, TERDEPLOY PROD @f6de6380 (HTTPS terverifikasi, manifest = commit). Test `LeafletFitBoundsTest` (2, disabotase -> merah, dipulihkan `cmp`).
+
+### #184 — Pengumuman Sistem tak terbaca di ponsel & rupa admin belum rapi (FIXED)
+
+- **Permintaan user 2026-10-06:** "perbaiki tampilan pengumuman sistem, baik untuk mobile maupun desktop".
+- **Akar:** `Components/Banner.jsx` = pita `fixed bottom-0` TANPA z-index, sedangkan `MobileBottomNav` `fixed bottom-0 z-50`
+  -> di ponsel pengumuman tertutup bilah bawah dan tak pernah terbaca; di desktop melayang menutupi isi tanpa bisa
+  ditutup. `url` null jadi `href={null}`, URL luar (validasi `url` = absolut) dibuka lewat Inertia `<Link>`.
+  Admin: tabel desktop tanpa pemotongan pesan/URL, status teks polos ("TIdak Aktif" salah ketik di
+  `AnnouncementResource`), urutan terlama dulu; form pesan satu baris (maks 255) + checkbox "Apakah Aktif" tanpa
+  penjelasan bahwa mengaktifkan satu menonaktifkan yang lain.
+- **Fix:** Banner jadi kartu di alur halaman (pola `NotificationDeviceBanner`), dipasang di AWAL area konten
+  `AppLayout` (di dalam `contentRef`), ikon + label + pesan `whitespace-pre-line` + "Selengkapnya" (`<a target=_blank>`
+  untuk alamat luar, `Link` untuk origin sendiri) + tombol tutup. Tutup diingat per pengumuman di localStorage
+  `sisupit:announcement-dismissed` = `id:updated_at` (try/catch), jadi pengumuman yang diubah muncul lagi.
+  Index: `StatusPill` dipakai ponsel & desktop, pesan `line-clamp-2`, URL truncate + bisa diklik, baris kosong
+  desktop, `orderByDesc('is_active')->latest()`. Create/Edit: `Textarea` + penghitung x/255, `Switch` "Tampilkan
+  sekarang" + keterangan, pratinjau kartu. URL tetap `type="text" inputMode="url"` (validasi tetap di server).
+- **Verifikasi:** Chrome desktop 1440 + iframe 390px (Beranda & /admin/announcements): kartu terlihat di atas
+  konten, tak tertutup bilah bawah; tutup -> reload tetap tersembunyi. Data uji lokal dihapus.
+- **Status:** FIXED 2026-10-06. Test `AnnouncementBannerTest` (3: tak fixed/sticky, terpasang di area konten, urutan + ejaan status).
