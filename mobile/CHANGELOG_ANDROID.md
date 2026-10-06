@@ -8,6 +8,23 @@ iOS** sebagai daftar centang. Sisi iOS mencentang (`[x]`) saat sudah di-port.
 
 ---
 
+## (web saja, APK tetap 1.1.7) - 2026-10-07 - keyboard layar: bilah bawah sembunyi, bar Kirim di atas keyboard (#187)
+
+Tak ada perubahan kode APK. Pemicu: di form lapor, mengetuk "Patokan Lokasi" memunculkan keyboard
+dan kolomnya tertutup bar Kirim + bilah bawah yang ikut naik (padding inset `ime` di root view).
+
+- `lib/keyboard-open.js` (dipasang `AppLayout`): kolom ketik fokus + tinggi tampak menyusut > 150px
+  -> `<html data-keyboard="open">` + `--keyboard-inset` (= `innerHeight - visualViewport.height -
+  offsetTop`; 0 di APK karena layout ikut menyusut). Kolom terfokus digulir ke tengah.
+- Bilah bawah `MobileBottomNav` disembunyikan selama keyboard terbuka; bar Kirim form lapor turun
+  ke `bottom: var(--keyboard-inset)` (tepat di atas keyboard); kotak cari lokasi `enterKeyHint="search"`.
+
+**Yang harus dilakukan iOS**
+- [ ] WKWebView TIDAK menyusutkan layout saat keyboard muncul - web mengandalkan `visualViewport`
+      (resize + scroll) untuk `--keyboard-inset`. Jangan ubah perilaku keyboard bawaan WKWebView.
+- [ ] Uji di perangkat: ketuk Patokan Lokasi -> kolom terlihat, bilah bawah hilang, tombol Kirim
+      menempel di atas keyboard (bukan tertutup keyboard), lalu kembali normal saat keyboard ditutup.
+
 ## 1.1.7 / versionCode 9 - 2026-10-06 - tautan Play Store & `intent:` keluar aplikasi (#185)
 
 Pemicu: pengumuman sistem berisi tautan Play Store; di APK 1.1.6 mengetuknya membuka halaman web

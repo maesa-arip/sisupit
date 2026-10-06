@@ -1014,6 +1014,7 @@ export default function Create(props) {
 												e.preventDefault();
 												runSearch(searchQuery);
 											}}
+											enterKeyHint="search"
 											placeholder="Ketik nama jalan, desa, atau tempat..."
 											className="h-11 rounded-xl border-border bg-card pl-9 pr-10 focus-visible:ring-2 focus-visible:ring-primary/30"
 										/>
@@ -1427,8 +1428,11 @@ export default function Create(props) {
 			    `bg-card/95` + blur — dua bidang bersentuhan dengan tembus-pandang berbeda akan
 			    memperlihatkan garis sambungan tiap kali konten gelap lewat di belakangnya.
 			    Kalau tinggi bilah berubah, angka 4rem di sini WAJIB ikut — kalau tidak tombol
-			    kirim laporan darurat tertutup tanpa galat apa pun. */}
-			<div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-40 border-t border-border bg-card px-4 py-3 sm:hidden">
+			    kirim laporan darurat tertutup tanpa galat apa pun.
+			    Saat keyboard terbuka (#187) bilah bawah disembunyikan dan bar ini turun menempel tepat
+			    di atas keyboard (--keyboard-inset: 0 di APK, setinggi keyboard di iOS) - laporan tetap
+			    terkirim dengan satu ketukan tanpa menutup keyboard dulu. */}
+			<div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-40 border-t border-border bg-card px-4 py-3 sm:hidden [html[data-keyboard=open]_&]:bottom-[var(--keyboard-inset,0px)]">
 				<Button
 					type="submit"
 					form="reportForm"

@@ -236,9 +236,11 @@ export default function MobileBottomNav({ auth }) {
 			    keduanya terbaca sebagai DUA lapis - bar aksi milik halaman, bilah milik
 			    aplikasi. Itu memang yang dikehendaki; jangan "rapikan" dengan menaikkan
 			    z-index bar itu ke atas bilah, sebab popover Fasilitas & Menu melayang tepat
-			    di ketinggian yang sama dan akan ikut tertutup. */}
+			    di ketinggian yang sama dan akan ikut tertutup.
+			    Disembunyikan selama keyboard layar terbuka (#187): bilah navigasi tak ikut naik di atas
+			    keyboard, seperti aplikasi native - ruang di atas keyboard milik kolom yang diketik. */}
 			<div
-				className="material-chrome fixed bottom-0 left-0 z-50 w-full shadow-[0_-1px_0_0_hsl(var(--border)),0_-8px_24px_-12px_rgba(0,0,0,0.22)] md:hidden"
+				className="material-chrome fixed bottom-0 left-0 z-50 w-full shadow-[0_-1px_0_0_hsl(var(--border)),0_-8px_24px_-12px_rgba(0,0,0,0.22)] md:hidden [html[data-keyboard=open]_&]:hidden"
 				style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
 			>
 				<div className="mx-auto grid h-16 max-w-md grid-cols-5 px-1">

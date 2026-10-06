@@ -5,6 +5,7 @@ import SoundNotificationControl from '@/Components/SoundNotificationControl';
 import ThemeSwitcher from '@/Components/ThemeSwitcher';
 import { Toaster } from '@/Components/ui/sonner';
 import { setFcmDevice } from '@/lib/fcm-device';
+import { useKeyboardOpenFlag } from '@/lib/keyboard-open';
 import { useNavUrl, usePageTransition, usePendingVisit, useSkeletonHost } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
 import { Head, Link, router, usePage } from '@inertiajs/react';
@@ -23,6 +24,8 @@ export default function AppLayout({ title, children }) {
 	useSkeletonHost();
 	const contentRef = useRef(null);
 	usePageTransition(contentRef, pendingVisit);
+	// <html data-keyboard="open"> selama keyboard layar terbuka (#187, lib/keyboard-open.js).
+	useKeyboardOpenFlag();
 	const announcemet = usePage().props.announcemet;
 	const auth = usePage().props.auth?.user ?? null;
 	const notifications = usePage().props.notifications ?? [];

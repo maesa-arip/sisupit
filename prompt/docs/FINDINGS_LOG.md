@@ -4378,8 +4378,31 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   Kotak cari combobox (cmdk) sudah `off` sendiri; `TextInput.jsx` tak dipakai.
 - **Batas:** saran kata di BILAH KEYBOARD (Gboard/iOS) bukan riwayat isian dan tak diatur atribut ini. Riwayat yang
   SUDAH tersimpan di perangkat tak dihapus, hanya tak ditampilkan lagi di kolom ber-`off`.
-- **Status:** FIXED 2026-10-06 (branch feat/mobile-native-polish, belum deploy). Test `InputAutocompleteDefaultTest`
+- **Status:** FIXED 2026-10-06, TERDEPLOY PROD @acf527b8 (2026-10-07, bundel app-vQ1jzVaD.js terverifikasi HTTPS). Test `InputAutocompleteDefaultTest`
   (11; sabotase bawaan -> merah, dipulihkan `cmp`-identik). Aturan di CONVENTIONS "Isi-otomatis kolom".
 - **Masih terbuka (dari tinjauan web vs native yang sama):** `enterKeyHint="search"` kotak cari lokasi form lapor,
   No. HP Profil tanpa `type/inputMode="tel"`, `public/.well-known/assetlinks.json` (berbagi sandi situs<->APK + App Links),
   layar galat jaringan APK (`onReceivedError`), lokasi live berhenti saat layar mati (`watchPosition` di WebView).
+
+### #187 — Form lapor: kolom Patokan Lokasi tertutup saat keyboard muncul di APK (FIXED)
+
+- **Laporan user 2026-10-07:** "saat saya klik patokan lokasi, keyboard muncul dan patokan lokasi tidak kelihatan
+  harus scroll kebawah baru kelihatan" + minta pelajari best practice menu & tombol lapor sticky di atas keyboard.
+- **Akar:** `MainActivity` memberi root view padding inset `systemBars|displayCutout|ime` -> WebView menyusut ke ruang
+  di atas keyboard (~420px di ponsel biasa), dan semua `fixed` ikut naik: header sticky 64px + bar Kirim form lapor
+  ~73px (`bottom-[calc(4rem+...)]`) + `MobileBottomNav` 64px. Sisa ~220px; WebView menggulir kolom terfokus hanya
+  sampai tepi bawah layar - tepat di belakang bar Kirim & bilah bawah.
+- **Keputusan user (2026-10-07):** opsi (a) - tombol Kirim IKUT NAIK di atas keyboard; bilah bawah disembunyikan
+  (pola native: iOS menutup tab bar dengan keyboard, aplikasi Android besar menyembunyikannya saat mengetik).
+- **Fix (web saja):** `lib/keyboard-open.js` `useKeyboardOpenFlag()` di `AppLayout` -> `<html data-keyboard="open">`
+  + `--keyboard-inset` saat kolom ketik fokus dan tinggi tampak (`visualViewport.height*scale`) menyusut > 150px
+  dibanding saat tak ada fokus; dengar `window` resize juga (event visualViewport tak terpicu di iframe). Kolom terfokus
+  `scrollIntoView({block:'center'})` saat keyboard terbuka & saat pindah kolom. `MobileBottomNav`
+  `[html[data-keyboard=open]_&]:hidden`; bar Kirim `[html[data-keyboard=open]_&]:bottom-[var(--keyboard-inset,0px)]`;
+  kotak cari lokasi `enterKeyHint="search"`.
+- **Verifikasi:** Playwright headless (Chrome, 390x844 sentuh, akun seed lokal) - fokus Patokan lalu tinggi 444px:
+  bilah bawah `none`, bar Kirim 0px dari bawah, Patokan di 200-244 (antara header 64 & bar 371) = terlihat; pindah ke
+  Detail 172-272 terlihat; keyboard tutup -> semua kembali. Uji Chrome biasa TAK SAH: tab `visibilityState: hidden`
+  menahan rAF & resize. **Belum diuji di HP** (keyboard sungguhan).
+- **Status:** FIXED 2026-10-07 (belum deploy). Test `KeyboardOpenLayoutTest` (4; sabotase varian hidden -> merah,
+  dipulihkan `cmp`-identik). Catatan iOS di `mobile/CHANGELOG_ANDROID.md`.
