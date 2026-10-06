@@ -4344,3 +4344,17 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Verifikasi:** Chrome desktop 1440 + iframe 390px (Beranda & /admin/announcements): kartu terlihat di atas
   konten, tak tertutup bilah bawah; tutup -> reload tetap tersembunyi. Data uji lokal dihapus.
 - **Status:** FIXED 2026-10-06. Test `AnnouncementBannerTest` (3: tak fixed/sticky, terpasang di area konten, urutan + ejaan status).
+
+### #185 — Tautan pengumuman (Play Store) "tidak bisa diklik" / tak membuka Play Store (WEB FIXED, APK OPEN)
+
+- **Laporan user 2026-10-06:** "link nya tidak bisa di klik, mengarahnya tidak ke seharusnya, saya isi link play store
+  tidak mau redirect ke playstore".
+- **Akar web:** hanya teks kecil "Selengkapnya" yang berupa tautan; mengetuk pesan pengumuman tak terjadi apa-apa.
+  Di browser tautannya sendiri benar (`<a target=_blank>` = elemen teratas di titik klik, terverifikasi Chrome lokal).
+- **Akar APK 1.1.6/vc8:** `MainActivity.shouldOverrideUrlLoading` mengembalikan `false` untuk SEMUA `http(s)` -> halaman
+  play.google.com dibuka DI DALAM WebView, bukan app Play Store. Cabang `intent:` memakai `new Intent(ACTION_VIEW,
+  Uri.parse(url))` (bukan `Intent.parseUri`), jadi `intent://` pun tak pernah sampai ke app; `market:` tak ditangani.
+  Bridge tak punya method buka-URL-eksternal -> TIDAK bisa diakali dari web.
+- **Fix web:** seluruh isi kartu Banner = tautan (`<a>` luar / `Link` internal), tombol tutup tetap terpisah.
+- **Sisa (OPEN):** APK perlu menangani `play.google.com/store/apps` + `market:` -> app Play Store, dan `intent:` lewat
+  `Intent.parseUri` + `IntentHandler` (fallback `browser_fallback_url`). Butuh rilis APK baru.

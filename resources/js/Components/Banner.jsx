@@ -39,40 +39,44 @@ export default function Banner({ announcement }) {
 
 	const url = announcement.url || null;
 	// URL wajib absolut (AnnouncementRequest `url`); alamat di luar situs ini dibuka lewat <a>, bukan
-	// kunjungan Inertia (yang akan gagal CORS).
+	// kunjungan Inertia (yang akan gagal CORS). Bila ada URL, SELURUH isi kartu jadi tautan (#185) - dulu
+	// hanya teks kecil "Selengkapnya" yang bisa diketuk, mengetuk pesannya tak terjadi apa-apa.
 	const isInternal = url && url.startsWith(window.location.origin);
-
-	return (
-		<div className="flex items-start gap-3 rounded-xl border border-primary/25 bg-primary/5 px-4 py-3">
+	const body = (
+		<>
 			<span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
 				<IconSpeakerphone className="h-4 w-4" stroke={2} />
 			</span>
-			<div className="min-w-0 flex-1">
-				<p className="text-[11px] font-semibold uppercase tracking-wide text-primary">Pengumuman</p>
-				<p className="mt-0.5 whitespace-pre-line break-words text-sm leading-snug text-foreground">
+			<span className="block min-w-0 flex-1">
+				<span className="block text-[11px] font-semibold uppercase tracking-wide text-primary">Pengumuman</span>
+				<span className="mt-0.5 block whitespace-pre-line break-words text-sm leading-snug text-foreground">
 					{announcement.message}
-				</p>
-				{url &&
-					(isInternal ? (
-						<Link
-							href={url}
-							className="mt-1.5 inline-flex items-center gap-0.5 text-sm font-semibold text-primary active:opacity-70"
-						>
-							Selengkapnya
-							<IconChevronRight className="h-4 w-4" stroke={2} />
-						</Link>
-					) : (
-						<a
-							href={url}
-							target="_blank"
-							rel="noopener noreferrer"
-							className="mt-1.5 inline-flex items-center gap-0.5 text-sm font-semibold text-primary active:opacity-70"
-						>
-							Selengkapnya
-							<IconChevronRight className="h-4 w-4" stroke={2} />
-						</a>
-					))}
-			</div>
+				</span>
+				{url && (
+					<span className="mt-1.5 inline-flex items-center gap-0.5 text-sm font-semibold text-primary">
+						Selengkapnya
+						<IconChevronRight className="h-4 w-4" stroke={2} />
+					</span>
+				)}
+			</span>
+		</>
+	);
+	const bodyClass = 'flex min-w-0 flex-1 items-start gap-3 rounded-lg';
+	const linkClass = `${bodyClass} transition-opacity active:opacity-70`;
+
+	return (
+		<div className="flex items-start gap-3 rounded-xl border border-primary/25 bg-primary/5 px-4 py-3">
+			{!url ? (
+				<div className={bodyClass}>{body}</div>
+			) : isInternal ? (
+				<Link href={url} className={linkClass}>
+					{body}
+				</Link>
+			) : (
+				<a href={url} target="_blank" rel="noopener noreferrer" className={linkClass}>
+					{body}
+				</a>
+			)}
 			<button
 				type="button"
 				onClick={close}
