@@ -4310,3 +4310,17 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   superadmin, jadi admin tak menerima datanya sama sekali (bukan sekadar disembunyikan). TERDEPLOY PROD @6d57d090.
 - **Belum:** uji di HP.
 - **Status:** FIXED 2026-10-05, TERDEPLOY PROD @198d6c0f. Test `NotifikasiHpIniTest` (10).
+
+### #183 — Peta kadang terbuka di zoom paling jauh, benar setelah refresh (FIXED)
+
+- **Laporan user 2026-10-06:** "beberapa kali map zoomnya tidak pas, mapsnya zoom out ke tampilan paling kecil jika
+  refresh maka benar zoom in ke tampilan seharusnya".
+- **Akar:** navigasi TASK_70 - bila respons > 300 ms, kerangka ditahan min. 300 ms dan halaman tujuan sudah terpasang
+  di dalam `hidden` (`AppLayout.jsx`, `{pendingVisit?.skeleton ? 'hidden' : 'contents'}`). Peta Leaflet dibuat di
+  kontainer 0x0 lalu `fitBounds` menghitung skala 0: tanpa padding zoom = 0 (peta dunia), dengan padding state peta NaN.
+  `usePageTransition` memicu `resize` -> `invalidateSize` membetulkan ukuran tapi tidak mengulang fit. Refresh penuh tak
+  memakai kerangka, jadi benar. Dibuktikan di Leaflet 1.9.4 halaman: lama zoom 0 / null, helper 12 = peta terlihat 12.
+- **Fix:** `lib/leaflet-fit.js` `fitBoundsWhenSized` - fit langsung bila peta berukuran, bila 0 ditunda ke event
+  `resize` peta (permintaan terakhir menang). Dipasang di 7 pemanggil: Monitoring/Map, Admin Reports/Hydrants/Pumps/
+  FireStations Index, Front/Reports/Show, Petugas/Dashboard. Kerangka/transisi TASK_70 tidak diubah (pilihan user).
+- **Status:** FIXED 2026-10-06 (belum deploy). Test `LeafletFitBoundsTest` (2, disabotase -> merah, dipulihkan `cmp`).

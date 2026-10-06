@@ -234,6 +234,11 @@
   panggilan: `escapeHtml(x || '-')`. Konstanta kode sendiri (kelas warna, SVG ikon, kamus status)
   boleh disisipkan langsung dan didaftar di `POPUP_SAFE_EXPRESSIONS`. Dijaga
   `LeafletPopupEscapeTest`, yang memindai tiap `bindPopup(` di `resources/js`.
+- **Peta Leaflet: jangan `map.fitBounds(` langsung - pakai `fitBoundsWhenSized(map, bounds, opts)`**
+  dari `lib/leaflet-fit.js` (#183). Selama kerangka navigasi ditahan (TASK_70) halaman tujuan
+  terpasang dalam `display:none`; fit pada peta 0x0 menjatuhkan zoom ke 0 (peta dunia) atau,
+  dengan padding, merusak state peta. Helper menunda fit ke event `resize` peta. `setView` dengan
+  zoom tetap aman. Dijaga `LeafletFitBoundsTest`.
 - **Laporan Kejadian = SATU entri per status yang DISUNTING, bukan entri baru** (TASK_67,
   keputusan user 2026-09-29, membalik append-only FINDINGS #39). Entri aktif = yang TERBARU per
   status - jangan menambah kolom "aktif" kedua, dan jangan menghapus entri lama yang ganda (arsip).
