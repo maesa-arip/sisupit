@@ -1,0 +1,1 @@
+const i=new WeakMap;function r(e,t,s){const f=i.get(e);f&&(e.off("resize",f),i.delete(e));const o=e.getSize();if(o.x>0&&o.y>0){e.fitBounds(t,s);return}const n=z=>{z.newSize.x>0&&z.newSize.y>0&&(e.off("resize",n),i.delete(e),e.fitBounds(t,s))};i.set(e,n),e.on("resize",n)}export{r as f};
