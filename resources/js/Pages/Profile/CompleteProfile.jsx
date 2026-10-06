@@ -246,6 +246,9 @@ export default function CompleteProfile({ provinces, user, banjar_required = fal
 							<Label htmlFor="phone">No. HP</Label>
 							<Input
 								id="phone"
+								type="tel"
+								inputMode="tel"
+								autoComplete="tel"
 								value={data.phone}
 								onChange={(e) => setData('phone', e.target.value)}
 								placeholder="08xxxxxxxxxx"

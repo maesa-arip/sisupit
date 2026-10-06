@@ -64,6 +64,8 @@ export default function ForgotPassword({ status }) {
 										type="email"
 										name="email"
 										value={data.email}
+										autoComplete="username"
+										autoCapitalize="none"
 										placeholder="nama@email.com"
 										onChange={(e) => setData('email', e.target.value)}
 										className="h-9 w-full rounded-none border-0 bg-transparent p-0 text-[17px] shadow-none focus-visible:ring-0"

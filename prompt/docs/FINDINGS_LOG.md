@@ -4363,3 +4363,23 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   `intent:` lewat `Intent.parseUri` + `browser_fallback_url` (tanpa `IntentHandler`: `resolveActivity` butuh `<queries>`
   di Android 11+). `bundleRelease assembleRelease` OK; vc9/1.1.7, minSdk 24, target 36, SHA-1 CA:6F:A8. Rincian di
   `mobile/CHANGELOG_ANDROID.md`. **Belum:** uji di HP (tak ada perangkat/emulator tersambung) + unggah ke Play.
+
+### #186 — Kolom isian memunculkan riwayat ketikan tiap diketuk (FIXED)
+
+- **Laporan user 2026-10-06:** "di form saat lapor pada bagian patokan lokasi saat klik muncul apa saja yang pernah
+  diketik disana begitupun yang lainnya".
+- **Akar:** `Components/ui/input.jsx` & `ui/textarea.jsx` meneruskan atribut apa adanya; 175 dari 205 kolom teks di
+  `resources/js` tak menulis `autoComplete`, jadi browser/WebView menyimpan & menawarkan riwayat isian per `name`
+  (Patokan Lokasi `address`, judul, keterangan, kotak cari, nama OPD/pos, dll.).
+- **Fix:** bawaan `autoComplete="off"` di kedua komponen (sebelum `{...props}`, pemanggil tetap bisa menimpa). Kolom
+  data milik pengguna yang belum menulis nilainya diberi eksplisit: `ConfirmPassword` (`current-password`),
+  `ForgotPassword` (`username` + `autoCapitalize="none"`), `CompleteProfile` No. HP (`type/inputMode/autoComplete`
+  `tel`). Login/Register/Reset/Profil sudah eksplisit sejak dulu -> isi-otomatis sandi/email tetap jalan.
+  Kotak cari combobox (cmdk) sudah `off` sendiri; `TextInput.jsx` tak dipakai.
+- **Batas:** saran kata di BILAH KEYBOARD (Gboard/iOS) bukan riwayat isian dan tak diatur atribut ini. Riwayat yang
+  SUDAH tersimpan di perangkat tak dihapus, hanya tak ditampilkan lagi di kolom ber-`off`.
+- **Status:** FIXED 2026-10-06 (branch feat/mobile-native-polish, belum deploy). Test `InputAutocompleteDefaultTest`
+  (11; sabotase bawaan -> merah, dipulihkan `cmp`-identik). Aturan di CONVENTIONS "Isi-otomatis kolom".
+- **Masih terbuka (dari tinjauan web vs native yang sama):** `enterKeyHint="search"` kotak cari lokasi form lapor,
+  No. HP Profil tanpa `type/inputMode="tel"`, `public/.well-known/assetlinks.json` (berbagi sandi situs<->APK + App Links),
+  layar galat jaringan APK (`onReceivedError`), lokasi live berhenti saat layar mati (`watchPosition` di WebView).
