@@ -43,16 +43,16 @@ it('pauses native pull-to-refresh inside every scrollable floating panel', funct
         'js/Components/ui/popover.jsx' => '~<PopoverPrimitive\.Content[^>]*>\s*<PullToRefreshLock\s*/>~s',
         'js/Components/ui/select.jsx' => '~<SelectPrimitive\.Content[^>]*>\s*<PullToRefreshLock\s*/>~s',
         'js/Components/ui/sheet.jsx' => '~</SheetPrimitive\.Close>\s*<PullToRefreshLock\s*/>~s',
-        'js/Components/ui/drawer.jsx' => '~<DrawerPrimitive\.Content[^>]*>\s*<PullToRefreshLock\s*/>~s',
+        'js/Layouts/Partials/MobileBottomNav.jsx' => '~function GlassPanel\(.*?\{open && <PullToRefreshLock\s*/>\}~s',
     ] as $path => $pattern) {
         expect(jsxWithoutComments($path))->toMatch($pattern);
     }
 
-    // Redesign 2026-10-07: panel Fasilitas & Menu bilah bawah = lembar ui/drawer (konten vaul hanya
-    // terpasang selama terbuka, jadi kuncinya ikut lepas saat ditutup).
+    // Redesign 2026-10-07 (#189): panel kaca bilah bawah selalu terpasang (supaya transisinya bisa
+    // disela), jadi kuncinya dipasang HANYA selama terbuka - kalau tidak, refresh tarik mati selamanya.
     $nav = jsxWithoutComments('js/Layouts/Partials/MobileBottomNav.jsx');
-    expect($nav)->toContain("from '@/Components/ui/drawer'")
-        ->toMatch('~function NavSheet\(.*?<DrawerContent>~s');
+    expect($nav)->toContain('{open && <PullToRefreshLock />}')
+        ->not->toMatch('~<GlassPanel[^>]*>\s*<PullToRefreshLock~');
 });
 
 it('lets the regu member list scroll on its own', function () {

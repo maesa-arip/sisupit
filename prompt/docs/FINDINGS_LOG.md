@@ -4474,3 +4474,11 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   `AppleDesignMaterialTest`, `MobileNavIconGlyphTest`, `DialogPullToRefreshTest`, `KeyboardOpenLayoutTest`.
 - **Verifikasi:** Playwright headless 390x844 terang & gelap (admin & tamu): lensa pindah Beranda -> Riwayat, lembar
   Menu/Fasilitas terbuka & menavigasi, Keluar di dasar Menu, bar Kirim form lapor rapat di atas kapsul. Belum diuji di HP.
+- **Revisi 1 (koreksi user 2026-10-07):** "tampilan fasilitas dan menu sangat jadul tidak sesuai dengan apple-design,
+  untuk tombol lapor jangan taruh dikanan, taruh ditengah, jika tidak aktif dia abu, jika aktif baru merah".
+  (a) Lapor kini slot TENGAH kapsul 5 slot: lingkaran abu + petir garis, merah + petir padat hanya di /reports/create
+  (tak memakai lensa). (b) Lembar vaul bergaya Settings DIBUANG; ganti panel kaca melayang gaya menu iOS 26 yang tumbuh
+  dari tab pemicunya (transform-origin per tab, skala+pudar ease-spring, selalu terpasang + inert saat tertutup,
+  PullToRefreshLock hanya saat terbuka). Fasilitas = kisi tombol bulat ala Control Center; Menu = baris profil + baris ikon
+  monokrom tanpa ubin/chevron, Keluar merah di dasar. (c) `ui/drawer.jsx` dipulihkan persis ke tag (tanpa pemakai lagi).
+  Test: penjaga lembar diganti penjaga panel (asal dari tab, kunci tarik-segar hanya saat terbuka, Lapor abu/merah).

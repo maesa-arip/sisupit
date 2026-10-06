@@ -91,8 +91,8 @@ TASK_74/#182 : (2026-10-05, TERDEPLOY PROD @198d6c0f) Profil > "Notifikasi di HP
                 (UserLeafletMap centerPin), Lokasi saya, urut jarak; kartu Wilayah digabung ke kartu peta (baris lokasi + "Ubah"); "Salin ke patokan" dihapus;
                 GeocodeController paham jl/jln/gg + viewbox pin. Satelit OPEN. Belum diuji di HP.
 #189         : (2026-10-07, branch feat/bottomnav-apple-design, BELUM dideploy) MobileBottomNav ditulis ulang dari nol (apple-design,
-                "bebas tanpa pengecualian"): kapsul kaca 4 tab + lensa geser + tombol aksi Lapor; Fasilitas/Menu = lembar ui/drawer
-                (vaul) gaya iOS Settings. "Kembalikan bilah bawah" = restore dari tag pra-bottomnav-apple-design. Belum diuji di HP.
+                "bebas tanpa pengecualian"): kapsul kaca 5 slot + lensa geser, Lapor lingkaran DI TENGAH (abu, merah hanya saat aktif);
+                Fasilitas/Menu = panel kaca melayang gaya menu iOS 26 yang tumbuh dari tabnya (revisi 1: lembar Settings dinilai jadul). "Kembalikan bilah bawah" = restore dari tag pra-bottomnav-apple-design. Belum diuji di HP.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
                 kolom approved_at tetap. #178 i18n TERDEPLOY prod @dde8c6a4; #179 (ikon, paginasi PaginationLinks, email).
                 #180 terjemahan bawaan Laravel dari paket laravel-lang/common (DEV) TERDEPLOY prod @9bf7b103; paginasi tetap versi #178 -
@@ -105,7 +105,7 @@ Belum dicek  : visual di ponsel/APK untuk banyak perubahan UI (tombol merah bran
 Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115 #119 #121
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174 #188(satelit).
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
-Test         : 761 passed, 3801 assertions (2026-10-07, + #189 bilah bawah apple-design, test penjaga diperbarui).
+Test         : 761 passed, 3804 assertions (2026-10-07, + #189 revisi 1: Lapor di tengah, panel kaca).
 Lingkungan   : PROD @eb006bb1 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#188) | DEV @672b6a10 (dashboard baru) | STAGING @6d1dc8ea (dashboard
                 sebelumnya, untuk perbandingan). Dev & staging: data salinan prod, basic auth (APK dikecualikan), sandi "password".
 ```
@@ -132,7 +132,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-10-07: 761 passed, 3801 assertions - + #189 bilah bawah apple-design;
+Test      : php artisan test            (baseline 2026-10-07: 761 passed, 3804 assertions - + #189 revisi 1 bilah bawah;
             lokal: php -d memory_limit=1G -d extension=php_sqlite3.dll -d extension=pdo_sqlite vendor/bin/pest.
             Perbarui angka ini tiap kali test bertambah - baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan. Riwayat angkanya di STATUS_LOG.md)

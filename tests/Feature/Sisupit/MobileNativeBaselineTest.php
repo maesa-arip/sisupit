@@ -85,7 +85,7 @@ it('stops inner scroll lists from dragging the page behind them', function (stri
     expect(substr($src, $pos, 400))->toMatch('/overflow-y-auto[^"\']*overscroll-contain|overscroll-contain[^"\']*overflow-y-auto/');
 })->with([
     ['resources/js/Components/ui/command.jsx', 'const CommandList'],
-    ['resources/js/Layouts/Partials/MobileBottomNav.jsx', '<div className="px-5 pb-2 pt-3">'],
+    ['resources/js/Layouts/Partials/MobileBottomNav.jsx', 'material-thick no-scrollbar fixed'],
     ['resources/js/Layouts/AppLayout.jsx', 'max-h-80 divide-y'],
     ['resources/js/Components/TimePicker.jsx', 'const column = (items'],
 ]);

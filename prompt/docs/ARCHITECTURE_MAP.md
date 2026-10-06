@@ -100,7 +100,7 @@ resources/js/
                   Navigasi SEMUA UKURAN = SATU daftar di Partials/navItems.js
                   (buildNavSections), dua permukaan:
                    - Partials/Sidebar.jsx: sidebar penuh (≥lg) + rail ikon (md, `compact`)
-                   - Partials/MobileBottomNav.jsx (<md): kapsul kaca 4 tab + tombol aksi Lapor; Fasilitas & Menu = lembar bawah ui/drawer (vaul) (#189, 2026-10-07)
+                   - Partials/MobileBottomNav.jsx (<md): kapsul kaca 5 slot (Lapor lingkaran di tengah: abu/merah saat aktif); Fasilitas & Menu = panel kaca melayang yang tumbuh dari tabnya (#189, 2026-10-07)
                      (bentuk lama: tag git pra-bottomnav-apple-design). Jangkar tab didaftar
                      sebagai KUNCI di BAR_ITEM_KEYS / FASILITAS_ITEM_KEYS; tab ke-4 = "Masuk"
                      bagi TAMU (tujuan dari item `login` navItems.js, bukan dipaku) dan lembar

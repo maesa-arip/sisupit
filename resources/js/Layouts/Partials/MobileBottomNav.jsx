@@ -1,11 +1,9 @@
-import { BrandBoltIconFilled } from '@/Components/BrandBoltIcon';
-import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from '@/Components/ui/drawer';
+import BrandBoltIcon, { BrandBoltIconFilled } from '@/Components/BrandBoltIcon';
 import { useNavUrl } from '@/lib/navigation';
+import PullToRefreshLock from '@/lib/pull-to-refresh-lock';
 import { cn } from '@/lib/utils';
 import { Link } from '@inertiajs/react';
 import {
-	IconCheck,
-	IconChevronRight,
 	IconClock,
 	IconClockFilled,
 	IconDashboard,
@@ -15,38 +13,45 @@ import {
 	IconMapPin,
 	IconMapPinFilled,
 } from '@tabler/icons-react';
-import { useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { buildNavSections, flattenNavItems, resolveAbilities } from './navItems';
 
 /**
  * Navigasi bawah untuk layar kecil - DITULIS ULANG DARI NOL dengan skill `apple-design`
- * (permintaan user 2026-10-07: "buat dari 0 dan bebas tanpa pengecualian"). Bentuk sebelumnya
- * (bilah minimalis menempel + popover) tersimpan di tag git `pra-bottomnav-apple-design`;
- * "kembalikan bilah bawah" = pulihkan berkas-berkas redesign ini dari tag itu.
+ * (permintaan user 2026-10-07: "buat dari 0 dan bebas tanpa pengecualian", FINDINGS #189).
+ * Bentuk sebelumnya (bilah minimalis menempel + popover) tersimpan di tag git
+ * `pra-bottomnav-apple-design`; "kembalikan bilah bawah" = pulihkan berkas ini dari tag itu.
  *
  * BENTUK - pola tab bar iOS 26:
- *   - KAPSUL KACA MELAYANG (`material-chrome`) berisi empat tab: Beranda, Fasilitas, Riwayat,
- *     Menu (tamu: Masuk). Konten terus bergulir di belakangnya; di bawah kapsul ada "scroll edge
- *     effect" (gradien ke warna latar) alih-alih garis pemisah keras (§12).
+ *   - KAPSUL KACA MELAYANG (`material-chrome`) berisi lima slot: Beranda, Fasilitas, LAPOR,
+ *     Riwayat, Menu (tamu: Masuk). Konten terus bergulir di belakangnya; di bawah kapsul ada
+ *     "scroll edge effect" (gradien ke warna latar) alih-alih garis pemisah keras (§12).
  *   - LENSA AKTIF: satu pil yang BERGESER ke tab yang sedang dibuka dengan kurva pegas
  *     (`ease-spring`). Transisi CSS (bukan @keyframes) sengaja dipakai: ia selalu berangkat dari
  *     nilai yang sedang tampil, jadi mengetuk tab lain di tengah geseran membelokkan lensa tanpa
- *     lompatan (§3). Saat tak ada tab yang cocok, lensa memudar DI TEMPAT terakhirnya - tidak
- *     meluncur dari kiri saat muncul lagi. Reduced motion: hanya cross-fade.
- *   - TOMBOL AKSI "LAPOR" terpisah di kanan kapsul, bulat merah brand dengan petir putih -
- *     seperti tombol aksi yang berdiri di samping tab bar iOS 26. Di aplikasi darurat aksi utama
- *     pantas punya bentuknya sendiri: ia bukan tujuan navigasi melainkan aksi, jadi tak ikut
- *     lensa. Saat halaman lapor sedang dibuka ia diberi cincin (aria-current).
+ *     lompatan (§3). Saat tak ada tab berlensa yang aktif (mis. halaman lapor), lensa memudar DI
+ *     TEMPAT terakhirnya. Reduced motion: hanya cross-fade.
+ *   - LAPOR DI TENGAH (koreksi user 2026-10-07: "jangan taruh dikanan, taruh ditengah, jika tidak
+ *     aktif dia abu, jika aktif baru merah"): lingkaran ABU dengan petir garis saat diam, lingkaran
+ *     MERAH dengan petir padat putih hanya saat halaman lapor dibuka. Ia menonjol lewat BENTUK
+ *     (lingkaran), warnanya tetap mengikuti aturan "merah = lokasi" seperti empat tetangganya.
  *   - Penanda tab aktif = lensa + warna brand + ikon PADAT + tebal huruf.
  *   - Umpan balik tekan langsung saat jari menyentuh (`active:scale`), bukan saat dilepas (§1).
  *
- * PANEL - Fasilitas & Menu dibuka sebagai LEMBAR BAWAH (`ui/drawer`, vaul): diseret 1:1,
- * dilempar untuk ditutup, mantul di batas, scrim peredup. Isinya daftar berkelompok gaya iOS
- * Settings - ubin ikon berwarna, chevron, centang untuk halaman yang sedang dibuka. Menu diawali
- * kartu profil (bila item `profile` ada) dan diakhiri baris "Keluar" tersendiri.
+ * PANEL - Fasilitas & Menu = PANEL KACA MELAYANG gaya menu iOS 26 (koreksi user 2026-10-07: lembar
+ * bawah bergaya Settings dengan ubin warna & chevron dinilai "sangat jadul"). Panel TUMBUH DARI TAB
+ * PEMICUNYA (`transform-origin` = posisi tab itu, §7) dengan skala + pudar berkurva pegas, dan
+ * menyusut kembali ke tab yang sama saat ditutup - jalur masuk & keluar simetris. Ia selalu
+ * terpasang dan hanya berganti keadaan, sehingga membuka/menutup di tengah gerak membelokkan
+ * transisinya, bukan memulai ulang (§3). Saat tertutup ia `inert` + `pointer-events-none`.
+ * Scrim tipis peredup; ketuk di luar / Esc / pindah halaman menutupnya.
+ *   - Fasilitas: kisi tombol bulat ala Control Center - glyph berwarna jenis fasilitas (legenda
+ *     peta), lingkaran terisi warna itu bila halamannya sedang dibuka.
+ *   - Menu: profil di puncak, lalu daftar ringkas berikon MONOKROM (tanpa ubin, tanpa chevron) dan
+ *     "Keluar" merah di dasar - gaya menu konteks iOS 26.
  *
  * ISI - TETAP dari `buildNavSections()` (aturan #71, MobileNavParityTest): bilah memegang jangkar
- * lewat KUNCI (BAR_ITEM_KEYS/FASILITAS_ITEM_KEYS), sisa seksi otomatis jatuh ke lembar Menu, dan
+ * lewat KUNCI (BAR_ITEM_KEYS/FASILITAS_ITEM_KEYS), sisa seksi otomatis jatuh ke panel Menu, dan
  * slot "Masuk" tamu mengambil tujuannya dari item `login`. Tak ada tujuan yang dipaku di sini
  * selain cadangan route tiga jangkar.
  *
@@ -55,42 +60,30 @@ import { buildNavSections, flattenNavItems, resolveAbilities } from './navItems'
  *   - `AppLayout` ruang konten `pb-[calc(5rem+env(safe-area-inset-bottom))]` (80px, cukup)
  *   - tombol Kirim `Front/Reports/Create.jsx` `bottom-[calc(4rem+env(safe-area-inset-bottom))]` -
  *     tepi bawah bar itu jatuh TEPAT di puncak kapsul, tanpa celah tempat konten mengintip.
- *   Mengubah tinggi kapsul/bilah = hitung ulang keduanya.
+ *   - panel kaca di berkas ini `bottom-[calc(4.5rem+env(safe-area-inset-bottom))]` (8px di atas kapsul).
+ *   Mengubah tinggi kapsul/bilah = hitung ulang ketiganya.
  * Bilah disembunyikan selama keyboard layar terbuka (#187).
  */
 
-/** Kunci item yang sudah punya tombolnya sendiri di bilah - dikeluarkan dari lembar Menu. */
+/** Kunci item yang sudah punya tombolnya sendiri di bilah - dikeluarkan dari panel Menu. */
 const BAR_ITEM_KEYS = ['dashboard', 'report.create', 'reports.mine'];
 
-/** Kunci item lembar Fasilitas, seurutan dengan seksi "Fasilitas Publik" di navItems.js. */
+/** Kunci item panel Fasilitas, seurutan dengan seksi "Fasilitas Publik" di navItems.js. */
 const FASILITAS_ITEM_KEYS = ['hydrants', 'pumps', 'fire_stations', 'volunteers', 'monitoring.map'];
 
 /**
- * Warna ubin ikon (gaya iOS Settings). Fasilitas mengikuti legenda peta - satu warna per jenis;
- * item lain mengikuti seksinya. Kelas ditulis UTUH supaya terpindai Tailwind.
+ * Warna jenis fasilitas (gema legenda peta): `glyph` saat diam, `fill` saat halamannya dibuka.
+ * Kelas ditulis UTUH supaya terpindai Tailwind; kunci tak terdaftar jatuh ke netral.
  */
-const ITEM_TILE = {
-	pumps: 'bg-info text-info-foreground',
-	fire_stations: 'bg-destructive text-destructive-foreground',
-	hydrants: 'bg-teal text-teal-foreground',
-	volunteers: 'bg-volunteer text-volunteer-foreground',
-	'monitoring.map': 'bg-teal text-teal-foreground',
+const FASILITAS_TONE = {
+	hydrants: { glyph: 'text-teal', fill: 'bg-teal text-teal-foreground' },
+	pumps: { glyph: 'text-info', fill: 'bg-info text-info-foreground' },
+	fire_stations: { glyph: 'text-destructive', fill: 'bg-destructive text-destructive-foreground' },
+	volunteers: { glyph: 'text-volunteer', fill: 'bg-volunteer text-volunteer-foreground' },
+	'monitoring.map': { glyph: 'text-teal', fill: 'bg-teal text-teal-foreground' },
 };
-const SECTION_TILE = {
-	utama: 'bg-info text-info-foreground',
-	operasional: 'bg-warning text-warning-foreground',
-	fasilitas: 'bg-teal text-teal-foreground',
-	administrasi: 'bg-success text-success-foreground',
-	'kontrol-akses': 'bg-volunteer text-volunteer-foreground',
-};
-const NEUTRAL_TILE = 'bg-muted-foreground text-background';
 
-/**
- * Permukaan sel daftar. Di atas kaca lembar yang terang, sel putih tak terpisah dari latarnya -
- * iOS memisahkannya dengan latar berkelompok abu-abu (lapis tint di NavSheet) di mode terang dan
- * sel yang sedikit LEBIH TERANG dari latarnya di mode gelap.
- */
-const GROUP_SURFACE = 'bg-card dark:bg-white/[0.07]';
+const SLOT_COUNT = 5;
 
 export default function MobileBottomNav({ auth }) {
 	// URL tujuan selama navigasi berjalan (TASK_70): tab yang diketuk langsung aktif.
@@ -107,16 +100,31 @@ export default function MobileBottomNav({ auth }) {
 	const showLoginSlot = !isLoggedIn && Boolean(loginItem);
 	const profileItem = itemByKey('profile');
 
-	// Sisa seksi = apa pun yang tak dipegang bilah/lembar Fasilitas/kartu profil. Menu baru di
+	// Sisa seksi = apa pun yang tak dipegang bilah/panel Fasilitas/baris profil. Menu baru di
 	// navItems.js otomatis mendarat di sini.
 	const handledKeys = new Set([...BAR_ITEM_KEYS, ...FASILITAS_ITEM_KEYS, 'profile']);
 	const menuSections = sections
 		.map((section) => ({ ...section, items: section.items.filter((item) => !handledKeys.has(item.key)) }))
 		.filter((section) => section.items.length > 0);
+	const menuRows = menuSections.map((section) => ({
+		...section,
+		items: section.items.filter((item) => item.variant !== 'danger'),
+	}));
+	const dangerItems = menuSections.flatMap((section) => section.items.filter((item) => item.variant === 'danger'));
 
-	// Satu lembar terbuka pada satu waktu: null | 'fasilitas' | 'menu'.
-	const [sheet, setSheet] = useState(null);
-	const closeSheet = () => setSheet(null);
+	// Satu panel terbuka pada satu waktu: null | 'fasilitas' | 'menu'.
+	const [panel, setPanel] = useState(null);
+	const closePanel = () => setPanel(null);
+
+	// Pindah halaman (termasuk tombol kembali) menutup panel.
+	useEffect(() => setPanel(null), [url]);
+
+	useEffect(() => {
+		if (!panel) return undefined;
+		const onKey = (event) => event.key === 'Escape' && setPanel(null);
+		document.addEventListener('keydown', onKey);
+		return () => document.removeEventListener('keydown', onKey);
+	}, [panel]);
 
 	const isReportActive = url.startsWith('/reports/create');
 	const tabs = [
@@ -134,7 +142,17 @@ export default function MobileBottomNav({ auth }) {
 			icon: IconMapPin,
 			iconActive: IconMapPinFilled,
 			active: fasilitasItems.some((item) => item.active),
-			sheet: 'fasilitas',
+			panel: 'fasilitas',
+		},
+		{
+			key: 'lapor',
+			label: 'Lapor',
+			ariaLabel: 'Lapor Darurat',
+			href: itemByKey('report.create')?.url ?? route('front.reports.create'),
+			icon: BrandBoltIcon,
+			iconActive: BrandBoltIconFilled,
+			active: isReportActive,
+			action: true,
 		},
 		{
 			key: 'riwayat',
@@ -161,19 +179,74 @@ export default function MobileBottomNav({ auth }) {
 					active:
 						Boolean(profileItem?.active) ||
 						menuSections.some((section) => section.items.some((item) => item.active)),
-					sheet: 'menu',
+					panel: 'menu',
 				},
 	];
 
-	const activeIndex = tabs.findIndex((tab) => tab.active);
+	// Lensa hanya untuk tab biasa - slot Lapor menandai dirinya sendiri lewat lingkarannya.
+	const activeIndex = tabs.findIndex((tab) => tab.active && !tab.action);
 	// Posisi terakhir lensa: saat tak ada tab aktif ia memudar di sini, bukan kembali ke kiri.
 	const lensIndexRef = useRef(Math.max(activeIndex, 0));
 	if (activeIndex >= 0) lensIndexRef.current = activeIndex;
 
+	// Panel tumbuh dari tab pemicunya: titik asal = pusat mendatar tab itu, tepi bawah panel.
+	const originFor = (key) => `${((tabs.findIndex((tab) => tab.key === key) + 0.5) / SLOT_COUNT) * 100}% 100%`;
+
 	return (
 		<>
-			{/* Pembungkus tak menangkap sentuhan (pointer-events-none) - hanya kapsul & tombol
-			    Lapor yang bisa diketuk; konten di sela-selanya tetap bisa disentuh. */}
+			{/* Scrim tipis: tugas di panel bersifat sesaat, latar cukup diredupkan sedikit. Kapsul
+			    (z-50) tetap di atasnya, jadi tab lain tetap bisa langsung diketuk. */}
+			<div
+				aria-hidden="true"
+				onClick={closePanel}
+				className={cn(
+					'fixed inset-0 z-40 bg-black/25 transition-opacity duration-300 ease-out md:hidden dark:bg-black/45',
+					panel ? 'opacity-100' : 'pointer-events-none opacity-0',
+				)}
+			/>
+
+			<GlassPanel
+				open={panel === 'fasilitas'}
+				origin={originFor('fasilitas')}
+				label="Fasilitas Publik"
+			>
+				<p className="px-2 pb-3 pt-1 text-[13px] font-semibold text-muted-foreground">Fasilitas Publik</p>
+				<div className="grid grid-cols-3 gap-x-2 gap-y-4 pb-1">
+					{fasilitasItems.map((item) => (
+						<FasilitasButton key={item.key} item={item} tone={FASILITAS_TONE[item.key]} onNavigate={closePanel} />
+					))}
+				</div>
+			</GlassPanel>
+
+			{!showLoginSlot && (
+				<GlassPanel open={panel === 'menu'} origin={originFor('menu')} label="Menu">
+					{profileItem && <ProfileRow auth={auth} item={profileItem} onNavigate={closePanel} />}
+					{menuRows.map((section) =>
+						section.items.length === 0 ? null : (
+							<Fragment key={section.key}>
+								<div aria-hidden="true" className="mx-2 my-1.5 h-px bg-foreground/[0.08]" />
+								<p className="px-3 pb-0.5 pt-1.5 text-[12px] font-semibold text-muted-foreground">
+									{section.title}
+								</p>
+								{section.items.map((item) => (
+									<MenuRow key={item.key} item={item} onNavigate={closePanel} />
+								))}
+							</Fragment>
+						),
+					)}
+					{dangerItems.length > 0 && (
+						<>
+							<div aria-hidden="true" className="mx-2 my-1.5 h-px bg-foreground/[0.08]" />
+							{dangerItems.map((item) => (
+								<MenuRow key={item.key} item={item} onNavigate={closePanel} />
+							))}
+						</>
+					)}
+				</GlassPanel>
+			)}
+
+			{/* Pembungkus tak menangkap sentuhan (pointer-events-none) - hanya kapsul yang bisa
+			    diketuk; konten di sela-selanya tetap bisa disentuh. */}
 			<nav
 				aria-label="Navigasi utama"
 				className="pointer-events-none fixed inset-x-0 bottom-0 z-50 md:hidden [html[data-keyboard=open]_&]:hidden"
@@ -185,92 +258,63 @@ export default function MobileBottomNav({ auth }) {
 					className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent"
 				/>
 
-				<div className="relative mx-auto flex h-[72px] max-w-md items-center gap-3 px-4">
-					<div className="material-chrome pointer-events-auto relative grid h-14 flex-1 grid-cols-4 rounded-full border border-white/60 p-1 shadow-[0_8px_28px_-10px_rgba(0,0,0,0.35)] dark:border-white/10">
+				<div className="relative mx-auto flex h-[72px] max-w-md items-center px-4">
+					<div className="material-chrome pointer-events-auto relative grid h-14 flex-1 grid-cols-5 rounded-full border border-white/60 p-1 shadow-[0_8px_28px_-10px_rgba(0,0,0,0.35)] dark:border-white/10">
 						{/* Lensa aktif - lebar satu sel; translateX dalam persen lebarnya sendiri. */}
 						<span
 							aria-hidden="true"
-							className="absolute inset-y-1 left-1 w-[calc((100%-0.5rem)/4)] rounded-full bg-foreground/[0.07] transition-[transform,opacity] duration-500 ease-spring motion-reduce:transition-opacity dark:bg-white/[0.12]"
+							className="absolute inset-y-1 left-1 w-[calc((100%-0.5rem)/5)] rounded-full bg-foreground/[0.07] transition-[transform,opacity] duration-500 ease-spring motion-reduce:transition-opacity dark:bg-white/[0.12]"
 							style={{
 								transform: `translateX(${lensIndexRef.current * 100}%)`,
 								opacity: activeIndex >= 0 ? 1 : 0,
 							}}
 						/>
 						{tabs.map((tab) => (
-							<Tab key={tab.key} tab={tab} open={sheet === tab.sheet} onOpenSheet={setSheet} />
+							<Tab
+								key={tab.key}
+								tab={tab}
+								open={Boolean(tab.panel) && panel === tab.panel}
+								onTogglePanel={(name) => setPanel((current) => (current === name ? null : name))}
+							/>
 						))}
 					</div>
-
-					<Link
-						href={itemByKey('report.create')?.url ?? route('front.reports.create')}
-						aria-label="Lapor Darurat"
-						aria-current={isReportActive ? 'page' : undefined}
-						className={cn(
-							'pointer-events-auto flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-[0_10px_24px_-8px_hsl(var(--destructive)/0.65)] outline-none transition-transform duration-100 ease-out active:scale-[0.9] focus-visible:ring-4 focus-visible:ring-destructive/40 motion-reduce:active:scale-100',
-							isReportActive && 'ring-4 ring-destructive/25',
-						)}
-					>
-						<BrandBoltIconFilled className="h-7 w-7" stroke={1.5} />
-					</Link>
 				</div>
 			</nav>
-
-			<Drawer open={sheet === 'fasilitas'} onOpenChange={(open) => !open && closeSheet()}>
-				<NavSheet title="Fasilitas Publik" description="Lokasi fasilitas pemadam & relawan">
-					<RowGroup>
-						{fasilitasItems.map((item) => (
-							<SheetRow key={item.key} item={item} tile={ITEM_TILE[item.key]} onNavigate={closeSheet} />
-						))}
-					</RowGroup>
-				</NavSheet>
-			</Drawer>
-
-			{!showLoginSlot && (
-				<Drawer open={sheet === 'menu'} onOpenChange={(open) => !open && closeSheet()}>
-					<NavSheet title="Menu" description="Semua menu Sisupit">
-						{profileItem && <ProfileCard auth={auth} item={profileItem} onNavigate={closeSheet} />}
-						{menuSections.map((section) => {
-							const rows = section.items.filter((item) => item.variant !== 'danger' || section.key !== 'akun');
-							const dangerRows = section.items.filter((item) => item.variant === 'danger' && section.key === 'akun');
-							return (
-								<div key={section.key}>
-									{rows.length > 0 && (
-										<>
-											<h3 className="px-4 pb-1.5 pt-5 text-[13px] font-normal text-muted-foreground">
-												{section.title}
-											</h3>
-											<RowGroup>
-												{rows.map((item) => (
-													<SheetRow
-														key={item.key}
-														item={item}
-														tile={ITEM_TILE[item.key] ?? SECTION_TILE[section.key] ?? NEUTRAL_TILE}
-														onNavigate={closeSheet}
-													/>
-												))}
-											</RowGroup>
-										</>
-									)}
-									{dangerRows.map((item) => (
-										<DangerRow key={item.key} item={item} onNavigate={closeSheet} />
-									))}
-								</div>
-							);
-						})}
-					</NavSheet>
-				</Drawer>
-			)}
 		</>
 	);
 }
 
-/** Satu tab di kapsul: tautan, atau pembuka lembar bila `tab.sheet` ada. */
-function Tab({ tab, open, onOpenSheet }) {
+/** Satu slot di kapsul: tautan, pembuka panel (`tab.panel`), atau aksi bulat Lapor (`tab.action`). */
+function Tab({ tab, open, onTogglePanel }) {
 	const Glyph = tab.active && tab.iconActive ? tab.iconActive : tab.icon;
 	const className = cn(
 		'relative z-10 flex h-full w-full flex-col items-center justify-center gap-0.5 rounded-full outline-none transition-[color,transform] duration-100 ease-out active:scale-[0.92] focus-visible:ring-2 focus-visible:ring-destructive motion-reduce:active:scale-100',
 		tab.active ? 'text-destructive' : open ? 'text-foreground' : 'text-muted-foreground',
 	);
+
+	if (tab.action) {
+		// Abu saat diam, merah HANYA saat halaman lapor dibuka (koreksi user 2026-10-07).
+		return (
+			<Link
+				href={tab.href}
+				aria-label={tab.ariaLabel}
+				aria-current={tab.active ? 'page' : undefined}
+				className={className}
+			>
+				<span
+					className={cn(
+						'flex h-11 w-11 items-center justify-center rounded-full transition-[background-color,color,box-shadow] duration-300 ease-out',
+						tab.active
+							? 'bg-destructive text-destructive-foreground shadow-[0_6px_16px_-6px_hsl(var(--destructive)/0.7)]'
+							: 'bg-foreground/[0.08] text-muted-foreground dark:bg-white/[0.12]',
+					)}
+				>
+					<Glyph className="h-6 w-6" stroke={1.75} />
+				</span>
+			</Link>
+		);
+	}
+
 	const content = (
 		<>
 			<Glyph className="h-6 w-6" stroke={1.75} />
@@ -285,11 +329,11 @@ function Tab({ tab, open, onOpenSheet }) {
 		</>
 	);
 
-	if (tab.sheet) {
+	if (tab.panel) {
 		return (
 			<button
 				type="button"
-				onClick={() => onOpenSheet(tab.sheet)}
+				onClick={() => onTogglePanel(tab.panel)}
 				aria-haspopup="dialog"
 				aria-expanded={open}
 				className={className}
@@ -311,39 +355,72 @@ function Tab({ tab, open, onOpenSheet }) {
 	);
 }
 
-/** Isi lembar: judul besar gaya iOS + daftar bergulir. */
-function NavSheet({ title, description, children }) {
+/**
+ * Panel kaca melayang di atas kapsul. Selalu terpasang; keadaan terbuka/tertutup hanya
+ * mengganti kelas, jadi transisi pegasnya bisa dibelokkan di tengah jalan. Tepi atas terang +
+ * bayangan dalam = cahaya yang tertangkap tepi kaca. JANGAN beri `bg-*` di elemen material ini.
+ * PullToRefreshLock hanya terpasang selama terbuka: daftar Menu bergulir, dan tanpa kunci itu
+ * menggulir ke atas memuat ulang halaman di APK.
+ */
+function GlassPanel({ open, origin, label, children }) {
 	return (
-		<DrawerContent>
-			{/* Latar berkelompok (light): lapis tint DI BAWAH isi (-z-10 dalam konteks tumpukan
-			    lembar), bukan `bg-*` di elemen kacanya - itu akan membuat materialnya padat. */}
-			<div
-				aria-hidden="true"
-				className="pointer-events-none absolute inset-0 -z-10 rounded-t-[28px] bg-muted/70 dark:bg-transparent"
-			/>
-			<div className="px-5 pb-2 pt-3">
-				<DrawerTitle className="text-[22px] font-bold leading-7 tracking-[-0.01em]">{title}</DrawerTitle>
-				<DrawerDescription className="sr-only">{description}</DrawerDescription>
-			</div>
-			<div className="no-scrollbar overflow-y-auto overscroll-contain px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
-				{children}
-			</div>
-		</DrawerContent>
+		<div
+			role="dialog"
+			aria-label={label}
+			aria-hidden={!open}
+			inert={open ? undefined : ''}
+			style={{ transformOrigin: origin }}
+			className={cn(
+				'material-thick no-scrollbar fixed inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-50 mx-auto max-h-[68dvh] max-w-[26rem] overflow-y-auto overscroll-contain rounded-[30px] border border-white/60 p-2.5 text-popover-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_24px_60px_-18px_rgba(0,0,0,0.45)] transition-[transform,opacity] duration-500 ease-spring motion-reduce:transition-opacity md:hidden dark:border-white/10 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_24px_60px_-18px_rgba(0,0,0,0.7)]',
+				open ? 'scale-100 opacity-100' : 'pointer-events-none translate-y-3 scale-[0.55] opacity-0 motion-reduce:translate-y-0 motion-reduce:scale-100',
+			)}
+		>
+			{open && <PullToRefreshLock />}
+			{children}
+		</div>
 	);
 }
 
-/** Kelompok baris (inset grouped list). Permukaan padat di atas kaca - kaca tak ditumpuk kaca. */
-function RowGroup({ children }) {
-	return <div className={cn('overflow-hidden rounded-2xl', GROUP_SURFACE)}>{children}</div>;
+/** Tombol bulat ala Control Center: glyph berwarna jenis fasilitas, terisi bila halamannya dibuka. */
+function FasilitasButton({ item, tone, onNavigate }) {
+	const Icon = item.icon;
+
+	return (
+		<Link
+			href={item.url}
+			onClick={onNavigate}
+			aria-current={item.active ? 'page' : undefined}
+			className="group flex flex-col items-center gap-1.5 rounded-2xl px-1 py-0.5 outline-none focus-visible:ring-2 focus-visible:ring-destructive"
+		>
+			<span
+				className={cn(
+					'flex h-14 w-14 items-center justify-center rounded-full transition-transform duration-100 ease-out group-active:scale-[0.9] motion-reduce:group-active:scale-100',
+					item.active
+						? (tone?.fill ?? 'bg-destructive text-destructive-foreground')
+						: cn('bg-foreground/[0.06] dark:bg-white/[0.1]', tone?.glyph ?? 'text-foreground'),
+				)}
+			>
+				<Icon size={26} stroke={1.75} />
+			</span>
+			<span
+				className={cn(
+					'line-clamp-2 text-center text-[12px] leading-4',
+					item.active ? 'font-semibold text-foreground' : 'font-medium text-foreground/80',
+				)}
+			>
+				{item.title}
+			</span>
+		</Link>
+	);
 }
 
 /**
- * Satu baris lembar. Menerima item apa adanya dari navItems.js - termasuk `linkProps`
- * (logout = POST + token FCM ikut dilepas). Target sentuh 48px.
+ * Satu baris menu gaya menu konteks iOS 26: ikon monokrom, tanpa ubin & chevron. Menerima item
+ * apa adanya dari navItems.js - termasuk `linkProps` (logout = POST + token FCM ikut dilepas).
+ * Halaman aktif = pil tint merah; aksi `danger` (Keluar) = teks & ikon merah.
  */
-function SheetRow({ item, tile, onNavigate }) {
+function MenuRow({ item, onNavigate }) {
 	const Icon = item.icon;
-	const linkProps = item.linkProps ?? {};
 	const isDanger = item.variant === 'danger';
 
 	return (
@@ -351,54 +428,24 @@ function SheetRow({ item, tile, onNavigate }) {
 			href={item.url}
 			onClick={onNavigate}
 			aria-current={item.active ? 'page' : undefined}
-			{...linkProps}
-			className="flex w-full items-center gap-3 pl-3.5 text-left outline-none transition-colors duration-100 active:bg-foreground/[0.06] focus-visible:bg-accent [&:last-child>span:last-child]:border-b-0"
+			{...(item.linkProps ?? {})}
+			className={cn(
+				'flex min-h-[46px] w-full items-center gap-3 rounded-2xl px-3 text-left text-[16px] outline-none transition-colors duration-100 focus-visible:bg-foreground/[0.06]',
+				item.active
+					? 'bg-destructive/10 font-semibold text-destructive'
+					: isDanger
+						? 'text-destructive active:bg-destructive/10'
+						: 'text-foreground active:bg-foreground/[0.06]',
+			)}
 		>
-			<span
-				className={cn(
-					'flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[8px]',
-					isDanger ? 'bg-destructive text-destructive-foreground' : tile,
-				)}
-			>
-				<Icon size={18} stroke={1.75} />
-			</span>
-			<span className="flex min-h-[48px] min-w-0 flex-1 items-center gap-2 border-b border-border/70 pr-3.5">
-				<span
-					className={cn(
-						'flex-1 truncate text-[15px]',
-						item.active ? 'font-semibold text-destructive' : isDanger ? 'text-destructive' : 'text-foreground',
-					)}
-				>
-					{item.title}
-				</span>
-				{item.active ? (
-					<IconCheck size={18} stroke={2.25} className="shrink-0 text-destructive" />
-				) : (
-					<IconChevronRight size={16} stroke={2} className="shrink-0 text-muted-foreground/60" />
-				)}
-			</span>
+			<Icon size={21} stroke={1.75} className={cn('shrink-0', !item.active && !isDanger && 'text-foreground/70')} />
+			<span className="truncate">{item.title}</span>
 		</Link>
 	);
 }
 
-/** Aksi merusak akun (Keluar) - kelompok sendiri, teks merah di tengah, seperti iOS "Sign Out". */
-function DangerRow({ item, onNavigate }) {
-	return (
-		<div className={cn('mt-6 overflow-hidden rounded-2xl', GROUP_SURFACE)}>
-			<Link
-				href={item.url}
-				onClick={onNavigate}
-				{...(item.linkProps ?? {})}
-				className="flex min-h-[48px] w-full items-center justify-center text-[15px] font-medium text-destructive outline-none transition-colors duration-100 active:bg-destructive/10 focus-visible:bg-destructive/10"
-			>
-				{item.title}
-			</Link>
-		</div>
-	);
-}
-
-/** Kartu profil di puncak lembar Menu (gaya kartu akun iOS Settings). */
-function ProfileCard({ auth, item, onNavigate }) {
+/** Baris profil di puncak panel Menu: avatar inisial + nama + email. */
+function ProfileRow({ auth, item, onNavigate }) {
 	const name = auth?.name || auth?.user?.name || item.title;
 	const email = auth?.email || auth?.user?.email;
 	const initials = name
@@ -414,18 +461,19 @@ function ProfileCard({ auth, item, onNavigate }) {
 			onClick={onNavigate}
 			aria-current={item.active ? 'page' : undefined}
 			className={cn(
-				'mt-1 flex items-center gap-3 rounded-2xl p-3.5 outline-none transition-colors duration-100 active:bg-foreground/[0.06] focus-visible:ring-2 focus-visible:ring-destructive',
-				GROUP_SURFACE,
+				'flex items-center gap-3 rounded-[22px] p-2 outline-none transition-colors duration-100 active:bg-foreground/[0.06] focus-visible:bg-foreground/[0.06]',
+				item.active && 'bg-destructive/10',
 			)}
 		>
-			<span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-base font-semibold text-destructive">
+			<span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-destructive/80 to-destructive text-[15px] font-semibold text-destructive-foreground">
 				{initials}
 			</span>
 			<span className="min-w-0 flex-1">
-				<span className="block truncate text-[17px] font-semibold leading-6 tracking-[-0.01em]">{name}</span>
-				<span className="block truncate text-[13px] text-muted-foreground">{email || item.title}</span>
+				<span className="block truncate text-[16px] font-semibold leading-5 tracking-[-0.01em]">{name}</span>
+				<span className="block truncate text-[13px] leading-5 text-muted-foreground">
+					{email || item.title}
+				</span>
 			</span>
-			<IconChevronRight size={16} stroke={2} className="shrink-0 text-muted-foreground/60" />
 		</Link>
 	);
 }

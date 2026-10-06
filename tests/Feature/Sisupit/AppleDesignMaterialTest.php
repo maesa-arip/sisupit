@@ -61,13 +61,19 @@ it('grows every floating surface from its trigger out of the thick material', fu
     ['resources/js/Components/ui/select.jsx', 'max-h-96 min-w-[8rem]', 'origin-[--radix-select-content-transform-origin]'],
 ]);
 
-// Redesign bilah bawah 2026-10-07: panel Fasilitas & Menu kini lembar bawah (ui/drawer) yang naik
-// dari tepi bawah - asalnya tepi layar itu sendiri, jadi yang dijaga materialnya, bukan origin.
-it('builds the bottom-nav sheets from the thick material over a dimming scrim', function () {
-    $sheet = appleClassesAround('resources/js/Components/ui/drawer.jsx', 'fixed inset-x-0 bottom-0 z-50');
-    expect($sheet)->toContain('material-thick')
-        ->and(preg_grep('/^bg-/', $sheet))->toBe([]);
-    expect(appleClassesAround('resources/js/Components/ui/drawer.jsx', 'fixed inset-0 z-50'))->toContain('bg-black/40');
+// Redesign bilah bawah 2026-10-07 (#189): panel Fasilitas & Menu = panel kaca melayang yang tumbuh dari
+// TAB PEMICUNYA (transform-origin dihitung dari posisi tab) dengan pegas, dan selalu terpasang supaya
+// transisinya bisa disela.
+it('grows the bottom-nav glass panels from their tab with a spring', function () {
+    $panel = appleClassesAround('resources/js/Layouts/Partials/MobileBottomNav.jsx', 'material-thick no-scrollbar fixed');
+    expect($panel)->toContain('ease-spring')
+        ->and($panel)->toContain('motion-reduce:transition-opacity')
+        ->and(preg_grep('/^bg-/', $panel))->toBe([]);
+
+    expect(appleSource('resources/js/Layouts/Partials/MobileBottomNav.jsx'))
+        ->toContain('style={{ transformOrigin: origin }}')
+        ->toContain('origin={originFor(\'fasilitas\')}')
+        ->toContain('origin={originFor(\'menu\')}');
 });
 
 it('keeps the solid command surface out of the material popovers that host it', function () {
