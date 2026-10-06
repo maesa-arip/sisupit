@@ -87,7 +87,7 @@ TASK_74/#182 : (2026-10-05, TERDEPLOY PROD @198d6c0f) Profil > "Notifikasi di HP
                 autoComplete="off" di ui/input & ui/textarea; kolom data milik pengguna tetap eksplisit (CONVENTIONS).
 #187         : (2026-10-07, TERDEPLOY PROD @2866d5ab, HTTPS terverifikasi) keyboard APK menutup Patokan Lokasi: lib/keyboard-open.js -> <html data-keyboard>,
                 bilah bawah sembunyi, bar Kirim di atas keyboard, kolom ditengahkan. Web saja; belum diuji di HP.
-#188/TASK_75 : (2026-10-07, LOKAL belum commit/deploy) peta form lapor gaya Google: cari di atas peta, pin diam di tengah
+#188/TASK_75 : (2026-10-07, TERDEPLOY PROD @eb006bb1, HTTPS terverifikasi) peta form lapor gaya Google: cari di atas peta, pin diam di tengah
                 (UserLeafletMap centerPin), Lokasi saya, urut jarak; kartu Wilayah digabung ke kartu peta (baris lokasi + "Ubah"); "Salin ke patokan" dihapus;
                 GeocodeController paham jl/jln/gg + viewbox pin. Satelit OPEN. Belum diuji di HP.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
@@ -103,7 +103,7 @@ Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174 #188(satelit).
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
 Test         : 761 passed, 3800 assertions (2026-10-07, + #188 peta form lapor + kartu wilayah digabung).
-Lingkungan   : PROD @2866d5ab (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#187) | DEV @672b6a10 (dashboard baru) | STAGING @6d1dc8ea (dashboard
+Lingkungan   : PROD @eb006bb1 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#188) | DEV @672b6a10 (dashboard baru) | STAGING @6d1dc8ea (dashboard
                 sebelumnya, untuk perbandingan). Dev & staging: data salinan prod, basic auth (APK dikecualikan), sandi "password".
 ```
 

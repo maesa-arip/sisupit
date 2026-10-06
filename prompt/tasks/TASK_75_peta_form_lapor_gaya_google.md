@@ -6,7 +6,7 @@
 | Severity | P2 |
 | Tipe | perbaikan UX + bug pencarian |
 | Sumber | FINDINGS_LOG #188 / permintaan user 2026-10-07 |
-| Status | DONE (lokal, belum di-commit/deploy) |
+| Status | DONE - TERDEPLOY PROD @eb006bb1 (2026-10-07) |
 
 ---
 
@@ -71,4 +71,4 @@ tombol kembali ke GPS; hasil cari tanpa jarak & tanpa bias lokasi; debounce 1 de
 
 - Uji di HP/APK sungguhan (geser satu jari, cubit zoom, tombol lokasi).
 - Masukan #8 mode Satelit (butuh penyedia citra) - OPEN di FINDINGS #188.
-- Commit & deploy menunggu permintaan user.
+- Commit eb006bb1, TERDEPLOY PROD 2026-10-07 lewat konsol user; bundel Create-CiTebKPd.js terverifikasi HTTPS.

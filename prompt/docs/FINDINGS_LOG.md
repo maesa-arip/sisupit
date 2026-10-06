@@ -4448,5 +4448,5 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   859 m di urutan pertama; geser peta -> titik & desa berganti (Panjer) dengan TEPAT 1 reverse-geocode (tanpa loop);
   "Lokasi saya" kembali ke GPS; mode sentuh: zoom tersembunyi, tombol lokasi ada, tombol salin hilang. Chrome MCP: pilih
   hasil "jln gatot subroto" -> pin & desa 5171022005 terisi. **Belum diuji di HP sungguhan** (geser satu jari di APK).
-- **Status:** FIXED 2026-10-07 (lokal, belum di-commit/deploy). Test `GeocodeControllerTest` (+11) &
+- **Status:** FIXED 2026-10-07, TERDEPLOY PROD @eb006bb1 (2026-10-07; Create-CiTebKPd.js terverifikasi HTTPS, tanpa migrasi). Test `GeocodeControllerTest` (+11) &
   `ReportFormMapGoogleStyleTest` (4). Rincian: `prompt/tasks/TASK_75_peta_form_lapor_gaya_google.md`.
