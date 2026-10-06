@@ -54,9 +54,12 @@ git log --oneline -- mobile/                        # apa yang berubah sejak ter
 Baca `CHANGELOG_ANDROID.md` dari atas sampai entri yang sudah di-port, kerjakan butir
 "Yang harus dilakukan iOS", lalu perbarui `PARITAS.md` dan commit.
 
-## Keadaan per 2026-09-30
+## Keadaan per 2026-10-06
 
-- APK **1.1.5 / versionCode 7**, targetSdk 36, sedang uji tertutup Google Play
-  (12 penguji × 14 hari).
-- Web produksi @`9988587e` (#158 push iOS status pelapor & nada OPD terdeploy).
-- iOS: sedang dikerjakan (lihat `PARITAS.md`).
+- APK **1.1.6 / versionCode 8**, minSdk 24, targetSdk 36, build Play Store (kunci unggah
+  `sisupit-upload.jks`) untuk uji tertutup Google Play (12 penguji × 14 hari). SHA-1 Play App
+  Signing belum didaftarkan ke Firebase.
+- Web produksi @`f6de6380`: termasuk TASK_69 (safe area/`viewport-fit=cover`), TASK_73
+  (sesi aplikasi & token FCM), TASK_74 (Profil > "Notifikasi di HP ini").
+- iOS: mulai dikerjakan - titik awal = semua butir `[ ]` di `CHANGELOG_ANDROID.md` +
+  kolom iOS `PARITAS.md`.

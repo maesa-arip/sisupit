@@ -35,7 +35,7 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 
 ```
 Task aktif   : RILIS GOOGLE PLAY (2026-09-30). Akun Play Console PRIBADI (tanpa D-U-N-S),
-                wajib uji tertutup 12 penguji x 14 hari. APK 1.1.5/vc7 (targetSdk 36, kunci
+                wajib uji tertutup 12 penguji x 14 hari. APK 1.1.6/vc8 (targetSdk 36, kunci
                 unggah sisupit-upload.jks; AAB siap; rincian di memori WebView & folder mobile/).
                 SISA: SHA-1 Play App Signing ke Firebase, uji di HP.
 Terakhir     : #159/TASK_69 lapisan platform ponsel (hover sentuh, tap, active Button, 16px iOS,

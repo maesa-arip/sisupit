@@ -1,7 +1,7 @@
 # Kontrak Web ↔ Native (Android & iOS)
 
-Diverifikasi langsung dari kode pada **2026-09-30**: repo web @`0ed89dd5` dan sumber APK
-1.1.5/vc7 (`MainActivity.java`, `SisupitFirebaseMessagingService.java`). Rujukan baris
+Diverifikasi langsung dari kode pada **2026-10-06**: repo web @`ee72b990` (= prod @`f6de6380`
++ dokumen) dan sumber APK 1.1.6/vc8 (`MainActivity.java`, `SisupitFirebaseMessagingService.java`). Rujukan baris
 menunjuk repo web kecuali disebut lain.
 
 ---
@@ -19,11 +19,16 @@ Yang membacanya:
 
 - `app/Http/Controllers/HomeController.php` - `/` me-redirect aplikasi: tamu → `/spotlight`,
   sudah login → `/dashboard` (browser tetap melihat landing).
+- `app/Helpers/helpers.php` `isNativeApp()` (TASK_73) - dipakai `LoginRequest` dan
+  `RegisteredUserController`: di aplikasi login **selalu "ingat saya"**. **Tanpa token UA ini sesi
+  HP habis 120 menit → halaman tamu melepas token FCM → HP berhenti menerima sirine diam-diam.**
+- `lib/fcm-device.js` (TASK_74) - kartu Profil "Notifikasi di HP ini": UA aplikasi = status
+  `checking`, browser = `browser`. Jembatan tak terdeteksi dalam 15 dtk = `inactive`.
 - `Pages/Landing.jsx` - jaring pengaman sisi klien untuk hal yang sama.
 - `Pages/{Home,Spotlight,Auth/Login,Profile/Edit}.jsx` - menyembunyikan tombol
   "Unduh APK" bila UA = `SisupitApp` **atau** WebView iOS
   (`/(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/`).
-- `Layouts/AppLayout.jsx:34` - `device_type` token FCM: `ios` bila UA memuat
+- `Layouts/AppLayout.jsx:43` - `device_type` token FCM: `ios` bila UA memuat
   `iPhone|iPad|iPod`, selain itu `android`.
   **Awas iPad:** iPadOS 13+ ber-UA "Macintosh" → tercatat `android`. Lihat `PARITAS.md` §Celah.
 
@@ -69,7 +74,7 @@ Android saat ini menyambung string dan meng-escape `\ ' \n \r` untuk pesan galat
 
 | Callback | Arti | Dipasang di |
 |---|---|---|
-| `window.receiveFcmTokenFromNative(token)` | token FCM perangkat. Sengaja **tidak** dihapus saat unmount - balasan async bisa datang sesudah pindah halaman | `AppLayout.jsx:60` |
+| `window.receiveFcmTokenFromNative(token)` | token FCM perangkat. Sengaja **tidak** dihapus saat unmount - balasan async bisa datang sesudah pindah halaman. Ada **dua versi**: `AppLayout.jsx:75` (login → mendaftarkan) dan `lib/release-fcm-token.js` (tamu → melepas, TASK_73). Native wajib memanggil `window.receiveFcmTokenFromNative` yang terpasang SAAT membalas, jangan menyimpan referensinya | `AppLayout.jsx:75`, `lib/release-fcm-token.js` |
 | `window.onGoogleCredential(idToken)` | Google **ID token** (bukan access token). Web mem-POST ke `/auth/google/native` | `Login.jsx`, `Register.jsx` |
 | `window.onGoogleSignInCancelled()` | user membatalkan picker | idem |
 | `window.onGoogleSignInError(msg)` | gagal (Login menampilkan `msg` sebagai Alert merah). Bila halaman tak punya handler ini, Android jatuh ke `onGoogleSignInCancelled` | idem |

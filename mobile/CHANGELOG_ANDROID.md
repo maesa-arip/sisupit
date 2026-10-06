@@ -8,6 +8,36 @@ iOS** sebagai daftar centang. Sisi iOS mencentang (`[x]`) saat sudah di-port.
 
 ---
 
+## (web saja, APK tetap 1.1.6) - 2026-10-01 s/d 10-05 - safe area, sesi aplikasi & token FCM (TASK_69/73/74)
+
+Tak ada perubahan kode APK; perubahan web ini mengubah apa yang diharapkan dari wrapper.
+
+- **TASK_69** (prod @3d1e56e3): `viewport-fit=cover` di `app.blade.php`, web memakai
+  `env(safe-area-inset-bottom)` (bilah bawah, ruang konten `AppLayout`, form lapor, toast);
+  input 16px (iOS tak lagi zoom saat fokus); `dvh`. Android memberi padding inset di root view,
+  jadi di APK `env()` = 0.
+- **TASK_73/#181** (prod @198d6c0f): UA `SisupitApp` kini juga dibaca SERVER (`isNativeApp()`,
+  `app/Helpers/helpers.php`) - login/daftar di aplikasi selalu "ingat saya". Halaman tamu di
+  aplikasi memanggil `postToken('')` lalu melepas token lewat `fcm.release`
+  (`lib/release-fcm-token.js`, menimpa `window.receiveFcmTokenFromNative`). Keluar =
+  `logoutCurrentDevice`; ada "Keluar dari semua perangkat".
+- **TASK_74/#182** (prod @198d6c0f): Profil > "Notifikasi di HP ini" - status dari jembatan
+  (`lib/fcm-device.js`); jembatan tak terdeteksi dalam 15 dtk = "Belum aktif". Tombol uji
+  (`fcm.test`) mengirim payload asli + `is_test: "1"`.
+
+**Yang harus dilakukan iOS**
+- [ ] UA WAJIB memuat `SisupitApp` (KONTRAK §1). Tanpa itu sesi iPhone habis 120 menit, halaman
+      tamu melepas token, dan HP berhenti menerima sirine tanpa tanda apa pun.
+- [ ] Shim `window.AndroidBridge` dipasang `atDocumentStart` (terdeteksi < 15 dtk).
+- [ ] Balas `postToken` dengan memanggil `window.receiveFcmTokenFromNative` yang terpasang SAAT
+      itu (dievaluasi tiap kali, jangan disimpan) - halaman tamu & AppLayout memasang versi berbeda.
+- [ ] Safe area: pilih SATU - WebView dibatasi ke safe area (seperti Android, `env()` = 0), ATAU
+      penuh layar dengan `scrollView.contentInsetAdjustmentBehavior = .never` (web yang mengisi
+      `env()`). Penuh layar + `.automatic` = jarak bawah dobel (PERILAKU #7).
+- [ ] Uji Profil > "Notifikasi di HP ini": status "Aktif" dan tiap tombol uji berbunyi sesuai
+      `aps.sound` (KONTRAK §4.3) di perangkat fisik.
+- [ ] Uji Keluar → tidak ada notifikasi lagi; login lagi → notifikasi kembali.
+
 ## 1.1.6 / versionCode 8 (build Play Store) - 2026-10-04 - minSdk 21 -> 24, alamat produksi
 
 - Play Console menolak AAB: "Play automatic protection requires a minimum SDK version of 24".
@@ -35,7 +65,7 @@ iOS** sebagai daftar centang. Sisi iOS mencentang (`[x]`) saat sudah di-port.
 - [ ] Bila memakai `UIRefreshControl`: kunci jangan dilepas oleh callback navigasi satu dokumen
       (pushState/replaceState) - hanya saat dokumen baru dimuat.
 
-## (belum dirilis) - 2026-10-01 - warna status bar & bilah navigasi di Android 15+
+## 1.1.6 / versionCode 8 - 2026-10-01 - warna status bar & bilah navigasi di Android 15+ (ikut rilis 1.1.6)
 
 - **Bug 1.1.5 (targetSdk 36):** Android 15+ memaksa edge-to-edge dan MENGABAIKAN
   `setStatusBarColor`/`setNavigationBarColor`; yang tampil di area bilah adalah latar view akar yang
@@ -45,7 +75,8 @@ iOS** sebagai daftar centang. Sisi iOS mencentang (`[x]`) saat sudah di-port.
   mewarnai `rootView` + decorView dengan warna halaman; `set{Status,Navigation}BarContrastEnforced(false)`
   (API 29+). Cadangan `MainActivity.java.bak-insetbg`.
 - **AAB Play Store 1.1.5 yang sudah dibangun (`backup-sisupit-wrapper/playstore/`) MEMBAWA BUG INI** -
-  bangun ulang `bundleRelease` sebelum diunggah ke uji tertutup.
+  bangun ulang `bundleRelease` sebelum diunggah ke uji tertutup. (Sudah: AAB 1.1.6/vc8 2026-10-04
+  dibangun dari sumber yang memuat fix ini.)
 
 **Yang harus dilakukan iOS:**
 - [ ] Warnai area di belakang safe area atas & bawah dengan warna latar halaman (padanan PERILAKU #8),
