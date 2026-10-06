@@ -4404,5 +4404,6 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   bilah bawah `none`, bar Kirim 0px dari bawah, Patokan di 200-244 (antara header 64 & bar 371) = terlihat; pindah ke
   Detail 172-272 terlihat; keyboard tutup -> semua kembali. Uji Chrome biasa TAK SAH: tab `visibilityState: hidden`
   menahan rAF & resize. **Belum diuji di HP** (keyboard sungguhan).
-- **Status:** FIXED 2026-10-07 (belum deploy). Test `KeyboardOpenLayoutTest` (4; sabotase varian hidden -> merah,
+- **Status:** FIXED 2026-10-07, TERDEPLOY PROD @2866d5ab (2026-10-07; app-Cb2RvM_4.js, app-BWxX_G07.css & AppLayout-DdbqSQNw.js
+  terverifikasi HTTPS; deploy sempat tertahan di `git pull` lalu dijalankan ulang user). Test `KeyboardOpenLayoutTest` (4; sabotase varian hidden -> merah,
   dipulihkan `cmp`-identik). Catatan iOS di `mobile/CHANGELOG_ANDROID.md`.

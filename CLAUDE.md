@@ -85,7 +85,7 @@ TASK_74/#182 : (2026-10-05, TERDEPLOY PROD @198d6c0f) Profil > "Notifikasi di HP
                 full rollout, managed publishing off) 2026-10-06; belum diuji di HP.
 #186         : (2026-10-06, TERDEPLOY PROD @acf527b8) riwayat ketikan muncul di kolom isian (patokan lokasi dll.): bawaan
                 autoComplete="off" di ui/input & ui/textarea; kolom data milik pengguna tetap eksplisit (CONVENTIONS).
-#187         : (2026-10-07, belum deploy) keyboard APK menutup Patokan Lokasi: lib/keyboard-open.js -> <html data-keyboard>,
+#187         : (2026-10-07, TERDEPLOY PROD @2866d5ab, HTTPS terverifikasi) keyboard APK menutup Patokan Lokasi: lib/keyboard-open.js -> <html data-keyboard>,
                 bilah bawah sembunyi, bar Kirim di atas keyboard, kolom ditengahkan. Web saja; belum diuji di HP.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
                 kolom approved_at tetap. #178 i18n TERDEPLOY prod @dde8c6a4; #179 (ikon, paginasi PaginationLinks, email).
@@ -100,7 +100,7 @@ Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174.
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
 Test         : 745 passed, 3755 assertions (2026-10-07, + #187 KeyboardOpenLayoutTest).
-Lingkungan   : PROD @acf527b8 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#186) | DEV @672b6a10 (dashboard baru) | STAGING @6d1dc8ea (dashboard
+Lingkungan   : PROD @2866d5ab (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#187) | DEV @672b6a10 (dashboard baru) | STAGING @6d1dc8ea (dashboard
                 sebelumnya, untuk perbandingan). Dev & staging: data salinan prod, basic auth (APK dikecualikan), sandi "password".
 ```
 
