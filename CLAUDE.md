@@ -87,6 +87,9 @@ TASK_74/#182 : (2026-10-05, TERDEPLOY PROD @198d6c0f) Profil > "Notifikasi di HP
                 autoComplete="off" di ui/input & ui/textarea; kolom data milik pengguna tetap eksplisit (CONVENTIONS).
 #187         : (2026-10-07, TERDEPLOY PROD @2866d5ab, HTTPS terverifikasi) keyboard APK menutup Patokan Lokasi: lib/keyboard-open.js -> <html data-keyboard>,
                 bilah bawah sembunyi, bar Kirim di atas keyboard, kolom ditengahkan. Web saja; belum diuji di HP.
+#188/TASK_75 : (2026-10-07, LOKAL belum commit/deploy) peta form lapor gaya Google: cari di atas peta, pin diam di tengah
+                (UserLeafletMap centerPin), Lokasi saya, urut jarak; kartu Wilayah digabung ke kartu peta (baris lokasi + "Ubah"); "Salin ke patokan" dihapus;
+                GeocodeController paham jl/jln/gg + viewbox pin. Satelit OPEN. Belum diuji di HP.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
                 kolom approved_at tetap. #178 i18n TERDEPLOY prod @dde8c6a4; #179 (ikon, paginasi PaginationLinks, email).
                 #180 terjemahan bawaan Laravel dari paket laravel-lang/common (DEV) TERDEPLOY prod @9bf7b103; paginasi tetap versi #178 -
@@ -97,9 +100,9 @@ SEMENTARA    : #149 menu "Jangkauan Petugas" disembunyikan + foto laporan non-ke
 Belum dicek  : visual di ponsel/APK untuk banyak perubahan UI (tombol merah brand, pop-up,
                 combobox, dashboard, bilah bawah) - daftar per task di STATUS_LOG.
 Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115 #119 #121
-                #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174.
+                #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174 #188(satelit).
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
-Test         : 745 passed, 3755 assertions (2026-10-07, + #187 KeyboardOpenLayoutTest).
+Test         : 761 passed, 3800 assertions (2026-10-07, + #188 peta form lapor + kartu wilayah digabung).
 Lingkungan   : PROD @2866d5ab (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#187) | DEV @672b6a10 (dashboard baru) | STAGING @6d1dc8ea (dashboard
                 sebelumnya, untuk perbandingan). Dev & staging: data salinan prod, basic auth (APK dikecualikan), sandi "password".
 ```
@@ -126,7 +129,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-10-07: 745 passed, 3755 assertions - + #187 KeyboardOpenLayoutTest;
+Test      : php artisan test            (baseline 2026-10-07: 761 passed, 3800 assertions - + #188 peta form lapor & kartu wilayah digabung;
             lokal: php -d memory_limit=1G -d extension=php_sqlite3.dll -d extension=pdo_sqlite vendor/bin/pest.
             Perbarui angka ini tiap kali test bertambah - baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan. Riwayat angkanya di STATUS_LOG.md)

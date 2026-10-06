@@ -27,7 +27,6 @@ import {
 	IconCar,
 	IconChevronDown,
 	IconCloudUpload,
-	IconCurrentLocation,
 	IconDotsCircleHorizontal,
 	IconFiretruck,
 	IconFlame,
@@ -131,6 +130,20 @@ const regionCoords = (item) => {
 	}
 };
 
+// Jarak garis-lurus (meter) haversine - taksiran "seberapa jauh dari saya" di tiap hasil
+// pencarian, seperti Google Maps (#188). Pola sama dengan ReportCard/Petugas Dashboard.
+function distanceMeters(lat1, lng1, lat2, lng2) {
+	const R = 6371000;
+	const toRad = (d) => (d * Math.PI) / 180;
+	const dLat = toRad(lat2 - lat1);
+	const dLng = toRad(lng2 - lng1);
+	const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+	return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+const formatJarak = (meter) =>
+	meter < 1000 ? `${Math.round(meter)} m` : `${(meter / 1000).toFixed(1).replace('.', ',')} km`;
+
 const regionName = (list, code) => (code ? list.find((item) => item.code === code)?.name || '' : '');
 
 export default function Create(props) {
@@ -151,6 +164,10 @@ export default function Create(props) {
 	const [userLocation, setUserLocation] = useState(null);
 	const [locationLoading, setLocationLoading] = useState(true);
 	const [friendlyAddress, setFriendlyAddress] = useState('');
+	// Kartu titik pin gaya Google Maps (#188): baris tebal = jalan + nomor, baris kedua =
+	// desa, kecamatan, kota. Hanya tampil selama `data.geo_address` terisi (keduanya ditulis
+	// bersamaan di resolveLocation), jadi nilai basi tak pernah terlihat.
+	const [pinPlace, setPinPlace] = useState({ title: '', detail: '' });
 
 	// POSISI PELAPOR yang sebenarnya, dipakai server untuk menetapkan `reports.location_source`
 	// (TASK_52, #104). SENGAJA ref tersendiri dan BUKAN `userLocation` di atas: state itu
@@ -183,6 +200,10 @@ export default function Create(props) {
 	const [districts, setDistricts] = useState([]);
 	const [villages, setVillages] = useState([]);
 	const [mapZoom, setMapZoom] = useState(null);
+	// Panel empat pilihan wilayah, dilipat di bawah peta (#188 lanjutan, permintaan user
+	// 2026-10-07: kartu "Wilayah kejadian" terpisah boros tempat & membingungkan - dua kartu
+	// seolah dua lokasi berbeda). Terbuka paksa saat desa belum terisi, lihat regionForced.
+	const [regionOpen, setRegionOpen] = useState(false);
 
 	// Pencarian tempat (pola Admin/Hydrants/Create): operator mengetik nama jalan/desa,
 	// memilih hasilnya, lalu provinsi..desa terisi sendiri dari titik itu — tak perlu
@@ -306,6 +327,23 @@ export default function Create(props) {
 				// pin dihitung lalu dibuang saat mode manual (locSubtitle memilih label wilayah),
 				// sehingga menggeser pin terasa "tidak terjadi apa-apa".
 				const geoAddress = alamatTerbaca(response.data.display_name);
+				// Kartu titik: jalan + nomor sebagai judul; tanpa jalan, nama kelurahan yang naik
+				// jadi judul. Kecamatan di data Bali tersimpan di `town` ("Denpasar Barat").
+				const placeParts = [
+					addr.village || addr.suburb,
+					addr.city_district || addr.district || addr.town,
+					addr.city || addr.county || addr.regency,
+				]
+					.map((part) => alamatTerbaca(part || ''))
+					.filter(Boolean);
+				const placeTitle =
+					alamatTerbaca([roadName, addr.house_number].filter(Boolean).join(' ')) ||
+					placeParts.shift() ||
+					geoAddress.split(',')[0];
+				setPinPlace({
+					title: placeTitle,
+					detail: [...new Set(placeParts)].filter((part) => part !== placeTitle).join(', '),
+				});
 
 				// 2. AUTO-FILL YURISDIKSI (OMNI-SEARCH GAIB)
 				let pCode = '',
@@ -430,10 +468,10 @@ export default function Create(props) {
 					applyUntrustedPoint(
 						coords.latitude,
 						coords.longitude,
-						'Lokasi kurang akurat - geser pin merah tepat ke titik kejadian.',
+						'Lokasi kurang akurat - geser peta sampai pin merah tepat di titik kejadian.',
 					);
 					setLocationLoading(false);
-					toast.warning('Lokasi kurang akurat. Geser pin merah di peta tepat ke titik kejadian.');
+					toast.warning('Lokasi kurang akurat. Geser peta sampai pin merah tepat di titik kejadian.');
 					return;
 				}
 
@@ -453,10 +491,12 @@ export default function Create(props) {
 				applyUntrustedPoint(
 					DEFAULT_MAP_CENTER.lat,
 					DEFAULT_MAP_CENTER.lng,
-					'Lokasi tak terdeteksi - geser pin merah ke titik kejadian.',
+					'Lokasi tak terdeteksi - geser peta sampai pin merah di titik kejadian.',
 				);
 				setLocationLoading(false);
-				toast.error('Gagal melacak lokasi. Pastikan izin/GPS aktif, lalu geser pin merah & isi patokan.');
+				toast.error(
+					'Gagal melacak lokasi. Pastikan izin/GPS aktif, lalu geser peta ke titik kejadian & isi patokan.',
+				);
 			});
 	};
 
@@ -464,6 +504,13 @@ export default function Create(props) {
 	const handleMarkerDrag = (latitude, longitude) => {
 		setLocationLoading(true);
 		resolveLocation(latitude, longitude);
+	};
+
+	// Tombol "Lokasi saya" di peta (#188): kembali ke posisi GPS pelapor. Mencabut tanda
+	// "titik sudah dipilih pemakai" lebih dulu - di sinilah pemakai sendiri yang memintanya.
+	const locateMe = () => {
+		regionTouchedRef.current = false;
+		getUserLocation();
 	};
 
 	useEffect(() => {
@@ -580,11 +627,21 @@ export default function Create(props) {
 		setSearchStatus('loading');
 
 		axios
-			.get(route('api.geocode.search'), { params: { q } })
+			// Titik pin ikut dikirim: server mendahulukan hasil di sekitarnya (#188).
+			.get(route('api.geocode.search'), { params: { q, lat: data.lat || undefined, lng: data.lng || undefined } })
 			.then((res) => {
 				if (seq !== searchSeqRef.current) return;
 
-				setSearchResults(Array.isArray(res.data) ? res.data : []);
+				const rows = Array.isArray(res.data) ? res.data : [];
+				const gps = gpsFixRef.current;
+				// Yang terdekat dari pelapor di atas (#188) - lima teratas Nominatim sama-sama
+				// relevan (mis. lima ruas "Jalan Teuku Umar"), jarak yang memisahkannya.
+				// Tanpa GPS urutan relevansi Nominatim dipertahankan.
+				const jarakKe = (row) => {
+					const meter = distanceMeters(gps.lat, gps.lng, parseFloat(row.lat), parseFloat(row.lon));
+					return Number.isFinite(meter) ? meter : Infinity;
+				};
+				setSearchResults(gps ? [...rows].sort((a, b) => jarakKe(a) - jarakKe(b)) : rows);
 				setSearchStatus('done');
 			})
 			.catch(() => {
@@ -600,8 +657,9 @@ export default function Create(props) {
 			});
 	};
 
-	// Pencarian tempat, debounce 1 detik: Nominatim dibatasi ~1 request/detik dan seluruh
-	// panggilan lewat proxy GeocodeController (cache 24 jam + lock antrean).
+	// Pencarian tempat, debounce 500 ms (dulu 1 detik; #188 - terasa lamban dibanding Google
+	// Maps). Lonjakan ketikan tetap aman: seluruh panggilan lewat proxy GeocodeController
+	// (cache 24 jam + lock antrean) dan penjaga balapan searchSeqRef membuang balasan basi.
 	useEffect(() => {
 		if (searchQuery.trim().length < 3) {
 			setSearchResults([]);
@@ -620,7 +678,7 @@ export default function Create(props) {
 
 		setSearchStatus('loading');
 
-		const timer = setTimeout(() => runSearch(searchQuery), 1000);
+		const timer = setTimeout(() => runSearch(searchQuery), 500);
 
 		return () => clearTimeout(timer);
 	}, [searchQuery]);
@@ -651,14 +709,16 @@ export default function Create(props) {
 		resolveLocation(latitude, longitude);
 	};
 
-	// Ringkasan wilayah terpilih untuk baris keterangan di kepala bagian lokasi.
-	const manualRegionLabel = [
-		regionName(villages, data.village_code) && `Desa/Kel. ${regionName(villages, data.village_code)}`,
-		regionName(districts, data.district_code) && `Kec. ${regionName(districts, data.district_code)}`,
+	// Wilayah terpilih (desa, kecamatan, kota) untuk baris di bawah peta - nama saja, tanpa
+	// awalan "Desa/Kel."/"Kec." supaya muat di ponsel. Tabel laravolt menulis HURUF BESAR
+	// ("KOTA DENPASAR"); dirapikan jadi huruf awal kapital agar tak terbaca berteriak.
+	const regionParts = [
+		regionName(villages, data.village_code),
+		regionName(districts, data.district_code),
 		regionName(cities, data.city_code),
 	]
 		.filter(Boolean)
-		.join(', ');
+		.map((name) => name.toLowerCase().replace(/(^|[\s(/-])\p{L}/gu, (c) => c.toUpperCase()));
 
 	const onHandleChange = (e) => setData(e.target.name, e.target.value);
 
@@ -746,7 +806,7 @@ export default function Create(props) {
 		}
 
 		if (!data.lat || !data.lng) {
-			toast.warning('Lokasi belum terisi. Geser pin merah di peta ke titik kejadian.');
+			toast.warning('Lokasi belum terisi. Geser peta sampai pin merah di titik kejadian.');
 			return;
 		}
 
@@ -758,7 +818,8 @@ export default function Create(props) {
 		// jadi penjaganya pun berlaku untuk semua orang dan menunjuk ke sesuatu yang benar
 		// benar bisa dibetulkan pelapor.
 		if (data._method === 'POST' && !data.village_code) {
-			toast.warning('Lengkapi wilayah kejadian sampai desa/kelurahan di bagian Wilayah Kejadian.');
+			setRegionOpen(true);
+			toast.warning('Pilih desa/kelurahan kejadian di bawah peta.');
 			return;
 		}
 
@@ -813,10 +874,27 @@ export default function Create(props) {
 					? 'Lengkapi wilayah kejadian'
 					: 'GPS gagal';
 
-	// Baris keterangan di bawah judul: alamat hasil reverse-geocode, dan bila pin baru saja
-	// dilompatkan ke centroid wilayah (belum ada alamat) nama wilayahnya yang tampil —
-	// bukan baris kosong.
-	const locSubtitle = friendlyAddress || manualRegionLabel;
+	// Baris lokasi di bawah peta (#188): SATU baris menggantikan kepala status GPS, kartu alamat,
+	// dan kartu Wilayah Kejadian yang dulu terpisah. Judul = alamat titik pin (atau pesan GPS
+	// bila belum ada alamat); keterangan = wilayah yang akan tercatat.
+	const placeTitle =
+		!locationLoading && data.geo_address ? pinPlace.title || data.geo_address.split(',')[0] : locTitle;
+	// Wilayah tanpa nama yang sudah jadi judul ("Dauh Puri Kelod" tak perlu ditulis dua kali).
+	// Belum ada alamat → pesan GPS (mis. "Lokasi kurang akurat - geser peta...") yang tampil.
+	const placeSubtitle = locationLoading
+		? ''
+		: data.village_code
+			? regionParts.filter((name) => name.toLowerCase() !== placeTitle.toLowerCase()).join(', ') ||
+				pinPlace.detail
+			: !data.geo_address
+				? friendlyAddress
+				: '';
+	// Desa belum terisi (pencocokan nama OSM kerap berhenti di kecamatan) atau server menolak
+	// kode wilayah -> pilihan wilayah terbuka sendiri, tak bisa ditutup sampai beres.
+	const regionForced =
+		(!locationLoading && !!data.lat && !data.village_code) ||
+		!!(errors.province_code || errors.city_code || errors.district_code || errors.village_code);
+	const regionPanelOpen = regionOpen || regionForced;
 
 	// Notice arah laporan (TASK_17): begitu kota (city_code) ter-resolve dari pin, tampilkan
 	// tujuan. Kota tanpa tenant terdaftar → warga diarahkan ke 113 (jujur, tanpa jaminan palsu).
@@ -855,101 +933,260 @@ export default function Create(props) {
 						<h2 className="px-4 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
 							Lokasi kejadian
 						</h2>
-						<div className="space-y-4 rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
-							{/* Header Lokasi & Status GPS — hijau siap / kuning kurang akurat / merah gagal */}
-							<div className="flex items-center gap-3">
-								{locState === 'scanning' ? (
-									<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-info/10 text-info">
-										<IconLoader2 className="h-4 w-4 animate-spin" />
-									</div>
-								) : locState === 'ready' ? (
-									<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-success/10 text-success">
-										<IconMapPinFilled className="h-4 w-4" />
-									</div>
-								) : locState === 'weak' ? (
-									<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-warning/10 text-warning">
-										<IconAlertTriangle className="h-4 w-4" />
-									</div>
-								) : (
-									<div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
-										<IconAlertTriangle className="h-4 w-4" />
-									</div>
-								)}
-
-								<div className="min-w-0 flex-1 pb-2">
-									<p className="text-[15px] font-semibold text-foreground">{locTitle}</p>
-									{locSubtitle && !locationLoading && (
-										<p className="mt-0.5 truncate text-[13px] text-muted-foreground">
-											{locSubtitle}
-										</p>
-									)}
+						<div className="space-y-3 rounded-2xl border border-border/70 bg-card p-3 shadow-sm">
+							{/* Peta gaya Google Maps (#188): kolom cari menempel di atas peta, pin diam di
+							    tengah & PETANYA yang digeser, tombol "Lokasi saya" di kanan bawah. Kolom
+							    cari dulu berada di bagian Wilayah Kejadian, di bawah peta - tak terlihat
+							    saat pelapor sedang memandangi peta. Wadah luar sengaja TANPA
+							    overflow-hidden supaya daftar hasil boleh menjulur melewati tepi peta. */}
+							<div className="relative">
+								<div className="relative z-0 h-[280px] w-full overflow-hidden rounded-xl bg-muted sm:h-[340px]">
+									<UserLeafletMap
+										lat={data.lat}
+										lng={data.lng}
+										centerPin
+										autoLocate={false}
+										onLocationChange={handleMarkerDrag}
+										onLocate={locateMe}
+										zoom={mapZoom}
+										clickToPlace
+									/>
 								</div>
-							</div>
 
-							{/* Peta - pin bisa digeser untuk mengoreksi titik lokasi */}
-							<div className="relative z-0 h-[220px] w-full overflow-hidden rounded-xl bg-muted sm:h-[280px]">
-								<UserLeafletMap
-									lat={data.lat}
-									lng={data.lng}
-									draggable
-									autoLocate={false}
-									onLocationChange={handleMarkerDrag}
-									zoom={mapZoom}
-									clickToPlace
-								/>
-							</div>
-							<p className="mt-1.5 text-xs text-muted-foreground">
-								Klik peta atau geser pin merah ke titik kejadian - wilayah di atas ikut menyesuaikan
-								otomatis.
-							</p>
+								<div className="absolute inset-x-2 top-2 z-10">
+									{/* Latar & bayangan di PEMBUNGKUS, bukan di Input: filledFieldsClass pada
+									    <form> menimpa latar input (selektor leluhur lebih spesifik) sehingga
+									    kolomnya tembus pandang di atas peta. */}
+									<div className="relative w-full rounded-xl bg-card shadow-md">
+										<IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+										<Input
+											value={searchQuery}
+											onChange={(e) => setSearchQuery(e.target.value)}
+											onKeyDown={(e) => {
+												if (e.key !== 'Enter') return;
 
-							{/* Alamat lengkap hasil reverse-geocode. TIGA keadaan yang selalu terlihat —
-									    mencari / ketemu / belum ada — supaya menggeser pin tidak pernah terasa
-									    "diam tanpa hasil". Read-only: mesin tidak menimpa patokan yang diketik
-									    manusia, tapi menyediakan tombol salin sekali klik. Ikut dibuka untuk
-									    warga (2026-09-01): ia satu-satunya umpan balik yang membuktikan pin
-									    yang baru digeser benar-benar mendarat di tempat yang dimaksud. */}
-							<div className="rounded-xl bg-muted/50 p-3">
-								<div className="flex items-start justify-between gap-2">
-									<div className="min-w-0">
-										<p className="text-[13px] font-semibold text-foreground">
-											Alamat lengkap (otomatis)
-										</p>
-										<p className="mt-0.5 break-words text-[13px] text-muted-foreground">
-											{locationLoading
-												? 'Mencari alamat titik ini...'
-												: data.geo_address ||
-													'Belum ada - klik peta atau geser pin ke titik kejadian.'}
-										</p>
-									</div>
-
-									{data.geo_address && !locationLoading && (
-										<Button
-											type="button"
-											variant="outline"
-											size="sm"
-											className="h-8 shrink-0 text-xs"
-											onClick={() => {
-												setData('address', data.geo_address);
-												toast.success('Alamat disalin ke Patokan Lokasi.');
+												// Kotak ini ada DI DALAM <form> laporan: tanpa
+												// preventDefault, Enter mengirim laporan darurat.
+												// Enter di sini artinya "cari sekarang".
+												e.preventDefault();
+												runSearch(searchQuery);
 											}}
-										>
-											Salin ke patokan
-										</Button>
+											enterKeyHint="search"
+											aria-label="Cari lokasi kejadian"
+											placeholder="Cari jalan, desa, atau tempat"
+											className="h-11 rounded-xl pl-9 pr-10 focus-visible:ring-2 focus-visible:ring-primary/30"
+										/>
+										{isSearching && (
+											<div className="pointer-events-none absolute right-3 top-1/2 flex -translate-y-1/2 items-center">
+												<IconLoader2 className="h-4 w-4 animate-spin text-destructive" />
+											</div>
+										)}
+									</div>
+
+									{/* Hasil kosong & permintaan gagal DITAMPILKAN, tidak dibiarkan
+									    senyap: dulu keduanya sama-sama "tidak terjadi apa-apa".
+									    Singkatan jl/jln/gg dan kata terakhir yang belum selesai
+									    diketik sudah ditangani server (GeocodeController). */}
+									{(searchStatus === 'done' || searchStatus === 'error') &&
+										searchResults.length === 0 && (
+											<div className="mt-1 rounded-xl border border-border bg-popover p-3 text-xs text-muted-foreground shadow-lg">
+												{searchStatus === 'error' ? (
+													<span className="text-destructive">
+														Pencarian gagal. Tekan Enter untuk mencoba lagi, atau pilih
+														wilayah lewat pilihan di bagian Wilayah Kejadian.
+													</span>
+												) : (
+													<>
+														Tidak ada hasil untuk
+														<span className="font-semibold text-foreground">
+															{' '}
+															{searchQuery.trim()}
+														</span>
+														. Coba kata kunci lain, atau geser peta ke titik kejadian.
+													</>
+												)}
+											</div>
+										)}
+
+									{searchResults.length > 0 && (
+										<div className="mt-1 max-h-60 overflow-y-auto rounded-xl border border-border bg-popover text-popover-foreground shadow-lg">
+											{searchResults.map((res, idx) => {
+												const resLat = parseFloat(res.lat);
+												const resLng = parseFloat(res.lon);
+												// Jarak dari posisi pelapor yang sebenarnya (GPS), bukan dari
+												// pin - pin bisa saja sudah digeser ke mana-mana.
+												const jarak =
+													gpsFixRef.current &&
+													Number.isFinite(resLat) &&
+													Number.isFinite(resLng)
+														? formatJarak(
+																distanceMeters(
+																	gpsFixRef.current.lat,
+																	gpsFixRef.current.lng,
+																	resLat,
+																	resLng,
+																),
+															)
+														: null;
+
+												return (
+													<button
+														key={idx}
+														type="button"
+														onClick={() => selectSearchResult(res)}
+														className="flex w-full gap-2 border-b border-border px-3 py-2.5 text-left text-xs transition-colors last:border-0 hover:bg-accent"
+													>
+														<IconMapPinFilled className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+														<div className="min-w-0 flex-1">
+															<p className="truncate text-[13px] font-semibold">
+																{alamatTerbaca(res.name) ||
+																	alamatTerbaca(res.display_name).split(',')[0]}
+															</p>
+															<p className="mt-0.5 truncate text-muted-foreground">
+																{alamatTerbaca(res.display_name)}
+															</p>
+														</div>
+														{jarak && (
+															<span className="mt-0.5 shrink-0 text-muted-foreground">
+																{jarak}
+															</span>
+														)}
+													</button>
+												);
+											})}
+										</div>
 									)}
 								</div>
 							</div>
+							{/* Baris lokasi + wilayah (#188): menggantikan kepala status GPS, kartu alamat titik pin,
+							    dan kartu "Wilayah kejadian" yang terpisah. Ikon = status lokasi (hijau siap /
+							    kuning desa belum terisi / merah GPS gagal). Tombol "Salin ke patokan" DIBUANG
+							    (2026-10-07): alamat mesin bukan patokan - patokan diketik manusia. */}
+							<div className="flex items-start gap-3 px-1">
+								<div
+									className={cn(
+										'flex h-8 w-8 shrink-0 items-center justify-center rounded-full',
+										locState === 'scanning' && 'bg-info/10 text-info',
+										locState === 'ready' && 'bg-success/10 text-success',
+										locState === 'weak' && 'bg-warning/10 text-warning',
+										locState === 'failed' && 'bg-destructive/10 text-destructive',
+									)}
+								>
+									{locState === 'scanning' ? (
+										<IconLoader2 className="h-4 w-4 animate-spin" />
+									) : locState === 'ready' ? (
+										<IconMapPinFilled className="h-4 w-4" />
+									) : (
+										<IconAlertTriangle className="h-4 w-4" />
+									)}
+								</div>
+								<div className="min-w-0 flex-1">
+									<p className="break-words text-[15px] font-semibold leading-snug text-foreground">
+										{placeTitle}
+									</p>
+									{placeSubtitle && (
+										<p className="mt-0.5 break-words text-[13px] text-muted-foreground">
+											{placeSubtitle}
+										</p>
+									)}
+									{!locationLoading && !data.village_code && data.geo_address && (
+										<p className="mt-0.5 text-[13px] text-warning">
+											Desa/kelurahan belum terisi - pilih di bawah.
+										</p>
+									)}
+								</div>
+								{!regionForced && !locationLoading && (
+									<Button
+										type="button"
+										variant="ghost"
+										size="sm"
+										aria-expanded={regionPanelOpen}
+										onClick={() => setRegionOpen((open) => !open)}
+										className="-mr-1 h-8 shrink-0 rounded-full px-3 text-[13px] font-medium text-primary hover:bg-primary/10 hover:text-primary"
+									>
+										{regionOpen ? 'Selesai' : 'Ubah'}
+									</Button>
+								)}
+							</div>
 
-							{/* Notice arah laporan berdasarkan kota kejadian (TASK_17) */}
+							{/* WILAYAH KEJADIAN - untuk SEMUA pelapor sejak 2026-09-01. Satu mode: titik peta yang
+							    menentukan wilayah, dan memilih wilayah melompatkan titiknya. Server mewajibkan desa
+							    untuk SETIAP laporan, jadi pilihan ini harus selalu terjangkau - kini dilipat di
+							    bawah baris lokasi, terbuka sendiri saat desa belum terisi (regionForced). */}
+							{regionPanelOpen && (
+								<div className="border-t border-border/70 px-1 pt-3">
+									<div className="grid grid-cols-2 gap-x-2 gap-y-2.5">
+										<div className="flex min-w-0 flex-col gap-1">
+											<Label className="text-xs font-medium text-muted-foreground">
+												Provinsi
+											</Label>
+											<Combobox
+												items={provinces}
+												value={data.province_code}
+												onChange={(val) => selectRegion('province', val)}
+												placeholder="Provinsi"
+											/>
+											{errors.province_code && <InputError message={errors.province_code} />}
+										</div>
+
+										<div className="flex min-w-0 flex-col gap-1">
+											<Label className="text-xs font-medium text-muted-foreground">
+												Kabupaten / Kota
+											</Label>
+											<Combobox
+												items={cities}
+												value={data.city_code}
+												disabled={!data.province_code}
+												onChange={(val) => selectRegion('city', val)}
+												placeholder="Kabupaten/Kota"
+											/>
+											{errors.city_code && <InputError message={errors.city_code} />}
+										</div>
+
+										<div className="flex min-w-0 flex-col gap-1">
+											<Label className="text-xs font-medium text-muted-foreground">
+												Kecamatan
+											</Label>
+											<Combobox
+												items={districts}
+												value={data.district_code}
+												disabled={!data.city_code}
+												onChange={(val) => selectRegion('district', val)}
+												placeholder="Kecamatan"
+											/>
+											{errors.district_code && <InputError message={errors.district_code} />}
+										</div>
+
+										<div className="flex min-w-0 flex-col gap-1">
+											<Label className="text-xs font-medium text-muted-foreground">
+												Desa / Kelurahan
+											</Label>
+											<Combobox
+												items={villages}
+												value={data.village_code}
+												disabled={!data.district_code}
+												onChange={(val) => selectRegion('village', val)}
+												placeholder="Desa/Kelurahan"
+											/>
+											{errors.village_code && <InputError message={errors.village_code} />}
+										</div>
+									</div>
+								</div>
+							)}
+
+							{/* Notice arah laporan berdasarkan kota kejadian (TASK_17) - satu baris tipis bila
+							    ada tenantnya; kotak peringatan tetap untuk kota tanpa tenant (arahkan ke 113). */}
 							{data.city_code &&
 								(matchedTenant ? (
-									<div className="flex items-start gap-2 rounded-xl border border-success/30 bg-success/10 p-2.5 text-[13px] text-success">
-										<IconMapPinFilled className="mt-0.5 h-4 w-4 shrink-0" />
+									<p className="flex items-start gap-1.5 px-1 text-xs text-muted-foreground">
+										<IconSend className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" />
 										<span>
-											Laporan akan diarahkan ke{' '}
-											<span className="font-semibold">{matchedTenant.nama_instansi}</span>.
+											Diteruskan ke{' '}
+											<span className="font-medium text-foreground">
+												{matchedTenant.nama_instansi}
+											</span>
 										</span>
-									</div>
+									</p>
 								) : (
 									<div className="flex items-start gap-2 rounded-xl border border-warning/30 bg-warning/10 p-2.5 text-[13px] text-warning">
 										<IconAlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -970,165 +1207,6 @@ export default function Create(props) {
 							<input type="hidden" name="district_code" value={data.district_code} />
 							<input type="hidden" name="village_code" value={data.village_code} />
 							<input type="hidden" name="road" value={data.road} />
-						</div>
-					</section>
-
-					<section className="space-y-2">
-						<h2 className="px-4 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
-							Wilayah kejadian
-						</h2>
-						<div className="space-y-4 rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
-							{/* --- WILAYAH KEJADIAN — untuk SEMUA pelapor sejak 2026-09-01 ---
-								    Satu mode: titik peta yang menentukan wilayah, dan memilih wilayah
-								    melompatkan titiknya. Blok ini dulu hanya untuk Pusat Komando (alur
-								    telepon: operator tahu nama desanya, bukan titik petanya), padahal
-								    server mewajibkan desa untuk SETIAP laporan - jadi warga yang desanya
-								    tak tercocokkan tak punya satu pun cara membetulkannya. */}
-							<div className="space-y-4">
-								<div className="min-w-0">
-									<p className="text-[13px] text-muted-foreground">
-										Terisi otomatis dari titik peta. Cari nama tempat atau betulkan lewat pilihan di
-										bawah bila meleset.
-									</p>
-								</div>
-
-								{/* Cari lokasi (pola Admin/Hydrants/Create): ketik nama jalan/tempat,
-										    pilih hasilnya → pin melompat & keempat dropdown terisi sendiri. */}
-								<div className="relative grid gap-1.5">
-									<Label className="text-sm font-medium text-foreground/80">
-										Cari Lokasi Kejadian{' '}
-										<span className="font-normal text-muted-foreground">(min. 3 huruf)</span>
-									</Label>
-
-									<div className="relative w-full">
-										<IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-										<Input
-											value={searchQuery}
-											onChange={(e) => setSearchQuery(e.target.value)}
-											onKeyDown={(e) => {
-												if (e.key !== 'Enter') return;
-
-												// Kotak ini ada DI DALAM <form> laporan: tanpa
-												// preventDefault, Enter mengirim laporan darurat.
-												// Enter di sini artinya "cari sekarang".
-												e.preventDefault();
-												runSearch(searchQuery);
-											}}
-											enterKeyHint="search"
-											placeholder="Ketik nama jalan, desa, atau tempat..."
-											className="h-11 rounded-xl border-border bg-card pl-9 pr-10 focus-visible:ring-2 focus-visible:ring-primary/30"
-										/>
-										{isSearching && (
-											<div className="pointer-events-none absolute right-3 top-1/2 flex -translate-y-1/2 items-center">
-												<IconLoader2 className="h-4 w-4 animate-spin text-destructive" />
-											</div>
-										)}
-									</div>
-
-									{/* Hasil kosong & permintaan gagal DITAMPILKAN, tidak dibiarkan
-											    senyap: dulu keduanya sama-sama "tidak terjadi apa-apa".
-											    Kata terakhir yang belum selesai diketik sudah ditangani
-											    server (cari ulang lalu disaring dengan awalan kata itu). */}
-									{(searchStatus === 'done' || searchStatus === 'error') &&
-										searchResults.length === 0 && (
-											<div className="absolute left-0 right-0 top-full z-[999] mt-1 rounded-xl border border-border bg-popover p-3 text-xs text-muted-foreground shadow-lg">
-												{searchStatus === 'error' ? (
-													<span className="text-destructive">
-														Pencarian gagal. Tekan Enter untuk mencoba lagi, atau pilih
-														wilayah lewat dropdown di bawah.
-													</span>
-												) : (
-													<>
-														Tidak ada hasil untuk
-														<span className="font-semibold text-foreground">
-															{' '}
-															{searchQuery.trim()}
-														</span>
-														. Coba kata kunci lain, atau pilih wilayah lewat dropdown di
-														bawah.
-													</>
-												)}
-											</div>
-										)}
-
-									{searchResults.length > 0 && (
-										<div className="absolute left-0 right-0 top-full z-[999] mt-1 max-h-48 overflow-y-auto rounded-xl border border-border bg-popover text-popover-foreground shadow-lg">
-											{searchResults.map((res, idx) => (
-												<button
-													key={idx}
-													type="button"
-													onClick={() => selectSearchResult(res)}
-													className="flex w-full gap-2 border-b border-border px-3 py-2.5 text-left text-xs transition-colors last:border-0 hover:bg-accent"
-												>
-													<IconCurrentLocation className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
-													<div className="min-w-0 flex-1">
-														<p className="truncate font-semibold">
-															{alamatTerbaca(res.name) ||
-																alamatTerbaca(res.display_name).split(',')[0]}
-														</p>
-														<p className="mt-0.5 truncate text-muted-foreground">
-															{alamatTerbaca(res.display_name)}
-														</p>
-													</div>
-												</button>
-											))}
-										</div>
-									)}
-								</div>
-
-								<div className="grid gap-3 sm:grid-cols-2">
-									<div className="grid gap-1.5">
-										<Label className="text-sm font-medium text-foreground/80">Provinsi</Label>
-										<Combobox
-											items={provinces}
-											value={data.province_code}
-											onChange={(val) => selectRegion('province', val)}
-											placeholder="Pilih Provinsi..."
-										/>
-										{errors.province_code && <InputError message={errors.province_code} />}
-									</div>
-
-									<div className="grid gap-1.5">
-										<Label className="text-sm font-medium text-foreground/80">
-											Kabupaten / Kota
-										</Label>
-										<Combobox
-											items={cities}
-											value={data.city_code}
-											disabled={!data.province_code}
-											onChange={(val) => selectRegion('city', val)}
-											placeholder="Pilih Kabupaten/Kota..."
-										/>
-										{errors.city_code && <InputError message={errors.city_code} />}
-									</div>
-
-									<div className="grid gap-1.5">
-										<Label className="text-sm font-medium text-foreground/80">Kecamatan</Label>
-										<Combobox
-											items={districts}
-											value={data.district_code}
-											disabled={!data.city_code}
-											onChange={(val) => selectRegion('district', val)}
-											placeholder="Pilih Kecamatan..."
-										/>
-										{errors.district_code && <InputError message={errors.district_code} />}
-									</div>
-
-									<div className="grid gap-1.5">
-										<Label className="text-sm font-medium text-foreground/80">
-											Desa / Kelurahan
-										</Label>
-										<Combobox
-											items={villages}
-											value={data.village_code}
-											disabled={!data.district_code}
-											onChange={(val) => selectRegion('village', val)}
-											placeholder="Pilih Desa/Kelurahan..."
-										/>
-										{errors.village_code && <InputError message={errors.village_code} />}
-									</div>
-								</div>
-							</div>
 						</div>
 					</section>
 

@@ -206,7 +206,8 @@ Catatan: _______________________________________________
 - [ ] Di tab Kebakaran: foto/deskripsi/patokan **opsional** (bisa kirim tanpa itu) — darurat-first
 - [ ] Di tab Non Kebakaran: foto + deskripsi + patokan **wajib** (validasi menolak bila kosong)
 - [ ] Unggah beberapa foto sekaligus; foto bisa dihapus sebelum kirim
-- [ ] Panel "Alamat Lengkap (otomatis)" terisi; tombol "Salin ke patokan" bekerja
+- [ ] Kartu alamat titik pin (judul jalan, baris kelurahan/kecamatan/kota) terisi; geser PETA (pin diam di tengah) mengganti alamat & wilayah; tombol "Lokasi saya" kembali ke GPS; tak ada tombol "Salin ke patokan" (#188)
+- [ ] Cari "jl/jln/jln./gg ..." di kolom cari atas peta menemukan jalan/gang yang sama dengan "Jalan/Gang ..."; hasil terdekat di atas + jarak (#188)
 - [ ] Alamat tak memuat aksara asing yang tak terbaca (TASK_43 §B)
 - [ ] Notice "laporan diarahkan ke Damkar X" / "wilayah belum terdaftar" muncul sesuai pin
 - [ ] Kirim berhasil → mendarat di halaman **Terima Kasih**

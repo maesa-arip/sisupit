@@ -16,7 +16,12 @@ class GeocodeController extends Controller
     private const MIN_INTERVAL_MS = 1100;
 
     // Jumlah hasil yang dikirim ke UI.
-    private const RESULT_LIMIT = 4;
+    private const RESULT_LIMIT = 5;
+
+    // Setengah lebar kotak bias di sekitar pin (derajat, ~33 km). Hasil di dalam kotak
+    // DIDAHULUKAN, bukan dibatasi (bounded=0) - meniru Google Maps yang memprioritaskan
+    // tempat di sekitar pengguna tanpa menyembunyikan yang jauh (#188).
+    private const BIAS_HALF_SPAN_DEG = 0.3;
 
     // Kandidat yang diambil saat mencari ulang tanpa kata terakhir: lebih banyak dari
     // RESULT_LIMIT karena masih akan disaring dengan awalan kata itu.
@@ -50,10 +55,15 @@ class GeocodeController extends Controller
     {
         $validated = $request->validate([
             'q' => 'required|string|min:3|max:255',
+            // Titik pin saat ini (opsional) - pusat bias hasil.
+            'lat' => 'nullable|numeric|between:-90,90',
+            'lng' => 'nullable|numeric|between:-180,180',
         ]);
 
-        $query = trim($validated['q']);
-        $results = $this->searchNominatim($query, self::RESULT_LIMIT);
+        $query = $this->normalizeStreetAbbreviations($validated['q']);
+        $viewbox = $this->biasViewbox($validated['lat'] ?? null, $validated['lng'] ?? null);
+
+        $results = $this->searchNominatim($query, self::RESULT_LIMIT, $viewbox);
 
         // Nominatim mencocokkan KATA UTUH, bukan awalan: mengetik "gema mer" bernilai 0
         // hasil padahal "gema merdeka" ketemu. Operator yang terbiasa Google Maps (yang
@@ -63,17 +73,59 @@ class GeocodeController extends Controller
         // hampir selalu sudah ada di cache (dilewati saat mengetik), sehingga umumnya
         // TIDAK menambah panggilan ke Nominatim.
         if ($results === [] && str_contains($query, ' ')) {
-            $results = $this->searchByPrefixOfLastWord($query);
+            $results = $this->searchByPrefixOfLastWord($query, $viewbox);
+        }
+
+        // Jalan di OSM tak selalu bernama "Jalan X" - sebagian hanya "X" (mis. "Gatot
+        // Subroto" di Negara). Masih nihil → coba sekali lagi tanpa kata "Jalan".
+        if ($results === [] && preg_match('/^Jalan\s+(.+)$/u', $query, $m)) {
+            $results = $this->searchNominatim($m[1], self::RESULT_LIMIT, $viewbox);
         }
 
         return response()->json($results);
     }
 
     /**
+     * Seragamkan singkatan jalan/gang ke bentuk lengkap yang dipakai OSM. Nominatim tidak
+     * mengenali singkatan Indonesia: "jln. teuku umar" = 0 hasil dan "jl teuku umar" yang
+     * keluar duluan "Rukan Teuku Umar", sementara "jalan teuku umar" langsung ketemu
+     * (diuji ke nominatim.openstreetmap.org, 2026-10-07, #188). Google Maps memahami
+     * ketiganya, jadi operator mengira datanya tidak ada.
+     */
+    private function normalizeStreetAbbreviations(string $query): string
+    {
+        $query = preg_replace(
+            ['/(?<![\p{L}\p{N}])(?:jalan|jln|jl)(?:\.\s*|\s+|$)/iu', '/(?<![\p{L}\p{N}])gg(?:\.\s*|\s+|$)/iu'],
+            ['Jalan ', 'Gang '],
+            $query
+        );
+
+        return trim(preg_replace('/\s+/u', ' ', $query));
+    }
+
+    /**
+     * Kotak "left,top,right,bottom" di sekitar pin, atau null bila pin tak dikirim. Pusatnya
+     * dibulatkan 1 desimal (~11 km) supaya pin yang digeser sedikit tetap memakai entri
+     * cache yang sama.
+     */
+    private function biasViewbox(mixed $lat, mixed $lng): ?string
+    {
+        if ($lat === null || $lng === null) {
+            return null;
+        }
+
+        $lat = round((float) $lat, 1);
+        $lng = round((float) $lng, 1);
+        $d = self::BIAS_HALF_SPAN_DEG;
+
+        return implode(',', [$lng - $d, $lat + $d, $lng + $d, $lat - $d]);
+    }
+
+    /**
      * Cari ulang tanpa kata terakhir (yang diasumsikan belum selesai diketik), lalu saring
      * hasilnya dengan kata itu sebagai awalan — meniru perilaku "ketik separuh" Google Maps.
      */
-    private function searchByPrefixOfLastWord(string $query): array
+    private function searchByPrefixOfLastWord(string $query, ?string $viewbox = null): array
     {
         $words = preg_split('/\s+/', $query, -1, PREG_SPLIT_NO_EMPTY);
         $prefix = mb_strtolower((string) array_pop($words));
@@ -83,7 +135,7 @@ class GeocodeController extends Controller
             return [];
         }
 
-        $candidates = $this->searchNominatim($head, self::CANDIDATE_LIMIT);
+        $candidates = $this->searchNominatim($head, self::CANDIDATE_LIMIT, $viewbox);
 
         $matched = array_values(array_filter(
             $candidates,
@@ -107,17 +159,18 @@ class GeocodeController extends Controller
         return false;
     }
 
-    private function searchNominatim(string $query, int $limit): array
+    private function searchNominatim(string $query, int $limit, ?string $viewbox = null): array
     {
         return Cache::remember(
-            'nominatim:search:'.$limit.':'.md5(mb_strtolower($query)),
+            'nominatim:search:'.$limit.':'.md5(mb_strtolower($query).'|'.$viewbox),
             self::CACHE_TTL_SECONDS,
-            fn () => $this->callNominatim('/search', [
+            fn () => $this->callNominatim('/search', array_filter([
                 'format' => 'json',
                 'q' => $query,
                 'limit' => $limit,
                 'accept-language' => 'id',
-            ])
+                'viewbox' => $viewbox,
+            ]))
         );
     }
 

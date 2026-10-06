@@ -4407,3 +4407,46 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Status:** FIXED 2026-10-07, TERDEPLOY PROD @2866d5ab (2026-10-07; app-Cb2RvM_4.js, app-BWxX_G07.css & AppLayout-DdbqSQNw.js
   terverifikasi HTTPS; deploy sempat tertahan di `git pull` lalu dijalankan ulang user). Test `KeyboardOpenLayoutTest` (4; sabotase varian hidden -> merah,
   dipulihkan `cmp`-identik). Catatan iOS di `mobile/CHANGELOG_ANDROID.md`.
+
+### #188 — Peta form lapor: pencarian tak paham "jl/jln/gg" + tampilan peta belum gaya Google Maps (FIXED)
+
+- **Laporan user 2026-10-07:** "perhatikan maps pada form lapor, pelajari bagaimana tampilan google maps kemudian berikan
+  masukan perbaikannya, tombol salin patokan hilangkan saja karena itu bukan patokan" + "saat ketik jl atau jalan atau
+  jln. google maps paham sedangkan disini tidak paham". User menyetujui SEMUA masukan ("setuju kerjakan semuanya").
+- **Akar pencarian:** `GeocodeController::search` meneruskan teks apa adanya; OSM menulis nama lengkap "Jalan X"/"Gang X"
+  dan Nominatim tak mengenali singkatan Indonesia. Diuji ke Nominatim lokal (data Bali = prod): "jln gatot subroto" 0
+  hasil, "gg. ikan mas" 0 hasil, "jln. teuku umar" hanya ruas Karangasem; bentuk lengkapnya ketemu di Denpasar.
+- **Fix server:** `normalizeStreetAbbreviations()` - jl/jl./jln/jln./jalan -> "Jalan", gg/gg. -> "Gang" (hanya kata utuh;
+  "jalanan"/"ggm" tak tersentuh); masih nihil -> cari ulang tanpa kata "Jalan" (jalan OSM yang bernama "Gatot Subroto"
+  saja). Bias lokasi: `lat`/`lng` pin opsional -> `viewbox` +-0,3 derajat (pusat dibulatkan 1 desimal demi cache), TANPA
+  `bounded` (yang jauh tetap muncul). Batas hasil 4 -> 5. Kunci cache memuat viewbox.
+- **Fix form (`Pages/Front/Reports/Create.jsx` + `Components/UserLeafletMap.jsx`):**
+  1. Kolom cari pindah dari bagian Wilayah Kejadian ke ATAS PETA (overlay `z-10`; `z-[1000]` sempat menutupi header
+     saat digulir). Latar solid di PEMBUNGKUS karena `filledFieldsClass` pada `<form>` menimpa latar input (tembus pandang).
+  2. Prop baru `centerPin` (opt-in, halaman fasilitas tak berubah): pin overlay diam di tengah & terangkat saat digeser,
+     PETA yang digeser; titik dilaporkan pada `moveend` hasil geseran/ketukan pemakai saja (`userMovedRef`), zoom
+     cubit/roda/ketuk-ganda berpusat di tengah. Tinggi peta 220/280 -> 280/340 px.
+  3. Prop `onLocate`: kontrol Leaflet "Kembali ke lokasi saya" (kanan bawah) -> `locateMe()` mencabut `regionTouchedRef`
+     lalu `getUserLocation()`.
+  4. Hasil cari diurutkan dari yang terdekat ke GPS pelapor (`gpsFixRef`, bukan pin) + jarak "859 m"/"2,0 km".
+  5. Debounce 1000 -> 500 ms.
+  6. Kartu titik gaya Google: judul tebal jalan+nomor (tanpa jalan: kelurahan), baris kedua kelurahan, kecamatan
+     (`town` di data Bali), kota. `geo_address` yang dikirim ke server TIDAK berubah.
+  7. Tombol zoom hanya untuk `pointer: fine` (desktop), bertumpuk di bawah tombol lokasi.
+  8. Tombol "Salin ke patokan" DIHAPUS (alamat mesin bukan patokan).
+  9. **Lanjutan (user 2026-10-07):** "card wilayah kejadian gabungkan dengan card mapsnya dan buat lebih minimalis ...
+     bikin orang kadang bingung antara maps dan wilayah kejadian". Bagian "Wilayah kejadian" terpisah DIHAPUS; kepala
+     status GPS + kartu alamat + ringkasan wilayah dilebur jadi SATU baris di bawah peta (ikon status, judul alamat,
+     baris wilayah "Denpasar Barat, Kota Denpasar" - nama laravolt HURUF BESAR dirapikan, nama yang sama dengan judul
+     dibuang) + tombol "Ubah"/"Selesai" yang membuka 4 pilihan wilayah (2 kolom, label kecil). Panel TERBUKA PAKSA
+     (tanpa tombol) saat desa belum terisi atau server menolak kode wilayah (`regionForced`). Teks bantuan di bawah peta
+     dibuang; notice tenant jadi satu baris tipis (kotak peringatan tetap untuk kota tanpa tenant). Kolom combobox
+     `flex flex-col` (grid satu kolom ber-track `auto` membuat combobox kanan meluber keluar kartu).
+- **Tidak dikerjakan (masukan #8 "mode Satelit"):** butuh penyedia citra satelit - tile self-host hanya peta jalan, dan
+  penyedia gratis (Esri World Imagery dll.) punya syarat lisensi/kuota. **(OPEN - menunggu keputusan penyedia)**.
+- **Verifikasi:** Playwright headless (Chrome, 390x844, GPS palsu Denpasar, akun seed lokal): "jl teuku umar" -> 5 hasil,
+  859 m di urutan pertama; geser peta -> titik & desa berganti (Panjer) dengan TEPAT 1 reverse-geocode (tanpa loop);
+  "Lokasi saya" kembali ke GPS; mode sentuh: zoom tersembunyi, tombol lokasi ada, tombol salin hilang. Chrome MCP: pilih
+  hasil "jln gatot subroto" -> pin & desa 5171022005 terisi. **Belum diuji di HP sungguhan** (geser satu jari di APK).
+- **Status:** FIXED 2026-10-07 (lokal, belum di-commit/deploy). Test `GeocodeControllerTest` (+11) &
+  `ReportFormMapGoogleStyleTest` (4). Rincian: `prompt/tasks/TASK_75_peta_form_lapor_gaya_google.md`.

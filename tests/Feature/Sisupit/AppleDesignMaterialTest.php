@@ -188,7 +188,9 @@ it('keeps every page on the larger apple radii instead of the old rounded-md', f
 
 it('lays out the report form as grouped sections and the incident page with an iOS navigation bar', function () {
     $create = appleSource('resources/js/Pages/Front/Reports/Create.jsx');
-    foreach (['Lokasi kejadian', 'Wilayah kejadian', 'Jenis kejadian', 'Keterangan', 'Foto'] as $section) {
+    // 'Wilayah kejadian' bukan lagi bagian sendiri: digabung ke kartu Lokasi atas permintaan user
+    // 2026-10-07 (#188) - dijaga ReportFormMapGoogleStyleTest.
+    foreach (['Lokasi kejadian', 'Jenis kejadian', 'Keterangan', 'Foto'] as $section) {
         expect($create)->toMatch('/<h2 className="px-4 text-\[13px\][^"]*">\s*'.$section.'\s*<\/h2>/');
     }
     expect($create)->not->toMatch('/<Card\b/')

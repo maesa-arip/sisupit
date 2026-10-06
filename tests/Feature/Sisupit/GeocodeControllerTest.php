@@ -117,3 +117,55 @@ it('returns a 502 when nominatim is unreachable instead of crashing', function (
         ->get('/api/geocode/reverse?lat=-8.65&lng=115.22')
         ->assertStatus(502);
 });
+
+// #188: Nominatim tak mengenali singkatan jalan Indonesia ("jln. teuku umar" = 0 hasil,
+// "jalan teuku umar" ketemu - diuji ke nominatim.openstreetmap.org). Google Maps paham,
+// jadi proxy menyeragamkan singkatannya sebelum dikirim.
+it('expands jl, jl., jln, jln. and gg to the full street words osm uses', function (string $typed, string $sent) {
+    Http::fake(['*' => Http::response([['display_name' => 'Jalan Teuku Umar, Denpasar', 'lat' => '-8.67', 'lon' => '115.21']], 200)]);
+
+    $this->actingAs(User::factory()->create())
+        ->get('/api/geocode/search?q='.urlencode($typed))
+        ->assertOk()
+        ->assertJsonCount(1);
+
+    Http::assertSent(fn ($request) => $request['q'] === $sent);
+})->with([
+    ['jl teuku umar', 'Jalan teuku umar'],
+    ['Jl. Teuku Umar', 'Jalan Teuku Umar'],
+    ['jl.teuku umar', 'Jalan teuku umar'],
+    ['jln teuku umar', 'Jalan teuku umar'],
+    ['JLN. teuku umar', 'Jalan teuku umar'],
+    ['jalan teuku umar', 'Jalan teuku umar'],
+    ['gg. melati denpasar', 'Gang melati denpasar'],
+    // Kata yang sekadar BERAWALAN "jl"/"gg"/"jalan" tidak boleh ikut diubah.
+    ['jalanan sanur', 'jalanan sanur'],
+    ['toko ggm sanur', 'toko ggm sanur'],
+]);
+
+it('retries without the word Jalan when the street is named without it in osm', function () {
+    Http::fake([
+        '*' => Http::sequence()
+            ->push([], 200) // "Jalan gatot subroto"
+            ->push([], 200) // awalan: "Jalan gatot" disaring "subroto"
+            ->push([['display_name' => 'Gatot Subroto, Lelateng, Negara', 'lat' => '-8.35', 'lon' => '114.62']], 200),
+    ]);
+
+    $this->actingAs(User::factory()->create())
+        ->get('/api/geocode/search?q='.urlencode('jln. gatot subroto'))
+        ->assertOk()
+        ->assertJsonPath('0.display_name', 'Gatot Subroto, Lelateng, Negara');
+
+    Http::assertSent(fn ($request) => $request['q'] === 'gatot subroto');
+});
+
+it('biases search results around the current pin without hiding far results', function () {
+    Http::fake(['*' => Http::response([['display_name' => 'Jalan Teuku Umar, Denpasar', 'lat' => '-8.67', 'lon' => '115.21']], 200)]);
+
+    $this->actingAs(User::factory()->create())
+        ->get('/api/geocode/search?q=teuku+umar&lat=-8.6712&lng=115.2133')
+        ->assertOk();
+
+    Http::assertSent(fn ($request) => $request['viewbox'] === '114.9,-8.4,115.5,-9'
+        && ! isset($request['bounded']));
+});

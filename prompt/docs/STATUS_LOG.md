@@ -2583,6 +2583,9 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + kolom HP Notifikasi dibatasi superadmin saja (2026-10-06) = 725 passed, 3709 assertions.
             + #183 peta zoom dunia setelah kerangka, fitBoundsWhenSized (LeafletFitBoundsTest) = 727 passed, 3714 assertions.
             + #184 Pengumuman Sistem jadi kartu di alur halaman (AnnouncementBannerTest) = 730 passed, 3733 assertions.
+            + #185-#187 (baseline 2026-10-07 sebelum #188) = 745 passed, 3755 assertions.
+            + #188/TASK_75 peta form lapor gaya Google + jl/jln/gg (GeocodeControllerTest +11, ReportFormMapGoogleStyleTest 4) = 760 passed, 3798 assertions.
+            + #188 lanjutan kartu Wilayah Kejadian digabung ke kartu peta (+1 penjaga; AppleDesignMaterialTest tak lagi menuntut bagian Wilayah) = 761 passed, 3800 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

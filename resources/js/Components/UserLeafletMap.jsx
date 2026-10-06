@@ -1,6 +1,6 @@
 import { escapeHtml } from '@/lib/escape-html';
 import { facilityStatusIsFaulty, facilityStatusLabel, GEO_OPTIONS, MAP_TILE_URL } from '@/lib/utils';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const UserLeafletMap = ({
 	markers = [],
@@ -27,6 +27,14 @@ const UserLeafletMap = ({
 	// sentuhan tak sengaja memindahkan pin. Peredamnya, pin itu terlihat & panel "Alamat
 	// Lengkap (otomatis)" tepat di bawah peta ikut berubah, jadi perpindahannya tidak senyap.
 	clickToPlace = false,
+	// Pola pilih lokasi Google Maps / ojek daring (#188): pin DIAM di tengah, PETANYA yang
+	// digeser. Menyeret pin 36px dengan jari menutupi pin itu sendiri. Titik dilaporkan ke
+	// onLocationChange saat geseran pemakai selesai; zoom (cubit/roda/ketuk ganda) berpusat
+	// di tengah sehingga tidak pernah memindahkan titik. Default mati: halaman fasilitas
+	// tetap memakai marker biasa.
+	centerPin = false,
+	// Tombol "Lokasi saya" di pojok kanan bawah (#188). Tampil hanya bila diisi.
+	onLocate = null,
 }) => {
 	const mapRef = useRef(null);
 	const mapInstanceRef = useRef(null);
@@ -34,12 +42,21 @@ const UserLeafletMap = ({
 	const userMarkerLayerRef = useRef(null);
 	const onLocationChangeRef = useRef(onLocationChange);
 	const appliedZoomRef = useRef(null);
+	const onLocateRef = useRef(onLocate);
+	// centerPin: true sejak pemakai mulai menggeser/mengetuk peta sampai moveend berikutnya,
+	// pembeda geseran pemakai dari panTo/setView terprogram (yang tak boleh dilaporkan balik).
+	const userMovedRef = useRef(false);
+	const [pinLifted, setPinLifted] = useState(false);
 
 	// Simpan callback terbaru di ref agar identitas fungsi yang berubah tiap render
 	// tidak memicu re-inisialisasi marker peta.
 	useEffect(() => {
 		onLocationChangeRef.current = onLocationChange;
 	}, [onLocationChange]);
+
+	useEffect(() => {
+		onLocateRef.current = onLocate;
+	}, [onLocate]);
 
 	// ==========================================
 	// EFFECT 1: INISIALISASI PETA AWAL
@@ -48,7 +65,12 @@ const UserLeafletMap = ({
 		if (!window.L || mapInstanceRef.current) return;
 
 		// Inisialisasi awal
-		mapInstanceRef.current = window.L.map(mapRef.current).setView([-8.65, 115.22], 13);
+		mapInstanceRef.current = window.L.map(
+			mapRef.current,
+			centerPin
+				? { zoomControl: false, touchZoom: 'center', scrollWheelZoom: 'center', doubleClickZoom: 'center' }
+				: {},
+		).setView([-8.65, 115.22], 13);
 
 		window.L.tileLayer(MAP_TILE_URL, {
 			attribution: '&copy; OpenStreetMap',
@@ -61,8 +83,62 @@ const UserLeafletMap = ({
 		// memanggil versi terbaru milik parent.
 		if (clickToPlace) {
 			mapInstanceRef.current.on('click', (e) => {
+				if (centerPin) {
+					// Ketuk = geser peta sampai titik itu di bawah pin; moveend yang melapor.
+					userMovedRef.current = true;
+					mapInstanceRef.current.panTo(e.latlng);
+					return;
+				}
 				onLocationChangeRef.current?.(e.latlng.lat, e.latlng.lng);
 			});
+		}
+
+		if (centerPin) {
+			const map = mapInstanceRef.current;
+
+			// Tombol zoom hanya untuk tetikus: di layar sentuh orang mencubit, dan tombolnya
+			// cuma menutupi peta yang sudah kecil.
+			if (window.matchMedia?.('(pointer: fine)').matches) {
+				window.L.control.zoom({ position: 'bottomright' }).addTo(map);
+			}
+
+			map.on('dragstart', () => {
+				userMovedRef.current = true;
+				setPinLifted(true);
+			});
+			map.on('moveend', () => {
+				setPinLifted(false);
+				if (!userMovedRef.current) return;
+				userMovedRef.current = false;
+				const center = map.getCenter();
+				onLocationChangeRef.current?.(center.lat, center.lng);
+			});
+		}
+
+		if (onLocateRef.current) {
+			// Kontrol Leaflet, bukan tombol React melayang: di pojok yang sama Leaflet
+			// menumpuknya rapi di atas tombol zoom & atribusi.
+			const LocateControl = window.L.Control.extend({
+				onAdd: () => {
+					const button = window.L.DomUtil.create(
+						'button',
+						'flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-card text-foreground shadow-md active:scale-95 motion-reduce:active:scale-100',
+					);
+					button.type = 'button';
+					button.title = 'Kembali ke lokasi saya';
+					button.setAttribute('aria-label', 'Kembali ke lokasi saya');
+					button.innerHTML =
+						'<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M12 12m-8 0a8 8 0 1 0 16 0a8 8 0 1 0 -16 0"/><path d="M12 2l0 2"/><path d="M12 20l0 2"/><path d="M20 12l2 0"/><path d="M2 12l2 0"/></svg>';
+					window.L.DomEvent.disableClickPropagation(button);
+					window.L.DomEvent.on(button, 'click', (e) => {
+						window.L.DomEvent.preventDefault(e);
+						onLocateRef.current?.();
+					});
+
+					return button;
+				},
+			});
+			new LocateControl({ position: 'bottomright' }).addTo(mapInstanceRef.current);
 		}
 
 		const resizeObserver = new ResizeObserver(() => {
@@ -92,6 +168,26 @@ const UserLeafletMap = ({
 
 		const plotUserLocation = (userLat, userLng) => {
 			userMarkerLayerRef.current.clearLayers();
+
+			if (centerPin) {
+				// Pin digambar sebagai overlay di tengah; cukup pusatkan petanya. Dilewati
+				// saat pemakai sedang menggeser (jangan rebut gesturnya) atau saat titiknya
+				// memang sudah di tengah (balasan reverse-geocode dari geseran itu sendiri).
+				setTimeout(() => {
+					const map = mapInstanceRef.current;
+					if (!map || userMovedRef.current) return;
+					map.invalidateSize(true);
+
+					if (zoom && zoom !== appliedZoomRef.current) {
+						appliedZoomRef.current = zoom;
+						map.setView([userLat, userLng], zoom, { animate: true });
+					} else if (map.getCenter().distanceTo([userLat, userLng]) > 1) {
+						map.panTo([userLat, userLng], { animate: true, duration: 0.5 });
+					}
+				}, 300);
+
+				return;
+			}
 
 			const userIcon = window.L.divIcon({
 				html: `
@@ -151,7 +247,7 @@ const UserLeafletMap = ({
 				GEO_OPTIONS.oneShot,
 			);
 		}
-	}, [lat, lng, draggable, autoLocate, zoom]);
+	}, [lat, lng, draggable, autoLocate, zoom, centerPin]);
 
 	// ==========================================
 	// EFFECT 3: RENDER MARKER ASET (Pompa / Pos)
@@ -229,6 +325,34 @@ const UserLeafletMap = ({
 			});
 		}
 	}, [markers]);
+
+	if (centerPin) {
+		return (
+			<div className="relative h-full w-full" style={{ borderRadius: 'inherit' }}>
+				<div
+					ref={mapRef}
+					style={{ width: '100%', height: '100%', minHeight: '200px', borderRadius: 'inherit', zIndex: 1 }}
+				/>
+				{/* Pin tengah: terangkat selama peta digeser, bayangannya menandai titik persisnya. */}
+				<div className="pointer-events-none absolute left-1/2 top-1/2 z-[500]">
+					<span className="absolute h-1.5 w-3 -translate-x-1/2 -translate-y-1/2 rounded-[50%] bg-black/30" />
+					<div
+						className={`absolute -translate-x-1/2 text-destructive drop-shadow-md transition-transform duration-200 ease-out motion-reduce:transition-none ${pinLifted ? '-translate-y-[calc(100%+10px)]' : '-translate-y-full'}`}
+					>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="36"
+							height="36"
+							viewBox="0 0 24 24"
+							fill="currentColor"
+						>
+							<path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
+						</svg>
+					</div>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div
