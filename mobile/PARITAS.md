@@ -19,6 +19,7 @@ Terakhir diperbarui: 2026-10-06 (kolom Android dari APK 1.1.6/vc8 + web prod @`f
 | Kamera/galeri di form lapor | ✅ | ? | PERILAKU #3 |
 | Unduh PDF / Excel dengan sesi | ✅ | ? | PERILAKU #5 |
 | `tel:` / WhatsApp / Maps keluar app | ✅ | ? | PERILAKU #6 |
+| Play Store / `market:` / `intent:` keluar app | ✅ 1.1.7 (#185) | ? | PERILAKU #6 |
 | Safe area & keyboard (tanpa jarak dobel dengan `env(safe-area-inset-*)` web) | ✅ 1.1.5 | ? | PERILAKU #7 |
 | Tarik-untuk-refresh | ✅ | ? | PERILAKU #9 |
 | Tombol/gesture Kembali | ✅ | ? | PERILAKU #10 |

@@ -56,7 +56,7 @@ Baca `CHANGELOG_ANDROID.md` dari atas sampai entri yang sudah di-port, kerjakan 
 
 ## Keadaan per 2026-10-06
 
-- APK **1.1.6 / versionCode 8**, minSdk 24, targetSdk 36, build Play Store (kunci unggah
+- APK **1.1.7 / versionCode 9** (2026-10-06, tautan Play Store/`intent:` #185; sebelumnya 1.1.6/vc8), minSdk 24, targetSdk 36, build Play Store (kunci unggah
   `sisupit-upload.jks`) untuk uji tertutup Google Play (12 penguji × 14 hari). SHA-1 Play App
   Signing belum didaftarkan ke Firebase.
 - Web produksi @`f6de6380`: termasuk TASK_69 (safe area/`viewport-fit=cover`), TASK_73

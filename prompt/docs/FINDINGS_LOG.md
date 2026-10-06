@@ -4345,7 +4345,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   konten, tak tertutup bilah bawah; tutup -> reload tetap tersembunyi. Data uji lokal dihapus.
 - **Status:** FIXED 2026-10-06. Test `AnnouncementBannerTest` (3: tak fixed/sticky, terpasang di area konten, urutan + ejaan status).
 
-### #185 — Tautan pengumuman (Play Store) "tidak bisa diklik" / tak membuka Play Store (WEB FIXED, APK OPEN)
+### #185 — Tautan pengumuman (Play Store) "tidak bisa diklik" / tak membuka Play Store (FIXED - APK 1.1.7 menunggu uji HP)
 
 - **Laporan user 2026-10-06:** "link nya tidak bisa di klik, mengarahnya tidak ke seharusnya, saya isi link play store
   tidak mau redirect ke playstore".
@@ -4358,3 +4358,8 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Fix web:** seluruh isi kartu Banner = tautan (`<a>` luar / `Link` internal), tombol tutup tetap terpisah.
 - **Sisa (OPEN):** APK perlu menangani `play.google.com/store/apps` + `market:` -> app Play Store, dan `intent:` lewat
   `Intent.parseUri` + `IntentHandler` (fallback `browser_fallback_url`). Butuh rilis APK baru.
+- **Fix APK 1.1.7/vc9 (2026-10-06, user: "ya kerjakan APK 1.1.7, saya coba di aplikasi android"):** cabang Play
+  Store/`market:` -> `market://details?id=` ber-`setPackage("com.android.vending")` (tanpa Play -> browser), cabang
+  `intent:` lewat `Intent.parseUri` + `browser_fallback_url` (tanpa `IntentHandler`: `resolveActivity` butuh `<queries>`
+  di Android 11+). `bundleRelease assembleRelease` OK; vc9/1.1.7, minSdk 24, target 36, SHA-1 CA:6F:A8. Rincian di
+  `mobile/CHANGELOG_ANDROID.md`. **Belum:** uji di HP (tak ada perangkat/emulator tersambung) + unggah ke Play.

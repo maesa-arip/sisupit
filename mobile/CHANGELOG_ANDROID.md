@@ -8,6 +8,26 @@ iOS** sebagai daftar centang. Sisi iOS mencentang (`[x]`) saat sudah di-port.
 
 ---
 
+## 1.1.7 / versionCode 9 - 2026-10-06 - tautan Play Store & `intent:` keluar aplikasi (#185)
+
+Pemicu: pengumuman sistem berisi tautan Play Store; di APK 1.1.6 mengetuknya membuka halaman web
+Play DI DALAM WebView, bukan aplikasi Play Store.
+
+- `MainActivity.shouldOverrideUrlLoading`: `https://play.google.com/store/apps...` dan `market:`
+  -> `ACTION_VIEW` `market://details?id=...` ber-`setPackage("com.android.vending")`; tanpa Play
+  Store -> browser. Selalu `return true` (tak ada halaman galat).
+- `intent:` kini diurai `Intent.parseUri(url, URI_INTENT_SCHEME)` (+ `CATEGORY_BROWSABLE`,
+  komponen & selector dibuang); app tujuan tak ada -> `browser_fallback_url`. Dulu ikut cabang
+  `tel:` sebagai `new Intent(ACTION_VIEW, Uri.parse(url))` sehingga tak pernah sampai ke app.
+- `http(s)` lain tetap di WebView (tak berubah). Build: AAB md5 8df50d67..., APK md5 f9028456...,
+  kunci unggah SHA-1 CA:6F:A8...; cadangan sumber `MainActivity.java.bak-v116`.
+
+**Yang harus dilakukan iOS**
+- [ ] `decidePolicyFor navigationAction`: `play.google.com/store/apps` tak relevan di iPhone; tautan
+      `apps.apple.com` / `itms-apps:` -> `UIApplication.shared.open` (App Store), bukan dimuat di WKWebView.
+- [ ] Tautan `target="_blank"` (pengumuman sistem memakainya untuk URL luar) -> tangani di
+      `createWebViewWith` (WKWebView mengabaikannya tanpa itu = "tautan tak bisa diklik").
+
 ## (web saja, APK tetap 1.1.6) - 2026-10-01 s/d 10-05 - safe area, sesi aplikasi & token FCM (TASK_69/73/74)
 
 Tak ada perubahan kode APK; perubahan web ini mengubah apa yang diharapkan dari wrapper.

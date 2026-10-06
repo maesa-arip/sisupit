@@ -35,7 +35,7 @@ Setelah membaca, ringkas dalam 3–5 poin rencanamu untuk task ini, lalu
 
 ```
 Task aktif   : RILIS GOOGLE PLAY (2026-09-30). Akun Play Console PRIBADI (tanpa D-U-N-S),
-                wajib uji tertutup 12 penguji x 14 hari. APK 1.1.6/vc8 (targetSdk 36, kunci
+                wajib uji tertutup 12 penguji x 14 hari. APK 1.1.7/vc9 (2026-10-06, #185; targetSdk 36, kunci
                 unggah sisupit-upload.jks; AAB siap; rincian di memori WebView & folder mobile/).
                 SISA: SHA-1 Play App Signing ke Firebase, uji di HP.
 Terakhir     : #159/TASK_69 lapisan platform ponsel (hover sentuh, tap, active Button, 16px iOS,
@@ -80,6 +80,8 @@ TASK_74/#182 : (2026-10-05, TERDEPLOY PROD @198d6c0f) Profil > "Notifikasi di HP
 #184         : (2026-10-06) Pengumuman Sistem: Banner dulu fixed bottom-0 tertutup bilah bawah ponsel -> kartu di awal area konten
                 AppLayout + tombol tutup (localStorage id:updated_at); admin Index/Create/Edit dirapikan (lencana, Textarea, Switch,
                 pratinjau). Penjaga AnnouncementBannerTest. Di-push ke main (deploy prod via konsol user).
+#185         : (2026-10-06) tautan pengumuman: seluruh kartu bisa diketuk (web @5b8b6a2a); APK 1.1.7/vc9 membuka Play Store/market:/
+                intent: di luar WebView (dulu halaman Play terbuka di dalam app). AAB di Desktop\sisupit-1.1.7-vc9-prod.aab, butuh uji HP + unggah.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
                 kolom approved_at tetap. #178 i18n TERDEPLOY prod @dde8c6a4; #179 (ikon, paginasi PaginationLinks, email).
                 #180 terjemahan bawaan Laravel dari paket laravel-lang/common (DEV) TERDEPLOY prod @9bf7b103; paginasi tetap versi #178 -
