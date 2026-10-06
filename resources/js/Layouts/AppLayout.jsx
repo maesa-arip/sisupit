@@ -334,19 +334,18 @@ export default function AppLayout({ title, children }) {
 						</div>
 					</header>
 
-					{/* BANNER GLOBAL */}
-					{announcemet && announcemet.is_active == 1 && (
-						<div className="w-full">
-							<Banner message={announcemet.message} url={announcemet.url} />
-						</div>
-					)}
-
 					{/* MAIN CONTENT */}
 					{/* Tanpa batas lebar global (2026-10-02, keputusan user): dulu max-w-7xl memusatkan isi di 1280px
 					    sehingga layar lebar kosong di kiri-kanan, sementara tabel Pengguna terpotong & harus digulir
 					    untuk mencapai tombol Ubah. Form & teks bacaan tetap sempit lewat max-w milik halamannya. */}
 					<main className="w-full flex-1">
 						<div ref={contentRef} className="p-4 lg:p-8">
+							{/* PENGUMUMAN SISTEM (#184): kartu di alur halaman, bukan pita fixed (lihat Banner.jsx). */}
+							{announcemet && announcemet.is_active == 1 && (
+								<div className="mb-4 lg:mb-6">
+									<Banner announcement={announcemet} />
+								</div>
+							)}
 							{/* Navigasi instan (TASK_70): kerangka tujuan tampil sebelum respons tiba. Halaman lama
 							    DISEMBUNYIKAN, bukan dilepas - kalau kunjungan gagal (sinyal putus), isian form yang
 							    sudah diketik & peta tetap utuh saat ia muncul kembali. `contents` = pembungkus ini tak

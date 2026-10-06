@@ -17,6 +17,8 @@ class AnnouncementController extends Controller
     {
         $announcements = Announcement::query()
             ->select(['id', 'message', 'url', 'is_active', 'created_at'])
+            ->orderByDesc('is_active')
+            ->latest()
             ->paginate(10)
             ->withQueryString();
 

@@ -18,7 +18,7 @@ class AnnouncementResource extends JsonResource
             'id' => $this->id,
             'message' => $this->message,
             'url' => $this->url,
-            'is_active' => $this->is_active ? 'Aktif' : 'TIdak Aktif',
+            'is_active' => $this->is_active ? 'Aktif' : 'Tidak Aktif',
             'created_at' => $this->created_at->format('d M Y'),
         ];
     }

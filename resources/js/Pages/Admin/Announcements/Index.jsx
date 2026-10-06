@@ -67,6 +67,20 @@ function DeleteAnnouncementDialog({ announcement }) {
 	);
 }
 
+// Lencana status yang sama untuk daftar ponsel & tabel desktop (#184; dulu desktop teks polos).
+function StatusPill({ value }) {
+	return (
+		<span
+			className={cn(
+				'inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold',
+				value === 'Aktif' ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground',
+			)}
+		>
+			{value}
+		</span>
+	);
+}
+
 export default function Index(props) {
 	const { data: announcements, meta } = props.announcements;
 
@@ -99,16 +113,7 @@ export default function Index(props) {
 											{announcement.message}
 										</span>
 										<span className="mt-1 flex items-center gap-2 text-[13px] text-muted-foreground">
-											<span
-												className={cn(
-													'rounded-full px-2 py-0.5 text-[11px] font-semibold',
-													announcement.is_active === 'Aktif'
-														? 'bg-success/10 text-success'
-														: 'bg-muted text-muted-foreground',
-												)}
-											>
-												{announcement.is_active}
-											</span>
+											<StatusPill value={announcement.is_active} />
 											{announcement.created_at}
 										</span>
 									</span>
@@ -130,7 +135,7 @@ export default function Index(props) {
 									<TableHead className="hidden md:table-cell">#</TableHead>
 									<TableHead>Pesan</TableHead>
 									<TableHead className="hidden md:table-cell">URL</TableHead>
-									<TableHead>Aktif</TableHead>
+									<TableHead>Status</TableHead>
 									<TableHead className="hidden md:table-cell">Dibuat Pada</TableHead>
 									<TableHead>Aksi</TableHead>
 								</TableRow>
@@ -141,10 +146,30 @@ export default function Index(props) {
 										<TableCell className="hidden md:table-cell">
 											{index + 1 + (meta.current_page - 1) * meta.per_page}
 										</TableCell>
-										<TableCell>{announcement.message}</TableCell>
-										<TableCell className="hidden md:table-cell">{announcement.url}</TableCell>
-										<TableCell>{announcement.is_active}</TableCell>
-										<TableCell className="hidden md:table-cell">
+										<TableCell className="min-w-[16rem] max-w-xl">
+											<p className="line-clamp-2 whitespace-normal" title={announcement.message}>
+												{announcement.message}
+											</p>
+										</TableCell>
+										<TableCell className="hidden max-w-[14rem] md:table-cell">
+											{announcement.url ? (
+												<a
+													href={announcement.url}
+													target="_blank"
+													rel="noopener noreferrer"
+													title={announcement.url}
+													className="block truncate text-primary hover:underline"
+												>
+													{announcement.url}
+												</a>
+											) : (
+												<span className="text-muted-foreground">-</span>
+											)}
+										</TableCell>
+										<TableCell className="whitespace-nowrap">
+											<StatusPill value={announcement.is_active} />
+										</TableCell>
+										<TableCell className="hidden whitespace-nowrap md:table-cell">
 											{announcement.created_at}
 										</TableCell>
 										<TableCell>
@@ -159,6 +184,13 @@ export default function Index(props) {
 										</TableCell>
 									</TableRow>
 								))}
+								{announcements.length === 0 && (
+									<TableRow>
+										<TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
+											Belum ada pengumuman.
+										</TableCell>
+									</TableRow>
+								)}
 							</TableBody>
 						</Table>
 					</div>
