@@ -4323,4 +4323,4 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Fix:** `lib/leaflet-fit.js` `fitBoundsWhenSized` - fit langsung bila peta berukuran, bila 0 ditunda ke event
   `resize` peta (permintaan terakhir menang). Dipasang di 7 pemanggil: Monitoring/Map, Admin Reports/Hydrants/Pumps/
   FireStations Index, Front/Reports/Show, Petugas/Dashboard. Kerangka/transisi TASK_70 tidak diubah (pilihan user).
-- **Status:** FIXED 2026-10-06 (belum deploy). Test `LeafletFitBoundsTest` (2, disabotase -> merah, dipulihkan `cmp`).
+- **Status:** FIXED 2026-10-06, TERDEPLOY PROD @f6de6380 (HTTPS terverifikasi, manifest = commit). Test `LeafletFitBoundsTest` (2, disabotase -> merah, dipulihkan `cmp`).
