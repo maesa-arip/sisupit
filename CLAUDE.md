@@ -79,8 +79,8 @@ TASK_74/#182 : (2026-10-05, TERDEPLOY PROD @198d6c0f) Profil > "Notifikasi di HP
                 kerangka TASK_70 (peta 0x0). Helper lib/leaflet-fit.js fitBoundsWhenSized di 7 peta; penjaga LeafletFitBoundsTest.
 #184         : (2026-10-06) Pengumuman Sistem: Banner dulu fixed bottom-0 tertutup bilah bawah ponsel -> kartu di awal area konten
                 AppLayout + tombol tutup (localStorage id:updated_at); admin Index/Create/Edit dirapikan (lencana, Textarea, Switch,
-                pratinjau). Penjaga AnnouncementBannerTest. Di-push ke main (deploy prod via konsol user).
-#185         : (2026-10-06) tautan pengumuman: seluruh kartu bisa diketuk (web @5b8b6a2a); APK 1.1.7/vc9 membuka Play Store/market:/
+                pratinjau). Penjaga AnnouncementBannerTest. TERDEPLOY PROD @586adb8b.
+#185         : (2026-10-06) tautan pengumuman: seluruh kartu bisa diketuk (web TERDEPLOY PROD @f36d2e9d, HTTPS terverifikasi); APK 1.1.7/vc9 membuka Play Store/market:/
                 intent: di luar WebView (dulu halaman Play terbuka di dalam app). AAB 9 (1.1.7) DIKIRIM KE REVIEW Play (Closed testing - Alpha,
                 full rollout, managed publishing off) 2026-10-06; belum diuji di HP.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
@@ -96,7 +96,7 @@ Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174.
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
 Test         : 730 passed, 3733 assertions (2026-10-06, + #184 AnnouncementBannerTest).
-Lingkungan   : PROD @f6de6380 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183) | DEV @672b6a10 (dashboard baru) | STAGING @6d1dc8ea (dashboard
+Lingkungan   : PROD @f36d2e9d (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#185) | DEV @672b6a10 (dashboard baru) | STAGING @6d1dc8ea (dashboard
                 sebelumnya, untuk perbandingan). Dev & staging: data salinan prod, basic auth (APK dikecualikan), sandi "password".
 ```
 

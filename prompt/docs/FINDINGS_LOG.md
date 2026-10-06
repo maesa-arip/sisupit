@@ -4343,7 +4343,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   sekarang" + keterangan, pratinjau kartu. URL tetap `type="text" inputMode="url"` (validasi tetap di server).
 - **Verifikasi:** Chrome desktop 1440 + iframe 390px (Beranda & /admin/announcements): kartu terlihat di atas
   konten, tak tertutup bilah bawah; tutup -> reload tetap tersembunyi. Data uji lokal dihapus.
-- **Status:** FIXED 2026-10-06. Test `AnnouncementBannerTest` (3: tak fixed/sticky, terpasang di area konten, urutan + ejaan status).
+- **Status:** FIXED 2026-10-06, TERDEPLOY PROD @586adb8b (lalu @f36d2e9d bersama #185, HTTPS terverifikasi). Test `AnnouncementBannerTest` (3: tak fixed/sticky, terpasang di area konten, urutan + ejaan status).
 
 ### #185 — Tautan pengumuman (Play Store) "tidak bisa diklik" / tak membuka Play Store (FIXED - APK 1.1.7 menunggu uji HP)
 
