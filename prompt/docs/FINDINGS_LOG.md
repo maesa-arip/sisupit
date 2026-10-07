@@ -4533,3 +4533,63 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Verifikasi:** skrip PHP berdiri sendiri di prod -> "HASIL: TERKIRIM" ke tawarinfirst@gmail.com.
 - **Sisa:** batas Gmail ~500/hari & pengirim @gmail.com (rawan Spam); staging/dev belum dicek (kemungkinan sama-sama
   `log`); user #256 perlu tekan "Kirim ulang email verifikasi".
+
+### #192 — Pencarian lokasi tak toleran salah ketik + peta form lapor terlalu kecil di ponsel (FIXED - branch feat/bottomnav-apple-design, belum dideploy)
+
+- **Laporan user 2026-10-07:** "di google maps saat saya cari wngiri muncul wanagiri, sedangkan disini tidak ... tampilan
+  maps nya terasa sangat kecil dan susah digunakan". Disetujui butir 1-4 (TASK_76).
+- **Root cause 1:** `GeocodeController::search` hanya Nominatim, yang mencocokkan kata utuh tanpa toleransi typo. Diuji ke
+  nominatim.openstreetmap.org & instance lokal: wngiri/wanagri/ubd/snur/seseten/tbanan = 0 hasil, ejaan benarnya ketemu.
+  Google Places Autocomplete mengoreksi ejaan/transliterasi diam-diam.
+- **Root cause 2:** peta form lapor `h-[280px]` di dalam kartu ber-padding; kolom cari (~52px) dan daftar hasil menutupinya,
+  sisa ~200px yang bisa digeser.
+- **Fix 1 (koreksi ejaan):** bila semua cadangan lama nihil, `correctSpelling()` mengganti tiap kata yang tak dikenal kamus
+  dengan kata nama wilayah terdekat di PROVINSI tenant (laravolt kab/kec/desa + `banjars`, cache 24 jam
+  `geocode:place-words:{prov}`), lalu mencari sekali lagi. Cocok = huruf pertama sama DAN (Damerau-Levenshtein <= 1 untuk
+  4-7 huruf, <= 2 untuk >= 8 huruf, ATAU hanya vokal yang hilang: kata lebih pendek + kerangka konsonan sama + urut di
+  dalam kandidat). Kata 3 huruf hanya lewat aturan vokal. Kata umum alamat (`NON_PLACE_WORDS`) tak dikoreksi. Query hasil
+  koreksi dikirim di header `X-Geocode-Corrected-Query` (rawurlencode) - respons tetap array polos (7 halaman pemakai).
+  Uji kamus Bali dev: 13/13 typo benar; aturan awal salah mengoreksi "teuku"->"tek", "bonjol"->"bonyoh",
+  "bedugul"->"bedulu", "dua"->"duda" - karena itu syarat-syarat di atas.
+- **Fix 2 (urutan):** `tenantCityFirst()` - hasil yang `display_name`-nya memuat nama kabupaten/kota tenant naik, urutan
+  lain tetap (desa kembar: Wanagiri ada di Tabanan, Bangli, Buleleng). Klien ber-GPS tetap mengurutkan jarak.
+- **Fix 3 (layar penuh):** di ponsel (< sm) wadah peta YANG SAMA jadi `fixed inset-0 z-[60]` (di atas header/bar Kirim z-40
+  dan bilah bawah z-50): tombol kembali + kolom cari di atas, pin tengah, lembar alamat + "Pakai lokasi ini" di bawah.
+  Terbuka dari tombol "Layar penuh" atau saat kolom cari difokus; tutup = kembali / Pakai lokasi ini / Esc.
+  `PullToRefreshLock` + `body overflow hidden` selama terbuka. Pratinjau `h-[min(42dvh,380px)] min-h-[280px]`, sm+ tetap
+  340px. Hasil cari menampilkan "Menampilkan hasil untuk **X**".
+- **Keterbatasan (sama dengan dialog):** tombol Kembali APK = `goBack()` (keluar dari form), tidak menutup layar penuh -
+  repo tak punya pola history untuk lapisan, dan `pushState` berisiko bentrok dengan `history.state` Inertia.
+  Petunjuk koreksi hanya tampil di form lapor; 6 halaman admin fasilitas mendapat koreksinya diam-diam.
+- **Penjaga:** `GeocodeControllerTest` (+10: koreksi 5 pola, tanpa koreksi saat ada hasil, 3 kata yang tak boleh dikoreksi,
+  urutan kabupaten tenant; sabotase -> 6 merah, dipulihkan `cmp`), `ReportMapFullscreenPickerTest` (2).
+- **Verifikasi:** Playwright headless 390x844 (admin Denpasar lokal, Nominatim lokal): fokus kolom cari -> peta 390x685 di
+  (0,0); "wngiri" -> "Menampilkan hasil untuk Wanagiri" + 3 desa berurut jarak; pilih -> lembar "Wanagiri / Selemadeg,
+  Kabupaten Tabanan"; geser di layar penuh mengubah lat; Pakai lokasi ini & Esc kembali ke pratinjau 332x354, body
+  overflow pulih. Belum diuji di HP/APK.
+
+### #193 — Animasi ikon bilah bawah (garis -> terisi merah) patah di ponsel (FIXED - branch feat/bottomnav-apple-design, belum dideploy)
+
+- **Laporan user 2026-10-07:** "perbaiki juga animasi icon dari putih ke berwarna merah di mobilebottomnav, sekarang
+  animasinya tidak smooth cenderung patah".
+- **Root cause (terukur Playwright, CPU 4x lebih lambat):**
+  1. `SlotContent` menghitung `animationDelay = -elapsed` tiap render lewat prop `style`. Bilah dirender berkali-kali
+     selama pindah halaman (menu aktif saat diketuk, kerangka TASK_70, halaman tiba); tiap penggantian jeda membuat
+     animasi yang sedang berjalan melompat maju - isi tampil pertama kali di ~40% (sampel: 43 ms -> 40%).
+  2. Isi memakai `clip-path` dan lingkaran Lapor memakai `transition` `background-color` - dihitung main thread. Main
+     thread macet 300-580 ms saat halaman tujuan dirender, isinya membeku lalu melompat. Halaman uji (main thread
+     diblokir 400 ms): `height` diam ~435 ms, `clip-path` diam ~110 ms lalu lompat 11 -> 22%, `transform` tanpa jeda.
+  3. Jam yang dipatok ke WAKTU KETUKAN membuat animasi "mengejar" ±150 ms antara ketukan dan frame pertama.
+- **Fix:** isi = jendela `overflow-hidden` naik (`slot-fill`, translateY 100% -> 0) berisi glyph padat yang turun sama
+  cepat (`slot-fill-glyph`) - hanya transform. Lingkaran Lapor: warna merah langsung jadi dasar, lapisan abu + petir
+  garis memudar keluar (`lapor-fade`, opacity); transisi background-color dicabut. Jeda ditulis SEKALI per ketukan
+  oleh `useTapClock(clock, running)` ke variabel CSS `--tap-delay` di layout effect, dipatok ke frame pertama yang
+  tergambar (`clock.anchor`, diisi rAF); semua elemen animasi ber-`[animation-delay:var(--tap-delay,0ms)]`.
+  `slotTap`/`laporTap` = `{ at, anchor }` tingkat modul (dulu `laporTappedAt`).
+- **Test diubah (bukan dilonggarkan):** `LaporRaisedCircleTest` & `MobileNavIconGlyphTest` mengunci string mekanisme
+  lama (`${-elapsed}ms`, `clipPath: 'inset(100% 0 0 0)'`, `laporTappedAt`, `delay: -elapsed`) - persis mekanisme bug;
+  diganti ke mekanisme baru dengan maksud yang sama (terisi dari bawah, dilanjutkan lintas halaman).
+- **Penjaga:** `MobileNavTapAnimationTest` - keyframe `slot-*`/`lapor-*` hanya transform/opacity, tak ada
+  `animationDelay` per render, `useTapClock` terpasang di kedua jenis slot. Sabotase clip-path -> merah, `cmp` pulih.
+- **Verifikasi:** animasi dibekukan di 30/50/70% (DSF 8): glyph terbuka dari bawah di posisi tepat; Lapor 40% abu
+  memudar di atas merah + riak. Belum diuji di HP/APK.
