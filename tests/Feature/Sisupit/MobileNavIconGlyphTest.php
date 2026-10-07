@@ -39,7 +39,7 @@ it('draws the brand bolt in the Lapor slot, not the tabler bolt', function () us
 
     expect($source)
         ->toContain("from '@/Components/BrandBoltIcon'")
-        ->toContain('icon: BrandBoltIcon,')
+        ->toContain('icon={BrandBoltIcon}')
         ->not->toContain('IconBolt');
 });
 
@@ -59,16 +59,17 @@ it('keeps the brand bolt a glyph that inherits its color', function () use ($str
     expect(preg_match('/#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(/', $source))->toBe(0);
 });
 
-// Redesign apple-design 2026-10-07 (#189), koreksi user: "Lapor ... taruh ditengah, jika tidak aktif
-// dia abu, jika aktif baru merah". Slot tengah berupa lingkaran: ABU + petir garis saat diam, MERAH +
-// petir padat hanya saat halaman lapor dibuka. Kalau lingkarannya merah permanen, #106 kembali.
-it('keeps the Lapor circle grey and outlined until its page is open', function () use ($stripComments) {
+// Permintaan user 2026-09-06: petir MEMADAT saat slotnya aktif. Syarat "hanya saat aktif" itulah
+// yang membuatnya sah — "bidang terisi HANYA milik slot aktif" adalah aturan yang lahir dari #106
+// putaran kedua. Kalau bawaan `filled` suatu saat dibalik jadi true, atau slot itu berhenti
+// mengikat fill-nya ke keadaan aktifnya, petir kembali terisi di SETIAP halaman: bentuk #106
+// persis, cuma dari arah yang berbeda, dan tanpa satu pun gejala lain.
+it('fills the brand bolt only while its slot is the active page', function () use ($stripComments) {
     $icon = $stripComments(file_get_contents(resource_path('js/Components/BrandBoltIcon.jsx')));
     $nav = $stripComments(file_get_contents(resource_path('js/Layouts/Partials/MobileBottomNav.jsx')));
 
     expect($icon)->toContain('filled = false');
-    expect($nav)->toContain('iconActive: BrandBoltIconFilled')
-        ->toMatch("/tab\.active\s*\?\s*'bg-destructive text-destructive-foreground[^']*'\s*:\s*'bg-foreground\/\[0\.08\] text-muted-foreground/");
+    expect($nav)->toContain('iconActive={BrandBoltIconFilled}');
 });
 
 // Permintaan user 2026-09-06 yang menyusul: BUKAN cuma "Lapor" — kelima slot memadat saat aktif.
@@ -82,11 +83,11 @@ it('gives every bottom-bar slot a filled twin for its active state', function ()
     $nav = $stripComments(file_get_contents(resource_path('js/Layouts/Partials/MobileBottomNav.jsx')));
 
     foreach ([
-        'iconActive: IconDashboardFilled',
-        'iconActive: IconMapPinFilled',
-        'iconActive: BrandBoltIconFilled',
-        'iconActive: IconClockFilled',
-        'iconActive: IconLayoutGridFilled',
+        'iconActive={IconDashboardFilled}',
+        'iconActive={IconMapPinFilled}',
+        'iconActive={BrandBoltIconFilled}',
+        'iconActive={IconClockFilled}',
+        'iconActive={IconLayoutGridFilled}',
     ] as $pair) {
         expect($nav)->toContain($pair);
     }
@@ -95,4 +96,25 @@ it('gives every bottom-bar slot a filled twin for its active state', function ()
     expect($nav)
         ->not->toContain('IconHistory')
         ->not->toContain('IconMenu2');
+});
+
+// #189 (koreksi user 2026-10-07): "tombol lapor ... taruh ditengah, jika tidak aktif dia abu, jika aktif
+// baru merah" + "tambahkan animasi saat klik lapor". Lingkaran merah permanen = #106 kembali; dan karena
+// tiap halaman memasang AppLayout sendiri, animasi ketukan hanya terlihat utuh bila bilah halaman tujuan
+// MELANJUTKANNYA (waktu ketukan di tingkat modul + animation-delay negatif).
+it('keeps the centre Lapor circle grey until its page is open and animates the tap', function () use ($stripComments) {
+    $nav = $stripComments(file_get_contents(resource_path('js/Layouts/Partials/MobileBottomNav.jsx')));
+    $tailwind = file_get_contents(base_path('tailwind.config.js'));
+
+    expect($nav)->toContain('<LaporSlot')
+        ->toMatch("/active\s*\?\s*'bg-destructive text-destructive-foreground[^']*'\s*:\s*'bg-foreground\/\[0\.08\] text-muted-foreground/")
+        ->toContain('let laporTappedAt = 0;')
+        ->toContain('delay: -elapsed')
+        ->toContain('animate-lapor-pop motion-reduce:animate-none')
+        ->toContain('animate-lapor-ripple');
+
+    preg_match('/const LAPOR_POP_MS = (\d+);/', $nav, $ms);
+    expect($ms)->not->toBeEmpty()
+        ->and($tailwind)->toContain("'lapor-pop': 'lapor-pop {$ms[1]}ms")
+        ->and($tailwind)->toContain("'lapor-ripple': 'lapor-ripple {$ms[1]}ms");
 });

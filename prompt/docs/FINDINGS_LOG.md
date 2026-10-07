@@ -4482,3 +4482,13 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   PullToRefreshLock hanya saat terbuka). Fasilitas = kisi tombol bulat ala Control Center; Menu = baris profil + baris ikon
   monokrom tanpa ubin/chevron, Keluar merah di dasar. (c) `ui/drawer.jsx` dipulihkan persis ke tag (tanpa pemakai lagi).
   Test: penjaga lembar diganti penjaga panel (asal dari tab, kunci tarik-segar hanya saat terbuka, Lapor abu/merah).
+- **Revisi 2 (koreksi user 2026-10-07):** "animasi smooth dan pop up menunya sudah oke, tapi pakai tampilan yang
+  sebelumnya, hanya tiru tombol lapor yang tengah dan animasinya, dan tambahkan animasi saat klik lapor, sekarang itu
+  tanpa animasi". Bilah DIPULIHKAN dari tag ke bentuk minimalis (bilah 64px menempel, 5 slot, ikon padat saat aktif,
+  PENGECUALIAN #3 berlaku lagi) lalu diubah hanya di: (1) slot Lapor = lingkaran tengah abu/merah (`LaporSlot`);
+  (2) popover -> panel kaca revisi 1 (`GlassPanel`, `slotOrigin`); (3) animasi ketuk Lapor - keyframes `lapor-pop` &
+  `lapor-ripple` di tailwind.config.js. **Akar "tanpa animasi":** 75 halaman memasang `<AppLayout>` sendiri, jadi bilah
+  dipasang ulang saat halaman lapor tiba dan perubahan abu -> merah terjadi di komponen baru tanpa transisi. Waktu
+  ketukan kini disimpan di tingkat modul; bilah halaman tujuan melanjutkan animasi dengan animation-delay negatif.
+  Kapsul melayang + lensa revisi 0/1 dibuang. Test penjaga dipulihkan dari tag, hanya bagian popover yang diarahkan ke
+  panel, + 1 penjaga Lapor (abu/merah, animasi berlanjut, durasi = tailwind).

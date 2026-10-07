@@ -2588,6 +2588,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + #188 lanjutan kartu Wilayah Kejadian digabung ke kartu peta (+1 penjaga; AppleDesignMaterialTest tak lagi menuntut bagian Wilayah) = 761 passed, 3800 assertions.
             + #189 bilah bawah ditulis ulang apple-design (5 berkas test penjaga diarahkan ke bentuk baru, +1 penjaga lembar) = 761 passed, 3801 assertions.
             + #189 revisi 1 (Lapor lingkaran di tengah abu/merah, panel kaca melayang menggantikan lembar vaul) = 761 passed, 3804 assertions.
+            + #189 revisi 2 (bilah lama dipulihkan + Lapor lingkaran tengah beranimasi + panel kaca; +1 penjaga Lapor) = 762 passed, 3813 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

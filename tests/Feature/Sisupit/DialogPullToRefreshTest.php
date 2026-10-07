@@ -48,11 +48,12 @@ it('pauses native pull-to-refresh inside every scrollable floating panel', funct
         expect(jsxWithoutComments($path))->toMatch($pattern);
     }
 
-    // Redesign 2026-10-07 (#189): panel kaca bilah bawah selalu terpasang (supaya transisinya bisa
-    // disela), jadi kuncinya dipasang HANYA selama terbuka - kalau tidak, refresh tarik mati selamanya.
+    // #189: panel kaca bilah bawah SELALU terpasang (supaya transisinya bisa disela), jadi kuncinya
+    // dipasang HANYA selama terbuka - kunci yang selalu terpasang mematikan refresh tarik selamanya.
     $nav = jsxWithoutComments('js/Layouts/Partials/MobileBottomNav.jsx');
     expect($nav)->toContain('{open && <PullToRefreshLock />}')
-        ->not->toMatch('~<GlassPanel[^>]*>\s*<PullToRefreshLock~');
+        ->toContain("open={panel === 'fasilitas'}")
+        ->toContain("open={panel === 'menu'}");
 });
 
 it('lets the regu member list scroll on its own', function () {

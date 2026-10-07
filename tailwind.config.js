@@ -25,6 +25,24 @@ export default {
 			transitionTimingFunction: {
 				spring: 'cubic-bezier(0.32, 0.72, 0, 1)',
 			},
+			// Ketukan slot Lapor bilah bawah (#189): lingkaran memantul ala efek "bounce" SF Symbols
+			// + riak yang memudar keluar. Durasinya diikat MobileBottomNav (LAPOR_POP_MS).
+			keyframes: {
+				'lapor-pop': {
+					'0%': { transform: 'scale(1)' },
+					'28%': { transform: 'scale(0.84)' },
+					'62%': { transform: 'scale(1.1)' },
+					'100%': { transform: 'scale(1)' },
+				},
+				'lapor-ripple': {
+					'0%': { transform: 'scale(1)', opacity: '0.5' },
+					'100%': { transform: 'scale(1.9)', opacity: '0' },
+				},
+			},
+			animation: {
+				'lapor-pop': 'lapor-pop 650ms cubic-bezier(0.32, 0.72, 0, 1) both',
+				'lapor-ripple': 'lapor-ripple 650ms ease-out both',
+			},
 			fontFamily: {
 				sans: ['Inter', ...defaultTheme.fontFamily.sans],
 			},

@@ -100,18 +100,21 @@ resources/js/
                   Navigasi SEMUA UKURAN = SATU daftar di Partials/navItems.js
                   (buildNavSections), dua permukaan:
                    - Partials/Sidebar.jsx: sidebar penuh (≥lg) + rail ikon (md, `compact`)
-                   - Partials/MobileBottomNav.jsx (<md): kapsul kaca 5 slot (Lapor lingkaran di tengah: abu/merah saat aktif); Fasilitas & Menu = panel kaca melayang yang tumbuh dari tabnya (#189, 2026-10-07)
-                     (bentuk lama: tag git pra-bottomnav-apple-design). Jangkar tab didaftar
-                     sebagai KUNCI di BAR_ITEM_KEYS / FASILITAS_ITEM_KEYS; tab ke-4 = "Masuk"
-                     bagi TAMU (tujuan dari item `login` navItems.js, bukan dipaku) dan lembar
-                     "Menu" bagi yang sudah login (kartu profil + semua seksi sisanya). Menu
-                     baru cukup ditulis di navItems.js — ia otomatis mendarat di lembar "Menu".
+                   - Partials/MobileBottomNav.jsx (<md): bar 5 slot (Lapor = lingkaran tengah abu/merah, #189) dengan dua panel kaca (dulu popover)
+                     melayang buatan tangan — bentuk pra-TASK_20 yang diminta user
+                     2026-08-13 dan TETAP dipertahankan. Empat jangkar tetap (Beranda,
+                     Fasilitas, SOS, Riwayat) didaftar sebagai KUNCI di BAR_ITEM_KEYS /
+                     FASILITAS_ITEM_KEYS; slot ke-5 = tombol "Masuk" bagi TAMU (2026-08-25,
+                     tujuannya diambil dari item `login` navItems.js, bukan dipaku) dan
+                     popover "Menu" bagi yang sudah login, yang memuat
+                     semua seksi sisanya. Menu baru cukup ditulis di navItems.js — ia
+                     otomatis mendarat di popover "Menu".
                   Pengecualian "dua daftar" 2026-08-13 DICABUT 2026-08-19 (TASK_31) setelah
                   9 menu terbukti hilang di ponsel — FINDINGS #71, #53/#54 FIXED lagi.
                   Penjaga: tests/Feature/Sisupit/MobileNavParityTest.php.
                   2026-08-28 (permintaan user): seksi "Bantuan & Legal" DIHAPUS dari
                   navItems.js, jadi keempat halaman info/legal tak lagi punya entri menu
-                  di sidebar MAUPUN lembar "Menu". Satu-satunya jalan tersisa = footer
+                  di sidebar MAUPUN popover "Menu". Satu-satunya jalan tersisa = footer
                   AppLayout, dan itu kini berlaku untuk SEMUA peran (dulu cuma tamu, lihat
                   TASK_35) — jangan hapus/pindahkan footer itu tanpa menyediakan jalan lain.
                   Partials/MobileMenuPanel.jsx + hooks/use-sheet-history.js DIHAPUS

@@ -46,7 +46,7 @@ it('builds the header and the bottom bar from the chrome material, never a solid
         ->and(preg_grep('/^bg-/', $classes))->toBe([]);
 })->with([
     ['resources/js/Layouts/AppLayout.jsx', 'sticky top-0 z-40'],
-    ['resources/js/Layouts/Partials/MobileBottomNav.jsx', 'pointer-events-auto relative grid h-14'],
+    ['resources/js/Layouts/Partials/MobileBottomNav.jsx', 'fixed bottom-0 left-0 z-50'],
 ]);
 
 it('grows every floating surface from its trigger out of the thick material', function (string $path, string $needle, string $origin) {
@@ -61,10 +61,9 @@ it('grows every floating surface from its trigger out of the thick material', fu
     ['resources/js/Components/ui/select.jsx', 'max-h-96 min-w-[8rem]', 'origin-[--radix-select-content-transform-origin]'],
 ]);
 
-// Redesign bilah bawah 2026-10-07 (#189): panel Fasilitas & Menu = panel kaca melayang yang tumbuh dari
-// TAB PEMICUNYA (transform-origin dihitung dari posisi tab) dengan pegas, dan selalu terpasang supaya
-// transisinya bisa disela.
-it('grows the bottom-nav glass panels from their tab with a spring', function () {
+// #189 (2026-10-07): popover bilah bawah = panel kaca melayang yang tumbuh dari SLOT PEMICUNYA
+// (transform-origin dihitung per slot) dengan pegas, dan selalu terpasang supaya transisinya bisa disela.
+it('grows the bottom-nav glass panels from their slot with a spring', function () {
     $panel = appleClassesAround('resources/js/Layouts/Partials/MobileBottomNav.jsx', 'material-thick no-scrollbar fixed');
     expect($panel)->toContain('ease-spring')
         ->and($panel)->toContain('motion-reduce:transition-opacity')
@@ -72,8 +71,8 @@ it('grows the bottom-nav glass panels from their tab with a spring', function ()
 
     expect(appleSource('resources/js/Layouts/Partials/MobileBottomNav.jsx'))
         ->toContain('style={{ transformOrigin: origin }}')
-        ->toContain('origin={originFor(\'fasilitas\')}')
-        ->toContain('origin={originFor(\'menu\')}');
+        ->toContain('origin={slotOrigin(1)}')
+        ->toContain('origin={slotOrigin(4)}');
 });
 
 it('keeps the solid command surface out of the material popovers that host it', function () {
@@ -98,7 +97,7 @@ it('turns reduced motion into a cross-fade without un-centering translated dialo
 });
 
 it('gives the bottom bar slots press feedback and defines the spring curve', function () {
-    $slot = appleClassesAround('resources/js/Layouts/Partials/MobileBottomNav.jsx', 'relative z-10 flex h-full w-full');
+    $slot = appleClassesAround('resources/js/Layouts/Partials/MobileBottomNav.jsx', 'group relative flex h-full w-full');
     expect($slot)->toContain('active:scale-[0.92]')->and($slot)->toContain('motion-reduce:active:scale-100');
 
     expect(appleSource('tailwind.config.js'))->toMatch("/transitionTimingFunction:\s*\{\s*spring:\s*'cubic-bezier\(0\.32, 0\.72, 0, 1\)'/");
