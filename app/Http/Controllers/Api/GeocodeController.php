@@ -76,6 +76,38 @@ class GeocodeController extends Controller
         $query = $this->normalizeStreetAbbreviations($validated['q']);
         $viewbox = $this->biasViewbox($validated['lat'] ?? null, $validated['lng'] ?? null);
 
+        // "jl."/"jln"/"gg" saja = pelapor baru mulai mengetik nama jalannya. Nominatim akan
+        // menjawab nol, dan layar sempat berbunyi "Tidak ada hasil" di tengah ketikan (#194).
+        if (preg_match('/^(Jalan|Gang)$/iu', $query)) {
+            return response()->json([]);
+        }
+
+        $results = $this->searchWithFallbacks($query, $viewbox);
+
+        // Masih nihil -> mungkin salah ketik. Nominatim tak punya toleransi typo sama sekali
+        // ("wngiri", "snur", "tbanan" = 0 hasil, ejaan benarnya ketemu; diuji 2026-10-07),
+        // sedangkan Google Maps mengoreksi ejaan diam-diam. Koreksinya memakai kamus nama
+        // wilayah + nama jalan milik kita sendiri - lihat correctSpelling().
+        $corrected = null;
+        if ($results === []) {
+            $candidate = $this->correctSpelling($query);
+
+            if ($candidate !== null) {
+                $results = $this->searchWithFallbacks($candidate, $viewbox);
+                $corrected = $results !== [] ? $candidate : null;
+            }
+        }
+
+        $response = response()->json(array_slice($this->tenantCityFirst($results), 0, self::RESULT_LIMIT));
+
+        return $corrected !== null
+            ? $response->header(self::CORRECTED_HEADER, rawurlencode($corrected))
+            : $response;
+    }
+
+    /** Satu query lewat Nominatim + cadangan awalan kata terakhir + cadangan tanpa "Jalan". */
+    private function searchWithFallbacks(string $query, ?string $viewbox): array
+    {
         $results = $this->searchNominatim($query, self::RESULT_LIMIT, $viewbox);
 
         // Nominatim mencocokkan KATA UTUH, bukan awalan: mengetik "gema mer" bernilai 0
@@ -90,30 +122,44 @@ class GeocodeController extends Controller
         }
 
         // Jalan di OSM tak selalu bernama "Jalan X" - sebagian hanya "X" (mis. "Gatot
-        // Subroto" di Negara). Masih nihil → coba sekali lagi tanpa kata "Jalan".
-        if ($results === [] && preg_match('/^Jalan\s+(.+)$/u', $query, $m)) {
-            $results = $this->searchNominatim($m[1], self::RESULT_LIMIT, $viewbox);
-        }
+        // Subroto" di Negara) atau "Gang X". Masih nihil → coba sekali lagi tanpa kata "Jalan".
+        // Ada hasil tapi TAK SATU PUN di kabupaten tenant → hasil tanpa "Jalan" ikut digabung:
+        // "jl gumitir" dulu hanya memberi Jalan Gumitir di Buleleng, padahal yang dicari pelapor
+        // Denpasar adalah "Gang Gumitir" di Dangin Puri Kelod (#194).
+        if (preg_match('/^Jalan\s+(.+)$/u', $query, $m)) {
+            $city = $this->tenantCityName();
 
-        // Masih nihil -> mungkin salah ketik. Nominatim tak punya toleransi typo sama sekali
-        // ("wngiri", "snur", "tbanan" = 0 hasil, ejaan benarnya ketemu; diuji 2026-10-07),
-        // sedangkan Google Maps mengoreksi ejaan diam-diam. Koreksinya memakai kamus nama
-        // wilayah milik kita sendiri (laravolt + master banjar) - lihat correctSpelling().
-        $corrected = null;
-        if ($results === []) {
-            $candidate = $this->correctSpelling($query);
-
-            if ($candidate !== null) {
-                $results = $this->searchNominatim($candidate, self::RESULT_LIMIT, $viewbox);
-                $corrected = $results !== [] ? $candidate : null;
+            if ($results === []) {
+                $results = $this->searchNominatim($m[1], self::RESULT_LIMIT, $viewbox);
+            } elseif ($city !== '' && ! array_filter($results, fn ($row) => $this->isInCity($row, $city))) {
+                $results = $this->mergeUnique($results, $this->searchNominatim($m[1], self::RESULT_LIMIT, $viewbox));
             }
         }
 
-        $response = response()->json($this->tenantCityFirst($results));
+        return $results;
+    }
 
-        return $corrected !== null
-            ? $response->header(self::CORRECTED_HEADER, rawurlencode($corrected))
-            : $response;
+    private function mergeUnique(array $first, array $second): array
+    {
+        $seen = [];
+        $merged = [];
+
+        foreach (array_merge($first, $second) as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            $key = isset($row['osm_type'], $row['osm_id'])
+                ? $row['osm_type'].$row['osm_id']
+                : ($row['place_id'] ?? $row['display_name'] ?? json_encode($row));
+
+            if (! isset($seen[$key])) {
+                $seen[$key] = true;
+                $merged[] = $row;
+            }
+        }
+
+        return $merged;
     }
 
     /**
@@ -163,7 +209,7 @@ class GeocodeController extends Controller
     }
 
     /**
-     * @param  array<string, true>  $dictionary
+     * @param  array<string, int>  $dictionary  kata => jumlah kemunculan
      */
     private function closestDictionaryWord(string $word, array $dictionary): ?string
     {
@@ -180,8 +226,9 @@ class GeocodeController extends Controller
         $first = mb_substr($word, 0, 1);
         $best = null;
         $bestScore = PHP_INT_MAX;
+        $bestCount = 0;
 
-        foreach (array_keys($dictionary) as $candidate) {
+        foreach ($dictionary as $candidate => $count) {
             $candidate = (string) $candidate;
 
             if (mb_substr($candidate, 0, 1) !== $first) {
@@ -202,12 +249,17 @@ class GeocodeController extends Controller
 
             // Kandidat yang cuma beda vokal didahulukan: itu pola salah ketik paling umum,
             // dan tanpanya "wngiri" (jarak 2) bisa kalah dari nama acak berjarak 2 lainnya.
-            // Seri diputus urutan abjad supaya hasilnya deterministik (dan bisa di-cache).
+            // Seri diputus kata yang LEBIH SERING muncul di data (sinyal popularitas ala Google:
+            // "gmitir" -> gumitir 19x, bukan gemitir 8x; "nsa" -> nusa 150x, bukan nesa 4x), lalu
+            // urutan abjad supaya hasilnya deterministik (dan bisa di-cache).
             $score = $distance * 2 - ($vowelsOnly ? 1 : 0);
 
-            if ($score < $bestScore || ($score === $bestScore && strcmp($candidate, (string) $best) < 0)) {
+            if ($score < $bestScore
+                || ($score === $bestScore && $count > $bestCount)
+                || ($score === $bestScore && $count === $bestCount && strcmp($candidate, (string) $best) < 0)) {
                 $best = $candidate;
                 $bestScore = $score;
+                $bestCount = $count;
             }
         }
 
@@ -264,15 +316,15 @@ class GeocodeController extends Controller
     }
 
     /**
-     * Kata-kata nama wilayah di provinsi tenant, huruf kecil, sebagai kunci array (lookup
-     * O(1)). Di-cache sehari: data laravolt praktis tak berubah, dan banjar baru cukup
+     * Kata-kata nama wilayah + nama jalan di provinsi tenant, huruf kecil, sebagai kunci array
+     * (lookup O(1)), bernilai jumlah kemunculannya. Di-cache sehari: data laravolt praktis tak berubah, dan banjar baru cukup
      * ikut keesokan harinya.
      *
      * Banjar dibaca lewat DB::table (tanpa scope Tenantable) dengan alasan yang sama seperti
      * Banjar::optionsForVillage(): pencarian ini dipakai warga, dan yang diambil HANYA nama
      * untuk dikirim ulang ke Nominatim - tak ada baris banjar yang keluar ke klien.
      *
-     * @return array<string, true>
+     * @return array<string, int>
      */
     private function placeWordDictionary(): array
     {
@@ -283,19 +335,32 @@ class GeocodeController extends Controller
             return [];
         }
 
-        return Cache::remember("geocode:place-words:{$province}", self::CACHE_TTL_SECONDS, function () use ($province) {
+        // v2 (#194): + kata nama jalan. Versi di kunci WAJIB naik tiap isi kamus berubah - kamus lama
+        // tersimpan 24 jam di cache server dan akan terus dipakai tanpa galat apa pun.
+        return Cache::remember("geocode:place-words:v2:{$province}", self::CACHE_TTL_SECONDS, function () use ($province) {
             $names = DB::table('indonesia_cities')->where('code', 'like', $province.'%')->pluck('name')
                 ->merge(DB::table('indonesia_districts')->where('code', 'like', $province.'%')->pluck('name'))
                 ->merge(DB::table('indonesia_villages')->where('code', 'like', $province.'%')->pluck('name'))
                 ->merge(DB::table('banjars')->whereNull('deleted_at')->where('province_code', $province)->pluck('name'));
 
+            // Nilai = jumlah kemunculan (pemutus koreksi yang seri).
             $words = [];
+            $add = function (string $word, int $count) use (&$words) {
+                if (mb_strlen($word) >= 3 && ! in_array($word, self::NON_PLACE_WORDS, true)) {
+                    $words[$word] = ($words[$word] ?? 0) + $count;
+                }
+            };
+
             foreach ($names as $name) {
                 foreach (preg_split('/[^\p{L}]+/u', mb_strtolower((string) $name), -1, PREG_SPLIT_NO_EMPTY) as $word) {
-                    if (mb_strlen($word) >= 3 && ! in_array($word, self::NON_PLACE_WORDS, true)) {
-                        $words[$word] = true;
-                    }
+                    $add($word, 1);
                 }
+            }
+
+            // Kata nama jalan & tempat OSM (scripts/export-street-words.sh): "gmitir" -> "Gumitir" -
+            // nama jalan/gang tak pernah ada di laravolt maupun master banjar.
+            foreach ($this->streetWords($province) as $word => $count) {
+                $add((string) $word, $count);
             }
 
             return $words;
@@ -314,22 +379,47 @@ class GeocodeController extends Controller
             return $results;
         }
 
-        $city = mb_strtolower(trim((string) preg_replace(
-            '/^(kabupaten|kota)\s+/iu',
-            '',
-            (string) DB::table('indonesia_cities')->where('code', currentTenant()->city_code)->value('name')
-        )));
+        $city = $this->tenantCityName();
 
         if ($city === '') {
             return $results;
         }
 
-        $inCity = fn ($row) => is_array($row) && str_contains(mb_strtolower((string) ($row['display_name'] ?? '')), $city);
+        $inCity = fn ($row) => $this->isInCity($row, $city);
 
         return array_merge(
             array_values(array_filter($results, $inCity)),
             array_values(array_filter($results, fn ($row) => ! $inCity($row)))
         );
+    }
+
+    /** Nama kabupaten/kota tenant tanpa "Kabupaten"/"Kota", huruf kecil ("denpasar"), atau ''. */
+    private function tenantCityName(): string
+    {
+        return mb_strtolower(trim((string) preg_replace(
+            '/^(kabupaten|kota)\s+/iu',
+            '',
+            (string) DB::table('indonesia_cities')->where('code', currentTenant()->city_code)->value('name')
+        )));
+    }
+
+    private function isInCity(mixed $row, string $city): bool
+    {
+        return is_array($row) && str_contains(mb_strtolower((string) ($row['display_name'] ?? '')), $city);
+    }
+
+    /** @return array<string, int> kata => jumlah dari resources/data/geocode/street-words-{prov}.txt, atau [] */
+    private function streetWords(string $province): array
+    {
+        $path = resource_path("data/geocode/street-words-{$province}.txt");
+        $words = [];
+
+        foreach (is_file($path) ? file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) : [] as $line) {
+            [$word, $count] = array_pad(explode("\t", $line, 2), 2, '1');
+            $words[$word] = max(1, (int) $count);
+        }
+
+        return $words;
     }
 
     /**

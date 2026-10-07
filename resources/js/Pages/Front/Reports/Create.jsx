@@ -619,11 +619,15 @@ export default function Create(props) {
 		}
 	};
 
+	// "jl."/"jln"/"gang" saja = nama jalannya belum diketik (#194). Dulu langsung berbunyi "Tidak ada
+	// hasil" di tengah ketikan - terbaca seperti pencarian yang rusak.
+	const isBareStreetPrefix = (text) => /^(jl|jln|jalan|gg|gang)\.?$/i.test(text.trim());
+
 	// Satu pencarian ke proxy GeocodeController. Dipakai debounce DAN tombol Enter.
 	const runSearch = (query) => {
 		const q = query.trim();
 
-		if (q.length < 3) return;
+		if (q.length < 3 || isBareStreetPrefix(q)) return;
 
 		// PENJAGA BALAPAN. Nominatim di-serialize ~1 request/detik di sisi server (lock +
 		// jeda 1,1 detik), jadi balasan bisa datang TIDAK berurutan. Mengetik "gema merdeka"
@@ -673,7 +677,7 @@ export default function Create(props) {
 	// Maps). Lonjakan ketikan tetap aman: seluruh panggilan lewat proxy GeocodeController
 	// (cache 24 jam + lock antrean) dan penjaga balapan searchSeqRef membuang balasan basi.
 	useEffect(() => {
-		if (searchQuery.trim().length < 3) {
+		if (searchQuery.trim().length < 3 || isBareStreetPrefix(searchQuery)) {
 			setSearchResults([]);
 			setIsSearching(false);
 			setSearchStatus('idle');

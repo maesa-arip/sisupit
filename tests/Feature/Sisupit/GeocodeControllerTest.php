@@ -193,7 +193,7 @@ function seedGeocodeDictionary(): void
         ['code' => '5171012008', 'district_code' => '517101', 'name' => 'PEMOGAN'],
     ]);
     // Bukan provinsi tenant: tak boleh ikut jadi kamus.
-    DB::table('indonesia_villages')->insert(['code' => '3601142008', 'district_code' => '360114', 'name' => 'WANASARI']);
+    DB::table('indonesia_villages')->insert(['code' => '3601142008', 'district_code' => '360114', 'name' => 'CIBODAS']);
 }
 
 // Nominatim tak toleran salah ketik ("wngiri", "snur", "seseten" = 0 hasil, ejaan benarnya
@@ -242,14 +242,14 @@ it('leaves words it cannot match confidently alone', function (string $typed) {
         ->assertHeaderMissing('X-Geocode-Corrected-Query');
 
     // Hanya pencarian apa adanya (dan cadangan awalan bila multi-kata) - tak ada query koreksi.
-    Http::assertNotSent(fn ($request) => in_array($request['q'], ['Wanagiri', 'Sanur', 'Sesetan', 'Wanasari'], true));
+    Http::assertNotSent(fn ($request) => in_array($request['q'], ['Wanagiri', 'Sanur', 'Sesetan', 'Cibodas'], true));
 })->with([
     // Huruf pertama beda -> bukan salah ketik yang lazim.
     'huruf pertama beda' => ['managiri'],
     // Kata 3 huruf berjarak 1 tanpa pola vokal hilang.
     'kata pendek' => ['sar'],
     // Desa provinsi lain bukan kamus tenant ini.
-    'provinsi lain' => ['wanasri'],
+    'provinsi lain' => ['cibodaz'],
 ]);
 
 // Dua desa "Wanagiri" di Bali: tanpa GPS, yang di kabupaten tenant hampir pasti dimaksud.
@@ -267,4 +267,62 @@ it('puts results inside the tenant city first while keeping the rest in order', 
         ->assertJsonPath('0.display_name', 'Jalan Wanagiri, Denpasar Selatan, Denpasar, Bali')
         ->assertJsonPath('1.display_name', 'Wanagiri, Sukasada, Buleleng, Bali')
         ->assertJsonPath('2.display_name', 'Wanagiri Kauh, Selemadeg, Tabanan, Bali');
+});
+
+// #194 (user 2026-10-07): "gmitir" tak dikoreksi karena kamus #192 hanya berisi nama WILAYAH;
+// Gumitir nama gang/jalan. Kamus kini ikut memuat kata nama jalan OSM provinsi tenant
+// (resources/data/geocode/street-words-51.txt), dan seri diputus jumlah kemunculan
+// (gumitir 19x vs gemitir 8x di data Bali).
+it('corrects a misspelled street name from the street-word dictionary', function () {
+    seedGeocodeDictionary();
+
+    Http::fake(fn ($request) => Http::response(
+        $request['q'] === 'Gumitir' ? [['display_name' => 'Gang Gumitir, Dangin Puri Kelod, Denpasar', 'lat' => '-8.65', 'lon' => '115.22']] : [],
+        200
+    ));
+
+    $this->actingAs(User::factory()->create())
+        ->get('/api/geocode/search?q=gmitir')
+        ->assertOk()
+        ->assertJsonCount(1)
+        ->assertHeader('X-Geocode-Corrected-Query', 'Gumitir');
+});
+
+it('ships a street-word dictionary with counts for the default tenant province', function () {
+    $lines = file(resource_path('data/geocode/street-words-51.txt'), FILE_IGNORE_NEW_LINES);
+
+    expect(count($lines))->toBeGreaterThan(1000)
+        ->and($lines)->toContain("gumitir\t19");
+});
+
+it('does not ask nominatim for a bare street prefix', function (string $typed) {
+    Http::fake();
+
+    $this->actingAs(User::factory()->create())
+        ->get('/api/geocode/search?q='.urlencode($typed))
+        ->assertOk()
+        ->assertJsonCount(0);
+
+    Http::assertNothingSent();
+})->with(['jl.', 'jln', 'Jalan', 'gg.', 'gang']);
+
+// "jl gumitir" dulu hanya memberi Jalan Gumitir di Buleleng; pelapor Denpasar mencari Gang Gumitir.
+it('also searches without "Jalan" when no street result lies in the tenant city', function () {
+    seedGeocodeDictionary();
+
+    Http::fake(fn ($request) => Http::response(match ($request['q']) {
+        'Jalan gumitir' => [['osm_type' => 'way', 'osm_id' => 1, 'display_name' => 'Jalan Gumitir, Gerokgak, Buleleng, Bali', 'lat' => '-8.2', 'lon' => '114.6']],
+        'gumitir' => [
+            ['osm_type' => 'way', 'osm_id' => 2, 'display_name' => 'Gang Gumitir, Dangin Puri Kelod, Denpasar, Bali', 'lat' => '-8.65', 'lon' => '115.22'],
+            ['osm_type' => 'way', 'osm_id' => 1, 'display_name' => 'Jalan Gumitir, Gerokgak, Buleleng, Bali', 'lat' => '-8.2', 'lon' => '114.6'],
+        ],
+        default => [],
+    }, 200));
+
+    $this->actingAs(User::factory()->create())
+        ->get('/api/geocode/search?q='.urlencode('jl gumitir'))
+        ->assertOk()
+        // Digabung tanpa duplikat, yang di kota tenant di atas.
+        ->assertJsonCount(2)
+        ->assertJsonPath('0.display_name', 'Gang Gumitir, Dangin Puri Kelod, Denpasar, Bali');
 });
