@@ -2596,6 +2596,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + #189 revisi 6 bilah bawah 56px, Lapor 36px, bar Kirim 3.5rem py-4 simetris, AppLayout 5rem, panel 72px = 766 passed, 3859 assertions.
             + #192/TASK_76 koreksi ejaan pencarian lokasi + peta form lapor layar penuh (2026-10-07) = 778 passed, 3905 assertions.
             + #193 animasi ketuk bilah bawah transform/opacity + useTapClock (2026-10-07) = 780 passed, 3919 assertions.
+            + #194 kamus kata jalan OSM untuk koreksi ejaan (2026-10-07) = 788 passed, 3943 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

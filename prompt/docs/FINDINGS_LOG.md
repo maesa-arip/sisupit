@@ -4593,3 +4593,25 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   `animationDelay` per render, `useTapClock` terpasang di kedua jenis slot. Sabotase clip-path -> merah, `cmp` pulih.
 - **Verifikasi:** animasi dibekukan di 30/50/70% (DSF 8): glyph terbuka dari bawah di posisi tepat; Lapor 40% abu
   memudar di atas merah + riak. Belum diuji di HP/APK.
+
+### #194 — Pencarian "gmitir" / "jl ..." tanpa hasil setelah #192 (FIXED - di-push ke main, deploy via konsol)
+
+- **Laporan user 2026-10-07 (setelah deploy prod #192/#193):** "kenapa sekarang search jl atau gmitir tidak muncul hasil?"
+- **Root cause:** (1) kamus koreksi #192 hanya nama WILAYAH (laravolt + banjar); Gumitir nama gang/jalan, jadi "gmitir"
+  tetap 0 hasil (bukan regresi - sebelum #192 juga 0). (2) "jl gumitir" -> "Jalan gumitir" hanya cocok Jalan Gumitir di
+  Buleleng; "Gang Gumitir" Denpasar baru muncul tanpa kata "Jalan", dan cadangan tanpa "Jalan" dulu hanya saat NIHIL.
+  (3) "jl."/"jln" saja -> "Jalan" -> 0 hasil -> form berbunyi "Tidak ada hasil" di tengah ketikan.
+- **Fix:** `resources/data/geocode/street-words-51.txt` (5.148 kata nama jalan/tempat OSM Bali + jumlah kemunculan,
+  dibuat `scripts/export-street-words.sh 51` dari container Nominatim lokal - impor yang sama dengan VPS) ikut kamus;
+  kunci cache naik ke `geocode:place-words:v2:{prov}` (kamus lama 24 jam di cache prod). Seri koreksi diputus jumlah
+  kemunculan (gmitir: gumitir 19 vs gemitir 8; nsa: nusa 150 vs nesa 4). `searchWithFallbacks()` dipakai juga untuk
+  query hasil koreksi; "Jalan X" yang tak punya satu pun hasil di kabupaten tenant digabung dengan hasil "X" (tanpa
+  duplikat osm_type+osm_id). "Jalan"/"Gang" saja -> [] tanpa memanggil Nominatim; form memperlakukannya seperti < 3 huruf.
+- **Masih terbuka:** "nsa dua" -> cadangan awalan menemukan hasil longgar (Dungkap Dua, Nusa Penida) SEBELUM koreksi
+  dicoba, jadi Nusa Dua tak muncul. Mendahulukan koreksi merusak "ketik separuh" ("gema mer"); belum dikerjakan.
+  Provinsi tenant lain butuh berkas street-words-<prov>.txt sendiri (tanpa berkas: hanya kamus wilayah).
+- **Penjaga:** `GeocodeControllerTest` +9 (koreksi nama jalan + header, berkas kamus ber-jumlah, 5 bentuk prefiks
+  tanpa panggilan Nominatim, gabung "Jalan X" + "X"); contoh "provinsi lain" diganti CIBODAS karena wanasari ada di data
+  jalan Bali. Sabotase (berkas kamus dipindah) -> 2 merah, dipulihkan.
+- **Verifikasi:** Playwright 390px lokal: "jl."/"jln" tanpa pesan; "jl gmitir" & "gmitir" -> "Menampilkan hasil untuk
+  ... Gumitir", Gang Gumitir Denpasar (1,1 km) teratas; "jl gumitir" -> Gang Gumitir Denpasar teratas.
