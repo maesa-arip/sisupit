@@ -4492,3 +4492,9 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   ketukan kini disimpan di tingkat modul; bilah halaman tujuan melanjutkan animasi dengan animation-delay negatif.
   Kapsul melayang + lensa revisi 0/1 dibuang. Test penjaga dipulihkan dari tag, hanya bagian popover yang diarahkan ke
   panel, + 1 penjaga Lapor (abu/merah, animasi berlanjut, durasi = tailwind).
+- **Revisi 3 (koreksi user 2026-10-07):** "untuk fasilitas dan menu hanya tiru animasinya saja jangan tiru tampilan pop
+  upnya, tampilan pop upnya gunakan tampilan sebelumnya". Berkas disusun ulang dari tag: popover lama (FloatingPanel +
+  FloatingLink bertint, PENGECUALIAN #2 berlaku lagi) dipertahankan rupanya; yang baru hanya animasinya - selalu
+  terpasang, transisi pegas skala+pudar dari `origin-bottom`/`origin-bottom-right`, bisa disela, `inert` saat tertutup,
+  scrim lama ikut memudar, Esc/ganti URL menutup. GlassPanel/FasilitasButton/MenuRow/ProfileRow dibuang. Lapor tengah +
+  animasi ketuk tetap. Diff terhadap tag kini: MobileBottomNav.jsx, tailwind.config.js (keyframes), 3 berkas test.

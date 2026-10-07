@@ -100,7 +100,7 @@ resources/js/
                   Navigasi SEMUA UKURAN = SATU daftar di Partials/navItems.js
                   (buildNavSections), dua permukaan:
                    - Partials/Sidebar.jsx: sidebar penuh (≥lg) + rail ikon (md, `compact`)
-                   - Partials/MobileBottomNav.jsx (<md): bar 5 slot (Lapor = lingkaran tengah abu/merah, #189) dengan dua panel kaca (dulu popover)
+                   - Partials/MobileBottomNav.jsx (<md): bar 5 slot (Lapor = lingkaran tengah abu/merah, #189) dengan dua popover (animasi pegas, #189)
                      melayang buatan tangan — bentuk pra-TASK_20 yang diminta user
                      2026-08-13 dan TETAP dipertahankan. Empat jangkar tetap (Beranda,
                      Fasilitas, SOS, Riwayat) didaftar sebagai KUNCI di BAR_ITEM_KEYS /

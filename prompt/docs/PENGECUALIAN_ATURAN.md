@@ -84,9 +84,8 @@
 
 ## #2 — Baris aktif di popover bottom-nav memakai tint, bukan blok merah solid seperti sidebar
 
-> **DILAMPAUI 2026-10-07 (FINDINGS #189):** popover bilah bawah diganti panel kaca melayang (apple-design); baris
-> panel aktif kini pil `bg-destructive/10` (Menu) atau lingkaran terisi warna jenis (Fasilitas). Bentuk popover
-> bertint ada di tag git `pra-bottomnav-apple-design`.
+> **2026-10-07 (FINDINGS #189 revisi 3):** sempat dilampaui panel kaca, lalu BERLAKU LAGI - user meminta rupa
+> popover sebelumnya; hanya animasinya (pegas, tumbuh dari tombol) yang baru.
 
 - **Aturan yang ditekuk:** "SATU dialek penanda aktif di semua permukaan" — blok solid
   `bg-destructive` + `text-destructive-foreground` + `rounded-xl`, ditulis di

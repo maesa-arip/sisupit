@@ -19,21 +19,23 @@ import { buildNavSections, flattenNavItems, resolveAbilities } from './navItems'
 /**
  * Navigasi bawah untuk layar kecil.
  *
- * #189 (apple-design, 2026-10-07) - REVISI 2 atas koreksi user: "animasi smooth dan pop up menunya
- * sudah oke, tapi pakai tampilan yang sebelumnya, hanya tiru tombol lapor yang tengah dan
- * animasinya, dan tambahkan animasi saat klik lapor". Jadi bilah di bawah ini KEMBALI ke bentuk
- * minimalis yang dijelaskan docblock lama (tag `pra-bottomnav-apple-design`), dengan TIGA
- * perubahan dari redesign:
+ * #189 (apple-design, 2026-10-07) - atas koreksi user ("pakai tampilan yang sebelumnya, hanya tiru
+ * tombol lapor yang tengah dan animasinya, dan tambahkan animasi saat klik lapor" lalu "untuk
+ * fasilitas dan menu hanya tiru animasinya saja jangan tiru tampilan pop upnya") bilah & popover
+ * TETAP berbentuk seperti dijelaskan di bawah, kecuali DUA hal:
  *   1. Slot "Lapor" = LINGKARAN di tengah: ABU + petir garis saat diam, MERAH + petir padat hanya
  *      saat halaman lapor dibuka (<LaporSlot/>). Ketukan memantulkan lingkaran + riak memudar.
  *      Karena tiap halaman memasang AppLayout sendiri (bilah dipasang ulang saat pindah halaman),
  *      waktu ketukan disimpan di tingkat modul dan bilah halaman tujuan MELANJUTKAN animasi itu
  *      lewat animation-delay negatif - tanpa itu animasinya terpotong atau terulang dari awal.
- *   2. Popover Fasilitas & Menu = PANEL KACA MELAYANG (<GlassPanel/>) yang tumbuh dari slot
- *      pemicunya (transform-origin per slot, pegas, selalu terpasang supaya bisa disela).
- *   3. Popover buatan tangan, listener `mousedown` di luar, dan <FloatingLink/> lama DIGANTI scrim +
- *      Esc + pindah halaman. Paragraf docblock lama tentang popover/`bottom-[72px]`/tint baris
- *      (PENGECUALIAN #2) dan tentang slot Lapor 24px berlaku untuk bentuk di tag, BUKAN berkas ini.
+ *      Paragraf di bawah tentang slot Lapor 24px berlaku untuk bentuk di tag, BUKAN berkas ini.
+ *   2. ANIMASI popover Fasilitas & Menu (rupa panelnya tidak berubah): panel SELALU terpasang dan
+ *      hanya berganti keadaan - tumbuh dari tombolnya (`origin-bottom` / `origin-bottom-right`)
+ *      dengan skala + pudar berkurva pegas, menyusut kembali ke tombol yang sama saat ditutup, dan
+ *      membuka/menutup di tengah gerak membelokkan transisinya (apple-design §3, §7). Penutup luar
+ *      kini scrim yang ikut memudar (dulu listener `mousedown` + overlay yang muncul mendadak);
+ *      Esc dan pindah halaman juga menutup.
+ * Bentuk persis sebelum #189 ada di tag git `pra-bottomnav-apple-design` ("kembalikan bilah bawah").
  *
  * BENTUK - MINIMALIS (permintaan user 2026-09-01, referensi `docs/example/Menu 6.png`):
  * bilah selebar layar yang menempel di tepi bawah, lima slot sama rata berisi ikon + label,
@@ -132,7 +134,7 @@ import { buildNavSections, flattenNavItems, resolveAbilities } from './navItems'
  *   - `AppLayout` ruang konten `pb-[calc(5rem+env(safe-area-inset-bottom))]`
  *   - tombol Kirim melayang `Front/Reports/Create.jsx`
  *     `bottom-[calc(4rem+env(safe-area-inset-bottom))]` — RAPAT ke bilah, tanpa celah
- * Ditambah panel kaca <GlassPanel/> `bottom-[calc(4.5rem+…)]` di berkas ini sendiri (8px di atas bilah).
+ * Ditambah `FloatingPanel` `bottom-[72px]` di berkas ini sendiri.
  *
  * Dua hal dari TASK_20/21 sengaja DIPERTAHANKAN karena bukan bagian dari panel menu dan
  * mencabutnya akan merusak tata letak lain:
@@ -156,20 +158,25 @@ const BAR_ITEM_KEYS = ['dashboard', 'report.create', 'reports.mine'];
 const FASILITAS_ITEM_KEYS = ['hydrants', 'pumps', 'fire_stations', 'volunteers', 'monitoring.map'];
 
 /**
- * Warna jenis fasilitas di panel kaca (gema legenda peta): `glyph` saat diam, `fill` saat
- * halamannya sedang dibuka. Kelas ditulis UTUH supaya terpindai Tailwind; kunci tak terdaftar
- * jatuh ke netral.
+ * Warna per item panel Fasilitas — gemanya legenda peta, jadi satu warna per jenis
+ * fasilitas. `icon` dipakai saat baris TIDAK aktif, `active` saat baris itu halaman yang
+ * sedang dibuka (tint 10% + teks sewarna, bentuk yang dipakai production; lihat catatan
+ * di <FloatingLink/>). Kunci yang tak terdaftar — termasuk semua isi popover "Menu" dan
+ * menu baru mana pun — jatuh ke netral/`MENU_ACTIVE_TONE`, jadi tak ada yang rusak.
+ *
+ * Kelasnya sengaja ditulis UTUH, bukan dirakit dari nama warna: Tailwind memindai teks
+ * sumber, kelas hasil template string tak akan pernah ikut ter-generate.
  */
-const FASILITAS_TONE = {
-	hydrants: { glyph: 'text-teal', fill: 'bg-teal text-teal-foreground' },
-	pumps: { glyph: 'text-info', fill: 'bg-info text-info-foreground' },
-	fire_stations: { glyph: 'text-destructive', fill: 'bg-destructive text-destructive-foreground' },
-	volunteers: { glyph: 'text-volunteer', fill: 'bg-volunteer text-volunteer-foreground' },
-	'monitoring.map': { glyph: 'text-teal', fill: 'bg-teal text-teal-foreground' },
+const FASILITAS_ITEM_TONE = {
+	pumps: { icon: 'text-info', active: 'bg-info/10 text-info' },
+	fire_stations: { icon: 'text-destructive', active: 'bg-destructive/10 text-destructive' },
+	hydrants: { icon: 'text-teal', active: 'bg-teal/10 text-teal' },
+	volunteers: { icon: 'text-volunteer', active: 'bg-volunteer/10 text-volunteer' },
+	'monitoring.map': { icon: 'text-teal', active: 'bg-teal/10 text-teal' },
 };
 
-/** Panel tumbuh dari slot pemicunya: pusat mendatar slot ke-`index` dari lima, tepi bawah panel. */
-const slotOrigin = (index) => `${((index + 0.5) / 5) * 100}% 100%`;
+/** Tint baris aktif untuk item tanpa warna jenis (popover "Menu") — sama dengan production. */
+const MENU_ACTIVE_TONE = 'bg-destructive/10 text-destructive';
 
 export default function MobileBottomNav({ auth }) {
 	// URL tujuan selama navigasi berjalan (TASK_70): slot yang diketuk langsung aktif.
@@ -197,28 +204,18 @@ export default function MobileBottomNav({ auth }) {
 		.map((section) => ({ ...section, items: section.items.filter((item) => !handledKeys.has(item.key)) }))
 		.filter((section) => section.items.length > 0);
 
-	// Satu panel terbuka pada satu waktu: null | 'fasilitas' | 'menu'.
+	// Satu popover terbuka pada satu waktu: null | 'fasilitas' | 'menu'.
 	const [panel, setPanel] = useState(null);
 	const closePanel = () => setPanel(null);
 	const togglePanel = (name) => setPanel((current) => (current === name ? null : name));
 
-	// "Aktif" di bilah HANYA berarti halaman yang sedang dibuka — terbukanya panel dilacak
+	// "Aktif" di bilah HANYA berarti halaman yang sedang dibuka — terbukanya popover dilacak
 	// terpisah (`panel`) supaya tak ada dua slot yang tampak aktif.
 	const isFasilitasActive = fasilitasItems.some((item) => item.active);
 	const isMenuActive = menuSections.some((section) => section.items.some((item) => item.active));
 	const isReportActive = url.startsWith('/reports/create');
 
-	// Isi panel Menu: baris profil di puncak, "Keluar" (variant danger) di dasar.
-	const profileItem = itemByKey('profile');
-	const menuRows = menuSections
-		.map((section) => ({
-			...section,
-			items: section.items.filter((item) => item.key !== 'profile' && item.variant !== 'danger'),
-		}))
-		.filter((section) => section.items.length > 0);
-	const dangerItems = menuSections.flatMap((section) => section.items.filter((item) => item.variant === 'danger'));
-
-	// Pindah halaman (termasuk tombol kembali) menutup panel; Esc juga.
+	// Pindah halaman (termasuk tombol kembali) menutup popover; Esc juga.
 	useEffect(() => setPanel(null), [url]);
 	useEffect(() => {
 		if (!panel) return undefined;
@@ -229,48 +226,15 @@ export default function MobileBottomNav({ auth }) {
 
 	return (
 		<>
-			{/* Scrim tipis: panel bersifat sesaat. Bilah (z-50) tetap di atasnya, jadi slot lain tetap
-			    bisa langsung diketuk. */}
+			{/* Penutup luar: rupa sama dengan overlay lama, kini ikut memudar bersama popovernya. */}
 			<div
 				aria-hidden="true"
 				onClick={closePanel}
 				className={cn(
-					'fixed inset-0 z-40 bg-black/25 transition-opacity duration-300 ease-out md:hidden dark:bg-black/45',
+					'fixed inset-0 z-40 bg-black/5 transition-opacity duration-300 ease-out md:hidden dark:bg-black/20',
 					panel ? 'opacity-100' : 'pointer-events-none opacity-0',
 				)}
 			/>
-
-			<GlassPanel open={panel === 'fasilitas'} origin={slotOrigin(1)} label="Fasilitas Publik">
-				<p className="px-2 pb-3 pt-1 text-[13px] font-semibold text-muted-foreground">Fasilitas Publik</p>
-				<div className="grid grid-cols-3 gap-x-2 gap-y-4 pb-1">
-					{fasilitasItems.map((item) => (
-						<FasilitasButton key={item.key} item={item} tone={FASILITAS_TONE[item.key]} onNavigate={closePanel} />
-					))}
-				</div>
-			</GlassPanel>
-
-			{!showLoginSlot && (
-				<GlassPanel open={panel === 'menu'} origin={slotOrigin(4)} label="Menu">
-					{profileItem && <ProfileRow auth={auth} item={profileItem} onNavigate={closePanel} />}
-					{menuRows.map((section) => (
-						<Fragment key={section.key}>
-							<div aria-hidden="true" className="mx-2 my-1.5 h-px bg-foreground/[0.08]" />
-							<p className="px-3 pb-0.5 pt-1.5 text-[12px] font-semibold text-muted-foreground">{section.title}</p>
-							{section.items.map((item) => (
-								<MenuRow key={item.key} item={item} onNavigate={closePanel} />
-							))}
-						</Fragment>
-					))}
-					{dangerItems.length > 0 && (
-						<>
-							<div aria-hidden="true" className="mx-2 my-1.5 h-px bg-foreground/[0.08]" />
-							{dangerItems.map((item) => (
-								<MenuRow key={item.key} item={item} onNavigate={closePanel} />
-							))}
-						</>
-					)}
-				</GlassPanel>
-			)}
 
 			{/* PEMISAH dari konten di belakangnya (permintaan user 2026-09-01) berupa
 			    box-shadow DUA LAPIS, bukan `border-t`:
@@ -306,14 +270,28 @@ export default function MobileBottomNav({ auth }) {
 
 					{/* 2. Fasilitas Publik — IconMapPin, bukan IconFiretruck: ikon truk di seluruh
 					    sistem berarti "Pos Pemadam", satu ikon tak boleh punya dua makna. */}
-					<PanelTrigger
-						icon={IconMapPin}
-						iconActive={IconMapPinFilled}
-						label="Fasilitas"
-						active={isFasilitasActive}
-						open={panel === 'fasilitas'}
-						onClick={() => togglePanel('fasilitas')}
-					/>
+					<div
+						className="relative flex h-full w-full flex-col items-center justify-center"
+					>
+						<FloatingPanel open={panel === 'fasilitas'} className="left-1/2 w-56 -translate-x-1/2">
+								{fasilitasItems.map((item) => (
+									<FloatingLink
+										key={item.key}
+										item={item}
+										tone={FASILITAS_ITEM_TONE[item.key]}
+										onClick={closePanel}
+									/>
+								))}
+							</FloatingPanel>
+						<PanelTrigger
+							icon={IconMapPin}
+							iconActive={IconMapPinFilled}
+							label="Fasilitas"
+							active={isFasilitasActive}
+							open={panel === 'fasilitas'}
+							onClick={() => togglePanel('fasilitas')}
+						/>
+					</div>
 
 					{/* 3. Lapor - petir SISUPIT (permintaan user 2026-09-06: "gunakan logo itu
 					    untuk di mobile nav, dan sesuaikan dengan yang icon yang lain").
@@ -387,14 +365,42 @@ export default function MobileBottomNav({ auth }) {
 					) : (
 						/* 5b. Menu — semua seksi yang tak terwakili di bilah, untuk semua
 						   peran yang sudah login */
-						<PanelTrigger
-							icon={IconLayoutGrid}
-							iconActive={IconLayoutGridFilled}
-							label="Menu"
-							active={isMenuActive}
-							open={panel === 'menu'}
-							onClick={() => togglePanel('menu')}
-						/>
+						<div className="relative flex h-full w-full flex-col items-center justify-center">
+								<FloatingPanel open={panel === 'menu'} className="right-2 w-64 origin-bottom-right">
+									{menuSections.map((section, index) => (
+										<Fragment key={section.key}>
+											<div
+												className={cn(
+													'px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground',
+													index === 0 ? 'mt-0' : 'mt-2',
+												)}
+											>
+												{section.title}
+											</div>
+											{section.items.map((item) => (
+												<FloatingLink
+													key={item.key}
+													item={item}
+													onClick={closePanel}
+												/>
+											))}
+										</Fragment>
+									))}
+								</FloatingPanel>
+							{/* IconLayoutGrid, dulu IconMenu2 (2026-09-06). Hamburger tak akan
+							    pernah bisa memadat - ia TIGA GARIS LURUS TERBUKA (`M4 6l16 0`
+							    dst.), dan garis tak punya bagian dalam, jadi `fill` di atasnya
+							    benar-benar tak menghasilkan apa pun. Kotak 2x2 punya isi, dan
+							    idiomnya lazim untuk slot "menu/lainnya" di bilah bawah. */}
+							<PanelTrigger
+								icon={IconLayoutGrid}
+								iconActive={IconLayoutGridFilled}
+								label="Menu"
+								active={isMenuActive}
+								open={panel === 'menu'}
+								onClick={() => togglePanel('menu')}
+							/>
+						</div>
 					)}
 				</div>
 			</div>
@@ -487,7 +493,7 @@ function PanelTrigger({ icon, iconActive, label, active, open, onClick, iconClas
 		<button
 			type="button"
 			onClick={onClick}
-			aria-haspopup="dialog"
+			aria-haspopup="menu"
 			aria-expanded={open}
 			className={slotClass(active, open)}
 		>
@@ -503,124 +509,75 @@ function PanelTrigger({ icon, iconActive, label, active, open, onClick, iconClas
 }
 
 /**
- * Panel kaca melayang di atas kapsul. Selalu terpasang; keadaan terbuka/tertutup hanya
- * mengganti kelas, jadi transisi pegasnya bisa dibelokkan di tengah jalan. Tepi atas terang +
- * bayangan dalam = cahaya yang tertangkap tepi kaca. JANGAN beri `bg-*` di elemen material ini.
- * PullToRefreshLock hanya terpasang selama terbuka: daftar Menu bergulir, dan tanpa kunci itu
- * menggulir ke atas memuat ulang halaman di APK.
+ * Wadah popover. Tokennya sengaja sama dengan <DropdownMenuContent/> (satu-satunya panel
+ * melayang lain di aplikasi, yaitu lonceng notifikasi di AppLayout): `rounded-xl`,
+ * `bg-popover`, `shadow-md`. Panah segitiga versi lama dibuang — idiom itu tak ada di
+ * mana pun lagi dan justru membuat panel ini terlihat tertempel.
+ * #189: animasinya pegas & bisa disela (lihat docblock berkas); saat tertutup `inert`.
  */
-function GlassPanel({ open, origin, label, children }) {
+function FloatingPanel({ open, className, children }) {
 	return (
 		<div
-			role="dialog"
-			aria-label={label}
 			aria-hidden={!open}
 			inert={open ? undefined : ''}
-			style={{ transformOrigin: origin }}
 			className={cn(
-				'material-thick no-scrollbar fixed inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-50 mx-auto max-h-[68dvh] max-w-[26rem] overflow-y-auto overscroll-contain rounded-[30px] border border-white/60 p-2.5 text-popover-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_24px_60px_-18px_rgba(0,0,0,0.45)] transition-[transform,opacity] duration-500 ease-spring motion-reduce:transition-opacity md:hidden dark:border-white/10 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_24px_60px_-18px_rgba(0,0,0,0.7)]',
-				open ? 'scale-100 opacity-100' : 'pointer-events-none translate-y-3 scale-[0.55] opacity-0 motion-reduce:translate-y-0 motion-reduce:scale-100',
+				'material-thick no-scrollbar absolute bottom-[72px] z-50 flex max-h-[70vh] origin-bottom flex-col overflow-y-auto overscroll-contain rounded-2xl border border-border/60 p-1.5 text-popover-foreground shadow-xl transition-[transform,opacity] duration-500 ease-spring motion-reduce:transition-opacity',
+				open
+					? 'scale-100 opacity-100'
+					: 'pointer-events-none translate-y-3 scale-[0.55] opacity-0 motion-reduce:translate-y-0 motion-reduce:scale-100',
+				className,
 			)}
 		>
+			{/* Panel ini SELALU terpasang (supaya transisinya bisa disela), jadi kuncinya hanya
+			    dipasang selama terbuka. Tanpanya, menggulir daftar Menu ke atas memuat ulang halaman di
+			    APK; kunci yang selalu terpasang justru mematikan refresh tarik selamanya. */}
 			{open && <PullToRefreshLock />}
 			{children}
 		</div>
 	);
 }
 
-/** Tombol bulat ala Control Center: glyph berwarna jenis fasilitas, terisi bila halamannya dibuka. */
-function FasilitasButton({ item, tone, onNavigate }) {
-	const Icon = item.icon;
-
-	return (
-		<Link
-			href={item.url}
-			onClick={onNavigate}
-			aria-current={item.active ? 'page' : undefined}
-			className="group flex flex-col items-center gap-1.5 rounded-2xl px-1 py-0.5 outline-none focus-visible:ring-2 focus-visible:ring-destructive"
-		>
-			<span
-				className={cn(
-					'flex h-14 w-14 items-center justify-center rounded-full transition-transform duration-100 ease-out group-active:scale-[0.9] motion-reduce:group-active:scale-100',
-					item.active
-						? (tone?.fill ?? 'bg-destructive text-destructive-foreground')
-						: cn('bg-foreground/[0.06] dark:bg-white/[0.1]', tone?.glyph ?? 'text-foreground'),
-				)}
-			>
-				<Icon size={26} stroke={1.75} />
-			</span>
-			<span
-				className={cn(
-					'line-clamp-2 text-center text-[12px] leading-4',
-					item.active ? 'font-semibold text-foreground' : 'font-medium text-foreground/80',
-				)}
-			>
-				{item.title}
-			</span>
-		</Link>
-	);
-}
-
 /**
- * Satu baris menu gaya menu konteks iOS 26: ikon monokrom, tanpa ubin & chevron. Menerima item
- * apa adanya dari navItems.js - termasuk `linkProps` (logout = POST + token FCM ikut dilepas).
- * Halaman aktif = pil tint merah; aksi `danger` (Keluar) = teks & ikon merah.
+ * Satu baris di dalam popover. Menerima item apa adanya dari navItems.js — termasuk
+ * `variant: 'danger'` (Keluar) dan `linkProps` (logout = POST + token FCM ikut dilepas).
+ * Tinggi minimum 48px = target sentuh yang dipakai tombol utama di aplikasi ini.
+ *
+ * PENANDA AKTIF DI SINI SENGAJA BERBEDA DARI SIDEBAR (keputusan user 2026-08-20): baris
+ * yang sedang dibuka memakai TINT 10% + teks sewarna — bentuk yang selama ini berjalan di
+ * production — bukan blok solid `bg-destructive` ala <NavLink/>. Blok solid sempat dipakai
+ * sehari (TASK_31) demi "satu dialek di semua permukaan", lalu ditolak user: di dalam
+ * popover ia terbaca seperti tombol darurat, bukan seperti "kamu di sini". Warnanya
+ * mengikuti jenis fasilitas (FASILITAS_ITEM_TONE) supaya baris aktif seirama dengan
+ * legenda peta; item tanpa warna jenis memakai MENU_ACTIVE_TONE.
+ * Pengecualian ini tercatat di prompt/docs/PENGECUALIAN_ATURAN.md — jangan "seragamkan"
+ * lagi dengan sidebar tanpa menanyakan user. Kotak ikon di BILAH bawah TIDAK ikut berubah:
+ * di sana blok solid merah tetap berlaku (keputusan user 2026-08-19).
  */
-function MenuRow({ item, onNavigate }) {
+function FloatingLink({ item, tone, onClick }) {
 	const Icon = item.icon;
+	const linkProps = item.linkProps ?? {};
 	const isDanger = item.variant === 'danger';
 
 	return (
 		<Link
 			href={item.url}
-			onClick={onNavigate}
+			onClick={onClick}
 			aria-current={item.active ? 'page' : undefined}
-			{...(item.linkProps ?? {})}
+			{...linkProps}
 			className={cn(
-				'flex min-h-[46px] w-full items-center gap-3 rounded-2xl px-3 text-left text-[16px] outline-none transition-colors duration-100 focus-visible:bg-foreground/[0.06]',
+				'mt-0.5 flex min-h-[48px] w-full items-center gap-3 rounded-lg px-3 text-left text-sm font-medium outline-none transition-colors first:mt-0 focus-visible:ring-2 focus-visible:ring-destructive',
 				item.active
-					? 'bg-destructive/10 font-semibold text-destructive'
+					? cn('font-semibold', tone?.active ?? MENU_ACTIVE_TONE)
 					: isDanger
-						? 'text-destructive active:bg-destructive/10'
-						: 'text-foreground active:bg-foreground/[0.06]',
+						? 'text-destructive hover:bg-destructive/10'
+						: 'text-foreground hover:bg-accent',
 			)}
 		>
-			<Icon size={21} stroke={1.75} className={cn('shrink-0', !item.active && !isDanger && 'text-foreground/70')} />
+			<Icon
+				size={18}
+				className={cn('shrink-0', !item.active && !isDanger && (tone?.icon ?? 'text-muted-foreground'))}
+			/>
 			<span className="truncate">{item.title}</span>
-		</Link>
-	);
-}
-
-/** Baris profil di puncak panel Menu: avatar inisial + nama + email. */
-function ProfileRow({ auth, item, onNavigate }) {
-	const name = auth?.name || auth?.user?.name || item.title;
-	const email = auth?.email || auth?.user?.email;
-	const initials = name
-		.split(/\s+/)
-		.filter(Boolean)
-		.slice(0, 2)
-		.map((part) => part[0].toUpperCase())
-		.join('');
-
-	return (
-		<Link
-			href={item.url}
-			onClick={onNavigate}
-			aria-current={item.active ? 'page' : undefined}
-			className={cn(
-				'flex items-center gap-3 rounded-[22px] p-2 outline-none transition-colors duration-100 active:bg-foreground/[0.06] focus-visible:bg-foreground/[0.06]',
-				item.active && 'bg-destructive/10',
-			)}
-		>
-			<span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-destructive/80 to-destructive text-[15px] font-semibold text-destructive-foreground">
-				{initials}
-			</span>
-			<span className="min-w-0 flex-1">
-				<span className="block truncate text-[16px] font-semibold leading-5 tracking-[-0.01em]">{name}</span>
-				<span className="block truncate text-[13px] leading-5 text-muted-foreground">
-					{email || item.title}
-				</span>
-			</span>
 		</Link>
 	);
 }

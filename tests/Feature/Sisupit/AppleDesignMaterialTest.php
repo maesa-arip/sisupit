@@ -59,20 +59,22 @@ it('grows every floating surface from its trigger out of the thick material', fu
     ['resources/js/Components/ui/popover.jsx', 'w-72 origin-', 'origin-[--radix-popover-content-transform-origin]'],
     ['resources/js/Components/ui/dropdown-menu.jsx', 'min-w-[8rem] origin-', 'origin-[--radix-dropdown-menu-content-transform-origin]'],
     ['resources/js/Components/ui/select.jsx', 'max-h-96 min-w-[8rem]', 'origin-[--radix-select-content-transform-origin]'],
+    ['resources/js/Layouts/Partials/MobileBottomNav.jsx', 'absolute bottom-[72px]', 'origin-bottom'],
 ]);
 
-// #189 (2026-10-07): popover bilah bawah = panel kaca melayang yang tumbuh dari SLOT PEMICUNYA
-// (transform-origin dihitung per slot) dengan pegas, dan selalu terpasang supaya transisinya bisa disela.
-it('grows the bottom-nav glass panels from their slot with a spring', function () {
-    $panel = appleClassesAround('resources/js/Layouts/Partials/MobileBottomNav.jsx', 'material-thick no-scrollbar fixed');
-    expect($panel)->toContain('ease-spring')
+// #189 (user 2026-10-07: "untuk fasilitas dan menu hanya tiru animasinya saja"): rupa popover bilah bawah
+// tetap, tapi panelnya SELALU terpasang dan berganti keadaan lewat transisi pegas - bisa disela, menyusut
+// kembali ke tombolnya, dan `inert` saat tertutup supaya tautannya tak bisa difokus.
+it('animates the bottom-nav popovers with an interruptible spring instead of mounting them', function () {
+    $panel = appleClassesAround('resources/js/Layouts/Partials/MobileBottomNav.jsx', 'absolute bottom-[72px]');
+    expect($panel)->toContain('transition-[transform,opacity]')
+        ->and($panel)->toContain('ease-spring')
         ->and($panel)->toContain('motion-reduce:transition-opacity')
-        ->and(preg_grep('/^bg-/', $panel))->toBe([]);
+        ->and($panel)->not->toContain('animate-in');
 
     expect(appleSource('resources/js/Layouts/Partials/MobileBottomNav.jsx'))
-        ->toContain('style={{ transformOrigin: origin }}')
-        ->toContain('origin={slotOrigin(1)}')
-        ->toContain('origin={slotOrigin(4)}');
+        ->toContain("inert={open ? undefined : ''}")
+        ->toContain("'pointer-events-none translate-y-3 scale-[0.55] opacity-0");
 });
 
 it('keeps the solid command surface out of the material popovers that host it', function () {

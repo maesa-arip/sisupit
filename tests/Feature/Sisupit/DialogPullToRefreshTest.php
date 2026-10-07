@@ -43,17 +43,16 @@ it('pauses native pull-to-refresh inside every scrollable floating panel', funct
         'js/Components/ui/popover.jsx' => '~<PopoverPrimitive\.Content[^>]*>\s*<PullToRefreshLock\s*/>~s',
         'js/Components/ui/select.jsx' => '~<SelectPrimitive\.Content[^>]*>\s*<PullToRefreshLock\s*/>~s',
         'js/Components/ui/sheet.jsx' => '~</SheetPrimitive\.Close>\s*<PullToRefreshLock\s*/>~s',
-        'js/Layouts/Partials/MobileBottomNav.jsx' => '~function GlassPanel\(.*?\{open && <PullToRefreshLock\s*/>\}~s',
+        'js/Layouts/Partials/MobileBottomNav.jsx' => '~function FloatingPanel\(.*?\{open && <PullToRefreshLock\s*/>\}\s*\{children\}~s',
     ] as $path => $pattern) {
         expect(jsxWithoutComments($path))->toMatch($pattern);
     }
 
-    // #189: panel kaca bilah bawah SELALU terpasang (supaya transisinya bisa disela), jadi kuncinya
-    // dipasang HANYA selama terbuka - kunci yang selalu terpasang mematikan refresh tarik selamanya.
+    // #189: FloatingPanel kini SELALU terpasang (animasinya bisa disela), jadi kuncinya dipasang HANYA
+    // selama panelnya terbuka - kunci yang selalu terpasang mematikan refresh tarik selamanya.
     $nav = jsxWithoutComments('js/Layouts/Partials/MobileBottomNav.jsx');
-    expect($nav)->toContain('{open && <PullToRefreshLock />}')
-        ->toContain("open={panel === 'fasilitas'}")
-        ->toContain("open={panel === 'menu'}");
+    expect($nav)->toContain("<FloatingPanel open={panel === 'menu'}")
+        ->toContain("<FloatingPanel open={panel === 'fasilitas'}");
 });
 
 it('lets the regu member list scroll on its own', function () {
