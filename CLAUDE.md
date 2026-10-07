@@ -93,6 +93,8 @@ TASK_74/#182 : (2026-10-05, TERDEPLOY PROD @198d6c0f) Profil > "Notifikasi di HP
 #189         : (2026-10-07, branch feat/bottomnav-apple-design, BELUM dideploy) bilah bawah apple-design, revisi 3: rupa bilah & popover
                 LAMA dipertahankan; Lapor = lingkaran TENGAH (abu, merah hanya saat aktif) + animasi ketuk yang berlanjut lintas halaman;
                 popover Fasilitas/Menu kini beranimasi pegas (tumbuh dari tombol, bisa disela). "Kembalikan bilah bawah" = tag pra-bottomnav-apple-design.
+#190         : (2026-10-07, branch feat/bottomnav-apple-design, BELUM dideploy) daftar terpotong di desktop pada /admin/hydrants,
+                pumps, fire-stations, reports: kartu daftar dikecilkan flex di kolom bertinggi tetap -> `shrink-0`. Penjaga AdminListScrollColumnTest.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
                 kolom approved_at tetap. #178 i18n TERDEPLOY prod @dde8c6a4; #179 (ikon, paginasi PaginationLinks, email).
                 #180 terjemahan bawaan Laravel dari paket laravel-lang/common (DEV) TERDEPLOY prod @9bf7b103; paginasi tetap versi #178 -
@@ -105,7 +107,7 @@ Belum dicek  : visual di ponsel/APK untuk banyak perubahan UI (tombol merah bran
 Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115 #119 #121
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174 #188(satelit).
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
-Test         : 763 passed, 3817 assertions (2026-10-07, + #189 revisi 3: rupa bilah & popover lama + Lapor tengah + animasi).
+Test         : 764 passed, 3824 assertions (2026-10-07, + #190 shrink-0 kartu daftar admin).
 Lingkungan   : PROD @eb006bb1 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#188) | DEV @672b6a10 (dashboard baru) | STAGING @6d1dc8ea (dashboard
                 sebelumnya, untuk perbandingan). Dev & staging: data salinan prod, basic auth (APK dikecualikan), sandi "password".
 ```
@@ -132,7 +134,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-10-07: 763 passed, 3817 assertions - + #189 revisi 3 bilah bawah;
+Test      : php artisan test            (baseline 2026-10-07: 764 passed, 3824 assertions - + #190 daftar admin terpotong;
             lokal: php -d memory_limit=1G -d extension=php_sqlite3.dll -d extension=pdo_sqlite vendor/bin/pest.
             Perbarui angka ini tiap kali test bertambah - baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan. Riwayat angkanya di STATUS_LOG.md)

@@ -2590,6 +2590,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + #189 revisi 1 (Lapor lingkaran di tengah abu/merah, panel kaca melayang menggantikan lembar vaul) = 761 passed, 3804 assertions.
             + #189 revisi 2 (bilah lama dipulihkan + Lapor lingkaran tengah beranimasi + panel kaca; +1 penjaga Lapor) = 762 passed, 3813 assertions.
             + #189 revisi 3 (rupa popover lama + animasi pegas; +1 penjaga animasi popover) = 763 passed, 3817 assertions.
+            + #190 daftar admin terpotong di desktop, shrink-0 (AdminListScrollColumnTest) = 764 passed, 3824 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

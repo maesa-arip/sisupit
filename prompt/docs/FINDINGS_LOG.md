@@ -4498,3 +4498,21 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   terpasang, transisi pegas skala+pudar dari `origin-bottom`/`origin-bottom-right`, bisa disela, `inert` saat tertutup,
   scrim lama ikut memudar, Esc/ganti URL menutup. GlassPanel/FasilitasButton/MenuRow/ProfileRow dibuang. Lapor tengah +
   animasi ketuk tetap. Diff terhadap tag kini: MobileBottomNav.jsx, tailwind.config.js (keyframes), 3 berkas test.
+
+### #190 — Daftar data terpotong di halaman admin fasilitas & laporan (desktop) (FIXED - branch feat/bottomnav-apple-design, belum dideploy)
+
+- **Laporan user 2026-10-07:** "tampilan pada /admin/hydrants dan administrasi lainnya terpotong pada list datanya
+  ditampilan desktop".
+- **Root cause:** sejak TASK_69 bagian 15 (ce79dff2) kolom daftar di desktop bertinggi tetap
+  `lg:h-[calc(100vh-240px)] lg:overflow-y-auto` dan `flex flex-col`. Kartu daftar di dalamnya
+  (`divide-y ... overflow-hidden rounded-2xl`) punya flex-shrink bawaan 1, jadi DIKECILKAN flexbox agar muat; lalu
+  `overflow-hidden` kartu memotong isinya, dan kolom tak bisa di-scroll karena secara teknis tak ada yang meluap.
+  Terukur di 1440x765: /admin/reports 385/2062 px, /admin/hydrants (kedua tab) 385/1356, /admin/fire-stations 459/593,
+  /admin/pumps 459/505 (tinggi tampil/isi) - hanya ~3 dari 10 hydrant terlihat. Users, Agencies, Banjars, Forum, dan
+  halaman publik /hydrants /pumps /fire-stations bersih (tanpa kolom bertinggi tetap).
+- **Fix:** `shrink-0` pada kartu daftar di `Admin/{Hydrants,FireStations,Pumps,Reports}/Index.jsx` (4 baris).
+- **Penjaga:** `tests/Feature/Sisupit/AdminListScrollColumnTest.php` - tiap halaman berkolom scroll tetap wajib
+  `shrink-0` pada kartu `divide-y ... overflow-hidden`; minimal 4 halaman terpindai. Dibuktikan merah dengan sabotase
+  Pumps (dipulihkan, `cmp` sama).
+- **Verifikasi:** Chrome 1440x765 (admin Denpasar lokal): keempat halaman tanpa elemen terpotong, kolom /admin/hydrants
+  menggulir 525 -> 1496 px sampai paginasi. Test 764 passed (3824 assertions).

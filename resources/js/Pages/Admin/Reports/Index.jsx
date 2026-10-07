@@ -496,7 +496,7 @@ export default function Index(props) {
 					<div className="flex flex-col gap-3 pb-4 lg:h-[calc(100vh-240px)] lg:overflow-y-auto lg:pr-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar]:w-1.5">
 						{reports.length > 0 ? (
 							<>
-								<div className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
+								<div className="shrink-0 divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
 									{reports.map((report) => {
 										const style = markerStyle(report.status);
 										const isActive = activeReportId === report.id;
