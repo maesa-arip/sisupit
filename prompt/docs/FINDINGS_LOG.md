@@ -4615,3 +4615,28 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   jalan Bali. Sabotase (berkas kamus dipindah) -> 2 merah, dipulihkan.
 - **Verifikasi:** Playwright 390px lokal: "jl."/"jln" tanpa pesan; "jl gmitir" & "gmitir" -> "Menampilkan hasil untuk
   ... Gumitir", Gang Gumitir Denpasar (1,1 km) teratas; "jl gumitir" -> Gang Gumitir Denpasar teratas.
+
+### #195 — Koreksi ejaan memilih kata "paling sering", bukan yang terdekat; pencarian salah ketik ~6 detik (FIXED - di-push ke main, deploy via konsol)
+
+- **Laporan user 2026-10-07 (setelah deploy #194 @a5c4a64e):** "di google maps saya ketik Jl gmitir yang muncul adalah
+  Jalan Gemitir bukan Gumitir, sebelumnya sudah benar ... cari terdekat jangan paling sering dicari, coba cek branch".
+- **Cek riwayat (semua branch):** GeocodeController hanya pernah diubah di jalur main. Dijalankan per versi terhadap
+  Nominatim lokal: pra-#188 -> hasil acak (Gelgel, Jl. Kertha Petasikan); d0d50430 & 092d301c -> 0 hasil; a5c4a64e ->
+  Gang Gumitir. "Gemitir" hanya pernah keluar di percobaan lokal #194 sebelum pemutus frekuensi (seri diputus abjad) -
+  tak pernah di-commit/deploy.
+- **Root cause:** #194 memutus seri ejaan (gumitir vs gemitir, sama-sama "vokal hilang" dari gmitir) dengan jumlah
+  kemunculan di data - bukan lokasi. Jalan Gemitir (Kesiman, -8.646/115.269) lebih dekat bagi pelapor di timur;
+  Gang Gumitir (-8.667/115.222) bagi pelapor di pusat.
+- **Fix:** `closestDictionaryWords()` mengembalikan SEMUA kandidat seri (maks `TIE_CANDIDATES` = 3; frekuensi hanya
+  memilih mana yang dicoba), `correctSpellings()` satu query per kandidat, hasil digabung tanpa duplikat lalu
+  `nearestFirst()` (haversine ke pin `lat`/`lng`); header = ejaan baris teratas. Tanpa pin: kabupaten tenant dulu.
+  Form tidak mengurutkan ulang hasil koreksi (urutan server = header). Query koreksi melewati cadangan awalan.
+- **Latensi:** jeda antar panggilan Nominatim 1,1 detik (kebijakan instance PUBLIK) kini hanya bila host
+  `nominatim.openstreetmap.org`; self-hosted 150 ms (`SELF_HOSTED_MIN_INTERVAL_MS`, lock tetap). "Jl gmitir" pertama
+  kali: ~6 dtk -> ~1 dtk (lokal).
+- **Sisa:** header bisa berbunyi "Jalan Gumitir" padahal baris teratas "Gang Gumitir" (hasil cadangan tanpa "Jalan").
+  "nsa dua" masih (#194).
+- **Penjaga:** `GeocodeControllerTest` +2 (pin Kesiman -> Gemitir, pin pusat -> Gumitir); sabotase `usort` jarak -> merah,
+  dipulihkan `cmp`.
+- **Verifikasi:** Playwright 390px, GPS palsu Kesiman -> "Menampilkan hasil untuk Jalan Gemitir", Jalan Gemitir 464 m
+  teratas; GPS pusat -> Gang Gumitir 393 m teratas.

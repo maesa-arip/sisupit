@@ -105,9 +105,11 @@ TASK_74/#182 : (2026-10-05, TERDEPLOY PROD @198d6c0f) Profil > "Notifikasi di HP
 #193         : (2026-10-07, TERDEPLOY PROD @092d301c) animasi ketuk bilah bawah patah: jeda dihitung ulang tiap render +
                 clip-path/background-color di main thread. Kini transform/opacity saja + useTapClock (--tap-delay sekali per
                 ketukan, dipatok ke frame pertama). Penjaga MobileNavTapAnimationTest. Belum diuji di HP.
-#194         : (2026-10-07, di-push ke main, deploy via konsol) "gmitir"/"jl ..." tanpa hasil: kamus koreksi + kata jalan OSM
+#194         : (2026-10-07, TERDEPLOY PROD @a5c4a64e, HTTPS terverifikasi) "gmitir"/"jl ..." tanpa hasil: kamus koreksi + kata jalan OSM
                 resources/data/geocode/street-words-51.txt (scripts/export-street-words.sh), cache kamus v2, seri diputus jumlah,
                 "Jalan X" digabung "X" bila tak ada hasil di kota tenant, "jl."/"jln" saja tanpa pesan. Sisa: "nsa dua".
+#195         : (2026-10-07, di-push ke main, deploy via konsol) ejaan seri (gmitir: Gumitir/Gemitir) SEMUA dicari, hasil
+                TERDEKAT ke pin menang (bukan frekuensi); jeda Nominatim 1,1 dtk hanya host publik, self-hosted 150 ms (~6 -> ~1 dtk).
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
                 kolom approved_at tetap. #178 i18n TERDEPLOY prod @dde8c6a4; #179 (ikon, paginasi PaginationLinks, email).
                 #180 terjemahan bawaan Laravel dari paket laravel-lang/common (DEV) TERDEPLOY prod @9bf7b103; paginasi tetap versi #178 -
@@ -120,8 +122,8 @@ Belum dicek  : visual di ponsel/APK untuk banyak perubahan UI (tombol merah bran
 Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115 #119 #121
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174 #188(satelit) #192(Kembali APK).
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
-Test         : 788 passed, 3943 assertions (2026-10-07, + #194 kamus kata jalan).
-Lingkungan   : PROD @092d301c (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#193) | DEV @672b6a10 (dashboard baru) | STAGING @6d1dc8ea (dashboard
+Test         : 790 passed, 3953 assertions (2026-10-07, + #195 ejaan seri terdekat).
+Lingkungan   : PROD @a5c4a64e (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#194) | DEV @672b6a10 (dashboard baru) | STAGING @6d1dc8ea (dashboard
                 sebelumnya, untuk perbandingan). Dev & staging: data salinan prod, basic auth (APK dikecualikan), sandi "password".
 ```
 
@@ -147,7 +149,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-10-07: 788 passed, 3943 assertions - + #194 kamus kata jalan;
+Test      : php artisan test            (baseline 2026-10-07: 790 passed, 3953 assertions - + #195 ejaan seri terdekat;
             lokal: php -d memory_limit=1G -d extension=php_sqlite3.dll -d extension=pdo_sqlite vendor/bin/pest.
             Perbarui angka ini tiap kali test bertambah - baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan. Riwayat angkanya di STATUS_LOG.md)
