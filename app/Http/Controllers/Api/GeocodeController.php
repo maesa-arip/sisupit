@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 class GeocodeController extends Controller
@@ -26,6 +27,18 @@ class GeocodeController extends Controller
     // Kandidat yang diambil saat mencari ulang tanpa kata terakhir: lebih banyak dari
     // RESULT_LIMIT karena masih akan disaring dengan awalan kata itu.
     private const CANDIDATE_LIMIT = 10;
+
+    // Header berisi query hasil koreksi ejaan (rawurlencode). Respons tetap array polos
+    // supaya 7 halaman pemakai endpoint ini tidak berubah; yang mau menampilkan
+    // "Menampilkan hasil untuk ..." cukup membaca header ini.
+    public const CORRECTED_HEADER = 'X-Geocode-Corrected-Query';
+
+    // Kata umum alamat yang tak pernah dikoreksi: bukan nama tempat, dan mengoreksinya
+    // ("gang" -> "gangga") justru merusak query yang benar.
+    private const NON_PLACE_WORDS = [
+        'jalan', 'gang', 'raya', 'banjar', 'desa', 'kelurahan', 'kecamatan', 'kabupaten',
+        'kota', 'dusun', 'lingkungan', 'nomor', 'pura', 'pasar', 'pantai', 'sekolah',
+    ];
 
     public function reverse(Request $request): JsonResponse
     {
@@ -82,7 +95,241 @@ class GeocodeController extends Controller
             $results = $this->searchNominatim($m[1], self::RESULT_LIMIT, $viewbox);
         }
 
-        return response()->json($results);
+        // Masih nihil -> mungkin salah ketik. Nominatim tak punya toleransi typo sama sekali
+        // ("wngiri", "snur", "tbanan" = 0 hasil, ejaan benarnya ketemu; diuji 2026-10-07),
+        // sedangkan Google Maps mengoreksi ejaan diam-diam. Koreksinya memakai kamus nama
+        // wilayah milik kita sendiri (laravolt + master banjar) - lihat correctSpelling().
+        $corrected = null;
+        if ($results === []) {
+            $candidate = $this->correctSpelling($query);
+
+            if ($candidate !== null) {
+                $results = $this->searchNominatim($candidate, self::RESULT_LIMIT, $viewbox);
+                $corrected = $results !== [] ? $candidate : null;
+            }
+        }
+
+        $response = response()->json($this->tenantCityFirst($results));
+
+        return $corrected !== null
+            ? $response->header(self::CORRECTED_HEADER, rawurlencode($corrected))
+            : $response;
+    }
+
+    /**
+     * Ganti tiap kata yang TIDAK dikenal kamus dengan nama wilayah terdekat, atau null bila
+     * tak ada yang perlu/bisa dikoreksi. Kamusnya nama desa, kecamatan, kabupaten, dan
+     * banjar di provinsi tenant - persis nama yang paling sering diketik pelapor dan
+     * paling sering salah ketik (mis. "wngiri" -> "Wanagiri", "pemcutan" -> "Pemecutan").
+     *
+     * Kata dianggap cocok bila huruf PERTAMANYA sama (salah ketik di huruf pertama jarang
+     * terjadi dan, kalau dibolehkan, "gatot" bisa menjadi "batot") dan salah satu:
+     *  - jarak Damerau-Levenshtein <= 1 (kata 4-7 huruf) atau <= 2 (kata >= 8 huruf);
+     *  - hanya huruf vokalnya yang hilang ("tbanan" -> "tabanan", "klungkng" -> "klungkung"),
+     *    gaya ketik singkat yang lazim di ponsel. Kata 3 huruf HANYA lewat aturan ini.
+     * Kata yang sudah ada di kamus, berangka, terlalu pendek, atau kata umum alamat
+     * (NON_PLACE_WORDS) dibiarkan.
+     */
+    private function correctSpelling(string $query): ?string
+    {
+        $dictionary = $this->placeWordDictionary();
+
+        if ($dictionary === []) {
+            return null;
+        }
+
+        $changed = false;
+        $words = preg_split('/\s+/u', $query, -1, PREG_SPLIT_NO_EMPTY);
+
+        foreach ($words as $i => $word) {
+            $lower = mb_strtolower($word);
+
+            if (mb_strlen($lower) < 3
+                || preg_match('/\d/u', $lower)
+                || in_array($lower, self::NON_PLACE_WORDS, true)
+                || isset($dictionary[$lower])) {
+                continue;
+            }
+
+            $best = $this->closestDictionaryWord($lower, $dictionary);
+
+            if ($best !== null) {
+                $words[$i] = mb_convert_case($best, MB_CASE_TITLE);
+                $changed = true;
+            }
+        }
+
+        return $changed ? implode(' ', $words) : null;
+    }
+
+    /**
+     * @param  array<string, true>  $dictionary
+     */
+    private function closestDictionaryWord(string $word, array $dictionary): ?string
+    {
+        // Jarak 2 hanya untuk kata panjang: pada kata 5-7 huruf jarak 2 sudah menyeberang ke
+        // nama lain ("bonjol" -> "bonyoh", "bedugul" -> "bedulu").
+        // Kata 3 huruf hanya boleh lewat aturan "vokal hilang" ("ubd" -> "ubud"): jarak 1
+        // pada kata sependek itu menyeberang ke mana saja ("dua" -> "duda").
+        $maxEdits = match (true) {
+            mb_strlen($word) >= 8 => 2,
+            mb_strlen($word) >= 4 => 1,
+            default => 0,
+        };
+        $skeleton = $this->consonantSkeleton($word);
+        $first = mb_substr($word, 0, 1);
+        $best = null;
+        $bestScore = PHP_INT_MAX;
+
+        foreach (array_keys($dictionary) as $candidate) {
+            $candidate = (string) $candidate;
+
+            if (mb_substr($candidate, 0, 1) !== $first) {
+                continue;
+            }
+
+            $distance = $this->damerauLevenshtein($word, $candidate);
+            // "Vokal hilang" = kata yang diketik lebih pendek DAN hurufnya urut di dalam
+            // kandidat. Tanpa syarat itu kerangka konsonan saja membuat "teuku" -> "tek".
+            $vowelsOnly = $skeleton !== ''
+                && mb_strlen($candidate) > mb_strlen($word)
+                && $this->consonantSkeleton($candidate) === $skeleton
+                && $this->isSubsequence($word, $candidate);
+
+            if ($distance > $maxEdits && ! $vowelsOnly) {
+                continue;
+            }
+
+            // Kandidat yang cuma beda vokal didahulukan: itu pola salah ketik paling umum,
+            // dan tanpanya "wngiri" (jarak 2) bisa kalah dari nama acak berjarak 2 lainnya.
+            // Seri diputus urutan abjad supaya hasilnya deterministik (dan bisa di-cache).
+            $score = $distance * 2 - ($vowelsOnly ? 1 : 0);
+
+            if ($score < $bestScore || ($score === $bestScore && strcmp($candidate, (string) $best) < 0)) {
+                $best = $candidate;
+                $bestScore = $score;
+            }
+        }
+
+        return $best;
+    }
+
+    private function consonantSkeleton(string $word): string
+    {
+        return (string) preg_replace('/[aiueo]/u', '', $word);
+    }
+
+    private function isSubsequence(string $needle, string $haystack): bool
+    {
+        $needle = mb_str_split($needle);
+        $i = 0;
+
+        foreach (mb_str_split($haystack) as $char) {
+            if ($i < count($needle) && $needle[$i] === $char) {
+                $i++;
+            }
+        }
+
+        return $i === count($needle);
+    }
+
+    /** Jarak Damerau-Levenshtein (versi optimal string alignment). */
+    private function damerauLevenshtein(string $a, string $b): int
+    {
+        $a = mb_str_split($a);
+        $b = mb_str_split($b);
+        $la = count($a);
+        $lb = count($b);
+        $d = [];
+
+        for ($i = 0; $i <= $la; $i++) {
+            $d[$i][0] = $i;
+        }
+        for ($j = 0; $j <= $lb; $j++) {
+            $d[0][$j] = $j;
+        }
+
+        for ($i = 1; $i <= $la; $i++) {
+            for ($j = 1; $j <= $lb; $j++) {
+                $cost = $a[$i - 1] === $b[$j - 1] ? 0 : 1;
+                $d[$i][$j] = min($d[$i - 1][$j] + 1, $d[$i][$j - 1] + 1, $d[$i - 1][$j - 1] + $cost);
+
+                if ($i > 1 && $j > 1 && $a[$i - 1] === $b[$j - 2] && $a[$i - 2] === $b[$j - 1]) {
+                    $d[$i][$j] = min($d[$i][$j], $d[$i - 2][$j - 2] + 1);
+                }
+            }
+        }
+
+        return $d[$la][$lb];
+    }
+
+    /**
+     * Kata-kata nama wilayah di provinsi tenant, huruf kecil, sebagai kunci array (lookup
+     * O(1)). Di-cache sehari: data laravolt praktis tak berubah, dan banjar baru cukup
+     * ikut keesokan harinya.
+     *
+     * Banjar dibaca lewat DB::table (tanpa scope Tenantable) dengan alasan yang sama seperti
+     * Banjar::optionsForVillage(): pencarian ini dipakai warga, dan yang diambil HANYA nama
+     * untuk dikirim ulang ke Nominatim - tak ada baris banjar yang keluar ke klien.
+     *
+     * @return array<string, true>
+     */
+    private function placeWordDictionary(): array
+    {
+        $tenant = currentTenant();
+        $province = (string) ($tenant->province_code ?: substr((string) $tenant->city_code, 0, 2));
+
+        if ($province === '') {
+            return [];
+        }
+
+        return Cache::remember("geocode:place-words:{$province}", self::CACHE_TTL_SECONDS, function () use ($province) {
+            $names = DB::table('indonesia_cities')->where('code', 'like', $province.'%')->pluck('name')
+                ->merge(DB::table('indonesia_districts')->where('code', 'like', $province.'%')->pluck('name'))
+                ->merge(DB::table('indonesia_villages')->where('code', 'like', $province.'%')->pluck('name'))
+                ->merge(DB::table('banjars')->whereNull('deleted_at')->where('province_code', $province)->pluck('name'));
+
+            $words = [];
+            foreach ($names as $name) {
+                foreach (preg_split('/[^\p{L}]+/u', mb_strtolower((string) $name), -1, PREG_SPLIT_NO_EMPTY) as $word) {
+                    if (mb_strlen($word) >= 3 && ! in_array($word, self::NON_PLACE_WORDS, true)) {
+                        $words[$word] = true;
+                    }
+                }
+            }
+
+            return $words;
+        });
+    }
+
+    /**
+     * Hasil di kabupaten/kota tenant naik ke atas, urutan relatif lainnya dipertahankan.
+     * Nama desa kembar lazim di Bali (dua "Wanagiri": Buleleng & Jembrana); tanpa GPS
+     * (halaman admin fasilitas, pelapor yang menolak izin lokasi) yang di wilayah sendiri
+     * hampir pasti yang dimaksud. Pelapor ber-GPS tetap diurutkan jarak di klien.
+     */
+    private function tenantCityFirst(array $results): array
+    {
+        if (count($results) < 2) {
+            return $results;
+        }
+
+        $city = mb_strtolower(trim((string) preg_replace(
+            '/^(kabupaten|kota)\s+/iu',
+            '',
+            (string) DB::table('indonesia_cities')->where('code', currentTenant()->city_code)->value('name')
+        )));
+
+        if ($city === '') {
+            return $results;
+        }
+
+        $inCity = fn ($row) => is_array($row) && str_contains(mb_strtolower((string) ($row['display_name'] ?? '')), $city);
+
+        return array_merge(
+            array_values(array_filter($results, $inCity)),
+            array_values(array_filter($results, fn ($row) => ! $inCity($row)))
+        );
     }
 
     /**

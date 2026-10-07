@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 it('requires authentication to use the geocode proxy', function () {
@@ -168,4 +169,102 @@ it('biases search results around the current pin without hiding far results', fu
 
     Http::assertSent(fn ($request) => $request['viewbox'] === '114.9,-8.4,115.5,-9'
         && ! isset($request['bounded']));
+});
+
+// Kamus nama wilayah untuk koreksi ejaan. Tenant uji = bawaan config (Denpasar, provinsi 51).
+function seedGeocodeDictionary(): void
+{
+    DB::table('indonesia_provinces')->insert([['code' => '51', 'name' => 'BALI'], ['code' => '36', 'name' => 'BANTEN']]);
+    DB::table('indonesia_cities')->insert([
+        ['code' => '5171', 'province_code' => '51', 'name' => 'KOTA DENPASAR'],
+        ['code' => '5108', 'province_code' => '51', 'name' => 'KABUPATEN BULELENG'],
+        ['code' => '5102', 'province_code' => '51', 'name' => 'KABUPATEN TABANAN'],
+        ['code' => '3601', 'province_code' => '36', 'name' => 'KABUPATEN PANDEGLANG'],
+    ]);
+    DB::table('indonesia_districts')->insert([
+        ['code' => '517101', 'city_code' => '5171', 'name' => 'DENPASAR SELATAN'],
+        ['code' => '510805', 'city_code' => '5108', 'name' => 'SUKASADA'],
+        ['code' => '360114', 'city_code' => '3601', 'name' => 'PAGELARAN'],
+    ]);
+    DB::table('indonesia_villages')->insert([
+        ['code' => '5108052002', 'district_code' => '510805', 'name' => 'WANAGIRI'],
+        ['code' => '5171012006', 'district_code' => '517101', 'name' => 'SESETAN'],
+        ['code' => '5171012004', 'district_code' => '517101', 'name' => 'SANUR'],
+        ['code' => '5171012008', 'district_code' => '517101', 'name' => 'PEMOGAN'],
+    ]);
+    // Bukan provinsi tenant: tak boleh ikut jadi kamus.
+    DB::table('indonesia_villages')->insert(['code' => '3601142008', 'district_code' => '360114', 'name' => 'WANASARI']);
+}
+
+// Nominatim tak toleran salah ketik ("wngiri", "snur", "seseten" = 0 hasil, ejaan benarnya
+// ketemu - diuji ke nominatim.openstreetmap.org 2026-10-07), Google Maps mengoreksinya.
+it('corrects a misspelled place name from the region dictionary and reports it in a header', function (string $typed, string $corrected) {
+    seedGeocodeDictionary();
+
+    Http::fake(fn ($request) => Http::response(
+        $request['q'] === $corrected ? [['display_name' => "{$corrected}, Bali", 'lat' => '-8.2', 'lon' => '115.1']] : [],
+        200
+    ));
+
+    $this->actingAs(User::factory()->create())
+        ->get('/api/geocode/search?q='.urlencode($typed))
+        ->assertOk()
+        ->assertJsonCount(1)
+        ->assertHeader('X-Geocode-Corrected-Query', rawurlencode($corrected));
+})->with([
+    'vokal hilang' => ['wngiri', 'Wanagiri'],
+    'vokal hilang pendek' => ['snur', 'Sanur'],
+    'satu huruf salah' => ['seseten', 'Sesetan'],
+    'huruf kurang' => ['pemogn', 'Pemogan'],
+    'kata kedua salah, kata umum tetap' => ['jalan seseten', 'Jalan Sesetan'],
+]);
+
+it('does not send a correction when the query already has results', function () {
+    seedGeocodeDictionary();
+    Http::fake(['*' => Http::response([['display_name' => 'Sesetan, Denpasar', 'lat' => '-8.7', 'lon' => '115.2']], 200)]);
+
+    $this->actingAs(User::factory()->create())
+        ->get('/api/geocode/search?q=sesetan')
+        ->assertOk()
+        ->assertHeaderMissing('X-Geocode-Corrected-Query');
+
+    Http::assertSentCount(1);
+});
+
+it('leaves words it cannot match confidently alone', function (string $typed) {
+    seedGeocodeDictionary();
+    Http::fake(['*' => Http::response([], 200)]);
+
+    $this->actingAs(User::factory()->create())
+        ->get('/api/geocode/search?q='.urlencode($typed))
+        ->assertOk()
+        ->assertJsonCount(0)
+        ->assertHeaderMissing('X-Geocode-Corrected-Query');
+
+    // Hanya pencarian apa adanya (dan cadangan awalan bila multi-kata) - tak ada query koreksi.
+    Http::assertNotSent(fn ($request) => in_array($request['q'], ['Wanagiri', 'Sanur', 'Sesetan', 'Wanasari'], true));
+})->with([
+    // Huruf pertama beda -> bukan salah ketik yang lazim.
+    'huruf pertama beda' => ['managiri'],
+    // Kata 3 huruf berjarak 1 tanpa pola vokal hilang.
+    'kata pendek' => ['sar'],
+    // Desa provinsi lain bukan kamus tenant ini.
+    'provinsi lain' => ['wanasri'],
+]);
+
+// Dua desa "Wanagiri" di Bali: tanpa GPS, yang di kabupaten tenant hampir pasti dimaksud.
+it('puts results inside the tenant city first while keeping the rest in order', function () {
+    seedGeocodeDictionary();
+    Http::fake(['*' => Http::response([
+        ['display_name' => 'Wanagiri, Sukasada, Buleleng, Bali', 'lat' => '-8.2', 'lon' => '115.1'],
+        ['display_name' => 'Jalan Wanagiri, Denpasar Selatan, Denpasar, Bali', 'lat' => '-8.7', 'lon' => '115.2'],
+        ['display_name' => 'Wanagiri Kauh, Selemadeg, Tabanan, Bali', 'lat' => '-8.4', 'lon' => '115.0'],
+    ], 200)]);
+
+    $this->actingAs(User::factory()->create())
+        ->get('/api/geocode/search?q=wanagiri')
+        ->assertOk()
+        ->assertJsonPath('0.display_name', 'Jalan Wanagiri, Denpasar Selatan, Denpasar, Bali')
+        ->assertJsonPath('1.display_name', 'Wanagiri, Sukasada, Buleleng, Bali')
+        ->assertJsonPath('2.display_name', 'Wanagiri Kauh, Selemadeg, Tabanan, Bali');
 });

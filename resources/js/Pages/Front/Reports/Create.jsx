@@ -9,6 +9,7 @@ import { Textarea } from '@/Components/ui/textarea';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
 import { compressImages, oversizeMessage, splitOversize } from '@/lib/compress-image';
+import PullToRefreshLock from '@/lib/pull-to-refresh-lock';
 import {
 	alamatTerbaca,
 	cn,
@@ -23,6 +24,7 @@ import {
 	IconAlertTriangle,
 	IconAmbulance,
 	IconArrowLeft,
+	IconArrowsMaximize,
 	IconBuildingStore,
 	IconCar,
 	IconChevronDown,
@@ -214,6 +216,13 @@ export default function Create(props) {
 	// 'idle' | 'loading' | 'done' | 'error' — dipakai agar hasil kosong dan permintaan gagal
 	// punya pesan masing-masing, tidak sama-sama tampil sebagai layar kosong.
 	const [searchStatus, setSearchStatus] = useState('idle');
+	// Ejaan yang dipakai server bila ketikan salah ("wngiri" -> "Wanagiri"), dari header
+	// X-Geocode-Corrected-Query (GeocodeController). Ditampilkan seperti Google Maps supaya
+	// pelapor tahu hasilnya bukan untuk persis yang ia ketik.
+	const [correctedQuery, setCorrectedQuery] = useState(null);
+	// Pemilih lokasi layar penuh di ponsel: wadah peta yang SAMA dibesarkan (fixed inset-0),
+	// bukan peta kedua - instans Leaflet, pin, dan kolom cari tetap satu.
+	const [mapExpanded, setMapExpanded] = useState(false);
 	// Nomor urut permintaan terakhir; balasan yang bukan miliknya diabaikan (anti balapan).
 	const searchSeqRef = useRef(0);
 	// Pembeda ketikan user vs teks yang kita isi sendiri setelah sebuah hasil dipilih,
@@ -642,6 +651,8 @@ export default function Create(props) {
 					return Number.isFinite(meter) ? meter : Infinity;
 				};
 				setSearchResults(gps ? [...rows].sort((a, b) => jarakKe(a) - jarakKe(b)) : rows);
+				const corrected = res.headers?.['x-geocode-corrected-query'];
+				setCorrectedQuery(corrected && rows.length ? decodeURIComponent(corrected) : null);
 				setSearchStatus('done');
 			})
 			.catch(() => {
@@ -650,6 +661,7 @@ export default function Create(props) {
 				// Jangan telan galat diam-diam: kosong karena "tidak ketemu" dan kosong karena
 				// "permintaan gagal" harus terlihat berbeda oleh operator.
 				setSearchResults([]);
+				setCorrectedQuery(null);
 				setSearchStatus('error');
 			})
 			.finally(() => {
@@ -682,6 +694,24 @@ export default function Create(props) {
 
 		return () => clearTimeout(timer);
 	}, [searchQuery]);
+
+	// Layar penuh peta: halaman di belakangnya tak ikut tergulir, dan Esc menutup (desktop
+	// sempit / keyboard fisik). Tombol Kembali APK tetap goBack() seperti saat dialog terbuka.
+	useEffect(() => {
+		if (!mapExpanded) return;
+
+		const previousOverflow = document.body.style.overflow;
+		document.body.style.overflow = 'hidden';
+		const onKeyDown = (e) => {
+			if (e.key === 'Escape') setMapExpanded(false);
+		};
+		window.addEventListener('keydown', onKeyDown);
+
+		return () => {
+			document.body.style.overflow = previousOverflow;
+			window.removeEventListener('keydown', onKeyDown);
+		};
+	}, [mapExpanded]);
 
 	// Hasil pencarian dipilih: pin melompat ke titik itu lalu wilayah DIISI ULANG dari
 	// reverse-geocode, persis alur Admin/Hydrants/Create. Pelapor tetap bisa mengoreksi
@@ -939,8 +969,27 @@ export default function Create(props) {
 							    cari dulu berada di bagian Wilayah Kejadian, di bawah peta - tak terlihat
 							    saat pelapor sedang memandangi peta. Wadah luar sengaja TANPA
 							    overflow-hidden supaya daftar hasil boleh menjulur melewati tepi peta. */}
-							<div className="relative">
-								<div className="relative z-0 h-[280px] w-full overflow-hidden rounded-xl bg-muted sm:h-[340px]">
+							{/* Layar penuh (ponsel, < sm): wadah ini sendiri jadi lapisan `fixed inset-0` di atas
+							    header (z-40), bar Kirim (z-40), dan bilah bawah (z-50) - pola pemilih lokasi
+							    Google Maps/ojek daring: cari di atas, pin di tengah, lembar alamat + "Pakai
+							    lokasi ini" di bawah. Peta pratinjau 280px dulu tinggal ~200px yang bisa
+							    digeser setelah dikurangi kolom cari (keluhan user 2026-10-07). */}
+							<div
+								className={cn(
+									'relative',
+									mapExpanded &&
+										'fixed inset-0 z-[60] flex flex-col bg-background pt-[env(safe-area-inset-top)]',
+								)}
+							>
+								{mapExpanded && <PullToRefreshLock />}
+								<div
+									className={cn(
+										'relative z-0 w-full overflow-hidden bg-muted',
+										mapExpanded
+											? 'min-h-0 flex-1'
+											: 'h-[min(42dvh,380px)] min-h-[280px] rounded-xl sm:h-[340px] sm:min-h-0',
+									)}
+								>
 									<UserLeafletMap
 										lat={data.lat}
 										lng={data.lng}
@@ -951,112 +1000,192 @@ export default function Create(props) {
 										zoom={mapZoom}
 										clickToPlace
 									/>
+									{!mapExpanded && (
+										<button
+											type="button"
+											onClick={() => setMapExpanded(true)}
+											aria-label="Buka peta layar penuh"
+											className="absolute bottom-3 left-3 z-[500] flex h-10 items-center gap-1.5 rounded-full border border-border/70 bg-card px-3.5 text-[13px] font-medium text-foreground shadow-md active:scale-95 motion-reduce:active:scale-100 sm:hidden"
+										>
+											<IconArrowsMaximize className="h-4 w-4" />
+											Layar penuh
+										</button>
+									)}
 								</div>
 
-								<div className="absolute inset-x-2 top-2 z-10">
-									{/* Latar & bayangan di PEMBUNGKUS, bukan di Input: filledFieldsClass pada
+								<div
+									className={cn(
+										'absolute inset-x-2 top-2 z-10',
+										mapExpanded &&
+											'top-[calc(0.5rem+env(safe-area-inset-top))] flex items-start gap-2',
+									)}
+								>
+									{mapExpanded && (
+										<button
+											type="button"
+											onClick={() => setMapExpanded(false)}
+											aria-label="Tutup peta layar penuh"
+											className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-card text-foreground shadow-md active:scale-95 motion-reduce:active:scale-100"
+										>
+											<IconArrowLeft className="h-5 w-5" />
+										</button>
+									)}
+									<div className={cn('min-w-0', mapExpanded && 'flex-1')}>
+										{/* Latar & bayangan di PEMBUNGKUS, bukan di Input: filledFieldsClass pada
 									    <form> menimpa latar input (selektor leluhur lebih spesifik) sehingga
 									    kolomnya tembus pandang di atas peta. */}
-									<div className="relative w-full rounded-xl bg-card shadow-md">
-										<IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-										<Input
-											value={searchQuery}
-											onChange={(e) => setSearchQuery(e.target.value)}
-											onKeyDown={(e) => {
-												if (e.key !== 'Enter') return;
+										<div className="relative w-full rounded-xl bg-card shadow-md">
+											<IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+											<Input
+												value={searchQuery}
+												onChange={(e) => setSearchQuery(e.target.value)}
+												onKeyDown={(e) => {
+													if (e.key !== 'Enter') return;
 
-												// Kotak ini ada DI DALAM <form> laporan: tanpa
-												// preventDefault, Enter mengirim laporan darurat.
-												// Enter di sini artinya "cari sekarang".
-												e.preventDefault();
-												runSearch(searchQuery);
-											}}
-											enterKeyHint="search"
-											aria-label="Cari lokasi kejadian"
-											placeholder="Cari jalan, desa, atau tempat"
-											className="h-11 rounded-xl pl-9 pr-10 focus-visible:ring-2 focus-visible:ring-primary/30"
-										/>
-										{isSearching && (
-											<div className="pointer-events-none absolute right-3 top-1/2 flex -translate-y-1/2 items-center">
-												<IconLoader2 className="h-4 w-4 animate-spin text-destructive" />
-											</div>
-										)}
-									</div>
+													// Kotak ini ada DI DALAM <form> laporan: tanpa
+													// preventDefault, Enter mengirim laporan darurat.
+													// Enter di sini artinya "cari sekarang".
+													e.preventDefault();
+													runSearch(searchQuery);
+												}}
+												// Mengetuk kolom cari di ponsel membuka layar penuh (pola Google
+												// Maps): daftar hasil tak lagi menutupi peta selebar 280px.
+												onFocus={() => {
+													if (window.matchMedia?.('(max-width: 639px)').matches)
+														setMapExpanded(true);
+												}}
+												enterKeyHint="search"
+												aria-label="Cari lokasi kejadian"
+												placeholder="Cari jalan, desa, atau tempat"
+												className="h-11 rounded-xl pl-9 pr-10 focus-visible:ring-2 focus-visible:ring-primary/30"
+											/>
+											{isSearching && (
+												<div className="pointer-events-none absolute right-3 top-1/2 flex -translate-y-1/2 items-center">
+													<IconLoader2 className="h-4 w-4 animate-spin text-destructive" />
+												</div>
+											)}
+										</div>
 
-									{/* Hasil kosong & permintaan gagal DITAMPILKAN, tidak dibiarkan
+										{/* Hasil kosong & permintaan gagal DITAMPILKAN, tidak dibiarkan
 									    senyap: dulu keduanya sama-sama "tidak terjadi apa-apa".
 									    Singkatan jl/jln/gg dan kata terakhir yang belum selesai
 									    diketik sudah ditangani server (GeocodeController). */}
-									{(searchStatus === 'done' || searchStatus === 'error') &&
-										searchResults.length === 0 && (
-											<div className="mt-1 rounded-xl border border-border bg-popover p-3 text-xs text-muted-foreground shadow-lg">
-												{searchStatus === 'error' ? (
-													<span className="text-destructive">
-														Pencarian gagal. Tekan Enter untuk mencoba lagi, atau pilih
-														wilayah lewat pilihan di bagian Wilayah Kejadian.
-													</span>
-												) : (
-													<>
-														Tidak ada hasil untuk
-														<span className="font-semibold text-foreground">
-															{' '}
-															{searchQuery.trim()}
+										{(searchStatus === 'done' || searchStatus === 'error') &&
+											searchResults.length === 0 && (
+												<div className="mt-1 rounded-xl border border-border bg-popover p-3 text-xs text-muted-foreground shadow-lg">
+													{searchStatus === 'error' ? (
+														<span className="text-destructive">
+															Pencarian gagal. Tekan Enter untuk mencoba lagi, atau pilih
+															wilayah lewat pilihan di bagian Wilayah Kejadian.
 														</span>
-														. Coba kata kunci lain, atau geser peta ke titik kejadian.
-													</>
+													) : (
+														<>
+															Tidak ada hasil untuk
+															<span className="font-semibold text-foreground">
+																{' '}
+																{searchQuery.trim()}
+															</span>
+															. Coba kata kunci lain, atau geser peta ke titik kejadian.
+														</>
+													)}
+												</div>
+											)}
+
+										{searchResults.length > 0 && (
+											<div
+												className={cn(
+													'mt-1 overflow-y-auto overscroll-contain rounded-xl border border-border bg-popover text-popover-foreground shadow-lg',
+													mapExpanded ? 'max-h-[50dvh]' : 'max-h-60',
 												)}
+											>
+												{correctedQuery && (
+													<p className="border-b border-border px-3 py-2 text-xs text-muted-foreground">
+														Menampilkan hasil untuk{' '}
+														<span className="font-semibold text-foreground">
+															{correctedQuery}
+														</span>
+													</p>
+												)}
+												{searchResults.map((res, idx) => {
+													const resLat = parseFloat(res.lat);
+													const resLng = parseFloat(res.lon);
+													// Jarak dari posisi pelapor yang sebenarnya (GPS), bukan dari
+													// pin - pin bisa saja sudah digeser ke mana-mana.
+													const jarak =
+														gpsFixRef.current &&
+														Number.isFinite(resLat) &&
+														Number.isFinite(resLng)
+															? formatJarak(
+																	distanceMeters(
+																		gpsFixRef.current.lat,
+																		gpsFixRef.current.lng,
+																		resLat,
+																		resLng,
+																	),
+																)
+															: null;
+
+													return (
+														<button
+															key={idx}
+															type="button"
+															onClick={() => selectSearchResult(res)}
+															className="flex w-full gap-2 border-b border-border px-3 py-2.5 text-left text-xs transition-colors last:border-0 hover:bg-accent"
+														>
+															<IconMapPinFilled className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+															<div className="min-w-0 flex-1">
+																<p className="truncate text-[13px] font-semibold">
+																	{alamatTerbaca(res.name) ||
+																		alamatTerbaca(res.display_name).split(',')[0]}
+																</p>
+																<p className="mt-0.5 truncate text-muted-foreground">
+																	{alamatTerbaca(res.display_name)}
+																</p>
+															</div>
+															{jarak && (
+																<span className="mt-0.5 shrink-0 text-muted-foreground">
+																	{jarak}
+																</span>
+															)}
+														</button>
+													);
+												})}
 											</div>
 										)}
-
-									{searchResults.length > 0 && (
-										<div className="mt-1 max-h-60 overflow-y-auto rounded-xl border border-border bg-popover text-popover-foreground shadow-lg">
-											{searchResults.map((res, idx) => {
-												const resLat = parseFloat(res.lat);
-												const resLng = parseFloat(res.lon);
-												// Jarak dari posisi pelapor yang sebenarnya (GPS), bukan dari
-												// pin - pin bisa saja sudah digeser ke mana-mana.
-												const jarak =
-													gpsFixRef.current &&
-													Number.isFinite(resLat) &&
-													Number.isFinite(resLng)
-														? formatJarak(
-																distanceMeters(
-																	gpsFixRef.current.lat,
-																	gpsFixRef.current.lng,
-																	resLat,
-																	resLng,
-																),
-															)
-														: null;
-
-												return (
-													<button
-														key={idx}
-														type="button"
-														onClick={() => selectSearchResult(res)}
-														className="flex w-full gap-2 border-b border-border px-3 py-2.5 text-left text-xs transition-colors last:border-0 hover:bg-accent"
-													>
-														<IconMapPinFilled className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-														<div className="min-w-0 flex-1">
-															<p className="truncate text-[13px] font-semibold">
-																{alamatTerbaca(res.name) ||
-																	alamatTerbaca(res.display_name).split(',')[0]}
-															</p>
-															<p className="mt-0.5 truncate text-muted-foreground">
-																{alamatTerbaca(res.display_name)}
-															</p>
-														</div>
-														{jarak && (
-															<span className="mt-0.5 shrink-0 text-muted-foreground">
-																{jarak}
-															</span>
-														)}
-													</button>
-												);
-											})}
-										</div>
-									)}
+									</div>
 								</div>
+
+								{/* Lembar bawah layar penuh: alamat titik pin + konfirmasi. Teksnya sama dengan
+								    baris lokasi di form (placeTitle/placeSubtitle), jadi yang dilihat di sini
+								    persis yang akan tercatat. */}
+								{mapExpanded && (
+									<div className="relative z-10 rounded-t-2xl border-t border-border/70 bg-card px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-4 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.22)]">
+										<div className="flex items-start gap-3">
+											<IconMapPinFilled className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
+											<div className="min-w-0 flex-1">
+												<p className="break-words text-[15px] font-semibold leading-snug text-foreground">
+													{placeTitle}
+												</p>
+												{placeSubtitle && (
+													<p className="mt-0.5 break-words text-[13px] text-muted-foreground">
+														{placeSubtitle}
+													</p>
+												)}
+												<p className="mt-1 text-xs text-muted-foreground">
+													Geser peta sampai pin tepat di titik kejadian.
+												</p>
+											</div>
+										</div>
+										<Button
+											type="button"
+											onClick={() => setMapExpanded(false)}
+											disabled={locationLoading}
+											className="mt-4 h-12 w-full rounded-xl text-[15px] font-semibold"
+										>
+											Pakai lokasi ini
+										</Button>
+									</div>
+								)}
 							</div>
 							{/* Baris lokasi + wilayah (#188): menggantikan kepala status GPS, kartu alamat titik pin,
 							    dan kartu "Wilayah kejadian" yang terpisah. Ikon = status lokasi (hijau siap /
