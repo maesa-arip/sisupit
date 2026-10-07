@@ -4516,3 +4516,20 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   Pumps (dipulihkan, `cmp` sama).
 - **Verifikasi:** Chrome 1440x765 (admin Denpasar lokal): keempat halaman tanpa elemen terpotong, kolom /admin/hydrants
   menggulir 525 -> 1496 px sampai paginasi. Test 764 passed (3824 assertions).
+
+### #191 — Produksi tak pernah mengirim email: MAIL_MAILER=log (FIXED - konfigurasi server, tanpa kode)
+
+- **Laporan user 2026-10-07:** "cek pada production, untuk kirim email dan verifikasi email belum berjalan".
+- **Root cause:** `.env` prod masih nilai `.env.example`: `MAIL_MAILER=log`, host `127.0.0.1:2525`,
+  `MAIL_FROM_ADDRESS=hello@example.com`. Semua email (verifikasi, reset sandi, notifikasi mail ber-ShouldQueue) hanya
+  ditulis ke `storage/logs/laravel.log`. Bukti: email "Verifikasi Alamat Email" user #256 tercatat berkali-kali di log
+  (kirim ulang tanpa hasil), `email_verified_at` NULL. Port keluar 465/587 ke smtp.gmail.com terbuka; failed_jobs 0;
+  config tidak di-cache.
+- **Fix (keputusan user: Gmail tawarinfirst@gmail.com):** `.env` prod -> `MAIL_MAILER=smtp`, `MAIL_SCHEME=smtps`,
+  `smtp.gmail.com:465`, username/from `tawarinfirst@gmail.com`, `MAIL_FROM_NAME="SISUPIT Damkar"`, sandi = App
+  Password Gmail (tidak dicatat di repo). `config:clear` + `queue:restart`. Cadangan `.env.bak-mail-<tgl>` di server.
+- **Gotcha:** `tinker --execute` keluar 0 walau Mail melempar exception -> `&& echo OK` menipu; bungkus try/catch.
+  Mode smtp dengan sandi salah LEBIH buruk dari log: verifikasi dikirim sinkron saat daftar -> galat 500.
+- **Verifikasi:** skrip PHP berdiri sendiri di prod -> "HASIL: TERKIRIM" ke tawarinfirst@gmail.com.
+- **Sisa:** batas Gmail ~500/hari & pengirim @gmail.com (rawan Spam); staging/dev belum dicek (kemungkinan sama-sama
+  `log`); user #256 perlu tekan "Kirim ulang email verifikasi".
