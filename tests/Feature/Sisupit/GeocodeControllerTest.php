@@ -326,3 +326,28 @@ it('also searches without "Jalan" when no street result lies in the tenant city'
         ->assertJsonCount(2)
         ->assertJsonPath('0.display_name', 'Gang Gumitir, Dangin Puri Kelod, Denpasar, Bali');
 });
+
+// #195 (user 2026-10-07): "di google maps saya ketik Jl gmitir yang muncul adalah Jalan Gemitir
+// bukan Gumitir ... cari terdekat jangan paling sering dicari". Gumitir & Gemitir sama dekat
+// ejaannya dengan "gmitir": keduanya dicari, hasil terdekat ke pin yang menang (dan header-nya).
+it('searches every equally close spelling and puts the result nearest the pin first', function (string $lat, string $lng, string $first, string $header) {
+    seedGeocodeDictionary();
+
+    Http::fake(fn ($request) => Http::response(match ($request['q']) {
+        // Gang Gumitir, Dangin Puri Kelod (pusat Denpasar)
+        'Gumitir' => [['osm_type' => 'way', 'osm_id' => 10, 'display_name' => 'Gang Gumitir, Dangin Puri Kelod, Denpasar', 'lat' => '-8.6674', 'lon' => '115.2222']],
+        // Jalan Gemitir, Kesiman (Denpasar Timur)
+        'Gemitir' => [['osm_type' => 'way', 'osm_id' => 20, 'display_name' => 'Jalan Gemitir, Kesiman, Denpasar', 'lat' => '-8.6459', 'lon' => '115.2691']],
+        default => [],
+    }, 200));
+
+    $this->actingAs(User::factory()->create())
+        ->get('/api/geocode/search?q=gmitir&lat='.$lat.'&lng='.$lng)
+        ->assertOk()
+        ->assertJsonCount(2)
+        ->assertJsonPath('0.display_name', $first)
+        ->assertHeader('X-Geocode-Corrected-Query', $header);
+})->with([
+    'pin di Kesiman' => ['-8.645', '115.265', 'Jalan Gemitir, Kesiman, Denpasar', 'Gemitir'],
+    'pin di pusat kota' => ['-8.670', '115.220', 'Gang Gumitir, Dangin Puri Kelod, Denpasar', 'Gumitir'],
+]);

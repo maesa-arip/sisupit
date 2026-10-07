@@ -654,8 +654,11 @@ export default function Create(props) {
 					const meter = distanceMeters(gps.lat, gps.lng, parseFloat(row.lat), parseFloat(row.lon));
 					return Number.isFinite(meter) ? meter : Infinity;
 				};
-				setSearchResults(gps ? [...rows].sort((a, b) => jarakKe(a) - jarakKe(b)) : rows);
 				const corrected = res.headers?.['x-geocode-corrected-query'];
+				// Hasil koreksi ejaan sudah diurutkan server dari yang terdekat ke pin (#195), dan header
+				// "Menampilkan hasil untuk X" = ejaan baris teratasnya - mengurutkan ulang di sini bisa
+				// menaruh baris berejaan lain di atas tulisan itu.
+				setSearchResults(gps && !corrected ? [...rows].sort((a, b) => jarakKe(a) - jarakKe(b)) : rows);
 				setCorrectedQuery(corrected && rows.length ? decodeURIComponent(corrected) : null);
 				setSearchStatus('done');
 			})

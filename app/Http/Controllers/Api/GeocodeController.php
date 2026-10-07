@@ -16,6 +16,9 @@ class GeocodeController extends Controller
     // Kebijakan penggunaan Nominatim membatasi maksimal ~1 request/detik.
     private const MIN_INTERVAL_MS = 1100;
 
+    // Instance self-hosted (bukan nominatim.openstreetmap.org): jeda pendek saja.
+    private const SELF_HOSTED_MIN_INTERVAL_MS = 150;
+
     // Jumlah hasil yang dikirim ke UI.
     private const RESULT_LIMIT = 5;
 
@@ -32,6 +35,9 @@ class GeocodeController extends Controller
     // supaya 7 halaman pemakai endpoint ini tidak berubah; yang mau menampilkan
     // "Menampilkan hasil untuk ..." cukup membaca header ini.
     public const CORRECTED_HEADER = 'X-Geocode-Corrected-Query';
+
+    // Ejaan yang sama dekatnya yang ikut dicari (masing-masing satu panggilan Nominatim ber-cache).
+    private const TIE_CANDIDATES = 3;
 
     // Kata umum alamat yang tak pernah dikoreksi: bukan nama tempat, dan mengoreksinya
     // ("gang" -> "gangga") justru merusak query yang benar.
@@ -87,26 +93,44 @@ class GeocodeController extends Controller
         // Masih nihil -> mungkin salah ketik. Nominatim tak punya toleransi typo sama sekali
         // ("wngiri", "snur", "tbanan" = 0 hasil, ejaan benarnya ketemu; diuji 2026-10-07),
         // sedangkan Google Maps mengoreksi ejaan diam-diam. Koreksinya memakai kamus nama
-        // wilayah + nama jalan milik kita sendiri - lihat correctSpelling().
+        // wilayah + nama jalan milik kita sendiri - lihat correctSpellings().
+        //
+        // Ejaan yang sama dekatnya ("gmitir" -> Gumitir ATAU Gemitir) SEMUANYA dicari, lalu hasil
+        // gabungannya diurutkan dari yang TERDEKAT ke pin (#195, user 2026-10-07: "cari terdekat
+        // jangan paling sering dicari" - Google Maps memberi Jalan Gemitir, bukan Gang Gumitir yang
+        // lebih sering muncul di data). Header koreksi = ejaan milik hasil teratas.
         $corrected = null;
         if ($results === []) {
-            $candidate = $this->correctSpelling($query);
+            $origin = $this->pinOf($validated);
 
-            if ($candidate !== null) {
-                $results = $this->searchWithFallbacks($candidate, $viewbox);
-                $corrected = $results !== [] ? $candidate : null;
+            foreach ($this->correctSpellings($query) as $candidate) {
+                foreach ($this->searchWithFallbacks($candidate, $viewbox, prefixFallback: false) as $row) {
+                    if (is_array($row)) {
+                        $results[] = $row + ['_corrected' => $candidate];
+                    }
+                }
             }
+
+            $results = $origin ? $this->nearestFirst($this->mergeUnique($results, []), $origin) : $this->mergeUnique($results, []);
+            $corrected = $results[0]['_corrected'] ?? null;
+            $results = array_map(fn ($row) => array_diff_key($row, ['_corrected' => true]), $results);
         }
 
-        $response = response()->json(array_slice($this->tenantCityFirst($results), 0, self::RESULT_LIMIT));
+        $ordered = $corrected !== null && $this->pinOf($validated) ? $results : $this->tenantCityFirst($results);
+        $response = response()->json(array_slice($ordered, 0, self::RESULT_LIMIT));
 
         return $corrected !== null
             ? $response->header(self::CORRECTED_HEADER, rawurlencode($corrected))
             : $response;
     }
 
-    /** Satu query lewat Nominatim + cadangan awalan kata terakhir + cadangan tanpa "Jalan". */
-    private function searchWithFallbacks(string $query, ?string $viewbox): array
+    /**
+     * Satu query lewat Nominatim + cadangan awalan kata terakhir + cadangan tanpa "Jalan".
+     * Query hasil koreksi melewati cadangan awalan (`$prefixFallback = false`): katanya sudah
+     * lengkap, dan tiap panggilan Nominatim mengantre 1,1 detik - dengan sampai tiga ejaan
+     * kandidat, cadangan itu membuat pencarian pertama "jl gmitir" makan ~6 detik.
+     */
+    private function searchWithFallbacks(string $query, ?string $viewbox, bool $prefixFallback = true): array
     {
         $results = $this->searchNominatim($query, self::RESULT_LIMIT, $viewbox);
 
@@ -117,7 +141,7 @@ class GeocodeController extends Controller
         // saring sendiri memakai kata itu sebagai awalan. Query yang dipendekkan itu
         // hampir selalu sudah ada di cache (dilewati saat mengetik), sehingga umumnya
         // TIDAK menambah panggilan ke Nominatim.
-        if ($results === [] && str_contains($query, ' ')) {
+        if ($prefixFallback && $results === [] && str_contains($query, ' ')) {
             $results = $this->searchByPrefixOfLastWord($query, $viewbox);
         }
 
@@ -163,8 +187,7 @@ class GeocodeController extends Controller
     }
 
     /**
-     * Ganti tiap kata yang TIDAK dikenal kamus dengan nama wilayah terdekat, atau null bila
-     * tak ada yang perlu/bisa dikoreksi. Kamusnya nama desa, kecamatan, kabupaten, dan
+     * Ganti tiap kata yang TIDAK dikenal kamus dengan kata kamus terdekat ejaannya. Kamusnya nama desa, kecamatan, kabupaten, dan
      * banjar di provinsi tenant - persis nama yang paling sering diketik pelapor dan
      * paling sering salah ketik (mis. "wngiri" -> "Wanagiri", "pemcutan" -> "Pemecutan").
      *
@@ -175,17 +198,24 @@ class GeocodeController extends Controller
      *    gaya ketik singkat yang lazim di ponsel. Kata 3 huruf HANYA lewat aturan ini.
      * Kata yang sudah ada di kamus, berangka, terlalu pendek, atau kata umum alamat
      * (NON_PLACE_WORDS) dibiarkan.
+     *
+     * Hasilnya query hasil koreksi, paling banyak TIE_CANDIDATES, atau [] bila tak ada yang perlu/bisa
+     * dikoreksi. Kata yang punya beberapa kandidat sama dekat menghasilkan satu query per
+     * kandidat (kata lain memakai kandidat pertamanya) - pemilihnya JARAK hasil ke pin di
+     * search(), bukan kamus.
+     *
+     * @return list<string>
      */
-    private function correctSpelling(string $query): ?string
+    private function correctSpellings(string $query): array
     {
         $dictionary = $this->placeWordDictionary();
 
         if ($dictionary === []) {
-            return null;
+            return [];
         }
 
-        $changed = false;
         $words = preg_split('/\s+/u', $query, -1, PREG_SPLIT_NO_EMPTY);
+        $options = [];
 
         foreach ($words as $i => $word) {
             $lower = mb_strtolower($word);
@@ -197,21 +227,46 @@ class GeocodeController extends Controller
                 continue;
             }
 
-            $best = $this->closestDictionaryWord($lower, $dictionary);
+            $candidates = $this->closestDictionaryWords($lower, $dictionary);
 
-            if ($best !== null) {
-                $words[$i] = mb_convert_case($best, MB_CASE_TITLE);
-                $changed = true;
+            if ($candidates !== []) {
+                $options[$i] = array_map(fn ($c) => mb_convert_case($c, MB_CASE_TITLE), $candidates);
             }
         }
 
-        return $changed ? implode(' ', $words) : null;
+        if ($options === []) {
+            return [];
+        }
+
+        $base = $words;
+        foreach ($options as $i => $candidates) {
+            $base[$i] = $candidates[0];
+        }
+
+        $queries = [implode(' ', $base)];
+        foreach ($options as $i => $candidates) {
+            foreach (array_slice($candidates, 1) as $alternative) {
+                if (count($queries) >= self::TIE_CANDIDATES) {
+                    break 2;
+                }
+                $variant = $base;
+                $variant[$i] = $alternative;
+                $queries[] = implode(' ', $variant);
+            }
+        }
+
+        return $queries;
     }
 
     /**
+     * Semua kata kamus dengan skor TERBAIK yang sama (seri), paling banyak TIE_CANDIDATES. Jumlah
+     * kemunculan hanya menentukan kandidat mana yang dicoba bila serinya lebih banyak dari itu -
+     * yang menang tetap ditentukan jarak hasilnya ke pin (#195).
+     *
      * @param  array<string, int>  $dictionary  kata => jumlah kemunculan
+     * @return list<string>
      */
-    private function closestDictionaryWord(string $word, array $dictionary): ?string
+    private function closestDictionaryWords(string $word, array $dictionary): array
     {
         // Jarak 2 hanya untuk kata panjang: pada kata 5-7 huruf jarak 2 sudah menyeberang ke
         // nama lain ("bonjol" -> "bonyoh", "bedugul" -> "bedulu").
@@ -224,9 +279,8 @@ class GeocodeController extends Controller
         };
         $skeleton = $this->consonantSkeleton($word);
         $first = mb_substr($word, 0, 1);
-        $best = null;
         $bestScore = PHP_INT_MAX;
-        $bestCount = 0;
+        $tied = [];
 
         foreach ($dictionary as $candidate => $count) {
             $candidate = (string) $candidate;
@@ -249,21 +303,50 @@ class GeocodeController extends Controller
 
             // Kandidat yang cuma beda vokal didahulukan: itu pola salah ketik paling umum,
             // dan tanpanya "wngiri" (jarak 2) bisa kalah dari nama acak berjarak 2 lainnya.
-            // Seri diputus kata yang LEBIH SERING muncul di data (sinyal popularitas ala Google:
-            // "gmitir" -> gumitir 19x, bukan gemitir 8x; "nsa" -> nusa 150x, bukan nesa 4x), lalu
-            // urutan abjad supaya hasilnya deterministik (dan bisa di-cache).
             $score = $distance * 2 - ($vowelsOnly ? 1 : 0);
 
-            if ($score < $bestScore
-                || ($score === $bestScore && $count > $bestCount)
-                || ($score === $bestScore && $count === $bestCount && strcmp($candidate, (string) $best) < 0)) {
-                $best = $candidate;
+            if ($score < $bestScore) {
                 $bestScore = $score;
-                $bestCount = $count;
+                $tied = [];
+            }
+            if ($score === $bestScore) {
+                $tied[$candidate] = $count;
             }
         }
 
-        return $best;
+        // Urutan deterministik (cache): lebih sering muncul dulu, lalu abjad.
+        uksort($tied, fn ($a, $b) => [$tied[$b], $a] <=> [$tied[$a], $b]);
+
+        return array_slice(array_map('strval', array_keys($tied)), 0, self::TIE_CANDIDATES);
+    }
+
+    /** @return array{0: float, 1: float}|null titik pin [lat, lng] yang dikirim klien */
+    private function pinOf(array $validated): ?array
+    {
+        return isset($validated['lat'], $validated['lng'])
+            ? [(float) $validated['lat'], (float) $validated['lng']]
+            : null;
+    }
+
+    /** Hasil terdekat ke pin di atas; baris tanpa koordinat ke bawah. */
+    private function nearestFirst(array $results, array $origin): array
+    {
+        $distance = fn ($row) => is_numeric($row['lat'] ?? null) && is_numeric($row['lon'] ?? null)
+            ? $this->haversineMeters($origin[0], $origin[1], (float) $row['lat'], (float) $row['lon'])
+            : INF;
+
+        usort($results, fn ($a, $b) => $distance($a) <=> $distance($b));
+
+        return $results;
+    }
+
+    private function haversineMeters(float $lat1, float $lng1, float $lat2, float $lng2): float
+    {
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLng = deg2rad($lng2 - $lng1);
+        $a = sin($dLat / 2) ** 2 + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLng / 2) ** 2;
+
+        return 6371000 * 2 * atan2(sqrt($a), sqrt(1 - $a));
     }
 
     private function consonantSkeleton(string $word): string
@@ -522,12 +605,19 @@ class GeocodeController extends Controller
         $baseUrl = config('services.nominatim.base_url');
         $userAgent = config('services.nominatim.user_agent');
 
-        return Cache::lock('nominatim:throttle-lock', 10)->block(10, function () use ($baseUrl, $userAgent, $path, $query) {
+        // Jeda 1,1 detik itu kebijakan instance PUBLIK. Instance self-hosted kita (default config,
+        // #35) cukup dijeda pendek - dengan jeda publik, pencarian salah ketik yang mencoba beberapa
+        // ejaan (#195) menunggu ~6 detik. Antrean (lock) tetap, supaya VPS tidak dibanjiri.
+        $minIntervalMs = parse_url((string) $baseUrl, PHP_URL_HOST) === 'nominatim.openstreetmap.org'
+            ? self::MIN_INTERVAL_MS
+            : self::SELF_HOSTED_MIN_INTERVAL_MS;
+
+        return Cache::lock('nominatim:throttle-lock', 10)->block(10, function () use ($baseUrl, $userAgent, $path, $query, $minIntervalMs) {
             $lastCallAtMs = Cache::get('nominatim:last-call-at-ms');
             $nowMs = (int) (microtime(true) * 1000);
 
-            if ($lastCallAtMs !== null && ($nowMs - $lastCallAtMs) < self::MIN_INTERVAL_MS) {
-                usleep((self::MIN_INTERVAL_MS - ($nowMs - $lastCallAtMs)) * 1000);
+            if ($lastCallAtMs !== null && ($nowMs - $lastCallAtMs) < $minIntervalMs) {
+                usleep(($minIntervalMs - ($nowMs - $lastCallAtMs)) * 1000);
             }
 
             $response = Http::withHeaders(['User-Agent' => $userAgent])
