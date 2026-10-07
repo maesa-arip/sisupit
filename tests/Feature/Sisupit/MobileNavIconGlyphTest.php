@@ -107,7 +107,7 @@ it('keeps the centre Lapor circle grey until its page is open and animates the t
     $tailwind = file_get_contents(base_path('tailwind.config.js'));
 
     expect($nav)->toContain('<LaporSlot')
-        ->toMatch("/active\s*\?\s*'bg-destructive text-destructive-foreground[^']*'\s*:\s*'bg-foreground\/\[0\.08\] text-muted-foreground/")
+        ->toMatch("/active\s*\?\s*'bg-destructive text-destructive-foreground[^']*'\s*:\s*'bg-muted text-muted-foreground/")
         ->toContain('let laporTappedAt = 0;')
         ->toContain('delay: -elapsed')
         ->toContain('animate-lapor-pop motion-reduce:animate-none')

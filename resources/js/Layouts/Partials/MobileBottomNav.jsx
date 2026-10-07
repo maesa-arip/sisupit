@@ -119,6 +119,11 @@ import { buildNavSections, flattenNavItems, resolveAbilities } from './navItems'
  * BARIS IKON DIPATOK 24px (`h-6`) untuk KELIMA slot - lihat `SlotContent`. Itu bukan hiasan:
  * tanpanya ikon Lapor yang lebih tinggi akan mendorong labelnya turun sendirian dan satu label
  * berdiri tidak sebaris dengan empat tetangganya.
+ * 2026-10-07 (video referensi `mobile/aset/Referensi MobileBottomNav.mp4`, "buat jarak antara icon
+ * dan label seperti di video"): jarak terlihat ikon-label di video ~5px, di sini dulu ~15px. Kini
+ * baris ikon **20px** (`h-5`) dan TANPA `gap-2` - jarak terlihatnya ~6px (sisa kotak glyph + ruang di
+ * atas huruf 11px dalam baris 16px). Slot Lapor kini lingkaran tersendiri (`LaporSlot`), jadi alasan
+ * baris 24px di bawah sudah gugur; kalimat-kalimat 24px/8px di paragraf ini adalah riwayat.
  * Baris ikon 24px + jarak 8px + baris label 16px = 48px di dalam bilah 64px, jadi TINGGI BILAH
  * TIDAK IKUT BERUBAH - dan itu memang yang menjaga ketiga angka di berkas lain (lihat di bawah)
  * tetap sah tanpa disentuh. Ikon yang melewati 24px akan menabrak angka-angka itu: ia menuntut
@@ -129,12 +134,29 @@ import { buildNavSections, flattenNavItems, resolveAbilities } from './navItems'
  * MEMANG ditiru (lihat paragraf di atas) - kalimat lama di sini yang menyatakan sebaliknya
  * sudah tidak benar sejak hari itu.
  *
- * DUA angka di luar berkas ini terikat pada tinggi bilah - mengubahnya sendirian membuat
- * konten & tombol kirim laporan darurat tertutup bilah, tanpa galat apa pun:
- *   - `AppLayout` ruang konten `pb-[calc(5rem+env(safe-area-inset-bottom))]`
+ * TINGGI BILAH 56px (`h-14`) sejak 2026-10-07 (dulu 64px). Setelah jarak ikon-label dirapatkan
+ * mengikuti video referensi, isi slot tinggal 36px (ikon 20 + label 16) sehingga ruang di atas ikon
+ * & di bawah label membengkak jadi 14px (user: "sesuaikan jarak antara bawah label dan jarak di atas
+ * icon"). Pada 56px tinta ikon berjarak ~11,5px dari tepi atas dan tinta label ~12px dari tepi bawah
+ * (huruf berekor - "Riwayat", "Lapor" - ikut dihitung) - seimbang.
+ * Angka di luar berkas ini terikat pada tinggi bilah - mengubahnya sendirian membuat konten & tombol
+ * kirim laporan darurat tertutup bilah, tanpa galat apa pun:
+ *   - `AppLayout` ruang konten `pb-[calc(5rem+env(safe-area-inset-bottom))]` (bilah 56 + tonjolan
+ *     lingkaran 11 + napas)
  *   - tombol Kirim melayang `Front/Reports/Create.jsx`
- *     `bottom-[calc(4rem+env(safe-area-inset-bottom))]` — RAPAT ke bilah, tanpa celah
- * Ditambah `FloatingPanel` `bottom-[72px]` di berkas ini sendiri.
+ *     `bottom-[calc(3.5rem+env(safe-area-inset-bottom))]` — RAPAT ke bilah, tanpa celah
+ *   - `FloatingPanel` `bottom-[72px]` di berkas ini sendiri (di atas puncak lingkaran 67px)
+ * MENONJOL (permintaan user 2026-10-07, "lingkaran pada lapor buat lewat sedikit dari batas tapi tidak
+ * boleh menyentuh tombol kirim laporan darurat"; lalu "turunkan lagi dan tambahkan label"): lingkaran
+ * Lapor 36px naik 8px MELEWATI tepi atas bilah (`-mt-2`), dibingkai cincin 3px warna latar
+ * (`ring-background`) yang menutup garis rambut bilah di belakangnya - pola "tombol tengah terangkat".
+ * Tonjolan total 11px. Label "Lapor" di bawahnya sebaris dengan empat label lain (baris 30-46px),
+ * karena itu lingkarannya mengecil tiap kali baris label naik (44 -> 40 -> 36px) - menaikkan
+ * lingkaran justru yang diminta dihindari. Latar diamnya `bg-muted` PEKAT (dulu
+ * `bg-foreground/[0.08]`): bagian yang menonjol berada di atas konten halaman, latar tembus pandang
+ * akan memperlihatkan konten itu di dalam lingkaran.
+ * Bar Kirim `Create.jsx` ber-`py-4` SIMETRIS (user: "tidak balance antara atas bawah tombol kirim"):
+ * puncak cincin berhenti 5px di bawah tombol. Dijaga LaporRaisedCircleTest.
  *
  * Dua hal dari TASK_20/21 sengaja DIPERTAHANKAN karena bukan bagian dari panel menu dan
  * mencabutnya akan merusak tata letak lain:
@@ -244,7 +266,7 @@ export default function MobileBottomNav({ auth }) {
 			        itulah sebabnya garis ini wajib ada, bukan sekadar hiasan.
 			      - lapis 2 = angkatan lembut yang hanya kasatmata di mode terang.
 			    Dipakai sebagai shadow (bukan border) supaya tak menambah 1px ke tinggi
-			    kotaknya - `h-16` di sini terikat pada dua angka di berkas lain (lihat
+			    kotaknya - `h-14` di sini terikat pada dua angka di berkas lain (lihat
 			    docblock), dan border akan menggeser semuanya sejauh satu piksel.
 			    CATATAN untuk halaman /reports/create: di sana bar tombol Kirim menempel
 			    persis di atas bilah ini, sehingga garis rambut itu jatuh di sambungannya dan
@@ -258,7 +280,7 @@ export default function MobileBottomNav({ auth }) {
 				className="material-chrome fixed bottom-0 left-0 z-50 w-full shadow-[0_-1px_0_0_hsl(var(--border)),0_-8px_24px_-12px_rgba(0,0,0,0.22)] md:hidden [html[data-keyboard=open]_&]:hidden"
 				style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
 			>
-				<div className="mx-auto grid h-16 max-w-md grid-cols-5 px-1">
+				<div className="mx-auto grid h-14 max-w-md grid-cols-5 px-1">
 					{/* 1. Beranda — ikon disamakan dengan sidebar (dulu IconHome di sini saja) */}
 					<NavItem
 						href={itemByKey('dashboard')?.url ?? route('dashboard')}
@@ -279,7 +301,10 @@ export default function MobileBottomNav({ auth }) {
 										key={item.key}
 										item={item}
 										tone={FASILITAS_ITEM_TONE[item.key]}
-										onClick={closePanel}
+										onClick={() => {
+											markSlotTap('Fasilitas');
+											closePanel();
+										}}
 									/>
 								))}
 							</FloatingPanel>
@@ -381,7 +406,10 @@ export default function MobileBottomNav({ auth }) {
 												<FloatingLink
 													key={item.key}
 													item={item}
-													onClick={closePanel}
+													onClick={() => {
+														markSlotTap('Menu');
+														closePanel();
+													}}
 												/>
 											))}
 										</Fragment>
@@ -414,6 +442,15 @@ export default function MobileBottomNav({ auth }) {
  * dialek yang sama dengan <NavLink/> di sidebar.
  */
 function SlotContent({ icon: Icon, iconActive: IconActive, label, active, iconClassName }) {
+	// Animasi ketuk (referensi `mobile/aset/Referensi MobileBottomNav.mp4`, permintaan user
+	// 2026-10-07): slot yang BARU diketuk menampilkan glyph garis berwarna aktif, lalu kembaran
+	// padatnya "mengisi" dari bawah ke atas (clip-path) sambil ikonnya memantul kecil. Yang
+	// ditinggalkan langsung abu tanpa animasi - persis video itu. Pola lintas halaman sama dengan
+	// LaporSlot: waktu ketukan di tingkat modul + animation-delay negatif di bilah halaman tujuan.
+	const elapsed = Date.now() - slotTap.at;
+	const filling = active && IconActive && slotTap.label === label && elapsed < SLOT_FILL_MS;
+	const animationDelay = filling ? `${-elapsed}ms` : undefined;
+
 	// Slot aktif memakai kembaran PADAT bila ada. `iconActive` opsional dan luruh rapi ke glyph
 	// garis kalau tak diberikan - itu yang menyelamatkan slot tamu "Masuk", yang ikonnya datang
 	// dari navItems.js dan tak punya kembaran padat di @tabler. Ikon padat @tabler MEMBUANG prop
@@ -421,7 +458,8 @@ function SlotContent({ icon: Icon, iconActive: IconActive, label, active, iconCl
 	// mengirimnya ke keduanya aman dan pemanggilnya tak perlu tahu ia sedang memegang yang mana.
 	const Glyph = active && IconActive ? IconActive : Icon;
 
-	// BARIS IKON BERTINGGI TETAP (`h-6`), dan inilah yang menjaga bilah tetap harmonis begitu
+	// BARIS IKON BERTINGGI TETAP (dulu `h-6`, kini `h-5` sejak jarak ikon-label dirapatkan mengikuti
+	// video referensi 2026-10-07 - Lapor sudah lingkaran tersendiri), dan inilah yang menjaga bilah tetap harmonis begitu
 	// satu slot boleh berikon lebih besar (permintaan user 2026-09-09: "untuk icon lapor buat
 	// agar lebih besar dari yang lain, tapi buat agar tetap harmonis"). Tanpa baris ini, slot
 	// diisi `justify-center` sehingga ikon yang 4px lebih tinggi MENDORONG labelnya turun ~2px
@@ -433,8 +471,32 @@ function SlotContent({ icon: Icon, iconActive: IconActive, label, active, iconCl
 	// untuk salah satunya (larangan yang sama dengan PENGECUALIAN_ATURAN #3).
 	return (
 		<>
-			<span className="flex h-6 items-center justify-center">
-				<Glyph className={cn('h-5 w-5', iconClassName)} stroke={1.75} />
+			<span className="flex h-5 items-center justify-center">
+				{filling ? (
+					<span
+						key={slotTap.at}
+						style={{ animationDelay }}
+						className="relative h-5 w-5 animate-slot-pop motion-reduce:animate-none"
+					>
+						<Icon
+							style={{ animationDelay }}
+							className={cn(
+								'absolute inset-0 h-5 w-5 animate-slot-outline motion-reduce:animate-none',
+								iconClassName,
+							)}
+							stroke={1.75}
+						/>
+						<IconActive
+							style={{ animationDelay }}
+							className={cn(
+								'absolute inset-0 h-5 w-5 animate-slot-fill motion-reduce:animate-none',
+								iconClassName,
+							)}
+						/>
+					</span>
+				) : (
+					<Glyph className={cn('h-5 w-5', iconClassName)} stroke={1.75} />
+				)}
 			</span>
 			<span className="max-w-full truncate text-[11px] leading-4">{label}</span>
 		</>
@@ -443,7 +505,7 @@ function SlotContent({ icon: Icon, iconActive: IconActive, label, active, iconCl
 
 const slotClass = (active, open = false) =>
 	cn(
-		'group relative flex h-full w-full flex-col items-center justify-center gap-2 rounded-lg px-1 outline-none transition-[color,background-color,transform] duration-100 ease-out active:scale-[0.92] motion-reduce:active:scale-100 focus-visible:ring-2 focus-visible:ring-destructive',
+		'group relative flex h-full w-full flex-col items-center justify-center rounded-lg px-1 outline-none transition-[color,background-color,transform] duration-100 ease-out active:scale-[0.92] motion-reduce:active:scale-100 focus-visible:ring-2 focus-visible:ring-destructive',
 		// PENANDA AKTIF = WARNA + TEBAL HURUF + IKON PADAT. Tetap tidak ada bidang, kotak,
 		// pil, garis, maupun titik - "minimalis" pada referensi `Menu 6.png` bertahan; yang
 		// ditambahkan 2026-09-06 (permintaan user) hanya pemadatan glyphnya, dan itu justru
@@ -475,6 +537,7 @@ function NavItem({ href, icon, iconActive, label, active, ariaLabel, iconClassNa
 			href={href}
 			aria-label={ariaLabel}
 			aria-current={active ? 'page' : undefined}
+			onClick={() => markSlotTap(label)}
 			className={slotClass(active)}
 		>
 			<SlotContent
@@ -582,6 +645,17 @@ function FloatingLink({ item, tone, onClick }) {
 	);
 }
 
+/** Durasi animasi isi slot - WAJIB sama dengan `animation.slot-fill`/`slot-pop` di tailwind.config.js. */
+const SLOT_FILL_MS = 450;
+
+// Slot terakhir yang diketuk (label + waktu), di tingkat MODUL karena bilah dipasang ulang tiap
+// pindah halaman - lihat `laporTappedAt` di bawah. Pilihan dari popover Fasilitas/Menu dicatat
+// atas nama slot pemicunya, karena slot itulah yang menjadi aktif.
+let slotTap = { label: null, at: 0 };
+function markSlotTap(label) {
+	slotTap = { label, at: Date.now() };
+}
+
 /** Durasi animasi ketukan Lapor - WAJIB sama dengan `animation.lapor-pop` di tailwind.config.js. */
 const LAPOR_POP_MS = 650;
 
@@ -615,9 +689,9 @@ function LaporSlot({ href, icon: Icon, iconActive: IconActive, active }) {
 				laporTappedAt = Date.now();
 				setPop({ key: laporTappedAt, delay: 0 });
 			}}
-			className="relative flex h-full w-full items-center justify-center rounded-lg outline-none transition-transform duration-100 ease-out active:scale-[0.9] focus-visible:ring-2 focus-visible:ring-destructive motion-reduce:active:scale-100"
+			className="relative flex h-full w-full flex-col items-center rounded-lg outline-none transition-transform duration-100 ease-out active:scale-[0.9] focus-visible:ring-2 focus-visible:ring-destructive motion-reduce:active:scale-100"
 		>
-			<span className="relative flex h-11 w-11 items-center justify-center">
+			<span className="relative -mt-2 flex h-9 w-9 shrink-0 items-center justify-center">
 				{pop && (
 					<span
 						key={`ripple-${pop.key}`}
@@ -630,15 +704,26 @@ function LaporSlot({ href, icon: Icon, iconActive: IconActive, active }) {
 					key={pop ? `pop-${pop.key}` : 'idle'}
 					style={{ animationDelay }}
 					className={cn(
-						'relative flex h-11 w-11 items-center justify-center rounded-full transition-[background-color,color,box-shadow] duration-300 ease-out',
+						'relative flex h-9 w-9 items-center justify-center rounded-full ring-[3px] ring-background transition-[background-color,color,box-shadow] duration-300 ease-out',
 						pop && 'animate-lapor-pop motion-reduce:animate-none',
 						active
 							? 'bg-destructive text-destructive-foreground shadow-[0_6px_16px_-6px_hsl(var(--destructive)/0.7)]'
-							: 'bg-foreground/[0.08] text-muted-foreground dark:bg-white/[0.12]',
+							: 'bg-muted text-muted-foreground shadow-[0_4px_12px_-6px_rgba(0,0,0,0.25)]',
 					)}
 				>
 					<Glyph className="h-6 w-6" stroke={1.75} />
 				</span>
+			</span>
+			{/* Label di baris yang sama dengan empat tetangganya (y 30-46px, isi slot 20 + 16px
+			    ditengahkan di bilah 56px): lingkaran 36px berakhir di 28px, `mt-0.5` menaruh label
+			    tepat di 30px - jarak lingkaran-label pun sama rapatnya dengan ikon-label. */}
+			<span
+				className={cn(
+					'mt-0.5 max-w-full truncate text-[11px] leading-4 transition-colors duration-300',
+					active ? 'font-medium text-destructive' : 'font-normal text-muted-foreground',
+				)}
+			>
+				Lapor
 			</span>
 		</Link>
 	);

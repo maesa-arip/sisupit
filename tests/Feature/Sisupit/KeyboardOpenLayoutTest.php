@@ -34,6 +34,6 @@ it('hides the bottom nav while the keyboard is open', function () {
 
 it('drops the report submit bar onto the keyboard', function () {
     expect(keyboardSource('Pages/Front/Reports/Create.jsx'))
-        ->toMatch('/bottom-\[calc\(4rem\+env\(safe-area-inset-bottom\)\)\][^"]*\[html\[data-keyboard=open\]_&\]:bottom-\[var\(--keyboard-inset,0px\)\]/')
+        ->toMatch('/bottom-\[calc\(3\.5rem\+env\(safe-area-inset-bottom\)\)\][^"]*\[html\[data-keyboard=open\]_&\]:bottom-\[var\(--keyboard-inset,0px\)\]/')
         ->toContain('enterKeyHint="search"');
 });

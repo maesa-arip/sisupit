@@ -209,7 +209,7 @@ it('lays out the report form as grouped sections and the incident page with an i
         expect($create)->toMatch('/<h2 className="px-4 text-\[13px\][^"]*">\s*'.$section.'\s*<\/h2>/');
     }
     expect($create)->not->toMatch('/<Card\b/')
-        ->and($create)->toContain('bottom-[calc(4rem+env(safe-area-inset-bottom))]');
+        ->and($create)->toContain('bottom-[calc(3.5rem+env(safe-area-inset-bottom))]');
 
     $show = appleSource('resources/js/Pages/Front/Reports/Show.jsx');
     expect($show)->toMatch('/<IconChevronLeft className="h-5 w-5" \/>\s*Kembali/')

@@ -1495,7 +1495,7 @@ export default function Create(props) {
 			</div>
 
 			{/* Sticky CTA mobile — tombol Kirim selalu terlihat tanpa perlu scroll ke bawah.
-			    RAPAT ke MobileBottomNav (tepat 4rem + safe-area, tinggi bilah itu), bukan
+			    RAPAT ke MobileBottomNav (tepat 3.5rem + safe-area, tinggi bilah itu), bukan
 			    melayang 8px di atasnya seperti sebelumnya: dengan celah, sepotong konten
 			    halaman mengintip di antara dua bidang yang sama-sama selebar layar, dan itu
 			    terbaca seperti tata letak yang meleset, bukan seperti disengaja. Rapat begini
@@ -1505,12 +1505,17 @@ export default function Create(props) {
 			    jadi satu-satunya benda berat di layar) dan latarnya `bg-card` PEKAT, bukan
 			    `bg-card/95` + blur — dua bidang bersentuhan dengan tembus-pandang berbeda akan
 			    memperlihatkan garis sambungan tiap kali konten gelap lewat di belakangnya.
-			    Kalau tinggi bilah berubah, angka 4rem di sini WAJIB ikut — kalau tidak tombol
+			    Kalau tinggi bilah berubah, angka 3.5rem di sini WAJIB ikut — kalau tidak tombol
 			    kirim laporan darurat tertutup tanpa galat apa pun.
 			    Saat keyboard terbuka (#187) bilah bawah disembunyikan dan bar ini turun menempel tepat
 			    di atas keyboard (--keyboard-inset: 0 di APK, setinggi keyboard di iOS) - laporan tetap
-			    terkirim dengan satu ketukan tanpa menutup keyboard dulu. */}
-			<div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-40 border-t border-border bg-card px-4 py-3 sm:hidden [html[data-keyboard=open]_&]:bottom-[var(--keyboard-inset,0px)]">
+			    terkirim dengan satu ketukan tanpa menutup keyboard dulu.
+			    `py-4` SIMETRIS: lingkaran Lapor di bilah bawah menonjol 11px melewati tepi atas bilah
+			    (cincin termasuk) dan menembus bar ini - 16px di bawah tombol menyisakan celah 5px supaya
+			    lingkaran tak pernah menyentuh tombol kirim, sementara atas & bawah tombol tetap seimbang
+			    (permintaan user 2026-10-07; `pb-6` sebelumnya terbaca "terlalu jauh").
+			    Bilah bawah 56px sejak 2026-10-07 -> `3.5rem` (dulu 4rem). */}
+			<div className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-40 border-t border-border bg-card px-4 py-4 sm:hidden [html[data-keyboard=open]_&]:bottom-[var(--keyboard-inset,0px)]">
 				<Button
 					type="submit"
 					form="reportForm"

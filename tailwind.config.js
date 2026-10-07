@@ -38,10 +38,33 @@ export default {
 					'0%': { transform: 'scale(1)', opacity: '0.5' },
 					'100%': { transform: 'scale(1.9)', opacity: '0' },
 				},
+				// Ketukan slot lain bilah bawah (referensi mobile/aset/Referensi MobileBottomNav.mp4):
+				// ikon berganti garis berwarna aktif lalu "terisi" dari bawah ke atas, sambil memantul
+				// kecil. Durasinya diikat MobileBottomNav (SLOT_FILL_MS).
+				'slot-fill': {
+					'0%': { clipPath: 'inset(100% 0 0 0)' },
+					'100%': { clipPath: 'inset(0 0 0 0)' },
+				},
+				// Glyph garis di bawah isinya menghilang di akhir: tanpa ini garisnya mengintip lewat lubang
+				// glyph padat (jarum jam dsb.) sampai bilah dirender ulang.
+				'slot-outline': {
+					'0%, 85%': { opacity: '1' },
+					'100%': { opacity: '0' },
+				},
+				'slot-pop': {
+					'0%': { transform: 'scale(1)' },
+					'25%': { transform: 'scale(0.86)' },
+					'60%': { transform: 'scale(1.08)' },
+					'100%': { transform: 'scale(1)' },
+				},
 			},
 			animation: {
 				'lapor-pop': 'lapor-pop 650ms cubic-bezier(0.32, 0.72, 0, 1) both',
 				'lapor-ripple': 'lapor-ripple 650ms ease-out both',
+				// Isi naik RATA seperti cairan di video (kurva pegas membuatnya penuh di 100ms pertama).
+				'slot-fill': 'slot-fill 450ms cubic-bezier(0.45, 0, 0.55, 1) both',
+				'slot-outline': 'slot-outline 450ms linear both',
+				'slot-pop': 'slot-pop 450ms cubic-bezier(0.32, 0.72, 0, 1) both',
 			},
 			fontFamily: {
 				sans: ['Inter', ...defaultTheme.fontFamily.sans],
