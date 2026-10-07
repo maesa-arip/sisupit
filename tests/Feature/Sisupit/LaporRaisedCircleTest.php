@@ -62,19 +62,19 @@ it('fills the tapped bottom-nav icon from the bottom up and carries the animatio
     $nav = file_get_contents(resource_path('js/Layouts/Partials/MobileBottomNav.jsx'));
     $tailwind = file_get_contents(base_path('tailwind.config.js'));
 
-    expect($nav)->toContain("let slotTap = { label: null, at: 0 };")
+    expect($nav)->toContain("let slotTap = { label: null, at: 0, anchor: 0 };")
         ->toContain('onClick={() => markSlotTap(label)}')
         ->toContain("markSlotTap('Fasilitas');")
         ->toContain("markSlotTap('Menu');")
         ->toContain('animate-slot-fill motion-reduce:animate-none')
         ->toContain('animate-slot-pop motion-reduce:animate-none')
         ->toContain('animate-slot-outline motion-reduce:animate-none')
-        ->toContain('`${-elapsed}ms`');
+        ->toContain('useTapClock(slotTap, filling)');
 
     preg_match('/const SLOT_FILL_MS = (\d+);/', $nav, $ms);
     expect($ms)->not->toBeEmpty()
         ->and($tailwind)->toContain("'slot-fill': 'slot-fill {$ms[1]}ms")
         ->and($tailwind)->toContain("'slot-pop': 'slot-pop {$ms[1]}ms")
         ->and($tailwind)->toContain("'slot-outline': 'slot-outline {$ms[1]}ms")
-        ->and($tailwind)->toContain("clipPath: 'inset(100% 0 0 0)'");
+        ->and($tailwind)->toContain("'slot-fill-glyph': 'slot-fill-glyph {$ms[1]}ms");
 });

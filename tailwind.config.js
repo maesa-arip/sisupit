@@ -41,9 +41,24 @@ export default {
 				// Ketukan slot lain bilah bawah (referensi mobile/aset/Referensi MobileBottomNav.mp4):
 				// ikon berganti garis berwarna aktif lalu "terisi" dari bawah ke atas, sambil memantul
 				// kecil. Durasinya diikat MobileBottomNav (SLOT_FILL_MS).
+				// Isi = jendela `overflow-hidden` yang naik dari bawah (slot-fill) berisi glyph padat yang
+				// digeser berlawanan arah (slot-fill-glyph) sehingga glyph-nya diam di tempat. Dulu
+				// clip-path: properti itu dihitung di main thread, jadi isinya MEMBEKU tepat saat halaman
+				// tujuan dirender (300-580 ms di CPU 4x lebih lambat) lalu melompat - "patah" (user
+				// 2026-10-07, FINDINGS #193). Transform jalan di compositor dan tetap mulus.
 				'slot-fill': {
-					'0%': { clipPath: 'inset(100% 0 0 0)' },
-					'100%': { clipPath: 'inset(0 0 0 0)' },
+					'0%': { transform: 'translateY(100%)' },
+					'100%': { transform: 'translateY(0)' },
+				},
+				'slot-fill-glyph': {
+					'0%': { transform: 'translateY(-100%)' },
+					'100%': { transform: 'translateY(0)' },
+				},
+				// Lingkaran Lapor: lapisan abu + petir garis di ATAS lingkaran merah memudar keluar.
+				// Dulu transisi background-color (main thread) yang terpotong saat bilah dipasang ulang.
+				'lapor-fade': {
+					'0%': { opacity: '1' },
+					'100%': { opacity: '0' },
 				},
 				// Glyph garis di bawah isinya menghilang di akhir: tanpa ini garisnya mengintip lewat lubang
 				// glyph padat (jarum jam dsb.) sampai bilah dirender ulang.
@@ -63,6 +78,8 @@ export default {
 				'lapor-ripple': 'lapor-ripple 650ms ease-out both',
 				// Isi naik RATA seperti cairan di video (kurva pegas membuatnya penuh di 100ms pertama).
 				'slot-fill': 'slot-fill 450ms cubic-bezier(0.45, 0, 0.55, 1) both',
+				'slot-fill-glyph': 'slot-fill-glyph 450ms cubic-bezier(0.45, 0, 0.55, 1) both',
+				'lapor-fade': 'lapor-fade 300ms ease-out both',
 				'slot-outline': 'slot-outline 450ms linear both',
 				'slot-pop': 'slot-pop 450ms cubic-bezier(0.32, 0.72, 0, 1) both',
 			},

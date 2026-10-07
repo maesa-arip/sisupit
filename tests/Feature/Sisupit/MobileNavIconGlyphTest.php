@@ -108,8 +108,8 @@ it('keeps the centre Lapor circle grey until its page is open and animates the t
 
     expect($nav)->toContain('<LaporSlot')
         ->toMatch("/active\s*\?\s*'bg-destructive text-destructive-foreground[^']*'\s*:\s*'bg-muted text-muted-foreground/")
-        ->toContain('let laporTappedAt = 0;')
-        ->toContain('delay: -elapsed')
+        ->toContain('let laporTap = { at: 0, anchor: 0 };')
+        ->toContain('useTapClock(laporTap, Boolean(pop))')
         ->toContain('animate-lapor-pop motion-reduce:animate-none')
         ->toContain('animate-lapor-ripple');
 

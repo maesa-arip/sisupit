@@ -13,7 +13,7 @@ import {
 	IconMapPin,
 	IconMapPinFilled,
 } from '@tabler/icons-react';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { buildNavSections, flattenNavItems, resolveAbilities } from './navItems';
 
 /**
@@ -447,9 +447,8 @@ function SlotContent({ icon: Icon, iconActive: IconActive, label, active, iconCl
 	// padatnya "mengisi" dari bawah ke atas (clip-path) sambil ikonnya memantul kecil. Yang
 	// ditinggalkan langsung abu tanpa animasi - persis video itu. Pola lintas halaman sama dengan
 	// LaporSlot: waktu ketukan di tingkat modul + animation-delay negatif di bilah halaman tujuan.
-	const elapsed = Date.now() - slotTap.at;
-	const filling = active && IconActive && slotTap.label === label && elapsed < SLOT_FILL_MS;
-	const animationDelay = filling ? `${-elapsed}ms` : undefined;
+	const filling = Boolean(active && IconActive && slotTap.label === label && tapElapsed(slotTap) < SLOT_FILL_MS);
+	const tapClockRef = useTapClock(slotTap, filling);
 
 	// Slot aktif memakai kembaran PADAT bila ada. `iconActive` opsional dan luruh rapi ke glyph
 	// garis kalau tak diberikan - itu yang menyelamatkan slot tamu "Masuk", yang ikonnya datang
@@ -475,24 +474,32 @@ function SlotContent({ icon: Icon, iconActive: IconActive, label, active, iconCl
 				{filling ? (
 					<span
 						key={slotTap.at}
-						style={{ animationDelay }}
-						className="relative h-5 w-5 animate-slot-pop motion-reduce:animate-none"
+						ref={tapClockRef}
+						className={cn('relative h-5 w-5 animate-slot-pop motion-reduce:animate-none', TAP_DELAY)}
 					>
 						<Icon
-							style={{ animationDelay }}
 							className={cn(
 								'absolute inset-0 h-5 w-5 animate-slot-outline motion-reduce:animate-none',
+								TAP_DELAY,
 								iconClassName,
 							)}
 							stroke={1.75}
 						/>
-						<IconActive
-							style={{ animationDelay }}
+						{/* Jendela yang naik + glyph yang turun sama cepat = glyph diam, terbuka dari bawah. */}
+						<span
 							className={cn(
-								'absolute inset-0 h-5 w-5 animate-slot-fill motion-reduce:animate-none',
-								iconClassName,
+								'absolute inset-0 overflow-hidden animate-slot-fill motion-reduce:animate-none',
+								TAP_DELAY,
 							)}
-						/>
+						>
+							<IconActive
+								className={cn(
+									'absolute inset-0 h-5 w-5 animate-slot-fill-glyph motion-reduce:animate-none',
+									TAP_DELAY,
+									iconClassName,
+								)}
+							/>
+						</span>
 					</span>
 				) : (
 					<Glyph className={cn('h-5 w-5', iconClassName)} stroke={1.75} />
@@ -648,12 +655,50 @@ function FloatingLink({ item, tone, onClick }) {
 /** Durasi animasi isi slot - WAJIB sama dengan `animation.slot-fill`/`slot-pop` di tailwind.config.js. */
 const SLOT_FILL_MS = 450;
 
-// Slot terakhir yang diketuk (label + waktu), di tingkat MODUL karena bilah dipasang ulang tiap
-// pindah halaman - lihat `laporTappedAt` di bawah. Pilihan dari popover Fasilitas/Menu dicatat
+// Semua animasi ketuk membaca jedanya dari variabel CSS milik pembungkusnya (diwarisi anak-anaknya).
+const TAP_DELAY = '[animation-delay:var(--tap-delay,0ms)]';
+
+/**
+ * Jam animasi ketuk (#193). `clock` = { at: waktu ketukan, anchor: waktu FRAME PERTAMA animasinya
+ * benar-benar tergambar }, disimpan di tingkat modul supaya bilah halaman tujuan (dipasang ulang)
+ * membaca jam yang sama. Jeda negatifnya ditulis SEKALI ke DOM di layout effect - BUKAN lewat prop
+ * `style` tiap render.
+ *
+ * Dua bentuk patah yang ditutup di sini (terukur Playwright, CPU 4x lebih lambat):
+ *  1. Jeda animasi dulu ditulis lewat prop `style` dan dihitung ulang tiap render, dan bilah dirender berkali-kali selama
+ *     pindah halaman (menu aktif saat diketuk, kerangka, halaman tiba): tiap kali jeda animasi
+ *     yang SEDANG berjalan diganti, ia melompat maju - isinya tampil pertama kali di ~40%.
+ *  2. Di HP lambat main thread sibuk ±150 ms antara ketukan dan frame pertama. Jam yang dipatok
+ *     ke WAKTU KETUKAN membuat animasi "mengejar" 150 ms itu (mulai di sepertiga jalan). Dipatok
+ *     ke frame pertama: animasi selalu mulai dari 0 saat pertama terlihat, dan bilah halaman
+ *     tujuan melanjutkan dari titik yang sedang terlihat.
+ */
+function useTapClock(clock, running) {
+	const ref = useRef(null);
+	useLayoutEffect(() => {
+		if (!running || !ref.current) return;
+		if (clock.anchor) {
+			ref.current.style.setProperty('--tap-delay', `${clock.anchor - Date.now()}ms`);
+			return;
+		}
+		ref.current.style.setProperty('--tap-delay', '0ms');
+		requestAnimationFrame(() => {
+			if (!clock.anchor) clock.anchor = Date.now();
+		});
+	}, [running, clock]);
+
+	return ref;
+}
+
+/** Sudah berapa lama animasi ketuk ini berjalan di layar (atau sejak diketuk, bila belum tergambar). */
+const tapElapsed = (clock) => Date.now() - (clock.anchor || clock.at);
+
+// Slot terakhir yang diketuk (label + jam), di tingkat MODUL karena bilah dipasang ulang tiap
+// pindah halaman - lihat `laporTap` di bawah. Pilihan dari popover Fasilitas/Menu dicatat
 // atas nama slot pemicunya, karena slot itulah yang menjadi aktif.
-let slotTap = { label: null, at: 0 };
+let slotTap = { label: null, at: 0, anchor: 0 };
 function markSlotTap(label) {
-	slotTap = { label, at: Date.now() };
+	slotTap = { label, at: Date.now(), anchor: 0 };
 }
 
 /** Durasi animasi ketukan Lapor - WAJIB sama dengan `animation.lapor-pop` di tailwind.config.js. */
@@ -663,7 +708,7 @@ const LAPOR_POP_MS = 650;
 // AppLayout sendiri, jadi bilah ini dipasang ulang begitu halaman lapor tiba. Bilah halaman tujuan
 // membaca nilai ini dan MELANJUTKAN animasi yang sedang berjalan lewat animation-delay negatif,
 // alih-alih memotongnya atau mengulanginya dari awal.
-let laporTappedAt = 0;
+let laporTap = { at: 0, anchor: 0 };
 
 /**
  * Slot tengah "Lapor" (#189, koreksi user 2026-10-07): lingkaran ABU + petir garis saat diam,
@@ -673,12 +718,9 @@ let laporTappedAt = 0;
  * tanpa pantulan & riak, hanya perubahan warna.
  */
 function LaporSlot({ href, icon: Icon, iconActive: IconActive, active }) {
-	const [pop, setPop] = useState(() => {
-		const elapsed = Date.now() - laporTappedAt;
-		return elapsed < LAPOR_POP_MS ? { key: laporTappedAt, delay: -elapsed } : null;
-	});
+	const [pop, setPop] = useState(() => (tapElapsed(laporTap) < LAPOR_POP_MS ? { key: laporTap.at } : null));
 	const Glyph = active && IconActive ? IconActive : Icon;
-	const animationDelay = pop ? `${pop.delay}ms` : undefined;
+	const tapClockRef = useTapClock(laporTap, Boolean(pop));
 
 	return (
 		<Link
@@ -686,32 +728,47 @@ function LaporSlot({ href, icon: Icon, iconActive: IconActive, active }) {
 			aria-label="Lapor Darurat"
 			aria-current={active ? 'page' : undefined}
 			onClick={() => {
-				laporTappedAt = Date.now();
-				setPop({ key: laporTappedAt, delay: 0 });
+				laporTap = { at: Date.now(), anchor: 0 };
+				setPop({ key: laporTap.at });
 			}}
 			className="relative flex h-full w-full flex-col items-center rounded-lg outline-none transition-transform duration-100 ease-out active:scale-[0.9] focus-visible:ring-2 focus-visible:ring-destructive motion-reduce:active:scale-100"
 		>
-			<span className="relative -mt-2 flex h-9 w-9 shrink-0 items-center justify-center">
+			<span className="relative -mt-2 flex h-9 w-9 shrink-0 items-center justify-center" ref={tapClockRef}>
 				{pop && (
 					<span
 						key={`ripple-${pop.key}`}
 						aria-hidden="true"
-						style={{ animationDelay }}
-						className="pointer-events-none absolute inset-0 animate-lapor-ripple rounded-full bg-destructive motion-reduce:hidden"
+						className={cn(
+							'pointer-events-none absolute inset-0 animate-lapor-ripple rounded-full bg-destructive motion-reduce:hidden',
+							TAP_DELAY,
+						)}
 					/>
 				)}
+				{/* Tanpa transisi background-color (#193): warna merah langsung jadi warna dasar, dan
+				    keadaan diam (abu + petir garis) yang MEMUDAR KELUAR di atasnya - opacity jalan di
+				    compositor dan dilanjutkan bilah halaman tujuan lewat jam ketuk yang sama. */}
 				<span
 					key={pop ? `pop-${pop.key}` : 'idle'}
-					style={{ animationDelay }}
 					className={cn(
-						'relative flex h-9 w-9 items-center justify-center rounded-full ring-[3px] ring-background transition-[background-color,color,box-shadow] duration-300 ease-out',
-						pop && 'animate-lapor-pop motion-reduce:animate-none',
+						'relative flex h-9 w-9 items-center justify-center rounded-full ring-[3px] ring-background',
+						pop && cn('animate-lapor-pop motion-reduce:animate-none', TAP_DELAY),
 						active
 							? 'bg-destructive text-destructive-foreground shadow-[0_6px_16px_-6px_hsl(var(--destructive)/0.7)]'
 							: 'bg-muted text-muted-foreground shadow-[0_4px_12px_-6px_rgba(0,0,0,0.25)]',
 					)}
 				>
 					<Glyph className="h-6 w-6" stroke={1.75} />
+					{pop && active && (
+						<span
+							aria-hidden="true"
+							className={cn(
+								'absolute inset-0 flex animate-lapor-fade items-center justify-center rounded-full bg-muted text-muted-foreground',
+								TAP_DELAY,
+							)}
+						>
+							<Icon className="h-6 w-6" stroke={1.75} />
+						</span>
+					)}
 				</span>
 			</span>
 			{/* Label di baris yang sama dengan empat tetangganya (y 30-46px, isi slot 20 + 16px
