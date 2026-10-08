@@ -197,3 +197,31 @@ it('gates the phone column on show_phones', function () {
 
     expect(substr_count($src, '{props.show_phones && ('))->toBe(2);
 });
+
+// APK 1.1.8 (2026-10-08): izin notifikasi Android yang mati membuat APK membuang notifikasi
+// diam-diam sementara server & tombol uji melapor "terkirim". Web kini membacanya lewat jembatan.
+it('reads the android notification permission through the bridge and refreshes it on resume', function () {
+    $lib = file_get_contents(base_path('resources/js/lib/fcm-device.js'));
+    $layout = file_get_contents(base_path('resources/js/Layouts/AppLayout.jsx'));
+
+    expect($lib)
+        ->toContain('getNotificationStatus')
+        ->toContain('openNotificationSettings')
+        // APK lama (<= 1.1.7) tak punya fungsinya: harus tetap "tak diketahui", bukan "diblokir".
+        ->toContain("typeof bridge.getNotificationStatus !== 'function'")
+        ->and($layout)
+        ->toContain('window.onNativeNotificationStatusChanged = refreshNativeNotificationStatus');
+});
+
+it('warns about blocked notifications on the profile card and the dashboard banner', function () {
+    $card = file_get_contents(base_path('resources/js/Components/NotificationDeviceCard.jsx'));
+    $banner = file_get_contents(base_path('resources/js/Components/NotificationDeviceBanner.jsx'));
+
+    expect($card)
+        ->toContain('notificationProblem(device)')
+        ->toContain('openNativeNotificationSettings')
+        // Uji bunyi ke HP yang membuang notifikasinya hanya menipu: disembunyikan.
+        ->toContain("problem !== 'blocked'")
+        ->and($banner)
+        ->toContain("problem === 'blocked'");
+});

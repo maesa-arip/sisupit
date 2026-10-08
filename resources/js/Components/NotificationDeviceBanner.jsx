@@ -1,16 +1,28 @@
-import { useFcmDevice } from '@/lib/fcm-device';
+import { notificationProblem, useFcmDevice } from '@/lib/fcm-device';
 import { Link } from '@inertiajs/react';
 import { IconAlertTriangle, IconChevronRight } from '@tabler/icons-react';
 
 // Peringatan di dashboard petugas & relawan siaga (#182): tampil HANYA saat bermasalah -
-// HP ini (aplikasi) belum terdaftar, atau dibuka di browser dan akun ini belum punya satu HP
+// HP ini (aplikasi) belum terdaftar, izin notifikasinya mati (APK 1.1.8+), atau dibuka di browser dan akun ini belum punya satu HP
 // pun yang terdaftar. Saat normal tak menggambar apa pun. Kartu biasa di alur halaman, bukan
 // pita sticky/fixed (aturan DashboardMobileShellTest).
 export default function NotificationDeviceBanner({ deviceCount }) {
 	const device = useFcmDevice();
 
+	const problem = notificationProblem(device);
+
 	let pesan = null;
-	if (device.status === 'inactive') {
+	if (problem === 'blocked') {
+		pesan = {
+			title: 'Notifikasi Sisupit diblokir di HP ini',
+			body: 'Sirine tidak akan berbunyi sampai izin notifikasi dinyalakan. Periksa sekarang.',
+		};
+	} else if (problem === 'channels') {
+		pesan = {
+			title: 'Sebagian notifikasi dimatikan di HP ini',
+			body: `Dimatikan di Setelan HP: ${device.notif.blockedChannels.join(', ')}.`,
+		};
+	} else if (device.status === 'inactive') {
 		pesan = {
 			title: 'HP ini belum siap menerima sirine',
 			body: 'Notifikasi belum terdaftar di HP ini. Periksa sekarang supaya panggilan meluncur tidak terlewat.',

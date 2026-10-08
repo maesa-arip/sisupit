@@ -12,6 +12,7 @@ Terakhir diperbarui: 2026-10-06 (kolom Android dari APK 1.1.6/vc8 + web prod @`f
 | `postToken` → `receiveFcmTokenFromNative` | ✅ | ? | KONTRAK §2.1 #1 |
 | `signInWithGoogle` + 3 callback | ✅ | ? | KONTRAK §2.2 |
 | `setPullToRefreshEnabled` | ✅ 1.1.4 | ? | KONTRAK §2.1 #3 |
+| `getNotificationStatus` + `openNotificationSettings` + `onNativeNotificationStatusChanged` | ✅ 1.1.8 (#196) | ? | KONTRAK §2.1 #5-#6 |
 | Kunci tarik-untuk-refresh tak lepas oleh pushState/replaceState | ✅ 1.1.6 (#162) | ? | CHANGELOG 1.1.6 |
 | Warna status bar mengikuti halaman | ✅ (Android 15+ sejak 1.1.6: latar root view ikut diwarnai) | ? | PERILAKU #8 |
 | Sesi login bertahan | ✅ | ? | PERILAKU #1 |

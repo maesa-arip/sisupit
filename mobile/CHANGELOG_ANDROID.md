@@ -8,6 +8,35 @@ iOS** sebagai daftar centang. Sisi iOS mencentang (`[x]`) saat sudah di-port.
 
 ---
 
+## 1.1.8 / versionCode 10 - 2026-10-08 - izin notifikasi terlihat dari web (#196) + Cross-App Scripting (#197)
+
+Pemicu: admin dengan 2 HP - HP versi Play (1.1.7, pasang baru) sunyi, HP APK web (1.1.4) berbunyi.
+Server mengirim ke semua token tanpa galat; tombol uji ditekan 8x "terkirim". Saat izin notifikasi
+mati `SisupitFirebaseMessagingService.showNotification` keluar diam-diam, dan web tak bisa melihatnya.
+Izin Android 13+ hanya diminta sekali di `onCreate`; ditolak/terlewat = tak pernah ditanya lagi.
+
+- `SisupitFirebaseMessagingService.ACTIVE_CHANNEL_IDS` (4 channel aktif).
+- `MainActivity.WebAppInterface.getNotificationStatus()` (JSON) + `openNotificationSettings()`
+  (dialog izin, atau `ACTION_APP_NOTIFICATION_SETTINGS`; ditolak < 500 ms = dialog tak tampil -> Setelan).
+- `onResume` + hasil izin (requestCode 3) -> `window.onNativeNotificationStatusChanged()`.
+- Web: kartu "Notifikasi di HP ini" -> "Notifikasi diblokir di HP ini" / "Sebagian notifikasi dimatikan"
+  + tombol; uji bunyi disembunyikan saat diblokir; banner dashboard ikut.
+- **Keamanan (#197, peringatan Play "Device and Network Abuse: Cross-App Scripting", tenggat 2027-01-05):**
+  `MainActivity` `exported="false"` (hanya Splash & notifikasi sendiri yang membuka); extra `url` hanya
+  dimuat bila `https` ke host `BASE_URL` atau subdomainnya (`isOwnSiteUrl`, tenant per subdomain), selain itu beranda; `setAllowFileAccess(false)` +
+  `setAllowUniversalAccessFromFileURLs(false)`; `browser_fallback_url` hanya http(s).
+- Build: `SisupitWebView/app/release/Sisupit-1.1.8.{aab,apk}` (AAB md5 82f741ad..., APK md5 cca5ed03...), kunci unggah SHA-1 CA:6F:A8...; cadangan sumber `*.bak-v117`.
+
+**Yang harus dilakukan iOS**
+- [ ] `getNotificationStatus()` -> `UNUserNotificationCenter.current().getNotificationSettings`:
+      `enabled` = `authorizationStatus` authorized/provisional/ephemeral; `blockedChannels` = `[]`.
+      Shim harus SINKRON mengembalikan string - simpan hasil terakhir di variabel JS yang disuntik native.
+- [ ] `openNotificationSettings()` -> belum pernah diminta: `requestAuthorization`; ditolak: buka
+      `UIApplication.openNotificationSettingsURLString` (iOS 16+) / `openSettingsURLString`.
+- [ ] Panggil `window.onNativeNotificationStatusChanged()` di `sceneDidBecomeActive`.
+- [ ] URL dari notifikasi/deep link HANYA dimuat bila `https` + host situs sendiri; jangan muat
+      `javascript:`/`file:` di WKWebView yang punya message handler `sisupit` (padanan #197).
+
 ## (web saja, APK tetap 1.1.7) - 2026-10-07 - keyboard layar: bilah bawah sembunyi, bar Kirim di atas keyboard (#187)
 
 Tak ada perubahan kode APK. Pemicu: di form lapor, mengetuk "Patokan Lokasi" memunculkan keyboard

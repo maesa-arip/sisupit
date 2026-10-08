@@ -1,12 +1,14 @@
-import { useFcmDevice } from '@/lib/fcm-device';
+import { notificationProblem, openNativeNotificationSettings, useFcmDevice } from '@/lib/fcm-device';
 import { cn } from '@/lib/utils';
 import {
 	IconAlertTriangle,
 	IconBell,
+	IconBellOff,
 	IconBellRinging,
 	IconCircleCheck,
 	IconDeviceMobileOff,
 	IconLoader2,
+	IconSettings,
 } from '@tabler/icons-react';
 import axios from 'axios';
 import { useState } from 'react';
@@ -45,12 +47,37 @@ const STATUS = {
 	},
 };
 
+// Izin notifikasi Android bermasalah (APK 1.1.8+, lib/fcm-device.js) - menimpa status di atas,
+// sebab token yang terdaftar tak berguna bila HP membuang notifikasinya diam-diam.
+const PROBLEM = {
+	blocked: {
+		icon: IconBellOff,
+		tint: 'bg-destructive/10 text-destructive',
+		title: 'Notifikasi diblokir di HP ini',
+		subtitle: 'Izin notifikasi Sisupit mati, jadi sirine dan laporan masuk tidak akan muncul di HP ini.',
+		action: 'Izinkan notifikasi',
+	},
+	channels: {
+		icon: IconAlertTriangle,
+		tint: 'bg-warning/15 text-warning',
+		title: 'Sebagian notifikasi dimatikan',
+		action: 'Buka setelan notifikasi',
+	},
+};
+
 export default function NotificationDeviceCard({ tests = [] }) {
 	const device = useFcmDevice();
 	const [sending, setSending] = useState(null);
-	const status = STATUS[device.status] ?? STATUS.checking;
+	const problem = notificationProblem(device);
+	const status =
+		problem === 'channels'
+			? {
+					...PROBLEM.channels,
+					subtitle: `Jenis notifikasi ini dimatikan di Setelan HP: ${device.notif.blockedChannels.join(', ')}.`,
+				}
+			: (PROBLEM[problem] ?? STATUS[device.status] ?? STATUS.checking);
 	const StatusIcon = status.icon;
-	const canTest = device.status === 'active' && !!device.token;
+	const canTest = device.status === 'active' && !!device.token && problem !== 'blocked';
 
 	const sendTest = (tier) => {
 		setSending(tier);
@@ -85,6 +112,19 @@ export default function NotificationDeviceCard({ tests = [] }) {
 					<p className="mt-0.5 text-[13px] leading-snug text-muted-foreground">{status.subtitle}</p>
 				</div>
 			</div>
+
+			{status.action && (
+				<button
+					type="button"
+					onClick={openNativeNotificationSettings}
+					className="flex min-h-[56px] w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50 active:bg-muted"
+				>
+					<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+						<IconSettings size={18} stroke={1.75} />
+					</span>
+					<span className="min-w-0 flex-1 text-[15px] font-medium text-foreground">{status.action}</span>
+				</button>
+			)}
 
 			{canTest &&
 				tests.map((test) => (

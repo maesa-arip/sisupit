@@ -57,11 +57,19 @@ window.AndroidBridge = {
 | 1 | `postToken('')` | `AppLayout.jsx` - di-**poll** tiap 500 ms sampai jembatan terdeteksi, menyerah setelah 15 dtk; saat login (mendaftarkan) **dan** sejak TASK_73 di halaman tamu (`lib/release-fcm-token.js`, melepas) | ambil token FCM (retry 4× backoff 2/4/6 dtk), lalu panggil `window.receiveFcmTokenFromNative(token)` | lama |
 | 2 | `signInWithGoogle()` | `Auth/Login.jsx`, `Auth/Register.jsx` | buka account picker Google native; hasil lewat callback §2.2 | lama |
 | 3 | `setPullToRefreshEnabled(bool)` | `lib/pull-to-refresh-lock.js` (dialog, Sheet, Dropdown, Popover, Select, popover bilah bawah) - `false` saat panel pertama terbuka DAN di setiap `touchstart` selama terbuka, `true` saat panel terakhir tertutup (dihitung, panel bisa bertumpuk) | matikan/nyalakan tarik-untuk-refresh. Sejak 1.1.6 Android memakai bendera + `setOnChildScrollUpCallback` dan meresetnya di **`onPageStarted`** (1.1.4/1.1.5 menyalakan lagi di `onPageFinished`, yang ikut terpanggil oleh `history.replaceState` - #162) | **1.1.4 (TASK_65)** |
+| 5 | `getNotificationStatus()` → **string JSON** `{"enabled": bool, "blockedChannels": ["Darurat", ...]}` | `lib/fcm-device.js` `refreshNativeNotificationStatus()` - saat jembatan terdeteksi (`AppLayout.jsx`) dan dari callback `onNativeNotificationStatusChanged` | `enabled` = notifikasi aplikasi diizinkan (`areNotificationsEnabled`); `blockedChannels` = NAMA channel aktif berimportance NONE. Sinkron (nilai balik), bukan callback | **1.1.8** |
+| 6 | `openNotificationSettings()` | tombol "Izinkan notifikasi"/"Buka setelan notifikasi" di `NotificationDeviceCard.jsx` | izin Android 13+ belum ada → dialog izin (ditolak < 500 ms = dialog tak tampil lagi → buka Setelan); selain itu → Setelan notifikasi aplikasi. Lalu panggil `onNativeNotificationStatusChanged` | **1.1.8** |
 | 4 | `onBackgroundColorDetected(rgb, isLight)` | **bukan web** - skrip yang disuntik native sendiri tiap `onPageFinished` (MutationObserver + interval 1 dtk membaca `background-color` body/html) | warnai status bar & navigation bar, ikon terang/gelap menurut `isLight` | lama |
 
 Metode 3 bersifat opsional di web (`typeof … === 'function'`); iOS **wajib** memasangnya
 bila iOS punya tarik-untuk-refresh (`UIRefreshControl`), karena masalah yang sama
 (menggulir daftar di dalam dialog memicu muat ulang) akan terjadi.
+
+Metode 5 & 6 opsional di web (`typeof … === 'function'`): APK ≤ 1.1.7 tak punya keduanya dan
+kartu "Notifikasi di HP ini" tetap seperti dulu (status tak diketahui, andalkan tombol uji). Alasan
+ada: saat izin notifikasi mati, APK membuang notifikasi DIAM-DIAM sementara server dan tombol uji
+melapor "terkirim" (#196). iOS: padanannya `UNUserNotificationCenter.getNotificationSettings`
+(`authorizationStatus`) dan `UIApplication.openNotificationSettingsURLString`.
 
 Metode 4 di iOS opsional - padanannya adalah mewarnai area safe-area atas; boleh diganti
 cara native lain asal status bar tetap terbaca di mode gelap.
@@ -75,6 +83,7 @@ Android saat ini menyambung string dan meng-escape `\ ' \n \r` untuk pesan galat
 | Callback | Arti | Dipasang di |
 |---|---|---|
 | `window.receiveFcmTokenFromNative(token)` | token FCM perangkat. Sengaja **tidak** dihapus saat unmount - balasan async bisa datang sesudah pindah halaman. Ada **dua versi**: `AppLayout.jsx:75` (login → mendaftarkan) dan `lib/release-fcm-token.js` (tamu → melepas, TASK_73). Native wajib memanggil `window.receiveFcmTokenFromNative` yang terpasang SAAT membalas, jangan menyimpan referensinya | `AppLayout.jsx:75`, `lib/release-fcm-token.js` |
+| `window.onNativeNotificationStatusChanged()` | izin notifikasi mungkin berubah: tiap `onResume` (kembali dari Setelan) dan sesudah dialog izin ditutup. Web lalu memanggil `getNotificationStatus()` lagi (1.1.8) | `AppLayout.jsx` |
 | `window.onGoogleCredential(idToken)` | Google **ID token** (bukan access token). Web mem-POST ke `/auth/google/native` | `Login.jsx`, `Register.jsx` |
 | `window.onGoogleSignInCancelled()` | user membatalkan picker | idem |
 | `window.onGoogleSignInError(msg)` | gagal (Login menampilkan `msg` sebagai Alert merah). Bila halaman tak punya handler ini, Android jatuh ke `onGoogleSignInCancelled` | idem |

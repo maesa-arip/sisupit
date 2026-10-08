@@ -4,7 +4,7 @@ import PageSkeleton from '@/Components/PageSkeleton';
 import SoundNotificationControl from '@/Components/SoundNotificationControl';
 import ThemeSwitcher from '@/Components/ThemeSwitcher';
 import { Toaster } from '@/Components/ui/sonner';
-import { setFcmDevice } from '@/lib/fcm-device';
+import { refreshNativeNotificationStatus, setFcmDevice } from '@/lib/fcm-device';
 import { useKeyboardOpenFlag } from '@/lib/keyboard-open';
 import { useNavUrl, usePageTransition, usePendingVisit, useSkeletonHost } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
@@ -93,6 +93,9 @@ export default function AppLayout({ title, children }) {
 			if (window.AndroidBridge && typeof window.AndroidBridge.postToken === 'function') {
 				console.log('AndroidBridge terdeteksi, meminta token FCM...');
 				window.AndroidBridge.postToken('');
+				// Izin notifikasi Android (APK 1.1.8+); APK memanggil ulang saat kembali dari Setelan.
+				window.onNativeNotificationStatusChanged = refreshNativeNotificationStatus;
+				refreshNativeNotificationStatus();
 				clearInterval(interval);
 				clearTimeout(timeout);
 			}
