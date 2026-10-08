@@ -16,6 +16,7 @@ import {
 	IconCheck,
 	IconChevronRight,
 	IconDroplet,
+	IconFileText,
 	IconFiretruck,
 	IconFlame,
 	IconMapPin,
@@ -33,13 +34,32 @@ const REALTIME_META = {
 	disabled: { label: 'Realtime nonaktif', text: 'text-muted-foreground', dot: 'bg-muted-foreground' },
 };
 
-export default function AdminDashboard({ auth, stats, recentReports, isPejabat = false, feed_channel = null }) {
+// Keadaan Laporan Kejadian sebuah insiden selesai (daftar pejabat). Warna sama dengan lencana
+// Sementara/Final di kartu Laporan Kejadian halaman detail.
+const RESOLUTION_STATE = {
+	belum: { label: 'Belum dibuat', className: 'border-destructive/30 bg-destructive/10 text-destructive' },
+	sementara: { label: 'Sementara', className: 'border-warning/30 bg-warning/10 text-warning' },
+	final: { label: 'Final', className: 'border-success/30 bg-success/10 text-success' },
+};
+
+export default function AdminDashboard({
+	auth,
+	stats,
+	recentReports,
+	resolutionReports = null,
+	resolutionPendingCount = null,
+	isPejabat = false,
+	feed_channel = null,
+}) {
 	const isTopLevelAdmin = !auth?.user?.city_code;
 	const realtimeStatus = useRealtimeStatus();
 
 	// Kejadian baru masuk / status berubah di wilayah ini — segarkan kartu statistik & daftar
-	// laporan terbaru tanpa perlu me-reload halaman.
-	useReportFeed(feed_channel, () => router.reload({ only: ['stats', 'recentReports'] }));
+	// laporan terbaru tanpa perlu me-reload halaman. Laporan Kejadian yang disimpan juga
+	// menyiarkan ReportFeedChanged, jadi daftar pejabat ikut segar.
+	useReportFeed(feed_channel, () =>
+		router.reload({ only: ['stats', 'recentReports', 'resolutionReports', 'resolutionPendingCount'] }),
+	);
 
 	// Siaga notifikasi pejabat — kembaran kartu "Mode Kesiapan" relawan di Pages/Dashboard.jsx,
 	// endpoint & kolom yang sama (profile.standby / users.is_standby). Hanya pejabat & relawan
@@ -458,6 +478,59 @@ export default function AdminDashboard({ auth, stats, recentReports, isPejabat =
 					)}
 				</div>
 			</div>
+
+			{/* PEJABAT: LAPORAN KEJADIAN insiden selesai - HANYA LIHAT. Baris menuju detail, tempat
+			    kartu Laporan Kejadian tampil read-only bagi pejabat (tanpa tombol isi/ubah/hapus). */}
+			{isPejabat && resolutionReports && (
+				<AppSection title="Laporan Kejadian" icon={IconFileText} count={resolutionPendingCount}>
+					<p className="hidden px-1 text-[13px] text-muted-foreground md:block">
+						Insiden selesai dan keadaan laporan kejadiannya. Angka di judul = yang belum final.
+					</p>
+					<AppList>
+						{resolutionReports.map((report) => {
+							const { Icon: ReportIcon, className: colorStyle } = reportIcon(report);
+							const state = RESOLUTION_STATE[report.resolution_state] || RESOLUTION_STATE.belum;
+
+							return (
+								<AppListRow
+									key={report.id}
+									href={route('reports.show', report.id)}
+									leading={
+										<div className={cn('shrink-0 rounded-xl p-2 md:p-2.5', colorStyle)}>
+											<ReportIcon className="h-5 w-5" stroke={2} />
+										</div>
+									}
+									title={report.title}
+									aside={report.time}
+									meta={
+										<span className="flex items-start gap-1.5">
+											<IconMapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" stroke={2} />
+											<span>{report.location}</span>
+										</span>
+									}
+									badges={
+										<Badge
+											className={cn(
+												'rounded-xl border px-2 py-0.5 text-xs font-semibold shadow-none',
+												state.className,
+											)}
+										>
+											{state.label}
+										</Badge>
+									}
+								/>
+							);
+						})}
+						{resolutionReports.length === 0 && (
+							<AppEmpty
+								icon={IconFileText}
+								title="Belum ada insiden selesai"
+								description="Laporan kejadian tampil di sini setelah insiden ditutup."
+							/>
+						)}
+					</AppList>
+				</AppSection>
+			)}
 		</div>
 	);
 }

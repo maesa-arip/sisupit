@@ -43,6 +43,7 @@ class ReportResolutionController extends Controller
 
         $status = $request->query('status') === 'final' ? 'final' : 'sementara';
         abort_if($status === 'final' && ! $this->canFinalize(), 403, 'Laporan kejadian final hanya boleh diisi admin.');
+        $this->abortIfSementaraLocked($report->id, $status);
 
         $report->load([
             'user:id,name', 'user.roles:id,name', 'village', 'district',
@@ -212,6 +213,8 @@ class ReportResolutionController extends Controller
         DB::transaction(function () use ($request, $report, $validated, &$filesToDelete) {
             // Dua petugas menyimpan bersamaan tak boleh sama-sama "membuat" entri sementara.
             Report::withoutGlobalScopes()->whereKey($report->id)->lockForUpdate()->first();
+            // Dicek SESUDAH kunci: admin yang memfinalkan bersamaan tak boleh terlewat.
+            $this->abortIfSementaraLocked($report->id, $validated['status']);
 
             $fields = [
                 'jenis_kejadian' => $validated['jenis_kejadian'] ?? null,
@@ -295,6 +298,7 @@ class ReportResolutionController extends Controller
         // Sejak entri final bisa disunting & dicatat (TASK_67), menghapusnya ikut jadi wewenang
         // penutupnya - kalau tidak, petugas bisa menghilangkan entri final beserta riwayatnya.
         abort_if($resolution->status === 'final' && ! $this->canFinalize(), 403, 'Laporan kejadian final hanya boleh dihapus admin.');
+        $this->abortIfSementaraLocked($report->id, $resolution->status);
 
         DB::transaction(function () use ($resolution) {
             foreach ($resolution->victims as $victim) {
@@ -390,6 +394,25 @@ class ReportResolutionController extends Controller
      * Entri AKTIF satu status = yang terbaru (TASK_67). Entri lama yang terlanjur ganda dari
      * masa append-only tetap tersimpan sebagai arsip.
      */
+    /**
+     * Entri SEMENTARA terkunci begitu entri FINAL dibuat (permintaan user 2026-10-08): data
+     * awal lapangan dibekukan sebagai pembanding versi final. Berlaku untuk isi, sunting, dan
+     * hapus. Bila admin menghapus entri final, entri sementara terbuka lagi.
+     */
+    private function abortIfSementaraLocked(int $reportId, string $status): void
+    {
+        abort_if(
+            $status === 'sementara' && $this->sementaraLocked($reportId),
+            403,
+            'Laporan kejadian sementara terkunci karena versi final sudah dibuat.'
+        );
+    }
+
+    private function sementaraLocked(int $reportId): bool
+    {
+        return ReportResolution::where('report_id', $reportId)->where('status', 'final')->exists();
+    }
+
     private function activeEntry(int $reportId, string $status): ?ReportResolution
     {
         return ReportResolution::with(['victims', 'photos'])

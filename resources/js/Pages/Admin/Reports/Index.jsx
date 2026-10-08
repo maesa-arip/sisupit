@@ -20,6 +20,7 @@ import UseFilter from '@/hooks/UseFilter';
 import AppLayout from '@/Layouts/AppLayout';
 import { escapeHtml } from '@/lib/escape-html';
 import { fitBoundsWhenSized } from '@/lib/leaflet-fit';
+import { reportIcon } from '@/lib/report-icon';
 import { alamatLaporan, cn, MAP_TILE_URL, reportNumber, timeAgo } from '@/lib/utils';
 import { Link, router } from '@inertiajs/react';
 import {
@@ -498,7 +499,7 @@ export default function Index(props) {
 							<>
 								<div className="shrink-0 divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
 									{reports.map((report) => {
-										const style = markerStyle(report.status);
+										const icon = reportIcon(report);
 										const isActive = activeReportId === report.id;
 										const isUrgent = report.status === 'TERLAPOR'; // butuh verifikasi → tonjolkan
 										const hasCoords =
@@ -518,17 +519,9 @@ export default function Index(props) {
 													isActive ? 'bg-primary/5' : 'hover:bg-muted/40',
 												)}
 											>
-												<div
-													className={cn(
-														'flex h-10 w-10 shrink-0 items-center justify-center rounded-full',
-														style.ring,
-													)}
-												>
-													{isUrgent ? (
-														<IconAlertTriangle className="h-5 w-5" />
-													) : (
-														<IconMapPin className="h-5 w-5" />
-													)}
+												{/* Ikon jenis kejadian = aturan dashboard (lib/report-icon.js), bukan status. */}
+												<div className={cn('shrink-0 rounded-xl p-2 md:p-2.5', icon.className)}>
+													<icon.Icon className="h-5 w-5" stroke={2} />
 												</div>
 
 												<div className="min-w-0 flex-1">

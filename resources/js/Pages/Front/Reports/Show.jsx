@@ -196,6 +196,9 @@ export default function ReportShow(props) {
 	const canManageResolution = props.canManageResolution || false;
 	// Pejabat daerah: boleh MELIHAT berita acara (read-only) tapi tanpa tombol Buat/Hapus.
 	const canViewResolution = props.canViewResolution || canManageResolution;
+	// Entri sementara terkunci begitu ada entri final (dijaga juga di server,
+	// ReportResolutionController::abortIfSementaraLocked).
+	const sementaraLocked = resolutions.some((r) => r.status === 'final');
 	const [resolutionToDelete, setResolutionToDelete] = useState(null);
 	const [isDeletingResolution, setIsDeletingResolution] = useState(false);
 
@@ -1208,16 +1211,20 @@ export default function ReportShow(props) {
 			{/* --- PERKEMBANGAN LAPORAN ANDA (#165) --- */}
 			{/* Stepper & "Regu A sedang menuju lokasi" yang dulu HANYA ada di halaman Thanks, padahal
 			    Thanks cuma dicapai sekali sesudah kirim - Riwayat, Beranda, push notif & "Pantau
-			    Bantuan" semuanya menuju halaman ini. `responders` hanya dikirim server untuk pelapor.
+			    Bantuan" semuanya menuju halaman ini. Tahapan tampil untuk SEMUA yang membuka detail
+			    (permintaan user 2026-10-08, dulu khusus pelapor); ringkasan regu tetap khusus pelapor
+			    karena `responders` hanya dikirim server untuknya - staf sudah punya manifes lengkap.
 			    Ditolak & digabung tidak di sini: keduanya sudah punya kartu penjelasannya sendiri. */}
-			{props.responders && !['ditolak', 'digabung'].includes(reportStatus) && (
+			{!['ditolak', 'digabung'].includes(reportStatus) && (
 				<Card>
 					<CardContent className="space-y-3 p-4 sm:p-5">
 						<h2 className="text-[17px] font-semibold tracking-tight text-foreground">
-							Perkembangan Laporan Anda
+							{isOwner ? 'Perkembangan Laporan Anda' : 'Perkembangan Laporan'}
 						</h2>
 						<ReportStepper status={reportStatus} />
-						<ResponderSummary status={reportStatus} responders={props.responders} />
+						{props.responders && (
+							<ResponderSummary status={reportStatus} responders={props.responders} />
+						)}
 					</CardContent>
 				</Card>
 			)}
@@ -2268,7 +2275,7 @@ export default function ReportShow(props) {
 										<div className="flex flex-wrap justify-end gap-1.5">
 											{/* SATU entri per status (TASK_67): tombol mengisi atau menyunting entri itu. */}
 											{[
-												['sementara', true],
+												['sementara', !sementaraLocked],
 												['final', canFinalizeResolution],
 											]
 												.filter(([, allowed]) => allowed)
@@ -2304,6 +2311,8 @@ export default function ReportShow(props) {
 										Tiap kejadian punya satu entri <b>sementara</b> (petugas boleh melengkapinya)
 										dan satu entri <b>final</b> (ditutup admin). Setiap perubahan tercatat di
 										riwayatnya.
+										{sementaraLocked &&
+											' Versi final sudah dibuat, jadi entri sementara terkunci dan tidak bisa diubah lagi.'}
 									</p>
 								)}
 
@@ -2337,7 +2346,9 @@ export default function ReportShow(props) {
 														<IconDownload className="h-3.5 w-3.5" /> PDF
 													</a>
 													{canManageResolution &&
-														(r.status !== 'final' || canFinalizeResolution) && (
+														(r.status === 'final'
+															? canFinalizeResolution
+															: !sementaraLocked) && (
 															<button
 																type="button"
 																onClick={() => setResolutionToDelete(r.id)}

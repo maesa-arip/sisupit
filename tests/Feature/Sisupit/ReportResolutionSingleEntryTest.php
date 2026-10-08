@@ -76,6 +76,12 @@ it('keeps the final entry for admins only - fill, edit and delete', function () 
     $petugas = ($this->staff)('petugas', 'Made Petugas');
     $admin = ($this->staff)('admin', 'Admin Kota');
 
+    // Entri sementara boleh dihapus petugas (salah input) - selama versi final belum dibuat.
+    ($this->save)($petugas, ['status' => 'sementara', 'jenis_kejadian' => 'awal']);
+    $sementara = ($this->entries)('sementara')->first();
+    $this->actingAs($petugas)->delete("/reports/{$this->report->id}/resolution/{$sementara->id}")->assertRedirect();
+    expect(($this->entries)('sementara'))->toHaveCount(0);
+
     $this->actingAs($petugas)->get("/reports/{$this->report->id}/resolution/create?status=final")->assertForbidden();
     ($this->save)($petugas, ['status' => 'final', 'jenis_kejadian' => 'x'])->assertForbidden();
 
@@ -87,12 +93,32 @@ it('keeps the final entry for admins only - fill, edit and delete', function () 
     // Petugas tak bisa menghapus entri final beserta riwayatnya.
     $this->actingAs($petugas)->delete("/reports/{$this->report->id}/resolution/{$final[0]->id}")->assertForbidden();
     expect(($this->entries)('final'))->toHaveCount(1);
+});
 
-    // Entri sementara tetap boleh dihapus petugas (salah input).
-    ($this->save)($petugas, ['status' => 'sementara', 'jenis_kejadian' => 'awal']);
+it('locks the sementara entry once a final entry exists, and unlocks it when the final is deleted', function () {
+    $petugas = ($this->staff)('petugas', 'Made Petugas');
+    $admin = ($this->staff)('admin', 'Admin Kota');
+    $url = "/reports/{$this->report->id}/resolution";
+
+    ($this->save)($petugas, ['status' => 'sementara', 'jenis_kejadian' => 'awal'])->assertRedirect();
+    ($this->save)($admin, ['status' => 'final', 'jenis_kejadian' => 'final'])->assertRedirect();
     $sementara = ($this->entries)('sementara')->first();
-    $this->actingAs($petugas)->delete("/reports/{$this->report->id}/resolution/{$sementara->id}")->assertRedirect();
-    expect(($this->entries)('sementara'))->toHaveCount(0);
+
+    // Petugas maupun admin: form, simpan, dan hapus entri sementara ditolak.
+    foreach ([$petugas, $admin] as $user) {
+        $this->actingAs($user)->get("$url/create?status=sementara")->assertForbidden();
+        ($this->save)($user, ['status' => 'sementara', 'jenis_kejadian' => 'diubah'])->assertForbidden();
+        $this->actingAs($user)->delete("$url/{$sementara->id}")->assertForbidden();
+    }
+    expect($sementara->fresh()->jenis_kejadian)->toBe('awal');
+
+    // Entri final sendiri tetap bisa disunting admin.
+    ($this->save)($admin, ['status' => 'final', 'jenis_kejadian' => 'final dikoreksi'])->assertRedirect();
+
+    // Final dihapus admin -> sementara terbuka lagi.
+    $this->actingAs($admin)->delete("$url/".($this->entries)('final')->first()->id)->assertRedirect();
+    ($this->save)($petugas, ['status' => 'sementara', 'jenis_kejadian' => 'diubah'])->assertRedirect();
+    expect($sementara->fresh()->jenis_kejadian)->toBe('diubah');
 });
 
 it('edits victims in place, keeps their KTP, and records KTP and victim changes', function () {
@@ -154,12 +180,13 @@ it('copies victims, KTP and photos into a new final entry without sharing files'
     expect($final->victims[0]->ktp_path)->not->toBeNull()->not->toBe($sementara->victims[0]->ktp_path)
         ->and($final->photos[0]->path)->not->toBe($sementara->photos[0]->path);
 
-    // Menghapus entri sementara tak boleh menghapus berkas milik entri final.
-    $this->actingAs($petugas)->delete("/reports/{$this->report->id}/resolution/{$sementara->id}");
-    Storage::disk('local')->assertExists($final->victims[0]->ktp_path);
-    Storage::disk('public')->assertExists($final->photos[0]->path);
-    // Entri sementara di sisi lain utuh sebelum dihapus: foto sumbernya tidak ikut pindah.
-    Storage::disk('public')->assertMissing($sementara->photos[0]->path);
+    // Selama ada final, entri sementara terkunci (tak bisa dihapus). Menghapus entri FINAL
+    // tak boleh menghapus berkas milik entri sementara - berkasnya tidak dipakai bersama.
+    $this->actingAs($admin)->delete("/reports/{$this->report->id}/resolution/{$final->id}")->assertRedirect();
+    Storage::disk('local')->assertMissing($final->victims[0]->ktp_path);
+    Storage::disk('public')->assertMissing($final->photos[0]->path);
+    Storage::disk('local')->assertExists($sementara->victims[0]->ktp_path);
+    Storage::disk('public')->assertExists($sementara->photos[0]->path);
 });
 
 it('drops photos no longer kept and counts saved plus new photos against the limit of 8', function () {

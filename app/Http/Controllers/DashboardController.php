@@ -71,9 +71,42 @@ class DashboardController extends Controller
             // Jika dia Pejabat (tapi bukan Admin/Superadmin), kirim flag isPejabat untuk menyembunyikan tombol Edit
             $isPejabat = $user->hasRole('pejabat') && ! $user->hasAnyRole(['admin', 'superadmin']);
 
+            // Pejabat (permintaan user 2026-10-08): insiden selesai yang butuh Laporan Kejadian
+            // beserta keadaannya - belum dibuat / sementara / final. HANYA LIHAT: barisnya menuju
+            // detail, tempat pejabat sudah read-only (canManageResolution = staf saja). Yang
+            // belum dibuat didahulukan, lalu yang baru sementara.
+            $resolutionReports = null;
+            $resolutionPendingCount = null;
+            if ($isPejabat) {
+                // Jumlah yang belum final - daftar di bawah dibatasi 10 baris.
+                $resolutionPendingCount = (clone $queryReportsResolved)
+                    ->whereDoesntHave('resolutions', fn ($q) => $q->where('status', 'final'))
+                    ->count();
+                $resolutionReports = (clone $queryReportsResolved)
+                    ->withExists([
+                        'resolutions as has_resolution',
+                        'resolutions as has_final' => fn ($q) => $q->where('status', 'final'),
+                    ])
+                    ->orderBy('has_final')
+                    ->orderBy('has_resolution')
+                    ->orderBy('updated_at', 'desc')
+                    ->limit(10)
+                    ->get()
+                    ->map(fn ($report) => [
+                        'id' => $report->id,
+                        'title' => $report->title,
+                        'incident_type' => $report->incident_type,
+                        'location' => $report->alamatTampil(),
+                        'time' => $report->updated_at->diffForHumans(),
+                        'resolution_state' => $report->has_final ? 'final' : ($report->has_resolution ? 'sementara' : 'belum'),
+                    ]);
+            }
+
             return Inertia::render('Admin/Dashboard', [
                 'stats' => $stats,
                 'recentReports' => $recentReports->toArray(),
+                'resolutionReports' => $resolutionReports?->toArray(),
+                'resolutionPendingCount' => $resolutionPendingCount,
                 'isPejabat' => $isPejabat,
                 'feed_channel' => $user->reportFeedChannel(),
             ]);

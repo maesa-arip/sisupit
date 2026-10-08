@@ -4640,3 +4640,69 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   dipulihkan `cmp`.
 - **Verifikasi:** Playwright 390px, GPS palsu Kesiman -> "Menampilkan hasil untuk Jalan Gemitir", Jalan Gemitir 464 m
   teratas; GPS pusat -> Gang Gumitir 393 m teratas.
+
+### #196 — HP versi Play tidak menerima notifikasi, HP APK lama berbunyi (FIXED - APK 1.1.8 + web, belum dirilis/dideploy)
+
+- **Laporan user 2026-10-08:** akun admin punya 2 HP; HP dari Play Store tak menerima notifikasi, HP dengan APK dari
+  web (`/apk/sisupit.apk` = 1.1.4/vc6, targetSdk 34) menerima.
+- **Diperiksa di prod (read-only, atas izin user):** pengiriman sehat - failed_jobs 0, antrian 0, 4 worker RUNNING,
+  ribuan EmergencyAlertNotification/hari; `routeNotificationForFcm` mengirim ke SEMUA token akun (u3 punya 7, dipakai
+  Oppo CPH2625, Vivo V2538, Samsung SM-A566B, dan Realme RMX3951 yang 01:08 pindah ke akun petugas u122). Firebase
+  menerima semua kiriman (hanya NotRegistered untuk token mati). Token baru terdaftar normal dari APK -> teori SHA-1
+  Play App Signing memblokir FCM GUGUR. Tombol uji ditekan 8x dalam 2 menit (22:38-22:40) ke satu token, semua "sent".
+- **Root cause (paling kuat, belum dikonfirmasi di HP):** `SisupitFirebaseMessagingService.showNotification` keluar
+  diam-diam bila `areNotificationsEnabled()` false. Instalasi baru dari Play di Android 16 meminta POST_NOTIFICATIONS
+  sekali saat `onCreate`; ditolak/terlewat = tak pernah ditanya lagi. Web tak bisa melihat izin itu sehingga kartu
+  "Notifikasi di HP ini" tetap "Aktif" dan uji bunyi "terkirim". Kemungkinan kedua: HP Play sedang masuk akun lain.
+- **Fix:** APK 1.1.8 (vc10) `getNotificationStatus()`/`openNotificationSettings()` + `onNativeNotificationStatusChanged`
+  (KONTRAK §2.1 #5-#6); web `lib/fcm-device.js` (`notif`, `notificationProblem`), `NotificationDeviceCard`
+  (status diblokir/channel mati + tombol, uji disembunyikan saat diblokir), `NotificationDeviceBanner`. APK lama aman
+  (fungsi dicek `typeof`).
+- **Sisa:** rilis AAB 1.1.8 ke Play (uji tertutup) + ganti `/apk/sisupit.apk` (masih 1.1.4) bila diinginkan; banner hanya
+  di dashboard petugas & relawan siaga (admin hanya lewat Profil); getToken gagal 4x tak dikabarkan ke web
+  (`MainActivity.fetchAndSendToken`).
+- **Penjaga:** `NotifikasiHpIniTest` +2.
+
+### #197 — Play Console: "Device and Network Abuse policy: Cross-App Scripting" (FIXED di APK 1.1.8, belum diunggah)
+
+- **Temuan 2026-10-08:** Policy status aplikasi Sisupit = peringatan "Fix policy violations to prevent your app from being
+  removed", tenggat **2027-01-05**. Akun developer bersih. Cara selesai menurut Google: unggah versi patuh dengan
+  versionCode lebih tinggi ke SETIAP track yang memuat versi lama (kini Closed testing - Alpha), rollout 100%.
+- **Root cause (APK, bukan web):** `MainActivity` `exported="true"` + `resolveStartUrl()` memuat extra `url` dari Intent
+  APA ADANYA ke WebView ber-JavaScript & ber-`AndroidBridge`; ditambah `setAllowFileAccess(true)` dan
+  `setAllowUniversalAccessFromFileURLs(true)`. App lain bisa menyuntik `javascript:`/`file://`.
+- **Fix (1.1.8/vc10):** exported=false (pembuka hanya SplashActivity tanpa extra & PendingIntent notifikasi sendiri);
+  `isOwnSiteUrl` (https + host `BASE_URL`); akses file dimatikan (tak ada berkas lokal; foto lewat content://);
+  `browser_fallback_url` hanya http(s). Terverifikasi di manifest hasil build (`aapt dump xmltree`: exported 0x0).
+- **Sisa:** unggah AAB 1.1.8 ke Closed testing - Alpha; uji di HP bahwa ketuk notifikasi masih membuka detail laporan
+  (action_url = route() -> APP_URL https://sisupit.com; subdomain tenant *.sisupit.com ikut diizinkan).
+  AAB md5 82f741ad..., APK md5 cca5ed03... di SisupitWebView/app/release/.
+
+### #198 — Laporan kejadian sementara masih bisa diubah setelah versi final dibuat (FIXED - lokal, belum dideploy)
+
+- **Permintaan user 2026-10-08:** "untuk laporan kejadian jika sudah dibuat final maka laporan sementara tidak bisa
+  diedit lagi". Sejak TASK_67 kedua entri bisa disunting kapan pun.
+- **Fix:** `ReportResolutionController::abortIfSementaraLocked()` - selama ada entri `final` untuk laporan itu,
+  `create`/`store`/`destroy` entri `sementara` dijawab 403 (berlaku juga untuk admin; di `store` dicek sesudah
+  `lockForUpdate`). Admin menghapus entri final = sementara terbuka lagi. `Show.jsx`: tombol "Ubah Sementara" & ikon
+  hapus entri sementara disembunyikan + kalimat "entri sementara terkunci".
+- **Ikut diperiksa (bukan bug):** stepper "Perkembangan Laporan Anda" (Laporan Masuk -> Terverifikasi -> Penanganan ->
+  Selesai) di detail kejadian HANYA tampil untuk PELAPOR laporan itu (prop `responders` dikirim server hanya bila
+  `$isReporter`, ReportController::show; desain #165) dan tidak untuk status ditolak/digabung. Itu sebabnya ia
+  muncul di sebagian laporan saja bagi admin/petugas (laporan yang mereka buat sendiri).
+- **Penjaga:** `ReportResolutionSingleEntryTest` +1 (kunci & buka lagi); dua test lama disesuaikan (hapus sementara
+  dipindah ke sebelum final; uji berkas tak dipakai bersama kini lewat hapus final).
+
+### #199 — Tahapan laporan untuk semua + daftar Laporan Kejadian di dashboard pejabat (FIXED - lokal, belum dideploy)
+
+- **Permintaan user 2026-10-08:** (1) "tampilkan Tahapan pada semua bukan hanya pada yang melapor" (lanjutan #198);
+  (2) dashboard pejabat menampilkan laporan yang perlu Laporan Kejadian dan apakah sudah dibuat - hanya lihat.
+- **Fix (1):** `Front/Reports/Show.jsx` kartu stepper tampil untuk semua yang membuka detail (kecuali ditolak/digabung);
+  judul "Perkembangan Laporan Anda" (pelapor) / "Perkembangan Laporan" (lainnya). Ringkasan regu (`ResponderSummary`)
+  tetap khusus pelapor - prop `responders` server tidak diubah.
+- **Fix (2):** `DashboardController` JALUR 1, khusus `isPejabat`: `resolutionReports` (10 insiden `resolved` di
+  yurisdiksi, `withExists` has_resolution/has_final, urut belum -> sementara -> final) + `resolutionPendingCount`
+  (belum final). `Admin/Dashboard.jsx` seksi "Laporan Kejadian" dengan lencana Belum dibuat/Sementara/Final, baris
+  menuju detail (read-only bagi pejabat: canManageResolution = staf). Ikut di-reload oleh ReportFeedChanged.
+  Admin/superadmin menerima `null`.
+- **Penjaga:** `DashboardPejabatLaporanKejadianTest` (2).
