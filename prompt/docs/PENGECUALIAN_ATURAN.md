@@ -244,3 +244,21 @@
   `Layouts/Partials/MobileBottomNav.jsx`, `Components/ui/{popover,dropdown-menu,select,command,dialog,alert-dialog}.jsx`.
 - **Test penjaga:** `tests/Feature/Sisupit/AppleDesignMaterialTest.php` (12 test) - dua belas kasus
   MERAH terhadap HEAD sebelum apple-design, plus sabotase `bg-card` di bilah bawah.
+
+---
+
+## #6 — Lingkaran "Lapor" di bilah bawah SELALU merah, bukan hanya saat halamannya dibuka
+
+- **Aturan yang ditekuk:** "merah = lokasi" di bilah bawah (STATUS_LOG TASK_31 (c), dipulihkan FINDINGS #106
+  2026-09-01 dan #189 2026-10-07: Lapor abu saat diam, merah hanya saat halaman lapor dibuka).
+- **Keputusan:** lingkaran Lapor merah padat di semua halaman. Keadaan aktif dibedakan TANPA warna: cincin 3px
+  berganti dari warna latar ke halo merah tipis (`ring-destructive/30`), petir garis -> padat, label abu -> merah tebal.
+  Empat slot lain tetap mengikuti "merah = lokasi".
+- **Disetujui:** user, **2026-10-11** - "buat lapor menjadi merah", lalu memilih opsi "Merah + cincin halo" (opsi
+  "dibalik" yang direkomendasikan tidak dipilih).
+- **Konsekuensi yang diterima:** (1) di halaman lain, dua slot bisa tampak merah sekaligus (slot aktif + Lapor) -
+  dibedakan karena Lapor berbentuk lingkaran menonjol; (2) di form lapor lingkaran merah berdekatan dengan tombol
+  merah "Kirim Laporan Darurat"; (3) beda aktif/diam lebih halus daripada beda warna.
+- **Hidup di:** `resources/js/Layouts/Partials/MobileBottomNav.jsx` - `LaporSlot` (docblock merujuk entri ini).
+- **Test penjaga:** `tests/Feature/Sisupit/MobileNavIconGlyphTest.php` (test Lapor) dan
+  `tests/Feature/Sisupit/LaporRaisedCircleTest.php`. Mengembalikan ke abu = ubah keduanya + hapus entri ini.

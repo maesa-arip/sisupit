@@ -98,16 +98,22 @@ it('gives every bottom-bar slot a filled twin for its active state', function ()
         ->not->toContain('IconMenu2');
 });
 
-// #189 (koreksi user 2026-10-07): "tombol lapor ... taruh ditengah, jika tidak aktif dia abu, jika aktif
-// baru merah" + "tambahkan animasi saat klik lapor". Lingkaran merah permanen = #106 kembali; dan karena
-// tiap halaman memasang AppLayout sendiri, animasi ketukan hanya terlihat utuh bila bilah halaman tujuan
-// MELANJUTKANNYA (waktu ketukan di tingkat modul + animation-delay negatif).
-it('keeps the centre Lapor circle grey until its page is open and animates the tap', function () use ($stripComments) {
+// #189 (koreksi user 2026-10-07): "tambahkan animasi saat klik lapor". Karena tiap halaman memasang
+// AppLayout sendiri, animasi ketukan hanya terlihat utuh bila bilah halaman tujuan MELANJUTKANNYA (waktu
+// ketukan di tingkat modul + animation-delay negatif).
+// #200 (permintaan user 2026-10-11, "buat lapor menjadi merah", dipilih "merah + cincin halo"): lingkaran
+// SELALU merah (PENGECUALIAN_ATURAN #6, dulu abu saat diam), jadi keadaan aktif WAJIB dibedakan lewat
+// selain warna - cincin halo merah + petir padat + label merah tebal. Tanpa itu dua keadaan kembar.
+it('keeps the centre Lapor circle red and marks its open page with a halo and animates the tap', function () use ($stripComments) {
     $nav = $stripComments(file_get_contents(resource_path('js/Layouts/Partials/MobileBottomNav.jsx')));
     $tailwind = file_get_contents(base_path('tailwind.config.js'));
 
     expect($nav)->toContain('<LaporSlot')
-        ->toMatch("/active\s*\?\s*'bg-destructive text-destructive-foreground[^']*'\s*:\s*'bg-muted text-muted-foreground/")
+        ->toContain("'relative flex h-9 w-9 items-center justify-center rounded-full bg-destructive text-destructive-foreground ring-[3px]'")
+        ->toMatch("/active\s*\?\s*'ring-destructive\/30[^']*'\s*:\s*'ring-background[^']*'/")
+        ->toContain('const Glyph = active && IconActive ? IconActive : Icon;')
+        ->toMatch("/active \? 'font-semibold text-destructive' : 'font-normal text-muted-foreground'/")
+        ->not->toContain('bg-muted text-muted-foreground')
         ->toContain('let laporTap = { at: 0, anchor: 0 };')
         ->toContain('useTapClock(laporTap, Boolean(pop))')
         ->toContain('animate-lapor-pop motion-reduce:animate-none')

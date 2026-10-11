@@ -23,8 +23,8 @@ import { buildNavSections, flattenNavItems, resolveAbilities } from './navItems'
  * tombol lapor yang tengah dan animasinya, dan tambahkan animasi saat klik lapor" lalu "untuk
  * fasilitas dan menu hanya tiru animasinya saja jangan tiru tampilan pop upnya") bilah & popover
  * TETAP berbentuk seperti dijelaskan di bawah, kecuali DUA hal:
- *   1. Slot "Lapor" = LINGKARAN di tengah: ABU + petir garis saat diam, MERAH + petir padat hanya
- *      saat halaman lapor dibuka (<LaporSlot/>). Ketukan memantulkan lingkaran + riak memudar.
+ *   1. Slot "Lapor" = LINGKARAN MERAH di tengah (#200: dulu abu saat diam): petir garis saat diam,
+ *      + halo merah & petir padat saat halaman lapor dibuka (<LaporSlot/>). Ketukan memantulkan lingkaran + riak memudar.
  *      Karena tiap halaman memasang AppLayout sendiri (bilah dipasang ulang saat pindah halaman),
  *      waktu ketukan disimpan di tingkat modul dan bilah halaman tujuan MELANJUTKAN animasi itu
  *      lewat animation-delay negatif - tanpa itu animasinya terpotong atau terulang dari awal.
@@ -355,7 +355,7 @@ export default function MobileBottomNav({ auth }) {
 					    bidang. Pada 24px lebarnya baru sekitar 10,5px - masih lebih ramping dari
 					    ikon 20px persegi, dan itulah yang membuat pembesaran ini terbaca
 					    seimbang, bukan menonjol berlebihan. */}
-					{/* #189: lingkaran tengah - abu saat diam, merah hanya saat halaman lapor dibuka. */}
+					{/* #189/#200: lingkaran tengah selalu merah; di halaman lapor + halo & petir padat. */}
 					<LaporSlot
 						href={itemByKey('report.create')?.url ?? route('front.reports.create')}
 						icon={BrandBoltIcon}
@@ -711,11 +711,14 @@ const LAPOR_POP_MS = 650;
 let laporTap = { at: 0, anchor: 0 };
 
 /**
- * Slot tengah "Lapor" (#189, koreksi user 2026-10-07): lingkaran ABU + petir garis saat diam,
- * MERAH + petir padat hanya saat halaman lapor dibuka - menonjol lewat BENTUK, warnanya tetap
- * mengikuti aturan "merah = lokasi". Tekan = menyusut seketika (umpan balik saat jari menyentuh);
- * lepas = lingkaran memantul (efek "bounce" SF Symbols) + riak memudar keluar. Reduced motion:
- * tanpa pantulan & riak, hanya perubahan warna.
+ * Slot tengah "Lapor" (#189, koreksi user 2026-10-07): lingkaran yang menonjol dari bilah.
+ * #200 (permintaan user 2026-10-11, "buat lapor menjadi merah"; dipilih "merah + cincin halo"):
+ * lingkaran SELALU merah - PENGECUALIAN_ATURAN #6 atas "merah = lokasi". Karena warnanya tak lagi
+ * membedakan, keadaan aktif (halaman lapor dibuka) dibedakan lewat tiga hal: cincin 3px berganti
+ * dari warna latar menjadi HALO merah tipis (geometri tonjolan tetap - LaporRaisedCircleTest),
+ * petir garis -> padat, label abu -> merah tebal. Tekan = menyusut seketika; lepas = lingkaran
+ * memantul (efek "bounce" SF Symbols) + riak memudar keluar. Reduced motion: tanpa pantulan &
+ * riak, hanya perubahan halo & ikon.
  */
 function LaporSlot({ href, icon: Icon, iconActive: IconActive, active }) {
 	const [pop, setPop] = useState(() => (tapElapsed(laporTap) < LAPOR_POP_MS ? { key: laporTap.at } : null));
@@ -744,17 +747,17 @@ function LaporSlot({ href, icon: Icon, iconActive: IconActive, active }) {
 						)}
 					/>
 				)}
-				{/* Tanpa transisi background-color (#193): warna merah langsung jadi warna dasar, dan
-				    keadaan diam (abu + petir garis) yang MEMUDAR KELUAR di atasnya - opacity jalan di
+				{/* Tanpa transisi background-color (#193): keadaan aktif langsung jadi dasar, dan
+				    keadaan diam (petir garis) yang MEMUDAR KELUAR di atasnya - opacity jalan di
 				    compositor dan dilanjutkan bilah halaman tujuan lewat jam ketuk yang sama. */}
 				<span
 					key={pop ? `pop-${pop.key}` : 'idle'}
 					className={cn(
-						'relative flex h-9 w-9 items-center justify-center rounded-full ring-[3px] ring-background',
+						'relative flex h-9 w-9 items-center justify-center rounded-full bg-destructive text-destructive-foreground ring-[3px]',
 						pop && cn('animate-lapor-pop motion-reduce:animate-none', TAP_DELAY),
 						active
-							? 'bg-destructive text-destructive-foreground shadow-[0_6px_16px_-6px_hsl(var(--destructive)/0.7)]'
-							: 'bg-muted text-muted-foreground shadow-[0_4px_12px_-6px_rgba(0,0,0,0.25)]',
+							? 'ring-destructive/30 shadow-[0_6px_18px_-4px_hsl(var(--destructive)/0.8)]'
+							: 'ring-background shadow-[0_4px_12px_-6px_hsl(var(--destructive)/0.6)]',
 					)}
 				>
 					<Glyph className="h-6 w-6" stroke={1.75} />
@@ -762,7 +765,7 @@ function LaporSlot({ href, icon: Icon, iconActive: IconActive, active }) {
 						<span
 							aria-hidden="true"
 							className={cn(
-								'absolute inset-0 flex animate-lapor-fade items-center justify-center rounded-full bg-muted text-muted-foreground',
+								'absolute inset-0 flex animate-lapor-fade items-center justify-center rounded-full bg-destructive text-destructive-foreground',
 								TAP_DELAY,
 							)}
 						>
@@ -777,7 +780,7 @@ function LaporSlot({ href, icon: Icon, iconActive: IconActive, active }) {
 			<span
 				className={cn(
 					'mt-0.5 max-w-full truncate text-[11px] leading-4 transition-colors duration-300',
-					active ? 'font-medium text-destructive' : 'font-normal text-muted-foreground',
+					active ? 'font-semibold text-destructive' : 'font-normal text-muted-foreground',
 				)}
 			>
 				Lapor

@@ -14,7 +14,10 @@ it('keeps the raised Lapor circle clear of the report send button, page footer a
     $layout = file_get_contents(resource_path('js/Layouts/AppLayout.jsx'));
 
     expect($nav)->toMatch('/<span className="relative -mt-(\d+) flex h-(\d+) w-\2 shrink-0/')
-        ->and($nav)->toContain('rounded-full ring-[3px] ring-background');
+        ->and($nav)->toContain('rounded-full bg-destructive text-destructive-foreground ring-[3px]')
+        // #200: cincin aktif = halo (ganti WARNA, bukan tebal) - tonjolan sama di kedua keadaan.
+        ->and($nav)->toContain("? 'ring-destructive/30 ")
+        ->and($nav)->toContain(": 'ring-background ");
     preg_match('/<span className="relative -mt-(\d+) flex h-(\d+) w-\2 shrink-0/', $nav, $mt);
     $size = (int) $mt[2] * 4;
     $raise = (int) $mt[1] * 4 + 3; // px di atas tepi bilah, cincin termasuk
