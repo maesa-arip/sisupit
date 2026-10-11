@@ -31,6 +31,8 @@ export function Combobox({
 	// WAJIB true bila dipakai di dalam Dialog: tanpanya kunci gulir Dialog menahan roda mouse
 	// pada daftar yang dirender di portal Popover.
 	modal = false,
+	// Opsional: kelas tambahan panel daftar (mis. z-index di atas peta layar penuh, TASK_78).
+	contentClassName,
 }) {
 	const [open, setOpen] = React.useState(false);
 	const [query, setQuery] = React.useState('');
@@ -59,7 +61,10 @@ export function Combobox({
 			{/* Tinggi dibatasi ruang yang TERSISA di layar (menyusut saat keyboard muncul) supaya popover
 			    yang berbalik ke atas tak pernah melewati tepi layar; daftarnya yang bergulir. */}
 			<PopoverContent
-				className="flex max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] flex-col p-0"
+				className={cn(
+					'flex max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] flex-col p-0',
+					contentClassName,
+				)}
 				align="start"
 				collisionPadding={8}
 				onOpenAutoFocus={(e) => {

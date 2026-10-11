@@ -2600,6 +2600,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + #195 ejaan seri dicari semua, terdekat ke pin menang (2026-10-07) = 790 passed, 3953 assertions.
             + #200 Lapor bilah bawah selalu merah, aktif = cincin halo (2026-10-11) = 795 passed, 4033 assertions.
             + #201 lapor tanpa login, GuestReportTest (2026-10-11) = 816 passed, 4255 assertions.
+            + #202/TASK_78 filter laporan & Peta Pemantauan, ReportListFilterTest (2026-10-11) = 827 passed, 4362 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

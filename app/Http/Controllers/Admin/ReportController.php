@@ -22,6 +22,8 @@ class ReportController extends Controller
         // Default triase: fokus ke laporan AKTIF (belum selesai/ditolak), bukan "Semua".
         // Operator verifikasi hampir selalu ingin antrean yang masih perlu tindakan.
         $status = $request->status ?: 'aktif';
+        // Periode/jenis/kecamatan/baris per halaman (TASK_78) - nilai asing dibuang di sini.
+        $filters = Report::normalizeListFilters($request->only(['search', 'periode', 'from', 'to', 'jenis', 'kecamatan', 'load']));
 
         $reports = Report::query()
             // `resolver` = siapa yang menutup insiden (FINDINGS #88). Hanya nama; baris yang
@@ -34,18 +36,18 @@ class ReportController extends Controller
                 'candidateOf:id,title,lat,lng,status,created_at',
             ])
             ->withCount('mergedChildren')
-            ->filter($request->only(['search']))
+            ->listFilter($filters)
             ->when($status !== 'Semua', function ($query) use ($status) {
                 // 'aktif' = laporan yang masih berjalan (belum selesai/ditolak), selaras dgn
                 // kartu "Darurat Aktif" di dashboard (DashboardController active_reports).
                 if ($status === 'aktif') {
-                    $query->whereIn('status', ['pending', 'handling', 'TERLAPOR']);
+                    $query->whereIn('status', Report::STATUS_AKTIF);
                 } else {
                     $query->where('status', $status);
                 }
             })
             ->latest('created_at')
-            ->paginate($request->load ?? 10)
+            ->paginate($filters['load'])
             ->withQueryString()
             // Jarak ke induk usulan dihitung SERVER (TASK_52: klien tidak menghitung jarak).
             ->through(function (Report $report) {
@@ -67,11 +69,8 @@ class ReportController extends Controller
                 'title' => 'Verifikasi Laporan',
                 'subtitle' => 'Pantau dan verifikasi laporan kejadian di wilayah tenant Anda.',
             ],
-            'state' => [
-                'search' => $request->search ?? '',
-                'status' => $status,
-                'load' => $request->load ?? 10,
-            ],
+            'district_options' => Report::districtOptionsFor($request->user()),
+            'state' => [...$filters, 'status' => $status],
         ]);
     }
 

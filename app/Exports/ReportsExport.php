@@ -123,15 +123,13 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
                 // Induk laporan ganda (TASK_55) - cukup id & tahun untuk nomor LP-nya.
                 'mergedInto:id,created_at',
             ])
-            ->filter($this->filters)
+            // Pencarian + rentang tanggal laporan masuk (TASK_65) lewat rumus yang SAMA dengan
+            // daftar di layar (Report::scopeListFilter, TASK_78). Tanggalnya tanggal WITA,
+            // sedangkan created_at tersimpan UTC (#134) - konversinya di Report::periodeRange.
+            ->listFilter(Report::normalizeListFilters($this->filters))
             ->when($status && $status !== 'Semua', fn ($query) => $status === 'aktif'
-                ? $query->whereIn('status', ['pending', 'handling', 'TERLAPOR'])
+                ? $query->whereIn('status', Report::STATUS_AKTIF)
                 : $query->where('status', $status))
-            // Rentang tanggal laporan masuk (TASK_65). Tanggalnya tanggal WITA, sedangkan
-            // created_at tersimpan UTC (#134) - batasnya dikonversi dulu, kalau tidak laporan
-            // yang masuk jam 00.00-07.59 WITA jatuh ke hari yang salah.
-            ->when($this->rangeStart(), fn ($query, $start) => $query->where('created_at', '>=', $start))
-            ->when($this->rangeEnd(), fn ($query, $end) => $query->where('created_at', '<=', $end))
             ->latest('created_at');
     }
 
@@ -422,22 +420,6 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
         }
 
         return $summary;
-    }
-
-    /** Awal rentang (00.00 WITA tanggal `from`) dalam UTC, atau null bila tak dibatasi. */
-    private function rangeStart(): ?Carbon
-    {
-        $from = $this->filters['from'] ?? null;
-
-        return $from ? Carbon::createFromFormat('Y-m-d', $from, config('app.local_timezone'))->startOfDay()->utc() : null;
-    }
-
-    /** Akhir rentang (23.59.59 WITA tanggal `to`) dalam UTC, atau null bila tak dibatasi. */
-    private function rangeEnd(): ?Carbon
-    {
-        $to = $this->filters['to'] ?? null;
-
-        return $to ? Carbon::createFromFormat('Y-m-d', $to, config('app.local_timezone'))->endOfDay()->utc() : null;
     }
 
     /** Rentang tanggal untuk kop - selalu disebut, "Semua Tanggal" bila tak dibatasi. */

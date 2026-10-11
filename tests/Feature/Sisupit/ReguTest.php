@@ -284,8 +284,8 @@ it('sends the regu that took action to the monitoring map', function () {
 
     $this->actingAs($this->admin)->get(route('front.monitoring.map'))
         ->assertInertia(fn ($page) => $page
-            ->where('layers.reports.0.id', $this->report->id)
-            ->where('layers.reports.0.regus', ['Regu A']));
+            ->where('reports.data.0.id', $this->report->id)
+            ->where('reports.data.0.regus', ['Regu A']));
 });
 
 // Popup Leaflet adalah HTML mentah (innerHTML). Nama regu diketik admin, jadi tanpa escape ia

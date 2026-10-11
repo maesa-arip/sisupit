@@ -21,5 +21,6 @@ it('does not auto-focus the search field on touch devices', function () {
 });
 
 it('caps the popover to the space left on screen so it never runs past the screen edge', function () {
-    expect(comboboxSource())->toMatch('/<PopoverContent\s+className="[^"]*\bmax-h-\[var\(--radix-popover-content-available-height\)\]/');
+    // Kelasnya boleh string literal atau cn('...', contentClassName) (TASK_78) - batas tingginya tetap wajib.
+    expect(comboboxSource())->toMatch('/<PopoverContent\s+className=(?:"|\{cn\(\s*\')[^"\']*\bmax-h-\[var\(--radix-popover-content-available-height\)\]/');
 });

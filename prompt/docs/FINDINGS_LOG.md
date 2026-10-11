@@ -4738,3 +4738,19 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   nomor HP" - tidak ada daftar hitam PELAPOR di repo ini ("daftar hitam" TASK_55 = bentuk penyaring status). Yang
   berlaku bagi tamu: deteksi laporan ganda biasa + batas kirim per nomor.
 - **Penjaga:** `GuestReportTest` (21), `GeocodeControllerTest` (test wajib-login diganti). Belum diuji di HP.
+
+### #202 — Filter laporan di /admin/reports & Peta Pemantauan (FIXED - lokal, belum dideploy, ADA MIGRASI indeks) — TASK_78
+
+- **Permintaan user 2026-10-11:** filter di admin/reports dan peta pemantauan "karena semakin lama data akan semakin
+  banyak", dengan best practice. Keputusan: riwayat peta bawaan 7 hari (aktif selalu tampil), filter kecamatan ikut,
+  migrasi indeks `created_at`, branch baru `feat/report-filters`.
+- **Masalah:** `MonitoringMapController` memuat SEMUA laporan sepanjang masa (semua kolom, tanpa batas) - chip status
+  hanya menyembunyikan di browser. `/admin/reports` tanpa saringan tanggal/jenis/wilayah dan `?load=` tak dibatasi
+  (`?load=100000` = seluruh tabel dalam satu respons).
+- **Fix:** satu rumus `Report::scopeListFilter` + `normalizeListFilters()` (nilai asing dibuang, `load` 10/25/50,
+  periode WITA relatif/rentang, jenis, kecamatan, cari nomor LP & `geo_address`) untuk admin, pemantau, peta, dan
+  Export. Peta: aktif selalu + riwayat 7 hari, maks 1.000 marker (aktif diurutkan dulu), prop `reports` terpisah
+  & reload parsial. Indeks `reports.created_at`. UI: `Components/ReportFilterFields.jsx` di kedua halaman.
+  **Kontrak prop peta berubah:** `layers.reports` -> `reports.data`. Rincian: `prompt/tasks/TASK_78_filter_laporan_peta.md`.
+- **Penjaga:** `ReportListFilterTest` (11). Belum diuji di HP.
+- **Di luar scope:** markercluster (library baru) belum dipasang.

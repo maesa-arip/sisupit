@@ -23,6 +23,8 @@ export default function DatePicker({
 	placeholder = 'Pilih tanggal',
 	id,
 	className,
+	// Opsional: kelas tambahan panel kalender (mis. z-index di atas peta layar penuh, TASK_78).
+	contentClassName,
 	startYear = 2000,
 	endYear = new Date().getFullYear(),
 }) {
@@ -45,7 +47,7 @@ export default function DatePicker({
 					{value ? label(value) : placeholder}
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent className="w-auto p-0" align="start">
+			<PopoverContent className={cn('w-auto p-0', contentClassName)} align="start">
 				<Calendar
 					mode="single"
 					selected={toDate(value)}
