@@ -255,9 +255,14 @@ Route::post('/api/banjars', [BanjarUsulanController::class, 'store'])
     ->name('api.banjars.usul');
 
 // Proxy Nominatim (User-Agent, cache, & rate limit ditangani di server - lihat GeocodeController)
-Route::middleware(['auth'])->group(function () {
+// Dibuka untuk TAMU sejak TASK_77 (peta form lapor tanpa login memakainya): limiter `geocode`
+// hanya membatasi tamu per IP; akun tetap tanpa batas tambahan.
+Route::middleware('throttle:geocode')->group(function () {
     Route::get('/api/geocode/reverse', [GeocodeController::class, 'reverse'])->name('api.geocode.reverse');
     Route::get('/api/geocode/search', [GeocodeController::class, 'search'])->name('api.geocode.search');
+});
+
+Route::middleware(['auth'])->group(function () {
     // Proxy OSRM (rute jalan asli; cache + rate limit ditangani di server - lihat RouteController)
     Route::get('/api/route/directions', [RouteController::class, 'directions'])->name('api.route.directions');
 });
@@ -276,11 +281,23 @@ Route::middleware('auth')->post('/webpush/subscribe', function (Request $request
     return response()->json(['success' => true]);
 });
 
+// Lapor TANPA LOGIN (TASK_77). Form-nya URL yang SAMA dengan pelapor ber-akun - semua tombol
+// "Lapor" yang sudah ada (landing, spotlight, bilah bawah) langsung bekerja untuk tamu.
+// `verified` untuk akun ditegakkan di ReportController::create. Laporan tamu dikirim ke
+// lapor-darurat (bukan reports/create) supaya store() akun tetap di belakang auth,verified.
+Route::controller(ReportController::class)->group(function () {
+    Route::get('reports/create', 'create')->name('front.reports.create');
+    Route::post('lapor-darurat', 'guestStore')->middleware('guest')->name('front.reports.guest.store');
+    // Gerbangnya tanda tangan URL (relatif - tetap sah sesudah pindah subdomain kabupaten).
+    Route::get('lapor-darurat/status/{report}', 'guestStatus')->middleware('signed:relative')->name('front.reports.guest.status');
+    Route::get('lapor-darurat/status/{report}/masuk', 'guestStatusLogin')->middleware(['guest', 'signed:relative'])->name('front.reports.guest.login');
+    Route::post('lapor-darurat/status/{report}/klaim', 'claimGuestReport')->middleware(['auth', 'verified', 'signed:relative'])->name('front.reports.guest.claim');
+});
+
 Route::middleware(['auth', 'verified'])->controller(ReportController::class)->group(function () {
     Route::get('reports', 'index')->name('front.reports.index');
 
     Route::get('reports/show/{report}', 'show')->name('reports.show');
-    Route::get('reports/create', 'create')->name('front.reports.create');
     // Batas kirim laporan ada di ReportController::store (hanya laporan TERSIMPAN yang dihitung,
     // Pusat Komando dibebaskan) - JANGAN kembalikan throttle:report-create ke sini.
     Route::post('reports/create', 'store')->name('front.reports.store');

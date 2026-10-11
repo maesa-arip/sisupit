@@ -50,6 +50,14 @@ return [
         'ios_client_id' => env('GOOGLE_IOS_CLIENT_ID'),
     ],
 
+    // Cloudflare Turnstile untuk lapor TANPA LOGIN (TASK_77). Lapis kedua - lapis pertama
+    // (honeypot + jeda isi + batas kirim) selalu aktif. Salah satu kunci kosong = Turnstile mati
+    // dan form tamu tetap jalan (laporan dicatat `guest_check = nonaktif`).
+    'turnstile' => [
+        'site_key' => env('TURNSTILE_SITE_KEY'),
+        'secret_key' => env('TURNSTILE_SECRET_KEY'),
+    ],
+
     'nominatim' => [
         // Default SENGAJA menunjuk instance LOKAL (bukan Nominatim publik): bila env lupa
         // di-set, panggilan gagal cepat (connection refused) alih-alih diam-diam membebani

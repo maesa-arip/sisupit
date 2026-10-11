@@ -1,5 +1,6 @@
 import { AppEmpty } from '@/Components/AppSection';
 import DatePicker from '@/Components/DatePicker';
+import GuestReporterBadge, { isGuestReport } from '@/Components/GuestReporterBadge';
 import HeaderTitle from '@/Components/HeaderTitle';
 import PaginationLinks from '@/Components/PaginationLinks';
 import { Badge } from '@/Components/ui/badge';
@@ -559,10 +560,27 @@ export default function Index(props) {
 															<IconUser className="h-3.5 w-3.5 shrink-0" />
 															{report.name ?? report.user?.name ?? '-'}
 														</span>
-														<span className="hidden items-center gap-1 sm:inline-flex">
-															<IconPhone className="h-3.5 w-3.5 shrink-0" />
-															{report.phone ?? '-'}
-														</span>
+														{/* Pelapor tamu (TASK_77): nomornya satu-satunya jalan memastikan
+														    kejadian, jadi tampil juga di ponsel & bisa langsung diketuk. */}
+														{isGuestReport(report) ? (
+															<>
+																<a
+																	href={`tel:${report.phone}`}
+																	onClick={(e) => e.stopPropagation()}
+																	onKeyDown={(e) => e.stopPropagation()}
+																	className="inline-flex items-center gap-1 font-medium text-primary"
+																>
+																	<IconPhone className="h-3.5 w-3.5 shrink-0" />
+																	{report.phone}
+																</a>
+																<GuestReporterBadge report={report} />
+															</>
+														) : (
+															<span className="hidden items-center gap-1 sm:inline-flex">
+																<IconPhone className="h-3.5 w-3.5 shrink-0" />
+																{report.phone ?? '-'}
+															</span>
+														)}
 														{/* Penutup insiden (FINDINGS #88). Hanya untuk laporan yang sudah
 														    Selesai; laporan yang ditutup sebelum kolomnya ada memang tak
 														    punya jejak pelaku — dikatakan apa adanya, bukan disamarkan. */}

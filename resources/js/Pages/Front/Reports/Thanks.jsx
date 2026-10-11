@@ -4,7 +4,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Com
 import AppLayout from '@/Layouts/AppLayout';
 import { NOMOR_DARURAT_NASIONAL, reportNumber } from '@/lib/utils';
 import { Head, Link, router } from '@inertiajs/react';
-import { IconArrowRight, IconInfoCircle, IconPhoneCall, IconShieldCheckFilled } from '@tabler/icons-react';
+import {
+	IconArrowRight,
+	IconBookmark,
+	IconInfoCircle,
+	IconLogin2,
+	IconPhoneCall,
+	IconShieldCheckFilled,
+} from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 
 // Stepper status & ringkasan responder ada di Components/ReportProgress (#165) - dipakai juga
@@ -21,6 +28,9 @@ export default function ReportThanks({
 	teleponDarurat,
 	cityCode,
 	isPartner,
+	// Lapor TANPA LOGIN (TASK_77): diisi hanya saat halaman ini dibuka lewat tautan status
+	// bertanda tangan - { claimUrl, loginUrl, isOwner }. null = pelapor ber-akun (bentuk lama).
+	guestView = null,
 }) {
 	const submittedAt = new Intl.DateTimeFormat('id-ID', {
 		dateStyle: 'long',
@@ -39,7 +49,8 @@ export default function ReportThanks({
 	// SUDAH ADA (report-tracking.{id} + ReportStatusChanged, lihat Reports/Show.jsx) — pelapor
 	// memang sudah berhak di channel itu, jadi tak ada permukaan otorisasi baru.
 	useEffect(() => {
-		if (!window.Echo) return;
+		// Tamu tak bisa diotorisasi di channel privat; ia memakai pemuatan ulang berkala di bawah.
+		if (guestView || !window.Echo) return;
 
 		const name = `report-tracking.${report.id}`;
 		window.Echo.private(name)
@@ -49,6 +60,16 @@ export default function ReportThanks({
 
 		return () => window.Echo.leave(name);
 	}, [report.id]);
+
+	// Tamu (TASK_77): status & regu dimuat ulang tiap 30 detik selama laporan masih berjalan -
+	// pengganti WebSocket yang hanya untuk pemilik akun. Isinya tetap dari server (tanda tangan URL).
+	useEffect(() => {
+		if (!guestView || isClosedStatus(status)) return;
+
+		const timer = setInterval(() => router.reload({ only: ['report', 'responders'] }), 30000);
+
+		return () => clearInterval(timer);
+	}, [guestView, status]);
 
 	// Tombol & keterangan mengikuti perkembangan (permintaan user 2026-10-03). Petanya tetap hanya
 	// di halaman detail - halaman ini dibuka warga yang sedang panik, tombol telepon jangan terdorong.
@@ -123,12 +144,15 @@ export default function ReportThanks({
 						<div className="space-y-2 pt-2">
 							<ResponderSummary status={status} responders={responders} />
 							<div className="flex flex-col gap-3 sm:flex-row">
-								<Button asChild className="h-12 flex-1 rounded-xl text-base font-semibold">
-									<Link href={route('reports.show', report.id)}>
-										{ctaLabel}
-										<IconArrowRight className="ml-2 h-5 w-5" />
-									</Link>
-								</Button>
+								{/* Halaman detail hanya untuk pemilik akun; tamu tetap di halaman ini. */}
+								{(!guestView || guestView.isOwner) && (
+									<Button asChild className="h-12 flex-1 rounded-xl text-base font-semibold">
+										<Link href={route('reports.show', report.id)}>
+											{ctaLabel}
+											<IconArrowRight className="ml-2 h-5 w-5" />
+										</Link>
+									</Button>
+								)}
 
 								{telHref && (
 									<Button
@@ -149,6 +173,36 @@ export default function ReportThanks({
 								</p>
 							)}
 						</div>
+
+						{/* Ajakan klaim akun (TASK_77). Kepemilikan dibuktikan TAUTAN INI, bukan nomor HP -
+						    nomor tak diverifikasi, jadi menautkan lewat nomor membuka laporan orang lain. */}
+						{guestView && !guestView.isOwner && (
+							<div className="space-y-3 rounded-xl border border-border/70 bg-muted/40 p-4">
+								<p className="flex items-start gap-2 text-[13px] text-muted-foreground">
+									<IconBookmark className="mt-0.5 h-4 w-4 shrink-0" />
+									Simpan halaman ini untuk memantau laporan Anda - tautannya berlaku 48 jam. Status
+									diperbarui otomatis.
+								</p>
+								{guestView.claimUrl ? (
+									<Button
+										variant="outline"
+										className="h-11 w-full rounded-xl font-semibold"
+										onClick={() => router.post(guestView.claimUrl)}
+									>
+										Simpan laporan ini ke akun saya
+									</Button>
+								) : (
+									guestView.loginUrl && (
+										<Button asChild variant="outline" className="h-11 w-full rounded-xl font-semibold">
+											<a href={guestView.loginUrl}>
+												<IconLogin2 className="mr-2 h-4 w-4" />
+												Masuk untuk dapat notifikasi status
+											</a>
+										</Button>
+									)
+								)}
+							</div>
+						)}
 					</CardContent>
 				</Card>
 

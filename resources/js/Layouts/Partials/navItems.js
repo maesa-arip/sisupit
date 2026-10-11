@@ -138,6 +138,17 @@ export function buildNavSections({ auth, url = '' }) {
 		active: startsWith('/admin/facilities') || startsWith('/admin/hydrants') || startsWith('/admin/hydrant-warga'),
 	};
 
+	// Lapor Darurat dipakai akun MAUPUN tamu (TASK_77: lapor tanpa login) - ditulis sekali,
+	// pola hydrantAdminItem di atas.
+	const reportCreateItem = {
+		key: 'report.create',
+		title: 'Lapor Darurat!',
+		icon: IconFlame,
+		url: route('front.reports.create'),
+		active: startsWith('/reports/create'),
+		variant: 'danger',
+	};
+
 	const sections = [
 		{
 			key: 'utama',
@@ -173,14 +184,7 @@ export function buildNavSections({ auth, url = '' }) {
 			mobile: 'list',
 			items: isLoggedIn
 				? [
-						{
-							key: 'report.create',
-							title: 'Lapor Darurat!',
-							icon: IconFlame,
-							url: route('front.reports.create'),
-							active: startsWith('/reports/create'),
-							variant: 'danger',
-						},
+						reportCreateItem,
 						{
 							key: 'reports.mine',
 							title: 'Arsip & Riwayat',
@@ -208,7 +212,8 @@ export function buildNavSections({ auth, url = '' }) {
 								active: startsWith('/email'),
 							},
 					]
-				: [],
+				: // Tamu boleh melapor tanpa login sejak TASK_77 - entri & URL yang sama.
+					[reportCreateItem],
 		},
 		{
 			key: 'fasilitas',

@@ -53,6 +53,13 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perHour(30)->by($request->user()?->id ?: $request->ip());
         });
 
+        // Proxy geocode dibuka untuk tamu (TASK_77, peta form lapor tanpa login). Hanya TAMU yang
+        // dibatasi, per IP dan longgar (CGNAT seluler: banyak pelanggan berbagi satu IP); akun
+        // tetap tanpa batas di sini - antrean Nominatim sendiri sudah dijaga GeocodeController.
+        RateLimiter::for('geocode', function ($request) {
+            return $request->user() ? Limit::none() : Limit::perMinute(60)->by('geocode:'.$request->ip());
+        });
+
         if (! App::environment([
             'local',
             'testing',

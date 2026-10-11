@@ -6,6 +6,7 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import { Textarea } from '@/Components/ui/textarea';
+import TurnstileWidget from '@/Components/TurnstileWidget';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
 import { compressImages, oversizeMessage, splitOversize } from '@/lib/compress-image';
@@ -162,6 +163,16 @@ export default function Create(props) {
 	// tak perlu memilih provinsi/kabupatennya sendiri tiap kali. null = warga: keempatnya
 	// mulai kosong lalu terisi dari titik peta. Jangan jadikan gerbang lagi.
 	const regionPicker = props.region_picker || null;
+	// Lapor TANPA LOGIN (TASK_77): dikirim server hanya untuk tamu. Form-nya SAMA - yang berbeda
+	// cuma kolom kontak (nama & nomor HP, untuk akun keduanya dari profil), honeypot, dan Turnstile.
+	const guest = props.guest || null;
+	const turnstileSiteKey = guest?.turnstile_site_key || null;
+	// Lapis 1: kolom jebakan yang tak terlihat manusia; bot pengisi semua kolom mengisinya.
+	const honeypotRef = useRef(null);
+	// Lapis 2: token Turnstile, atau 'error' bila widget gagal dimuat (Cloudflare tak terjangkau).
+	const turnstileRef = useRef(null);
+	const [turnstileToken, setTurnstileToken] = useState('');
+	const [turnstileFailed, setTurnstileFailed] = useState(false);
 
 	const [userLocation, setUserLocation] = useState(null);
 	const [locationLoading, setLocationLoading] = useState(true);
@@ -860,6 +871,17 @@ export default function Create(props) {
 			return;
 		}
 
+		if (guest && !data.phone.trim()) {
+			document.getElementById('phone')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+			toast.warning('Isi nomor HP agar petugas bisa menghubungi Anda.');
+			return;
+		}
+
+		if (turnstileSiteKey && !turnstileToken && !turnstileFailed) {
+			toast.warning('Tunggu verifikasi "Anda manusia" selesai, lalu kirim lagi.');
+			return;
+		}
+
 		// Posisi pelapor & akurasinya ikut dikirim MENTAH (TASK_52) — server yang menghitung
 		// jaraknya ke pin lalu menetapkan `location_source`. Sengaja lewat transform, bukan
 		// field useForm: nilainya tidak boleh bisa tersentuh setData mana pun, dan tak ada
@@ -870,6 +892,12 @@ export default function Create(props) {
 			reporter_lat: gpsFixRef.current?.lat ?? null,
 			reporter_lng: gpsFixRef.current?.lng ?? null,
 			gps_accuracy_m: gpsFixRef.current?.accuracy ?? null,
+			// Lapis pelindung tamu (TASK_77) - dibaca dari ref, bukan field useForm, alasan yang sama.
+			...(guest && {
+				website: honeypotRef.current?.value ?? '',
+				turnstile_token: turnstileToken,
+				turnstile_status: !turnstileToken && turnstileFailed ? 'error' : '',
+			}),
 		}));
 
 		post(props.page_settings.action, {
@@ -886,6 +914,11 @@ export default function Create(props) {
 			// punya <InputError> (photos.N, lat/lng, phone) tak terlihat sama sekali, pelapor
 			// mengetuk Kirim berulang, dan dulu setiap ketukan ikut dihitung limiter sampai 429.
 			onError: (formErrors) => {
+				// Token Turnstile sekali pakai: yang ditolak/kedaluwarsa diganti token baru.
+				if (formErrors.turnstile_token) {
+					setTurnstileToken('');
+					turnstileRef.current?.reset();
+				}
 				const [field, message] = Object.entries(formErrors)[0] ?? [];
 				if (!message) return;
 				toast.error(message);
@@ -949,7 +982,8 @@ export default function Create(props) {
 						className="-ml-3 h-10 rounded-full px-3 text-[15px] font-medium text-primary hover:bg-primary/10 hover:text-primary"
 						asChild
 					>
-						<Link href={route('dashboard')}>
+						{/* Tamu tak punya dashboard (rute itu ber-auth) - kembali ke beranda publik. */}
+						<Link href={guest ? route('home.landing') : route('dashboard')}>
 							<IconArrowLeft className="h-5 w-5" />
 							Batal
 						</Link>
@@ -962,6 +996,15 @@ export default function Create(props) {
 					<p className="mt-1 text-[15px] text-muted-foreground">
 						Mohon lengkapi formulir di bawah agar relawan dapat segera membantu Anda.
 					</p>
+					{guest && (
+						<p className="mt-2 text-[13px] text-muted-foreground">
+							Anda melapor tanpa akun - petugas akan menghubungi nomor HP Anda.{' '}
+							<Link href={route('login')} className="font-medium text-primary underline-offset-2 hover:underline">
+								Masuk
+							</Link>{' '}
+							untuk mendapat kabar status lewat notifikasi.
+						</p>
+					)}
 				</div>
 
 				<form id="reportForm" className={`space-y-7 ${filledFieldsClass}`} onSubmit={onHandleSubmit}>
@@ -1441,6 +1484,54 @@ export default function Create(props) {
 						</div>
 					</section>
 
+					{/* Kontak pelapor TAMU (TASK_77). Untuk akun nama & nomor diambil dari profil, jadi
+					    kartu ini hanya ada bagi tamu - nomor HP satu-satunya jalan Pusat Komando
+					    menelepon balik (wajib di server, tanpa OTP: teleponnya itulah verifikasinya). */}
+					{guest && (
+						<section className="space-y-2">
+							<h2 className="px-4 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+								Kontak Anda
+							</h2>
+							<div className="space-y-4 rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
+								<div>
+									<Label htmlFor="phone" className="text-sm font-medium text-foreground/80">
+										Nomor HP <span className="font-normal text-muted-foreground">(Wajib)</span>
+									</Label>
+									<Input
+										name="phone"
+										id="phone"
+										type="tel"
+										inputMode="tel"
+										autoComplete="tel"
+										value={data.phone}
+										onChange={onHandleChange}
+										className="mt-1.5 h-11 rounded-xl border-border bg-card focus-visible:ring-2 focus-visible:ring-primary/30"
+										placeholder="Contoh: 081234567890"
+									/>
+									<p className="mt-1.5 text-[13px] text-muted-foreground">
+										Petugas akan menelepon nomor ini untuk memastikan kejadian.
+									</p>
+									{errors.phone && <InputError message={errors.phone} className="mt-1" />}
+								</div>
+								<div>
+									<Label htmlFor="name" className="text-sm font-medium text-foreground/80">
+										Nama <span className="font-normal text-muted-foreground">(Opsional)</span>
+									</Label>
+									<Input
+										name="name"
+										id="name"
+										autoComplete="name"
+										value={data.name}
+										onChange={onHandleChange}
+										className="mt-1.5 h-11 rounded-xl border-border bg-card focus-visible:ring-2 focus-visible:ring-primary/30"
+										placeholder="Nama Anda"
+									/>
+									{errors.name && <InputError message={errors.name} className="mt-1" />}
+								</div>
+							</div>
+						</section>
+					)}
+
 					<section className="space-y-2">
 						<h2 className="px-4 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
 							Keterangan
@@ -1605,6 +1696,38 @@ export default function Create(props) {
 							</div>
 						</div>
 					</section>
+
+					{/* Pelindung lapor TAMU (TASK_77). Honeypot: dipindah keluar layar (bukan display:none,
+					    yang dilewati sebagian bot), tak bisa difokus Tab, dan disembunyikan dari pembaca
+					    layar. Turnstile hanya bila server mengirim site key-nya. */}
+					{guest && (
+						<div className="space-y-2">
+							<div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
+								<label htmlFor="website">Situs web</label>
+								<input ref={honeypotRef} id="website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+							</div>
+							{turnstileSiteKey && (
+								<div className="flex flex-col items-center gap-1">
+									<TurnstileWidget
+										ref={turnstileRef}
+										siteKey={turnstileSiteKey}
+										onToken={(token) => {
+											setTurnstileToken(token);
+											setTurnstileFailed(false);
+										}}
+										onExpire={() => setTurnstileToken('')}
+										onError={() => setTurnstileFailed(true)}
+									/>
+									{turnstileFailed && !turnstileToken && (
+										<p className="text-center text-xs text-muted-foreground">
+											Verifikasi tidak dapat dimuat - laporan tetap bisa dikirim.
+										</p>
+									)}
+									{errors.turnstile_token && <InputError message={errors.turnstile_token} />}
+								</div>
+							)}
+						</div>
+					)}
 
 					{/* --- ACTIONS (desktop; di mobile pakai sticky bar di bawah) --- */}
 					<div className="pt-1">

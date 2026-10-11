@@ -2598,6 +2598,8 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + #193 animasi ketuk bilah bawah transform/opacity + useTapClock (2026-10-07) = 780 passed, 3919 assertions.
             + #194 kamus kata jalan OSM untuk koreksi ejaan (2026-10-07) = 788 passed, 3943 assertions.
             + #195 ejaan seri dicari semua, terdekat ke pin menang (2026-10-07) = 790 passed, 3953 assertions.
+            + #200 Lapor bilah bawah selalu merah, aktif = cincin halo (2026-10-11) = 795 passed, 4033 assertions.
+            + #201 lapor tanpa login, GuestReportTest (2026-10-11) = 816 passed, 4255 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

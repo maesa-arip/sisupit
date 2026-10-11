@@ -1,3 +1,4 @@
+import GuestReporterBadge, { isGuestReport } from '@/Components/GuestReporterBadge';
 import { ReportStepper, ResponderSummary } from '@/Components/ReportProgress';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
@@ -1492,9 +1493,13 @@ export default function ReportShow(props) {
 						<div className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
 							<div className="flex items-center justify-between gap-4 px-4 py-3">
 								<span className="text-[15px] text-muted-foreground">Pelapor</span>
-								<span className="flex min-w-0 items-center gap-1.5 text-right text-[15px] font-medium text-foreground">
-									<IconUser className="h-4 w-4 shrink-0 text-muted-foreground" />
-									<span className="break-words">{report.name}</span>
+								<span className="flex min-w-0 flex-col items-end gap-1 text-right">
+									<span className="flex min-w-0 items-center gap-1.5 text-[15px] font-medium text-foreground">
+										<IconUser className="h-4 w-4 shrink-0 text-muted-foreground" />
+										<span className="break-words">{report.name || (isGuestReport(report) ? 'Tanpa nama' : '')}</span>
+									</span>
+									{/* Lapor tanpa login (TASK_77): nomor HP belum terverifikasi. */}
+									<GuestReporterBadge report={report} />
 								</span>
 							</div>
 							<div className="flex items-center justify-between gap-4 px-4 py-3">

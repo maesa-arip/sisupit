@@ -4,8 +4,21 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
-it('requires authentication to use the geocode proxy', function () {
-    $this->get('/api/geocode/reverse?lat=-8.65&lng=115.22')->assertRedirect('/login');
+// Dulu proxy ini wajib login. Sejak TASK_77 (lapor tanpa login, 2026-10-11) peta form lapor tamu
+// memakainya, jadi tamu boleh - tapi dibatasi per IP (limiter `geocode`), akun tidak.
+it('lets a guest use the geocode proxy within a per-IP limit', function () {
+    Http::fake(['*' => Http::response(['display_name' => 'Jl. Pemogan', 'address' => []], 200)]);
+
+    for ($i = 0; $i < 60; $i++) {
+        $this->get('/api/geocode/reverse?lat=-8.65&lng=115.22')->assertOk();
+    }
+
+    $this->get('/api/geocode/reverse?lat=-8.65&lng=115.22')->assertStatus(429);
+
+    // Akun tidak ikut dibatasi limiter tamu.
+    $this->actingAs(User::factory()->create())
+        ->get('/api/geocode/reverse?lat=-8.65&lng=115.22')
+        ->assertOk();
 });
 
 it('proxies reverse geocoding to nominatim with a user agent header and caches the result', function () {

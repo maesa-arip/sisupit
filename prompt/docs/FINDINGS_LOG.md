@@ -4706,3 +4706,35 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   menuju detail (read-only bagi pejabat: canManageResolution = staf). Ikut di-reload oleh ReportFeedChanged.
   Admin/superadmin menerima `null`.
 - **Penjaga:** `DashboardPejabatLaporanKejadianTest` (2).
+
+### #200 — Lingkaran Lapor bilah bawah selalu merah, aktif = cincin halo (FIXED - lokal, belum dideploy)
+
+- **Permintaan user 2026-10-11:** "rubah mobile bottomnav, buat lapor menjadi merah, tapi bagaimana membedakan
+  bahwa itu merah awalnya dan beda saat di klik dan ada di form lapor?" Tiga opsi ditawarkan (dibalik putih/cincin
+  merah - direkomendasikan karena tak bersaing dengan tombol Kirim; tint lalu pekat; merah + halo). User memilih
+  **merah + cincin halo**.
+- **Fix:** `MobileBottomNav.jsx` `LaporSlot` - lingkaran selalu `bg-destructive text-destructive-foreground`.
+  Diam: cincin 3px `ring-background`, petir garis, label abu. Aktif (`/reports/create`): cincin yang SAMA berganti
+  warna `ring-destructive/30` (halo; tebal tetap -> tonjolan 11px & celah 5px ke tombol Kirim tak berubah), bayangan
+  merah lebih kuat, petir padat, label `font-semibold text-destructive`. Lapisan pudar saat ketukan kini merah +
+  petir garis (bukan abu).
+- **Aturan yang ditekuk:** "merah = lokasi" di bilah bawah -> PENGECUALIAN_ATURAN #6.
+- **Risiko yang diterima:** di form lapor ada dua elemen merah berdekatan (tombol Kirim + lingkaran); halo 30% bisa
+  kurang terbaca di bawah terik. Belum diuji di HP.
+- **Penjaga:** `MobileNavIconGlyphTest` (test Lapor diganti: merah + halo + petir padat + label tebal, `bg-muted`
+  dilarang) dan `LaporRaisedCircleTest` (cincin 3px kedua keadaan). Sabotase "diam = abu" memerahkan keduanya.
+
+### #201 — Lapor tanpa login (FIXED - lokal, belum dideploy, ADA MIGRASI) — TASK_77
+
+- **Permintaan user 2026-10-11:** "buat fitur lapor tanpa login, bagaimana best practicenya?" Keputusan: TANPA OTP,
+  dua lapis pelindung (honeypot + jeda isi + batas kirim; Turnstile opsional yang tak memblokir bila Cloudflare tak
+  terjangkau), semua jenis kejadian, status lewat tautan bertanda tangan (membalik #38 poin 1).
+- **Fix:** `GET /reports/create` dibuka untuk tamu (verified akun ditegakkan di `create()`), kirim tamu ke
+  `POST /lapor-darurat` (`GuestReportRequest`, `guestStore`), inti simpan jadi `persistReport()` (satu jalur akun &
+  tamu), migrasi `user_id` nullable + `guest_check`, status `GET /lapor-darurat/status/{id}` (`signed:relative`, 48
+  jam, halaman Thanks dengan `guestView`), klaim akun lewat tautan (BUKAN nomor HP - tak diverifikasi), geocode tamu
+  dengan limiter `geocode`, lencana `GuestReporterBadge` di antrean & detail. Rincian: `prompt/tasks/TASK_77_lapor_tanpa_login.md`.
+- **Koreksi atas jawaban awal ke user:** saya sempat menyebut "daftar hitam laporan ganda (TASK_55) ikut berlaku per
+  nomor HP" - tidak ada daftar hitam PELAPOR di repo ini ("daftar hitam" TASK_55 = bentuk penyaring status). Yang
+  berlaku bagi tamu: deteksi laporan ganda biasa + batas kirim per nomor.
+- **Penjaga:** `GuestReportTest` (21), `GeocodeControllerTest` (test wajib-login diganti). Belum diuji di HP.

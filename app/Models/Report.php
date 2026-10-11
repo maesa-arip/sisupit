@@ -87,6 +87,8 @@ class Report extends Model
 
     protected $fillable = [
         'user_id',
+        // Lapor tanpa login (TASK_77): lapis captcha yang dilalui laporan tamu; NULL = dari akun.
+        'guest_check',
         'name',
         'phone',
         'title',

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\MessageType;
 use App\Events\ReportFeedChanged;
 use App\Events\ReportRecordChanged;
+use App\Http\Requests\GuestReportRequest;
 use App\Http\Requests\ReportRequest;
 use App\Models\Agency;
 use App\Models\Regu;
@@ -19,12 +20,19 @@ use App\Models\Unit;
 use App\Models\User;
 use App\Notifications\EmergencyAlertNotification;
 use App\Traits\HasFile;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Inertia\Response;
 use Laravolt\Indonesia\Models\Province;
 use Throwable;
@@ -55,6 +63,40 @@ class ReportController extends Controller
     public static function reportLimiterKey(User $user): string
     {
         return 'report-create:'.$user->id;
+    }
+
+    /**
+     * Batas kirim laporan TAMU (TASK_77), per jendela 30 menit. Tiga kunci sekaligus, dan
+     * laporan ditolak bila SALAH SATU penuh. Batas IP sengaja paling longgar: operator seluler
+     * Indonesia memakai CGNAT, jadi ribuan pelanggan bisa berbagi satu IP - dan satu kebakaran
+     * memang dilaporkan banyak tetangga sekaligus. Yang ketat adalah nomor HP & cookie perangkat.
+     */
+    public const GUEST_LIMITS = ['ip' => 10, 'phone' => 3, 'device' => 3];
+
+    public const GUEST_LIMIT_WINDOW_SECONDS = 1800;
+
+    /** Cookie penanda perangkat tamu (acak, tanpa data pribadi) - kunci batas kirim ketiga. */
+    public const GUEST_DEVICE_COOKIE = 'sisupit_lapor';
+
+    /** Masa berlaku tautan status laporan tamu. */
+    public const GUEST_STATUS_LINK_HOURS = 48;
+
+    /**
+     * Nilai `reports.guest_check` (lihat migrasi 2026_10_11_100000). NULL = laporan dari akun.
+     *
+     * @var list<string>
+     */
+    public const GUEST_CHECKS = ['turnstile', 'tanpa_captcha', 'nonaktif'];
+
+    /** @return array<string, string> kunci RateLimiter => nama batas di GUEST_LIMITS */
+    public static function guestLimiterKeys(string $ip, string $phone, ?string $device): array
+    {
+        return array_filter([
+            'report-guest-ip:'.$ip => 'ip',
+            'report-guest-phone:'.$phone => 'phone',
+            // Klien tanpa cookie (bot yang menembak langsung) hanya terbatas IP & nomor.
+            $device ? 'report-guest-device:'.$device : '' => 'device',
+        ], fn ($limit, $key) => $key !== '', ARRAY_FILTER_USE_BOTH);
     }
 
     // =========================================================================
@@ -592,10 +634,21 @@ class ReportController extends Controller
     // =========================================================================
     // 2. CREATE & STORE (SOP: INBOUND)
     // =========================================================================
-    public function create(): Response
+    public function create(): Response|RedirectResponse
     {
         $provinces = Province::select('code', 'name')->get();
         $user = auth()->user();
+
+        // Route ini dibuka untuk TAMU sejak TASK_77 (di luar grup auth,verified), jadi syarat
+        // `verified` untuk akun ditegakkan di sini - akun yang belum verifikasi email tetap
+        // diarahkan ke sana seperti sebelumnya, bukan jatuh ke form tamu.
+        if ($user && ! $user->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice');
+        }
+
+        if (! $user) {
+            return $this->guestCreate($provinces);
+        }
 
         // Pusat Komando banyak menerima laporan lewat TELEPON: titik GPS operator tidak ada
         // hubungannya dengan kejadian, jadi ia memilih wilayah (provinsi..desa) lalu pin
@@ -626,6 +679,37 @@ class ReportController extends Controller
         ]);
     }
 
+    /**
+     * Form lapor untuk TAMU (TASK_77): halaman React yang SAMA dengan pelapor ber-akun, hanya
+     * tujuan kirimnya & prop `guest` yang berbeda - dua form akan menyimpang (pelajaran #71).
+     * Waktu form dibuka dicatat di sesi untuk penjaga jeda isi (GuestReportRequest), dan cookie
+     * perangkat dipasang untuk batas kirim per perangkat.
+     */
+    private function guestCreate($provinces): Response
+    {
+        session()->put(GuestReportRequest::SESSION_FORM_OPENED_AT, now()->timestamp);
+
+        if (! request()->cookie(self::GUEST_DEVICE_COOKIE)) {
+            Cookie::queue(self::GUEST_DEVICE_COOKIE, (string) Str::uuid(), 60 * 24 * 365);
+        }
+
+        return inertia('Front/Reports/Create', [
+            'page_settings' => [
+                'title' => 'Buat Laporan',
+                'subtitle' => 'Buat laporan baru disini. Klik simpan setelah selesai',
+                'method' => 'POST',
+                'action' => route('front.reports.guest.store'),
+            ],
+            'provinces' => $provinces,
+            'region_picker' => null,
+            'registered_tenants' => Tenant::where('is_active', true)->get(['city_code', 'subdomain', 'nama_instansi']),
+            'guest' => [
+                // Kosong = Turnstile mati; form tetap jalan dengan lapis pertama saja.
+                'turnstile_site_key' => config('services.turnstile.secret_key') ? config('services.turnstile.site_key') : null,
+            ],
+        ]);
+    }
+
     public function store(ReportRequest $request): RedirectResponse
     {
         // Di LUAR try: galat 429 harus sampai ke penangan global (bootstrap/app.php), bukan
@@ -643,133 +727,17 @@ class ReportController extends Controller
         }
 
         try {
-            // Galeri foto (FINDINGS #17): simpan semua foto; foto pertama jadi sampul
-            // (kolom `photo` lama) agar feed/dashboard yang membaca report.photo tetap jalan.
-            $photoPaths = [];
-            foreach ((array) $request->file('photos', []) as $file) {
-                $photoPaths[] = $file->store('reports', 'public');
-            }
-
-            // Asal-usul TITIK (TASK_52, #104): pin yang ditandai jauh dari posisi pelapor
-            // harus bisa dibedakan dari pin hasil fix GPS di TKP, sebab layar detail
-            // menawarkan tombol "Navigasi ke Lokasi" yang sama tegasnya untuk keduanya.
-            // Yang memutuskan SERVER — klien hanya mengirim koordinat & akurasi mentah.
-            $asalTitik = Report::asalTitikDari(
-                $request->filled('reporter_lat') ? (float) $request->reporter_lat : null,
-                $request->filled('reporter_lng') ? (float) $request->reporter_lng : null,
-                (float) $request->lat,
-                (float) $request->lng,
-            );
-
-            // Akurasi dipagari sebelum disimpan: kolomnya unsignedInteger, dan angka janggal
-            // dari klien yang rusak akan membuat INSERT gagal — laporan daruratnya ikut
-            // hilang ke blok catch di bawah. Tak satu pun bagian fitur ini boleh bisa
-            // menggagalkan sebuah laporan (100 km sudah jauh melewati fix terburuk).
-            $akurasi = $request->filled('gps_accuracy_m')
-                ? min(max((int) round((float) $request->gps_accuracy_m), 0), 100000)
-                : null;
-
-            $report = Report::create([
-                'user_id' => auth()->id(),
-                'name' => $request->name,
-                'phone' => $request->phone,
-                'title' => $request->title,
-                // Disimpan sejak TASK_27: dibaca lagi saat verifikasi untuk merekomendasikan
-                // OPD terkait. Sebelumnya nilai ini dibuang setelah validasi.
-                'incident_type' => $request->incident_type,
-                'description' => $request->description,
-                'lat' => $request->lat,
-                'lng' => $request->lng,
-                // Hanya JARAK-nya yang tersimpan, bukan koordinat pelapor (keputusan user
-                // 2026-08-31) — sinyal kepercayaannya utuh tanpa merekam di mana warganya
-                // berdiri saat menelepon.
-                'location_source' => $asalTitik['location_source'],
-                'reporter_distance_m' => $asalTitik['reporter_distance_m'],
-                'location_accuracy_m' => $akurasi,
-                'province_code' => $request->province_code,
-                'city_code' => $request->city_code,
-                'district_code' => $request->district_code,
-                'village_code' => $request->village_code,
-                // DUA kolom alamat, dua penulis (TASK_49): `address` = patokan yang DIKETIK
-                // warga (boleh kosong — darurat-first), `geo_address` = alamat hasil
-                // reverse-geocode dari pin yang sudah lama dihitung form tapi belum pernah
-                // dikirim ke server. Jangan pernah menyalin yang satu ke yang lain: kalimat
-                // manusia yang menyamar jadi alamat mesin persis bug yang diperbaiki di sini.
-                'address' => $request->address,
-                'geo_address' => $request->geo_address,
-                'status' => 'TERLAPOR', // Masih Mentah
-                'photo' => $photoPaths[0] ?? null,
-            ]);
-
-            foreach ($photoPaths as $path) {
-                $report->photos()->create(['path' => $path]);
-            }
-
-            if ($limiterKey) {
-                RateLimiter::hit($limiterKey, self::REPORT_LIMIT_WINDOW_SECONDS);
-            }
-
-            // Laporan ganda (TASK_55, lapis 1): satu kebakaran dilihat banyak orang. Server
-            // hanya MENGUSULKAN "kemungkinan sama dengan #X" - admin yang memutuskan. Galat
-            // apa pun di sini ditelan: laporannya sudah tersimpan, dan deteksi yang rusak tak
-            // boleh membuat warga melihat "gagal melapor" untuk laporan darurat yang sebenarnya
-            // sudah masuk (paling buruk: ia dianggap bukan usulan dan berbunyi seperti biasa).
-            $kandidatDuplikat = null;
-            try {
-                $kandidatDuplikat = Report::cariKandidatDuplikat($report);
-                if ($kandidatDuplikat) {
-                    $report->update(['duplicate_candidate_of_id' => $kandidatDuplikat->id]);
+            $report = $this->persistReport($request, auth()->id(), null, function () use ($limiterKey) {
+                if ($limiterKey) {
+                    RateLimiter::hit($limiterKey, self::REPORT_LIMIT_WINDOW_SECONDS);
                 }
-            } catch (Throwable $e) {
-                report($e);
-                $kandidatDuplikat = null;
-            }
-
-            // SOP ANTI HOAX: Notifikasi AWAL HANYA ke PUSAT KOMANDO (Petugas/Admin),
-            // disiarkan sesuai tingkat wilayah yang dikonfigurasi admin (cascade naik dari desa laporan).
-            // Batasnya per kabupaten laporan (TASK_62) - satu fungsi untuk semua titik siaran.
-            // Petugas dipilih dari wilayah EFEKTIF-nya (TASK_63) - wilayah yang sama dengan data
-            // yang ia lihat saat membuka notifikasinya.
-            $petugasCeiling = Tenant::petugasNotifyLevel($report->city_code);
-            $commandCenterUsers = User::role(['admin', 'superadmin'])
-                ->notifiableForReport($report, $petugasCeiling)
-                ->get()
-                ->concat(User::petugasRecipientsFor($report))
-                ->unique('id')
-                ->reject(fn (User $u) => $u->id === auth()->id())
-                ->values();
-            // Usulan duplikat TIDAK membunyikan nada triase lagi (keputusan user 2026-09-14):
-            // lima belas pelapor untuk satu kebakaran = lima belas bunyi, dan bunyi yang
-            // bertubi-tubi melatih orang mengabaikannya (alasan TASK_50). Laporannya tetap
-            // muncul live di antrean lewat ReportFeedChanged di bawah, berlabel usulan + jarak.
-            if ($commandCenterUsers->isNotEmpty() && ! $kandidatDuplikat) {
-                // STAGE_REPORT_INCOMING: laporan ini BELUM diverifikasi siapa pun, jadi ia
-                // tidak boleh berbunyi & berbunyi-nama sama dengan panggilan meluncur. Sirine
-                // untuk sesuatu yang bisa saja hoaks melatih petugas mengabaikan sirine, dan
-                // begitu itu terjadi siaran sungguhan ikut terabaikan (TASK_50).
-                Notification::send($commandCenterUsers, new EmergencyAlertNotification($report, 'petugas', EmergencyAlertNotification::STAGE_REPORT_INCOMING));
-            }
-
-            // Aba-aba ke dashboard yang sedang terbuka di wilayah kejadian: kejadian BARU
-            // masuk. Sebelum ini tak ada satu pun siaran saat laporan dibuat — ReportStatusChanged
-            // baru lahir pada transisi BERIKUTNYA (approve/tolak), sehingga laporan masuk hanya
-            // terlihat oleh yang kebetulan me-reload halamannya.
-            // Galat siaran DITELAN (#130): ShouldBroadcastNow menembak Reverb di dalam request
-            // ini, dan saat Reverb mati/salah port ia melempar SESUDAH laporan tersimpan &
-            // Pusat Komando dikabari - warga lalu melihat "Terjadi kesalahan", mengirim ulang,
-            // dan satu kebakaran jadi beberapa laporan. Aba-aba dashboard boleh hilang;
-            // laporan darurat yang sudah masuk tidak boleh berbunyi gagal.
-            try {
-                broadcast(ReportFeedChanged::for($report, 'TERLAPOR'));
-            } catch (Throwable $e) {
-                report($e);
-            }
+            });
 
             // Redirect-saat-save ke subdomain tenant (TASK_17) agar Thanks tampil dengan
             // branding kabupaten kejadian. HANYA saat TENANT_BASE_DOMAIN di-set (produksi
             // multi-tenant + SESSION_DOMAIN=.domain agar login/flash selamat lintas-subdomain);
             // di lokal/testing (base_domain kosong) tetap redirect internal biasa.
-            if ($redirect = $this->crossSubdomainThanksRedirect($request, $report)) {
+            if ($redirect = $this->crossSubdomainRedirect($request, $report, route('front.reports.thanks', $report->id, false))) {
                 return $redirect;
             }
 
@@ -782,6 +750,312 @@ class ReportController extends Controller
 
             return to_route('front.reports.create');
         }
+    }
+
+    /**
+     * Inti penyimpanan laporan baru - SATU jalur untuk pelapor ber-akun (store) dan TAMU
+     * (guestStore, TASK_77): foto, asal titik, deteksi ganda, nada triase Pusat Komando, dan
+     * aba-aba dashboard berlaku sama bagi keduanya. `$onSaved` dipanggil begitu laporan &
+     * fotonya tersimpan (tempat batas kirim dihitung - hanya laporan TERSIMPAN yang dihitung).
+     */
+    private function persistReport(ReportRequest $request, ?int $userId, ?string $guestCheck, callable $onSaved): Report
+    {
+        // Galeri foto (FINDINGS #17): simpan semua foto; foto pertama jadi sampul
+        // (kolom `photo` lama) agar feed/dashboard yang membaca report.photo tetap jalan.
+        $photoPaths = [];
+        foreach ((array) $request->file('photos', []) as $file) {
+            $photoPaths[] = $file->store('reports', 'public');
+        }
+
+        // Asal-usul TITIK (TASK_52, #104): pin yang ditandai jauh dari posisi pelapor
+        // harus bisa dibedakan dari pin hasil fix GPS di TKP, sebab layar detail
+        // menawarkan tombol "Navigasi ke Lokasi" yang sama tegasnya untuk keduanya.
+        // Yang memutuskan SERVER — klien hanya mengirim koordinat & akurasi mentah.
+        $asalTitik = Report::asalTitikDari(
+            $request->filled('reporter_lat') ? (float) $request->reporter_lat : null,
+            $request->filled('reporter_lng') ? (float) $request->reporter_lng : null,
+            (float) $request->lat,
+            (float) $request->lng,
+        );
+
+        // Akurasi dipagari sebelum disimpan: kolomnya unsignedInteger, dan angka janggal
+        // dari klien yang rusak akan membuat INSERT gagal — laporan daruratnya ikut
+        // hilang ke blok catch di bawah. Tak satu pun bagian fitur ini boleh bisa
+        // menggagalkan sebuah laporan (100 km sudah jauh melewati fix terburuk).
+        $akurasi = $request->filled('gps_accuracy_m')
+            ? min(max((int) round((float) $request->gps_accuracy_m), 0), 100000)
+            : null;
+
+        $report = Report::create([
+            'user_id' => $userId,
+            // Lapis captcha yang dilalui laporan TAMU (TASK_77); NULL = laporan dari akun.
+            'guest_check' => $guestCheck,
+            'name' => $request->name,
+            'phone' => $request->phone,
+            'title' => $request->title,
+            // Disimpan sejak TASK_27: dibaca lagi saat verifikasi untuk merekomendasikan
+            // OPD terkait. Sebelumnya nilai ini dibuang setelah validasi.
+            'incident_type' => $request->incident_type,
+            'description' => $request->description,
+            'lat' => $request->lat,
+            'lng' => $request->lng,
+            // Hanya JARAK-nya yang tersimpan, bukan koordinat pelapor (keputusan user
+            // 2026-08-31) — sinyal kepercayaannya utuh tanpa merekam di mana warganya
+            // berdiri saat menelepon.
+            'location_source' => $asalTitik['location_source'],
+            'reporter_distance_m' => $asalTitik['reporter_distance_m'],
+            'location_accuracy_m' => $akurasi,
+            'province_code' => $request->province_code,
+            'city_code' => $request->city_code,
+            'district_code' => $request->district_code,
+            'village_code' => $request->village_code,
+            // DUA kolom alamat, dua penulis (TASK_49): `address` = patokan yang DIKETIK
+            // warga (boleh kosong — darurat-first), `geo_address` = alamat hasil
+            // reverse-geocode dari pin yang sudah lama dihitung form tapi belum pernah
+            // dikirim ke server. Jangan pernah menyalin yang satu ke yang lain: kalimat
+            // manusia yang menyamar jadi alamat mesin persis bug yang diperbaiki di sini.
+            'address' => $request->address,
+            'geo_address' => $request->geo_address,
+            'status' => 'TERLAPOR', // Masih Mentah
+            'photo' => $photoPaths[0] ?? null,
+        ]);
+
+        foreach ($photoPaths as $path) {
+            $report->photos()->create(['path' => $path]);
+        }
+
+        $onSaved();
+
+        // Laporan ganda (TASK_55, lapis 1): satu kebakaran dilihat banyak orang. Server
+        // hanya MENGUSULKAN "kemungkinan sama dengan #X" - admin yang memutuskan. Galat
+        // apa pun di sini ditelan: laporannya sudah tersimpan, dan deteksi yang rusak tak
+        // boleh membuat warga melihat "gagal melapor" untuk laporan darurat yang sebenarnya
+        // sudah masuk (paling buruk: ia dianggap bukan usulan dan berbunyi seperti biasa).
+        $kandidatDuplikat = null;
+        try {
+            $kandidatDuplikat = Report::cariKandidatDuplikat($report);
+            if ($kandidatDuplikat) {
+                $report->update(['duplicate_candidate_of_id' => $kandidatDuplikat->id]);
+            }
+        } catch (Throwable $e) {
+            report($e);
+            $kandidatDuplikat = null;
+        }
+
+        // SOP ANTI HOAX: Notifikasi AWAL HANYA ke PUSAT KOMANDO (Petugas/Admin),
+        // disiarkan sesuai tingkat wilayah yang dikonfigurasi admin (cascade naik dari desa laporan).
+        // Batasnya per kabupaten laporan (TASK_62) - satu fungsi untuk semua titik siaran.
+        // Petugas dipilih dari wilayah EFEKTIF-nya (TASK_63) - wilayah yang sama dengan data
+        // yang ia lihat saat membuka notifikasinya.
+        $petugasCeiling = Tenant::petugasNotifyLevel($report->city_code);
+        $commandCenterUsers = User::role(['admin', 'superadmin'])
+            ->notifiableForReport($report, $petugasCeiling)
+            ->get()
+            ->concat(User::petugasRecipientsFor($report))
+            ->unique('id')
+            ->reject(fn (User $u) => $u->id === auth()->id())
+            ->values();
+        // Usulan duplikat TIDAK membunyikan nada triase lagi (keputusan user 2026-09-14):
+        // lima belas pelapor untuk satu kebakaran = lima belas bunyi, dan bunyi yang
+        // bertubi-tubi melatih orang mengabaikannya (alasan TASK_50). Laporannya tetap
+        // muncul live di antrean lewat ReportFeedChanged di bawah, berlabel usulan + jarak.
+        if ($commandCenterUsers->isNotEmpty() && ! $kandidatDuplikat) {
+            // STAGE_REPORT_INCOMING: laporan ini BELUM diverifikasi siapa pun, jadi ia
+            // tidak boleh berbunyi & berbunyi-nama sama dengan panggilan meluncur. Sirine
+            // untuk sesuatu yang bisa saja hoaks melatih petugas mengabaikan sirine, dan
+            // begitu itu terjadi siaran sungguhan ikut terabaikan (TASK_50).
+            Notification::send($commandCenterUsers, new EmergencyAlertNotification($report, 'petugas', EmergencyAlertNotification::STAGE_REPORT_INCOMING));
+        }
+
+        // Aba-aba ke dashboard yang sedang terbuka di wilayah kejadian: kejadian BARU
+        // masuk. Sebelum ini tak ada satu pun siaran saat laporan dibuat — ReportStatusChanged
+        // baru lahir pada transisi BERIKUTNYA (approve/tolak), sehingga laporan masuk hanya
+        // terlihat oleh yang kebetulan me-reload halamannya.
+        // Galat siaran DITELAN (#130): ShouldBroadcastNow menembak Reverb di dalam request
+        // ini, dan saat Reverb mati/salah port ia melempar SESUDAH laporan tersimpan &
+        // Pusat Komando dikabari - warga lalu melihat "Terjadi kesalahan", mengirim ulang,
+        // dan satu kebakaran jadi beberapa laporan. Aba-aba dashboard boleh hilang;
+        // laporan darurat yang sudah masuk tidak boleh berbunyi gagal.
+        try {
+            broadcast(ReportFeedChanged::for($report, 'TERLAPOR'));
+        } catch (Throwable $e) {
+            report($e);
+        }
+
+        return $report;
+    }
+
+    /**
+     * Kirim laporan TANPA LOGIN (TASK_77). Lapis 1 (honeypot + jeda isi) sudah dijaga
+     * GuestReportRequest; di sini batas kirim berlapis (IP, nomor HP, cookie perangkat) lalu
+     * lapis 2 Turnstile. Laporannya sendiri lewat persistReport() yang sama dengan pelapor
+     * ber-akun - jadi ia masuk antrean triase sebagai TERLAPOR dan tak pernah disiarkan ke
+     * petugas lapangan sebelum admin memverifikasinya (#101).
+     */
+    public function guestStore(GuestReportRequest $request): RedirectResponse
+    {
+        // Di LUAR try, alasan sama dengan store(): 429 harus sampai ke penangan global.
+        $limiterKeys = self::guestLimiterKeys($request->ip(), $request->phone, $request->cookie(self::GUEST_DEVICE_COOKIE));
+        foreach ($limiterKeys as $key => $limit) {
+            if (RateLimiter::tooManyAttempts($key, self::GUEST_LIMITS[$limit])) {
+                throw new ThrottleRequestsException(
+                    'Too Many Attempts.',
+                    null,
+                    ['Retry-After' => RateLimiter::availableIn($key)],
+                );
+            }
+        }
+
+        $guestCheck = $this->verifyTurnstile($request);
+
+        try {
+            $report = $this->persistReport($request, null, $guestCheck, function () use ($limiterKeys) {
+                foreach (array_keys($limiterKeys) as $key) {
+                    RateLimiter::hit($key, self::GUEST_LIMIT_WINDOW_SECONDS);
+                }
+            });
+
+            // Satu form satu laporan: kiriman berikutnya harus membuka form lagi (jeda isi baru).
+            $request->session()->forget(GuestReportRequest::SESSION_FORM_OPENED_AT);
+
+            // Tautan status bertanda tangan RELATIF (tanpa host) supaya tetap sah sesudah
+            // dialihkan ke subdomain kabupaten kejadian - tanda tangan absolut mengikat host.
+            $statusPath = URL::temporarySignedRoute(
+                'front.reports.guest.status',
+                now()->addHours(self::GUEST_STATUS_LINK_HOURS),
+                ['report' => $report->id],
+                false,
+            );
+
+            return $this->crossSubdomainRedirect($request, $report, $statusPath) ?? redirect($statusPath);
+        } catch (Throwable $e) {
+            report($e);
+            flashMessage(MessageType::ERROR->message(error: $e->getMessage()), 'error');
+
+            return to_route('front.reports.create');
+        }
+    }
+
+    /**
+     * Lapis 2 lapor tamu: Cloudflare Turnstile. Memulangkan nilai `reports.guest_check`.
+     *
+     * Aturan yang disepakati user (2026-10-11): token PALSU/kedaluwarsa = ditolak, tapi Cloudflare
+     * yang TAK TERJANGKAU (widget gagal dimuat di HP pelapor, atau server kita gagal menghubungi
+     * siteverify) = laporan TETAP DITERIMA bertanda `tanpa_captcha`. Laporan darurat tak boleh
+     * terblokir oleh gangguan layanan pihak ketiga; lapis 1 & batas kirim tetap berlaku.
+     */
+    private function verifyTurnstile(GuestReportRequest $request): string
+    {
+        $secret = config('services.turnstile.secret_key');
+        if (! $secret || ! config('services.turnstile.site_key')) {
+            return 'nonaktif';
+        }
+
+        $token = $request->input('turnstile_token');
+        if (! $token) {
+            if ($request->input('turnstile_status') === 'error') {
+                return 'tanpa_captcha';
+            }
+
+            throw ValidationException::withMessages([
+                'turnstile_token' => 'Tunggu verifikasi "Anda manusia" selesai, lalu kirim lagi.',
+            ]);
+        }
+
+        try {
+            $response = Http::asForm()->timeout(5)->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+                'secret' => $secret,
+                'response' => $token,
+                'remoteip' => $request->ip(),
+            ]);
+        } catch (ConnectionException $e) {
+            report($e);
+
+            return 'tanpa_captcha';
+        }
+
+        if (! $response->successful()) {
+            return 'tanpa_captcha';
+        }
+
+        if ($response->json('success') === true) {
+            return 'turnstile';
+        }
+
+        throw ValidationException::withMessages([
+            'turnstile_token' => 'Verifikasi "Anda manusia" gagal atau kedaluwarsa. Coba kirim lagi.',
+        ]);
+    }
+
+    /**
+     * Status laporan TAMU (TASK_77) lewat tautan bertanda tangan (middleware `signed:relative`).
+     * Tanda tangan itulah gerbangnya - pengganti `user_id` yang tak dimiliki tamu - dan ia hanya
+     * pernah diterbitkan kepada pengirim laporan itu. Karena itu isinya sengaja sesempit halaman
+     * Thanks: nomor, judul, status, jumlah/nama regu yang menuju lokasi. Tanpa foto, alamat,
+     * nama pelapor, maupun tautan ke halaman detail.
+     */
+    public function guestStatus(Request $request, $id): Response
+    {
+        // Bypass Tenantable agar laporan bisa dicari via ID oleh siapa pun yang memegang tautan
+        // (akun yang sedang login pun tersaring wilayahnya). Re-check = tanda tangan URL (ATURAN EMAS #7).
+        $report = Report::withoutGlobalScopes()
+            ->select('id', 'user_id', 'title', 'created_at', 'city_code', 'status')
+            ->findOrFail($id);
+
+        $user = $request->user();
+
+        return inertia('Front/Reports/Thanks', [
+            ...$this->thanksProps($report),
+            'guestView' => [
+                // Tamu yang kemudian masuk/daftar bisa menyimpan laporan ini ke akunnya. Kepemilikan
+                // dibuktikan dengan TAUTAN INI, bukan nomor HP - nomor tak diverifikasi (tanpa OTP),
+                // jadi menautkan lewat nomor = siapa pun bisa mengklaim laporan nomor orang lain.
+                'claimUrl' => $user && $report->user_id === null
+                    ? URL::temporarySignedRoute('front.reports.guest.claim', now()->addHour(), ['report' => $report->id], false)
+                    : null,
+                'loginUrl' => $user ? null : URL::temporarySignedRoute('front.reports.guest.login', now()->addHours(self::GUEST_STATUS_LINK_HOURS), ['report' => $report->id], false),
+                'isOwner' => $user && $report->user_id === $user->id,
+            ],
+        ]);
+    }
+
+    /**
+     * "Masuk untuk menyimpan laporan ini" dari halaman status tamu: kembali ke tautan status
+     * yang SAMA sesudah login, lalu tombol klaim muncul di sana.
+     */
+    public function guestStatusLogin($id): RedirectResponse
+    {
+        $statusPath = URL::temporarySignedRoute(
+            'front.reports.guest.status',
+            now()->addHours(self::GUEST_STATUS_LINK_HOURS),
+            ['report' => (int) $id],
+            false,
+        );
+
+        return redirect()->setIntendedUrl($statusPath)->route('login');
+    }
+
+    /** Tautkan laporan tamu ke akun yang sedang login (tautan klaim bertanda tangan, dari guestStatus). */
+    public function claimGuestReport($id): RedirectResponse
+    {
+        $report = Report::withoutGlobalScopes()->findOrFail($id);
+
+        // Re-check: hanya laporan yang BELUM punya pemilik. Tautan yang bocor tak bisa dipakai
+        // merebut laporan yang sudah tersimpan di akun orang lain.
+        abort_unless($report->user_id === null, 403, 'Laporan ini sudah tersimpan di sebuah akun.');
+
+        $report->update(['user_id' => auth()->id()]);
+
+        // Tulisan ke catatan insiden wajib punya aba-abanya (#113).
+        try {
+            broadcast(new ReportRecordChanged($report->id));
+        } catch (Throwable $e) {
+            report($e);
+        }
+
+        flashMessage('Laporan tersimpan di akun Anda. Kabar perkembangannya kini dikirim ke akun ini.');
+
+        return to_route('front.reports.thanks', $report->id);
     }
 
     /**
@@ -805,12 +1079,21 @@ class ReportController extends Controller
             abort(403, 'Anda tidak memiliki wewenang untuk melihat laporan ini.');
         }
 
+        return inertia('Front/Reports/Thanks', $this->thanksProps($report));
+    }
+
+    /**
+     * Isi halaman Thanks - dipakai pelapor ber-akun (thanks) DAN tamu (guestStatus, TASK_77),
+     * supaya kedua layar tak pernah menampilkan hal yang berbeda.
+     */
+    private function thanksProps(Report $report): array
+    {
         // Pejabat/nomor/instansi SELALU dari kota LAPORAN (pin), bukan subdomain yang dibuka
         // (TASK_17) — jadi selalu akurat wilayah kejadian. Kabupaten non-partner (belum punya
         // tenant): nomor jatuh ke 113 nasional, pejabat kosong (jangan tampilkan nomor kota lain).
         $tenant = Tenant::forCity($report->city_code);
 
-        return inertia('Front/Reports/Thanks', [
+        return [
             'report' => [
                 'id' => $report->id,
                 'title' => $report->title,
@@ -835,7 +1118,7 @@ class ReportController extends Controller
             'teleponDarurat' => $tenant?->telepon_darurat ?: '113',
             'cityCode' => $report->city_code,
             'isPartner' => (bool) $tenant,
-        ]);
+        ];
     }
 
     /**
@@ -882,7 +1165,7 @@ class ReportController extends Controller
      * kembalikan RedirectResponse lintas-subdomain ke halaman Thanks kabupaten itu (TASK_17).
      * Aktif hanya bila TENANT_BASE_DOMAIN di-set (produksi). Null → pemanggil pakai redirect biasa.
      */
-    private function crossSubdomainThanksRedirect(ReportRequest $request, Report $report): ?RedirectResponse
+    private function crossSubdomainRedirect(ReportRequest $request, Report $report, string $path): ?RedirectResponse
     {
         $base = config('services.tenant.base_domain');
         if (! $base) {
@@ -894,8 +1177,8 @@ class ReportController extends Controller
             return null; // non-partner, atau sudah di subdomain yang benar.
         }
 
-        $url = $request->getScheme().'://'.$tenant->subdomain.'.'.$base
-            .route('front.reports.thanks', $report->id, false);
+        // `$path` relatif: Thanks pelapor ber-akun, atau tautan status bertanda tangan tamu (TASK_77).
+        $url = $request->getScheme().'://'.$tenant->subdomain.'.'.$base.$path;
 
         return redirect()->away($url);
     }
