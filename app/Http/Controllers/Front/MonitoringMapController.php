@@ -9,6 +9,7 @@ use App\Models\Pompa;
 use App\Models\PosPemadam;
 use App\Models\Report;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -17,22 +18,77 @@ class MonitoringMapController extends Controller
     /**
      * Peta Pemantauan terpadu (Pusat Komando): satu peta berisi semua layer —
      * kejadian, hydrant, pos pemadam, pompa, dan relawan — masing-masing dengan
-     * filternya sendiri di sisi klien. Data sudah ter-scope yurisdiksi di server:
-     * Report/Hydrant/Pompa/PosPemadam via trait Tenantable (superadmin & admin
-     * nasional otomatis bypass), relawan via User::scopeIsAdmin().
+     * filternya sendiri di sisi klien. Kejadian juga disaring di SERVER (periode, jenis,
+     * kecamatan - TASK_78) karena jumlahnya terus bertambah; fasilitas & relawan tidak.
+     * Data sudah ter-scope yurisdiksi di server: Report/Hydrant/Pompa/PosPemadam via trait
+     * Tenantable (superadmin & admin nasional otomatis bypass), relawan via User::scopeIsAdmin().
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Kejadian: semua status (termasuk 'ditolak' yang diarsipkan, bukan dihapus)
-        // dengan koordinat valid. Difilter per status di klien.
-        //
-        // `regus` = regu yang meluncur ke kejadian itu (TASK_60), dari SNAPSHOT nama regu di baris
-        // responder - sumber yang sama dengan halaman detail, dashboard petugas, & Export Excel.
-        $reports = Report::whereNotNull('lat')->whereNotNull('lng')
+        $filters = $this->reportFilters($request);
+
+        // Kejadian adalah prop SENDIRI (bukan bagian `layers`) dan semua prop berupa closure:
+        // mengganti periode/jenis/kecamatan memuat ulang parsial `reports` saja, tanpa
+        // menghitung ulang hydrant/pompa/pos/relawan yang tak ikut berubah (TASK_78).
+        return Inertia::render('Monitoring/Map', [
+            'reports' => fn () => $this->reports($filters),
+            'report_filters' => $filters,
+            'district_options' => fn () => Report::districtOptionsFor($request->user()),
+            'layers' => fn () => $this->facilityLayers(),
+        ]);
+    }
+
+    /**
+     * Saringan kejadian peta. Tanpa periode = bawaan 7 hari (Report::MAP_DEFAULT_PERIODE);
+     * 'semua' = tanpa batas tanggal, tetap dibatasi MAP_MARKER_LIMIT.
+     */
+    private function reportFilters(Request $request): array
+    {
+        $filters = Report::normalizeListFilters($request->only(['periode', 'from', 'to', 'jenis', 'kecamatan']));
+
+        if ($request->input('periode') === 'semua') {
+            return [...$filters, 'periode' => 'semua', 'from' => null, 'to' => null];
+        }
+
+        if (! $filters['periode'] && ! $filters['from'] && ! $filters['to']) {
+            $filters['periode'] = Report::MAP_DEFAULT_PERIODE;
+        }
+
+        return $filters;
+    }
+
+    /**
+     * Kejadian AKTIF (Laporan Masuk/Terverifikasi/Penanganan) selalu tampil berapa pun umurnya -
+     * kebakaran yang belum selesai tak boleh hilang dari peta hanya karena laporannya lama.
+     * Periode hanya membatasi RIWAYAT (Selesai/Ditolak/Digabung). Yang aktif diurutkan dulu,
+     * jadi batas marker memotong riwayat paling lama lebih dulu, bukan kejadian berjalan.
+     *
+     * `regus` = regu yang meluncur ke kejadian itu (TASK_60), dari SNAPSHOT nama regu di baris
+     * responder - sumber yang sama dengan halaman detail, dashboard petugas, & Export Excel.
+     */
+    private function reports(array $filters): array
+    {
+        [$start, $end] = Report::periodeRange($filters);
+        $limit = Report::MAP_MARKER_LIMIT;
+
+        $rows = Report::query()
+            ->select(['id', 'title', 'address', 'geo_address', 'status', 'lat', 'lng', 'created_at'])
+            ->whereNotNull('lat')->whereNotNull('lng')
+            ->listFilter([...$filters, 'search' => null, 'periode' => null, 'from' => null, 'to' => null])
+            ->when($start || $end, fn ($query) => $query->where(function ($query) use ($start, $end) {
+                $query->whereIn('status', Report::STATUS_AKTIF)
+                    ->orWhere(fn ($query) => $query
+                        ->when($start, fn ($query) => $query->where('created_at', '>=', $start))
+                        ->when($end, fn ($query) => $query->where('created_at', '<=', $end)));
+            }))
             ->with(['officers' => fn ($q) => $q->whereNotNull('regu_name')->select('id', 'report_id', 'regu_name')])
+            ->orderByRaw('CASE WHEN status IN (?, ?, ?) THEN 0 ELSE 1 END', Report::STATUS_AKTIF)
             ->latest('created_at')
-            ->get()
-            ->map(fn (Report $report) => [
+            ->limit($limit + 1)
+            ->get();
+
+        return [
+            'data' => $rows->take($limit)->map(fn (Report $report) => [
                 'id' => $report->id,
                 'title' => $report->title,
                 'location' => $report->alamatTampil(),
@@ -41,8 +97,14 @@ class MonitoringMapController extends Controller
                 'lat' => (float) $report->lat,
                 'lng' => (float) $report->lng,
                 'regus' => $report->officers->pluck('regu_name')->unique()->sort()->values(),
-            ])->values();
+            ])->values(),
+            'truncated' => $rows->count() > $limit,
+            'limit' => $limit,
+        ];
+    }
 
+    private function facilityLayers(): array
+    {
         // Layer hydrant = hydrant resmi (tabel `hydrants`). Hydrant swadaya warga punya
         // tabel sendiri dan ikut layer SKKL di bawah, mengikuti pembagian yang sama dengan
         // menu & halaman publik (TASK_30).
@@ -96,15 +158,12 @@ class MonitoringMapController extends Controller
                 'lng' => (float) $s->lng,
             ])->values();
 
-        return Inertia::render('Monitoring/Map', [
-            'layers' => [
-                'reports' => $reports,
-                'hydrants' => $hydrants,
-                'pumps' => $pumps,
-                'stations' => $stations,
-                'volunteers' => $this->volunteers(),
-            ],
-        ]);
+        return [
+            'hydrants' => $hydrants,
+            'pumps' => $pumps,
+            'stations' => $stations,
+            'volunteers' => $this->volunteers(),
+        ];
     }
 
     /**

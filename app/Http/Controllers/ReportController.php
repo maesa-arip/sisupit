@@ -168,10 +168,11 @@ class ReportController extends Controller
     private function monitoringIndex(User $user): Response
     {
         $status = request('status') ?: 'aktif';
+        $filters = Report::normalizeListFilters(request()->only(['search', 'periode', 'from', 'to', 'jenis', 'kecamatan', 'load']));
 
         $reports = Report::query()
             ->with('user:id,name')
-            ->filter(request()->only(['search']))
+            ->listFilter($filters)
             ->whereNotIn('status', ['TERLAPOR', 'ditolak', Report::STATUS_DIGABUNG])
             ->when($status !== 'Semua', function ($query) use ($status) {
                 if ($status === 'aktif') {
@@ -181,7 +182,7 @@ class ReportController extends Controller
                 }
             })
             ->latest('created_at')
-            ->paginate(request()->load ?? 10)
+            ->paginate($filters['load'])
             ->withQueryString();
 
         return inertia('Admin/Reports/Index', [
@@ -198,11 +199,8 @@ class ReportController extends Controller
                 'title' => 'Pemantauan Laporan',
                 'subtitle' => 'Pantau laporan kejadian di wilayah Anda.',
             ],
-            'state' => [
-                'search' => request()->search ?? '',
-                'status' => $status,
-                'load' => request()->load ?? 10,
-            ],
+            'district_options' => Report::districtOptionsFor($user),
+            'state' => [...$filters, 'status' => $status],
         ]);
     }
 

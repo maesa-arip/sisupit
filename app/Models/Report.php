@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use App\Traits\Tenantable;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Laravolt\Indonesia\Models\City;
 use Laravolt\Indonesia\Models\District;
 use Laravolt\Indonesia\Models\Province;
@@ -84,6 +87,42 @@ class Report extends Model
 
     /** Status yang masih bisa menjadi induk sebuah laporan ganda. */
     public const STATUS_INDUK_DUPLIKAT = ['TERLAPOR', 'pending', 'handling'];
+
+    /**
+     * Saringan daftar laporan (TASK_78) - SATU kamus untuk /admin/reports, daftar pemantau
+     * (pejabat/relawan), Peta Pemantauan, dan Export Excel. Nilai dari query string selalu
+     * lewat normalizeListFilters(): nilai asing DIBUANG (bukan 422), karena halaman daftar yang
+     * memantulkan galat validasi hanya terbaca "filter tidak jalan".
+     *
+     * Periode dihitung dalam tanggal WITA (#134) lalu dikonversi ke UTC. Preset bersifat RELATIF
+     * ("7 hari terakhir" tetap 7 hari terakhir saat tautannya dibuka besok).
+     *
+     * @var list<string>
+     */
+    public const PERIODE_OPTIONS = ['hari_ini', '7_hari', '30_hari', '90_hari', 'rentang'];
+
+    /** @var list<string> Jenis kejadian untuk saringan: turunan FIRE_INCIDENT_TYPES. */
+    public const JENIS_FILTER = ['kebakaran', 'non_kebakaran'];
+
+    /**
+     * Pilihan "baris per halaman". Dulu `?load=` diterima apa adanya, jadi `?load=100000`
+     * menarik seluruh tabel dalam satu respons.
+     *
+     * @var list<int>
+     */
+    public const PER_PAGE_OPTIONS = [10, 25, 50];
+
+    /**
+     * Peta Pemantauan: kejadian AKTIF selalu tampil berapa pun umurnya; riwayat (Selesai,
+     * Ditolak, Digabung) dibatasi periode, bawaannya 7 hari (keputusan user 2026-10-11).
+     * Batas keras marker menjaga peta tetap ringan di ponsel bila periodenya dibuka lebar.
+     */
+    public const MAP_DEFAULT_PERIODE = '7_hari';
+
+    public const MAP_MARKER_LIMIT = 1000;
+
+    /** @var list<string> Laporan yang masih berjalan (sama dengan saringan 'aktif' admin). */
+    public const STATUS_AKTIF = ['TERLAPOR', 'pending', 'handling'];
 
     protected $fillable = [
         'user_id',
@@ -404,9 +443,132 @@ class Report extends Model
                 // Cari berdasarkan judul, alamat, atau nama pelapor
                 $query->where('title', 'like', '%'.$search.'%')
                     ->orWhere('address', 'like', '%'.$search.'%')
+                    // Alamat yang TAMPIL di layar = geo_address lebih dulu (alamatTampil, #95).
+                    ->orWhere('geo_address', 'like', '%'.$search.'%')
                     ->orWhere('name', 'like', '%'.$search.'%');
+
+                // Nomor laporan yang dilihat pengguna (LP-2026-00042) = turunan id (nomorLaporan).
+                if (preg_match('/^LP-?\d{4}-?0*(\d+)$/i', trim($search), $match)) {
+                    $query->orWhere('id', (int) $match[1]);
+                }
             });
         });
+    }
+
+    /**
+     * Saringan daftar (TASK_78): pencarian + periode + jenis + kecamatan. Status SENGAJA tidak
+     * di sini - aturannya beda per pemakai (pemantau tak pernah melihat TERLAPOR/ditolak, peta
+     * menampilkan yang aktif tanpa batas periode). Masukan WAJIB sudah lewat normalizeListFilters().
+     */
+    public function scopeListFilter($query, array $filters)
+    {
+        [$start, $end] = self::periodeRange($filters);
+
+        $query->filter($filters)
+            ->when($start, fn ($query) => $query->where('created_at', '>=', $start))
+            ->when($end, fn ($query) => $query->where('created_at', '<=', $end))
+            ->when($filters['jenis'] ?? null, fn ($query, $jenis) => $query->ofJenis($jenis))
+            ->when($filters['kecamatan'] ?? null, fn ($query, $code) => $query->where('district_code', $code));
+    }
+
+    /** Kebakaran = jenis kebakaran ATAU laporan lama tanpa jenis (sebelum form dipecah, report-icon.js). */
+    public function scopeOfJenis($query, string $jenis)
+    {
+        return $jenis === 'kebakaran'
+            ? $query->where(fn ($q) => $q->whereNull('incident_type')->orWhereIn('incident_type', self::FIRE_INCIDENT_TYPES))
+            : $query->whereNotNull('incident_type')->whereNotIn('incident_type', self::FIRE_INCIDENT_TYPES);
+    }
+
+    /**
+     * Rentang [awal, akhir] dalam UTC dari saringan yang SUDAH dinormalkan, null = tak dibatasi.
+     * Preset dihitung dari tanggal WITA hari ini; 'rentang'/tanpa periode memakai from/to
+     * (keduanya inklusif sehari penuh - rumus Export Excel TASK_65).
+     *
+     * @return array{0: ?Carbon, 1: ?Carbon}
+     */
+    public static function periodeRange(array $filters): array
+    {
+        $tz = config('app.local_timezone');
+        $today = now($tz)->startOfDay();
+
+        $days = ['hari_ini' => 1, '7_hari' => 7, '30_hari' => 30, '90_hari' => 90][$filters['periode'] ?? ''] ?? null;
+        if ($days) {
+            return [$today->copy()->subDays($days - 1)->utc(), null];
+        }
+
+        $from = $filters['from'] ?? null;
+        $to = $filters['to'] ?? null;
+
+        return [
+            $from ? Carbon::createFromFormat('Y-m-d', $from, $tz)->startOfDay()->utc() : null,
+            $to ? Carbon::createFromFormat('Y-m-d', $to, $tz)->endOfDay()->utc() : null,
+        ];
+    }
+
+    /**
+     * Bersihkan saringan dari query string. Nilai asing dibuang diam-diam; tanggal salah format
+     * dibuang; rentang terbalik ditukar; from/to diabaikan bila periodenya preset.
+     */
+    public static function normalizeListFilters(array $input): array
+    {
+        $date = function ($value) {
+            if (! is_string($value) || ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+                return null;
+            }
+            $parsed = \DateTime::createFromFormat('!Y-m-d', $value);
+
+            return $parsed && $parsed->format('Y-m-d') === $value ? $value : null;
+        };
+
+        $periode = in_array($input['periode'] ?? null, self::PERIODE_OPTIONS, true) ? $input['periode'] : null;
+        $preset = $periode && $periode !== 'rentang';
+        $from = $preset ? null : $date($input['from'] ?? null);
+        $to = $preset ? null : $date($input['to'] ?? null);
+        if ($from && $to && $to < $from) {
+            [$from, $to] = [$to, $from];
+        }
+        $search = is_string($input['search'] ?? null) ? mb_substr(trim($input['search']), 0, 100) : '';
+        $kecamatan = $input['kecamatan'] ?? null;
+        $load = (int) ($input['load'] ?? 0);
+
+        return [
+            'search' => $search,
+            'periode' => $periode === 'rentang' && ! $from && ! $to ? null : $periode,
+            'from' => $from,
+            'to' => $to,
+            'jenis' => in_array($input['jenis'] ?? null, self::JENIS_FILTER, true) ? $input['jenis'] : null,
+            'kecamatan' => is_string($kecamatan) && ctype_digit($kecamatan) && strlen($kecamatan) <= 10 ? $kecamatan : null,
+            'load' => in_array($load, self::PER_PAGE_OPTIONS, true) ? $load : self::PER_PAGE_OPTIONS[0],
+        ];
+    }
+
+    /**
+     * Pilihan kecamatan untuk saringan, menurut wilayah EFEKTIF pembacanya (pola Tenantable):
+     * akun yang terkunci satu kecamatan tak diberi pilihan (kosong = saringan disembunyikan),
+     * akun kota mendapat semua kecamatan kotanya, dan superadmin/tingkat provinsi hanya
+     * kecamatan yang memang punya laporan di wilayahnya (lengkap dengan nama kota - nama
+     * kecamatan bisa kembar antarkota).
+     */
+    public static function districtOptionsFor(User $user): Collection
+    {
+        $codes = $user->hasRole('superadmin') ? [] : $user->effectiveJurisdictionCodes();
+
+        if (! empty($codes['district_code'])) {
+            return collect();
+        }
+
+        $query = DB::table('indonesia_districts as d')->orderBy('d.name');
+
+        if (! empty($codes['city_code'])) {
+            return $query->where('d.city_code', $codes['city_code'])->get(['d.code', 'd.name']);
+        }
+
+        $used = static::query()->whereNotNull('district_code')->distinct()->pluck('district_code');
+
+        return $used->isEmpty() ? collect() : $query
+            ->join('indonesia_cities as c', 'c.code', '=', 'd.city_code')
+            ->whereIn('d.code', $used)
+            ->get(['d.code', 'd.name', 'c.name as city']);
     }
 
     /**

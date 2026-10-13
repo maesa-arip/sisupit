@@ -3,6 +3,7 @@ import DatePicker from '@/Components/DatePicker';
 import GuestReporterBadge, { isGuestReport } from '@/Components/GuestReporterBadge';
 import HeaderTitle from '@/Components/HeaderTitle';
 import PaginationLinks from '@/Components/PaginationLinks';
+import ReportFilterFields, { activeReportFilters } from '@/Components/ReportFilterFields';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Checkbox } from '@/Components/ui/checkbox';
@@ -25,6 +26,7 @@ import { reportIcon } from '@/lib/report-icon';
 import { alamatLaporan, cn, MAP_TILE_URL, reportNumber, timeAgo } from '@/lib/utils';
 import { Link, router } from '@inertiajs/react';
 import {
+	IconAdjustmentsHorizontal,
 	IconAlertTriangle,
 	IconChevronRight,
 	IconCircleCheck,
@@ -38,6 +40,7 @@ import {
 	IconSearch,
 	IconStack2,
 	IconUser,
+	IconX,
 } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -318,6 +321,14 @@ export default function Index(props) {
 	const [params, setParams] = useState(props.state);
 	const [activeReportId, setActiveReportId] = useState(null);
 	const [exportOpen, setExportOpen] = useState(false);
+	// Saringan lanjutan (TASK_78): periode, jenis, kecamatan, baris per halaman. Panelnya
+	// terlipat bawaan; yang aktif tetap terbaca lewat chip ringkasan di samping tombol Filter.
+	const [filtersOpen, setFiltersOpen] = useState(false);
+	const districtOptions = props.district_options ?? [];
+	const patchParams = (patch) => setParams((prev) => ({ ...prev, ...patch }));
+	const activeFilters = activeReportFilters(params ?? {}, { districtOptions });
+	const clearFilter = (key) => patchParams(key === 'periode' ? { periode: '', from: '', to: '' } : { [key]: '' });
+	const resetFilters = () => patchParams({ periode: '', from: '', to: '', jenis: '', kecamatan: '' });
 
 	UseFilter({
 		route: route(indexRouteName),
@@ -491,6 +502,61 @@ export default function Index(props) {
 								);
 							})}
 						</div>
+
+						{/* Saringan lanjutan (TASK_78). Inline, bukan pop-up: DatePicker & Combobox di
+						    dalamnya sendiri sudah popover, dan popover bersarang mudah tertutup di ponsel. */}
+						<div className="flex flex-wrap items-center gap-1.5">
+							<button
+								type="button"
+								aria-expanded={filtersOpen}
+								onClick={() => setFiltersOpen((v) => !v)}
+								className={cn(
+									'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] font-semibold transition-colors active:bg-muted',
+									filtersOpen || activeFilters.length > 0
+										? TEAL_ACCENT.pillActive
+										: 'border-input text-muted-foreground hover:bg-accent hover:text-foreground',
+								)}
+							>
+								<IconAdjustmentsHorizontal className="h-4 w-4" />
+								Filter
+								{activeFilters.length > 0 && (
+									<span className="rounded-full bg-primary px-1.5 text-[11px] leading-4 text-primary-foreground">
+										{activeFilters.length}
+									</span>
+								)}
+							</button>
+							{activeFilters.map((chip) => (
+								<button
+									key={chip.key}
+									type="button"
+									onClick={() => clearFilter(chip.key)}
+									aria-label={`Hapus filter ${chip.label}`}
+									className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-muted/60 px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted active:bg-muted"
+								>
+									{chip.label}
+									<IconX className="h-3 w-3 text-muted-foreground" />
+								</button>
+							))}
+							{activeFilters.length > 1 && (
+								<button
+									type="button"
+									onClick={resetFilters}
+									className="px-1.5 text-xs font-semibold text-primary hover:underline"
+								>
+									Hapus semua
+								</button>
+							)}
+						</div>
+						{filtersOpen && (
+							<div className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
+								<ReportFilterFields
+									values={params ?? {}}
+									onChange={patchParams}
+									districtOptions={districtOptions}
+									showPerPage
+								/>
+							</div>
+						)}
 					</div>
 
 					{/* Daftar laporan. Desktop: kolom bergulir di samping peta. Ponsel: mengalir bersama
@@ -679,8 +745,15 @@ export default function Index(props) {
 								<AppEmpty
 									icon={IconClipboardPlus}
 									title="Tidak ada laporan yang ditemukan."
-									description="Coba ubah kata kunci atau pilih status lain."
+									description="Coba ubah kata kunci, status, atau filter lain."
 								/>
+								{activeFilters.length > 0 && (
+									<div className="flex justify-center pb-5">
+										<Button size="sm" variant="outline" onClick={resetFilters}>
+											Hapus semua filter
+										</Button>
+									</div>
+								)}
 							</div>
 						)}
 					</div>

@@ -1,4 +1,6 @@
+import ReportFilterFields, { PERIODE_OPTIONS } from '@/Components/ReportFilterFields';
 import { Button } from '@/Components/ui/button';
+import UseFilter from '@/hooks/UseFilter';
 import AppLayout from '@/Layouts/AppLayout';
 import { escapeHtml } from '@/lib/escape-html';
 import { fitBoundsWhenSized } from '@/lib/leaflet-fit';
@@ -19,7 +21,7 @@ import {
 	IconUser,
 	IconX,
 } from '@tabler/icons-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 
 // Metadata status kejadian — selaras dengan Components/StatusBadge (token semantik).
 const REPORT_STATUS = [
@@ -111,7 +113,15 @@ const LAYERS = [
 	{ key: 'volunteers', label: 'Relawan', icon: IconUser, color: 'text-volunteer', chip: 'volunteer' },
 ];
 
-export default function MonitoringMap({ layers }) {
+// Periode di peta (TASK_78): bawaan server 7 hari (Report::MAP_DEFAULT_PERIODE), jadi "Semua
+// waktu" di sini bernilai 'semua' - nilai kosong berarti "pakai bawaan", bukan "tanpa batas".
+const MAP_PERIODE_OPTIONS = [
+	...PERIODE_OPTIONS.filter((o) => o.value && o.value !== 'rentang'),
+	{ value: 'semua', label: 'Semua waktu' },
+	{ value: 'rentang', label: 'Rentang tanggal' },
+];
+
+export default function MonitoringMap({ layers, reports: reportLayer, report_filters, district_options }) {
 	const mapRef = useRef(null);
 	const mapInstanceRef = useRef(null);
 	const groupsRef = useRef({});
@@ -119,7 +129,25 @@ export default function MonitoringMap({ layers }) {
 	const [panelCollapsed, setPanelCollapsed] = useState(false);
 	const [isMaximized, setIsMaximized] = useState(false);
 
-	const reports = layers?.reports ?? [];
+	// Kejadian disaring di SERVER (periode, jenis, kecamatan) dan dimuat ulang parsial tanpa
+	// menyentuh lapisan fasilitas. Kejadian aktif selalu ikut; periode membatasi riwayat saja.
+	const reports = reportLayer?.data ?? [];
+	const [reportQuery, setReportQuery] = useState(() => ({
+		periode: report_filters?.periode ?? '',
+		from: report_filters?.from ?? '',
+		to: report_filters?.to ?? '',
+		jenis: report_filters?.jenis ?? '',
+		kecamatan: report_filters?.kecamatan ?? '',
+	}));
+	UseFilter({
+		route: route('front.monitoring.map'),
+		values: reportQuery,
+		only: ['reports', 'report_filters'],
+	});
+	const reportStatusCount = useMemo(
+		() => reports.reduce((acc, r) => ({ ...acc, [r.status]: (acc[r.status] ?? 0) + 1 }), {}),
+		[reports],
+	);
 	const hydrants = layers?.hydrants ?? [];
 	const stations = layers?.stations ?? [];
 	const pumps = layers?.pumps ?? [];
@@ -379,7 +407,7 @@ export default function MonitoringMap({ layers }) {
 	// lingkaran markernya di peta (kejadian, fasilitas, dan relawan kini sebentuk).
 	const Dot = ({ className }) => <span className={cn('h-2 w-2 shrink-0 rounded-full', className)} />;
 
-	const StatusChip = ({ active, label, glyph, onClick }) => (
+	const StatusChip = ({ active, label, glyph, onClick, count }) => (
 		<button
 			type="button"
 			onClick={onClick}
@@ -392,6 +420,7 @@ export default function MonitoringMap({ layers }) {
 		>
 			{glyph}
 			{label}
+			{count != null && <span className="tabular-nums text-muted-foreground/70">{count}</span>}
 		</button>
 	);
 
@@ -432,6 +461,7 @@ export default function MonitoringMap({ layers }) {
 								label={s.label}
 								active={!reportHidden.has(s.key)}
 								glyph={<Dot className={!reportHidden.has(s.key) ? s.dot : 'bg-muted-foreground/40'} />}
+								count={reportStatusCount[s.key] ?? 0}
 								onClick={() => toggleHidden(setReportHidden)(s.key)}
 							/>
 						))}
@@ -575,7 +605,34 @@ export default function MonitoringMap({ layers }) {
 					{!panelCollapsed && (
 						<div className="no-scrollbar overflow-y-auto border-t border-border/50 px-3 pb-1">
 							{LAYERS.map((layer, i) => (
-								<LayerBlock key={layer.key} layer={layer} last={i === LAYERS.length - 1} />
+								// ReportFilterFields dirender DI LUAR LayerBlock: LayerBlock didefinisikan di dalam
+								// render (identitasnya baru tiap render), jadi isian di dalamnya akan dipasang ulang.
+								<Fragment key={layer.key}>
+									<LayerBlock
+										layer={layer}
+										last={i === LAYERS.length - 1 || (layer.key === 'reports' && visible.reports)}
+									/>
+									{layer.key === 'reports' && visible.reports && (
+										<div className="space-y-2 border-b border-border/50 pb-3 pl-6">
+											<ReportFilterFields
+												size="sm"
+												idPrefix="map-filter"
+												values={reportQuery}
+												onChange={(patch) => setReportQuery((prev) => ({ ...prev, ...patch }))}
+												districtOptions={district_options ?? []}
+												periodeOptions={MAP_PERIODE_OPTIONS}
+												periodeHint="Kejadian aktif selalu tampil; periode membatasi riwayat (Selesai, Ditolak, Digabung)."
+												popoverClassName="z-[210]"
+											/>
+											{reportLayer?.truncated && (
+												<p className="text-xs font-medium text-warning">
+													Menampilkan {reportLayer.limit} kejadian terbaru - persempit periode
+													atau pilih kecamatan.
+												</p>
+											)}
+										</div>
+									)}
+								</Fragment>
 							))}
 						</div>
 					)}
