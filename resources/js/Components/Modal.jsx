@@ -1,3 +1,4 @@
+import useBackClosesLayer from '@/lib/back-closes-layer';
 import { Dialog, DialogPanel, Transition, TransitionChild } from '@headlessui/react';
 
 export default function Modal({ children, show = false, maxWidth = '2xl', closeable = true, onClose = () => {} }) {
@@ -6,6 +7,8 @@ export default function Modal({ children, show = false, maxWidth = '2xl', closea
 			onClose();
 		}
 	};
+	// Kembali (APK/iOS/browser) menutup modal, bukan meninggalkan halaman (#205).
+	useBackClosesLayer(show, close);
 
 	const maxWidthClass = {
 		sm: 'sm:max-w-sm',

@@ -2,6 +2,7 @@ import * as AlertDialogPrimitive from '@radix-ui/react-alert-dialog';
 import * as React from 'react';
 
 import { buttonVariants } from '@/Components/ui/button';
+import { DismissOnBack } from '@/lib/back-closes-layer';
 import { cn } from '@/lib/utils';
 
 const AlertDialog = AlertDialogPrimitive.Root;
@@ -22,7 +23,8 @@ const AlertDialogOverlay = React.forwardRef(({ className, ...props }, ref) => (
 ));
 AlertDialogOverlay.displayName = AlertDialogPrimitive.Overlay.displayName;
 
-const AlertDialogContent = React.forwardRef(({ className, ...props }, ref) => (
+// Kembali (APK/iOS/browser) menutup dialog, bukan meninggalkan halaman - lib/back-closes-layer.js.
+const AlertDialogContent = React.forwardRef(({ className, children, ...props }, ref) => (
 	<AlertDialogPortal>
 		<AlertDialogOverlay />
 		<AlertDialogPrimitive.Content
@@ -32,7 +34,10 @@ const AlertDialogContent = React.forwardRef(({ className, ...props }, ref) => (
 				className,
 			)}
 			{...props}
-		/>
+		>
+			<DismissOnBack />
+			{children}
+		</AlertDialogPrimitive.Content>
 	</AlertDialogPortal>
 ));
 AlertDialogContent.displayName = AlertDialogPrimitive.Content.displayName;

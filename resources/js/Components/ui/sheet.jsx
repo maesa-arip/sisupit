@@ -4,6 +4,7 @@ import { cva } from 'class-variance-authority';
 import { X } from 'lucide-react';
 import * as React from 'react';
 
+import { DismissOnBack } from '@/lib/back-closes-layer';
 import PullToRefreshLock from '@/lib/pull-to-refresh-lock';
 import { cn } from '@/lib/utils';
 
@@ -53,6 +54,7 @@ const SheetContent = React.forwardRef(({ side = 'right', className, children, ..
 				<span className="sr-only">Tutup</span>
 			</SheetPrimitive.Close>
 			<PullToRefreshLock />
+			<DismissOnBack />
 			{children}
 		</SheetPrimitive.Content>
 	</SheetPortal>
