@@ -4534,7 +4534,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Sisa:** batas Gmail ~500/hari & pengirim @gmail.com (rawan Spam); staging/dev belum dicek (kemungkinan sama-sama
   `log`); user #256 perlu tekan "Kirim ulang email verifikasi".
 
-### #192 — Pencarian lokasi tak toleran salah ketik + peta form lapor terlalu kecil di ponsel (FIXED - branch feat/bottomnav-apple-design, belum dideploy)
+### #192 — Pencarian lokasi tak toleran salah ketik + peta form lapor terlalu kecil di ponsel (FIXED - TERDEPLOY PROD @092d301c; lanjutan Kembali TERDEPLOY PROD @368f0fc6 2026-10-13)
 
 - **Laporan user 2026-10-07:** "di google maps saat saya cari wngiri muncul wanagiri, sedangkan disini tidak ... tampilan
   maps nya terasa sangat kecil dan susah digunakan". Disetujui butir 1-4 (TASK_76).
@@ -4574,7 +4574,8 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   Kembali browser / panah / ketuk ganda / Esc / Pakai lokasi ini / Kembali sesudah Inertia menimpa state -> peta tertutup,
   tetap di /reports/create, isian deskripsi utuh, Kembali berikutnya ke /dashboard (tanpa entri sisa). Penjaga
   `ReportMapFullscreenPickerTest` (+1; sabotase capture & tanpa pemasangan -> merah, `cmp` pulih). Belum diuji di HP/APK.
-  Dialog (Radix) belum memakai helper ini - kandidat lanjutan.
+  Dialog (Radix) belum memakai helper ini - kandidat lanjutan. TERDEPLOY PROD @368f0fc6 2026-10-13 (deploy via konsol
+  user; HTTPS: /login 200 memuat app-CV6lVeh0.js = manifest build, bundel berisi helper).
   Petunjuk koreksi hanya tampil di form lapor; 6 halaman admin fasilitas mendapat koreksinya diam-diam.
 - **Penjaga:** `GeocodeControllerTest` (+10: koreksi 5 pola, tanpa koreksi saat ada hasil, 3 kata yang tak boleh dikoreksi,
   urutan kabupaten tenant; sabotase -> 6 merah, dipulihkan `cmp`), `ReportMapFullscreenPickerTest` (2).
@@ -4770,7 +4771,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Penjaga:** `ReportListFilterTest` (11). Belum diuji di HP.
 - **Di luar scope:** markercluster (library baru) belum dipasang.
 
-### #204 — Pop-up filter Peta Pemantauan terpotong di bawah pada ponsel (FIXED - di-push ke main, deploy via konsol)
+### #204 — Pop-up filter Peta Pemantauan terpotong di bawah pada ponsel (FIXED - TERDEPLOY PROD @368f0fc6 2026-10-13, HTTPS terverifikasi)
 
 - **Laporan user 2026-10-13:** "di tampilan mobile pada peta pemantauan di pop up filter terpotong bagian bawahnya".
 - **Reproduksi:** Playwright headless 390x780 (admin seed): kartu panel 136 px di bawah tepi peta, `scrollHeight` =
