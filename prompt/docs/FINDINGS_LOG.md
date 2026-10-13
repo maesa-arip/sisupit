@@ -4754,3 +4754,16 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   **Kontrak prop peta berubah:** `layers.reports` -> `reports.data`. Rincian: `prompt/tasks/TASK_78_filter_laporan_peta.md`.
 - **Penjaga:** `ReportListFilterTest` (11). Belum diuji di HP.
 - **Di luar scope:** markercluster (library baru) belum dipasang.
+
+### #204 — Pop-up filter Peta Pemantauan terpotong di bawah pada ponsel (FIXED - di-push ke main, deploy via konsol)
+
+- **Laporan user 2026-10-13:** "di tampilan mobile pada peta pemantauan di pop up filter terpotong bagian bawahnya".
+- **Reproduksi:** Playwright headless 390x780 (admin seed): kartu panel 136 px di bawah tepi peta, `scrollHeight` =
+  `clientHeight` (672) - tak bisa digulir.
+- **Akar masalah:** `Pages/Monitoring/Map.jsx` - kartu `max-h-[calc(100%-5rem)]` di dalam pembungkus `absolute left-0
+  top-0` TANPA tinggi, jadi persentase max-h tak berlaku; kartu memanjang mengikuti isi lalu dipotong `overflow-hidden`
+  wadah peta. Bug lama, baru tampak karena kolom filter #202 memanjangkan panel.
+- **Fix:** pembungkus `bottom-0` (setinggi peta) + `pointer-events-none` (celah di luar kartu tetap meneruskan ketukan ke
+  overlay penutup/peta), kartu `pointer-events-auto`. Sesudah: 0 px terpotong di 390x780 & 390x667, isi bisa digulir,
+  ketuk di luar kartu tetap menutup panel.
+- **Penjaga:** `MonitoringMapFilterPanelTest` (sabotase pembungkus tanpa `bottom-0` -> merah). Belum diuji di HP sungguhan.
