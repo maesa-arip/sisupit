@@ -8,6 +8,17 @@ iOS** sebagai daftar centang. Sisi iOS mencentang (`[x]`) saat sudah di-port.
 
 ---
 
+## (web saja, APK tetap 1.1.8) - 2026-10-14 - Kembali menutup dialog (#205)
+
+Tak ada perubahan kode APK. Dialog/AlertDialog/Sheet (Radix) dan Modal (Headless UI) kini mendorong satu entri
+history selama terbuka: `goBack()` menutup dialog teratas, Kembali berikutnya keluar halaman seperti biasa.
+Dialog yang ditutup lewat tombolnya mencabut entrinya sendiri (`history.back()` dari web) - jadi `canGoBack()`
+bisa sesaat berubah; tak ada yang perlu dilakukan native.
+
+**Yang harus dilakukan iOS**
+- [ ] Tanpa kode native. Uji: buka dialog (mis. Profil > Keluar dari semua perangkat) -> geser-kembali = dialog
+      tertutup, tetap di halaman; geser-kembali lagi = keluar.
+
 ## (web saja, APK tetap 1.1.8) - 2026-10-13 - Kembali menutup peta layar penuh form lapor (#192)
 
 Tak ada perubahan kode APK. Saat peta layar penuh form lapor dibuka, web mendorong satu entri history

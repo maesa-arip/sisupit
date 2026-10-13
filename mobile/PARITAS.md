@@ -23,9 +23,9 @@ Terakhir diperbarui: 2026-10-13 (kolom Android dari APK 1.1.8/vc10 + web prod @`
 | Play Store / `market:` / `intent:` keluar app | ✅ 1.1.7 (#185) | 🟡 (`apps.apple.com`/`itms-apps:` → App Store; `market:`/`intent:` n/a di iOS) | PERILAKU #6 |
 | Safe area & keyboard (tanpa jarak dobel dengan `env(safe-area-inset-*)` web) | ✅ 1.1.5 | 🟡 (WebView dipatok safe area + `contentInsetAdjustmentBehavior=.never`; keyboard #187 belum diuji device) | PERILAKU #7 |
 | Tarik-untuk-refresh | ✅ | 🟡 (`UIRefreshControl`; belum diuji device) | PERILAKU #9 |
-| Tombol/gesture Kembali | ✅ | 🟡 (`allowsBackForwardNavigationGestures=true`; peta layar penuh kini ditutup web sejak 2026-10-13; dialog belum) | PERILAKU #10 |
+| Tombol/gesture Kembali | ✅ | 🟡 (`allowsBackForwardNavigationGestures=true`; peta layar penuh & dialog kini ditutup web, #192/#205) | PERILAKU #10 |
 | Kembali menutup peta layar penuh form lapor | 🟡 (web 2026-10-13 `lib/back-closes-layer.js`, belum diuji di HP) | ? (tanpa kode native - uji geser-kembali, CHANGELOG web 2026-10-13) | PERILAKU #10 |
-| Kembali menutup dialog web | ❌ (keluar dari halaman; belum memakai `lib/back-closes-layer.js`) | ❌ (sama - tunggu solusi web; jangan tambal di native) | PERILAKU #10 |
+| Kembali menutup dialog web (Dialog/AlertDialog/Sheet/Modal) | 🟡 (web #205 2026-10-14, belum diuji di HP) | ? (tanpa kode native - uji geser-kembali) | PERILAKU #10 |
 | Lapor tanpa login: status tamu, Turnstile, lintas subdomain tetap di app | 🟡 (web TASK_77, belum diuji di HP) | 🟡 (iframe pihak ketiga lolos, subdomain `hostInternal`, cookie persisten; belum diuji device) | CHANGELOG web 10-07 s/d 10-13 |
 | URL notifikasi/deep link hanya `https` situs sendiri; tanpa akses `file://` | ✅ 1.1.8 (#197) | 🟡 (`PushService` validasi https+host; `javascript:`/`file:` diblokir, #197) | CHANGELOG 1.1.8 |
 | Push: DARURAT bersirine | ✅ (tembus senyap, USAGE_ALARM) | 🟡 (`sirine.caf` di bundle; `interruption-level` time-sensitive, tak tembus senyap tanpa Critical Alerts; belum diuji device) | KONTRAK §4 |

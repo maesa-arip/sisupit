@@ -4783,3 +4783,30 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   overlay penutup/peta), kartu `pointer-events-auto`. Sesudah: 0 px terpotong di 390x780 & 390x667, isi bisa digulir,
   ketuk di luar kartu tetap menutup panel.
 - **Penjaga:** `MonitoringMapFilterPanelTest` (sabotase pembungkus tanpa `bottom-0` -> merah). Belum diuji di HP sungguhan.
+
+### #205 — Tombol Kembali meninggalkan halaman saat dialog terbuka (FIXED - lokal, belum dideploy)
+
+- **Permintaan user 2026-10-14:** "perbaiki juga dialog supaya kembali menutup dialog" (lanjutan #192). Cakupan disetujui:
+  Dialog + AlertDialog + Sheet + Modal Headless UI; popover/dropdown/select TIDAK.
+- **Akar:** dialog = state React tanpa entri history; Kembali APK (`web.goBack()`), geser-kembali iOS, dan Kembali
+  browser langsung meninggalkan halaman (dan Inertia me-mount ulang halaman tujuan).
+- **Fix:** `lib/back-closes-layer.js` dari satu lapisan jadi TUMPUKAN (`pushLayer`/`releaseLayer`): Kembali menutup lapisan
+  teratas; tutup lewat UI mencabut entrinya (`history.back()`, popstate ditelan) lalu entri di bawahnya diisi ulang
+  `replaceState(state terbaru)` - simpan dari dialog ke URL yang sama = Inertia `replaceState` pada entri LAPISAN
+  (`t = t || O(url, location)` di core 2.0.3), tanpa pengisian ulang Kembali/Maju nanti menampilkan data sebelum simpan.
+  Pencabutan beruntun dihitung; lapisan yang dibuka saat pencabutan berjalan diantrekan; pindah URL selagi terbuka
+  (`router.on('navigate')`) membuang entri yang terkubur. `<DismissOnBack />` dirender di Content `ui/dialog.jsx`,
+  `ui/alert-dialog.jsx`, `ui/sheet.jsx` (seperti PullToRefreshLock): Kembali = Escape untuk lapisan Radix teratas
+  (berlaku untuk dialog terkendali maupun tidak); Escape ditolak (Content tetap `data-state=open`) -> entri didorong lagi.
+  `Modal.jsx` (Headless UI, hapus akun) memakai `useBackClosesLayer(show, close)`; hook kini mendorong ulang entri bila
+  `onClose` menolak menutup (`closeable=false`). Hook peta #192 memakai mesin yang sama.
+- **Verifikasi Playwright 390x844 (admin Denpasar lokal):** Dialog peran /admin/users -> Kembali tertutup & tetap di
+  halaman, Kembali lagi ke /dashboard; tutup X -> Kembali langsung keluar (tanpa entri sisa); AlertDialog hapus pengguna
+  (tanpa konfirmasi) tertutup; simpan peran (peran sama, data tak berubah) -> `history.state` berisi flash "Berhasil
+  menetapkan peran ..." (entri dasar terisi ulang), Kembali keluar; Profil: AlertDialog "Keluar dari semua perangkat" &
+  Modal "Hapus Akun" tertutup oleh Kembali. 6 skenario peta #192 tetap lolos. **Tak diuji di peramban:** lapisan
+  bertumpuk (Select/Popover di dalam dialog, AlertDialog di atas Dialog) - tak ada contoh cepat di akun seed; perilakunya
+  bersandar pada Escape Radix yang hanya menutup lapisan teratas + dorong ulang. Belum diuji di HP/APK.
+- **Penjaga:** `BackClosesDialogTest` (2; sabotase tanpa `<DismissOnBack />` di AlertDialog & tanpa `replaceState`
+  -> merah, `cmp` pulih).
+- **Sisa:** popover bilah bawah (Fasilitas/Menu), Popover/Dropdown/Select Radix tidak ikut (di luar cakupan).
