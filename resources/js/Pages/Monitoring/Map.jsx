@@ -569,14 +569,16 @@ export default function MonitoringMap({ layers, reports: reportLayer, report_fil
 				</div>
 			</div>
 
-			{/* Panel filter — tinggi mengikuti konten (tidak memenuhi layar ke bawah) */}
+			{/* Panel filter — tinggi mengikuti konten (tidak memenuhi layar ke bawah). Pembungkus
+			    setinggi peta (`bottom-0`) agar max-h kartu berlaku & isinya bisa digulir (#204); area
+			    kosongnya meneruskan ketukan ke overlay/peta (`pointer-events-none`). */}
 			<div
 				className={cn(
-					'absolute left-0 top-0 z-[20] w-full max-w-[17rem] transition-transform duration-300 ease-spring lg:translate-x-0',
+					'pointer-events-none absolute bottom-0 left-0 top-0 z-[20] w-full max-w-[17rem] transition-transform duration-300 ease-spring lg:translate-x-0',
 					panelOpen ? 'translate-x-0' : '-translate-x-full',
 				)}
 			>
-				<div className="material-thick m-3 mt-16 flex max-h-[calc(100%-5rem)] flex-col overflow-hidden rounded-2xl border border-border/60 shadow-xl">
+				<div className="material-thick m-3 mt-16 pointer-events-auto flex max-h-[calc(100%-5rem)] flex-col overflow-hidden rounded-2xl border border-border/60 shadow-xl">
 					<div className="flex items-center gap-1 px-3 py-2">
 						<button
 							type="button"
