@@ -4558,8 +4558,23 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   Terbuka dari tombol "Layar penuh" atau saat kolom cari difokus; tutup = kembali / Pakai lokasi ini / Esc.
   `PullToRefreshLock` + `body overflow hidden` selama terbuka. Pratinjau `h-[min(42dvh,380px)] min-h-[280px]`, sm+ tetap
   340px. Hasil cari menampilkan "Menampilkan hasil untuk **X**".
-- **Keterbatasan (sama dengan dialog):** tombol Kembali APK = `goBack()` (keluar dari form), tidak menutup layar penuh -
-  repo tak punya pola history untuk lapisan, dan `pushState` berisiko bentrok dengan `history.state` Inertia.
+- **Keterbatasan (sama dengan dialog):** ~~tombol Kembali APK = `goBack()` (keluar dari form), tidak menutup layar penuh -
+  repo tak punya pola history untuk lapisan, dan `pushState` berisiko bentrok dengan `history.state` Inertia.~~
+  **FIXED 2026-10-13 untuk peta layar penuh** (lihat "Lanjutan Kembali" di bawah); dialog lain masih keluar halaman.
+- **Lanjutan Kembali (2026-10-13, permintaan user "perbaiki #192 tombol kembali menutup peta layar penuh"):**
+  helper `lib/back-closes-layer.js` - `useBackClosesLayer(open, onClose)` mendorong satu entri history (URL sama,
+  `history.state` disalin) saat lapisan dibuka dan mengembalikan `close()` (= `history.back()`, ketukan ganda diabaikan);
+  semua jalur tutup form lapor (panah, "Pakai lokasi ini", Esc) lewat `closeMap`. Listener `popstate` global
+  `installBackClosesLayer()` dipasang di `app.jsx` SEBELUM `createInertiaApp` lalu `stopImmediatePropagation()`.
+  **Dua temuan dari node_modules/@inertiajs/core 2.0.3 + Playwright:** (1) `handlePopstateEvent` memulihkan halaman dengan
+  `preserveState: false` -> komponen di-mount ulang, isian form HILANG (terukur: node textarea diganti, deskripsi kosong);
+  (2) listener capture di `window` TIDAK mendahului listener bubble Inertia - urutannya = urutan pendaftaran, jadi rencana
+  awal "capture + stopImmediatePropagation dari hook" gagal dan pemasangan dipindah ke app.jsx. Inertia juga menimpa
+  `history.state` tiap event gulir -> penanda lapisan disimpan di modul, bukan di state. Playwright 390x844, 6 skenario:
+  Kembali browser / panah / ketuk ganda / Esc / Pakai lokasi ini / Kembali sesudah Inertia menimpa state -> peta tertutup,
+  tetap di /reports/create, isian deskripsi utuh, Kembali berikutnya ke /dashboard (tanpa entri sisa). Penjaga
+  `ReportMapFullscreenPickerTest` (+1; sabotase capture & tanpa pemasangan -> merah, `cmp` pulih). Belum diuji di HP/APK.
+  Dialog (Radix) belum memakai helper ini - kandidat lanjutan.
   Petunjuk koreksi hanya tampil di form lapor; 6 halaman admin fasilitas mendapat koreksinya diam-diam.
 - **Penjaga:** `GeocodeControllerTest` (+10: koreksi 5 pola, tanpa koreksi saat ada hasil, 3 kata yang tak boleh dikoreksi,
   urutan kabupaten tenant; sabotase -> 6 merah, dipulihkan `cmp`), `ReportMapFullscreenPickerTest` (2).

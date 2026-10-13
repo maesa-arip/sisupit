@@ -8,6 +8,17 @@ iOS** sebagai daftar centang. Sisi iOS mencentang (`[x]`) saat sudah di-port.
 
 ---
 
+## (web saja, APK tetap 1.1.8) - 2026-10-13 - Kembali menutup peta layar penuh form lapor (#192)
+
+Tak ada perubahan kode APK. Saat peta layar penuh form lapor dibuka, web mendorong satu entri history
+(URL sama); `web.canGoBack()` jadi true, `goBack()` memunculkan `popstate` yang dicegat web lalu peta
+ditutup - isian form tetap utuh, Kembali berikutnya keluar seperti biasa. Helper `lib/back-closes-layer.js`
+(listener dipasang di `app.jsx` sebelum Inertia). Dialog lain belum memakainya (masih keluar halaman).
+
+**Yang harus dilakukan iOS**
+- [ ] Tidak ada kode native. Pastikan `allowsBackForwardNavigationGestures = true`, lalu uji: form lapor ->
+      Layar penuh -> geser-kembali = peta tertutup & isian tetap; geser-kembali lagi = keluar dari form.
+
 ## (web saja, APK tetap 1.1.8) - 2026-10-07 s/d 10-13 - peta form lapor, lapor tanpa login, judul sirine (#188, #192, #201, #203)
 
 Tak ada perubahan kode APK. Web produksi @`1085a18d`.
@@ -17,9 +28,8 @@ Tak ada perubahan kode APK. Web produksi @`1085a18d`.
   `getFreshPosition`: fix akurat & segar dulu, fallback lokasi jaringan sekali - PERILAKU #2).
 - **#192 peta layar penuh di ponsel:** di layar < 640px wadah peta jadi `fixed inset-0 z-[60]`, terbuka dari
   tombol "Layar penuh" atau saat kolom cari difokus; ditutup tombol kembali di peta / "Pakai lokasi ini" / Esc.
-  Selama terbuka `setPullToRefreshEnabled(false)` + `body overflow hidden`. **Celah (OPEN):** tombol Kembali
-  APK = `web.goBack()` -> keluar dari form lapor, BUKAN menutup layar penuh (web tak memasang entri history
-  untuk lapisan; `pushState` berisiko bentrok dengan `history.state` Inertia). Sama untuk dialog.
+  Selama terbuka `setPullToRefreshEnabled(false)` + `body overflow hidden`. Celah tombol Kembali
+  (keluar dari form, bukan menutup layar penuh) DIPERBAIKI 2026-10-13 - lihat entri di atas.
 - **#201/TASK_77 lapor tanpa login:** `/reports/create` terbuka untuk tamu, kirim ke `POST /lapor-darurat`
   (HP wajib, tanpa OTP). Lapis pelindung: honeypot + jeda isi 3 dtk (waktu buka form disimpan di SESI) + batas
   kirim per IP/nomor/cookie perangkat + Cloudflare Turnstile opsional (skrip
@@ -35,8 +45,8 @@ Tak ada perubahan kode APK. Web produksi @`1085a18d`.
 **Yang harus dilakukan iOS**
 - [ ] Jangan cocokkan teks judul notifikasi (mis. di Notification Service Extension) - pakai `data.type` +
       `alert_stage` (KONTRAK §4); judul sirine kini "🚨 Laporan Darurat".
-- [ ] Gestur geser-kembali (`allowsBackForwardNavigationGestures`) punya celah yang sama dengan #192: menutup form
-      lapor, bukan peta layar penuh/dialog. Jangan tambal di native; tunggu solusi web (FINDINGS #192).
+- [ ] ~~Gestur geser-kembali punya celah yang sama dengan #192~~ - peta layar penuh sudah diperbaiki di web
+      (entri 2026-10-13 di atas); dialog masih keluar halaman. Jangan tambal di native.
 - [ ] Uji lapor tamu di perangkat: buka app tanpa login -> Lapor -> kirim -> halaman status terbuka DI DALAM
       WKWebView (termasuk bila dialihkan ke subdomain lain `*.sisupit.com`), cookie sesi & cookie perangkat
       tersimpan (`WKWebsiteDataStore.default()`), iframe Turnstile tampil/lolos (jangan blokir

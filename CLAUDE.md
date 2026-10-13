@@ -101,7 +101,8 @@ TASK_74/#182 : (2026-10-05, TERDEPLOY PROD @198d6c0f) Profil > "Notifikasi di HP
 #192/TASK_76 : (2026-10-07, TERDEPLOY PROD @092d301c, HTTPS terverifikasi) pencarian lokasi toleran typo ("wngiri" -> Wanagiri):
                 kamus nama wilayah provinsi tenant (laravolt + banjars) saat Nominatim nihil, header X-Geocode-Corrected-Query,
                 kabupaten tenant didahulukan; peta form lapor layar penuh di ponsel (wadah sama fixed z-[60], "Pakai lokasi ini").
-                Tombol Kembali APK tidak menutup layar penuh. Belum diuji di HP.
+                Kembali APK/iOS/browser kini MENUTUP layar penuh (2026-10-13, lib/back-closes-layer.js, listener popstate
+                dipasang di app.jsx sebelum Inertia; isian form utuh). Belum diuji di HP.
 #193         : (2026-10-07, TERDEPLOY PROD @092d301c) animasi ketuk bilah bawah patah: jeda dihitung ulang tiap render +
                 clip-path/background-color di main thread. Kini transform/opacity saja + useTapClock (--tap-delay sekali per
                 ketukan, dipatok ke frame pertama). Penjaga MobileNavTapAnimationTest. Belum diuji di HP.
@@ -138,9 +139,9 @@ SEMENTARA    : #149 menu "Jangkauan Petugas" disembunyikan + foto laporan non-ke
 Belum dicek  : visual di ponsel/APK untuk banyak perubahan UI (tombol merah brand, pop-up,
                 combobox, dashboard, bilah bawah) - daftar per task di STATUS_LOG.
 Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115 #119 #121
-                #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174 #188(satelit) #192(Kembali APK).
+                #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174 #188(satelit).
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
-Test         : 828 passed, 4369 assertions (2026-10-13, + #204 MonitoringMapFilterPanelTest panel filter peta).
+Test         : 829 passed, 4379 assertions (2026-10-13, + #192 Kembali menutup peta layar penuh, ReportMapFullscreenPickerTest).
 Lingkungan   : PROD @1085a18d (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#203) | DEV @672b6a10 (dashboard baru) | STAGING @6d1dc8ea (dashboard
                 sebelumnya, untuk perbandingan). Dev & staging: data salinan prod, basic auth (APK dikecualikan), sandi "password".
 ```
@@ -167,7 +168,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-10-13: 828 passed, 4369 assertions - + #204;
+Test      : php artisan test            (baseline 2026-10-13: 829 passed, 4379 assertions - + #192 Kembali;
             lokal: php -d memory_limit=1G -d extension=php_sqlite3.dll -d extension=pdo_sqlite vendor/bin/pest.
             Perbarui angka ini tiap kali test bertambah - baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan. Riwayat angkanya di STATUS_LOG.md)
