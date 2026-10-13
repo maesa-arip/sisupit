@@ -4,7 +4,7 @@ Diverifikasi langsung dari kode pada **2026-10-06**: repo web @`ee72b990` (= pro
 + dokumen) dan sumber APK 1.1.6/vc8 (`MainActivity.java`, `SisupitFirebaseMessagingService.java`). Rujukan baris
 menunjuk repo web kecuali disebut lain.
 Pembaruan sesudahnya (tanpa verifikasi ulang penuh): metode #5-#6 APK 1.1.8/vc10 (#196, 2026-10-08);
-judul sirine "🚨 Laporan Darurat" (#203, 2026-10-13); web prod kini @`1085a18d`.
+judul sirine "🚨 Laporan Darurat" (#203, 2026-10-13); web prod kini @`368f0fc6`.
 
 ---
 
