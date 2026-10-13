@@ -110,19 +110,19 @@ TASK_74/#182 : (2026-10-05, TERDEPLOY PROD @198d6c0f) Profil > "Notifikasi di HP
                 "Jalan X" digabung "X" bila tak ada hasil di kota tenant, "jl."/"jln" saja tanpa pesan. Sisa: "nsa dua".
 #195         : (2026-10-07, di-push ke main, deploy via konsol) ejaan seri (gmitir: Gumitir/Gemitir) SEMUA dicari, hasil
                 TERDEKAT ke pin menang (bukan frekuensi); jeda Nominatim 1,1 dtk hanya host publik, self-hosted 150 ms (~6 -> ~1 dtk).
-#196         : (2026-10-08, lokal) HP versi Play admin sunyi, APK lama bunyi: server sehat (cek prod read-only); izin notifikasi
+#196         : (2026-10-08, web TERDEPLOY PROD @b163413a; APK 1.1.8 di review Play) HP versi Play admin sunyi, APK lama bunyi: server sehat (cek prod read-only); izin notifikasi
                 Android mati = APK membuang notif diam-diam. APK 1.1.8/vc10 getNotificationStatus/openNotificationSettings +
                 kartu "Notifikasi di HP ini" & banner menampilkan "diblokir". AAB/APK di SisupitWebView/app/release/; belum diunggah ke Play.
 #197         : (2026-10-08, lokal) Play Console "Cross-App Scripting" (tenggat 2027-01-05): MainActivity exported=false, extra url
                 hanya https *.sisupit.com, akses file:// WebView mati, fallback intent hanya http(s). Ikut APK 1.1.8 (sama dgn #196).
                 AAB 10 (1.1.8) di Closed testing - Alpha DIKIRIM KE REVIEW 2026-10-08 (full rollout, managed publishing off = terbit saat disetujui).
-#200         : (2026-10-11, lokal) lingkaran Lapor bilah bawah SELALU merah; aktif (form lapor) = cincin 3px jadi halo
+#200         : (2026-10-11, TERDEPLOY PROD @b163413a) lingkaran Lapor bilah bawah SELALU merah; aktif (form lapor) = cincin 3px jadi halo
                 ring-destructive/30 + petir padat + label merah tebal (pilihan user "merah + cincin halo"). PENGECUALIAN #6. Belum diuji di HP.
-#201/TASK_77 : (2026-10-11, lokal, ADA MIGRASI user_id nullable + guest_check) lapor TANPA LOGIN: /reports/create terbuka untuk
+#201/TASK_77 : (2026-10-11, TERDEPLOY PROD @b163413a, ADA MIGRASI user_id nullable + guest_check) lapor TANPA LOGIN: /reports/create terbuka untuk
                 tamu, kirim ke POST /lapor-darurat (HP wajib TANPA OTP, honeypot + jeda 3 dtk + batas IP/nomor/perangkat,
                 Turnstile opsional via TURNSTILE_SITE_KEY/SECRET_KEY - tak memblokir bila Cloudflare tak terjangkau), status
                 tamu = tautan signed:relative 48 jam, klaim akun lewat tautan (bukan nomor). persistReport() = satu jalur simpan.
-#202/TASK_78 : (2026-10-11, branch feat/report-filters, lokal, ADA MIGRASI indeks reports.created_at) filter periode WITA/jenis/
+#202/TASK_78 : (2026-10-11, merge ke main, TERDEPLOY PROD @1085a18d 2026-10-13, HTTPS terverifikasi, ADA MIGRASI indeks reports.created_at) filter periode WITA/jenis/
                 kecamatan/baris per halaman di /admin/reports (+ pemantau) & Peta Pemantauan; satu rumus Report::scopeListFilter
                 (+ Export). Peta: aktif selalu + riwayat 7 hari bawaan, maks 1000 marker, prop `reports.data` (dulu layers.reports).
 #203         : (2026-10-13, TERDEPLOY PROD @b163413a, HTTPS terverifikasi) judul notif sirine (tahap dispatch) 'DARURAT KEBAKARAN!' -> '🚨 Laporan Darurat'.
@@ -139,7 +139,7 @@ Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174 #188(satelit) #192(Kembali APK).
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
 Test         : 827 passed, 4362 assertions (2026-10-11, + #202 ReportListFilterTest filter laporan & peta).
-Lingkungan   : PROD @a5c4a64e (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#194) | DEV @672b6a10 (dashboard baru) | STAGING @6d1dc8ea (dashboard
+Lingkungan   : PROD @1085a18d (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#203) | DEV @672b6a10 (dashboard baru) | STAGING @6d1dc8ea (dashboard
                 sebelumnya, untuk perbandingan). Dev & staging: data salinan prod, basic auth (APK dikecualikan), sandi "password".
 ```
 

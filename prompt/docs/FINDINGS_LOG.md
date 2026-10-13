@@ -4641,7 +4641,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Verifikasi:** Playwright 390px, GPS palsu Kesiman -> "Menampilkan hasil untuk Jalan Gemitir", Jalan Gemitir 464 m
   teratas; GPS pusat -> Gang Gumitir 393 m teratas.
 
-### #196 — HP versi Play tidak menerima notifikasi, HP APK lama berbunyi (FIXED - APK 1.1.8 + web, belum dirilis/dideploy)
+### #196 — HP versi Play tidak menerima notifikasi, HP APK lama berbunyi (FIXED - web TERDEPLOY PROD @b163413a; APK 1.1.8 di review Play)
 
 - **Laporan user 2026-10-08:** akun admin punya 2 HP; HP dari Play Store tak menerima notifikasi, HP dengan APK dari
   web (`/apk/sisupit.apk` = 1.1.4/vc6, targetSdk 34) menerima.
@@ -4678,7 +4678,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   (action_url = route() -> APP_URL https://sisupit.com; subdomain tenant *.sisupit.com ikut diizinkan).
   AAB md5 82f741ad..., APK md5 cca5ed03... di SisupitWebView/app/release/.
 
-### #198 — Laporan kejadian sementara masih bisa diubah setelah versi final dibuat (FIXED - lokal, belum dideploy)
+### #198 — Laporan kejadian sementara masih bisa diubah setelah versi final dibuat (FIXED - TERDEPLOY PROD @b163413a)
 
 - **Permintaan user 2026-10-08:** "untuk laporan kejadian jika sudah dibuat final maka laporan sementara tidak bisa
   diedit lagi". Sejak TASK_67 kedua entri bisa disunting kapan pun.
@@ -4693,7 +4693,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Penjaga:** `ReportResolutionSingleEntryTest` +1 (kunci & buka lagi); dua test lama disesuaikan (hapus sementara
   dipindah ke sebelum final; uji berkas tak dipakai bersama kini lewat hapus final).
 
-### #199 — Tahapan laporan untuk semua + daftar Laporan Kejadian di dashboard pejabat (FIXED - lokal, belum dideploy)
+### #199 — Tahapan laporan untuk semua + daftar Laporan Kejadian di dashboard pejabat (FIXED - TERDEPLOY PROD @b163413a)
 
 - **Permintaan user 2026-10-08:** (1) "tampilkan Tahapan pada semua bukan hanya pada yang melapor" (lanjutan #198);
   (2) dashboard pejabat menampilkan laporan yang perlu Laporan Kejadian dan apakah sudah dibuat - hanya lihat.
@@ -4707,7 +4707,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   Admin/superadmin menerima `null`.
 - **Penjaga:** `DashboardPejabatLaporanKejadianTest` (2).
 
-### #200 — Lingkaran Lapor bilah bawah selalu merah, aktif = cincin halo (FIXED - lokal, belum dideploy)
+### #200 — Lingkaran Lapor bilah bawah selalu merah, aktif = cincin halo (FIXED - TERDEPLOY PROD @b163413a)
 
 - **Permintaan user 2026-10-11:** "rubah mobile bottomnav, buat lapor menjadi merah, tapi bagaimana membedakan
   bahwa itu merah awalnya dan beda saat di klik dan ada di form lapor?" Tiga opsi ditawarkan (dibalik putih/cincin
@@ -4724,7 +4724,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Penjaga:** `MobileNavIconGlyphTest` (test Lapor diganti: merah + halo + petir padat + label tebal, `bg-muted`
   dilarang) dan `LaporRaisedCircleTest` (cincin 3px kedua keadaan). Sabotase "diam = abu" memerahkan keduanya.
 
-### #201 — Lapor tanpa login (FIXED - lokal, belum dideploy, ADA MIGRASI) — TASK_77
+### #201 — Lapor tanpa login (FIXED - TERDEPLOY PROD @b163413a, ADA MIGRASI) — TASK_77
 
 - **Permintaan user 2026-10-11:** "buat fitur lapor tanpa login, bagaimana best practicenya?" Keputusan: TANPA OTP,
   dua lapis pelindung (honeypot + jeda isi + batas kirim; Turnstile opsional yang tak memblokir bila Cloudflare tak
@@ -4739,7 +4739,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   berlaku bagi tamu: deteksi laporan ganda biasa + batas kirim per nomor.
 - **Penjaga:** `GuestReportTest` (21), `GeocodeControllerTest` (test wajib-login diganti). Belum diuji di HP.
 
-### #202 — Filter laporan di /admin/reports & Peta Pemantauan (FIXED - lokal, belum dideploy, ADA MIGRASI indeks) — TASK_78
+### #202 — Filter laporan di /admin/reports & Peta Pemantauan (FIXED - TERDEPLOY PROD @1085a18d 2026-10-13, ADA MIGRASI indeks) — TASK_78
 
 - **Permintaan user 2026-10-11:** filter di admin/reports dan peta pemantauan "karena semakin lama data akan semakin
   banyak", dengan best practice. Keputusan: riwayat peta bawaan 7 hari (aktif selalu tampil), filter kecamatan ikut,
