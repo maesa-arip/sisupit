@@ -37,3 +37,34 @@ it('reads the spelling-correction header the geocode proxy sends', function () {
         ->toContain("'".strtolower(\App\Http\Controllers\Api\GeocodeController::CORRECTED_HEADER)."'")
         ->toContain('Menampilkan hasil untuk');
 });
+
+/*
+ * #192 lanjutan (2026-10-13): Kembali APK (`goBack()`), geser-kembali iOS, dan Kembali browser
+ * dulu MENINGGALKAN form lapor saat peta layar penuh terbuka. Kini lapisan mendorong satu entri
+ * history; popstate dicegat + stopImmediatePropagation SEBELUM Inertia (yang memulihkan halaman
+ * dengan preserveState:false = isian form hilang). Di `window` urutan listener = urutan
+ * pendaftaran (capture TIDAK menolong - terbukti Playwright), jadi pemasangannya wajib di
+ * app.jsx sebelum createInertiaApp.
+ */
+it('lets the back button close the full-screen map instead of leaving the form', function () {
+    $hook = file_get_contents(resource_path('js/lib/back-closes-layer.js'));
+
+    expect($hook)->toContain("window.history.pushState(window.history.state, '', window.location.href)")
+        ->and($hook)->toContain('export function installBackClosesLayer()')
+        ->and($hook)->toContain('event.stopImmediatePropagation()')
+        ->and($hook)->toContain('window.history.back()');
+
+    $app = file_get_contents(resource_path('js/app.jsx'));
+    $install = strpos($app, 'installBackClosesLayer();');
+
+    expect($install)->not->toBeFalse()
+        ->and($install)->toBeLessThan(strpos($app, 'createInertiaApp({'));
+
+    $src = reportCreateSource();
+
+    expect($src)->toContain('const closeMap = useBackClosesLayer(mapExpanded, () => setMapExpanded(false))')
+        // Semua jalur tutup lewat closeMap: tutup langsung = entri history tertinggal.
+        ->and(substr_count($src, 'setMapExpanded(false)'))->toBe(1)
+        ->and(substr_count($src, 'onClick={closeMap}'))->toBe(2)
+        ->and($src)->toContain("if (e.key === 'Escape') closeMap();");
+});

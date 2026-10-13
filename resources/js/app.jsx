@@ -6,6 +6,7 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 import { toast } from 'sonner';
 import { ThemeProvider } from './Components/ThemeProvider';
+import { installBackClosesLayer } from './lib/back-closes-layer';
 import { focusFirstError } from './lib/focus-first-error';
 import { installNavigationTracking } from './lib/navigation';
 import { releaseFcmTokenIfGuest } from './lib/release-fcm-token';
@@ -33,6 +34,10 @@ if (typeof window !== 'undefined') {
 	// Navigasi instan (TASK_70): kerangka halaman tujuan + menu aktif langsung saat diketuk,
 	// dan cache prefetch dibuang setiap kali data berubah. Lihat lib/navigation.js.
 	installNavigationTracking();
+
+	// Kembali menutup lapisan layar penuh (#192). WAJIB sebelum createInertiaApp: listener
+	// popstate ini harus terdaftar lebih dulu dari milik Inertia (lib/back-closes-layer.js).
+	installBackClosesLayer();
 
 	// Aplikasi yang tampil sebagai tamu melepas token FCM-nya (TASK_73, lib/release-fcm-token.js).
 	router.on('navigate', (event) => releaseFcmTokenIfGuest(event.detail.page));

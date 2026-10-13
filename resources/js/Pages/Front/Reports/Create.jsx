@@ -9,6 +9,7 @@ import { Textarea } from '@/Components/ui/textarea';
 import TurnstileWidget from '@/Components/TurnstileWidget';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
+import useBackClosesLayer from '@/lib/back-closes-layer';
 import { compressImages, oversizeMessage, splitOversize } from '@/lib/compress-image';
 import PullToRefreshLock from '@/lib/pull-to-refresh-lock';
 import {
@@ -234,6 +235,9 @@ export default function Create(props) {
 	// Pemilih lokasi layar penuh di ponsel: wadah peta yang SAMA dibesarkan (fixed inset-0),
 	// bukan peta kedua - instans Leaflet, pin, dan kolom cari tetap satu.
 	const [mapExpanded, setMapExpanded] = useState(false);
+	// Kembali (APK/iOS/browser) menutup layar penuh, bukan meninggalkan form (#192). Semua
+	// jalur tutup lewat closeMap, bukan menutup state secara langsung.
+	const closeMap = useBackClosesLayer(mapExpanded, () => setMapExpanded(false));
 	// Nomor urut permintaan terakhir; balasan yang bukan miliknya diabaikan (anti balapan).
 	const searchSeqRef = useRef(0);
 	// Pembeda ketikan user vs teks yang kita isi sendiri setelah sebuah hasil dipilih,
@@ -714,14 +718,14 @@ export default function Create(props) {
 	}, [searchQuery]);
 
 	// Layar penuh peta: halaman di belakangnya tak ikut tergulir, dan Esc menutup (desktop
-	// sempit / keyboard fisik). Tombol Kembali APK tetap goBack() seperti saat dialog terbuka.
+	// sempit / keyboard fisik). Tombol Kembali ditangani useBackClosesLayer.
 	useEffect(() => {
 		if (!mapExpanded) return;
 
 		const previousOverflow = document.body.style.overflow;
 		document.body.style.overflow = 'hidden';
 		const onKeyDown = (e) => {
-			if (e.key === 'Escape') setMapExpanded(false);
+			if (e.key === 'Escape') closeMap();
 		};
 		window.addEventListener('keydown', onKeyDown);
 
@@ -1073,7 +1077,7 @@ export default function Create(props) {
 									{mapExpanded && (
 										<button
 											type="button"
-											onClick={() => setMapExpanded(false)}
+											onClick={closeMap}
 											aria-label="Tutup peta layar penuh"
 											className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-card text-foreground shadow-md active:scale-95 motion-reduce:active:scale-100"
 										>
@@ -1228,7 +1232,7 @@ export default function Create(props) {
 										</div>
 										<Button
 											type="button"
-											onClick={() => setMapExpanded(false)}
+											onClick={closeMap}
 											disabled={locationLoading}
 											className="mt-4 h-12 w-full rounded-xl text-[15px] font-semibold"
 										>
