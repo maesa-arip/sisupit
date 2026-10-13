@@ -54,13 +54,15 @@ git log --oneline -- mobile/                        # apa yang berubah sejak ter
 Baca `CHANGELOG_ANDROID.md` dari atas sampai entri yang sudah di-port, kerjakan butir
 "Yang harus dilakukan iOS", lalu perbarui `PARITAS.md` dan commit.
 
-## Keadaan per 2026-10-06
+## Keadaan per 2026-10-13
 
-- APK **1.1.7 / versionCode 9** (2026-10-06, tautan Play Store/`intent:` #185; sebelumnya 1.1.6/vc8; dikirim ke review
-  Play di jalur "Closed testing - Alpha" 2026-10-06), minSdk 24, targetSdk 36, build Play Store (kunci unggah
+- APK **1.1.8 / versionCode 10** (2026-10-08, izin notifikasi terbaca web #196 + Cross-App Scripting #197;
+  sebelumnya 1.1.7/vc9 tautan Play Store #185; AAB 10 dikirim ke review Play jalur "Closed testing - Alpha"
+  2026-10-08), minSdk 24, targetSdk 36, build Play Store (kunci unggah
   `sisupit-upload.jks`) untuk uji tertutup Google Play (12 penguji × 14 hari). SHA-1 Play App
   Signing belum didaftarkan ke Firebase.
-- Web produksi @`f6de6380`: termasuk TASK_69 (safe area/`viewport-fit=cover`), TASK_73
-  (sesi aplikasi & token FCM), TASK_74 (Profil > "Notifikasi di HP ini").
+- Web produksi @`1085a18d`: termasuk TASK_69 (safe area/`viewport-fit=cover`), TASK_73
+  (sesi aplikasi & token FCM), TASK_74 (Profil > "Notifikasi di HP ini"), #188/#192 (peta form lapor,
+  layar penuh di ponsel), TASK_77 (lapor tanpa login), #203 (judul sirine "🚨 Laporan Darurat").
 - iOS: mulai dikerjakan - titik awal = semua butir `[ ]` di `CHANGELOG_ANDROID.md` +
   kolom iOS `PARITAS.md`.

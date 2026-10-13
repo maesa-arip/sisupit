@@ -5,6 +5,8 @@ Dicek langsung dari kode pada **2026-10-05**: APK 1.1.6/vc8
 `ReportActionController.php`, `app/Notifications/*`). Rincian teknis (kunci payload, blok
 iOS, alasan ID channel) ada di [`KONTRAK.md`](KONTRAK.md) §4 - dokumen ini hanya
 "siapa dapat apa, kapan, bunyinya apa".
+Pembaruan sesudahnya: APK kini 1.1.8/vc10 (aturan kirim tak berubah; web bisa membaca izin
+notifikasi HP, #196); judul sirine #203 (2026-10-13); pelapor TAMU (TASK_77) tak punya token = tak dapat push.
 
 ---
 

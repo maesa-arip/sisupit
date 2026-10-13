@@ -8,6 +8,42 @@ iOS** sebagai daftar centang. Sisi iOS mencentang (`[x]`) saat sudah di-port.
 
 ---
 
+## (web saja, APK tetap 1.1.8) - 2026-10-07 s/d 10-13 - peta form lapor, lapor tanpa login, judul sirine (#188, #192, #201, #203)
+
+Tak ada perubahan kode APK. Web produksi @`1085a18d`.
+
+- **#188 peta form lapor gaya Google:** kolom cari di atas peta, pin diam di tengah (peta yang digeser),
+  tombol "Lokasi saya" di peta memanggil geolokasi lagi (`getUserLocation` ->
+  `getFreshPosition`: fix akurat & segar dulu, fallback lokasi jaringan sekali - PERILAKU #2).
+- **#192 peta layar penuh di ponsel:** di layar < 640px wadah peta jadi `fixed inset-0 z-[60]`, terbuka dari
+  tombol "Layar penuh" atau saat kolom cari difokus; ditutup tombol kembali di peta / "Pakai lokasi ini" / Esc.
+  Selama terbuka `setPullToRefreshEnabled(false)` + `body overflow hidden`. **Celah (OPEN):** tombol Kembali
+  APK = `web.goBack()` -> keluar dari form lapor, BUKAN menutup layar penuh (web tak memasang entri history
+  untuk lapisan; `pushState` berisiko bentrok dengan `history.state` Inertia). Sama untuk dialog.
+- **#201/TASK_77 lapor tanpa login:** `/reports/create` terbuka untuk tamu, kirim ke `POST /lapor-darurat`
+  (HP wajib, tanpa OTP). Lapis pelindung: honeypot + jeda isi 3 dtk (waktu buka form disimpan di SESI) + batas
+  kirim per IP/nomor/cookie perangkat + Cloudflare Turnstile opsional (skrip
+  `https://challenges.cloudflare.com/turnstile/v0/api.js`, iframe; gagal dimuat = TIDAK memblokir). Sesudah
+  kirim, tamu dialihkan ke tautan status bertanda tangan relatif (48 jam) - bisa lintas subdomain kabupaten
+  kejadian. Tamu TIDAK punya token FCM (halaman tamu memanggil `fcm.release`, TASK_73), jadi pelapor tamu
+  tak menerima push; halaman status memuat ulang sendiri tiap 30 dtk. "Masuk untuk menyimpan laporan ini" ->
+  login -> kembali ke tautan status -> klaim.
+- **#203:** judul notifikasi sirine (dispatch) `DARURAT KEBAKARAN!` -> `🚨 Laporan Darurat` (juga untuk
+  kejadian non-kebakaran). Channel, suara, dan `data` payload tidak berubah.
+- #189/#193/#200 (bilah bawah: lingkaran Lapor merah menonjol, animasi ketuk transform/opacity) - tampilan saja.
+
+**Yang harus dilakukan iOS**
+- [ ] Jangan cocokkan teks judul notifikasi (mis. di Notification Service Extension) - pakai `data.type` +
+      `alert_stage` (KONTRAK §4); judul sirine kini "🚨 Laporan Darurat".
+- [ ] Gestur geser-kembali (`allowsBackForwardNavigationGestures`) punya celah yang sama dengan #192: menutup form
+      lapor, bukan peta layar penuh/dialog. Jangan tambal di native; tunggu solusi web (FINDINGS #192).
+- [ ] Uji lapor tamu di perangkat: buka app tanpa login -> Lapor -> kirim -> halaman status terbuka DI DALAM
+      WKWebView (termasuk bila dialihkan ke subdomain lain `*.sisupit.com`), cookie sesi & cookie perangkat
+      tersimpan (`WKWebsiteDataStore.default()`), iframe Turnstile tampil/lolos (jangan blokir
+      `challenges.cloudflare.com` di `decidePolicyFor` - biarkan http(s) pihak ketiga dalam iframe).
+- [ ] Uji tombol "Lokasi saya" di peta form lapor: tidak menanyakan izin dua kali; layar penuh peta tidak
+      tertutup notch/home indicator (`env(safe-area-inset-*)`, PERILAKU #7).
+
 ## 1.1.8 / versionCode 10 - 2026-10-08 - izin notifikasi terlihat dari web (#196) + Cross-App Scripting (#197)
 
 Pemicu: admin dengan 2 HP - HP versi Play (1.1.7, pasang baru) sunyi, HP APK web (1.1.4) berbunyi.

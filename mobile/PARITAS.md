@@ -3,7 +3,7 @@
 Kolom iOS diisi oleh sisi iOS (`✅` selesai & diuji di perangkat, `🟡` ada tapi belum diuji,
 `❌` belum, `n/a` tak berlaku). Perbarui setiap rilis.
 
-Terakhir diperbarui: 2026-10-06 (kolom Android dari APK 1.1.6/vc8 + web prod @`f6de6380`; kolom iOS belum diisi).
+Terakhir diperbarui: 2026-10-13 (kolom Android dari APK 1.1.8/vc10 + web prod @`1085a18d`; kolom iOS belum diisi).
 
 | Fitur | Android | iOS | Rujukan |
 |---|---|---|---|
@@ -24,6 +24,9 @@ Terakhir diperbarui: 2026-10-06 (kolom Android dari APK 1.1.6/vc8 + web prod @`f
 | Safe area & keyboard (tanpa jarak dobel dengan `env(safe-area-inset-*)` web) | ✅ 1.1.5 | ? | PERILAKU #7 |
 | Tarik-untuk-refresh | ✅ | ? | PERILAKU #9 |
 | Tombol/gesture Kembali | ✅ | ? | PERILAKU #10 |
+| Kembali menutup lapisan web (peta layar penuh form lapor, dialog) | ❌ (keluar dari halaman, FINDINGS #192 OPEN - perbaikan di web) | ? | PERILAKU #10 |
+| Lapor tanpa login: status tamu, Turnstile, lintas subdomain tetap di app | 🟡 (web TASK_77, belum diuji di HP) | ? | CHANGELOG web 10-07 s/d 10-13 |
+| URL notifikasi/deep link hanya `https` situs sendiri; tanpa akses `file://` | ✅ 1.1.8 (#197) | ? | CHANGELOG 1.1.8 |
 | Push: DARURAT bersirine | ✅ (tembus senyap, USAGE_ALARM) | ? (time-sensitive: tembus Focus, **tidak** tembus saklar senyap sampai Critical Alerts disetujui Apple) | KONTRAK §4 |
 | Push: LAPORAN MASUK nada `masuk` | ✅ | ? | KONTRAK §4 |
 | Push: KOORDINASI OPD | ✅ nada `konfirmasi` | ? (server kirim `konfirmasi.caf` sejak #158) | KONTRAK §4.3 |
