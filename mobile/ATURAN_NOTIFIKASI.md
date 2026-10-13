@@ -58,7 +58,7 @@ Di Setelan Android > Aplikasi > Sisupit > Notifikasi, keempatnya tampil sebagai 
 
 | Penerima | Bunyi | Judul |
 |---|---|---|
-| **Petugas** di wilayah laporan | 🚨 SIRINE | "🚨 DARURAT KEBAKARAN!" + alamat |
+| **Petugas** di wilayah laporan | 🚨 SIRINE | "🚨 Laporan Darurat" + alamat |
 | **Relawan** yang **siaga ON** di jangkauan relawan | 🚨 SIRINE | (sama) |
 | **Pejabat** yang **siaga ON** di jangkauan pejabat | 🚨 SIRINE | (sama) - disengaja, #97 WONTFIX: pejabat punya saklar siaga sendiri |
 | **Pelapor** | 🔔 BAWAAN | "Laporan Anda divalidasi" |
@@ -210,6 +210,6 @@ nada masuk) **berhenti begitu notifikasi disentuh atau digeser**.
 
 - **Pengulangan sampai disentuh (`FLAG_INSISTENT`) belum pernah diuji di HP sungguhan.**
   Kalau ternyata hanya berbunyi sekali, itu batas Android - jangan bangun foreground service.
-- Judul sirine selalu **"🚨 DARURAT KEBAKARAN!"**, juga untuk kejadian non-kebakaran
+- Judul sirine selalu **"🚨 Laporan Darurat"**, juga untuk kejadian non-kebakaran
   (banjir, evakuasi hewan, dll.).
 - Laporan **ditolak** tidak memberi push ke pelapor (lihat §3 ⑥).

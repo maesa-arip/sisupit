@@ -69,7 +69,7 @@ class EmergencyAlertNotification extends Notification implements ShouldQueue
         }
 
         return [
-            'title' => '🚨 DARURAT KEBAKARAN!',
+            'title' => '🚨 Laporan Darurat',
             'body' => (string) ($alamat ?: $this->report->title),
         ];
     }

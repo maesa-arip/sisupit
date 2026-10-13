@@ -32,7 +32,7 @@ it('carries an apns alert block so the emergency notification actually appears o
     expect($payload)->toHaveKey('apns');
 
     $aps = $payload['apns']['payload']['aps'];
-    expect($aps['alert']['title'])->toBe('🚨 DARURAT KEBAKARAN!')
+    expect($aps['alert']['title'])->toBe('🚨 Laporan Darurat')
         ->and($aps['alert']['body'])->toBe('Jl. Pemogan No. 1')
         ->and($aps['sound'])->toBe('sirine.caf')
         ->and($aps['content-available'])->toBe(1);
@@ -58,7 +58,7 @@ it('keeps the android data-only payload intact (no regression for the live app)'
 
     expect($payload['android']['priority'])->toBe('high')
         ->and($payload)->not->toHaveKey('notification')
-        ->and($payload['data']['title'])->toBe('🚨 DARURAT KEBAKARAN!')
+        ->and($payload['data']['title'])->toBe('🚨 Laporan Darurat')
         ->and($payload['data']['body'])->toBe('Jl. Pemogan No. 1')
         ->and($payload['data']['report_id'])->toBe((string) $this->report->id)
         ->and($payload['data']['type'])->toBe('emergency')
