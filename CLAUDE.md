@@ -127,7 +127,7 @@ TASK_74/#182 : (2026-10-05, TERDEPLOY PROD @198d6c0f) Profil > "Notifikasi di HP
                 kecamatan/baris per halaman di /admin/reports (+ pemantau) & Peta Pemantauan; satu rumus Report::scopeListFilter
                 (+ Export). Peta: aktif selalu + riwayat 7 hari bawaan, maks 1000 marker, prop `reports.data` (dulu layers.reports).
 #203         : (2026-10-13, TERDEPLOY PROD @b163413a, HTTPS terverifikasi) judul notif sirine (tahap dispatch) 'DARURAT KEBAKARAN!' -> '🚨 Laporan Darurat'.
-#205         : (2026-10-14, lokal) Kembali APK/iOS/browser menutup Dialog/AlertDialog/Sheet/Modal, bukan meninggalkan halaman:
+#205         : (2026-10-14, TERDEPLOY PROD @e27eb448, HTTPS terverifikasi) Kembali APK/iOS/browser menutup Dialog/AlertDialog/Sheet/Modal, bukan meninggalkan halaman:
                 <DismissOnBack /> di Content dasar (Escape ke lapisan teratas), lib/back-closes-layer.js jadi tumpukan; tutup lewat
                 UI mencabut entri + entri dasar diisi state terbaru. Penjaga BackClosesDialogTest. Belum diuji di HP.
 #204         : (2026-10-13, TERDEPLOY PROD @368f0fc6, HTTPS terverifikasi) pop-up filter Peta Pemantauan terpotong di ponsel: pembungkus panel tanpa
@@ -145,7 +145,7 @@ Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174 #188(satelit).
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
 Test         : 831 passed, 4391 assertions (2026-10-14, + #205 Kembali menutup dialog, BackClosesDialogTest).
-Lingkungan   : PROD @368f0fc6 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#204 + #192 Kembali) | DEV @672b6a10 (dashboard baru) | STAGING @6d1dc8ea (dashboard
+Lingkungan   : PROD @e27eb448 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#205) | DEV @672b6a10 (dashboard baru) | STAGING @6d1dc8ea (dashboard
                 sebelumnya, untuk perbandingan). Dev & staging: data salinan prod, basic auth (APK dikecualikan), sandi "password".
 ```
 

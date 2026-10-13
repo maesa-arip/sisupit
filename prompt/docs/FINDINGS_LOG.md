@@ -4784,7 +4784,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   ketuk di luar kartu tetap menutup panel.
 - **Penjaga:** `MonitoringMapFilterPanelTest` (sabotase pembungkus tanpa `bottom-0` -> merah). Belum diuji di HP sungguhan.
 
-### #205 — Tombol Kembali meninggalkan halaman saat dialog terbuka (FIXED - lokal, belum dideploy)
+### #205 — Tombol Kembali meninggalkan halaman saat dialog terbuka (FIXED - TERDEPLOY PROD @e27eb448 2026-10-14, HTTPS terverifikasi)
 
 - **Permintaan user 2026-10-14:** "perbaiki juga dialog supaya kembali menutup dialog" (lanjutan #192). Cakupan disetujui:
   Dialog + AlertDialog + Sheet + Modal Headless UI; popover/dropdown/select TIDAK.
