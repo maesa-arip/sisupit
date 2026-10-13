@@ -125,7 +125,7 @@ TASK_74/#182 : (2026-10-05, TERDEPLOY PROD @198d6c0f) Profil > "Notifikasi di HP
 #202/TASK_78 : (2026-10-11, branch feat/report-filters, lokal, ADA MIGRASI indeks reports.created_at) filter periode WITA/jenis/
                 kecamatan/baris per halaman di /admin/reports (+ pemantau) & Peta Pemantauan; satu rumus Report::scopeListFilter
                 (+ Export). Peta: aktif selalu + riwayat 7 hari bawaan, maks 1000 marker, prop `reports.data` (dulu layers.reports).
-#203         : (2026-10-13, di-push ke main @b163413a, deploy via konsol) judul notif sirine (tahap dispatch) 'DARURAT KEBAKARAN!' -> '🚨 Laporan Darurat'.
+#203         : (2026-10-13, TERDEPLOY PROD @b163413a, HTTPS terverifikasi) judul notif sirine (tahap dispatch) 'DARURAT KEBAKARAN!' -> '🚨 Laporan Darurat'.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
                 kolom approved_at tetap. #178 i18n TERDEPLOY prod @dde8c6a4; #179 (ikon, paginasi PaginationLinks, email).
                 #180 terjemahan bawaan Laravel dari paket laravel-lang/common (DEV) TERDEPLOY prod @9bf7b103; paginasi tetap versi #178 -
