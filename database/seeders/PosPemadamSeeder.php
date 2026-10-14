@@ -16,7 +16,7 @@ class PosPemadamSeeder extends Seeder
             [
                 'name' => 'Pos Induk BPBD Kota Denpasar',
                 'address' => 'Jl. Imam Bonjol No. 182, Pemecutan Klod, Denpasar Barat',
-                'phone' => '0361-223333',
+                'phone' => '0361-480066',
                 'vehicle_count' => 5,
                 'type' => 'Pos Induk',
                 'status' => 'Aktif',
@@ -31,7 +31,7 @@ class PosPemadamSeeder extends Seeder
             [
                 'name' => 'Pos Pemadam Sektor Juanda (Renon)',
                 'address' => 'Kawasan Niti Mandala Renon, Denpasar Selatan',
-                'phone' => '0361-223333',
+                'phone' => '0361-480066',
                 'vehicle_count' => 2,
                 'type' => 'Pos Sektor',
                 'status' => 'Aktif',
@@ -45,7 +45,7 @@ class PosPemadamSeeder extends Seeder
             [
                 'name' => 'Pos Pemadam Sektor Mahendradatta',
                 'address' => 'Jl. Mahendradatta, Padangsambian, Denpasar Barat',
-                'phone' => '0361-223333',
+                'phone' => '0361-480066',
                 'vehicle_count' => 3,
                 'type' => 'Pos Sektor',
                 'status' => 'Aktif',
@@ -59,7 +59,7 @@ class PosPemadamSeeder extends Seeder
             [
                 'name' => 'Pos Pemadam Sektor Ubung',
                 'address' => 'Area Terminal Ubung, Denpasar Utara',
-                'phone' => '0361-223333',
+                'phone' => '0361-480066',
                 'vehicle_count' => 2,
                 'type' => 'Pos Sektor',
                 'status' => 'Perbaikan',

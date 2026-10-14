@@ -179,7 +179,7 @@ export default function Form(props) {
 									id="telepon_darurat"
 									value={data.telepon_darurat}
 									onChange={onHandleChange}
-									placeholder={`0361-223333 atau ${NOMOR_DARURAT_NASIONAL}`}
+									placeholder={`0361-480066 atau ${NOMOR_DARURAT_NASIONAL}`}
 								/>
 								<p className="text-xs text-muted-foreground">
 									Ditampilkan di halaman "Laporan Diterima". Pastikan nomor aktif.

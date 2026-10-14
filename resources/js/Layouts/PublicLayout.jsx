@@ -162,11 +162,11 @@ export default function PublicLayout({ children, title }) {
 							<ul className="mt-4 space-y-2.5 text-sm">
 								<li>
 									<a
-										href="tel:(0361)223333"
+										href="tel:(0361)480066"
 										className="inline-flex items-center gap-2 font-semibold text-destructive hover:underline"
 									>
 										<IconPhoneCall className="h-4 w-4" stroke={2} />
-										(0361) 223333
+										(0361) 480066
 									</a>
 								</li>
 								<li>

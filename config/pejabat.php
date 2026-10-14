@@ -28,8 +28,8 @@ return [
     /*
     | Nomor pos Damkar Denpasar — dipakai tombol "Telepon Damkar" di layar
     | "Laporan Diterima". SAFETY-CRITICAL: pastikan nomor ini aktif. Sumber:
-    | pos BPBD/Damkar Kota Denpasar, Jl. Imam Bonjol. Override via .env bila
+    | Damkar Kota Denpasar (BPBD = 0361-223333, nomor lain). Override via .env bila
     | nomor berubah, tanpa rebuild.
     */
-    'telepon_darurat' => env('DAMKAR_TELEPON', '0361-223333'),
+    'telepon_darurat' => env('DAMKAR_TELEPON', '0361-480066'),
 ];

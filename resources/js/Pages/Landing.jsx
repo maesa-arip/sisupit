@@ -147,11 +147,11 @@ export default function Landing({ page_data }) {
 
 						{/* Nomor darurat = aksi SEKUNDER kompak; primer tetap "Lapor Sekarang" (#37 F). */}
 						<a
-							href="tel:0361223333"
+							href="tel:0361480066"
 							className="mt-5 inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-semibold text-muted-foreground shadow-none transition-colors hover:border-destructive/40 hover:text-destructive"
 						>
 							<IconPhoneCall className="h-4 w-4 text-destructive" stroke={2} />
-							Darurat tanpa internet? <span className="font-bold text-destructive">(0361) 223333</span>
+							Darurat tanpa internet? <span className="font-bold text-destructive">(0361) 480066</span>
 						</a>
 					</div>
 

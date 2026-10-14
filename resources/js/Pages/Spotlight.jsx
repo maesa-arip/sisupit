@@ -8,7 +8,7 @@ export default function Spotlight(props) {
 	// Wajah publik kabupaten (TASK_17) dari shared prop: judul & nomor darurat ikut subdomain.
 	const tenant = usePage().props.tenant || {};
 	const namaInstansi = tenant.nama_instansi || 'Damkar Kota Denpasar';
-	const teleponDarurat = tenant.telepon_darurat || '(0361) 223333';
+	const teleponDarurat = tenant.telepon_darurat || '(0361) 480066';
 	const telHref = `tel:${teleponDarurat.replace(/[^0-9+]/g, '')}`;
 
 	const [isWebView, setIsWebView] = useState(true);
