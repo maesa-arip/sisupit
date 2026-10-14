@@ -156,6 +156,11 @@ update` (hanya menjalankan program baru; worker lain tak di-restart). supervisor
   pembaruan keamanan MySQL MANUAL: cadangkan DB, lalu `apt install --only-upgrade 'mysql-*'` di jam
   sepi (dini hari WITA).
 
+## Cadangan otomatis ke Google Drive (2026-10-14)
+
+Produksi saja: dump DB + `.env` + `storage/app` tiap malam via cron `/etc/cron.d/sisupit-backup`
+-> `/root/backup-gdrive.sh` (salinan `deploy/backup-gdrive.sh`). Pemasangan & pemulihan: `deploy/backup-gdrive.md`.
+
 ## Catatan keamanan
 
 - Data produksi (termasuk **PII warga**) disalin ke staging/dev atas keputusan user.
