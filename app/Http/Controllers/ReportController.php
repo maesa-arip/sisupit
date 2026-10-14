@@ -997,7 +997,7 @@ class ReportController extends Controller
         // Bypass Tenantable agar laporan bisa dicari via ID oleh siapa pun yang memegang tautan
         // (akun yang sedang login pun tersaring wilayahnya). Re-check = tanda tangan URL (ATURAN EMAS #7).
         $report = Report::withoutGlobalScopes()
-            ->select('id', 'user_id', 'title', 'created_at', 'city_code', 'status')
+            ->select('id', 'user_id', 'title', 'created_at', 'city_code', 'status', 'rejected_reason')
             ->findOrFail($id);
 
         $user = $request->user();
@@ -1067,7 +1067,7 @@ class ReportController extends Controller
         // Bypass Tenantable agar bisa dicari via ID (withoutGlobalScopes — aturan
         // emas #7: wajib recheck otorisasi manual di bawah).
         $report = Report::withoutGlobalScopes()
-            ->select('id', 'user_id', 'title', 'created_at', 'city_code', 'status')
+            ->select('id', 'user_id', 'title', 'created_at', 'city_code', 'status', 'rejected_reason')
             ->findOrFail($id);
 
         $user = auth()->user();
@@ -1102,6 +1102,9 @@ class ReportController extends Controller
                 // berbunyi "Laporan Masuk". Perubahan berikutnya masuk lewat channel
                 // report-tracking.{id} yang sudah ada (pelapor memang sudah berhak di sana).
                 'status' => $report->status,
+                // Alasan tolak untuk kartu status: tanpa ini pelapor (terutama TAMU, yang tak bisa
+                // membuka detail laporan) hanya membaca "ditolak" tanpa tahu sebabnya.
+                'rejected_reason' => $report->rejected_reason,
             ],
             // Siapa yang sedang menuju / sudah di lokasi, untuk satu baris keterangan di atas tombol
             // "Pantau Bantuan" (permintaan user 2026-10-03). Petanya sengaja HANYA di halaman detail.

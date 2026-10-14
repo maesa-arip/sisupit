@@ -51,7 +51,7 @@ export const describeUnits = (stage) => {
 /**
  * Kotak "Status laporan": badge + mini-stepper 4 tahap, atau keterangan untuk ditolak/digabung.
  */
-export function ReportStepper({ status, className }) {
+export function ReportStepper({ status, rejectedReason = null, className }) {
 	const currentStep = STEP_STATUS.indexOf(status);
 
 	return (
@@ -62,10 +62,18 @@ export function ReportStepper({ status, className }) {
 			</div>
 
 			{status === STATUS_DITOLAK ? (
-				<p className="text-xs leading-relaxed text-muted-foreground">
-					Laporan ini ditandai tidak dapat ditindaklanjuti oleh Pusat Komando. Bila keadaan daruratnya masih
-					berlangsung, segera telepon Damkar.
-				</p>
+				<div className="space-y-2">
+					<p className="text-xs leading-relaxed text-muted-foreground">
+						Laporan ini ditandai tidak dapat ditindaklanjuti oleh Pusat Komando. Bila keadaan daruratnya
+						masih berlangsung, segera telepon Damkar.
+					</p>
+					{rejectedReason && (
+						<div className="rounded-lg border border-border bg-muted p-3 text-xs text-foreground/80">
+							<span className="font-semibold">Alasan: </span>
+							{rejectedReason}
+						</div>
+					)}
+				</div>
 			) : status === STATUS_DIGABUNG ? (
 				<p className="text-xs leading-relaxed text-muted-foreground">
 					Kejadian ini sudah dilaporkan warga lain dan sedang diproses Pusat Komando. Laporan Anda digabungkan

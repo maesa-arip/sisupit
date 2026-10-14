@@ -200,6 +200,19 @@ it('shows a guest the status of their report only through the signed link', func
     $this->get($location)->assertForbidden();
 });
 
+it('shows the guest why their report was rejected on the status page', function () {
+    $location = guestPost($this)->headers->get('Location');
+    $report = Report::withoutGlobalScopes()->sole();
+    $report->update(['status' => 'ditolak', 'rejected_reason' => 'Lokasi di luar wilayah layanan']);
+
+    // Tamu tak bisa membuka detail laporan, jadi alasannya wajib sampai di halaman status.
+    $this->get($location)
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('report.status', 'ditolak')
+            ->where('report.rejected_reason', 'Lokasi di luar wilayah layanan'));
+});
+
 it('never opens the incident detail page to a guest', function () {
     guestPost($this);
     $report = Report::withoutGlobalScopes()->sole();

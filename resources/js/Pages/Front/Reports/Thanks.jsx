@@ -40,9 +40,11 @@ export default function ReportThanks({
 	const telHref = teleponDarurat ? `tel:${teleponDarurat.replace(/[^0-9+]/g, '')}` : null;
 
 	const [status, setStatus] = useState(report.status || 'TERLAPOR');
+	const [rejectedReason, setRejectedReason] = useState(report.rejected_reason ?? null);
 
 	// Prop bisa berganti tanpa remount (mis. halaman dibuka ulang lewat navigasi Inertia).
 	useEffect(() => setStatus(report.status || 'TERLAPOR'), [report.status]);
+	useEffect(() => setRejectedReason(report.rejected_reason ?? null), [report.rejected_reason]);
 
 	// Pelapor tetap di halaman ini sambil menunggu; tanpa ini ia harus me-reload untuk tahu
 	// laporannya sudah divalidasi atau sudah ada yang meluncur. Memakai channel & event yang
@@ -54,7 +56,10 @@ export default function ReportThanks({
 
 		const name = `report-tracking.${report.id}`;
 		window.Echo.private(name)
-			.listen('ReportStatusChanged', (e) => setStatus(e.status))
+			.listen('ReportStatusChanged', (e) => {
+				setStatus(e.status);
+				setRejectedReason(e.rejectedReason ?? null);
+			})
 			// Meluncur/Batal/Tiba/Selesai - baris "sedang menuju lokasi" ikut berubah tanpa reload.
 			.listen('ResponderRosterChanged', () => router.reload({ only: ['responders'] }));
 
@@ -139,7 +144,7 @@ export default function ReportThanks({
 						</div>
 
 						{/* Mini-stepper: tahap yang SEDANG berlaku, bergerak sendiri lewat WebSocket. */}
-						<ReportStepper status={status} />
+						<ReportStepper status={status} rejectedReason={rejectedReason} />
 
 						<div className="space-y-2 pt-2">
 							<ResponderSummary status={status} responders={responders} />
