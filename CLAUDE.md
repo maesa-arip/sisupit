@@ -132,8 +132,8 @@ TASK_74/#182 : (2026-10-05, TERDEPLOY PROD @198d6c0f) Profil > "Notifikasi di HP
                 UI mencabut entri + entri dasar diisi state terbaru. Penjaga BackClosesDialogTest. Belum diuji di HP.
 #204         : (2026-10-13, TERDEPLOY PROD @368f0fc6, HTTPS terverifikasi) pop-up filter Peta Pemantauan terpotong di ponsel: pembungkus panel tanpa
                 tinggi -> max-h kartu tak berlaku. Kini bottom-0 + pointer-events-none. Penjaga MonitoringMapFilterPanelTest.
-#206-#208    : (2026-10-14, LOKAL di main, belum di-commit/deploy) #206 nomor Damkar Denpasar 0361-480066 (BPBD 223333) di kode;
-                prod butuh edit DATA tenants.telepon_darurat di /admin/tenants. #207 alasan ditolak di kartu status (tamu & pelapor).
+#206-#208    : (2026-10-14, TERDEPLOY PROD @9d316286, HTTPS terverifikasi) #206 nomor Damkar Denpasar 0361-480066 (BPBD 223333) di kode;
+                DATA tenants.telepon_darurat prod MASIH 0361-223333 - ubah di /admin/tenants. #207 alasan ditolak di kartu status (tamu & pelapor).
                 #208/TASK_79 statistik kunjungan per hari /admin/visits (superadmin), RecordSiteVisit -> 2 tabel agregat, ADA MIGRASI.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
                 kolom approved_at tetap. #178 i18n TERDEPLOY prod @dde8c6a4; #179 (ikon, paginasi PaginationLinks, email).
@@ -148,7 +148,7 @@ Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174 #188(satelit).
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
 Test         : 838 passed, 4466 assertions (2026-10-14, + #207 alasan tolak tamu & #208 SiteVisitTest).
-Lingkungan   : PROD @e27eb448 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#205) | DEV @672b6a10 (dashboard baru) | STAGING @6d1dc8ea (dashboard
+Lingkungan   : PROD @9d316286 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#208) | DEV @672b6a10 (dashboard baru) | STAGING @6d1dc8ea (dashboard
                 sebelumnya, untuk perbandingan). Dev & staging: data salinan prod, basic auth (APK dikecualikan), sandi "password".
 ```
 

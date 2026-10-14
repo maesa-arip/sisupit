@@ -6,8 +6,8 @@
 | Severity | P3 |
 | Tipe | fitur |
 | Sumber | permintaan user 2026-10-14 ("Buat fitur kunjungan ke web per hari") |
-| Branch | `main` (lokal, belum di-commit) |
-| Status | DONE - lokal, belum dideploy (ADA MIGRASI `2026_10_14_100000_create_site_visit_tables`) |
+| Branch | `main` (@0ecd240f fitur, @9d316286 docs) |
+| Status | DONE - TERDEPLOY PROD @9d316286 2026-10-14 (ADA MIGRASI `2026_10_14_100000_create_site_visit_tables`) |
 
 ## 1. Keputusan user (2026-10-14)
 

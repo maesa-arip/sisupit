@@ -4811,7 +4811,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   -> merah, `cmp` pulih).
 - **Sisa:** popover bilah bawah (Fasilitas/Menu), Popover/Dropdown/Select Radix tidak ikut (di luar cakupan).
 
-### #206 — Nomor Damkar Denpasar tertukar dengan BPBD (FIXED - lokal, belum dideploy)
+### #206 — Nomor Damkar Denpasar tertukar dengan BPBD (FIXED - kode TERDEPLOY PROD @9d316286 2026-10-14, HTTPS terverifikasi; DATA tenant belum)
 
 - **Permintaan user 2026-10-14:** "ganti nomor, 0361 480066 damkar Denpasar, 0361 223333 bpbd".
 - **Akar:** `(0361) 223333` (nomor BPBD) dipakai sebagai nomor DAMKAR di footer `PublicLayout`, tombol "Darurat tanpa
@@ -4821,7 +4821,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **SISA (DATA, bukan kode):** Thanks/Spotlight/Info membaca `tenants.telepon_darurat` di DB. Superadmin wajib mengubah
   tenant Denpasar di `/admin/tenants` -> `0361-480066`; nomor pos di `/admin/fire-stations` dicek (seeder tak jalan saat deploy).
 
-### #207 — Alasan ditolak tak tampil di kartu status laporan tamu (FIXED - lokal, belum dideploy)
+### #207 — Alasan ditolak tak tampil di kartu status laporan tamu (FIXED - TERDEPLOY PROD @9d316286 2026-10-14)
 
 - **Laporan user 2026-10-14:** "Alasan ditolak belum muncul di card step laporan saat belum login".
 - **Akar:** `ReportController::thanksProps()` (dipakai `thanks` & `guestStatus`, TASK_77) hanya mengirim `status`;
@@ -4830,7 +4830,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   "Alasan: ..." (gaya sama dengan detail). Pelapor ber-akun mendapatnya realtime dari `ReportStatusChanged.rejectedReason`,
   tamu lewat muat ulang 30 dtk. Penjaga: GuestReportTest "shows the guest why their report was rejected".
 
-### #208 — Statistik kunjungan web per hari (FITUR - lokal, belum dideploy, ADA MIGRASI) — TASK_79
+### #208 — Statistik kunjungan web per hari (FITUR - TERDEPLOY PROD @9d316286 2026-10-14, ADA MIGRASI, HTTPS terverifikasi) — TASK_79
 
 - **Permintaan user 2026-10-14:** "Buat fitur kunjungan ke web per hari". Keputusan: superadmin saja; pengunjung unik +
   halaman dibuka; rincian web/APK, tamu/masuk akun, halaman terpopuler, per tenant.
