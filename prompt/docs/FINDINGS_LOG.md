@@ -4811,14 +4811,14 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   -> merah, `cmp` pulih).
 - **Sisa:** popover bilah bawah (Fasilitas/Menu), Popover/Dropdown/Select Radix tidak ikut (di luar cakupan).
 
-### #206 — Nomor Damkar Denpasar tertukar dengan BPBD (FIXED - kode TERDEPLOY PROD @9d316286 2026-10-14, HTTPS terverifikasi; DATA tenant belum)
+### #206 — Nomor Damkar Denpasar tertukar dengan BPBD (FIXED - TERDEPLOY PROD @9d316286 2026-10-14 + DATA tenant diubah user, HTTPS terverifikasi)
 
 - **Permintaan user 2026-10-14:** "ganti nomor, 0361 480066 damkar Denpasar, 0361 223333 bpbd".
 - **Akar:** `(0361) 223333` (nomor BPBD) dipakai sebagai nomor DAMKAR di footer `PublicLayout`, tombol "Darurat tanpa
   internet?" `Landing`, cadangan `Spotlight`, bawaan `config/pejabat.php` (`DAMKAR_TELEPON`), 4 pos Denpasar di
   `PosPemadamSeeder`, dan contoh isian `Admin/Tenants/Form`.
 - **Fix:** semuanya -> `0361-480066`. `AgencySeeder` BPBD tetap `(0361) 223333` (sudah benar).
-- **SISA (DATA, bukan kode):** Thanks/Spotlight/Info membaca `tenants.telepon_darurat` di DB. Superadmin wajib mengubah
+- **DATA (selesai 2026-10-14, diubah user; /tentang, /spotlight, /pusat-bantuan = 0361-480066):** Thanks/Spotlight/Info membaca `tenants.telepon_darurat` di DB. Superadmin wajib mengubah
   tenant Denpasar di `/admin/tenants` -> `0361-480066`; nomor pos di `/admin/fire-stations` dicek (seeder tak jalan saat deploy).
 
 ### #207 — Alasan ditolak tak tampil di kartu status laporan tamu (FIXED - TERDEPLOY PROD @9d316286 2026-10-14)

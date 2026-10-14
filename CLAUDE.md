@@ -133,7 +133,7 @@ TASK_74/#182 : (2026-10-05, TERDEPLOY PROD @198d6c0f) Profil > "Notifikasi di HP
 #204         : (2026-10-13, TERDEPLOY PROD @368f0fc6, HTTPS terverifikasi) pop-up filter Peta Pemantauan terpotong di ponsel: pembungkus panel tanpa
                 tinggi -> max-h kartu tak berlaku. Kini bottom-0 + pointer-events-none. Penjaga MonitoringMapFilterPanelTest.
 #206-#208    : (2026-10-14, TERDEPLOY PROD @9d316286, HTTPS terverifikasi) #206 nomor Damkar Denpasar 0361-480066 (BPBD 223333) di kode;
-                DATA tenants.telepon_darurat prod MASIH 0361-223333 - ubah di /admin/tenants. #207 alasan ditolak di kartu status (tamu & pelapor).
+                DATA tenants.telepon_darurat prod sudah 0361-480066 (diubah user, terverifikasi HTTPS). #207 alasan ditolak di kartu status (tamu & pelapor).
                 #208/TASK_79 statistik kunjungan per hari /admin/visits (superadmin), RecordSiteVisit -> 2 tabel agregat, ADA MIGRASI.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
                 kolom approved_at tetap. #178 i18n TERDEPLOY prod @dde8c6a4; #179 (ikon, paginasi PaginationLinks, email).
