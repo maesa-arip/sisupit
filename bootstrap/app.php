@@ -26,6 +26,8 @@ return Application::configure(basePath: dirname(__DIR__))
             // melewati buffer FastCGI Nginx 4 KB -> "upstream sent too big header" = 502. Tag
             // modulepreload yang sama sudah dicetak @vite di app.blade.php, jadi header itu mubazir.
             \App\Http\Middleware\EnsureProfileComplete::class,
+            // Statistik kunjungan per hari (TASK_79) - menulis di terminate(), sesudah respons.
+            \App\Http\Middleware\RecordSiteVisit::class,
         ])->validateCsrfTokens(except: [
             'payments/callback',
         ])

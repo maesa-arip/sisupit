@@ -2,6 +2,7 @@ import {
 	IconAddressBook,
 	IconBellCog,
 	IconBuildingCommunity,
+	IconChartBar,
 	IconClipboardPlus,
 	IconDashboard,
 	IconDroplet,
@@ -410,6 +411,13 @@ export function buildNavSections({ auth, url = '' }) {
 							icon: IconBuildingCommunity,
 							url: route('admin.tenants.index'),
 							active: startsWith('/admin/tenants'),
+						},
+						{
+							key: 'admin.visits',
+							title: 'Statistik Kunjungan',
+							icon: IconChartBar,
+							url: route('admin.visits.index'),
+							active: startsWith('/admin/visits'),
 						},
 						{
 							key: 'admin.settings',

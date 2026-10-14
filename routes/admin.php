@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\RouteAccessController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\SiteVisitController;
 use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
@@ -85,5 +86,8 @@ Route::middleware(['auth', 'verified', 'role:admin|superadmin'])->prefix('admin'
             Route::put('tenants/edit/{tenant}', 'update')->name('admin.tenants.update');
             Route::delete('tenants/destroy/{tenant}', 'destroy')->name('admin.tenants.destroy');
         });
+
+        // Statistik kunjungan web per hari (TASK_79) - lintas-tenant, superadmin saja.
+        Route::get('visits', [SiteVisitController::class, 'index'])->name('admin.visits.index');
     });
 });
