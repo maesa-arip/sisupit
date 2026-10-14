@@ -4810,3 +4810,31 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Penjaga:** `BackClosesDialogTest` (2; sabotase tanpa `<DismissOnBack />` di AlertDialog & tanpa `replaceState`
   -> merah, `cmp` pulih).
 - **Sisa:** popover bilah bawah (Fasilitas/Menu), Popover/Dropdown/Select Radix tidak ikut (di luar cakupan).
+
+### #206 — Nomor Damkar Denpasar tertukar dengan BPBD (FIXED - lokal, belum dideploy)
+
+- **Permintaan user 2026-10-14:** "ganti nomor, 0361 480066 damkar Denpasar, 0361 223333 bpbd".
+- **Akar:** `(0361) 223333` (nomor BPBD) dipakai sebagai nomor DAMKAR di footer `PublicLayout`, tombol "Darurat tanpa
+  internet?" `Landing`, cadangan `Spotlight`, bawaan `config/pejabat.php` (`DAMKAR_TELEPON`), 4 pos Denpasar di
+  `PosPemadamSeeder`, dan contoh isian `Admin/Tenants/Form`.
+- **Fix:** semuanya -> `0361-480066`. `AgencySeeder` BPBD tetap `(0361) 223333` (sudah benar).
+- **SISA (DATA, bukan kode):** Thanks/Spotlight/Info membaca `tenants.telepon_darurat` di DB. Superadmin wajib mengubah
+  tenant Denpasar di `/admin/tenants` -> `0361-480066`; nomor pos di `/admin/fire-stations` dicek (seeder tak jalan saat deploy).
+
+### #207 — Alasan ditolak tak tampil di kartu status laporan tamu (FIXED - lokal, belum dideploy)
+
+- **Laporan user 2026-10-14:** "Alasan ditolak belum muncul di card step laporan saat belum login".
+- **Akar:** `ReportController::thanksProps()` (dipakai `thanks` & `guestStatus`, TASK_77) hanya mengirim `status`;
+  `ReportStepper` menulis keterangan umum "ditolak". Tamu tak bisa membuka detail laporan (satu-satunya tempat alasan tampil).
+- **Fix:** `rejected_reason` ikut di prop `report` Thanks; `ReportStepper` menerima `rejectedReason` dan menampilkan kotak
+  "Alasan: ..." (gaya sama dengan detail). Pelapor ber-akun mendapatnya realtime dari `ReportStatusChanged.rejectedReason`,
+  tamu lewat muat ulang 30 dtk. Penjaga: GuestReportTest "shows the guest why their report was rejected".
+
+### #208 — Statistik kunjungan web per hari (FITUR - lokal, belum dideploy, ADA MIGRASI) — TASK_79
+
+- **Permintaan user 2026-10-14:** "Buat fitur kunjungan ke web per hari". Keputusan: superadmin saja; pengunjung unik +
+  halaman dibuka; rincian web/APK, tamu/masuk akun, halaman terpopuler, per tenant.
+- **Rancangan:** middleware `RecordSiteVisit` (grup web, menulis di `terminate()`) -> dua tabel AGREGAT harian
+  `site_visitors_daily` (hash IP+UA bergaram harian dari APP_KEY, tanpa IP mentah) & `site_page_views_daily` (nama rute).
+  Halaman `/admin/visits` (`Admin\SiteVisitController`, `Admin/Visits/Index.jsx`), menu Sistem > Statistik Kunjungan.
+  Rincian lengkap di `prompt/tasks/TASK_79_statistik_kunjungan.md`. Penjaga: `SiteVisitTest`.
