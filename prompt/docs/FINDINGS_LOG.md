@@ -4839,7 +4839,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   Halaman `/admin/visits` (`Admin\SiteVisitController`, `Admin/Visits/Index.jsx`), menu Sistem > Statistik Kunjungan.
   Rincian lengkap di `prompt/tasks/TASK_79_statistik_kunjungan.md`. Penjaga: `SiteVisitTest`.
 
-### #209 — Notifikasi "menunggu verifikasi" tertinggal di HP admin setelah laporan ditangani (FIXED - LOKAL 2026-10-15, belum di-deploy)
+### #209 — Notifikasi "menunggu verifikasi" tertinggal di HP admin setelah laporan ditangani (FIXED - TERDEPLOY PROD @cda1d458 2026-10-15)
 
 - **Laporan user 2026-10-15 (peran admin):** "di apk muncul notif di notification bar laporan perlu verifikasi admin,
   kemudian statusnya diam, tapi saat saya buka ternyata sudah penanganan".
@@ -4856,7 +4856,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   tetap melihat notifikasi triase lama di HP-nya sendiri (ia dikecualikan, seperti semua siaran); aplikasi desktop
   (.exe) tak disentuh. Penjaga: `TriageDecidedNotificationTest` (sabotase terbukti merah, dipulihkan byte-exact).
 
-### #210 — Marker petugas tak bergerak (juga saat "Sampai di Lokasi") karena layar HP terkunci (FIXED - LOKAL 2026-10-15, web belum deploy; APK 1.1.9 belum diunggah) — TASK_80
+### #210 — Marker petugas tak bergerak (juga saat "Sampai di Lokasi") karena layar HP terkunci (FIXED - TERDEPLOY PROD @42ef296b 2026-10-15, HTTPS terverifikasi; APK 1.1.9 belum diunggah) — TASK_80
 
 - **Laporan user 2026-10-15:** "saat petugas klik sampai dilokasi tapi marker di peta masih tidak gerak"; dikonfirmasi
   "hp petugas pasti dikunci".
@@ -4870,7 +4870,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Penjaga:** `ReguAttendanceTest` (Tiba memindahkan penekan; Show.jsx memanggil jembatan). Sabotase terbukti merah.
 - **Sisa:** uji di HP; Play Console deklarasi foreground service `location` (+ video); iOS belum (CHANGELOG_ANDROID).
 
-### #211 — `updateLocation` menerima posisi dari petugas/relawan mana pun untuk laporan mana pun (FIXED - LOKAL 2026-10-15, belum deploy) — TASK_80
+### #211 — `updateLocation` menerima posisi dari petugas/relawan mana pun untuk laporan mana pun (FIXED - TERDEPLOY PROD @42ef296b 2026-10-15) — TASK_80
 
 - **Akar:** `ReportActionController::updateLocation()` hanya memeriksa peran - tanpa keanggotaan, tanpa status insiden.
   Petugas/relawan (lintas tenant pun) bisa menulis TrackingLog dan menyiarkan posisi ke channel laporan lain, dan

@@ -6,7 +6,7 @@
 | Severity | P1 (pelapor & Pusat Komando tak melihat petugas bergerak) |
 | Tipe | bugfix + fitur kecil (APK) |
 | Sumber | permintaan user 2026-10-15 ("saat petugas klik sampai dilokasi tapi marker di peta masih tidak gerak"; "hp petugas pasti dikunci") |
-| Status | DONE LOKAL 2026-10-15 - web belum deploy; AAB 1.1.9/vc11 belum diunggah; belum diuji di HP |
+| Status | Web TERDEPLOY PROD & STAGING @42ef296b 2026-10-15 (HTTPS terverifikasi); AAB 1.1.9/vc11 belum diunggah; video demo Play di SisupitWebView/app/release/play-console/; belum diuji di HP |
 
 ## 1. Masalah
 
