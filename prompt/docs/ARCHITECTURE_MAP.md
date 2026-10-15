@@ -187,9 +187,14 @@ POST /reports/{id}/approve
 POST /reports/{id}/update-location  (tanpa nama rute, dipanggil axios background dari React)
   → ReportActionController::updateLocation
   → hasAnyRole(['petugas','relawan'])
+  → gerbang keanggotaan (#211): baris en_route/arrived milik pemanggil & insiden belum ditutup,
+    selain itu 200 {"status":"stopped"} tanpa menulis (sinyal berhenti layanan lokasi APK 1.1.9, #210)
   → DB::transaction: UPDATE posisi terkini di report_officers/report_helpers (raw DB::table)
                     + INSERT TrackingLog (append-only)
   → broadcast(ResponderLocationUpdated)  → Reverb → command center map (Leaflet)
+Pengirim: watchPosition di Pages/Front/Reports/Show.jsx (hanya saat halaman terbuka & layar menyala)
+  + APK 1.1.9 ResponderTrackingService (layar terkunci; dinyalakan AndroidBridge.startResponderTracking).
+POST /reports/{id}/arrive juga menulis posisi saat Tiba ditekan (lat/lng/accuracy opsional, #210).
 ```
 
 **3. Otorisasi channel privat (WebSocket)**

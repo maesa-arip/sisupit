@@ -2607,6 +2607,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + #207 alasan tolak di kartu status tamu, GuestReportTest (2026-10-14) = 832 passed, 4404 assertions.
             + #208/TASK_79 statistik kunjungan per hari, SiteVisitTest (2026-10-14) = 838 passed, 4466 assertions.
             + #209 notif triase admin ditimpa kabar keputusan, TriageDecidedNotificationTest (2026-10-15) = 843 passed, 4488 assertions.
+            + #210/#211 TASK_80 Tiba kirim posisi + gerbang updateLocation + jembatan APK 1.1.9, ReguAttendanceTest (2026-10-15) = 846 passed, 4512 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

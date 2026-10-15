@@ -61,6 +61,8 @@ window.AndroidBridge = {
 | 3 | `setPullToRefreshEnabled(bool)` | `lib/pull-to-refresh-lock.js` (dialog, Sheet, Dropdown, Popover, Select, popover bilah bawah) - `false` saat panel pertama terbuka DAN di setiap `touchstart` selama terbuka, `true` saat panel terakhir tertutup (dihitung, panel bisa bertumpuk) | matikan/nyalakan tarik-untuk-refresh. Sejak 1.1.6 Android memakai bendera + `setOnChildScrollUpCallback` dan meresetnya di **`onPageStarted`** (1.1.4/1.1.5 menyalakan lagi di `onPageFinished`, yang ikut terpanggil oleh `history.replaceState` - #162) | **1.1.4 (TASK_65)** |
 | 5 | `getNotificationStatus()` → **string JSON** `{"enabled": bool, "blockedChannels": ["Darurat", ...]}` | `lib/fcm-device.js` `refreshNativeNotificationStatus()` - saat jembatan terdeteksi (`AppLayout.jsx`) dan dari callback `onNativeNotificationStatusChanged` | `enabled` = notifikasi aplikasi diizinkan (`areNotificationsEnabled`); `blockedChannels` = NAMA channel aktif berimportance NONE. Sinkron (nilai balik), bukan callback | **1.1.8** |
 | 6 | `openNotificationSettings()` | tombol "Izinkan notifikasi"/"Buka setelan notifikasi" di `NotificationDeviceCard.jsx` | izin Android 13+ belum ada → dialog izin (ditolak < 500 ms = dialog tak tampil lagi → buka Setelan); selain itu → Setelan notifikasi aplikasi. Lalu panggil `onNativeNotificationStatusChanged` | **1.1.8** |
+| 7 | `startResponderTracking(reportId: string, origin: string)` | `Pages/Front/Reports/Show.jsx` - tiap render selama responder Meluncur/Tiba di insiden itu (`isCurrentlyResponding`); dipanggil berulang, native wajib idempoten | jalankan layanan lokasi latar depan (notifikasi tetap) yang POST `{origin}/reports/{id}/update-location` JSON `{lat,lng}` dengan cookie sesi WebView + header `X-XSRF-TOKEN` (cookie `XSRF-TOKEN` di-URL-decode) + UA ber-`SisupitApp`; ≥ 5 dtk / 10 m. **Berhenti sendiri** pada balasan `{"status":"stopped"}`, 401/403/404/3xx, atau 8 jam. Tolak `origin` yang bukan domain sendiri. Simpan Set-Cookie balasan ke CookieManager (419 = token basi, coba lagi) | **1.1.9 (#210)** |
+| 8 | `stopResponderTracking()` | `Show.jsx` - saat misi DI INSIDEN ITU berakhir di layar (batal Meluncur / insiden ditutup). Membuka insiden lain TIDAK memanggilnya | hentikan layanan & hapus notifikasinya | **1.1.9 (#210)** |
 | 4 | `onBackgroundColorDetected(rgb, isLight)` | **bukan web** - skrip yang disuntik native sendiri tiap `onPageFinished` (MutationObserver + interval 1 dtk membaca `background-color` body/html) | warnai status bar & navigation bar, ikon terang/gelap menurut `isLight` | lama |
 
 Metode 3 bersifat opsional di web (`typeof … === 'function'`); iOS **wajib** memasangnya
@@ -72,6 +74,13 @@ kartu "Notifikasi di HP ini" tetap seperti dulu (status tak diketahui, andalkan 
 ada: saat izin notifikasi mati, APK membuang notifikasi DIAM-DIAM sementara server dan tombol uji
 melapor "terkirim" (#196). iOS: padanannya `UNUserNotificationCenter.getNotificationSettings`
 (`authorizationStatus`) dan `UIApplication.openNotificationSettingsURLString`.
+
+Metode 7 & 8 opsional di web (`typeof … === 'function'`): APK ≤ 1.1.8, iOS, dan browser tetap
+hanya melacak lewat `watchPosition` selama halaman detail terbuka - posisi membeku saat layar
+terkunci (#210). Web tetap mengirim dari `watchPosition` juga saat halaman terbuka (ping ganda
+disengaja, tahan kegagalan layanan). iOS: padanannya `CLLocationManager` dengan
+`allowsBackgroundLocationUpdates = true` + `showsBackgroundLocationIndicator`, UIBackgroundModes
+`location`, izin "When In Use" cukup bila dimulai saat aplikasi terlihat.
 
 Metode 4 di iOS opsional - padanannya adalah mewarnai area safe-area atas; boleh diganti
 cara native lain asal status bar tetap terbaca di mode gelap.

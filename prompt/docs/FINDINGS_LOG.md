@@ -4855,3 +4855,27 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Sisa diketahui:** satu bunyi bawaan di HP admin lain (harga opsi ini); pemutus yang memverifikasi dari web/desktop
   tetap melihat notifikasi triase lama di HP-nya sendiri (ia dikecualikan, seperti semua siaran); aplikasi desktop
   (.exe) tak disentuh. Penjaga: `TriageDecidedNotificationTest` (sabotase terbukti merah, dipulihkan byte-exact).
+
+### #210 — Marker petugas tak bergerak (juga saat "Sampai di Lokasi") karena layar HP terkunci (FIXED - LOKAL 2026-10-15, web belum deploy; APK 1.1.9 belum diunggah) — TASK_80
+
+- **Laporan user 2026-10-15:** "saat petugas klik sampai dilokasi tapi marker di peta masih tidak gerak"; dikonfirmasi
+  "hp petugas pasti dikunci".
+- **Akar:** (1) `arrive()` hanya mengubah status, tombol Tiba mengirim `{}`; (2) posisi hanya dikirim
+  `watchPosition` di `Show.jsx` selama halaman detail terbuka & layar menyala - WebView berhenti saat terkunci; APK
+  tak punya layanan lokasi. Pelapor melihat marker membeku di titik berangkat.
+- **Fix A (web):** Tiba membawa `getClickLocation()`; server menulisnya sebagai posisi terkini PENEKAN + TrackingLog +
+  `ResponderLocationUpdated`. Lokasi rusak/kosong tak menggagalkan tombol.
+- **Fix B (APK 1.1.9/vc11 + web):** `ResponderTrackingService` + jembatan `startResponderTracking`/`stopResponderTracking`
+  (mobile/KONTRAK.md #7-#8); `Show.jsx` menyalakannya selama Meluncur/Tiba. APK lama/iOS/browser = perilaku lama.
+- **Penjaga:** `ReguAttendanceTest` (Tiba memindahkan penekan; Show.jsx memanggil jembatan). Sabotase terbukti merah.
+- **Sisa:** uji di HP; Play Console deklarasi foreground service `location` (+ video); iOS belum (CHANGELOG_ANDROID).
+
+### #211 — `updateLocation` menerima posisi dari petugas/relawan mana pun untuk laporan mana pun (FIXED - LOKAL 2026-10-15, belum deploy) — TASK_80
+
+- **Akar:** `ReportActionController::updateLocation()` hanya memeriksa peran - tanpa keanggotaan, tanpa status insiden.
+  Petugas/relawan (lintas tenant pun) bisa menulis TrackingLog dan menyiarkan posisi ke channel laporan lain, dan
+  ping tetap tercatat sesudah misi selesai.
+- **Fix:** gerbang keanggotaan (baris `en_route`/`arrived` milik pemanggil, insiden tidak resolved/ditolak/digabung);
+  selain itu 200 `{"status":"stopped"}` tanpa menulis - sekaligus sinyal berhenti layanan lokasi APK (#210).
+  Ditemukan saat mengerjakan #210 dan dikerjakan bersamanya karena B membutuhkan sinyal itu.
+- **Penjaga:** `ReguAttendanceTest` "accepts location pings only from responders still on the mission". Sabotase merah.

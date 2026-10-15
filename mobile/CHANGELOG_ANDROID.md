@@ -8,6 +8,21 @@ iOS** sebagai daftar centang. Sisi iOS mencentang (`[x]`) saat sudah di-port.
 
 ---
 
+## 1.1.9 / vc11 - 2026-10-15 - Lokasi petugas tetap terkirim saat layar terkunci (#210, TASK_80)
+
+Keluhan user: "petugas klik sampai di lokasi tapi marker di peta masih tidak gerak" - HP petugas selalu dikunci,
+WebView menghentikan `watchPosition`. Baru: `ResponderTrackingService` (foreground service tipe `location`,
+channel `tracking_channel_v1` "Pelacakan Lokasi Tugas", IMPORTANCE_LOW, notifikasi tetap) + jembatan
+`startResponderTracking(reportId, origin)` / `stopResponderTracking()` (KONTRAK §2.1 #7-#8). Manifest:
+`FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_LOCATION` (TANPA `ACCESS_BACKGROUND_LOCATION` - dimulai saat terlihat).
+LocationManager GPS + jaringan (tanpa dependensi baru), 5 dtk / 10 m, fix jaringan diabaikan selama GPS < 20 dtk.
+Play Console: deklarasi izin layanan latar depan "location" + video wajib diisi sebelum review.
+
+**Yang harus dilakukan iOS**
+- [ ] Shim `startResponderTracking`/`stopResponderTracking` di `window.AndroidBridge`.
+- [ ] `CLLocationManager` + UIBackgroundModes `location`, POST ke `update-location` dengan cookie WKWebView
+      (`WKHTTPCookieStore`) + `X-XSRF-TOKEN`; berhenti pada `{"status":"stopped"}`/401/403/404/3xx.
+
 ## (web saja, APK tetap 1.1.8) - 2026-10-14 - Kembali menutup dialog (#205)
 
 Tak ada perubahan kode APK. Dialog/AlertDialog/Sheet (Radix) dan Modal (Headless UI) kini mendorong satu entri
