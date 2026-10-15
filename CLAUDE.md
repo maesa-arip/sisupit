@@ -139,8 +139,8 @@ TASK_74/#182 : (2026-10-05, TERDEPLOY PROD @198d6c0f) Profil > "Notifikasi di HP
                 TriageDecidedNotification (type report_status, report_id sama -> menimpa; apns-collapse-id) saat approve/tolak/gabung.
                 Tanpa migrasi, tanpa APK baru. Penjaga TriageDecidedNotificationTest.
 #210-#211/   : (2026-10-15, TERDEPLOY PROD & STAGING @42ef296b, HTTPS terverifikasi) marker petugas beku saat HP terkunci: Tiba kini mengirim posisi (web);
-TASK_80        APK 1.1.9/vc11 ResponderTrackingService (FGS location) + jembatan start/stopResponderTracking, AAB di
-                SisupitWebView/app/release/ BELUM diunggah (Play: deklarasi FGS location + video demo di app/release/play-console/). #211 updateLocation gerbang
+TASK_80        APK 1.1.9/vc11 ResponderTrackingService (FGS location) + jembatan start/stopResponderTracking, AAB 11 (1.1.9)
+                DIKIRIM KE REVIEW Play (Closed testing - Alpha, full rollout, managed publishing off) 2026-10-15; deklarasi FGS = User-initiated location sharing + video YouTube Unlisted LH5SEHRkJyI. #211 updateLocation gerbang
                 keanggotaan, balas {"status":"stopped"}. Tanpa migrasi. Belum diuji di HP.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
                 kolom approved_at tetap. #178 i18n TERDEPLOY prod @dde8c6a4; #179 (ikon, paginasi PaginationLinks, email).
