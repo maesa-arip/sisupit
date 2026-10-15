@@ -385,7 +385,7 @@ role:admin|superadmin   : /admin/users/*, /admin/facilities (dead, no view),
                            POST /admin/banjars/require (saklar "warga wajib pilih banjar",
                            ditolak server bila master masih kosong),
                            /admin/reports/* (export: `status`, `search`, `from`/`to` = tanggal WITA
-                           inklusif, TASK_65; index: `status`, `search` (juga nomor LP), `periode`,
+                           inklusif, TASK_65; `jenis` kebakaran/non_kebakaran, nilai asing 422, #213; index: `status`, `search` (juga nomor LP), `periode`,
                            `from`/`to`, `jenis`, `kecamatan`, `load` 10/25/50 - TASK_78, nilai asing
                            dibuang oleh Report::normalizeListFilters, sama di front.reports.index pemantau)
 role:superadmin (admin.php): /admin/announcements/*, /admin/roles/*, /admin/permissions/*,

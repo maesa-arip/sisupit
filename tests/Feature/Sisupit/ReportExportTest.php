@@ -337,3 +337,51 @@ it('rejects a reversed or malformed export date range instead of guessing', func
     // Hanya "sampai" tanpa "dari" tetap sah.
     $this->actingAs($admin)->get('/admin/reports/export?to=2026-09-10')->assertOk();
 });
+
+// #213: pop-up Ekspor Excel kini bisa membatasi kebakaran / non-kebakaran, rumus SATU dengan
+// saringan daftar (Report::scopeOfJenis, TASK_78): laporan lama TANPA jenis dihitung kebakaran.
+it('limits the excel export to fire or non-fire incidents', function () {
+    $admin = User::factory()->create(['province_code' => '51']);
+    $admin->assignRole('admin');
+    makeReport(['title' => 'Rumah terbakar', 'incident_type' => 'rumah', 'province_code' => '51']);
+    makeReport(['title' => 'Laporan lama tanpa jenis', 'incident_type' => null, 'province_code' => '51']);
+    makeReport(['title' => 'Pohon tumbang', 'incident_type' => 'lainnya', 'province_code' => '51']);
+
+    $fire = exportedCells($this->actingAs($admin)->get('/admin/reports/export?jenis=kebakaran'));
+    expect($fire)->toContain('Rumah terbakar')
+        ->and($fire)->toContain('Laporan lama tanpa jenis')
+        ->and($fire)->not->toContain('Pohon tumbang')
+        ->and(collect($fire)->contains(fn ($c) => str_contains((string) $c, 'Jenis: Kebakaran  |')))->toBeTrue();
+
+    $other = exportedCells($this->actingAs($admin)->get('/admin/reports/export?jenis=non_kebakaran'));
+    expect($other)->toContain('Pohon tumbang')
+        ->and($other)->not->toContain('Rumah terbakar')
+        ->and($other)->not->toContain('Laporan lama tanpa jenis')
+        ->and(collect($other)->contains(fn ($c) => str_contains((string) $c, 'Jenis: Non-kebakaran')))->toBeTrue();
+
+    $all = exportedCells($this->actingAs($admin)->get('/admin/reports/export'));
+    expect($all)->toContain('Rumah terbakar')
+        ->and($all)->toContain('Pohon tumbang')
+        ->and(collect($all)->contains(fn ($c) => str_contains((string) $c, 'Jenis: Semua Jenis')))->toBeTrue();
+});
+
+it('rejects an unknown export incident kind instead of exporting everything', function () {
+    $admin = User::factory()->create(['province_code' => '51']);
+    $admin->assignRole('admin');
+
+    $this->actingAs($admin)->get('/admin/reports/export?jenis=banjir')->assertSessionHasErrors('jenis');
+});
+
+it('offers the same incident kinds in the export dialog as the list filter', function () {
+    $page = file_get_contents(resource_path('js/Pages/Admin/Reports/Index.jsx'));
+    $fields = file_get_contents(resource_path('js/Components/ReportFilterFields.jsx'));
+
+    // Pilihan pop-up dibaca dari JENIS_OPTIONS (bukan daftar sendiri) dan ikut ke tautan unduhan.
+    expect($page)->toContain('activeReportFilters, JENIS_OPTIONS }')
+        ->and($page)->toContain('{JENIS_OPTIONS.map((option) => (')
+        ->and($page)->toContain('...(jenis ? { jenis } : {}),');
+
+    foreach (\App\Models\Report::JENIS_FILTER as $value) {
+        expect($fields)->toContain("value: '{$value}'");
+    }
+});

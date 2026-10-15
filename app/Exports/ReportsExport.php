@@ -82,6 +82,15 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
         'lainnya' => 'Bukan Kebakaran',
     ];
 
+    /**
+     * Label saringan jenis di kop (#213), seiring dengan JENIS_OPTIONS di
+     * `resources/js/Components/ReportFilterFields.jsx` (pilihan di pop-up Ekspor Excel).
+     */
+    private const JENIS_FILTER_LABELS = [
+        'kebakaran' => 'Kebakaran',
+        'non_kebakaran' => 'Non-kebakaran',
+    ];
+
     private int $rowNumber = 0;
 
     public function __construct(private readonly array $filters = []) {}
@@ -414,6 +423,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             : 'Semua Status';
 
         $summary = 'Filter Status: '.$statusLabel;
+        $summary .= '  |  Jenis: '.(self::JENIS_FILTER_LABELS[$this->filters['jenis'] ?? ''] ?? 'Semua Jenis');
         $summary .= '  |  Periode: '.$this->periodLabel();
         if (! empty($search)) {
             $summary .= '  |  Kata Kunci: "'.$search.'"';

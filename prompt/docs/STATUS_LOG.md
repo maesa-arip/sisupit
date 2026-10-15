@@ -2608,6 +2608,8 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + #208/TASK_79 statistik kunjungan per hari, SiteVisitTest (2026-10-14) = 838 passed, 4466 assertions.
             + #209 notif triase admin ditimpa kabar keputusan, TriageDecidedNotificationTest (2026-10-15) = 843 passed, 4488 assertions.
             + #210/#211 TASK_80 Tiba kirim posisi + gerbang updateLocation + jembatan APK 1.1.9, ReguAttendanceTest (2026-10-15) = 846 passed, 4512 assertions.
+            + #212 unduhan <a href> dari dalam dialog tak lagi dibatalkan history.back(), BackClosesDialogTest (2026-10-15) = 847 passed, 4518 assertions.
+            + #213 pilihan jenis kebakaran/non-kebakaran di pop-up Ekspor Excel, ReportExportTest (2026-10-15) = 850 passed, 4536 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

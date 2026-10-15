@@ -3,7 +3,7 @@ import DatePicker from '@/Components/DatePicker';
 import GuestReporterBadge, { isGuestReport } from '@/Components/GuestReporterBadge';
 import HeaderTitle from '@/Components/HeaderTitle';
 import PaginationLinks from '@/Components/PaginationLinks';
-import ReportFilterFields, { activeReportFilters } from '@/Components/ReportFilterFields';
+import ReportFilterFields, { activeReportFilters, JENIS_OPTIONS } from '@/Components/ReportFilterFields';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Checkbox } from '@/Components/ui/checkbox';
@@ -149,6 +149,8 @@ const EXPORT_LABEL = {
 
 function ExportDialog({ open, onOpenChange, search }) {
 	const [status, setStatus] = useState('Semua');
+	// Kebakaran / non-kebakaran (#213), '' = semua jenis. Kamus = saringan daftar (JENIS_OPTIONS).
+	const [jenis, setJenis] = useState('');
 	const [useSearch, setUseSearch] = useState(false);
 	// Rentang tanggal laporan masuk (TASK_65), string 'YYYY-MM-DD' dari DatePicker. Kosong =
 	// tak dibatasi di sisi itu. Tanggal WITA - server yang mengonversinya ke UTC.
@@ -164,6 +166,7 @@ function ExportDialog({ open, onOpenChange, search }) {
 	useEffect(() => {
 		if (open) {
 			setStatus('Semua');
+			setJenis('');
 			setUseSearch(false);
 			setFrom('');
 			setTo('');
@@ -172,6 +175,7 @@ function ExportDialog({ open, onOpenChange, search }) {
 
 	const href = route('admin.reports.export', {
 		status,
+		...(jenis ? { jenis } : {}),
 		...(useSearch && keyword ? { search: keyword } : {}),
 		...(from ? { from } : {}),
 		...(to ? { to } : {}),
@@ -199,6 +203,21 @@ function ExportDialog({ open, onOpenChange, search }) {
 						</Label>
 					))}
 				</RadioGroup>
+				<div className="space-y-2">
+					<Label className="text-sm font-semibold">Jenis kejadian</Label>
+					<RadioGroup value={jenis} onValueChange={setJenis} className="flex flex-wrap gap-2">
+						{JENIS_OPTIONS.map((option) => (
+							<Label
+								key={option.value || 'semua'}
+								htmlFor={`export-jenis-${option.value || 'semua'}`}
+								className="flex cursor-pointer items-center gap-3 rounded-2xl border p-3 hover:bg-accent"
+							>
+								<RadioGroupItem value={option.value} id={`export-jenis-${option.value || 'semua'}`} />
+								<span>{option.label}</span>
+							</Label>
+						))}
+					</RadioGroup>
+				</div>
 				<div className="space-y-2">
 					<Label className="text-sm font-semibold">Rentang tanggal laporan masuk</Label>
 					<div className="grid grid-cols-1 gap-2 sm:grid-cols-2">

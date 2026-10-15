@@ -6,6 +6,7 @@ use App\Exports\ReportsExport;
 use App\Http\Controllers\Controller;
 use App\Models\Report;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -96,10 +97,14 @@ class ReportController extends Controller
         $request->validate([
             'from' => ['nullable', 'date_format:Y-m-d'],
             'to' => ['nullable', 'date_format:Y-m-d', ...($request->filled('from') ? ['after_or_equal:from'] : [])],
+            // Kebakaran / non-kebakaran (#213), kamus yang sama dengan saringan daftar (TASK_78).
+            // Nilai asing DITOLAK, bukan dibuang diam-diam: berkas berlabel "semua jenis" yang
+            // dikirim ke pimpinan padahal yang diminta satu jenis lebih buruk daripada 422.
+            'jenis' => ['nullable', Rule::in(Report::JENIS_FILTER)],
         ]);
 
         return Excel::download(
-            new ReportsExport($request->only(['search', 'status', 'from', 'to'])),
+            new ReportsExport($request->only(['search', 'status', 'from', 'to', 'jenis'])),
             'laporan-kejadian-'.now()->format('Y-m-d-His').'.xlsx'
         );
     }

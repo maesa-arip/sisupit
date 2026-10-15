@@ -34,3 +34,25 @@ it('unwinds the layer entry and refreshes the entry beneath it', function () {
         // Pindah halaman selagi dialog terbuka: entri terkubur dibuang dari tumpukan.
         ->and($lib)->toContain("router.on('navigate'");
 });
+
+/**
+ * #212 - Unduh di pop-up Ekspor Excel /admin/reports tak menghasilkan berkas sejak #205: tombolnya
+ * <a href> yang sekaligus menutup dialog, dan pencabutan entri (`history.back()`) membatalkan
+ * navigasi unduhan yang belum dijawab server (net::ERR_ABORTED, terbukti Playwright). Lapisan
+ * yang terbuka saat tautan biasa meninggalkan halaman ditandai `leaving` dan tidak dicabut.
+ */
+it('does not unwind history when a plain link leaves the page from inside a dialog', function () {
+    $lib = file_get_contents(resource_path('js/lib/back-closes-layer.js'));
+
+    expect($lib)->toContain('const clickLeavesPage = (event) =>')
+        // Capture: harus mendahului onClick React yang menutup dialog.
+        ->and($lib)->toMatch("/window\.addEventListener\(\s*'click',[\s\S]*?clickLeavesPage\(event\)[\s\S]*?,\s*true,\s*\);/")
+        // <Link> Inertia memanggil preventDefault = bukan navigasi dokumen.
+        ->and($lib)->toContain('if (event.defaultPrevented) for (const layer of leavingByClick) layer.leaving = false;')
+        ->and($lib)->toContain('if (layer.waiting || layer.leaving) return;');
+
+    // Pemakai yang memicu bug ini tetap <a href> biasa yang menutup dialog saat diklik.
+    $page = file_get_contents(resource_path('js/Pages/Admin/Reports/Index.jsx'));
+    expect($page)->toContain("route('admin.reports.export',")
+        ->and($page)->toContain('onClick={() => onOpenChange(false)}');
+});

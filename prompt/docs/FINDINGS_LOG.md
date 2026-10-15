@@ -4879,3 +4879,39 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   selain itu 200 `{"status":"stopped"}` tanpa menulis - sekaligus sinyal berhenti layanan lokasi APK (#210).
   Ditemukan saat mengerjakan #210 dan dikerjakan bersamanya karena B membutuhkan sinyal itu.
 - **Penjaga:** `ReguAttendanceTest` "accepts location pings only from responders still on the mission". Sabotase merah.
+
+### #212 — Ekspor Excel di Verifikasi Laporan tidak mengunduh apa pun (FIXED - lokal, belum di-deploy)
+
+- **Laporan user 2026-10-15:** "export excel di menu verifikasi laporan tidak bisa".
+- **Bukan server:** `ReportExportTest` (unduhan sungguhan, 17 test) hijau; export ke MySQL lokal sebagai admin = 200
+  `BinaryFileResponse` 0,39 dtk.
+- **Akar (regresi #205, terdeploy 2026-10-14):** tombol Unduh di pop-up Ekspor Excel (`Admin/Reports/Index.jsx`
+  ExportDialog) = `<a href>` biasa yang sekaligus `onOpenChange(false)`. Sejak #205 tiap Dialog berisi
+  `<DismissOnBack />`; dialog ditutup lewat UI -> `releaseLayer()` -> `history.back()`, dan traversal riwayat
+  MEMBATALKAN navigasi unduhan yang belum dijawab server. Terbukti Playwright headless (respons export ditunda 1,5 dtk):
+  `net::ERR_ABORTED`, tanpa event download. APK sama: `DownloadListener` baru menangkap setelah respons datang.
+- **Fix (pilihan user: di `lib/back-closes-layer.js`, berlaku untuk semua dialog):** listener klik `window` fase
+  CAPTURE (mendahului onClick React) menandai lapisan terbuka `leaving` bila klik = tautan biasa yang memuat dokumen
+  lain di tab yang sama (tombol kiri tanpa modifier, http(s), tanpa `download`/`target` lain, bukan #anchor di halaman
+  sama); fase bubble mencabut tanda bila `defaultPrevented` (<Link> Inertia). `releaseLayer()` melewati
+  `history.back()` untuk lapisan `leaving`. Sesudahnya Playwright: `DOWNLOAD OK laporan-kejadian-...xlsx`; Kembali
+  tetap menutup dialog tanpa meninggalkan halaman.
+- **Harga diketahui:** setelah unduhan dari dalam dialog, entri lapisannya tertinggal - Kembali berikutnya mendarat di
+  salinan halaman yang sama (satu ketukan ekstra, kasus yang sama dengan komentar `releaseLayer`).
+- **Penjaga:** `BackClosesDialogTest` "does not unwind history when a plain link leaves the page from inside a dialog"
+  (sabotase `|| layer.leaving` terbukti merah, dipulihkan byte-exact via `cmp`). Belum diuji di HP/APK.
+
+### #213 — Ekspor Excel belum bisa dipilah kebakaran / non-kebakaran (FITUR - lokal, belum di-deploy)
+
+- **Permintaan user 2026-10-15:** "buatkan juga filter untuk kebakaran atau non kebakaran" - dikonfirmasi: di pop-up
+  Ekspor Excel /admin/reports. Daftar sudah punya saringan "Jenis kejadian" (TASK_78), tetapi `export()` hanya
+  meneruskan `search/status/from/to`, jadi berkas selalu berisi semua jenis.
+- **Fix:** `Admin\ReportController::export` menerima `jenis` (`Rule::in(Report::JENIS_FILTER)`, nilai asing = 422 seperti
+  tanggal salah) dan meneruskannya ke `ReportsExport`, yang sudah memakai `scopeListFilter` -> rumus SATU dengan
+  daftar (`scopeOfJenis`: laporan lama TANPA jenis = kebakaran; non-kebakaran = `lainnya`). Kop baris 3 kini
+  `Filter Status: ... | Jenis: Kebakaran/Non-kebakaran/Semua Jenis | Periode: ...`. Pop-up: pilihan "Jenis kejadian"
+  dari `JENIS_OPTIONS` (ReportFilterFields), bawaan "Semua jenis", bersih tiap dibuka, TIDAK mewarisi saringan halaman
+  (keputusan #141). Tata letak baris membungkus (`flex flex-wrap`) - grid 3 kolom memotong "Non-kebakaran" di desktop.
+- **Bukti:** Playwright desktop & 390px: tautan Unduh `...&jenis=kebakaran`, berkas terunduh, buka ulang kembali
+  "Semua jenis". Penjaga di `ReportExportTest` (3 test; sabotase `only()` tanpa `jenis` terbukti merah, dipulihkan
+  byte-exact).

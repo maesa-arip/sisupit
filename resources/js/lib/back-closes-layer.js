@@ -19,9 +19,31 @@ import { createElement, useEffect, useRef } from 'react';
 //    ditutup lewat UI, entri itu dicabut (`history.back()`) dan entri di bawahnya diisi ulang
 //    dengan state terbaru - tanpa itu Kembali/Maju nanti menampilkan data sebelum simpan.
 
-// Lapisan terbuka, urut dari bawah ke atas: { onBack, url, waiting }.
+//  - Tautan BIASA (<a href>, bukan <Link> Inertia) yang memuat URL lain selagi lapisan terbuka,
+//    mis. Unduh di pop-up Ekspor Excel: menutup lapisannya TIDAK boleh memanggil
+//    `history.back()` - traversal riwayat membatalkan navigasi yang belum dijawab server
+//    (net::ERR_ABORTED, unduhan hilang tanpa pesan, #212). Lapisan itu ditandai `leaving`
+//    dan entrinya dibiarkan; bila navigasinya berakhir sebagai unduhan, Kembali nanti
+//    mendarat di salinan halaman yang sama (satu ketukan ekstra, sama dengan releaseLayer).
+
+// Lapisan terbuka, urut dari bawah ke atas: { onBack, url, waiting, leaving }.
 // `waiting` = belum punya entri history (didorong setelah pencabutan yang sedang berjalan).
 const stack = [];
+// Lapisan yang ditandai `leaving` oleh klik yang sedang diproses (dicabut lagi bila
+// ternyata Inertia/handler lain membatalkan navigasinya).
+let leavingByClick = [];
+
+/** Klik ini memuat dokumen lain di tab yang sama lewat tautan biasa? */
+const clickLeavesPage = (event) => {
+	if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
+	const anchor = event.target instanceof Element ? event.target.closest('a[href]') : null;
+	if (!anchor || anchor.hasAttribute('download') || (anchor.target && anchor.target !== '_self')) return false;
+	const url = new URL(anchor.href, window.location.href);
+	if (url.protocol !== 'http:' && url.protocol !== 'https:') return false;
+	const here = new URL(window.location.href);
+	// Lompat ke #anchor di halaman yang sama bukan navigasi dokumen.
+	return !(url.origin === here.origin && url.pathname === here.pathname && url.search === here.search && url.hash);
+};
 // Pencabutan entri yang sedang berjalan: popstate berikutnya milik kita sendiri.
 let unwinding = null;
 
@@ -53,6 +75,25 @@ export function installBackClosesLayer() {
 		top.onBack();
 	});
 
+	// Tautan biasa (#212). Fase CAPTURE: jalan sebelum onClick React menutup dialognya (tanpa
+	// animasi keluar, releaseLayer bisa terjadi sebelum klik selesai menggelembung).
+	window.addEventListener(
+		'click',
+		(event) => {
+			leavingByClick = [];
+			if (!stack.length || !clickLeavesPage(event)) return;
+			leavingByClick = stack.filter((layer) => !layer.leaving);
+			for (const layer of leavingByClick) layer.leaving = true;
+		},
+		true,
+	);
+	// Fase bubble (sesudah React): <Link> Inertia & handler lain memanggil preventDefault -
+	// tak ada navigasi dokumen, jadi lapisannya kembali normal.
+	window.addEventListener('click', (event) => {
+		if (event.defaultPrevented) for (const layer of leavingByClick) layer.leaving = false;
+		leavingByClick = [];
+	});
+
 	// Pindah ke URL lain selagi lapisan terbuka (mis. tautan di dalam dialog): entrinya kini
 	// terkubur di bawah halaman baru - Kembali berikutnya milik Inertia, bukan lapisan itu.
 	router.on('navigate', () => {
@@ -77,7 +118,8 @@ export function releaseLayer(layer) {
 	// Sudah diambil Kembali, atau terkubur karena pindah halaman.
 	if (index === -1) return;
 	stack.splice(index, 1);
-	if (layer.waiting) return;
+	// `leaving`: halaman sedang dimuat ulang/diunduh lewat tautan biasa - jangan dibatalkan (#212).
+	if (layer.waiting || layer.leaving) return;
 	// Hanya entri TERATAS di URL yang sama yang bisa dicabut; selain itu dibiarkan (Kembali
 	// nanti mendarat di salinan halaman yang sama - satu ketukan ekstra, kasus langka).
 	if (index !== stack.length || layer.url !== window.location.href) return;
