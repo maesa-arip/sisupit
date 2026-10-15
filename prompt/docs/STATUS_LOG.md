@@ -2606,6 +2606,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + #205 Kembali menutup Dialog/AlertDialog/Sheet/Modal, BackClosesDialogTest (2026-10-14) = 831 passed, 4391 assertions.
             + #207 alasan tolak di kartu status tamu, GuestReportTest (2026-10-14) = 832 passed, 4404 assertions.
             + #208/TASK_79 statistik kunjungan per hari, SiteVisitTest (2026-10-14) = 838 passed, 4466 assertions.
+            + #209 notif triase admin ditimpa kabar keputusan, TriageDecidedNotificationTest (2026-10-15) = 843 passed, 4488 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

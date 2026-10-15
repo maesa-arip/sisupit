@@ -845,10 +845,7 @@ class ReportController extends Controller
         // Batasnya per kabupaten laporan (TASK_62) - satu fungsi untuk semua titik siaran.
         // Petugas dipilih dari wilayah EFEKTIF-nya (TASK_63) - wilayah yang sama dengan data
         // yang ia lihat saat membuka notifikasinya.
-        $petugasCeiling = Tenant::petugasNotifyLevel($report->city_code);
-        $commandCenterUsers = User::role(['admin', 'superadmin'])
-            ->notifiableForReport($report, $petugasCeiling)
-            ->get()
+        $commandCenterUsers = User::triageAdminsFor($report)
             ->concat(User::petugasRecipientsFor($report))
             ->unique('id')
             ->reject(fn (User $u) => $u->id === auth()->id())

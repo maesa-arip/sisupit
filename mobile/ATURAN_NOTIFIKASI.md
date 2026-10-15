@@ -65,8 +65,15 @@ Di Setelan Android > Aplikasi > Sisupit > Notifikasi, keempatnya tampil sebagai 
 | **Pejabat** yang **siaga ON** di jangkauan pejabat | 🚨 SIRINE | (sama) - disengaja, #97 WONTFIX: pejabat punya saklar siaga sendiri |
 | **Pelapor** | 🔔 BAWAAN | "Laporan Anda divalidasi" |
 | **Akun OPD** yang dicentang admin saat verifikasi | 🤝 KONFIRMASI | "Permintaan Bantuan: <nama OPD>" |
+| **Admin & superadmin lain** yang tadi dapat 📥 NADA MASUK (#209) | 🔔 BAWAAN | "✅ Laporan sudah diverifikasi" - **menimpa** notifikasi "menunggu verifikasi" laporan yang sama |
 
 - Admin yang menekan tombol tidak menerima notifikasinya sendiri.
+- **Notifikasi "menunggu verifikasi" tidak tertinggal (#209).** Di HP petugas ia ditimpa sirine
+  (ID notifikasi = `report_id`); di HP admin lain ditimpa kabar "✅ Laporan sudah diverifikasi".
+  Hal yang sama saat laporan mentah **ditolak** ("Laporan ditolak") atau **digabung**
+  ("Laporan digabung") - hanya ke admin/superadmin, dan tidak untuk laporan usulan ganda
+  (yang memang tak pernah berbunyi). Jenisnya `report_status` supaya APK lama memakai nada
+  bawaan, bukan sirine.
 - Jangkauan wilayah tiap peran diatur terpisah (petugas per kabupaten; relawan default
   DESA; pejabat default KABUPATEN) di pengaturan tingkat notifikasi.
 - Relawan/pejabat yang mematikan **mode siaga** tidak dapat sirine.

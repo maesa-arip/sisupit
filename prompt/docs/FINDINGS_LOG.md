@@ -4838,3 +4838,20 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   `site_visitors_daily` (hash IP+UA bergaram harian dari APP_KEY, tanpa IP mentah) & `site_page_views_daily` (nama rute).
   Halaman `/admin/visits` (`Admin\SiteVisitController`, `Admin/Visits/Index.jsx`), menu Sistem > Statistik Kunjungan.
   Rincian lengkap di `prompt/tasks/TASK_79_statistik_kunjungan.md`. Penjaga: `SiteVisitTest`.
+
+### #209 — Notifikasi "menunggu verifikasi" tertinggal di HP admin setelah laporan ditangani (FIXED - LOKAL 2026-10-15, belum di-deploy)
+
+- **Laporan user 2026-10-15 (peran admin):** "di apk muncul notif di notification bar laporan perlu verifikasi admin,
+  kemudian statusnya diam, tapi saat saya buka ternyata sudah penanganan".
+- **Akar (bukan kerusakan, celah rancangan):** notifikasi di laci HP = salinan teks saat dikirim. Nada triase
+  (`ReportController::store`) ke admin, superadmin & petugas; setelah `approve()` hanya petugas/relawan/pejabat yang
+  menerima sirine dispatch, yang menimpa notifikasi triase lewat ID notifikasi = `report_id` (APK
+  `SisupitFirebaseMessagingService.notify(requestCode)`). Admin/superadmin lain tak pernah dikirimi apa pun lagi.
+- **Fix (pilihan user "timpa dengan kabar status", tanpa APK baru):** `TriageDecidedNotification` (FCM saja) ke penerima
+  nada triase admin (`User::triageAdminsFor()`, rumus SATU dengan store) dikurangi pemutus & pelapor, saat
+  approve / reject laporan TERLAPOR / merge. `type` = `report_status` SENGAJA (APK lama -> channel STATUS nada bawaan;
+  jenis baru = sirine di build lama). `report_id` sama -> menimpa di Android; `apns-collapse-id: report-{id}` ditambah
+  ke EmergencyAlertNotification & kelas baru untuk iOS. Laporan usulan ganda dilewati (tak pernah berbunyi).
+- **Sisa diketahui:** satu bunyi bawaan di HP admin lain (harga opsi ini); pemutus yang memverifikasi dari web/desktop
+  tetap melihat notifikasi triase lama di HP-nya sendiri (ia dikecualikan, seperti semua siaran); aplikasi desktop
+  (.exe) tak disentuh. Penjaga: `TriageDecidedNotificationTest` (sabotase terbukti merah, dipulihkan byte-exact).

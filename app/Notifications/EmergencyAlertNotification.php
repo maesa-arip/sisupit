@@ -74,6 +74,11 @@ class EmergencyAlertNotification extends Notification implements ShouldQueue
         ];
     }
 
+    public static function collapseId(Report $report): string
+    {
+        return 'report-'.$report->id;
+    }
+
     public function via($notifiable)
     {
         // WebPush (browser) sementara DIMATIKAN — fokus hanya FCM (mobile) dulu.
@@ -147,6 +152,10 @@ class EmergencyAlertNotification extends Notification implements ShouldQueue
                         'apns-priority' => '10',
                         // Wajib sejak iOS 13 bila payload memuat aps.alert.
                         'apns-push-type' => 'alert',
+                        // Padanan ID notifikasi = report_id di Android: notifikasi berikutnya
+                        // untuk laporan yang sama (dispatch, TriageDecidedNotification) MENIMPA
+                        // yang lama di Pusat Notifikasi iOS alih-alih menumpuk (#209).
+                        'apns-collapse-id' => self::collapseId($this->report),
                     ],
                     'payload' => [
                         'aps' => [

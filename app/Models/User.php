@@ -260,6 +260,20 @@ class User extends Authenticatable implements MustVerifyEmail
         })->values();
     }
 
+    /**
+     * Admin & superadmin yang menerima nada triase "Laporan baru menunggu verifikasi" untuk
+     * laporan ini (ReportController::store). SATU rumus dengan penerima kabar "sudah
+     * diputuskan" (TriageDecidedNotification, #209): kabar itu menimpa notifikasi triase di HP
+     * lewat ID notifikasi yang sama, jadi ia harus sampai ke orang yang sama persis - bukan ke
+     * kumpulan yang dihitung dengan rumus kedua.
+     */
+    public static function triageAdminsFor(Report $report): Collection
+    {
+        return self::role(['admin', 'superadmin'])
+            ->notifiableForReport($report, Tenant::petugasNotifyLevel($report->city_code))
+            ->get();
+    }
+
     public function withinReportJurisdiction(Report $report): bool
     {
         if ($this->hasRole('superadmin')) {

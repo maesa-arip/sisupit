@@ -25,6 +25,7 @@ use App\Notifications\AgencyConfirmationNotification;
 use App\Notifications\AgencyDispatchNotification;
 use App\Notifications\EmergencyAlertNotification;
 use App\Notifications\ReportStatusUpdatedNotification;
+use App\Notifications\TriageDecidedNotification;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -67,6 +68,8 @@ class ReportActionController extends Controller
         if ($report->status !== 'TERLAPOR') {
             abort(403, 'Laporan ini sudah diproses.');
         }
+
+        $wasDuplicateCandidate = (bool) $report->duplicate_candidate_of_id;
 
         DB::transaction(function () use ($report) {
             // Jejak verifikasi (TASK_72): sumber angka "median waktu verifikasi" di dashboard admin.
@@ -115,6 +118,7 @@ class ReportActionController extends Controller
 
         // Loop-balik ke pelapor: laporannya sudah divalidasi.
         $this->notifyReporter($report, 'approved');
+        $this->notifyTriageDecided($report, TriageDecidedNotification::APPROVED, $wasDuplicateCandidate);
         broadcast(new ReportStatusChanged($report->id, 'pending'));
         broadcast(ReportFeedChanged::for($report, 'pending'));
 
@@ -155,6 +159,11 @@ class ReportActionController extends Controller
             abort(403, 'Laporan yang sudah digabung tidak dapat ditolak. Pisahkan dulu dari kejadiannya.');
         }
 
+        // Hanya penolakan laporan MENTAH yang menimpa notifikasi triase: laporan yang sudah
+        // diverifikasi sudah ditimpa saat approve(), dan di HP petugas oleh sirine dispatch.
+        $wasTriage = $report->status === 'TERLAPOR';
+        $wasDuplicateCandidate = (bool) $report->duplicate_candidate_of_id;
+
         $report->update([
             'status' => 'ditolak',
             'rejected_reason' => $request->reason,
@@ -168,6 +177,10 @@ class ReportActionController extends Controller
         broadcast(new ReportStatusChanged($report->id, 'ditolak', $request->reason));
         // Alasan penolakan SENGAJA tidak ikut: ReportFeedChanged didengar satu wilayah penuh.
         broadcast(ReportFeedChanged::for($report, 'ditolak'));
+
+        if ($wasTriage) {
+            $this->notifyTriageDecided($report, TriageDecidedNotification::REJECTED, $wasDuplicateCandidate);
+        }
 
         return back()->with('success', 'Laporan ditandai ditolak dan diarsipkan.');
     }
@@ -216,6 +229,9 @@ class ReportActionController extends Controller
             abort(403, 'Laporan ini sudah menjadi kejadian induk bagi laporan lain.');
         }
 
+        // Dibaca SEBELUM transaksi: penggabungan mengosongkan kolom usulannya.
+        $wasDuplicateCandidate = (bool) $report->duplicate_candidate_of_id;
+
         DB::transaction(function () use ($report, $induk, $user) {
             $report->update([
                 'status' => Report::STATUS_DIGABUNG,
@@ -233,6 +249,7 @@ class ReportActionController extends Controller
         });
 
         $this->notifyReporter($report, 'merged');
+        $this->notifyTriageDecided($report, TriageDecidedNotification::MERGED, $wasDuplicateCandidate);
         broadcast(new ReportStatusChanged($report->id, Report::STATUS_DIGABUNG));
         broadcast(ReportFeedChanged::for($report, Report::STATUS_DIGABUNG));
         // Panel "Laporan terkait" di halaman induk yang sedang terbuka.
@@ -1117,6 +1134,20 @@ class ReportActionController extends Controller
      * sekali. Layar anak yang sedang terbuka ikut diberi aba-aba supaya status induk yang
      * ditampilkannya tidak basi.
      */
+    /**
+     * Timpa notifikasi "menunggu verifikasi" di HP admin lain setelah laporan diputuskan (#209).
+     * Tanpa ini notifikasi triase tertinggal di laci notifikasi admin walau laporannya sudah
+     * ditangani - admin tak pernah menerima sirine dispatch yang menimpanya di HP petugas.
+     */
+    private function notifyTriageDecided(Report $report, string $decision, bool $wasDuplicateCandidate): void
+    {
+        $penerima = TriageDecidedNotification::recipientsFor($report, $wasDuplicateCandidate, auth()->id());
+
+        if ($penerima->isNotEmpty()) {
+            Notification::send($penerima, new TriageDecidedNotification($report, $decision, auth()->user()->name));
+        }
+    }
+
     private function notifyReporter(Report $report, string $event): void
     {
         $sudahDikabari = [auth()->id()];

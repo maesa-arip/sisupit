@@ -130,7 +130,7 @@ server menambahkan blok `apns` di samping blok `data` untuk keempat jenis (lihat
 | `type` | ya | `emergency` \| `agency_dispatch` \| `agency_confirmation` \| `report_status` |
 | `alert_stage` | hanya `emergency` | `report_incoming` (laporan baru, belum diverifikasi) \| `dispatch` (sudah diverifikasi → meluncur) |
 | `user_role` | hanya `emergency` | peran penerima (`petugas`, `relawan`, `pejabat`, `admin`, …) |
-| `event` | hanya `report_status` | `approved`, `en_route`, `arrived`, `resolved`, `merged`, … |
+| `event` | hanya `report_status` | `approved`, `en_route`, `arrived`, `resolved`, `merged`, … (ke pelapor); `triage_approved`, `triage_rejected`, `triage_merged` (ke admin lain, #209 - menimpa notifikasi triase) |
 | `agency_id` | agency_* | id instansi |
 
 > Penanda tahap **sengaja tidak bernama `type`**: `BroadcastNotificationCreated` menimpa
@@ -170,9 +170,13 @@ afconvert aset/suara/konfirmasi.wav konfirmasi.caf -d ima4 -f caff -v
 | `emergency` / `dispatch` | ada | `time-sensitive` | `sirine.caf` | `emergency` |
 | `agency_dispatch`, `agency_confirmation` | ada | `time-sensitive` | `konfirmasi.caf` | `agency` |
 | `report_status` (ke pelapor) | ada (sejak #158) | `active` | `default` | `report-status` |
+| `report_status` / `triage_*` (ke admin lain, #209) | ada | `active` | `default` | `emergency` |
 
 Semua yang punya `apns`: `apns-priority: 10`, `apns-push-type: alert`,
 `content-available: 1` (emergency juga `mutable-content: 1`).
+`emergency` dan `triage_*` juga membawa header `apns-collapse-id: report-{id}` (#209) - padanan
+ID notifikasi = `report_id` di Android: notifikasi berikutnya untuk laporan yang sama MENIMPA,
+bukan menumpuk.
 `critical` (tembus saklar senyap iPhone) baru boleh dinaikkan **di server** setelah Apple
 menyetujui entitlement Critical Alerts - app dan server harus naik bersamaan.
 
