@@ -565,11 +565,14 @@ export default function ReportShow(props) {
 		});
 	};
 
-	const handleArrive = () => {
+	// Posisi saat Tiba ditekan ikut dikirim (#210): GPS live berhenti selama layar terkunci, jadi
+	// tanpa ini marker di peta pelapor bisa tertinggal di titik berangkat walau status sudah Tiba.
+	const handleArrive = async () => {
 		setIsActionLoading(true);
+		const location = await getClickLocation();
 		router.post(
 			route('reports.arrive', report.id),
-			{},
+			location,
 			{
 				preserveScroll: true,
 				// Satu ketukan menandai SEREGU tiba (TASK_66) - toast menyebutnya supaya anggota lain
@@ -803,6 +806,22 @@ export default function ReportShow(props) {
 			GEO_OPTIONS.tracking,
 		);
 		return () => navigator.geolocation.clearWatch(watchId);
+	}, [isCurrentlyResponding, report.id]);
+
+	// watchPosition di atas berhenti begitu layar HP terkunci (#210). APK 1.1.9+ melanjutkannya
+	// lewat layanan lokasi native yang mengirim ke endpoint yang sama dan berhenti sendiri saat
+	// server membalas "stopped". APK lama, iOS, dan browser tak punya metode ini = perilaku lama.
+	// Dihentikan HANYA saat misi di insiden INI berakhir di depan mata (batal/selesai) - membuka
+	// detail insiden lain tak boleh mematikan pelacakan misi yang sedang berjalan.
+	const respondingReportRef = useRef(null);
+	useEffect(() => {
+		const bridge = window.AndroidBridge;
+		if (isCurrentlyResponding && typeof bridge?.startResponderTracking === 'function') {
+			bridge.startResponderTracking(String(report.id), window.location.origin);
+		} else if (respondingReportRef.current === report.id && typeof bridge?.stopResponderTracking === 'function') {
+			bridge.stopResponderTracking();
+		}
+		respondingReportRef.current = isCurrentlyResponding ? report.id : null;
 	}, [isCurrentlyResponding, report.id]);
 
 	useEffect(() => {

@@ -1,10 +1,13 @@
 <?php
 
+use App\Events\ResponderLocationUpdated;
 use App\Models\Regu;
 use App\Models\Report;
 use App\Models\ReportAlpha;
+use App\Models\TrackingLog;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
 
 /**
@@ -179,4 +182,73 @@ it('records who pressed tiba on every row it marked, and shows it on the detail 
 
     $jsx = file_get_contents(resource_path('js/Pages/Front/Reports/Show.jsx'));
     expect($jsx)->toMatch('~officer\.arrived_by !== officer\.user_id~')->toContain('Ditandai tiba oleh');
+});
+
+// FINDINGS #210: ping GPS live berhenti selama layar HP petugas terkunci, jadi posisi saat Tiba
+// ditekan menjadi posisi terkini PENEKANNYA (bukan rekan seregu) + jejak + siaran ke peta.
+it('moves the presser to where they pressed tiba, and never lets a broken location stop the button', function () {
+    Event::fake([ResponderLocationUpdated::class]);
+    $this->actingAs($this->danru)->post(route('reports.take-action', $this->report));
+    $this->actingAs($this->anggota1)->post(route('reports.take-action', $this->report));
+
+    $this->actingAs($this->anggota1)
+        ->post(route('reports.arrive', $this->report), ['lat' => -8.6501, 'lng' => 115.2203, 'accuracy' => 9])
+        ->assertSessionHasNoErrors();
+
+    $rows = DB::table('report_officers')->where('report_id', $this->report->id)->get()->keyBy('user_id');
+    expect((float) $rows[$this->anggota1->id]->location_lat)->toBe(-8.6501)
+        ->and((float) $rows[$this->anggota1->id]->location_lng)->toBe(115.2203)
+        ->and($rows[$this->danru->id]->status)->toBe('arrived')
+        ->and($rows[$this->danru->id]->location_lat)->toBeNull();
+    expect(TrackingLog::where('report_id', $this->report->id)->where('user_id', $this->anggota1->id)->count())->toBe(1);
+    Event::assertDispatched(ResponderLocationUpdated::class, fn ($e) => $e->responderId === $this->anggota1->id);
+
+    // Tanpa lokasi / lokasi rusak: tetap tiba, posisi tak disentuh, tak ada jejak palsu.
+    $lepas = ($this->petugas)('Gede Lepas');
+    $this->actingAs($lepas)->post(route('reports.take-action', $this->report));
+    $this->actingAs($lepas)
+        ->post(route('reports.arrive', $this->report), ['lat' => 'abc', 'lng' => 999])
+        ->assertSessionHasNoErrors();
+
+    $row = DB::table('report_officers')->where('user_id', $lepas->id)->first();
+    expect($row->status)->toBe('arrived')->and($row->location_lat)->toBeNull();
+    expect(TrackingLog::where('user_id', $lepas->id)->count())->toBe(0);
+
+    $jsx = file_get_contents(resource_path('js/Pages/Front/Reports/Show.jsx'));
+    expect($jsx)->toMatch("~await getClickLocation\(\);\s*router\.post\(\s*route\('reports\.arrive'~");
+});
+
+// FINDINGS #211 + #210 (APK 1.1.9): ping posisi hanya dari responder yang masih Meluncur/Tiba di
+// insiden itu. Selain itu balasan {"status":"stopped"} tanpa menulis apa pun - sinyal berhenti bagi
+// layanan lokasi APK yang terus mengirim selama layar terkunci.
+it('accepts location pings only from responders still on the mission, and tells the rest to stop', function () {
+    $ping = ['lat' => -8.651, 'lng' => 115.221];
+
+    // Bukan responder insiden ini.
+    $this->actingAs($this->anggota3)
+        ->postJson("/reports/{$this->report->id}/update-location", $ping)
+        ->assertOk()->assertJson(['status' => 'stopped']);
+    expect(TrackingLog::where('user_id', $this->anggota3->id)->count())->toBe(0);
+
+    // Sedang meluncur: diterima.
+    $this->actingAs($this->anggota1)->post(route('reports.take-action', $this->report));
+    $this->actingAs($this->anggota1)
+        ->postJson("/reports/{$this->report->id}/update-location", $ping)
+        ->assertOk()->assertJson(['status' => 'ok']);
+    expect(TrackingLog::where('user_id', $this->anggota1->id)->count())->toBe(1);
+
+    // Insiden ditutup: berhenti, jejak tak bertambah.
+    $this->actingAs($this->admin)->post(route('reports.resolve', $this->report));
+    $this->actingAs($this->anggota1)
+        ->postJson("/reports/{$this->report->id}/update-location", $ping)
+        ->assertOk()->assertJson(['status' => 'stopped']);
+    expect(TrackingLog::where('user_id', $this->anggota1->id)->count())->toBe(1);
+});
+
+it('hands the mission to the native location service and stops it only for this incident', function () {
+    $jsx = file_get_contents(resource_path('js/Pages/Front/Reports/Show.jsx'));
+    expect($jsx)
+        ->toContain("typeof bridge?.startResponderTracking === 'function'")
+        ->toContain('bridge.startResponderTracking(String(report.id), window.location.origin)')
+        ->toMatch('~respondingReportRef\.current === report\.id && typeof bridge\?\.stopResponderTracking~');
 });

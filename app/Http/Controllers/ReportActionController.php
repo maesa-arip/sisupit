@@ -855,7 +855,7 @@ class ReportActionController extends Controller
     }
 
     // 3. Saat Relawan/Petugas Tiba di Lokasi
-    public function arrive($id)
+    public function arrive(Request $request, $id)
     {
         $user = auth()->user();
         if (! $user->hasAnyRole(['petugas', 'relawan'])) {
@@ -917,6 +917,38 @@ class ReportActionController extends Controller
 
         if ($isFirstArrival) {
             $this->notifyReporter($report, 'arrived');
+        }
+
+        // Posisi saat Tiba ditekan (#210) menjadi posisi TERKINI penekannya. Marker hanya bergerak
+        // lewat ping GPS updateLocation(), yang berhenti selama layar HP terkunci - tanpa ini peta
+        // pelapor bisa tetap menampilkan titik berangkat padahal status sudah "Tiba". Hanya baris
+        // penekan: rekan seregu yang ikut ditandai tiba tidak mengirim koordinatnya sendiri.
+        // Lokasi kosong/rusak tak pernah menggagalkan tombol (pola clickLocation TASK_66).
+        $click = $this->clickLocation($request);
+        if ($click['lat'] !== null) {
+            $roleType = $table === 'report_officers' ? 'petugas' : 'relawan';
+
+            DB::transaction(function () use ($report, $user, $table, $roleType, $click) {
+                DB::table($table)
+                    ->where('report_id', $report->id)
+                    ->where('user_id', $user->id)
+                    ->update([
+                        'location_lat' => $click['lat'],
+                        'location_lng' => $click['lng'],
+                        'updated_at' => now(),
+                    ]);
+
+                TrackingLog::create([
+                    'report_id' => $report->id,
+                    'user_id' => $user->id,
+                    'user_type' => $roleType,
+                    'lat' => $click['lat'],
+                    'lng' => $click['lng'],
+                    'recorded_at' => now(),
+                ]);
+            }, 3);
+
+            broadcast(new ResponderLocationUpdated($report->id, $user->id, $roleType, $user->name, $click['lat'], $click['lng']));
         }
 
         // Status responder berubah (Meluncur → Tiba) → perbarui manifes di viewer lain.
@@ -999,6 +1031,21 @@ class ReportActionController extends Controller
         $report = Report::withoutGlobalScopes()->findOrFail($id);
         $roleType = $user->hasRole('petugas') ? 'petugas' : 'relawan';
         $table = $roleType === 'petugas' ? 'report_officers' : 'report_helpers';
+
+        // Gerbang KEANGGOTAAN (#211), selaras arrive/cancelResponse: hanya responder yang masih
+        // Meluncur/Tiba di insiden ini. Dulu siapa pun berperan petugas/relawan bisa menulis jejak &
+        // menyiarkan posisi ke laporan mana pun, juga sesudah misinya selesai. Balasan "stopped"
+        // (200, bukan 403) adalah sinyal berhenti bagi layanan lokasi APK (#210) - misi selesai,
+        // batal, atau insiden ditutup adalah akhir yang wajar, bukan galat.
+        $isActive = DB::table($table)
+            ->where('report_id', $report->id)
+            ->where('user_id', $user->id)
+            ->whereIn('status', ['en_route', 'arrived'])
+            ->exists();
+
+        if (! $isActive || in_array($report->status, ['resolved', 'ditolak', Report::STATUS_DIGABUNG], true)) {
+            return response()->json(['status' => 'stopped']);
+        }
 
         // Gunakan DB Transaction agar Update & Insert dijamin aman dan bersamaan.
         // Argumen kedua (3) = Laravel mengulang otomatis bila MySQL memilih transaksi ini sebagai
