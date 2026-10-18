@@ -31,6 +31,8 @@ class NotificationSettingRequest extends FormRequest
             // menggabungkan kejadian yang jelas berbeda.
             'duplikat_radius_m' => ['nullable', 'integer', 'min:0', 'max:5000'],
             'duplikat_jendela_menit' => ['nullable', 'integer', 'min:0', 'max:1440'],
+            // TASK_81. Opsional: pemanggil tanpa isian ini tidak mengubah saklarnya.
+            'akun_demo_aktif' => ['sometimes', 'boolean'],
         ];
     }
 
@@ -42,6 +44,7 @@ class NotificationSettingRequest extends FormRequest
             'notify_level_pejabat' => 'Tingkat Siaran Pejabat',
             'duplikat_radius_m' => 'Radius Laporan Ganda',
             'duplikat_jendela_menit' => 'Jendela Waktu Laporan Ganda',
+            'akun_demo_aktif' => 'Mode Akun Demo',
         ];
     }
 }

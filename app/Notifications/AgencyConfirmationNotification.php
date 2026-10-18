@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\Report;
 use App\Models\ReportAgency;
+use App\Notifications\Concerns\DipicuAkunDemo;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
@@ -26,7 +27,7 @@ use NotificationChannels\Fcm\FcmMessage;
  */
 class AgencyConfirmationNotification extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use DipicuAkunDemo, Queueable;
 
     public $report;
 
@@ -36,6 +37,7 @@ class AgencyConfirmationNotification extends Notification implements ShouldQueue
     {
         $this->report = $report;
         $this->reportAgency = $reportAgency;
+        $this->catatPemicu();
     }
 
     public function via($notifiable)

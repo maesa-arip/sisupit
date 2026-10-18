@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import { Switch } from '@/Components/ui/switch';
 import AppLayout from '@/Layouts/AppLayout';
 import { flashMessage } from '@/lib/utils';
 import { useForm } from '@inertiajs/react';
@@ -19,6 +20,7 @@ export default function Edit(props) {
 		notify_level_pejabat: props.settings.notify_level_pejabat,
 		duplikat_radius_m: props.settings.duplikat_radius_m,
 		duplikat_jendela_menit: props.settings.duplikat_jendela_menit,
+		akun_demo_aktif: props.settings.akun_demo_aktif,
 	});
 
 	const onHandleSubmit = (e) => {
@@ -133,6 +135,31 @@ export default function Edit(props) {
 									)}
 								</div>
 							</div>
+						</div>
+						{/* Akun demo (TASK_81). Akunnya ditandai per pengguna di Kelola Pengguna > Ubah. */}
+						<div className="space-y-3">
+							<div className="flex items-start justify-between gap-4">
+								<div>
+									<Label
+										htmlFor="akun_demo_aktif"
+										className="text-[15px] font-semibold text-foreground"
+									>
+										Mode Akun Demo
+									</Label>
+									<p className="mt-1 text-sm text-muted-foreground">
+										Saat menyala, laporan dan tindakan akun yang ditandai demo tidak mengirim
+										notifikasi ke pengguna asli (sesama akun demo tetap menerimanya). Saat mati,
+										akun demo berperilaku seperti akun biasa. Akun demo saat ini:{' '}
+										{props.jumlah_akun_demo}.
+									</p>
+								</div>
+								<Switch
+									id="akun_demo_aktif"
+									checked={!!data.akun_demo_aktif}
+									onCheckedChange={(checked) => setData('akun_demo_aktif', checked)}
+								/>
+							</div>
+							{errors.akun_demo_aktif && <InputError message={errors.akun_demo_aktif} />}
 						</div>
 						<div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
 							<Button className="h-11 rounded-xl px-6" type="submit" disabled={processing}>

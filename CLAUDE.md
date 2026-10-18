@@ -147,6 +147,10 @@ TASK_80        APK 1.1.9/vc11 ResponderTrackingService (FGS location) + jembatan
                 `leaving` -> releaseLayer tanpa history.back(). Web saja, tanpa migrasi. Penjaga BackClosesDialogTest.
 #213         : (2026-10-15, lokal) pop-up Ekspor Excel: pilihan Jenis kejadian (Semua/Kebakaran/Non-kebakaran, JENIS_OPTIONS);
                 export() terima `jenis` (asing = 422), kop "Jenis: ...". Tanpa migrasi. Penjaga ReportExportTest.
+#214/TASK_81 : (2026-10-18, lokal, ADA MIGRASI users.is_demo + reports.is_demo) akun demo: aksi/laporan akun demo TIDAK
+                memicu notifikasi ke pengguna asli (listener NotificationSending + trait DipicuAkunDemo di konstruktor; laporan demo
+                tetap senyap walau disetujui admin asli; penerima demo tetap dapat). Superadmin menandai di Ubah Pengguna, saklar
+                induk "Mode Akun Demo" di Pengaturan (default nyala). Lencana Demo. Penjaga AkunDemoTest.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
                 kolom approved_at tetap. #178 i18n TERDEPLOY prod @dde8c6a4; #179 (ikon, paginasi PaginationLinks, email).
                 #180 terjemahan bawaan Laravel dari paket laravel-lang/common (DEV) TERDEPLOY prod @9bf7b103; paginasi tetap versi #178 -
@@ -159,7 +163,7 @@ Belum dicek  : visual di ponsel/APK untuk banyak perubahan UI (tombol merah bran
 Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115 #119 #121
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174 #188(satelit).
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
-Test         : 850 passed, 4536 assertions (2026-10-15, + #212 BackClosesDialogTest, #213 ReportExportTest).
+Test         : 860 passed, 4556 assertions (2026-10-18, + #214 AkunDemoTest).
 Lingkungan   : PROD @42ef296b (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#211) | DEV @672b6a10 (dashboard baru) | STAGING @42ef296b (= prod, video demo
                 TASK_80; data uji petugas.uji@sisupit.test + LP-2026-00227). Dev & staging: data salinan prod, basic auth (APK dikecualikan), sandi "password".
 ```
@@ -186,7 +190,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-10-15: 850 passed, 4536 assertions - + #212 unduhan dari dialog, #213 jenis di export;
+Test      : php artisan test            (baseline 2026-10-18: 860 passed, 4556 assertions - + #214 AkunDemoTest;
             lokal: php -d memory_limit=1G -d extension=php_sqlite3.dll -d extension=pdo_sqlite vendor/bin/pest.
             Perbarui angka ini tiap kali test bertambah - baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan. Riwayat angkanya di STATUS_LOG.md)

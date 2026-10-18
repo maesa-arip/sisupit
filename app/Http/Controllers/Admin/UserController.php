@@ -38,7 +38,7 @@ class UserController extends Controller
         $showPhones = auth()->user()->hasRole('superadmin');
 
         $users = User::query()
-            ->select(['id', 'name', 'username', 'email', 'phone', 'avatar', 'gender', 'date_of_birth', 'address', 'created_at', 'province_code', 'city_code', 'district_code', 'village_code', 'agency_id'])
+            ->select(['id', 'name', 'username', 'email', 'phone', 'avatar', 'gender', 'date_of_birth', 'address', 'created_at', 'province_code', 'city_code', 'district_code', 'village_code', 'agency_id', 'is_demo'])
             ->with(['roles:id,name', 'province:code,name', 'city:code,name', 'district:code,name', 'village:code,name'])
             // Jumlah HP terdaftar FCM + kapan terakhir terlihat (fcm_tokens.updated_at, disentuh
             // saat aplikasi dibuka dalam keadaan masuk). UserResource hanya mengirim `phones`
@@ -162,6 +162,8 @@ class UserController extends Controller
             ],
             'genders' => UserGender::options(),
             'user' => $user,
+            // Saklar akun demo (TASK_81) - superadmin saja.
+            'can_set_demo' => $admin->hasRole('superadmin'),
             ...$this->regionFormProps($admin, $user),
         ]);
     }
@@ -213,6 +215,23 @@ class UserController extends Controller
 
             return to_route('admin.users.index');
         }
+    }
+
+    /**
+     * Tandai / lepas akun demo (TASK_81). Aksi akun demo tidak memicu notifikasi ke pengguna asli
+     * selama saklar induk di Pengaturan menyala (App\Listeners\SenyapkanNotifikasiAkunDemo).
+     * Route-nya sudah di grup role:superadmin; cek di sini tetap ditulis eksplisit (MASTER_PROMPT).
+     */
+    public function setDemo(Request $request, User $user): RedirectResponse
+    {
+        abort_unless(auth()->user()->hasRole('superadmin'), 403);
+
+        $validated = $request->validate(['is_demo' => ['required', 'boolean']]);
+
+        $user->forceFill(['is_demo' => $validated['is_demo']])->save();
+        flashMessage(MessageType::UPDATED->message($validated['is_demo'] ? 'Akun demo' : 'Akun biasa'));
+
+        return back();
     }
 
     public function assignRole(Request $request, User $user): RedirectResponse

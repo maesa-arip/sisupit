@@ -7,6 +7,7 @@ use App\Enums\TenantLevel;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\NotificationSettingRequest;
 use App\Models\Setting;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Response;
 use Throwable;
@@ -30,7 +31,10 @@ class SettingController extends Controller
                 // Deteksi laporan ganda (TASK_55).
                 'duplikat_radius_m' => (int) Setting::getValue(Setting::KEY_DUPLIKAT_RADIUS_M, (string) Setting::DEFAULT_DUPLIKAT_RADIUS_M),
                 'duplikat_jendela_menit' => (int) Setting::getValue(Setting::KEY_DUPLIKAT_JENDELA_MENIT, (string) Setting::DEFAULT_DUPLIKAT_JENDELA_MENIT),
+                // Saklar induk akun demo (TASK_81).
+                'akun_demo_aktif' => Setting::akunDemoAktif(),
             ],
+            'jumlah_akun_demo' => User::where('is_demo', true)->count(),
         ]);
     }
 
@@ -47,6 +51,9 @@ class SettingController extends Controller
             }
             if ($request->filled('duplikat_jendela_menit')) {
                 Setting::setValue(Setting::KEY_DUPLIKAT_JENDELA_MENIT, (string) $request->integer('duplikat_jendela_menit'));
+            }
+            if ($request->has('akun_demo_aktif')) {
+                Setting::setValue(Setting::KEY_AKUN_DEMO_AKTIF, $request->boolean('akun_demo_aktif') ? '1' : '0');
             }
             flashMessage(MessageType::UPDATED->message('Pengaturan notifikasi'));
         } catch (Throwable $e) {

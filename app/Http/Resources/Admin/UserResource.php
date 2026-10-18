@@ -39,6 +39,8 @@ class UserResource extends JsonResource
             // Instansi yang diwakili akun berperan `opd` (TASK_27) — dipakai dialog penetapan
             // peran agar pilihan instansi ikut terisi saat dibuka ulang.
             'agency_id' => $this->agency_id,
+            // Akun demo (TASK_81) - lencana "Demo" di daftar.
+            'is_demo' => (bool) $this->is_demo,
             // Kesiapan HP menerima notifikasi (#182 butir 3) - hanya bila controller memuat
             // withCount/withMax-nya (Admin\UserController::index).
             'phones' => $this->when(isset($this->fcm_tokens_count), fn () => [

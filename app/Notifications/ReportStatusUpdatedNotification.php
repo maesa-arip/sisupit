@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Report;
+use App\Notifications\Concerns\DipicuAkunDemo;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
@@ -17,7 +18,7 @@ use NotificationChannels\Fcm\FcmMessage;
  */
 class ReportStatusUpdatedNotification extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use DipicuAkunDemo, Queueable;
 
     public $report;
 
@@ -27,6 +28,7 @@ class ReportStatusUpdatedNotification extends Notification implements ShouldQueu
     {
         $this->report = $report;
         $this->event = $event;
+        $this->catatPemicu();
     }
 
     public function via($notifiable)

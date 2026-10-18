@@ -4,13 +4,52 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/Components/ui/avatar';
 import { Button } from '@/Components/ui/button';
 import { Combobox } from '@/Components/ui/combobox';
 import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
+import { Switch } from '@/Components/ui/switch';
 import AppLayout from '@/Layouts/AppLayout';
 import { compressImage } from '@/lib/compress-image';
 import { flashMessage } from '@/lib/utils';
-import { Link, useForm } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import { IconArrowLeft, IconUsersGroup } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+
+// Akun demo (TASK_81) - superadmin saja. Terpisah dari form utama dan langsung tersimpan saat
+// digeser, supaya menandai akun demo tidak ikut mengirim ulang isian profil.
+function DemoAccountSection({ user }) {
+	const [processing, setProcessing] = useState(false);
+
+	const onToggle = (checked) => {
+		router.put(
+			route('admin.users.demo', [user]),
+			{ is_demo: checked },
+			{
+				preserveScroll: true,
+				onStart: () => setProcessing(true),
+				onFinish: () => setProcessing(false),
+				onSuccess: (success) => {
+					const flash = flashMessage(success);
+					if (flash) toast[flash.type](flash.message);
+				},
+			},
+		);
+	};
+
+	return (
+		<FormSection
+			title="Akun Demo"
+			className="mt-8 w-full max-w-2xl"
+			description="Untuk peragaan atau peninjau aplikasi. Laporan dan tindakan akun demo tidak mengirim notifikasi ke pengguna asli, dan laporannya diberi label Demo. Berlaku selama Mode Akun Demo di Pengaturan menyala."
+		>
+			<div className="flex items-center justify-between gap-4 px-4 py-3">
+				<Label htmlFor="is_demo" className="text-[15px] font-normal">
+					Jadikan akun demo
+				</Label>
+				<Switch id="is_demo" checked={!!user.is_demo} disabled={processing} onCheckedChange={onToggle} />
+			</div>
+		</FormSection>
+	);
+}
 
 export default function Edit(props) {
 	const fileInputAvatar = useRef(null);
@@ -323,6 +362,7 @@ export default function Edit(props) {
 					</Button>
 				</div>
 			</form>
+			{props.can_set_demo && <DemoAccountSection user={props.user} />}
 		</div>
 	);
 }

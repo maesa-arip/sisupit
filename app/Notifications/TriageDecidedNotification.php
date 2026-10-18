@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\Report;
 use App\Models\User;
+use App\Notifications\Concerns\DipicuAkunDemo;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
@@ -30,7 +31,7 @@ use NotificationChannels\Fcm\FcmMessage;
  */
 class TriageDecidedNotification extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use DipicuAkunDemo, Queueable;
 
     public const APPROVED = 'approved';
 
@@ -49,6 +50,7 @@ class TriageDecidedNotification extends Notification implements ShouldQueue
         $this->report = $report;
         $this->decision = $decision;
         $this->actorName = $actorName;
+        $this->catatPemicu();
     }
 
     public function via($notifiable)

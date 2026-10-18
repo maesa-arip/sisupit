@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\ForumThread;
+use App\Notifications\Concerns\DipicuAkunDemo;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
@@ -21,13 +22,15 @@ use Illuminate\Notifications\Notification;
  */
 class ForumNotification extends Notification
 {
-    use Queueable;
+    use DipicuAkunDemo, Queueable;
 
     public function __construct(
         public ForumThread $thread,
         public string $title,
         public string $message,
-    ) {}
+    ) {
+        $this->catatPemicu();
+    }
 
     public function via($notifiable): array
     {

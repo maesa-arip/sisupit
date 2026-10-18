@@ -788,6 +788,8 @@ class ReportController extends Controller
             'user_id' => $userId,
             // Lapis captcha yang dilalui laporan TAMU (TASK_77); NULL = laporan dari akun.
             'guest_check' => $guestCheck,
+            // Akun demo (TASK_81) - tamu tak pernah demo.
+            'is_demo' => $userId !== null && (bool) auth()->user()?->is_demo,
             'name' => $request->name,
             'phone' => $request->phone,
             'title' => $request->title,

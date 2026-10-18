@@ -128,6 +128,8 @@ class Report extends Model
         'user_id',
         // Lapor tanpa login (TASK_77): lapis captcha yang dilalui laporan tamu; NULL = dari akun.
         'guest_check',
+        // Dibuat akun demo (TASK_81): notifikasi apa pun tentang laporan ini disenyapkan.
+        'is_demo',
         'name',
         'phone',
         'title',
@@ -170,6 +172,7 @@ class Report extends Model
         'resolved_at' => 'datetime',
         'approved_at' => 'datetime',
         'merged_at' => 'datetime',
+        'is_demo' => 'boolean',
     ];
 
     public function user(): BelongsTo

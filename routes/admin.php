@@ -72,6 +72,9 @@ Route::middleware(['auth', 'verified', 'role:admin|superadmin'])->prefix('admin'
             Route::delete('route-accesses/destroy/{routeAccess}', 'destroy')->name('admin.route-accesses.destroy');
         });
 
+        // Penanda akun demo (TASK_81) - superadmin saja.
+        Route::put('users/demo/{user}', [UserController::class, 'setDemo'])->name('admin.users.demo');
+
         Route::controller(SettingController::class)->group(function () {
             Route::get('settings', 'edit')->name('admin.settings.edit');
             Route::put('settings', 'update')->name('admin.settings.update');

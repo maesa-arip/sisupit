@@ -215,6 +215,15 @@ nada masuk) **berhenti begitu notifikasi disentuh atau digeser**.
 
 ---
 
+## 7b. Akun demo (TASK_81, 2026-10-18)
+
+- Akun yang ditandai **demo** oleh superadmin (Kelola Pengguna > Ubah > "Akun Demo") **tidak membunyikan apa pun** di HP
+  pengguna asli: laporan, verifikasi, kirim regu, OPD, forum - semua kanal (push, lonceng, desktop).
+- Laporan buatan akun demo tetap senyap walau yang menyetujuinya admin asli. Sesama akun demo tetap saling menerima,
+  jadi peragaan lengkap bisa memakai demo admin + demo petugas.
+- Saklar induk: Pengaturan > "Mode Akun Demo". Mati = akun demo berbunyi seperti akun biasa.
+- Uji bunyi di Profil ("Notifikasi di HP ini") tidak terpengaruh - itu ke HP sendiri.
+
 ## 8. Catatan yang masih menggantung (per 2026-10-05)
 
 - **Pengulangan sampai disentuh (`FLAG_INSISTENT`) belum pernah diuji di HP sungguhan.**

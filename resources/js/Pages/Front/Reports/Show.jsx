@@ -1,3 +1,4 @@
+import DemoBadge from '@/Components/DemoBadge';
 import GuestReporterBadge, { isGuestReport } from '@/Components/GuestReporterBadge';
 import { ReportStepper, ResponderSummary } from '@/Components/ReportProgress';
 import { Badge } from '@/Components/ui/badge';
@@ -1519,6 +1520,8 @@ export default function ReportShow(props) {
 									</span>
 									{/* Lapor tanpa login (TASK_77): nomor HP belum terverifikasi. */}
 									<GuestReporterBadge report={report} />
+									{/* Akun demo (TASK_81). */}
+									{report.is_demo && <DemoBadge />}
 								</span>
 							</div>
 							<div className="flex items-center justify-between gap-4 px-4 py-3">

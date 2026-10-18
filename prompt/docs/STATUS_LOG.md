@@ -11,6 +11,12 @@ per entri). File ini TIDAK dimuat otomatis tiap sesi — baca saat butuh konteks
 ## Riwayat STATUS (salinan verbatim per 2026-10-01)
 
 ```
+TASK_81/#214 AKUN DEMO (2026-10-18): permintaan user "akun demo tidak memicu notifikasi, bisa on/off". Pilihan user: per akun
+                (superadmin, Ubah Pengguna) + saklar induk Pengaturan `akun_demo_aktif` (default nyala); senyapkan yang DIPICU
+                akun demo; laporan demo tetap tampil berlencana Demo. MIGRASI users.is_demo + reports.is_demo. Trait
+                DipicuAkunDemo (cap di konstruktor, 6 kelas) + listener SenyapkanNotifikasiAkunDemo (NotificationSending -> false;
+                laporan demo senyap walau disetujui admin asli; penerima demo tetap dapat). AkunDemoTest 10 test, sabotase 3 merah.
+                Lokal, belum commit/deploy. Rincian prompt/tasks/TASK_81_akun_demo.md.
 KOLOM HP SUPERADMIN SAJA (2026-10-06): permintaan user - show_phones + withCount/withMax hanya untuk superadmin, admin
                 tak menerima datanya. Test 725/3709. TERDEPLOY PROD @6d57d090 (konsol user; HTTPS: app-ySuweLr6.js
                 = build lokal, Admin/Users Index-BRCjmpQo.js 200 berisi show_phones).

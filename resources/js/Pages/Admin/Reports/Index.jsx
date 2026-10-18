@@ -1,5 +1,6 @@
 import { AppEmpty } from '@/Components/AppSection';
 import DatePicker from '@/Components/DatePicker';
+import DemoBadge from '@/Components/DemoBadge';
 import GuestReporterBadge, { isGuestReport } from '@/Components/GuestReporterBadge';
 import HeaderTitle from '@/Components/HeaderTitle';
 import PaginationLinks from '@/Components/PaginationLinks';
@@ -680,6 +681,7 @@ export default function Index(props) {
 													{/* Lencana status + tanda triase (foto, titik, laporan ganda) di barisnya sendiri. */}
 													<div className="mt-2.5 flex flex-wrap items-center gap-1.5">
 														<StatusBadge status={report.status} />
+														{report.is_demo && <DemoBadge />}
 														{report.photo ? (
 															<MetaChip icon={IconPhoto} tone="ok">
 																Ada foto

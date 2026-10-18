@@ -1,3 +1,4 @@
+import DemoBadge from '@/Components/DemoBadge';
 import HeaderTitle from '@/Components/HeaderTitle';
 import InputError from '@/Components/InputError';
 import PaginationLinks from '@/Components/PaginationLinks';
@@ -392,7 +393,12 @@ export default function Index(props) {
 												<AvatarFallback>{user.name.substring(0, 1)}</AvatarFallback>
 											</Avatar>
 											<div className="flex min-w-0 flex-col">
-												<span className="truncate font-medium">{user.name}</span>
+												<span className="flex min-w-0 items-center gap-1.5">
+													<span className="truncate font-medium">{user.name}</span>
+													{user.is_demo && (
+														<DemoBadge title="Akun demo - aksinya tidak mengirim notifikasi." />
+													)}
+												</span>
 												<span className="truncate text-xs text-muted-foreground">
 													@{user.username}
 												</span>
@@ -456,6 +462,12 @@ export default function Index(props) {
 										{user.name}
 									</Link>
 									<p className="break-all text-[13px] text-muted-foreground">@{user.username}</p>
+									{user.is_demo && (
+										<DemoBadge
+											title="Akun demo - aksinya tidak mengirim notifikasi."
+											className="relative mt-1"
+										/>
+									)}
 									<div className="mt-1.5">
 										<RoleBadges roles={user.roles} />
 									</div>

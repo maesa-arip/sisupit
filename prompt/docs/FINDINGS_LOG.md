@@ -4915,3 +4915,17 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Bukti:** Playwright desktop & 390px: tautan Unduh `...&jenis=kebakaran`, berkas terunduh, buka ulang kembali
   "Semua jenis". Penjaga di `ReportExportTest` (3 test; sabotase `only()` tanpa `jenis` terbukti merah, dipulihkan
   byte-exact).
+
+### #214 — Akun demo tanpa notifikasi, bisa dinyalakan/dimatikan (FITUR - lokal, belum di-deploy) — TASK_81
+
+- **Permintaan user 2026-10-18:** "buatkan fitur akun demo, jadi jika pakai akun demo tidak akan memicu notifikasi,
+  tapi fitur ini bisa on atau off kan". Pilihan user: saklar per akun + saklar induk; senyapkan yang DIPICU akun demo;
+  laporan demo tetap tampil berlencana "Demo". Kebutuhan nyata: peragaan & peninjau (mis. penguji Google Play) yang
+  laporannya dulu membunyikan nada triase/sirine ke HP admin & petugas asli.
+- **Fix:** kolom `users.is_demo` + `reports.is_demo` (MIGRASI); trait `DipicuAkunDemo` mencap pemicu di konstruktor 6
+  kelas notifikasi (worker antrean tak tahu `auth()`); `App\Listeners\SenyapkanNotifikasiAkunDemo` pada
+  `NotificationSending` membatalkan di semua kanal bila saklar `akun_demo_aktif` (default nyala) menyala dan pemicunya
+  demo ATAU laporannya demo, kecuali penerimanya juga demo. Superadmin: `PUT admin/users/demo/{user}` (kartu di Ubah
+  Pengguna) + saklar di Pengaturan. Lencana `DemoBadge` di Kelola Pengguna, Verifikasi Laporan, detail laporan.
+- **Bukti:** `AkunDemoTest` 10 test lewat kanal database sungguhan; sabotase listener = 3 merah, dipulihkan byte-exact.
+  Rincian & catatan deploy (cache event) di `prompt/tasks/TASK_81_akun_demo.md`.

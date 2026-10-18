@@ -502,6 +502,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'gender' => UserGender::class,
             'date_of_birth' => 'date',
             'is_standby' => 'boolean',
+            'is_demo' => 'boolean',
             'skills' => 'array',
         ];
     }

@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Report;
+use App\Notifications\Concerns\DipicuAkunDemo;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
@@ -13,7 +14,7 @@ use NotificationChannels\WebPush\WebPushMessage;
 
 class EmergencyAlertNotification extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use DipicuAkunDemo, Queueable;
 
     /**
      * Laporan warga BARU MASUK, belum diverifikasi siapa pun — hanya ke Pusat Komando
@@ -44,6 +45,7 @@ class EmergencyAlertNotification extends Notification implements ShouldQueue
         $this->report = $report;
         $this->userRole = $userRole;
         $this->stage = $stage;
+        $this->catatPemicu();
     }
 
     /**

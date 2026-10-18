@@ -42,6 +42,14 @@ class Setting extends Model
 
     public const DEFAULT_DUPLIKAT_JENDELA_MENIT = 120;
 
+    /**
+     * Saklar induk akun demo (TASK_81). Akun demo ditandai per akun oleh superadmin
+     * (users.is_demo); saklar ini mematikan seluruh perilakunya sekaligus. DEFAULT MENYALA: menandai
+     * akun sudah merupakan pilihan sadar, dan akun demo yang tiba-tiba membunyikan sirine ke petugas
+     * asli adalah arah gagal yang lebih mahal.
+     */
+    public const KEY_AKUN_DEMO_AKTIF = 'akun_demo_aktif';
+
     protected $fillable = ['key', 'value'];
 
     public static function getValue(string $key, ?string $default = null): ?string
@@ -51,6 +59,11 @@ class Setting extends Model
         });
 
         return $value ?? $default;
+    }
+
+    public static function akunDemoAktif(): bool
+    {
+        return filter_var(static::getValue(self::KEY_AKUN_DEMO_AKTIF, '1'), FILTER_VALIDATE_BOOLEAN);
     }
 
     public static function setValue(string $key, ?string $value): void
