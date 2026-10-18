@@ -4880,7 +4880,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   Ditemukan saat mengerjakan #210 dan dikerjakan bersamanya karena B membutuhkan sinyal itu.
 - **Penjaga:** `ReguAttendanceTest` "accepts location pings only from responders still on the mission". Sabotase merah.
 
-### #212 — Ekspor Excel di Verifikasi Laporan tidak mengunduh apa pun (FIXED - lokal, belum di-deploy)
+### #212 — Ekspor Excel di Verifikasi Laporan tidak mengunduh apa pun (FIXED - TERDEPLOY PROD @97eccef1 2026-10-18)
 
 - **Laporan user 2026-10-15:** "export excel di menu verifikasi laporan tidak bisa".
 - **Bukan server:** `ReportExportTest` (unduhan sungguhan, 17 test) hijau; export ke MySQL lokal sebagai admin = 200
@@ -4901,7 +4901,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Penjaga:** `BackClosesDialogTest` "does not unwind history when a plain link leaves the page from inside a dialog"
   (sabotase `|| layer.leaving` terbukti merah, dipulihkan byte-exact via `cmp`). Belum diuji di HP/APK.
 
-### #213 — Ekspor Excel belum bisa dipilah kebakaran / non-kebakaran (FITUR - lokal, belum di-deploy)
+### #213 — Ekspor Excel belum bisa dipilah kebakaran / non-kebakaran (FITUR - TERDEPLOY PROD @97eccef1 2026-10-18)
 
 - **Permintaan user 2026-10-15:** "buatkan juga filter untuk kebakaran atau non kebakaran" - dikonfirmasi: di pop-up
   Ekspor Excel /admin/reports. Daftar sudah punya saringan "Jenis kejadian" (TASK_78), tetapi `export()` hanya
@@ -4916,7 +4916,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   "Semua jenis". Penjaga di `ReportExportTest` (3 test; sabotase `only()` tanpa `jenis` terbukti merah, dipulihkan
   byte-exact).
 
-### #214 — Akun demo tanpa notifikasi, bisa dinyalakan/dimatikan (FITUR - lokal, belum di-deploy) — TASK_81
+### #214 — Akun demo tanpa notifikasi, bisa dinyalakan/dimatikan (FITUR - TERDEPLOY PROD @97eccef1 2026-10-18) — TASK_81
 
 - **Permintaan user 2026-10-18:** "buatkan fitur akun demo, jadi jika pakai akun demo tidak akan memicu notifikasi,
   tapi fitur ini bisa on atau off kan". Pilihan user: saklar per akun + saklar induk; senyapkan yang DIPICU akun demo;

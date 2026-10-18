@@ -142,12 +142,12 @@ TASK_74/#182 : (2026-10-05, TERDEPLOY PROD @198d6c0f) Profil > "Notifikasi di HP
 TASK_80        APK 1.1.9/vc11 ResponderTrackingService (FGS location) + jembatan start/stopResponderTracking, AAB 11 (1.1.9)
                 DIKIRIM KE REVIEW Play (Closed testing - Alpha, full rollout, managed publishing off) 2026-10-15; deklarasi FGS = User-initiated location sharing + video YouTube Unlisted LH5SEHRkJyI. #211 updateLocation gerbang
                 keanggotaan, balas {"status":"stopped"}. Tanpa migrasi. Belum diuji di HP.
-#212         : (2026-10-15, lokal) Ekspor Excel /admin/reports tak mengunduh sejak #205: menutup dialog = history.back() membatalkan
+#212         : (2026-10-15, TERDEPLOY PROD @97eccef1) Ekspor Excel /admin/reports tak mengunduh sejak #205: menutup dialog = history.back() membatalkan
                 unduhan <a href> (ERR_ABORTED, Playwright). lib/back-closes-layer.js: klik tautan biasa (capture) menandai lapisan
                 `leaving` -> releaseLayer tanpa history.back(). Web saja, tanpa migrasi. Penjaga BackClosesDialogTest.
-#213         : (2026-10-15, lokal) pop-up Ekspor Excel: pilihan Jenis kejadian (Semua/Kebakaran/Non-kebakaran, JENIS_OPTIONS);
+#213         : (2026-10-15, TERDEPLOY PROD @97eccef1) pop-up Ekspor Excel: pilihan Jenis kejadian (Semua/Kebakaran/Non-kebakaran, JENIS_OPTIONS);
                 export() terima `jenis` (asing = 422), kop "Jenis: ...". Tanpa migrasi. Penjaga ReportExportTest.
-#214/TASK_81 : (2026-10-18, lokal, ADA MIGRASI users.is_demo + reports.is_demo) akun demo: aksi/laporan akun demo TIDAK
+#214/TASK_81 : (2026-10-18, TERDEPLOY PROD @97eccef1, HTTPS terverifikasi, ADA MIGRASI users.is_demo + reports.is_demo) akun demo: aksi/laporan akun demo TIDAK
                 memicu notifikasi ke pengguna asli (listener NotificationSending + trait DipicuAkunDemo di konstruktor; laporan demo
                 tetap senyap walau disetujui admin asli; penerima demo tetap dapat). Superadmin menandai di Ubah Pengguna, saklar
                 induk "Mode Akun Demo" di Pengaturan (default nyala). Lencana Demo. Penjaga AkunDemoTest.
@@ -164,7 +164,7 @@ Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174 #188(satelit).
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
 Test         : 860 passed, 4556 assertions (2026-10-18, + #214 AkunDemoTest).
-Lingkungan   : PROD @42ef296b (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#211) | DEV @672b6a10 (dashboard baru) | STAGING @42ef296b (= prod, video demo
+Lingkungan   : PROD @97eccef1 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#214) | DEV @672b6a10 (dashboard baru) | STAGING @42ef296b (= prod, video demo
                 TASK_80; data uji petugas.uji@sisupit.test + LP-2026-00227). Dev & staging: data salinan prod, basic auth (APK dikecualikan), sandi "password".
 ```
 

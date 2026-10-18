@@ -7,7 +7,7 @@
 | Tipe | fitur |
 | Sumber | permintaan user 2026-10-18 ("buatkan fitur akun demo, jadi jika pakai akun demo tidak akan memicu notifikasi, tapi fitur ini bisa on atau off kan") |
 | Branch | `main` |
-| Status | DONE - lokal, belum di-deploy (ADA MIGRASI `2026_10_18_100000_add_is_demo_to_users_and_reports`) |
+| Status | DONE - TERDEPLOY PROD @97eccef1 2026-10-18 (konsol user; ADA MIGRASI `2026_10_18_100000_add_is_demo_to_users_and_reports`) |
 
 ## 1. Keputusan user (2026-10-18)
 

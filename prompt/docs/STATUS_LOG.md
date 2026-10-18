@@ -11,6 +11,9 @@ per entri). File ini TIDAK dimuat otomatis tiap sesi — baca saat butuh konteks
 ## Riwayat STATUS (salinan verbatim per 2026-10-01)
 
 ```
+DEPLOY 2026-10-18: TASK_81/#214 + #212 + #213 TERDEPLOY PROD @97eccef1 (konsol user, deploy-env.sh, ADA MIGRASI is_demo).
+                HTTPS: /login 200 memuat app-B4hPlQvQ.js (= build lokal); Admin/Users Edit-BTOSCcyk.js 200 berisi "Jadikan akun
+                demo"; Settings Edit-NX8m0K0L.js berisi "Mode Akun Demo"; GET admin/users/demo/1 = 405 (rute PUT ada).
 TASK_81/#214 AKUN DEMO (2026-10-18): permintaan user "akun demo tidak memicu notifikasi, bisa on/off". Pilihan user: per akun
                 (superadmin, Ubah Pengguna) + saklar induk Pengaturan `akun_demo_aktif` (default nyala); senyapkan yang DIPICU
                 akun demo; laporan demo tetap tampil berlencana Demo. MIGRASI users.is_demo + reports.is_demo. Trait
