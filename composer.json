@@ -11,6 +11,7 @@
 	"require": {
 		"php": "^8.2",
 		"barryvdh/laravel-dompdf": "^3.1",
+		"firebase/php-jwt": "^6.11",
 		"inertiajs/inertia-laravel": "^2.0",
 		"laravel-notification-channels/fcm": "^5.1",
 		"laravel-notification-channels/webpush": "^10.2",

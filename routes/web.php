@@ -170,6 +170,8 @@ Route::get('/auth/{provider}', [SocialiteController::class, 'redirectToProvider'
 Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProvideCallback'])->whereIn('provider', ['google']);
 // Login native dari aplikasi WebView: menerima Google ID token dari account picker HP.
 Route::post('/auth/google/native', [SocialiteController::class, 'handleNativeGoogle'])->name('google.native');
+// Masuk dengan Apple - hanya aplikasi iOS (App Store Guideline 4.8), tak ada alur redirect web.
+Route::post('/auth/apple/native', [SocialiteController::class, 'handleNativeApple'])->name('apple.native');
 Route::controller(HomeController::class)->group(function () {
     // Landing publik untuk browser; WebView (UA ∋ SisupitApp) di-redirect di controller
     // ke home.spotlight / dashboard — lihat HomeController::landing().

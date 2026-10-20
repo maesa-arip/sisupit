@@ -50,6 +50,22 @@ return [
         'ios_client_id' => env('GOOGLE_IOS_CLIENT_ID'),
     ],
 
+    // Masuk dengan Apple - hanya dari aplikasi iOS (syarat App Store Guideline 4.8 karena app
+    // menawarkan login Google). Identity token ber-aud = Bundle ID app, jadi client_id di sini
+    // adalah Bundle ID, bukan Services ID. Kosong = endpoint menolak semua token (fitur mati).
+    //
+    // team_id/key_id/private_key dipakai untuk menukar authorization code dengan refresh token
+    // dan MENCABUTNYA saat pengguna menghapus akun (Apple mewajibkannya). Kunci = berkas .p8
+    // "Sign in with Apple" dari developer.apple.com > Keys; isi APPLE_PRIVATE_KEY dengan isi
+    // berkas (baris baru boleh ditulis \n). Tanpa ketiganya login tetap jalan, hanya
+    // pencabutan token yang dilewati (dicatat di log).
+    'apple' => [
+        'client_id' => env('APPLE_CLIENT_ID', 'com.sisupit.app'),
+        'team_id' => env('APPLE_TEAM_ID'),
+        'key_id' => env('APPLE_KEY_ID'),
+        'private_key' => env('APPLE_PRIVATE_KEY'),
+    ],
+
     // Cloudflare Turnstile untuk lapor TANPA LOGIN (TASK_77). Lapis kedua - lapis pertama
     // (honeypot + jeda isi + batas kirim) selalu aktif. Salah satu kunci kosong = Turnstile mati
     // dan form tamu tetap jalan (laporan dicatat `guest_check = nonaktif`).

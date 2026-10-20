@@ -1,3 +1,4 @@
+import AppleSignInButton, { hasAppleSignIn } from '@/Components/AppleSignInButton';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import InputError from '@/Components/InputError';
 import ThemeSwitcher from '@/Components/ThemeSwitcher';
@@ -29,6 +30,9 @@ export default function Login({ status, canResetPassword }) {
 		setIsNativeApp(/SisupitApp/i.test(navigator.userAgent || ''));
 	}, []);
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+	const [isAppleLoading, setIsAppleLoading] = useState(false);
+	const [withApple, setWithApple] = useState(false);
+	useEffect(() => setWithApple(hasAppleSignIn()), []);
 	const [googleError, setGoogleError] = useState(null);
 	const [showPassword, setShowPassword] = useState(false);
 
@@ -217,7 +221,7 @@ export default function Login({ status, canResetPassword }) {
 
 							<Button
 								type="submit"
-								disabled={processing || isGoogleLoading}
+								disabled={processing || isGoogleLoading || isAppleLoading}
 								className="h-12 w-full rounded-xl bg-destructive text-[17px] font-semibold text-destructive-foreground transition-[color,background-color,transform] hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 motion-reduce:active:scale-100"
 							>
 								{processing ? <IconLoader2 className="h-5 w-5 animate-spin" /> : 'Masuk Akun'}
@@ -234,11 +238,17 @@ export default function Login({ status, canResetPassword }) {
 							</div>
 						</div>
 
+						{/* Masuk dengan Apple - hanya muncul di aplikasi iOS (Guideline 4.8). */}
+						<AppleSignInButton
+							disabled={processing || isGoogleLoading}
+							onLoadingChange={setIsAppleLoading}
+						/>
+
 						{/* Tombol Register Google */}
 						<Button
 							type="button"
 							variant="outline"
-							disabled={processing || isGoogleLoading}
+							disabled={processing || isGoogleLoading || isAppleLoading}
 							onClick={handleGoogleLogin}
 							className="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-background text-sm font-medium text-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-70"
 						>
@@ -276,7 +286,7 @@ export default function Login({ status, canResetPassword }) {
 						{/* Masuk dengan Google otomatis membuat akun bila belum ada, jadi
 						    persetujuan dokumen legal disampaikan di sini juga (TASK_19). */}
 						<p className="-mt-4 text-center text-xs leading-relaxed text-muted-foreground">
-							Dengan melanjutkan menggunakan Google, Anda menyetujui{' '}
+							Dengan melanjutkan menggunakan {withApple ? 'Apple atau Google' : 'Google'}, Anda menyetujui{' '}
 							<Link href={route('info.terms')} className="font-medium text-foreground hover:underline">
 								Syarat &amp; Ketentuan
 							</Link>{' '}

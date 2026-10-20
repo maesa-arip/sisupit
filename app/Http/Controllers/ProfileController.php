@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Banjar;
 use App\Models\Setting;
+use App\Models\SocialAccount;
 use App\Models\User;
+use App\Services\AppleSignIn;
 use App\Traits\HasFile;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
@@ -244,7 +246,7 @@ class ProfileController extends Controller
      * menjanjikan data kejadian tetap diarsipkan instansi - yang dihapus identitasnya.
      * Akun Google tak punya password, jadi konfirmasinya mengetik HAPUS.
      */
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request, AppleSignIn $apple): RedirectResponse
     {
         $user = $request->user();
 
@@ -257,6 +259,15 @@ class ProfileController extends Controller
 
         $this->delete_file($user, 'avatar');
         $this->delete_file($user, 'ktp');
+
+        // Masuk dengan Apple: token WAJIB dicabut ke Apple saat akun dihapus (syarat App
+        // Store). Dilakukan sebelum baris social_accounts dihapus; gagal = hanya dicatat,
+        // penghapusan akun tetap berjalan.
+        SocialAccount::where('user_id', $user->id)
+            ->where('provider_name', 'apple')
+            ->whereNotNull('refresh_token')
+            ->get()
+            ->each(fn (SocialAccount $account) => $apple->revoke($account->refresh_token));
 
         DB::transaction(function () use ($user) {
             DB::table('social_accounts')->where('user_id', $user->id)->delete();
