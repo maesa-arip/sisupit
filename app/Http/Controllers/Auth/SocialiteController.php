@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\SocialAccount;
 use App\Models\User;
+use App\Services\AppleSignIn;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -106,6 +107,67 @@ class SocialiteController extends Controller
         ]);
 
         $authUser = $this->findOrCreateUser($socialUser, 'google');
+
+        auth()->login($authUser, true);
+
+        return redirect()->route('dashboard');
+    }
+
+    /**
+     * Login dari aplikasi iOS (Masuk dengan Apple, App Store Guideline 4.8).
+     *
+     * App mengirim identity token + nonce mentah + authorization code. Nama HANYA dikirim
+     * Apple pada otorisasi pertama (dan tidak ada di dalam token), jadi diteruskan app
+     * sebagai field terpisah dan dipakai saat akun dibuat. Email boleh berupa alamat relay
+     * pribadi @privaterelay.appleid.com - tetap email sah yang meneruskan ke pengguna.
+     */
+    public function handleNativeApple(Request $request, AppleSignIn $apple)
+    {
+        $request->validate([
+            'id_token' => ['required', 'string'],
+            'nonce' => ['required', 'string', 'max:255'],
+            'authorization_code' => ['nullable', 'string'],
+            'given_name' => ['nullable', 'string', 'max:100'],
+            'family_name' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $claims = $apple->verifyIdentityToken($request->input('id_token'), $request->input('nonce'));
+        if (! $claims) {
+            return back()->withErrors(['email' => 'Akun Apple tidak dapat diverifikasi.']);
+        }
+
+        $email = $claims['email'] ?? null;
+        $emailVerified = filter_var($claims['email_verified'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $alreadyLinked = SocialAccount::where('provider_id', $claims['sub'])
+            ->where('provider_name', 'apple')
+            ->exists();
+
+        // Akun baru wajib punya email terverifikasi (kolom unik pencocok akun & tujuan reset
+        // sandi). Apple selalu mengirimnya di token, kecuali pengguna mencabut lalu memberi
+        // izin lagi tanpa membagikan email - kasus langka, minta coba lewat cara lain.
+        if (! $alreadyLinked && (! $email || ! $emailVerified)) {
+            return back()->withErrors(['email' => 'Apple tidak membagikan email terverifikasi. Coba masuk dengan email atau Google.']);
+        }
+
+        $name = trim($request->input('given_name', '').' '.$request->input('family_name', ''));
+
+        $socialUser = (new SocialiteUser)->setRaw($claims)->map([
+            'id' => $claims['sub'],
+            'name' => $name !== '' ? $name : 'Pengguna Apple',
+            'email' => $email,
+            'nickname' => $request->input('given_name') ?: null,
+            'avatar' => null,
+        ]);
+
+        $authUser = $this->findOrCreateUser($socialUser, 'apple');
+
+        // Disimpan hanya untuk dicabut saat hapus akun. Gagal ditukar = login tetap jalan.
+        if ($refreshToken = $apple->exchangeCode((string) $request->input('authorization_code'))) {
+            SocialAccount::where('provider_id', $claims['sub'])
+                ->where('provider_name', 'apple')
+                ->first()
+                ?->update(['refresh_token' => $refreshToken]);
+        }
 
         auth()->login($authUser, true);
 

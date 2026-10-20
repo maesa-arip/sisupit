@@ -63,6 +63,7 @@ window.AndroidBridge = {
 | 6 | `openNotificationSettings()` | tombol "Izinkan notifikasi"/"Buka setelan notifikasi" di `NotificationDeviceCard.jsx` | izin Android 13+ belum ada → dialog izin (ditolak < 500 ms = dialog tak tampil lagi → buka Setelan); selain itu → Setelan notifikasi aplikasi. Lalu panggil `onNativeNotificationStatusChanged` | **1.1.8** |
 | 7 | `startResponderTracking(reportId: string, origin: string)` | `Pages/Front/Reports/Show.jsx` - tiap render selama responder Meluncur/Tiba di insiden itu (`isCurrentlyResponding`); dipanggil berulang, native wajib idempoten | jalankan layanan lokasi latar depan (notifikasi tetap) yang POST `{origin}/reports/{id}/update-location` JSON `{lat,lng}` dengan cookie sesi WebView + header `X-XSRF-TOKEN` (cookie `XSRF-TOKEN` di-URL-decode) + UA ber-`SisupitApp`; ≥ 5 dtk / 10 m. **Berhenti sendiri** pada balasan `{"status":"stopped"}`, 401/403/404/3xx, atau 8 jam. Tolak `origin` yang bukan domain sendiri. Simpan Set-Cookie balasan ke CookieManager (419 = token basi, coba lagi) | **1.1.9 (#210)** |
 | 8 | `stopResponderTracking()` | `Show.jsx` - saat misi DI INSIDEN ITU berakhir di layar (batal Meluncur / insiden ditutup). Membuka insiden lain TIDAK memanggilnya | hentikan layanan & hapus notifikasinya | **1.1.9 (#210)** |
+| 9 | `signInWithApple()` | `Components/AppleSignInButton.jsx` (dipakai `Auth/Login.jsx`, `Auth/Register.jsx`) | **KHUSUS iOS** (App Store Guideline 4.8). Buka lembar `ASAuthorizationAppleIDProvider` (scope nama+email, nonce = SHA-256 dari nonce mentah); hasil lewat callback §2.2 | **iOS build 3** - Android TIDAK memasangnya |
 | 4 | `onBackgroundColorDetected(rgb, isLight)` | **bukan web** - skrip yang disuntik native sendiri tiap `onPageFinished` (MutationObserver + interval 1 dtk membaca `background-color` body/html) | warnai status bar & navigation bar, ikon terang/gelap menurut `isLight` | lama |
 
 Metode 3 bersifat opsional di web (`typeof … === 'function'`); iOS **wajib** memasangnya
@@ -82,6 +83,11 @@ disengaja, tahan kegagalan layanan). iOS: padanannya `CLLocationManager` dengan
 `allowsBackgroundLocationUpdates = true` + `showsBackgroundLocationIndicator`, UIBackgroundModes
 `location`, izin "When In Use" cukup bila dimulai saat aplikasi terlihat.
 
+Metode 9 hanya ada di iOS: tombol "Masuk dengan Apple" tampil HANYA bila
+`typeof AndroidBridge.signInWithApple === 'function'`, jadi Android, browser, dan app iOS lama
+tak berubah. App Store mewajibkannya karena app menawarkan login Google (Guideline 4.8,
+penolakan 2026-10-20). Android tidak perlu memasangnya (aturan itu khusus App Store).
+
 Metode 4 di iOS opsional - padanannya adalah mewarnai area safe-area atas; boleh diganti
 cara native lain asal status bar tetap terbaca di mode gelap.
 
@@ -98,6 +104,9 @@ Android saat ini menyambung string dan meng-escape `\ ' \n \r` untuk pesan galat
 | `window.onGoogleCredential(idToken)` | Google **ID token** (bukan access token). Web mem-POST ke `/auth/google/native` | `Login.jsx`, `Register.jsx` |
 | `window.onGoogleSignInCancelled()` | user membatalkan picker | idem |
 | `window.onGoogleSignInError(msg)` | gagal (Login menampilkan `msg` sebagai Alert merah). Bila halaman tak punya handler ini, Android jatuh ke `onGoogleSignInCancelled` | idem |
+| `window.onAppleCredential(json)` | **iOS saja.** SATU string JSON `{idToken, authorizationCode, nonce, givenName, familyName}` (`nonce` = nilai MENTAH; nama hanya terisi pada otorisasi pertama). Web mem-POST ke `/auth/apple/native` | `AppleSignInButton.jsx` |
+| `window.onAppleSignInCancelled()` | user menutup lembar Apple | idem |
+| `window.onAppleSignInError(msg)` | gagal; ditampilkan di bawah tombol | idem |
 
 ---
 
@@ -112,6 +121,7 @@ sudah dikomentari di `routes/api.php:11`. Jangan ditiru.)
 |---|---|---|---|---|
 | `/fcm-token` (`fcm.store`) | POST | `{ token, device_type }` | web | token per-PERANGKAT: token yang sama dipindah dari akun lain ke akun yang sedang login (`FcmController`) |
 | `/auth/google/native` (`google.native`) | POST | `{ credential: <ID token> }` | web | server memverifikasi `aud` terhadap DAFTAR: Web Client ID + `GOOGLE_IOS_CLIENT_ID` (`SocialiteController.php:86`). **iOS Client ID wajib terisi di `.env` server** |
+| `/auth/apple/native` (`apple.native`) | POST | `{ id_token, nonce, authorization_code?, given_name?, family_name? }` | web (iOS) | `AppleSignIn::verifyIdentityToken`: tanda tangan JWKS Apple, `iss`, `aud` = `APPLE_CLIENT_ID` (bawaan `com.sisupit.app`), `sha256(nonce)`. Kode ditukar ke refresh token (terenkripsi di `social_accounts.refresh_token`) dan **dicabut saat hapus akun** - butuh `APPLE_TEAM_ID`/`APPLE_KEY_ID`/`APPLE_PRIVATE_KEY` di `.env` |
 | `/auth/google` | GET | - | browser biasa | redirect OAuth, BUKAN untuk wrapper (Google menolak OAuth di WebView) |
 | `/logout` | POST | `{ fcm_token }` | web | melepas token perangkat supaya HP berhenti menerima sirine setelah keluar. Sejak TASK_73 `fcm_token` boleh kosong (server memakai token yang dicatat sesi) dan hanya perangkat ini yang dikeluarkan |
 | `/fcm-token/release` (`fcm.release`) | POST | `{ token }` | web, **hanya tamu** | TASK_73: halaman tamu di aplikasi meminta token lewat `postToken('')` lalu melepasnya - "layar masuk = tidak ada notifikasi". iOS cukup memasang `postToken` + `receiveFcmTokenFromNative` seperti biasa |

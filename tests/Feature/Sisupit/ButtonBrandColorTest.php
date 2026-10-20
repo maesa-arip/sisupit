@@ -41,7 +41,10 @@ it('leaves no button or chip painting itself black', function () {
     $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(resource_path('js')));
     foreach ($files as $file) {
         $path = str_replace('\\', '/', $file->getPathname());
-        if (! str_ends_with($path, '.jsx') || str_contains($path, 'Pages/Front/Settings') || str_contains($path, 'Pages/Guideline.jsx')) {
+        // AppleSignInButton: hitam/putih DIWAJIBKAN Human Interface Guidelines Apple untuk tombol
+        // "Masuk dengan Apple" (App Review menolak warna merek lain) - bukan tombol brand Sisupit.
+        if (! str_ends_with($path, '.jsx') || str_contains($path, 'Pages/Front/Settings') || str_contains($path, 'Pages/Guideline.jsx')
+            || str_ends_with($path, 'Components/AppleSignInButton.jsx')) {
             continue;
         }
         $src = preg_replace('~/\*.*?\*/~s', '', file_get_contents($path));
