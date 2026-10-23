@@ -151,7 +151,7 @@ TASK_80        APK 1.1.9/vc11 ResponderTrackingService (FGS location) + jembatan
                 memicu notifikasi ke pengguna asli (listener NotificationSending + trait DipicuAkunDemo di konstruktor; laporan demo
                 tetap senyap walau disetujui admin asli; penerima demo tetap dapat). Superadmin menandai di Ubah Pengguna, saklar
                 induk "Mode Akun Demo" di Pengaturan (default nyala). Lencana Demo. Penjaga AkunDemoTest.
-#215         : (2026-10-23, lokal, belum terdeploy) foto Detail Insiden bisa digeser: Components/PhotoViewer.jsx (carousel Embla,
+#215         : (2026-10-23, TERDEPLOY PROD @fd7d680b, HTTPS terverifikasi) foto Detail Insiden bisa digeser: Components/PhotoViewer.jsx (carousel Embla,
                 { photos, index }, tombol kiri/kanan, panah keyboard, "n / total") untuk lampiran & foto berita acara. Tanpa
                 migrasi. Penjaga PhotoViewerSwipeTest. Belum diuji di HP.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
@@ -167,7 +167,7 @@ Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174 #188(satelit).
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
 Test         : 869 passed, 4594 assertions (2026-10-23, + NativeAppleSignInTest & #215 PhotoViewerSwipeTest).
-Lingkungan   : PROD @97eccef1 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#214) | DEV @672b6a10 (dashboard baru) | STAGING @42ef296b (= prod, video demo
+Lingkungan   : PROD @fd7d680b (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#215 + Masuk dengan Apple) | DEV @672b6a10 (dashboard baru) | STAGING @42ef296b (= prod, video demo
                 TASK_80; data uji petugas.uji@sisupit.test + LP-2026-00227). Dev & staging: data salinan prod, basic auth (APK dikecualikan), sandi "password".
 ```
 
