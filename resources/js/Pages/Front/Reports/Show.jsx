@@ -1,5 +1,6 @@
 import DemoBadge from '@/Components/DemoBadge';
 import GuestReporterBadge, { isGuestReport } from '@/Components/GuestReporterBadge';
+import PhotoViewer from '@/Components/PhotoViewer';
 import { ReportStepper, ResponderSummary } from '@/Components/ReportProgress';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
@@ -143,7 +144,8 @@ export default function ReportShow(props) {
 			: report.photo
 				? [report.photo]
 				: [];
-	const [modalPhoto, setModalPhoto] = useState(null);
+	// { photos, index } - satu kelompok foto agar penampil bisa digeser (#215).
+	const [photoViewer, setPhotoViewer] = useState(null);
 
 	const [confirmApprove, setConfirmApprove] = useState(false);
 	const [confirmReject, setConfirmReject] = useState(false);
@@ -1627,7 +1629,7 @@ export default function ReportShow(props) {
 										{photos.map((path, i) => (
 											<div
 												key={i}
-												onClick={() => setModalPhoto(path)}
+												onClick={() => setPhotoViewer({ photos, index: i })}
 												className="group relative h-32 w-full cursor-zoom-in overflow-hidden rounded-xl bg-muted"
 											>
 												<img
@@ -2530,11 +2532,16 @@ export default function ReportShow(props) {
 															Foto kejadian ({r.photos.length})
 														</div>
 														<div className="mt-1.5 flex flex-wrap gap-1.5">
-															{r.photos.map((p) => (
+															{r.photos.map((p, i) => (
 																<button
 																	key={p.id}
 																	type="button"
-																	onClick={() => setModalPhoto(p.path)}
+																	onClick={() =>
+																		setPhotoViewer({
+																			photos: r.photos.map((x) => x.path),
+																			index: i,
+																		})
+																	}
 																	className="h-14 w-14 overflow-hidden rounded-xl border border-border"
 																>
 																	<img
@@ -2907,26 +2914,7 @@ export default function ReportShow(props) {
 				</DialogContent>
 			</Dialog>
 
-			<Dialog open={modalPhoto !== null} onOpenChange={(open) => !open && setModalPhoto(null)}>
-				<DialogContent className="flex w-[95vw] max-w-4xl items-center justify-center border-none bg-transparent p-0 shadow-none outline-none md:w-full [&>button]:hidden">
-					<div className="relative inline-flex h-full w-full items-center justify-center">
-						<button
-							onClick={() => setModalPhoto(null)}
-							className="absolute right-2 top-2 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-none hover:bg-muted"
-						>
-							<IconX size={20} />
-						</button>
-						{modalPhoto && (
-							<img
-								src={`/storage/${modalPhoto}`}
-								onError={(e) => (e.target.src = modalPhoto)}
-								className="h-auto max-h-[90vh] w-auto max-w-[100vw] rounded-xl border border-border bg-black/20 object-contain shadow-none"
-								alt="Bukti"
-							/>
-						)}
-					</div>
-				</DialogContent>
-			</Dialog>
+			<PhotoViewer viewer={photoViewer} onClose={() => setPhotoViewer(null)} />
 		</div>
 	);
 }

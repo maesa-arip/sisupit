@@ -4929,3 +4929,16 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   Pengguna) + saklar di Pengaturan. Lencana `DemoBadge` di Kelola Pengguna, Verifikasi Laporan, detail laporan.
 - **Bukti:** `AkunDemoTest` 10 test lewat kanal database sungguhan; sabotase listener = 3 merah, dipulihkan byte-exact.
   Rincian & catatan deploy (cache event) di `prompt/tasks/TASK_81_akun_demo.md`.
+
+### #215 — Penampil foto Detail Insiden tak bisa digeser ke foto berikutnya (FIXED - lokal 2026-10-23, belum terdeploy)
+
+- **Laporan user 2026-10-23:** "tampilan gambar tidak bisa slide untuk melihat gambar berikutnya harus buka kemudian
+  close baru buka gambar yang lain". Bukan regresi: dialog perbesar di `Front/Reports/Show.jsx` sejak awal hanya
+  memegang SATU path (`modalPhoto`), baik untuk lampiran laporan maupun foto kejadian berita acara.
+- **Fix:** komponen baru `Components/PhotoViewer.jsx` - state `photoViewer = { photos, index }` (kelompok foto yang
+  diketuk + urutannya), carousel Embla yang sudah ada (`ui/carousel.jsx`, `opts.startIndex`), tombol kiri/kanan
+  (sm ke atas), panah keyboard, penunjuk "n / total" (hanya bila > 1 foto). Tetap di atas `ui/dialog` -> tarik-untuk-
+  refresh APK terkunci & Kembali menutup dialog (#205) tanpa kode tambahan. Tanpa paket baru, tanpa migrasi.
+- **Bukti:** Playwright headless 390px (iPhone 12, sentuhan CDP) di laporan lokal 140 dengan 3 foto (2 baris
+  `report_photos` sementara, sudah dihapus): buka foto 2 -> "2 / 3", geser kiri -> "3 / 3", geser kanan -> "2 / 3",
+  ArrowRight -> "3 / 3", URL tetap, Escape menutup. Penjaga `PhotoViewerSwipeTest`. Belum diuji di HP sungguhan.

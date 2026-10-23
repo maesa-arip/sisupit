@@ -1,1 +1,0 @@
-import{j as n}from"./app-BhN9EJVr.js";import{c as o}from"./button-BJn_lGvV.js";function s({message:t,className:r="",...e}){return t?n.jsx("p",{"data-input-error":!0,...e,className:o("text-xs font-medium text-destructive",r),children:t}):null}export{s as I};
