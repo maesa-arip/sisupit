@@ -34,6 +34,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import NotificationDeviceCard from '@/Components/NotificationDeviceCard';
+import CreatePasswordForm from './Partials/CreatePasswordForm';
 import DeleteUserForm from './Partials/DeleteUserForm';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
@@ -284,7 +285,8 @@ export default function Edit(props) {
 						</TabsContent>
 
 						<TabsContent value="keamanan" className="mt-0 outline-none focus-visible:ring-0">
-							<UpdatePasswordForm />
+							{/* TASK_82: akun Google/Apple tanpa sandi membuatnya lewat kode email. */}
+							{props.hasPassword ? <UpdatePasswordForm /> : <CreatePasswordForm email={user?.email} />}
 						</TabsContent>
 					</Tabs>
 				</section>

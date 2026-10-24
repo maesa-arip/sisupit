@@ -4942,3 +4942,18 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Bukti:** Playwright headless 390px (iPhone 12, sentuhan CDP) di laporan lokal 140 dengan 3 foto (2 baris
   `report_photos` sementara, sudah dihapus): buka foto 2 -> "2 / 3", geser kiri -> "3 / 3", geser kanan -> "2 / 3",
   ArrowRight -> "3 / 3", URL tetap, Escape menutup. Penjaga `PhotoViewerSwipeTest`. Deploy diverifikasi HTTPS (bundel app/Show/carousel 200). Belum diuji di HP sungguhan.
+
+### #216 — Akun Google/Apple tak bisa membuat/mengganti kata sandi (FITUR + FIXED - di-push ke main 2026-10-24, deploy via konsol) — TASK_82
+
+- **Permintaan user 2026-10-24:** "jika login google atau login apple user bisa ganti password". Saat diperiksa,
+  form "Kata sandi" di Profil BUNTU bagi akun sosial: akun Socialite dibuat `password` NULL, sedangkan
+  `PasswordController::update` mewajibkan `current_password` - mustahil lolos.
+- **Fix (keputusan user: kode email, simpan di cache):** kartu "Buat Kata Sandi" (`CreatePasswordForm.jsx`) saat
+  `hasPassword` false; `POST password/setup-code` mengirim kode 6 angka (hash di cache 10 menit, kirim 1x/menit &
+  5x/jam), `POST password/setup` memasang sandi (5 tebakan per kode, sekali pakai, putus perangkat lain, email
+  pemberitahuan). Email lewat kanal `mail` sistem. Tanpa migrasi, tanpa APK/iOS baru. Penjaga `PasswordSetupTest`.
+- **Prod dicek langsung 2026-10-24 (ssh, baca saja):** `CACHE_STORE=database` efektif, tabel `cache` ada, deploy tak
+  `cache:clear`; `SESSION_DRIVER=database`; email from `tawarinfirst@gmail.com` via Gmail SMTP.
+- **(OPEN) Email relay Apple:** pengguna Apple "Hide My Email" hanya menerima kode bila pengirim (`tawarinfirst@gmail.com`,
+  Gmail SMTP #191) terdaftar di Apple Developer > Certificates, IDs & Profiles > Services > Sign in with Apple for
+  Email Communication. Belum dicek; tanpa itu kode tak pernah sampai (reset sandi bawaan pun sama).

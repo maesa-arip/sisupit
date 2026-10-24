@@ -54,6 +54,10 @@ Route::middleware('auth')->group(function () {
 
     Route::put('password', [PasswordController::class, 'update'])->name('password.update');
 
+    // TASK_82: akun Google/Apple tanpa kata sandi membuatnya lewat kode 6 angka di email.
+    Route::post('password/setup-code', [PasswordController::class, 'sendSetupCode'])->name('password.setup-code');
+    Route::post('password/setup', [PasswordController::class, 'setup'])->name('password.setup');
+
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
 });
