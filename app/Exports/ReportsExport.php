@@ -355,7 +355,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
                 $sheet->mergeCells("A3:{$last}3");
                 $sheet->mergeCells("A4:{$last}4");
 
-                $sheet->setCellValue('A1', 'PUSAT KOMANDO SISUPIT DAMKAR');
+                $sheet->setCellValue('A1', 'PUSAT KOMANDO SISUPIT');
                 $sheet->setCellValue('A2', 'Laporan Data Kejadian Kebakaran & Kedaruratan');
                 $sheet->setCellValue('A3', $this->filterSummary());
                 $sheet->setCellValue('A4', 'Dicetak pada: '.Carbon::now(config('app.local_timezone'))->translatedFormat('d F Y H:i').' WITA');

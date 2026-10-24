@@ -81,7 +81,7 @@ export default function PublicLayout({ children, title }) {
 								<span className="text-lg font-bold tracking-tight text-foreground">SISUPIT</span>
 							</div>
 							<p className="mt-3 max-w-xs text-sm leading-relaxed text-muted-foreground">
-								Sistem Informasi Kesiapsiagaan untuk Pemadam Kebakaran Terintegrasi.
+								Sistem Untuk Pelaporan Dini Terintegrasi.
 							</p>
 						</div>
 
@@ -183,7 +183,7 @@ export default function PublicLayout({ children, title }) {
 					</div>
 
 					<div className="mt-10 border-t border-border pt-6 text-center text-xs text-muted-foreground">
-						© {new Date().getFullYear()} SISUPIT DAMKAR. Seluruh hak cipta dilindungi.
+						© {new Date().getFullYear()} Sisupit. Seluruh hak cipta dilindungi.
 					</div>
 				</div>
 			</footer>

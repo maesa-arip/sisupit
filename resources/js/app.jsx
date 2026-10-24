@@ -11,7 +11,9 @@ import { focusFirstError } from './lib/focus-first-error';
 import { installNavigationTracking } from './lib/navigation';
 import { releaseFcmTokenIfGuest } from './lib/release-fcm-token';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+// Nama merek tetap di kode, bukan VITE_APP_NAME: nilai itu tertanam saat build dari .env server,
+// dan pernah membuat judul tab (serta hasil Google) memakai nama lama yang salah (2026-10-24).
+const appName = 'Sisupit';
 
 // 413 = kiriman melewati batas server (#132). Datang dari DUA lapis - Nginx
 // (client_max_body_size) atau Laravel (PostTooLargeException saat PHP post_max_size

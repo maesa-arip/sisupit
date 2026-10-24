@@ -2,11 +2,11 @@
 <tr>
 <td class="header">
 <a href="{{ $url }}" style="display: inline-block;">
-@if (trim($slot) === 'Laravel')
-<img src="https://laravel.com/img/notification-logo.png" class="logo" alt="Laravel Logo">
-@else
+{{-- Logo petir Sisupit di atas nama aplikasi (dulu teks APP_NAME saja). URL absolut wajib:
+     klien email tidak mengenal path relatif. --}}
+<img src="{{ rtrim(config('app.url'), '/') }}/icon.png" class="logo" width="48" height="48" alt="Sisupit" style="height: 48px; max-height: 48px; width: 48px; border-radius: 10px;">
+<br>
 {{ $slot }}
-@endif
 </a>
 </td>
 </tr>

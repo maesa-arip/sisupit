@@ -19,7 +19,15 @@
         <!-- iOS home-screen icon -->
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        {{-- Judul & deskripsi untuk mesin pencari/pratinjau tautan ditulis tetap, tidak dari
+             APP_NAME: .env prod pernah berisi nama lama yang salah dan itulah yang tampil di
+             Google. Judul per halaman tetap diganti Inertia ("<judul> - Sisupit", app.jsx). --}}
+        <title inertia>Sisupit - Sistem Untuk Pelaporan Dini Terintegrasi</title>
+        <meta name="description" content="Sisupit (Sistem Untuk Pelaporan Dini Terintegrasi) - laporkan kebakaran dan keadaan darurat, langsung terhubung ke Pusat Komando dan tim di lapangan.">
+        <meta property="og:site_name" content="Sisupit">
+        <meta property="og:title" content="Sisupit - Sistem Untuk Pelaporan Dini Terintegrasi">
+        <meta property="og:description" content="Laporkan kebakaran dan keadaan darurat, langsung terhubung ke Pusat Komando dan tim di lapangan.">
+        <meta property="og:image" content="{{ url('/logo.png') }}">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

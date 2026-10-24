@@ -49,8 +49,9 @@ class HomeController extends Controller
     {
         return inertia('Home', [
             'page_settings' => [
-                'title' => 'SiSUPIT DAMKAR',
-                'subtitle' => 'SISTEM INFORMASI KESIAPSIAGAAN UNTUK PEMADAM KEBAKARAN TERINTEGRASI',
+                // Judul tab = "<title> - Sisupit" (app.jsx); nama merek tak diulang di sini.
+                'title' => 'Informasi Publik',
+                'subtitle' => 'SISTEM UNTUK PELAPORAN DINI TERINTEGRASI',
             ],
             'page_data' => [
                 'reportChart' => $this->chart(),
@@ -63,8 +64,8 @@ class HomeController extends Controller
     {
         return inertia('Spotlight', [
             'page_settings' => [
-                'title' => 'SiSUPIT DAMKAR',
-                'subtitle' => 'SISTEM INFORMASI KESIAPSIAGAAN UNTUK PEMADAM KEBAKARAN TERINTEGRASI',
+                'title' => 'Sisupit',
+                'subtitle' => 'SISTEM UNTUK PELAPORAN DINI TERINTEGRASI',
             ],
             'page_data' => [
                 'reportChart' => $this->chart(),

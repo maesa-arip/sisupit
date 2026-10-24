@@ -4957,3 +4957,30 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **(OPEN) Email relay Apple:** pengguna Apple "Hide My Email" hanya menerima kode bila pengirim (`tawarinfirst@gmail.com`,
   Gmail SMTP #191) terdaftar di Apple Developer > Certificates, IDs & Profiles > Services > Sign in with Apple for
   Email Communication. Belum dicek; tanpa itu kode tak pernah sampai (reset sandi bawaan pun sama).
+
+### #217 — Nama merek salah di email, judul tab & hasil Google: "Sistem Pelaporan Modern", "SISUPIT DAMKAR", tagline lama (FIXED - di-push ke main 2026-10-24, butuh ubah .env prod via konsol)
+
+- **Laporan user 2026-10-24** (tangkapan `docs/email.jpeg`, email kode TASK_82): "logonya masih salah, masih pakai logo
+  tawarin ... masih ada kata sisupit damkar harusnya hanya sisupit ... masih ada kata pelaporan modern, yang benar
+  kepanjangan sisupit itu adalah Sistem Untuk Pelaporan Dini Terintegrasi ... periksa tampilan /home karena di google
+  masih muncul". Keputusan user: nama aplikasi "Sisupit"; avatar Gmail dibiarkan dulu.
+- **Root cause:**
+  1. `.env` prod `APP_NAME="Sistem Pelaporan Modern"` (dicek: `curl https://sisupit.com/home` -> `<title inertia>Sistem
+     Pelaporan Modern</title>`). Dibaca subjek/kepala/salam/footer email, `<title>` server, dan `VITE_APP_NAME` yang
+     TERTANAM saat build -> judul tab "<judul> - Sistem Pelaporan Modern".
+  2. `.env` prod `MAIL_FROM_NAME="SISUPIT Damkar"` (#191) = nama pengirim.
+  3. Kode: `HomeController` title "SiSUPIT DAMKAR" + subjudul "SISTEM INFORMASI KESIAPSIAGAAN ..." (judul tab /home),
+     tagline lama di `PublicLayout` (+ footer "SISUPIT DAMKAR"), `Landing`, `Info/About`; kop Excel
+     "PUSAT KOMANDO SISUPIT DAMKAR". Tidak ada `meta description` -> Google memungut teks seadanya.
+  4. Logo Tawarin di samping pengirim = FOTO PROFIL akun Google `tawarinfirst@gmail.com` (pengirim SMTP #191), bukan kode.
+- **Fix:** `app.blade.php` judul + `meta description` + Open Graph TETAP di kode (tak dari APP_NAME); `app.jsx`/`ssr.jsx`
+  `appName = 'Sisupit'` (bukan VITE_APP_NAME); /home title "Informasi Publik"; semua tagline -> "Sistem Untuk Pelaporan
+  Dini Terintegrasi"; kop Excel "PUSAT KOMANDO SISUPIT"; kepala email = logo petir `/icon.png` (URL absolut) + nama,
+  footer "© <tahun> Sisupit - Sistem Untuk Pelaporan Dini Terintegrasi". `.env.testing`/`.env.example` APP_NAME=Sisupit.
+  Penjaga `BrandNameTest` (judul/deskripsi tetap walau app.name salah; logo+tagline email; pindai sumber dari nama lama).
+- **Wajib di server (konsol):** `.env` prod/staging/dev `APP_NAME="Sisupit"`, `MAIL_FROM_NAME="Sisupit"`, lalu
+  `php artisan config:clear` (+ `queue:restart`). Tanpa ini subjek & salam email tetap nama lama.
+- **(OPEN) Avatar Gmail:** ganti foto profil `tawarinfirst@gmail.com`, atau pindah ke Gmail khusus Sisupit (App Password
+  baru di `.env`). Ditunda atas keputusan user 2026-10-24.
+- **Google:** hasil pencarian baru berubah setelah dirayapi ulang; percepat via Search Console > Pemeriksaan URL `/` & `/home`.
+- Tidak diubah (tak tampil ke pengguna): user-agent `SISUPIT-Damkar/1.0` di `config/services.php`, komentar/dokumen internal.

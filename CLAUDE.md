@@ -157,6 +157,9 @@ TASK_80        APK 1.1.9/vc11 ResponderTrackingService (FGS location) + jembatan
 #216/TASK_82 : (2026-10-24, di-push ke main, deploy via konsol) akun Google/Apple (password NULL) membuat kata sandi: kartu
                 "Buat Kata Sandi" di Profil, kode 6 angka ke email (hash di CACHE 10 mnt, 5 tebakan, kirim 1x/mnt & 5x/jam),
                 POST password/setup-code + password/setup. Tanpa migrasi, tanpa APK/iOS baru. OPEN: email relay Apple.
+#217         : (2026-10-24, di-push ke main) nama merek = "Sisupit" (Sistem Untuk Pelaporan Dini Terintegrasi): judul/meta/OG
+                di app.blade.php & appName app.jsx TETAP di kode (bukan APP_NAME/VITE_APP_NAME), tagline & "SISUPIT DAMKAR" dibuang,
+                logo di kepala email. WAJIB .env server APP_NAME/MAIL_FROM_NAME="Sisupit". Avatar Gmail OPEN. Penjaga BrandNameTest.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
                 kolom approved_at tetap. #178 i18n TERDEPLOY prod @dde8c6a4; #179 (ikon, paginasi PaginationLinks, email).
                 #180 terjemahan bawaan Laravel dari paket laravel-lang/common (DEV) TERDEPLOY prod @9bf7b103; paginasi tetap versi #178 -
@@ -169,7 +172,7 @@ Belum dicek  : visual di ponsel/APK untuk banyak perubahan UI (tombol merah bran
 Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115 #119 #121
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174 #188(satelit).
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
-Test         : 879 passed, 4693 assertions (2026-10-24, + TASK_82 PasswordSetupTest).
+Test         : 884 passed, 6728 assertions (2026-10-24, + #217 BrandNameTest).
 Lingkungan   : PROD @fd7d680b (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#215 + Masuk dengan Apple) | DEV @672b6a10 (dashboard baru) | STAGING @42ef296b (= prod, video demo
                 TASK_80; data uji petugas.uji@sisupit.test + LP-2026-00227). Dev & staging: data salinan prod, basic auth (APK dikecualikan), sandi "password".
 ```
@@ -196,7 +199,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-10-24: 879 passed, 4693 assertions - + TASK_82 PasswordSetupTest;
+Test      : php artisan test            (baseline 2026-10-24: 884 passed, 6728 assertions - + #217 BrandNameTest;
             lokal: php -d memory_limit=1G -d extension=php_sqlite3.dll -d extension=pdo_sqlite vendor/bin/pest.
             Perbarui angka ini tiap kali test bertambah - baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan. Riwayat angkanya di STATUS_LOG.md)

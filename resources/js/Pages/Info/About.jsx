@@ -17,7 +17,7 @@ export default function About({ instansi, legal }) {
 			icon={IconInfoCircle}
 			eyebrow="Tentang Aplikasi"
 			title="Tentang SISUPIT"
-			subtitle="Sistem Informasi Kesiapsiagaan untuk Pemadam Kebakaran Terintegrasi - kanal pelaporan dan koordinasi kedaruratan antara warga, Pusat Komando, petugas, dan relawan."
+			subtitle="Sistem Untuk Pelaporan Dini Terintegrasi - kanal pelaporan dan koordinasi kedaruratan antara warga, Pusat Komando, petugas, dan relawan."
 		>
 			<Section number="1" title="Bagaimana sistem ini bekerja">
 				<div className="grid gap-3 sm:grid-cols-2">

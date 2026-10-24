@@ -4,7 +4,9 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import ReactDOMServer from 'react-dom/server';
 import { route } from '../../vendor/tightenco/ziggy';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+// Nama merek tetap di kode, bukan VITE_APP_NAME: nilai itu tertanam saat build dari .env server,
+// dan pernah membuat judul tab (serta hasil Google) memakai nama lama yang salah (2026-10-24).
+const appName = 'Sisupit';
 
 createServer((page) =>
 	createInertiaApp({
