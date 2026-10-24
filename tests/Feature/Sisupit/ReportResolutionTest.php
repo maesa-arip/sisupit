@@ -349,3 +349,22 @@ it('stores a typed local incident time as UTC and shows it back unchanged in the
 
     expect($props['prefill']['occurred_at'])->toBe('2026-09-29T02:45');
 });
+
+// #219: laporan kejadian dikunci untuk insiden yang sudah SELESAI. Tombol yang disembunyikan
+// tidak menghentikan request buatan tangan, jadi server ikut menolak.
+it('refuses to create or store a resolution before the report is resolved', function (string $status) {
+    $this->report->update(['status' => $status]);
+
+    $petugas = User::factory()->create(['village_code' => '5171012006']);
+    $petugas->assignRole('petugas');
+
+    $this->actingAs($petugas)
+        ->get("/reports/{$this->report->id}/resolution/create")
+        ->assertForbidden();
+
+    $this->actingAs($petugas)
+        ->post("/reports/{$this->report->id}/resolution", ['status' => 'sementara', 'kerugian' => '±1jt'])
+        ->assertForbidden();
+
+    expect(ReportResolution::where('report_id', $this->report->id)->exists())->toBeFalse();
+})->with(['TERLAPOR', 'pending', 'handling', 'ditolak', 'digabung']);

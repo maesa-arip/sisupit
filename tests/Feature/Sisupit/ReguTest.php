@@ -273,6 +273,9 @@ it('groups the regu members under the regu name in the berita acara team prefill
     $this->actingAs($this->admin)
         ->put(route('regu.update', $this->regu), ['name' => 'Regu Alfa', 'leader_id' => $this->danru->id]);
 
+    // Laporan kejadian hanya untuk insiden Selesai (#219).
+    $this->report->update(['status' => 'resolved']);
+
     $this->actingAs($this->danru)->get(route('reports.resolution.create', $this->report))
         ->assertInertia(fn ($page) => $page
             ->where('prefill.tim_atensi', 'Nyoman Perorangan, Regu A (Ketut Anggota, Wayan Anggota)'));

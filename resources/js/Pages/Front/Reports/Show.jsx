@@ -2293,7 +2293,8 @@ export default function ReportShow(props) {
 					</Card>
 
 					{/* --- 📝 LAPORAN KEGIATAN PENYELAMATAN / BERITA ACARA (staf kelola, pejabat read-only) --- */}
-					{canViewResolution && (reportStatus === 'resolved' || reportStatus === 'handling') && (
+					{/* Hanya insiden Selesai (#219): server juga menolak isi/sunting sebelum resolved. */}
+					{canViewResolution && reportStatus === 'resolved' && (
 						<Card>
 							<CardContent className="space-y-3 p-4 sm:p-5">
 								<div className="flex items-center justify-between gap-2">

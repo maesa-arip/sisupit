@@ -40,6 +40,7 @@ class ReportResolutionController extends Controller
     {
         $report = Report::withoutGlobalScopes()->findOrFail($id);
         $this->authorizeStaff($report);
+        $this->abortUnlessResolved($report);
 
         $status = $request->query('status') === 'final' ? 'final' : 'sementara';
         abort_if($status === 'final' && ! $this->canFinalize(), 403, 'Laporan kejadian final hanya boleh diisi admin.');
@@ -166,6 +167,7 @@ class ReportResolutionController extends Controller
     {
         $report = Report::withoutGlobalScopes()->findOrFail($id);
         $this->authorizeStaff($report);
+        $this->abortUnlessResolved($report);
 
         $validated = $request->validate([
             'status' => 'required|in:sementara,final',
@@ -405,6 +407,20 @@ class ReportResolutionController extends Controller
             $status === 'sementara' && $this->sementaraLocked($reportId),
             403,
             'Laporan kejadian sementara terkunci karena versi final sudah dibuat.'
+        );
+    }
+
+    /**
+     * Laporan kejadian hanya untuk insiden yang sudah SELESAI (keputusan user #39 "tutup dulu,
+     * isi belakangan", dikunci 2026-10-25 #219). Dulu panel ikut tampil saat `handling` dan
+     * server tak memeriksa status sama sekali. Isi & sunting saja; lihat/PDF/hapus tidak.
+     */
+    private function abortUnlessResolved(Report $report): void
+    {
+        abort_unless(
+            $report->status === 'resolved',
+            403,
+            'Laporan kejadian hanya bisa diisi setelah insiden dinyatakan selesai.'
         );
     }
 

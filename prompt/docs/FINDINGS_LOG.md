@@ -5003,3 +5003,19 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   Penjaga `LandingWebViewTest` (301 ke `/`); `/home` dikeluarkan dari dataset judul `BrandNameTest`.
 - **Cara memulihkan:** kembalikan baris rute ke `Route::get('/home', 'index')->name('home.index');` + hapus test 301.
 - **Google:** /home hilang dari hasil setelah dirayapi ulang; percepat via Search Console > Pemeriksaan URL `/home`.
+
+### #219 — Laporan Kejadian bisa diisi sebelum insiden dinyatakan Selesai (FIXED, di-push ke main 2026-10-25)
+
+- **Pertanyaan user 2026-10-25:** apakah ada catatan bahwa ia meminta Laporan Kejadian boleh dibuat sebelum laporan
+  Selesai? Tidak ada: keputusan user di #39 justru "tutup dulu, isi belakangan". Namun sejak commit fitur `91fd07d1`
+  panel di `Show.jsx` tampil saat `resolved` ATAU `handling`, dan `ReportResolutionController` tidak memeriksa status
+  sama sekali (lewat URL langsung, laporan `pending` pun bisa diisi). Tak ada catatan persetujuan untuk `handling`.
+- **Keputusan user:** "kunci hanya untuk status selesai, di UI dan server".
+- **Fix:** `abortUnlessResolved()` (403 bila `status !== 'resolved'`) di `create()` & `store()`; panel "Laporan Kejadian"
+  di `Show.jsx` hanya saat `reportStatus === 'resolved'`. Lihat, PDF, KTP, dan hapus entri TIDAK dikunci status (entri
+  lama yang terlanjur dibuat saat `handling` tetap bisa dibaca/dihapus). Pintu lain (toast "Isi Sekarang" sesudah
+  Selesai, antrian "Menunggu Berita Acara" dashboard petugas) sudah hanya untuk `resolved`. Tanpa migrasi.
+- **Penjaga:** `ReportResolutionTest` "refuses to create or store a resolution before the report is resolved"
+  (TERLAPOR/pending/handling/ditolak/digabung), dibuktikan merah dengan mematikan helper (5 gagal; dipulihkan, `cmp` sama).
+  `ReguTest` prefill tim atensi kini menandai insiden Selesai dulu (dulu membuka form saat `handling`).
+- **Verifikasi:** suite penuh 890 passed (6752 assertions); `npm run build` lulus. Deploy via konsol.
