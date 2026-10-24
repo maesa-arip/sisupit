@@ -4984,3 +4984,11 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   baru di `.env`). Ditunda atas keputusan user 2026-10-24.
 - **Google:** hasil pencarian baru berubah setelah dirayapi ulang; percepat via Search Console > Pemeriksaan URL `/` & `/home`.
 - Tidak diubah (tak tampil ke pengguna): user-agent `SISUPIT-Damkar/1.0` di `config/services.php`, komentar/dokumen internal.
+- **Lanjutan 2026-10-25 - logo email tampil sebagai gambar rusak:** setelah deploy, user: "logo sisupitnya kenapa seperti
+  gambar rusak". Diperiksa di prod (baca saja): `.env` benar (`APP_URL=https://sisupit.com`, APP_NAME/MAIL_FROM_NAME
+  "Sisupit"), email dirender di server ber-`<img src="https://sisupit.com/icon.png">`, berkas 200 dari luar, Googlebot
+  sampai ke server, tanpa AAAA, ufw tak memblokir. Namun email terkirim 22:04:52 UTC dan log nginx NOL permintaan
+  `GoogleImageProxy` - Gmail tak pernah mengambil tautan itu. **Fix (pilihan user "gambar sisip"):** kepala email merujuk
+  `cid:sisupit-logo`; listener `App\Listeners\SisipkanLogoEmail` (MessageSending, ditemukan otomatis - deploy tanpa
+  event:cache) melampirkan `public/icon.png` inline ke SETIAP email yang merujuknya. Penjaga di `BrandNameTest` (lampiran
+  inline + HTML merujuk Content-ID), dibuktikan merah dengan sabotase listener (dipulihkan, `cmp` sama).

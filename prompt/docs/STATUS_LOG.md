@@ -2621,6 +2621,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + #213 pilihan jenis kebakaran/non-kebakaran di pop-up Ekspor Excel, ReportExportTest (2026-10-15) = 850 passed, 4536 assertions.
             + #216/TASK_82 akun Google/Apple membuat kata sandi lewat kode email, PasswordSetupTest (2026-10-24) = 879 passed, 4693 assertions.
             + #217 nama merek Sisupit di email/judul/meta, BrandNameTest (2026-10-24) = 884 passed, 6728 assertions.
+            + #217 logo email sebagai gambar sisipan (cid), BrandNameTest (2026-10-25) = 885 passed, 6739 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

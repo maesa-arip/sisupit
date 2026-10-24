@@ -1,5 +1,6 @@
 <?php
 
+use App\Listeners\SisipkanLogoEmail;
 use App\Models\User;
 use App\Notifications\PasswordSetupCodeNotification;
 
@@ -33,9 +34,32 @@ it('puts the Sisupit logo and tagline in system emails', function () {
         ->render();
 
     expect($html)
-        ->toContain(rtrim(config('app.url'), '/').'/icon.png')
+        ->toContain('src="cid:'.SisipkanLogoEmail::CID.'"')
         ->toContain('Sisupit - '.BRAND_TAGLINE)
         ->not->toContain('laravel.com/img');
+});
+
+// Gmail tak pernah mengambil tautan https://sisupit.com/icon.png (gambar rusak, 2026-10-25):
+// logo wajib IKUT di dalam email sebagai sisipan, bukan diunduh dari luar.
+it('embeds the logo inside the sent email instead of linking to it', function () {
+    $user = User::factory()->create();
+
+    $user->notifyNow(new PasswordSetupCodeNotification('123456'));
+
+    $sent = collect(app('mailer')->getSymfonyTransport()->messages())->last();
+    $logo = collect($sent->getOriginalMessage()->getAttachments())
+        ->first(fn ($part) => $part->getFilename() === SisipkanLogoEmail::CID);
+
+    expect($logo)->not->toBeNull()
+        ->and($logo->getContentType())->toBe('image/png')
+        ->and($logo->getBody())->toBe(file_get_contents(public_path('icon.png')));
+
+    // Email mentah: bagian gambar inline dan HTML merujuk Content-ID-nya (bukan nama mentah).
+    $raw = $sent->toString();
+    preg_match('~Content-ID: <([^>]+)>~', $raw, $contentId);
+    expect($raw)->toContain('Content-Disposition: inline')
+        ->and($contentId)->not->toBeEmpty()
+        ->and(quoted_printable_decode($raw))->toContain('src="cid:'.$contentId[1].'"');
 });
 
 it('keeps old brand names out of the source', function () {
