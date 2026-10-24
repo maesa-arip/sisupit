@@ -368,3 +368,16 @@ it('refuses to create or store a resolution before the report is resolved', func
 
     expect(ReportResolution::where('report_id', $this->report->id)->exists())->toBeFalse();
 })->with(['TERLAPOR', 'pending', 'handling', 'ditolak', 'digabung']);
+
+// #219 lanjutan: panel tidak disembunyikan saat insiden masih ditangani (petugas dulu sudah
+// melihat tombolnya di sana, dan ada entri yang terlanjur dibuat). Tombol Isi/Ubah hanya
+// setelah Selesai; sebelumnya keterangan, dan entri lama tetap tampil.
+it('explains on the detail page that the incident report opens once the incident is resolved', function () {
+    $show = file_get_contents(resource_path('js/Pages/Front/Reports/Show.jsx'));
+
+    expect($show)
+        ->toContain("const resolutionOpen = reportStatus === 'resolved';")
+        ->toContain("(reportStatus === 'resolved' || reportStatus === 'handling')")
+        ->toContain('{canManageResolution && resolutionOpen && (')
+        ->toContain('Laporan kejadian bisa dibuat setelah insiden dinyatakan <b>selesai</b>.');
+});

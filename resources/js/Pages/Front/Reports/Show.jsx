@@ -203,6 +203,9 @@ export default function ReportShow(props) {
 	// Entri sementara terkunci begitu ada entri final (dijaga juga di server,
 	// ReportResolutionController::abortIfSementaraLocked).
 	const sementaraLocked = resolutions.some((r) => r.status === 'final');
+	// Isi/sunting hanya setelah insiden Selesai (#219, dijaga juga di server). Saat masih
+	// ditangani panel tetap tampil dengan keterangan, beserta entri yang terlanjur dibuat.
+	const resolutionOpen = reportStatus === 'resolved';
 	const [resolutionToDelete, setResolutionToDelete] = useState(null);
 	const [isDeletingResolution, setIsDeletingResolution] = useState(false);
 
@@ -2293,15 +2296,14 @@ export default function ReportShow(props) {
 					</Card>
 
 					{/* --- 📝 LAPORAN KEGIATAN PENYELAMATAN / BERITA ACARA (staf kelola, pejabat read-only) --- */}
-					{/* Hanya insiden Selesai (#219): server juga menolak isi/sunting sebelum resolved. */}
-					{canViewResolution && reportStatus === 'resolved' && (
+					{canViewResolution && (reportStatus === 'resolved' || reportStatus === 'handling') && (
 						<Card>
 							<CardContent className="space-y-3 p-4 sm:p-5">
 								<div className="flex items-center justify-between gap-2">
 									<h2 className="flex items-center gap-2 text-[17px] font-semibold tracking-tight text-foreground">
 										<IconFileText className="h-4 w-4 text-info" /> Laporan Kejadian
 									</h2>
-									{canManageResolution && (
+									{canManageResolution && resolutionOpen && (
 										<div className="flex flex-wrap justify-end gap-1.5">
 											{/* SATU entri per status (TASK_67): tombol mengisi atau menyunting entri itu. */}
 											{[
@@ -2336,7 +2338,15 @@ export default function ReportShow(props) {
 									)}
 								</div>
 
-								{canManageResolution && (
+								{canManageResolution && !resolutionOpen && (
+									<div className="rounded-xl border border-info/30 bg-info/10 p-3 text-[13px] leading-relaxed text-foreground">
+										Laporan kejadian bisa dibuat setelah insiden dinyatakan <b>selesai</b>.
+										{resolutions.length > 0 &&
+											' Entri yang sudah tersimpan selama penanganan tetap aman dan bisa dilihat; mengubahnya bisa dilakukan setelah insiden selesai.'}
+									</div>
+								)}
+
+								{canManageResolution && resolutionOpen && (
 									<p className="text-xs leading-relaxed text-muted-foreground">
 										Tiap kejadian punya satu entri <b>sementara</b> (petugas boleh melengkapinya)
 										dan satu entri <b>final</b> (ditutup admin). Setiap perubahan tercatat di
@@ -2347,11 +2357,13 @@ export default function ReportShow(props) {
 								)}
 
 								{resolutions.length === 0 ? (
-									<div className="rounded-xl bg-muted/40 p-4 text-center text-[13px] text-muted-foreground">
-										{canManageResolution
-											? 'Belum ada berita acara. Klik "Buat" untuk mengisi data kejadian, korban, dan foto.'
-											: 'Belum ada berita acara untuk insiden ini.'}
-									</div>
+									canManageResolution && !resolutionOpen ? null : (
+										<div className="rounded-xl bg-muted/40 p-4 text-center text-[13px] text-muted-foreground">
+											{canManageResolution
+												? 'Belum ada berita acara. Klik "Buat" untuk mengisi data kejadian, korban, dan foto.'
+												: 'Belum ada berita acara untuk insiden ini.'}
+										</div>
+									)
 								) : (
 									<div className="space-y-3">
 										{resolutions.map((r) => (

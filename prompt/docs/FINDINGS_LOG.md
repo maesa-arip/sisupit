@@ -5019,3 +5019,10 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   (TERLAPOR/pending/handling/ditolak/digabung), dibuktikan merah dengan mematikan helper (5 gagal; dipulihkan, `cmp` sama).
   `ReguTest` prefill tim atensi kini menandai insiden Selesai dulu (dulu membuka form saat `handling`).
 - **Verifikasi:** suite penuh 890 passed (6752 assertions); `npm run build` lulus. TERDEPLOY PROD @b36c3a55 (konsol user); HTTPS: bundel app sama dengan build, `Show` hanya `=="resolved"`.
+- **Lanjutan 2026-10-25 (permintaan user sesudah deploy @b36c3a55):** "jangan hanya di hide saja, tapi isikan keterangan
+  laporan bisa dibuat setelah insiden dinyatakan selesai" - petugas sudah terbiasa melihat tombolnya saat insiden masih
+  ditangani (panel yang tiba-tiba hilang terbaca sebagai aplikasi error), dan ada entri yang terlanjur dibuat selama
+  penanganan. **Fix:** panel kembali tampil saat `handling` & `resolved`; `resolutionOpen` (= `resolved`) menggerbang tombol
+  Isi/Ubah; saat belum Selesai staf melihat kotak info "Laporan kejadian bisa dibuat setelah insiden dinyatakan selesai."
+  (+ kalimat entri lama tetap aman bila sudah ada), entri lama tetap tampil (PDF/hapus tetap). Pejabat tak berubah.
+  Penjaga sumber di `ReportResolutionTest`, dibuktikan merah (kalimat dihapus, dipulihkan `cmp` sama). 891 passed.
