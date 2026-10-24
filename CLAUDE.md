@@ -162,7 +162,7 @@ TASK_80        APK 1.1.9/vc11 ResponderTrackingService (FGS location) + jembatan
                 logo SISIPAN (cid, listener SisipkanLogoEmail - tautan URL rusak di Gmail) di kepala email. WAJIB .env server APP_NAME/MAIL_FROM_NAME="Sisupit". Avatar Gmail OPEN. Penjaga BrandNameTest.
 #218         : (2026-10-25, di-push ke main) SEMENTARA /home (Informasi Publik) tak dipakai: 301 permanen ke `/` agar keluar
                 dari indeks Google; HomeController::index & Home.jsx utuh (cara pulihkan: FINDINGS #218).
-#219         : (2026-10-25, di-push ke main) Laporan Kejadian DIKUNCI untuk insiden Selesai (`resolved`): panel di detail tak lagi
+#219         : (2026-10-25, TERDEPLOY PROD @b36c3a55, HTTPS terverifikasi) Laporan Kejadian DIKUNCI untuk insiden Selesai (`resolved`): panel di detail tak lagi
                 tampil saat `handling`; create/store menolak 403 sebelum resolved (dulu server tak cek status). Lihat/PDF/hapus
                 tetap. Tanpa migrasi. Penjaga ReportResolutionTest.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
@@ -178,7 +178,7 @@ Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174 #188(satelit).
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
 Test         : 890 passed, 6752 assertions (2026-10-25, + #219 Laporan Kejadian hanya Selesai).
-Lingkungan   : PROD @fd7d680b (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#215 + Masuk dengan Apple) | DEV @672b6a10 (dashboard baru) | STAGING @42ef296b (= prod, video demo
+Lingkungan   : PROD @b36c3a55 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#219 + Masuk dengan Apple) | DEV @672b6a10 (dashboard baru) | STAGING @42ef296b (= prod, video demo
                 TASK_80; data uji petugas.uji@sisupit.test + LP-2026-00227). Dev & staging: data salinan prod, basic auth (APK dikecualikan), sandi "password".
 ```
 
