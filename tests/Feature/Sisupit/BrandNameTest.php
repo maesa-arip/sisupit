@@ -26,7 +26,7 @@ it('serves a fixed title and description to search engines, whatever APP_NAME sa
         ->not->toContain('Pelaporan Modern')
         ->not->toContain('SiSUPIT DAMKAR')
         ->not->toContain('KESIAPSIAGAAN');
-})->with(['/', '/home', '/landing']);
+})->with(['/', '/landing']);
 
 it('puts the Sisupit logo and tagline in system emails', function () {
     $html = (string) (new PasswordSetupCodeNotification('123456'))

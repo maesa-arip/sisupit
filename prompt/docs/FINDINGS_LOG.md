@@ -4992,3 +4992,14 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   `cid:sisupit-logo`; listener `App\Listeners\SisipkanLogoEmail` (MessageSending, ditemukan otomatis - deploy tanpa
   event:cache) melampirkan `public/icon.png` inline ke SETIAP email yang merujuknya. Penjaga di `BrandNameTest` (lampiran
   inline + HTML merujuk Content-ID), dibuktikan merah dengan sabotase listener (dipulihkan, `cmp` sama).
+
+### #218 — /home (Informasi Publik) masih muncul di Google; diganti tampilan `/` (SEMENTARA - di-push ke main 2026-10-25)
+
+- **Permintaan user 2026-10-25:** "rubah /home agar sama dengan / tampilannya, tampilan /home sementara tidak dipakai dan
+  agar tidak muncul di rayapan google juga". Tak ada tautan di kode yang menuju /home (hanya nama rute di label statistik
+  kunjungan `Admin/Visits/Index.jsx`).
+- **Fix:** `routes/web.php` `Route::permanentRedirect('/home', '/')->name('home.index')` - 301 (bukan 302) agar Google
+  mengganti /home dengan `/` di indeksnya; nama rute tetap. `HomeController::index()` & `Pages/Home.jsx` DIBIARKAN utuh.
+  Penjaga `LandingWebViewTest` (301 ke `/`); `/home` dikeluarkan dari dataset judul `BrandNameTest`.
+- **Cara memulihkan:** kembalikan baris rute ke `Route::get('/home', 'index')->name('home.index');` + hapus test 301.
+- **Google:** /home hilang dari hasil setelah dirayapi ulang; percepat via Search Console > Pemeriksaan URL `/home`.

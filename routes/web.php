@@ -180,7 +180,11 @@ Route::controller(HomeController::class)->group(function () {
     // `/` sengaja tetap ke Spotlight (keputusan 2026-07-11); halaman Landing yang sudah
     // dipoles diakses langsung di sini agar tetap hidup tanpa mengubah `/`.
     Route::get('/landing', 'landingPage')->name('home.landing.page');
-    Route::get('/home', 'index')->name('home.index');
+    // SEMENTARA (2026-10-25, permintaan user): halaman /home (Informasi Publik) tidak dipakai dan
+    // tak boleh muncul di Google -> 301 ke `/`, sehingga Google mengganti /home dengan `/` di
+    // indeksnya. HomeController::index() & Pages/Home.jsx dibiarkan utuh; untuk memulihkan,
+    // kembalikan baris ini ke: Route::get('/home', 'index')->name('home.index');
+    Route::permanentRedirect('/home', '/')->name('home.index');
 });
 // Daftar relawan hanya untuk Pusat Komando (petugas/admin/superadmin), bukan publik.
 Route::middleware(['auth', 'verified', 'role:petugas|admin|superadmin'])->group(function () {

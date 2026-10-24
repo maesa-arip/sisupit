@@ -45,3 +45,10 @@ it('serves the polished landing page at /landing', function () use ($browserUa) 
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page->component('Landing'));
 });
+
+// SEMENTARA (2026-10-25): /home tak dipakai & harus keluar dari indeks Google -> 301 permanen ke `/`
+// (bukan 302: hanya 301 yang membuat Google mengganti URL lama). Pulihkan bersama routes/web.php.
+it('permanently redirects the retired /home page to /', function () {
+    $this->get('/home')->assertStatus(301)->assertRedirect('/');
+    expect(route('home.index', absolute: false))->toBe('/home');
+});
