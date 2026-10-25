@@ -5026,3 +5026,27 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   Isi/Ubah; saat belum Selesai staf melihat kotak info "Laporan kejadian bisa dibuat setelah insiden dinyatakan selesai."
   (+ kalimat entri lama tetap aman bila sudah ada), entri lama tetap tampil (PDF/hapus tetap). Pejabat tak berubah.
   Penjaga sumber di `ReportResolutionTest`, dibuktikan merah (kalimat dihapus, dipulihkan `cmp` sama). 891 passed.
+
+### #220 — Komputer admin di Damkar diam saat Broadcast; speaker ruangan tak bisa membunyikan sirine (FITUR, di-push ke main 2026-10-25, deploy via konsol) — TASK_83
+
+- **Permintaan user 2026-10-25:** satu komputer admin dipegang operator di Damkar, disambungkan ke speaker aktif;
+  operator memakai headset untuk telepon WhatsApp konfirmasi laporan. Saat admin klik Broadcast, komputer itu harus
+  membunyikan sirine di speaker. Keputusan user: **cukup saat Broadcast diklik dari komputer itu**, memakai
+  **aplikasi desktop Sisupit (Electron)**.
+- **Akar:** `ReportActionController::approve` hanya menyiarkan `EmergencyAlertNotification` (STAGE_DISPATCH) ke
+  petugas/relawan/pejabat dan membuang akun penekan tombol (`reject(... auth()->id())`); admin hanya mendapat
+  `TriageDecidedNotification` (tanpa sirine). Desktop pun memutar semua suara ke perangkat bawaan Windows.
+- **Fix web (1 baris):** `Show.jsx` `executeApprove` onSuccess -> `window.sisupitDesktop?.sirineBroadcast?.(report.id)`.
+  Browser/APK tak punya jembatan = diam. Tanpa perubahan server, tanpa migrasi.
+- **Fix desktop 1.0.2** (`C:\Users\Admin\ElectronProjects\SisupitDesktop`, bukan git; cadangan `*.bak-task83`):
+  jembatan `sisupitDesktop` di `preload-lokasi.js`; `ipcMain 'sisupit:sirine-broadcast'` cek ORIGIN halaman = baseUrl;
+  tray "Speaker sirine Damkar" (saklar, pilih speaker, uji); setelan `speakerDamkar/speakerDeviceId/speakerLabel` di
+  `sisupit-desktop.json` (bawaan MATI); `suara.html` `setSinkId` HANYA elemen sirine (cocok deviceId lalu nama;
+  hilang = perangkat bawaan + toast peringatan). Toast "Sirine Damkar berbunyi" klik = berhenti; batas `sirenSeconds` 30.
+- **Pengaturan Windows/WhatsApp (bukan kode, di README desktop):** headset = Default Communication Device + dipilih
+  eksplisit di WhatsApp; tab Communications "Do nothing" (bawaannya mengecilkan suara lain 80% saat panggilan).
+- **Penjaga:** `DesktopSirineBroadcastTest` (jembatan di onSuccess, satu-satunya; asumsi admin tak menerima sirine
+  server). Dibuktikan merah (jembatan dihapus: 1 gagal; dipulihkan, `cmp` sama).
+- **Verifikasi:** CDP pada Electron (profil terisolasi): jembatan ada di halaman sisupit.com, Broadcast -> sirine
+  berbunyi dengan `sinkId` speaker Realtek, deviceId basi ditangkap lewat nama, speaker hilang -> `ditemukan:false`,
+  mode mati -> diam + log. `npm run build` lulus; suite 893 passed (6760). Belum diuji di komputer Damkar dengan speaker + headset nyata.

@@ -466,6 +466,10 @@ export default function ReportShow(props) {
 				onSuccess: () => {
 					setConfirmApprove(false);
 					toast.success('Sinyal darurat disiarkan!');
+					// #220: komputer operator di Damkar (aplikasi desktop Sisupit) membunyikan sirine ke
+					// speaker ruangan. Server sengaja tak mengirim sirine ke admin (ReportActionController::
+					// approve), jadi pemicunya klik di komputer ini. Browser/APK: jembatan tak ada, diam.
+					window.sisupitDesktop?.sirineBroadcast?.(report.id);
 				},
 				onFinish: () => setIsProcessing(false),
 			},
