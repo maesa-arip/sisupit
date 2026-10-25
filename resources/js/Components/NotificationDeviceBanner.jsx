@@ -1,4 +1,5 @@
 import { notificationProblem, useFcmDevice } from '@/lib/fcm-device';
+import { desktopNotifFailed, useDesktopNotificationStatus } from '@/lib/native-app';
 import { Link } from '@inertiajs/react';
 import { IconAlertTriangle, IconChevronRight } from '@tabler/icons-react';
 
@@ -8,11 +9,21 @@ import { IconAlertTriangle, IconChevronRight } from '@tabler/icons-react';
 // pita sticky/fixed (aturan DashboardMobileShellTest).
 export default function NotificationDeviceBanner({ deviceCount }) {
 	const device = useFcmDevice();
+	const desktop = useDesktopNotificationStatus();
 
 	const problem = notificationProblem(device);
 
 	let pesan = null;
-	if (problem === 'blocked') {
+	if (desktop) {
+		// Exe desktop menerima sirine sendiri lewat Reverb: peringatan hanya bila langganannya
+		// gagal, bukan karena belum ada HP.
+		if (desktopNotifFailed(desktop)) {
+			pesan = {
+				title: 'Komputer ini belum menerima notifikasi',
+				body: 'Sisupit Desktop belum tersambung ke server notifikasi. Periksa koneksi internet.',
+			};
+		}
+	} else if (problem === 'blocked') {
 		pesan = {
 			title: 'Notifikasi Sisupit diblokir di HP ini',
 			body: 'Sirine tidak akan berbunyi sampai izin notifikasi dinyalakan. Periksa sekarang.',

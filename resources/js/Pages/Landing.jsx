@@ -1,5 +1,6 @@
 import { Button } from '@/Components/ui/button';
 import PublicLayout from '@/Layouts/PublicLayout';
+import { isSisupitApp } from '@/lib/native-app';
 import { Link, usePage } from '@inertiajs/react';
 import {
 	IconArrowRight,
@@ -28,11 +29,11 @@ export default function Landing({ page_data }) {
 	const isAuthenticated = Boolean(auth?.user?.name || auth?.name);
 	const primaryHref = isAuthenticated ? route('dashboard') : route('login');
 
-	// Jaring pengaman untuk aplikasi WebView (UA ∋ SisupitApp). Normalnya server sudah
-	// meredirect app SEBELUM halaman ini termuat; ini hanya menutup celah saat masa deploy
+	// Jaring pengaman untuk aplikasi WebView (UA ∋ SisupitApp) & exe desktop (lib/native-app.js).
+	// Normalnya server sudah meredirect app SEBELUM halaman ini termuat; ini hanya menutup celah saat masa deploy
 	// (kode server baru belum ter-pull) agar app tidak tersangkut di landing publik.
 	useEffect(() => {
-		if (typeof navigator !== 'undefined' && /SisupitApp/i.test(navigator.userAgent || '')) {
+		if (isSisupitApp()) {
 			window.location.replace(isAuthenticated ? route('dashboard') : route('home.spotlight'));
 		}
 	}, [isAuthenticated]);

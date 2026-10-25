@@ -14,14 +14,14 @@ class HomeController extends Controller
 {
     /**
      * Landing publik (browser). Aplikasi WebView TIDAK menampilkan landing ini:
-     * User-Agent WebView mengandung token 'SisupitApp' (dipakai juga di
+     * User-Agent WebView mengandung token 'SisupitApp', exe desktop 'SisupitDesktop' (isNativeApp; dipakai juga di
      * resources/js/Pages/Auth/Login.jsx). Deteksi di server agar redirect terjadi
      * sebelum render — tidak ada flash konten landing di dalam app. WebView diarahkan
      * ke Spotlight (beranda app) bila belum login, atau langsung dashboard bila sudah.
      */
     public function landing(Request $request): Response|RedirectResponse
     {
-        if (str_contains($request->userAgent() ?? '', 'SisupitApp')) {
+        if (isNativeApp($request)) {
             return auth()->check()
                 ? redirect()->route('dashboard')
                 : redirect()->route('home.spotlight');

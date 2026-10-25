@@ -1,4 +1,5 @@
 import { notificationProblem, openNativeNotificationSettings, useFcmDevice } from '@/lib/fcm-device';
+import { desktopNotifFailed, useDesktopNotificationStatus } from '@/lib/native-app';
 import { cn } from '@/lib/utils';
 import {
 	IconAlertTriangle,
@@ -6,6 +7,7 @@ import {
 	IconBellOff,
 	IconBellRinging,
 	IconCircleCheck,
+	IconDeviceDesktop,
 	IconDeviceMobileOff,
 	IconLoader2,
 	IconSettings,
@@ -47,6 +49,54 @@ const STATUS = {
 	},
 };
 
+// Exe desktop Windows (lib/native-app.js): tanpa FCM, notifikasi datang lewat langganan Reverb
+// milik main process exe. Status = keadaan langganan itu; uji dibunyikan exe sendiri (lokal),
+// sama dengan menu tray "Uji notifikasi".
+const DESKTOP = {
+	old: {
+		icon: IconDeviceDesktop,
+		tint: 'bg-muted text-muted-foreground',
+		title: 'Aplikasi desktop',
+		subtitle:
+			'Perbarui Sisupit Desktop ke versi terbaru untuk melihat status notifikasi dan menguji bunyi di komputer ini.',
+	},
+	active: {
+		icon: IconCircleCheck,
+		tint: 'bg-success/10 text-success',
+		title: 'Aktif',
+		subtitle:
+			'Komputer ini menerima notifikasi selama Sisupit Desktop berjalan, termasuk saat jendelanya ditutup ke tray.',
+	},
+	connecting: {
+		icon: IconLoader2,
+		tint: 'bg-muted text-muted-foreground',
+		spin: true,
+		title: 'Menyambung...',
+		subtitle: 'Menyambungkan komputer ini ke server notifikasi.',
+	},
+	failed: {
+		icon: IconAlertTriangle,
+		tint: 'bg-warning/15 text-warning',
+		title: 'Belum tersambung',
+		subtitle:
+			'Komputer ini belum menerima notifikasi. Periksa koneksi internet; Sisupit Desktop menyambung ulang sendiri.',
+	},
+	unsupported: {
+		icon: IconBellOff,
+		tint: 'bg-destructive/10 text-destructive',
+		title: 'Notifikasi Windows tidak tersedia',
+		subtitle: 'Izinkan notifikasi Sisupit Desktop di Pengaturan Windows > Sistem > Notifikasi.',
+	},
+};
+
+function desktopStatus(desktop) {
+	if (!desktop.bridge) return DESKTOP.old;
+	if (desktop.supported === false) return DESKTOP.unsupported;
+	if (desktop.state === 'aktif') return DESKTOP.active;
+	if (desktopNotifFailed(desktop)) return DESKTOP.failed;
+	return DESKTOP.connecting;
+}
+
 // Izin notifikasi Android bermasalah (APK 1.1.8+, lib/fcm-device.js) - menimpa status di atas,
 // sebab token yang terdaftar tak berguna bila HP membuang notifikasinya diam-diam.
 const PROBLEM = {
@@ -67,19 +117,29 @@ const PROBLEM = {
 
 export default function NotificationDeviceCard({ tests = [] }) {
 	const device = useFcmDevice();
+	const desktop = useDesktopNotificationStatus();
 	const [sending, setSending] = useState(null);
-	const problem = notificationProblem(device);
-	const status =
-		problem === 'channels'
+	const problem = desktop ? null : notificationProblem(device);
+	const status = desktop
+		? desktopStatus(desktop)
+		: problem === 'channels'
 			? {
 					...PROBLEM.channels,
 					subtitle: `Jenis notifikasi ini dimatikan di Setelan HP: ${device.notif.blockedChannels.join(', ')}.`,
 				}
 			: (PROBLEM[problem] ?? STATUS[device.status] ?? STATUS.checking);
 	const StatusIcon = status.icon;
-	const canTest = device.status === 'active' && !!device.token && problem !== 'blocked';
+	const canTest = desktop
+		? typeof window.sisupitDesktop?.testNotification === 'function'
+		: device.status === 'active' && !!device.token && problem !== 'blocked';
 
 	const sendTest = (tier) => {
+		if (desktop) {
+			Promise.resolve(window.sisupitDesktop.testNotification(tier))
+				.then(() => toast.success('Notifikasi uji ditampilkan di komputer ini.'))
+				.catch(() => toast.error('Gagal menampilkan notifikasi uji. Coba lagi.'));
+			return;
+		}
 		setSending(tier);
 		axios
 			.post(route('fcm.test'), { token: device.token, tier })

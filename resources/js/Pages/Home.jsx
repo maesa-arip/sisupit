@@ -2,6 +2,7 @@ import HeaderTitle from '@/Components/HeaderTitle';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/Components/ui/carousel';
 import AppLayout from '@/Layouts/AppLayout';
+import { isDesktopApp } from '@/lib/native-app';
 import { Link } from '@inertiajs/react';
 import {
 	IconBrandAndroid,
@@ -25,7 +26,7 @@ export default function Home(props) {
 			const isAndroidWebView = /wv|Android.*Version\/[\d\.]+/i.test(ua);
 			const isIOSWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(ua);
 			const isInAppBrowser = /FBAV|FBAN|Instagram|Line|Twitter|MicroMessenger/i.test(ua);
-			const isMyOwnApp = /SisupitApp/i.test(ua);
+			const isMyOwnApp = /SisupitApp/i.test(ua) || isDesktopApp();
 
 			return isAndroidWebView || isIOSWebView || isInAppBrowser || isMyOwnApp;
 		};

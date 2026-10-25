@@ -1,5 +1,6 @@
 import { Button } from '@/Components/ui/button';
 import AppLayout from '@/Layouts/AppLayout';
+import { isDesktopApp } from '@/lib/native-app';
 import { Link, usePage } from '@inertiajs/react';
 import { IconBrandAndroid, IconFlame, IconPhoneCall, IconShieldCheck } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
@@ -19,7 +20,7 @@ export default function Spotlight(props) {
 			const isAndroidWebView = /wv|Android.*Version\/[\d\.]+/i.test(ua);
 			const isIOSWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(ua);
 			const isInAppBrowser = /FBAV|FBAN|Instagram|Line|Twitter|MicroMessenger/i.test(ua);
-			const isMyOwnApp = /SisupitApp/i.test(ua);
+			const isMyOwnApp = /SisupitApp/i.test(ua) || isDesktopApp();
 
 			return isAndroidWebView || isIOSWebView || isInAppBrowser || isMyOwnApp;
 		};

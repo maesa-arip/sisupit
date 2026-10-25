@@ -72,7 +72,7 @@ class RecordSiteVisit
         $dims = [
             'date' => $date,
             'tenant' => (string) (currentTenant()->subdomain ?: '-'),
-            'channel' => isNativeApp($request) ? 'apk' : 'web',
+            'channel' => isDesktopApp($request) ? 'desktop' : (isNativeApp($request) ? 'apk' : 'web'),
             'is_auth' => $request->user() !== null,
         ];
 

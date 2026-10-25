@@ -47,7 +47,7 @@ app/
                                  (streaming KTP dari disk privat) + pdf (TASK_68, dompdf)
     DashboardController.php     dashboard per role: admin/superadmin, pejabat, petugas, opd, warga/relawan
     HomeController.php          Landing publik (/) + Spotlight (/spotlight) + chart statistik;
-                                landing() redirect WebView (UA∋SisupitApp) ke spotlight/dashboard
+                                landing() redirect WebView (UA∋SisupitApp) & exe desktop (UA∋SisupitDesktop, isNativeApp()) ke spotlight/dashboard
     InfoController.php          Halaman informasi publik (TASK_19): Syarat & Ketentuan,
                                 Kebijakan Privasi, Pusat Bantuan, Tentang, Paket & Lisensi —
                                 isi statis di React, PIHAK-nya dari tenant + tenants.edition

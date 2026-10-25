@@ -8,13 +8,14 @@ import { Checkbox } from '@/Components/ui/checkbox';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import GuestLayout from '@/Layouts/GuestLayout';
+import { isDesktopApp } from '@/lib/native-app';
 import { Link, router, useForm } from '@inertiajs/react';
 import { IconBrandAndroid, IconDownload, IconEye, IconEyeOff, IconLoader2 } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 
 export default function Login({ status, canResetPassword }) {
 	const [isWebView, setIsWebView] = useState(true);
-	// Di aplikasi Android/iOS server selalu login "ingat saya" (TASK_73), jadi kotaknya disembunyikan.
+	// Di aplikasi Android/iOS & exe desktop server selalu login "ingat saya" (TASK_73), jadi kotaknya disembunyikan.
 	const [isNativeApp, setIsNativeApp] = useState(false);
 	useEffect(() => {
 		const checkWebView = () => {
@@ -22,12 +23,12 @@ export default function Login({ status, canResetPassword }) {
 			const isAndroidWebView = /wv|Android.*Version\/[\d\.]+/i.test(ua);
 			const isIOSWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(ua);
 			const isInAppBrowser = /FBAV|FBAN|Instagram|Line|Twitter|MicroMessenger/i.test(ua);
-			const isMyOwnApp = /SisupitApp/i.test(ua);
+			const isMyOwnApp = /SisupitApp/i.test(ua) || isDesktopApp();
 
 			return isAndroidWebView || isIOSWebView || isInAppBrowser || isMyOwnApp;
 		};
 		setIsWebView(checkWebView());
-		setIsNativeApp(/SisupitApp/i.test(navigator.userAgent || ''));
+		setIsNativeApp(/SisupitApp/i.test(navigator.userAgent || '') || isDesktopApp());
 	}, []);
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 	const [isAppleLoading, setIsAppleLoading] = useState(false);

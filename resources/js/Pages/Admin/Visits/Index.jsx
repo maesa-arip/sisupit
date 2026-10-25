@@ -18,7 +18,7 @@ const METRICS = {
 	views: { label: 'Halaman dibuka', color: 'hsl(var(--chart-2))' },
 };
 
-const CHANNEL_LABEL = { web: 'Browser (web)', apk: 'Aplikasi Android' };
+const CHANNEL_LABEL = { web: 'Browser (web)', apk: 'Aplikasi Android', desktop: 'Aplikasi Desktop' };
 const AUTH_LABEL = { 1: 'Sudah masuk akun', 0: 'Tamu (belum masuk)' };
 
 // Nama rute -> nama halaman yang dikenali manusia. Rute di luar daftar tampil apa adanya.

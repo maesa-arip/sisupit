@@ -2625,6 +2625,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + #218 /home 301 ke / (dataset /home keluar dari BrandNameTest), LandingWebViewTest (2026-10-25) = 885 passed, 6737 assertions.
             + #219 Laporan Kejadian hanya untuk insiden Selesai, ReportResolutionTest (2026-10-25) = 890 passed, 6752 assertions.
             + #219 lanjutan keterangan panel saat masih ditangani, ReportResolutionTest (2026-10-25) = 891 passed, 6756 assertions.
+            + #221 exe desktop diperlakukan sebagai aplikasi, DesktopNativeAppTest (2026-10-26) = 899 passed, 6784 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

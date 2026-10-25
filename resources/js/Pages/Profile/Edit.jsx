@@ -34,6 +34,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import NotificationDeviceCard from '@/Components/NotificationDeviceCard';
+import { isDesktopApp } from '@/lib/native-app';
 import CreatePasswordForm from './Partials/CreatePasswordForm';
 import DeleteUserForm from './Partials/DeleteUserForm';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
@@ -42,6 +43,7 @@ import UpdateProfileInformationForm from './Partials/UpdateProfileInformationFor
 export default function Edit(props) {
 	const user = usePage().props.auth.user;
 	const [isWebView, setIsWebView] = useState(true);
+	const [isDesktop, setIsDesktop] = useState(false);
 
 	useEffect(() => {
 		const checkWebView = () => {
@@ -49,11 +51,12 @@ export default function Edit(props) {
 			const isAndroidWebView = /wv|Android.*Version\/[\d\.]+/i.test(ua);
 			const isIOSWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(ua);
 			const isInAppBrowser = /FBAV|FBAN|Instagram|Line|Twitter|MicroMessenger/i.test(ua);
-			const isMyOwnApp = /SisupitApp/i.test(ua);
+			const isMyOwnApp = /SisupitApp/i.test(ua) || isDesktopApp();
 
 			return isAndroidWebView || isIOSWebView || isInAppBrowser || isMyOwnApp;
 		};
 		setIsWebView(checkWebView());
+		setIsDesktop(isDesktopApp());
 	}, []);
 
 	const userRoles = Array.isArray(user?.role) ? user.role : user?.role ? [user.role] : [];
@@ -296,8 +299,12 @@ export default function Edit(props) {
 				    notifikasi uji lewat #notifikasi-hp - jangan ganti id-nya. */}
 				<div id="notifikasi-hp" className="scroll-mt-20">
 					<Group
-						title="Notifikasi di HP ini"
-						footer="Tidak berbunyi? Matikan optimasi baterai untuk Sisupit, naikkan volume alarm, dan izinkan Sisupit menembus mode Jangan Ganggu di Setelan HP."
+						title={isDesktop ? 'Notifikasi di komputer ini' : 'Notifikasi di HP ini'}
+						footer={
+							isDesktop
+								? 'Tidak berbunyi? Biarkan Sisupit Desktop tetap berjalan di tray, izinkan notifikasinya di Pengaturan Windows > Sistem > Notifikasi, dan matikan mode Jangan Ganggu.'
+								: 'Tidak berbunyi? Matikan optimasi baterai untuk Sisupit, naikkan volume alarm, dan izinkan Sisupit menembus mode Jangan Ganggu di Setelan HP.'
+						}
 					>
 						<NotificationDeviceCard tests={props.notificationTests ?? []} />
 					</Group>

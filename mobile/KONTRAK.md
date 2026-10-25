@@ -30,6 +30,10 @@ Yang membacanya:
 - `Pages/{Home,Spotlight,Auth/Login,Profile/Edit}.jsx` - menyembunyikan tombol
   "Unduh APK" bila UA = `SisupitApp` **atau** WebView iOS
   (`/(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/`).
+- **Exe desktop (#221) BUKAN `SisupitApp`** (tak punya FCM/AndroidBridge): server mengenalinya dari token
+  `SisupitDesktop` yang exe 1.0.3+ tambahkan hanya di request ke Sisupit (`isNativeApp()` = keduanya,
+  `isDesktopApp()` = desktop saja), JS dari jembatan `window.sisupitDesktop` (`lib/native-app.js`). Jangan menambah
+  `SisupitApp` ke exe: kartu notifikasi akan menunggu jembatan FCM yang tak pernah datang.
 - `Layouts/AppLayout.jsx:43` - `device_type` token FCM: `ios` bila UA memuat
   `iPhone|iPad|iPod`, selain itu `android`.
   **Awas iPad:** iPadOS 13+ ber-UA "Macintosh" → tercatat `android`. Lihat `PARITAS.md` §Celah.

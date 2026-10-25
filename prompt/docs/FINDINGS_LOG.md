@@ -5050,3 +5050,42 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Verifikasi:** CDP pada Electron (profil terisolasi): jembatan ada di halaman sisupit.com, Broadcast -> sirine
   berbunyi dengan `sinkId` speaker Realtek, deviceId basi ditangkap lewat nama, speaker hilang -> `ditemukan:false`,
   mode mati -> diam + log. `npm run build` lulus; suite 893 passed (6760). Belum diuji di komputer Damkar dengan speaker + headset nyata.
+
+### #221 — Exe desktop terasa seperti browser: tombol "Unduh Aplikasi Android", kartu notifikasi "Dibuka di browser", sesi habis 120 menit (FIXED, di-push ke main 2026-10-26, deploy via konsol) — desktop 1.0.3
+
+- **Keluhan user 2026-10-26:** "sekarang seperti bukan aplikasi native karena masih ada tombol download apk android,
+  di profile test notification masih dianggap login di browser biasa, silakan cek yang lainnya juga".
+- **Akar:** web hanya mengenali aplikasi dari token UA `SisupitApp` (Android/iOS). Exe desktop SENGAJA membersihkan UA
+  halamannya (`app.userAgentFallback` tanpa `Electron/`) agar login Google tak ditolak sebagai embedded browser, jadi
+  server & JS menganggapnya Chrome biasa. Satu-satunya penanda, `window.sisupitDesktop` (1.0.2, #220), hanya dipakai sirine.
+- **Dampak yang ditemukan:** (1) tombol "Unduh Aplikasi Android" di Login/Spotlight/Home/Profil (+ Landing tak dilewati);
+  (2) kartu Profil "Notifikasi di HP ini" = "Dibuka di browser" tanpa uji, banner dashboard "Belum ada HP yang menerima
+  sirine" padahal exe menerima lewat Reverb; (3) **login tak selalu "ingat saya" -> sesi 120 menit habis -> exe berhenti
+  berlangganan notifikasi diam-diam** (paling berbahaya); (4) klik kanan tanpa menu (salin/tempel); (5) `tel:`/`mailto:`
+  tanpa penangan; (6) tanpa Kembali mouse/Alt+Kiri, F5 tak me-refresh, ukuran jendela tak diingat; (7) statistik kunjungan
+  mencatat exe sebagai "web".
+- **Fix web:** `resources/js/lib/native-app.js` (`isDesktopApp()` = ada `window.sisupitDesktop`, BUKAN UA; `isSisupitApp()`;
+  `useDesktopNotificationStatus()` membaca jembatan tiap 5 dtk). 4 halaman: `isMyOwnApp = /SisupitApp/ || isDesktopApp()`;
+  Landing `isSisupitApp()`; Login kotak "Ingat saya" disembunyikan. `NotificationDeviceCard` cabang desktop
+  (Aktif/Menyambung/Belum tersambung/Notifikasi Windows tak tersedia/exe lama "perbarui"), uji = LOKAL lewat
+  `sisupitDesktop.testNotification(tier)` (keputusan user: lokal + status "Terhubung"); `NotificationDeviceBanner` di desktop
+  hanya saat langganan gagal. Profil: judul "Notifikasi di komputer ini" + petunjuk Windows.
+- **Fix server:** `isNativeApp()` juga mengenali `SisupitDesktop`; helper baru `isDesktopApp()`; `HomeController::landing`
+  memakai `isNativeApp()`; `RecordSiteVisit` channel `desktop` (label "Aplikasi Desktop" di /admin/visits). Tanpa migrasi
+  (kolom channel string(10)).
+- **Fix desktop 1.0.3** (`C:\Users\Admin\ElectronProjects\SisupitDesktop`, bukan git; cadangan `*.bak-1.0.3`): token
+  ` SisupitDesktop/x.y.z` HANYA di request ke host Sisupit (+ subdomain) via `session.webRequest.onBeforeSendHeaders` - UA
+  halaman & request Google tetap bersih; jembatan `notificationStatus()`/`testNotification(tier)` (IPC cek ORIGIN,
+  `UJI_NOTIFIKASI` dipakai bersama menu tray, kunci = `DeviceTestNotification::TIERS`); menu klik kanan; skema non-http
+  ke `shell.openExternal` (http(s) host lain TETAP di jendela: login Google/Apple melewatinya); Kembali/Maju mouse,
+  Alt+Kiri/Kanan, F5/Ctrl+F5; `windowBounds` di `sisupit-desktop.json` (posisi di luar layar dibuang).
+  Installer `dist\Sisupit-Desktop-Setup-1.0.3.exe`.
+- **Exe 1.0.2 yang sudah terpasang:** tombol APK & "Ingat saya" sudah hilang begitu web terdeploy (jembatannya sudah ada),
+  kartu tampil "Aplikasi desktop - perbarui"; login selalu-ingat & channel kunjungan butuh 1.0.3.
+- **Penjaga:** `DesktopNativeAppTest` (6 test: remember, landing, channel, deteksi lewat jembatan, tombol APK, kartu/banner).
+- **Verifikasi:** exe dijalankan terhadap server lokal (artisan serve + Reverb 9080 + MySQL dev) lewat CDP: UA halaman bersih,
+  server mencatat channel `desktop`, tombol APK & "Ingat saya" hilang, status `aktif` user 7, kartu "Notifikasi di komputer ini
+  - Aktif" + 3 uji, uji `status` -> toast (log), tier asing ditolak, Alt+Kiri kembali (SendKeys nyata; entri pushState tanpa
+  gesture memang dilewati Chromium), F5 reload, ukuran jendela tersimpan & dipulihkan oleh build TERPAKET 1.0.3, restart dingin
+  langsung ke dashboard (cookie ingat). Electron tanpa jembatan (= browser) tetap menampilkan tombol APK & "Ingat saya".
+  Suite 899 passed (6784). Belum diuji: menu klik kanan & `tel:` (memunculkan UI Windows), sirine sungguhan dari Broadcast.
