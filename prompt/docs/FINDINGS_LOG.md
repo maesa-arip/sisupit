@@ -5090,7 +5090,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   langsung ke dashboard (cookie ingat). Electron tanpa jembatan (= browser) tetap menampilkan tombol APK & "Ingat saya".
   Suite 899 passed (6784). Belum diuji: menu klik kanan & `tel:` (memunculkan UI Windows), sirine sungguhan dari Broadcast.
 
-### #222 — Alamat kejadian di dashboard admin berupa alamat mentah Nominatim sepanjang 3 baris (FIXED, branch feat/review-dashboard-admin-ux 2026-10-26, belum di-merge)
+### #222 — Alamat kejadian di dashboard admin berupa alamat mentah Nominatim sepanjang 3 baris (FIXED, TERDEPLOY PROD @0cc29cf9 2026-10-26, HTTPS terverifikasi)
 
 - **Sumber:** review UX dari luar (ditempel user 2026-10-26). Contoh: "Jalan Kenari, Renon, Denpasar Selatan, Denpasar,
   Bali, Nusa Tenggara, 80226, Indonesia" di baris daftar.
