@@ -5089,3 +5089,23 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   gesture memang dilewati Chromium), F5 reload, ukuran jendela tersimpan & dipulihkan oleh build TERPAKET 1.0.3, restart dingin
   langsung ke dashboard (cookie ingat). Electron tanpa jembatan (= browser) tetap menampilkan tombol APK & "Ingat saya".
   Suite 899 passed (6784). Belum diuji: menu klik kanan & `tel:` (memunculkan UI Windows), sirine sungguhan dari Broadcast.
+
+### #222 — Review UX dashboard admin di ponsel: dua CTA merah, sapaan ganda, alamat mentah, subjudul logo patah (FIXED, branch feat/review-dashboard-admin-ux 2026-10-26, belum di-merge)
+
+- **Sumber:** review UX dari luar (ditempel user 2026-10-26), lima kelompok keluhan pada layar Pusat Komando di ponsel.
+- **Dikerjakan:**
+  - Tombol "Input Insiden Manual" kini HANYA desktop (`hidden md:flex`) dan `variant="outline"`: di ponsel slot Lapor
+    bilah bawah sudah menuju /reports/create, dan dua CTA merah solid membuat kartu "Darurat Aktif" kalah menonjol.
+  - Sapaan: akun yang nama depannya = nama peran (admin/administrator/superadmin/pejabat) disapa "Selamat bertugas";
+    lencana peran tetap. `getFirstName(auth.user.name, 'Admin')` tetap (DashboardPerPeranTest).
+  - `Report::alamatRingkas()`: alamat mesin dipotong sesudah nama kecamatan laporan (cadangan: buang ekor provinsi/kota/
+    kawasan Nominatim/kode pos/Indonesia); patokan ketikan warga tak pernah dipotong. Dipakai `recentReports` &
+    `resolutionReports` di `DashboardController` (eager-load district/city/province). Dashboard lain masih `alamatTampil()`.
+  - Petak statistik ponsel: ikon tipis absolut `opacity-40` di pojok kanan atas (tidak memakan lebar angka); ikon
+    bersarang `order-1 hidden shrink-0` tetap hanya desktop (#159 bagian 16).
+  - `ApplicationLogo`: kepanjangan akronim hanya mulai `sm`, satu baris, 10px semibold.
+  - `MobileBottomNav`: pudar `bg-gradient-to-t from-background/80` setinggi 24px di atas bilah (elemen anak, bukan `bg-*`
+    di material - PENGECUALIAN #5).
+- **DIPUTUSKAN TETAP (user 2026-10-26, jangan "perbaiki"):** logo petir (brand; PENGECUALIAN #3/#6), Selesai = biru
+  (aturan warna 07-11; hijau milik Penanganan), kartu "Darurat Aktif" tetap menghitung semua kejadian aktif.
+- **Penjaga:** `DashboardAdminReviewTest` (9 test). Belum dicek visual di ponsel/APK.

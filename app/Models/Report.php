@@ -333,6 +333,54 @@ class Report extends Model
     }
 
     /**
+     * `alamatTampil()` versi daftar ringkas dashboard (review UX 2026-10-26): alamat mesin
+     * Nominatim dipotong sampai kecamatan - "Jalan Kenari, Renon, Denpasar Selatan, Denpasar,
+     * Bali, Nusa Tenggara, 80226, Indonesia" jadi "Jalan Kenari, Renon, Denpasar Selatan".
+     * Petugas setempat tak butuh kota, provinsi, kode pos, dan negara di baris sependek itu.
+     * Patokan ketikan warga TIDAK pernah dipotong - itu kalimat manusia, bukan daftar wilayah.
+     * Pemanggil sebaiknya eager-load `district`, `city`, `province`.
+     */
+    public function alamatRingkas(): ?string
+    {
+        if (! $this->geo_address) {
+            return $this->address;
+        }
+
+        $bagian = array_values(array_filter(array_map('trim', explode(',', $this->geo_address)), 'strlen'));
+
+        // Jalur utama: potong tepat sesudah nama kecamatan laporan ini.
+        if ($kecamatan = $this->district?->name) {
+            $kunci = self::kunciWilayah($kecamatan);
+            foreach ($bagian as $i => $nama) {
+                if ($i > 0 && self::kunciWilayah($nama) === $kunci) {
+                    return implode(', ', array_slice($bagian, 0, $i + 1));
+                }
+            }
+        }
+
+        // Cadangan (kecamatan tak dikenal/tak tertulis): buang ekor administratif dari belakang.
+        $ekor = array_map(fn ($n) => self::kunciWilayah($n), array_filter([
+            $this->province?->name, $this->city?->name, 'Indonesia',
+            'Nusa Tenggara', 'Jawa', 'Sumatra', 'Sumatera', 'Kalimantan', 'Sulawesi', 'Maluku', 'Papua',
+        ]));
+        while (count($bagian) > 1) {
+            $akhir = end($bagian);
+            if (! preg_match('/^\d{5}$/', $akhir) && ! in_array(self::kunciWilayah($akhir), $ekor, true)) {
+                break;
+            }
+            array_pop($bagian);
+        }
+
+        return implode(', ', $bagian);
+    }
+
+    // "KOTA DENPASAR" (laravolt) dan "Denpasar" (Nominatim) adalah wilayah yang sama.
+    private static function kunciWilayah(string $nama): string
+    {
+        return trim(preg_replace('/^(kota|kabupaten|kab\.|kecamatan|provinsi)\s+/u', '', mb_strtolower(trim($nama))));
+    }
+
+    /**
      * Tetapkan asal-usul titik sebuah laporan BARU dari bukti yang dikirim form (TASK_52).
      * Memulangkan pasangan kolom siap simpan: `location_source` + `reporter_distance_m`.
      *

@@ -58,12 +58,13 @@ class DashboardController extends Controller
                 'resolved_this_month' => (clone $queryReportsResolved)->count(),
             ];
 
-            $recentReports = (clone $queryRecentList)->orderBy('created_at', 'desc')->limit(5)->get()
+            $recentReports = (clone $queryRecentList)->with(['district', 'city', 'province'])
+                ->orderBy('created_at', 'desc')->limit(5)->get()
                 ->map(fn ($report) => [
                     'id' => $report->id,
                     'title' => $report->title,
                     'incident_type' => $report->incident_type,
-                    'location' => $report->alamatTampil(),
+                    'location' => $report->alamatRingkas(),
                     'time' => $report->created_at->diffForHumans(),
                     'status' => $report->status,
                 ]);
@@ -91,12 +92,13 @@ class DashboardController extends Controller
                     ->orderBy('has_resolution')
                     ->orderBy('updated_at', 'desc')
                     ->limit(10)
+                    ->with(['district', 'city', 'province'])
                     ->get()
                     ->map(fn ($report) => [
                         'id' => $report->id,
                         'title' => $report->title,
                         'incident_type' => $report->incident_type,
-                        'location' => $report->alamatTampil(),
+                        'location' => $report->alamatRingkas(),
                         'time' => $report->updated_at->diffForHumans(),
                         'resolution_state' => $report->has_final ? 'final' : ($report->has_resolution ? 'sementara' : 'belum'),
                     ]);
