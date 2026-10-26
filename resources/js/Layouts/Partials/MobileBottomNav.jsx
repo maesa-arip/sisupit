@@ -280,13 +280,6 @@ export default function MobileBottomNav({ auth }) {
 				className="material-chrome fixed bottom-0 left-0 z-50 w-full shadow-[0_-1px_0_0_hsl(var(--border)),0_-8px_24px_-12px_rgba(0,0,0,0.22)] md:hidden [html[data-keyboard=open]_&]:hidden"
 				style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
 			>
-				{/* Pudar di atas bilah (review UX 2026-10-26): lingkaran Lapor menonjol 11px ke atas, dan
-				    teks yang tergulir di belakangnya dulu terpotong mendadak. Elemen anak, bukan `bg-*`
-				    di bilah itu sendiri - material-chrome-nya tetap tembus pandang (PENGECUALIAN #5). */}
-				<div
-					aria-hidden="true"
-					className="pointer-events-none absolute inset-x-0 bottom-full h-6 bg-gradient-to-t from-background/80 to-transparent"
-				/>
 				<div className="mx-auto grid h-14 max-w-md grid-cols-5 px-1">
 					{/* 1. Beranda — ikon disamakan dengan sidebar (dulu IconHome di sini saja) */}
 					<NavItem

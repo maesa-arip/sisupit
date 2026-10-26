@@ -96,13 +96,6 @@ export default function AdminDashboard({
 		return (auth?.user?.role || []).includes('superadmin') ? 'Pusat (Nasional)' : 'Belum diisi';
 	};
 
-	// "Halo, Admin" di atas lencana "Administrator" menyebut hal yang sama dua kali (review UX
-	// 2026-10-26): akun yang namanya cuma nama peran disapa tanpa nama, lencananya tetap.
-	const greetName = getFirstName(auth.user.name, 'Admin');
-	const greetTitle = ['admin', 'administrator', 'superadmin', 'pejabat'].includes(greetName.toLowerCase())
-		? 'Selamat bertugas'
-		: `Halo, ${greetName}`;
-
 	const currentStats = stats || { active_reports: 0, standby_helpers: 0, active_hydrants: 0, resolved_this_month: 0 };
 	const reports = recentReports || [];
 
@@ -134,18 +127,7 @@ export default function AdminDashboard({
 					href && 'cursor-pointer hover:shadow-md',
 				)}
 			>
-				<CardContent className="relative p-3.5 md:p-5 lg:p-6">
-					{/* Ikon tipis di pojok kanan atas, KHUSUS ponsel (review UX 2026-10-26: petak tanpa
-					    ikon terlihat seperti placeholder). Absolut + opacity rendah supaya tidak memakan
-					    lebar angka - alasan ikon bersarang di bawah disembunyikan di ponsel. */}
-					<Icon
-						aria-hidden="true"
-						className={cn(
-							'pointer-events-none absolute right-3 top-3 h-5 w-5 opacity-40 md:hidden',
-							hasEmergency ? 'text-destructive-foreground' : colorClass,
-						)}
-						stroke={1.75}
-					/>
+				<CardContent className="p-3.5 md:p-5 lg:p-6">
 					<div className="flex items-center justify-between gap-2">
 						{/* Ikon: HANYA mulai `md` (kanan) - di ponsel sengaja disembunyikan supaya keempat
 						    angka muat sekaligus (#159 bagian 16, dijaga AppleDesignMaterialTest). Komentar
@@ -228,7 +210,7 @@ export default function AdminDashboard({
 			    halaman berbingkai adalah hal pertama yang membuat layar ponsel terbaca sebagai
 			    halaman web, dan di sini ia memakan sepertiga layar sebelum ada satu data pun. */}
 			<AppGreeting
-				title={greetTitle}
+				title={`Halo, ${getFirstName(auth.user.name, 'Admin')}`}
 				meta={
 					<>
 						<Badge
@@ -248,7 +230,7 @@ export default function AdminDashboard({
 					</>
 				}
 				trailing={
-					<div className="hidden items-center gap-3 md:flex">
+					<div className="flex w-full items-center gap-3 md:w-auto">
 						<div className="mr-2 hidden text-right lg:block">
 							<div className="text-[15px] font-semibold text-foreground">
 								{new Intl.DateTimeFormat('id-ID', {
@@ -276,12 +258,12 @@ export default function AdminDashboard({
 								{REALTIME_META[realtimeStatus].label}
 							</div>
 						</div>
-						{/* Pejabat bersifat read-only (pemantau) — sembunyikan aksi input insiden.
-						    Review UX 2026-10-26: tombol ini HANYA desktop dan berbentuk outline. Di ponsel
-						    slot "Lapor" bilah bawah sudah menuju /reports/create, dan dua CTA merah solid
-						    di satu layar membuat kartu "Darurat Aktif" kalah menonjol dari sebuah tombol. */}
+						{/* Pejabat bersifat read-only (pemantau) — sembunyikan aksi input insiden */}
 						{!isPejabat && (
-							<Button variant="outline" className="h-10 rounded-xl" asChild>
+							<Button
+								className="h-11 w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 md:h-10 md:w-auto"
+								asChild
+							>
 								<Link href="/reports/create">
 									<IconAlertCircle className="mr-2 h-4 w-4" /> Input Insiden Manual
 								</Link>
