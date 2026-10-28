@@ -5102,7 +5102,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   baris, pudar di atas bilah bawah. Juga tetap: logo petir, Selesai = biru, kartu "Darurat Aktif" menghitung semua kejadian.
 - **Penjaga:** `DashboardAdminReviewTest` (4 test). Belum dicek visual di ponsel/APK.
 
-### #223 — Teks popup Peta Pemantauan tak terbaca di mode gelap (iPhone), basemap tetap terang (FIXED, lokal 2026-10-28, belum di-deploy)
+### #223 — Teks popup Peta Pemantauan tak terbaca di mode gelap (iPhone), basemap tetap terang (FIXED, TERDEPLOY PROD @49b7be2a 2026-10-28, HTTPS terverifikasi)
 
 - **Gejala (laporan user 2026-10-28):** di mode gelap, terutama iPhone (tema `system` + iOS gelap otomatis), isi popup
   laporan di Peta Pemantauan nyaris tak terbaca; peta sendiri tetap terang menyilaukan.
@@ -5136,6 +5136,10 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   `MAP_TILE_URL_DARK=https://<domain>/tiles/styles/sisupit-dark/{z}/{x}/{y}{r}.png?v=20261028` di `.env` tiap env +
   `config:clear`; (c) deploy kode. Kode boleh naik LEBIH DULU (env kosong = tile terang), tapi (b) JANGAN sebelum (a)
   - env yang menunjuk style belum terpasang = peta gelap kosong. Tanpa migrasi, tanpa APK baru.
+- **Terdeploy 2026-10-28:** kode prod @49b7be2a (deploy-env.sh lewat konsol); tile server /opt/geo/tiles: style
+  `sisupit-dark` + config.json/compose dari repo (cadangan `*.bak-<waktu>`; berkas lama CRLF, isi identik), container
+  sehat, tile uji port 8083 terang 27.345 B / gelap 21.594 B; `.env` prod `MAP_TILE_URL_DARK=...?v=20261028`. HTTPS:
+  `window.MAP_TILE_URL_DARK` ada, bundel 200, tile gelap z9 & z13 dilihat. Dev/staging belum (kode & env).
 - **Belum dicek:** di iPhone/APK sungguhan.
 
 ### #224 — Tombol tema (ThemeSwitcher) tak bereaksi pada ketukan pertama saat tema "Ikuti sistem" dan HP gelap (OPEN)

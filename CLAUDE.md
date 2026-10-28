@@ -172,9 +172,9 @@ TASK_80        APK 1.1.9/vc11 ResponderTrackingService (FGS location) + jembatan
                 window.sisupitDesktop), tombol APK & "Ingat saya" hilang, kartu "Notifikasi di komputer ini" (status Reverb + uji lokal),
                 isNativeApp() kenal token SisupitDesktop (selalu ingat saya), channel kunjungan desktop. Desktop 1.0.3 (token UA hanya
                 ke Sisupit, klik kanan, tel:, Alt+Kiri/F5, ukuran jendela): dist\Sisupit-Desktop-Setup-1.0.3.exe. Penjaga DesktopNativeAppTest.
-#223         : (2026-10-28, LOKAL - belum di-deploy) teks popup Peta Pemantauan tak terbaca di mode gelap (iPhone): leaflet.css mematok popup/zoom
+#223         : (2026-10-28, TERDEPLOY PROD @49b7be2a + tile sisupit-dark + env, HTTPS terverifikasi) teks popup Peta Pemantauan tak terbaca di mode gelap (iPhone): leaflet.css mematok popup/zoom
                 putih -> blok token di akhir app.css (14 peta). Basemap gelap Sisupit Dark (docker/tiles/style/sisupit-dark, env MAP_TILE_URL_DARK,
-                lib/map-tiles.js addBaseTiles), ThemeProvider ikut tema HP langsung. Deploy: style ke /opt/geo/tiles DULU, lalu env. #224 OPEN.
+                lib/map-tiles.js addBaseTiles), ThemeProvider ikut tema HP langsung. Dev/staging belum (env kosong = terang). Belum diuji di HP. #224 OPEN.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
                 kolom approved_at tetap. #178 i18n TERDEPLOY prod @dde8c6a4; #179 (ikon, paginasi PaginationLinks, email).
                 #180 terjemahan bawaan Laravel dari paket laravel-lang/common (DEV) TERDEPLOY prod @9bf7b103; paginasi tetap versi #178 -
