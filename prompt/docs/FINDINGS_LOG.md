@@ -5183,12 +5183,12 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
      `proxy_cache_path` tanpa `inactive=` (bawaan 10 menit = pemanasan sia-sia).
 - **Penjaga:** `LeafletBundleTest` (2 test, terbukti MERAH terhadap HEAD). Verifikasi Playwright (dev server lokal):
   `window.L` 1.9.4, tanpa galat, popup gelap & peta form lapor tergambar.
-- **Belum:** pemanasan cache di VPS (SSH ditolak pemeriksa izin 2026-10-28 -> perintah konsol); pengukuran ulang prod
+- **Belum:** pemanasan cache di VPS (SSH ditolak pemeriksa izin 2026-10-28 -> perintah konsol; kode SUDAH di prod, cek HTTPS: chunk leaflet-*.js, tanpa unpkg); pengukuran ulang prod
   sesudah deploy. Opsi ditunda: tile vektor di klien (MapLibre), tambah CPU VPS.
 - **VPS prod = 1 INTI CPU** (cek user 2026-10-28: `nproc` 1, RAM 3,9 GB/tersedia 1,7 GB, disk kosong 28 GB, load 0,06). Itu
   sebab 20 tile dingin antre s/d 2,5 dtk: render, PHP-FPM, MySQL, Reverb, queue berebut satu inti. Naik ke 2 inti =
   render dingin ~2x lebih cepat + ruang untuk PHP/MySQL saat kejadian.
-- **RENCANA (user: "akan dijalankan nanti tengah malam atau subuh", BELUM dijalankan):** sesudah deploy-env.sh prod ke
+- **Percobaan 1 (sore, konsol): compose CpuShares=256 AKTIF; warm-cache LANGSUNG BERHENTI "tanpa inactive=" = POSITIF PALSU: skrip grep satu baris, padahal direktif README/setup-vps.sh dua baris (inactive=30d di baris kedua). Diperbaiki: baca utuh sampai `;` dari `nginx -T`. HIT yang terlihat saat itu = kunjungan pengguna, BUKAN pemanasan.** Rencana awal: sesudah deploy-env.sh prod ke
   @8944c110 (belum dikonfirmasi dijalankan), saat sepi & tanpa kejadian aktif, di konsol:
   ```
   cp /var/www/sisupit/docker/tiles/docker-compose.yml /opt/geo/tiles/ && (cd /opt/geo/tiles && docker compose up -d) \n    && docker inspect sisupit-tiles --format 'CpuShares={{.HostConfig.CpuShares}}'

@@ -21,7 +21,8 @@ die() { echo "BERHENTI: $*" >&2; exit 1; }
 
 # Tanpa `inactive=` Nginx membuang entri yang tak diakses 10 menit, apa pun proxy_cache_valid-nya:
 # memanaskan ribuan tile yang jarang dibuka jadi sia-sia.
-CP=$(grep -rhs "proxy_cache_path" /etc/nginx/ | grep -v '^\s*#' | grep "tiles" || true)
+# Direktif dibaca utuh sampai `;` dari `nginx -T` - README menulisnya dua baris (inactive= di baris kedua).
+CP=$(nginx -T 2>/dev/null | sed 's/#.*//' | tr '\n' ' ' | grep -o 'proxy_cache_path[^;]*;' | grep "tiles" | tr -s ' ' || true)
 [ -n "$CP" ] || die "proxy_cache_path untuk tiles tak ditemukan di /etc/nginx."
 echo "proxy_cache_path: $CP"
 echo "$CP" | grep -q "inactive=" || die "proxy_cache_path tanpa inactive= (bawaan 10 menit). Tambahkan mis. inactive=60d max_size=3g, nginx -t, reload, lalu ulangi."
