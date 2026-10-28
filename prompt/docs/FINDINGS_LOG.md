@@ -5182,3 +5182,18 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   `window.L` 1.9.4, tanpa galat, popup gelap & peta form lapor tergambar.
 - **Belum:** pemanasan cache di VPS (SSH ditolak pemeriksa izin 2026-10-28 -> perintah konsol); pengukuran ulang prod
   sesudah deploy. Opsi ditunda: tile vektor di klien (MapLibre), tambah CPU VPS.
+- **VPS prod = 1 INTI CPU** (cek user 2026-10-28: `nproc` 1, RAM 3,9 GB/tersedia 1,7 GB, disk kosong 28 GB, load 0,06). Itu
+  sebab 20 tile dingin antre s/d 2,5 dtk: render, PHP-FPM, MySQL, Reverb, queue berebut satu inti. Naik ke 2 inti =
+  render dingin ~2x lebih cepat + ruang untuk PHP/MySQL saat kejadian.
+- **RENCANA (user: "akan dijalankan nanti tengah malam atau subuh", BELUM dijalankan):** sesudah deploy-env.sh prod ke
+  @8944c110 (belum dikonfirmasi dijalankan), saat sepi & tanpa kejadian aktif, di konsol:
+  ```
+  docker update --cpu-shares 256 sisupit-tiles
+  nohup bash /var/www/sisupit/docker/tiles/warm-cache.sh /var/www/sisupit 10 16 115.15 -8.76 115.30 -8.57 1 > /root/warm-cache-$(date +%Y%m%d-%H%M).log 2>&1 &
+  ```
+  1 paralel (bukan 2) karena 1 inti; z10-z16 dulu (~5.600 tile, ~25-40 mnt), z17 (~16.000 tile, 1,5-2 jam) malam lain.
+  `cpu-shares 256` (bawaan 1024) = PHP/MySQL didahulukan saat rebutan; `nice` pada skrip tak menolong (render di container).
+  Pantau `uptime` (load ~1 wajar, lama >2 = hentikan: `pkill -f warm-cache.sh; pkill -f "curl -s -o /dev/null --resolve"`;
+  tile yang sudah ter-cache tetap). Bila skrip BERHENTI karena `inactive=`: perbaiki proxy_cache_path dulu. cpu-shares hilang
+  saat container dibuat ulang - permanen = `cpu_shares: 256` di docker-compose.yml (belum diputuskan); balik:
+  `docker update --cpu-shares 1024 sisupit-tiles`.

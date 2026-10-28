@@ -177,7 +177,8 @@ TASK_80        APK 1.1.9/vc11 ResponderTrackingService (FGS location) + jembatan
                 lib/map-tiles.js addBaseTiles), ThemeProvider ikut tema HP langsung. Dev/staging belum (env kosong = terang). Belum diuji di HP. #224 OPEN.
 #225         : (2026-10-28, di-push ke main) peta lambat/lag: Leaflet dari unpkg (defer sesudah bundel) menahan aplikasi -> lib/leaflet.js
                 + chunk vite `leaflet`; Peta Pemantauan tanpa setView z11 (dulu 9 tile terbuang). docker/tiles/warm-cache.sh memanaskan
-                cache Nginx (Denpasar z10-17, ~21.500 tile) - BELUM dijalankan di VPS. Penjaga LeafletBundleTest.
+                cache Nginx - BELUM dijalankan (user: tengah malam/subuh; VPS 1 INTI -> 1 paralel, z10-16 dulu, cpu-shares 256,
+                perintah di FINDINGS #225). Deploy kode @8944c110 belum dikonfirmasi. Penjaga LeafletBundleTest.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
                 kolom approved_at tetap. #178 i18n TERDEPLOY prod @dde8c6a4; #179 (ikon, paginasi PaginationLinks, email).
                 #180 terjemahan bawaan Laravel dari paket laravel-lang/common (DEV) TERDEPLOY prod @9bf7b103; paginasi tetap versi #178 -
