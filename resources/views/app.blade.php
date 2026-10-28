@@ -42,7 +42,8 @@
         {{-- URL basemap peta di-inject dari server (config services.map.tile_url) agar bisa
              dialihkan ke tile server sendiri lewat 1 env var MAP_TILE_URL tanpa rebuild JS.
              Skrip biasa (bukan module) → jalan sebelum bundel @vite yang deferred. --}}
-        <script>window.MAP_TILE_URL = @json(config('services.map.tile_url'));</script>
+        <script>window.MAP_TILE_URL = @json(config('services.map.tile_url'));
+            window.MAP_TILE_URL_DARK = @json(config('services.map.tile_url_dark'));</script>
         {{-- Konfigurasi Reverb untuk BROWSER, di-inject runtime dengan pola yang sama.
              Sebelumnya echo.js membacanya dari import.meta.env saat BUILD, sehingga sekali
              `npm run build` dijalankan tanpa VITE_REVERB_APP_KEY (mis. dari git worktree yang

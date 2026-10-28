@@ -13,7 +13,8 @@ import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
 import { escapeHtml } from '@/lib/escape-html';
 import { fitBoundsWhenSized } from '@/lib/leaflet-fit';
-import { alamatTerbaca, asalTitikLaporan, cn, GEO_OPTIONS, MAP_TILE_URL, reportNumber } from '@/lib/utils';
+import { addBaseTiles } from '@/lib/map-tiles';
+import { alamatTerbaca, asalTitikLaporan, cn, GEO_OPTIONS, reportNumber } from '@/lib/utils';
 import { Head, Link, router } from '@inertiajs/react';
 import {
 	IconAlertCircle,
@@ -841,7 +842,7 @@ export default function ReportShow(props) {
 				[parseFloat(incidentLocation.lat), parseFloat(incidentLocation.lng)],
 				15,
 			);
-			window.L.tileLayer(MAP_TILE_URL, { attribution: '&copy; OpenStreetMap' }).addTo(map);
+			addBaseTiles(map);
 			window.L.control.zoom({ position: 'topright' }).addTo(map);
 			mapInstance.current = map;
 		}

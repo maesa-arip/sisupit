@@ -23,8 +23,9 @@ import UseFilter from '@/hooks/UseFilter';
 import AppLayout from '@/Layouts/AppLayout';
 import { escapeHtml } from '@/lib/escape-html';
 import { fitBoundsWhenSized } from '@/lib/leaflet-fit';
+import { addBaseTiles } from '@/lib/map-tiles';
 import { reportIcon } from '@/lib/report-icon';
-import { alamatLaporan, cn, MAP_TILE_URL, reportNumber, timeAgo } from '@/lib/utils';
+import { alamatLaporan, cn, reportNumber, timeAgo } from '@/lib/utils';
 import { Link, router } from '@inertiajs/react';
 import {
 	IconAdjustmentsHorizontal,
@@ -369,9 +370,7 @@ export default function Index(props) {
 			const defaultLat = tenant_location?.lat || -8.65;
 			const defaultLng = tenant_location?.lng || 115.22;
 			mapInstanceRef.current = window.L.map(mapRef.current).setView([defaultLat, defaultLng], 12);
-			window.L.tileLayer(MAP_TILE_URL, {
-				attribution: '&copy; OpenStreetMap',
-			}).addTo(mapInstanceRef.current);
+			addBaseTiles(mapInstanceRef.current);
 			markersLayerRef.current = window.L.layerGroup().addTo(mapInstanceRef.current);
 		}
 

@@ -25,6 +25,9 @@ services:
       # options.paths.styles di config.json. Baca docker/tiles/style/sisupit-light/README.md
       # sebelum menggantinya — id style-nya ("sisupit") ada di MAP_TILE_URL ketiga environment.
       - ./style/sisupit-light:/data/styles/sisupit-light:ro
+      # Kembarannya untuk mode gelap (id "sisupit-dark" -> env MAP_TILE_URL_DARK), lihat
+      # docker/tiles/style/sisupit-dark/README.md.
+      - ./style/sisupit-dark:/data/styles/sisupit-dark:ro
     healthcheck:
       # Image tileserver-gl TIDAK membawa wget maupun curl — healthcheck yang memakai
       # keduanya gagal selamanya sehingga container berlabel "unhealthy" padahal melayani

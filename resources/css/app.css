@@ -276,3 +276,72 @@
 		animation: none;
 	}
 }
+
+/* LEAFLET MENGIKUTI TEMA. leaflet.css mematok popup, tombol zoom, atribusi & tooltip PUTIH,
+   sedangkan isi popup kita memakai token (text-foreground dst.) - di mode gelap teksnya ikut
+   terang di atas latar putih: tak terbaca, paling sering di iPhone yang bertema gelap otomatis.
+   Semua selektor sengaja diberi `.leaflet-container` tambahan: leaflet.css dimuat SESUDAH bundel
+   Vite (app.blade.php), jadi spesifisitas setara = Leaflet yang menang (pola yang sama #98).
+   Di luar @layer supaya tak dipangkas Tailwind (kelas leaflet-* tak tertulis di JSX). */
+html .leaflet-container {
+	background: hsl(var(--muted));
+}
+.leaflet-container .leaflet-popup-content-wrapper,
+.leaflet-container .leaflet-popup-tip,
+.leaflet-container .leaflet-tooltip {
+	background: hsl(var(--popover));
+	color: hsl(var(--popover-foreground));
+}
+.leaflet-container .leaflet-tooltip {
+	border-color: hsl(var(--popover));
+}
+.leaflet-container .leaflet-tooltip-top::before {
+	border-top-color: hsl(var(--popover));
+}
+.leaflet-container .leaflet-tooltip-bottom::before {
+	border-bottom-color: hsl(var(--popover));
+}
+.leaflet-container .leaflet-tooltip-left::before {
+	border-left-color: hsl(var(--popover));
+}
+.leaflet-container .leaflet-tooltip-right::before {
+	border-right-color: hsl(var(--popover));
+}
+.leaflet-container .leaflet-popup a.leaflet-popup-close-button {
+	color: hsl(var(--muted-foreground));
+}
+.leaflet-container .leaflet-popup a.leaflet-popup-close-button:hover,
+.leaflet-container .leaflet-popup a.leaflet-popup-close-button:focus {
+	color: hsl(var(--foreground));
+}
+.leaflet-container .leaflet-bar a {
+	background-color: hsl(var(--card));
+	border-bottom-color: hsl(var(--border));
+	color: hsl(var(--foreground));
+}
+.leaflet-container .leaflet-bar a:hover,
+.leaflet-container .leaflet-bar a:focus,
+.leaflet-container .leaflet-bar a.leaflet-disabled {
+	background-color: hsl(var(--accent));
+}
+.leaflet-container .leaflet-bar a.leaflet-disabled {
+	color: hsl(var(--muted-foreground));
+}
+.leaflet-container .leaflet-control-attribution {
+	background: hsl(var(--card) / 0.8);
+	color: hsl(var(--muted-foreground));
+}
+.leaflet-container .leaflet-control-attribution a {
+	color: hsl(var(--info));
+}
+/* Di atas basemap gelap, popover gelap nyaris menyatu dengan peta: beri garis rambut. */
+.dark .leaflet-container .leaflet-popup-content-wrapper,
+.dark .leaflet-container .leaflet-popup-tip,
+.dark .leaflet-container .leaflet-tooltip {
+	box-shadow:
+		0 0 0 1px hsl(var(--border)),
+		0 3px 14px rgb(0 0 0 / 0.6);
+}
+.dark .leaflet-container .leaflet-control.leaflet-bar {
+	border-color: hsl(var(--border));
+}

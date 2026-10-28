@@ -15,14 +15,8 @@ import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
 import { escapeHtml } from '@/lib/escape-html';
 import { fitBoundsWhenSized } from '@/lib/leaflet-fit';
-import {
-	capacityLabel,
-	facilityStatusIsFaulty,
-	facilityStatusLabel,
-	MAP_TILE_URL,
-	roleLabel,
-	timeAgo,
-} from '@/lib/utils';
+import { addBaseTiles } from '@/lib/map-tiles';
+import { capacityLabel, facilityStatusIsFaulty, facilityStatusLabel, roleLabel, timeAgo } from '@/lib/utils';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
 	IconDroplet,
@@ -85,9 +79,7 @@ export default function Index({
 			const defaultLat = tenant_location?.lat || -8.65;
 			const defaultLng = tenant_location?.lng || 115.22;
 			mapInstanceRef.current = window.L.map(mapRef.current).setView([defaultLat, defaultLng], 12);
-			window.L.tileLayer(MAP_TILE_URL, {
-				attribution: '&copy; OpenStreetMap',
-			}).addTo(mapInstanceRef.current);
+			addBaseTiles(mapInstanceRef.current);
 			markersLayerRef.current = window.L.layerGroup().addTo(mapInstanceRef.current);
 		}
 

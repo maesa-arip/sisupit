@@ -5101,3 +5101,47 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   Manual" desktop-only/outline, sapaan "Selamat bertugas", ikon tipis petak statistik ponsel, subjudul logo `sm:` satu
   baris, pudar di atas bilah bawah. Juga tetap: logo petir, Selesai = biru, kartu "Darurat Aktif" menghitung semua kejadian.
 - **Penjaga:** `DashboardAdminReviewTest` (4 test). Belum dicek visual di ponsel/APK.
+
+### #223 — Teks popup Peta Pemantauan tak terbaca di mode gelap (iPhone), basemap tetap terang (FIXED, lokal 2026-10-28, belum di-deploy)
+
+- **Gejala (laporan user 2026-10-28):** di mode gelap, terutama iPhone (tema `system` + iOS gelap otomatis), isi popup
+  laporan di Peta Pemantauan nyaris tak terbaca; peta sendiri tetap terang menyilaukan.
+- **Akar:** `leaflet.css` (dimuat SESUDAH bundel Vite di `app.blade.php`) mematok `.leaflet-popup-content-wrapper,
+  .leaflet-popup-tip { background: white }`, tombol zoom, atribusi & tooltip putih; isi popup kita memakai token
+  (`text-foreground`, `text-muted-foreground`, `bg-muted`) yang di mode gelap jadi TERANG -> teks terang di latar putih.
+  Berlaku di ke-14 peta, bukan hanya Peta Pemantauan. Basemap hanya punya satu style (Sisupit Light).
+  Akar ketiga: `ThemeProvider` membaca `prefers-color-scheme` sekali saat dimuat; listener di `public/js/theme.js`
+  mensyaratkan localStorage `'system'`, padahal pengguna yang belum pernah memilih tema tak punya nilai itu (null) -
+  HP yang berganti gelap otomatis baru diikuti setelah halaman dimuat ulang.
+- **Patokan Google Maps:** pengaturan Tema "Sama dengan tema perangkat" (ikut langsung saat tema HP berubah) dan palet
+  peta gelap yang DIRANCANG (bukan gambar dibalik): daratan abu kebiruan, air biru tua, jalan lebih terang dari daratan,
+  label abu muda bergaris tepi gelap; tema baru menggelapkan peta + menu sekaligus.
+- **Perbaikan:**
+  1. `resources/css/app.css` (akhir berkas, di luar `@layer`): popup, panah, tombol tutup, tombol zoom, atribusi, tooltip,
+     latar kontainer memakai token (`--popover`, `--card`, `--border`, ...); selektor ber-`.leaflet-container` supaya
+     mengalahkan leaflet.css. Mode gelap + garis rambut `--border` agar popup tak menyatu dengan peta gelap. Mode terang
+     praktis tak berubah (popover = putih).
+  2. Style **Sisupit Dark** `docker/tiles/style/sisupit-dark/` (51 layer identik dengan Light, hanya `paint`), id
+     `sisupit-dark` di `docker/tiles/config.json` + bind mount compose; `setup-vps.sh` berhenti bila foldernya tak ada
+     (folder kosong hasil bind mount = style tak ada).
+  3. Env `MAP_TILE_URL_DARK` -> `config('services.map.tile_url_dark')` -> `window.MAP_TILE_URL_DARK`;
+     `resources/js/lib/map-tiles.js` `addBaseTiles(map)` memilih tile dari kelas `dark` di `<html>` dan `setUrl` saat kelas
+     berubah (MutationObserver, dilepas di `unload`). Ke-14 `L.tileLayer(MAP_TILE_URL...)` diganti. Env kosong = tile terang.
+  4. `ThemeProvider.jsx`: saat tema `system`, mendengarkan `change` pada `prefers-color-scheme` (dilepas saat tema diganti).
+- **Verifikasi:** tile gelap dirender lokal (TileServer-GL Docker) dan DILIHAT di z9 (pulau) dan z13-z15 (kota); Playwright
+  390px@2x mode gelap: popup "Kebakaran Rumah" terbaca, tile `sisupit-dark`; `emulateMedia` ke terang TANPA muat ulang ->
+  `<html>` jadi `light` dan tile kembali `sisupit`. Penjaga `LeafletDarkModeTest` (5 test; 3 terbukti MERAH terhadap HEAD).
+- **Deploy (WAJIB urut):** (a) salin `docker/tiles/style/sisupit-dark/` + `config.json` + `docker-compose.yml` ke
+  `/opt/geo/tiles`, recreate container, cek tile `sisupit-dark` di z9 & z13 (gambar, bukan status HTTP); (b) isi
+  `MAP_TILE_URL_DARK=https://<domain>/tiles/styles/sisupit-dark/{z}/{x}/{y}{r}.png?v=20261028` di `.env` tiap env +
+  `config:clear`; (c) deploy kode. Kode boleh naik LEBIH DULU (env kosong = tile terang), tapi (b) JANGAN sebelum (a)
+  - env yang menunjuk style belum terpasang = peta gelap kosong. Tanpa migrasi, tanpa APK baru.
+- **Belum dicek:** di iPhone/APK sungguhan.
+
+### #224 — Tombol tema (ThemeSwitcher) tak bereaksi pada ketukan pertama saat tema "Ikuti sistem" dan HP gelap (OPEN)
+
+- **Ditemukan** saat #223. `ThemeSwitcher.jsx` hanya mengenal `dark` vs selain-itu: tema bawaan `system` + HP gelap ->
+  ikon Bulan (seolah "ganti ke gelap"), ketukan pertama `setTheme('dark')` = tak ada perubahan visual; baru ketukan kedua
+  terang. Juga menulis localStorage `'theme'` yang tak dibaca siapa pun (kunci aktif `current-theme`).
+- **Belum dikerjakan** (di luar lingkup #223). Usul: tentukan tema efektif dari kelas `<html>` untuk ikon & tujuan ketukan,
+  atau tiga pilihan Terang/Gelap/Ikuti perangkat seperti Google Maps - keputusan rupa, tanyakan user.

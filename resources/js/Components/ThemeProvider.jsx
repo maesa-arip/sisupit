@@ -19,14 +19,26 @@ export function ThemeProvider({ children, defaultTheme = 'system', storageKey = 
 	useEffect(() => {
 		const root = window.document.documentElement;
 
-		root.classList.remove('light', 'dark');
+		const apply = (value) => {
+			root.classList.remove('light', 'dark');
+			root.classList.add(value);
+		};
 
-		if (theme === 'system') {
-			const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-			root.classList.add(systemTheme);
-		} else {
-			root.classList.add(theme);
+		if (theme !== 'system') {
+			apply(theme);
+			return;
 		}
+
+		// "Ikuti sistem" harus ikut LANGSUNG saat HP berganti gelap/terang (mis. iPhone otomatis
+		// gelap saat petang), seperti "Sama dengan tema perangkat" di Google Maps - dulu hanya
+		// dibaca sekali saat halaman dimuat. Listener di public/js/theme.js tak menolong: ia
+		// mensyaratkan localStorage bernilai 'system', padahal pengguna yang belum pernah memilih
+		// tema tak punya nilai itu sama sekali.
+		const media = window.matchMedia('(prefers-color-scheme: dark)');
+		const sync = () => apply(media.matches ? 'dark' : 'light');
+		sync();
+		media.addEventListener('change', sync);
+		return () => media.removeEventListener('change', sync);
 	}, [theme]);
 
 	const setTheme = (newTheme) => {

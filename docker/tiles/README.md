@@ -67,6 +67,12 @@ Menyetel ulang = sunting satu JSON lalu `docker compose restart tiles`. TANPA me
 ulang mbtiles, TANPA `npm run build`, TANPA deploy kode. **Tapi jangan mengubah id style-nya**
 (`sisupit`, di `config.json`): id itu ada di dalam `MAP_TILE_URL` ketiga environment.
 
+**Mode gelap (2026-10-28, #223):** style kedua **Sisupit Dark** (`style/sisupit-dark/`, id
+`sisupit-dark`) - layer sama persis, hanya warna. Aplikasi membacanya dari env
+`MAP_TILE_URL_DARK` (pola sama dengan `MAP_TILE_URL`, ganti `sisupit` -> `sisupit-dark` di
+path); kosong = mode gelap tetap memakai tile terang. Saat memasang di server, salin KEDUA
+folder `style/` dan `config.json`.
+
 ## Garis pantai: kenapa 900 MB itu tidak bisa dilewati
 
 Sampai 2026-08-28 `bali.mbtiles` dibangun **tanpa shapefile garis pantai**, dan akibatnya baru

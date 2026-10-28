@@ -11,14 +11,8 @@ import { Textarea } from '@/Components/ui/textarea';
 // PERBAIKAN: Hanya mengimport Combobox tunggal sesuai komponen baru kita
 import { Combobox } from '@/Components/ui/combobox';
 import AppLayout from '@/Layouts/AppLayout';
-import {
-	alamatTerbaca,
-	facilityStatusLabel,
-	jurisdictionMismatch,
-	MAP_TILE_URL,
-	roleLabel,
-	timeAgo,
-} from '@/lib/utils';
+import { addBaseTiles } from '@/lib/map-tiles';
+import { alamatTerbaca, facilityStatusLabel, jurisdictionMismatch, roleLabel, timeAgo } from '@/lib/utils';
 import { Head, Link, useForm } from '@inertiajs/react';
 import {
 	IconAlertTriangle,
@@ -166,7 +160,7 @@ export default function Edit({
 	useEffect(() => {
 		if (!window.L || mapInstanceRef.current) return;
 		mapInstanceRef.current = window.L.map(mapRef.current, { zoomControl: false }).setView([data.lat, data.lng], 16);
-		window.L.tileLayer(MAP_TILE_URL, { attribution: '&copy; OpenStreetMap' }).addTo(mapInstanceRef.current);
+		addBaseTiles(mapInstanceRef.current);
 		window.L.control.zoom({ position: 'bottomright' }).addTo(mapInstanceRef.current);
 
 		const customIcon = window.L.divIcon({

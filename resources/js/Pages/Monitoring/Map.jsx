@@ -4,7 +4,8 @@ import UseFilter from '@/hooks/UseFilter';
 import AppLayout from '@/Layouts/AppLayout';
 import { escapeHtml } from '@/lib/escape-html';
 import { fitBoundsWhenSized } from '@/lib/leaflet-fit';
-import { cn, facilityStatusLabel, MAP_TILE_URL, NOMOR_DARURAT_NASIONAL } from '@/lib/utils';
+import { addBaseTiles } from '@/lib/map-tiles';
+import { cn, facilityStatusLabel, NOMOR_DARURAT_NASIONAL } from '@/lib/utils';
 import { Head, router } from '@inertiajs/react';
 import {
 	IconAdjustmentsHorizontal,
@@ -190,7 +191,7 @@ export default function MonitoringMap({ layers, reports: reportLayer, report_fil
 		if (!mapRef.current || !window.L) return;
 
 		const map = window.L.map(mapRef.current, { zoomControl: false }).setView([-8.65, 115.216667], 11);
-		window.L.tileLayer(MAP_TILE_URL, { attribution: '&copy; OpenStreetMap' }).addTo(map);
+		addBaseTiles(map);
 		window.L.control.zoom({ position: 'bottomright' }).addTo(map);
 
 		groupsRef.current = {

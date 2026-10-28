@@ -15,7 +15,8 @@ import { Input } from '@/Components/ui/input';
 import AppLayout from '@/Layouts/AppLayout';
 import { escapeHtml } from '@/lib/escape-html';
 import { fitBoundsWhenSized } from '@/lib/leaflet-fit';
-import { debitLabel, facilityStatusIsFaulty, facilityStatusLabel, MAP_TILE_URL, waterPressureLabel } from '@/lib/utils';
+import { addBaseTiles } from '@/lib/map-tiles';
+import { debitLabel, facilityStatusIsFaulty, facilityStatusLabel, waterPressureLabel } from '@/lib/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { IconDroplet, IconEdit, IconMapPinFilled, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
@@ -62,9 +63,7 @@ export default function Index({ pumps, filters, tenant_location }) {
 			const defaultLat = tenant_location?.lat || -8.65;
 			const defaultLng = tenant_location?.lng || 115.22;
 			mapInstanceRef.current = window.L.map(mapRef.current).setView([defaultLat, defaultLng], 12);
-			window.L.tileLayer(MAP_TILE_URL, {
-				attribution: '&copy; OpenStreetMap',
-			}).addTo(mapInstanceRef.current);
+			addBaseTiles(mapInstanceRef.current);
 			markersLayerRef.current = window.L.layerGroup().addTo(mapInstanceRef.current);
 		}
 

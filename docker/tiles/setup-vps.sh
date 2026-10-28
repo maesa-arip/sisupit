@@ -148,7 +148,8 @@ fi
 # style id "sisupit" tidak ada sehingga SEMUA permintaan tile dijawab 404 — jadi lebih baik
 # berhenti di sini daripada di browser pengguna.
 [ -f "style/sisupit-light/style.json" ] || die "style/sisupit-light/ tidak ada di $WORKDIR (salin dari repo docker/tiles/style/)."
-say "Style Sisupit Light siap (dari repo, bukan unduhan)."
+[ -f "style/sisupit-dark/style.json" ] || die "style/sisupit-dark/ tidak ada di $WORKDIR (salin dari repo docker/tiles/style/) - tanpa itu config.json menunjuk style yang tak ada."
+say "Style Sisupit Light & Dark siap (dari repo, bukan unduhan)."
 
 # --- 6) Font ---
 # TANPA ini tile tetap tergambar TAPI tanpa satu pun nama jalan/desa, dan tileserver TIDAK
@@ -222,6 +223,7 @@ Dua langkah terakhir SENGAJA tidak diotomatiskan — tinjau lalu jalankan sendir
 2) APLIKASI — di .env TIAP environment:
 
    MAP_TILE_URL=${DOMAIN_HINT}/tiles/styles/sisupit/{z}/{x}/{y}{r}.png
+   MAP_TILE_URL_DARK=${DOMAIN_HINT}/tiles/styles/sisupit-dark/{z}/{x}/{y}{r}.png
 
    lalu: php artisan config:clear
    (TANPA npm run build, TANPA deploy kode — URL dibaca runtime.)

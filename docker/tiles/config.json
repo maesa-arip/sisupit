@@ -19,6 +19,12 @@
       "tilejson": {
         "attribution": "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a>"
       }
+    },
+    "sisupit-dark": {
+      "style": "sisupit-dark/style.json",
+      "tilejson": {
+        "attribution": "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a>"
+      }
     }
   },
   "data": {

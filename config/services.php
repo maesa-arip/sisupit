@@ -105,6 +105,9 @@ return [
         // terbaca bila env lupa diisi — tapi kebijakan OSMF membatasi pemakaian berat, jadi
         // MAP_TILE_URL WAJIB diisi di tiap environment.
         'tile_url' => env('MAP_TILE_URL', 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'),
+        // Basemap mode gelap (style "sisupit-dark" di tile server yang sama). Kosong = peta
+        // tetap memakai tile_url di mode gelap - tanpa cadangan pihak ketiga, pelajaran #92.
+        'tile_url_dark' => env('MAP_TILE_URL_DARK'),
     ],
 
     'reverb' => [

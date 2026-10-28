@@ -1,5 +1,6 @@
 import { escapeHtml } from '@/lib/escape-html';
-import { facilityStatusIsFaulty, facilityStatusLabel, GEO_OPTIONS, MAP_TILE_URL } from '@/lib/utils';
+import { addBaseTiles } from '@/lib/map-tiles';
+import { facilityStatusIsFaulty, facilityStatusLabel, GEO_OPTIONS } from '@/lib/utils';
 import { useEffect, useRef, useState } from 'react';
 
 const UserLeafletMap = ({
@@ -72,9 +73,7 @@ const UserLeafletMap = ({
 				: {},
 		).setView([-8.65, 115.22], 13);
 
-		window.L.tileLayer(MAP_TILE_URL, {
-			attribution: '&copy; OpenStreetMap',
-		}).addTo(mapInstanceRef.current);
+		addBaseTiles(mapInstanceRef.current);
 
 		markersLayerRef.current = window.L.layerGroup().addTo(mapInstanceRef.current);
 		userMarkerLayerRef.current = window.L.layerGroup().addTo(mapInstanceRef.current);

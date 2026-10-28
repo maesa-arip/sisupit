@@ -8,7 +8,8 @@ import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
-import { alamatTerbaca, facilityStatusLabel, jurisdictionMismatch, MAP_TILE_URL } from '@/lib/utils';
+import { addBaseTiles } from '@/lib/map-tiles';
+import { alamatTerbaca, facilityStatusLabel, jurisdictionMismatch } from '@/lib/utils';
 import { Head, Link, useForm } from '@inertiajs/react';
 import {
 	IconAlertTriangle,
@@ -137,7 +138,7 @@ export default function Edit({
 	useEffect(() => {
 		if (!window.L || mapInstanceRef.current) return;
 		mapInstanceRef.current = window.L.map(mapRef.current, { zoomControl: false }).setView([data.lat, data.lng], 16);
-		window.L.tileLayer(MAP_TILE_URL, { attribution: '&copy; OpenStreetMap' }).addTo(mapInstanceRef.current);
+		addBaseTiles(mapInstanceRef.current);
 		window.L.control.zoom({ position: 'bottomright' }).addTo(mapInstanceRef.current);
 
 		const customIcon = window.L.divIcon({

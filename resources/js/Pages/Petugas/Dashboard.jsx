@@ -8,8 +8,9 @@ import AppLayout from '@/Layouts/AppLayout';
 import { escapeHtml } from '@/lib/escape-html';
 import { firstName as getFirstName } from '@/lib/first-name';
 import { fitBoundsWhenSized } from '@/lib/leaflet-fit';
+import { addBaseTiles } from '@/lib/map-tiles';
 import { reportIcon } from '@/lib/report-icon';
-import { cn, GEO_OPTIONS, MAP_TILE_URL, reportNumber } from '@/lib/utils';
+import { cn, GEO_OPTIONS, reportNumber } from '@/lib/utils';
 import { Head, router } from '@inertiajs/react';
 import {
 	IconAlertCircle,
@@ -113,7 +114,7 @@ export default function PetugasDashboard({
 			scrollWheelZoom: false,
 		}).setView([tenant_location?.lat ?? -8.65, tenant_location?.lng ?? 115.22], 12);
 
-		window.L.tileLayer(MAP_TILE_URL, { attribution: '&copy; OpenStreetMap' }).addTo(map);
+		addBaseTiles(map);
 		mapInstanceRef.current = map;
 
 		const markers = [];

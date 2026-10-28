@@ -242,6 +242,12 @@
   terpasang dalam `display:none`; fit pada peta 0x0 menjatuhkan zoom ke 0 (peta dunia) atau,
   dengan padding, merusak state peta. Helper menunda fit ke event `resize` peta. `setView` dengan
   zoom tetap aman. Dijaga `LeafletFitBoundsTest`.
+- **Basemap Leaflet: jangan `L.tileLayer(` langsung - pakai `addBaseTiles(map)`** dari
+  `lib/map-tiles.js` (#223). Ia memilih tile terang/gelap dari kelas `dark` di `<html>` dan
+  menggantinya saat tema berubah; `L.tileLayer` langsung = peta yang tetap terang di mode gelap.
+  Isi popup cukup memakai token (`text-foreground`, `bg-muted`, ...): bingkai popup, tombol zoom,
+  atribusi & tooltip sudah bertoken di akhir `app.css`. Jangan menulis `bg-white`/`text-gray-*` di
+  HTML popup. Dijaga `LeafletDarkModeTest`.
 - **Laporan Kejadian = SATU entri per status yang DISUNTING, bukan entri baru** (TASK_67,
   keputusan user 2026-09-29, membalik append-only FINDINGS #39). Entri aktif = yang TERBARU per
   status - jangan menambah kolom "aktif" kedua, dan jangan menghapus entri lama yang ganda (arsip).
