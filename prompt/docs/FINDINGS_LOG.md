@@ -5153,7 +5153,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   tema efektif (`system` + `prefers-color-scheme`). Tetap dua keadaan (bukan tiga pilihan). Kunci localStorage `'theme'`
   yang tak terbaca DIBIARKAN (diff minimal).
 
-### #225 — Peta (form lapor, Peta Pemantauan) lambat & terasa lag di VPS (FIXED kode, lokal 2026-10-28; pemanasan cache tile menunggu konsol)
+### #225 — Peta (form lapor, Peta Pemantauan) lambat & terasa lag di VPS (FIXED, TERDEPLOY PROD; cache tile z10-16 DIPANASKAN 2026-10-28)
 
 - **Keluhan user 2026-10-28:** peta di Peta Pemantauan & saat lapor lumayan lambat di VPS.
 - **Diukur (prod via HTTPS + Chromium 390px, 4G 9 Mbps/RTT 85 ms, CPU x4):**
@@ -5188,6 +5188,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **VPS prod = 1 INTI CPU** (cek user 2026-10-28: `nproc` 1, RAM 3,9 GB/tersedia 1,7 GB, disk kosong 28 GB, load 0,06). Itu
   sebab 20 tile dingin antre s/d 2,5 dtk: render, PHP-FPM, MySQL, Reverb, queue berebut satu inti. Naik ke 2 inti =
   render dingin ~2x lebih cepat + ruang untuk PHP/MySQL saat kejadian.
+- **HASIL percobaan 2 (sesudah deploy @52dd87e1): 5564/5564 tile 200 (4093 MISS, 1213 HIT, 258 EXPIRED), 459 dtk, cache 155M -> 219M. Cek HTTPS: 20/20 tile acak DI DALAM bbox HIT (z13-16, terang+gelap, 1x+@2x). Sampel di luar bbox tetap MISS (wajar). SISA: z17 malam lain (perintah sama, `17 17`); pengukuran ulang form lapor di browser belum.**
 - **Percobaan 1 (sore, konsol): compose CpuShares=256 AKTIF; warm-cache LANGSUNG BERHENTI "tanpa inactive=" = POSITIF PALSU: skrip grep satu baris, padahal direktif README/setup-vps.sh dua baris (inactive=30d di baris kedua). Diperbaiki: baca utuh sampai `;` dari `nginx -T`. HIT yang terlihat saat itu = kunjungan pengguna, BUKAN pemanasan.** Rencana awal: sesudah deploy-env.sh prod ke
   @8944c110 (belum dikonfirmasi dijalankan), saat sepi & tanpa kejadian aktif, di konsol:
   ```
