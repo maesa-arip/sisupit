@@ -5149,3 +5149,36 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   terang. Juga menulis localStorage `'theme'` yang tak dibaca siapa pun (kunci aktif `current-theme`).
 - **Belum dikerjakan** (di luar lingkup #223). Usul: tentukan tema efektif dari kelas `<html>` untuk ikon & tujuan ketukan,
   atau tiga pilihan Terang/Gelap/Ikuti perangkat seperti Google Maps - keputusan rupa, tanyakan user.
+
+### #225 — Peta (form lapor, Peta Pemantauan) lambat & terasa lag di VPS (FIXED kode, lokal 2026-10-28; pemanasan cache tile menunggu konsol)
+
+- **Keluhan user 2026-10-28:** peta di Peta Pemantauan & saat lapor lumayan lambat di VPS.
+- **Diukur (prod via HTTPS + Chromium 390px, 4G 9 Mbps/RTT 85 ms, CPU x4):**
+  - tile HIT cache Nginx ~0,1 dtk; MISS 0,2-0,4 dtk; **20 tile MISS serentak (satu layar) 0,6-2,5 dtk** (antre render di
+    CPU VPS) vs 0,14-0,28 dtk saat hangat. HTTP/2 sudah aktif (curl lokal tak mendukung h2 - jangan tertipu "1.1").
+  - form lapor kunjungan pertama: DOM 1,8 dtk, tile baru DIMINTA di **2,7 dtk** (selesai 0,5 dtk kemudian); kunjungan kedua
+    (semua dari cache browser) tetap 2 dtk. leaflet.js unpkg 1,04 dtk, app.js 406 KB 0,9 dtk.
+  - Peta Pemantauan (lokal): 9 tile z11 diminta lalu DIBUANG, lalu 8 tile z12.
+  - Bukan penyebab: data marker (51 hydrant/152 laporan lokal), HTTP/1.1, cache browser (max-age 30 hari ada).
+- **Akar:**
+  1. Leaflet dari unpkg.com, `<script defer>` SESUDAH bundel Vite: defer & module dijalankan berurutan -> koneksi pihak
+     ketiga (DNS+TLS ~0,2 dtk) + unduhan menahan seluruh aplikasi pada kunjungan pertama.
+  2. Tile dingin dirender satu per satu di CPU VPS - paling terasa saat warga memperbesar ke rumahnya (z16-z18, hampir
+     pasti belum pernah dibuka) dan di mode gelap (#223, seluruh cache gelap masih kosong).
+  3. `Monitoring/Map.jsx` `L.map(...).setView(z11)` lalu `fitBounds` di efek marker -> satu set tile terbuang.
+- **Perbaikan (kode):**
+  1. `resources/js/lib/leaflet.js` (impor `leaflet` + `leaflet/dist/leaflet.css`, judul zoom Indonesia, `window.L`),
+     diimpor statis di `app.jsx`; tag unpkg & skrip inline judul zoom dibuang dari `app.blade.php`. `vite.config.js`
+     `manualChunks` -> chunk `leaflet-*.js` (43,6 KB gzip) + `leaflet-*.css` ber-hash stabil antar-deploy (dulu menumpang
+     di app.js: 406 -> 567 KB, terunduh ulang tiap rilis). Tag produksi: leaflet.css sebelum app.css, leaflet.js
+     modulepreload. Jangan impor dari `ssr.jsx`.
+  2. Peta Pemantauan dibuat TANPA view; view pertama langsung batas marker (`hasViewRef`); view bawaan z11 hanya bila tak
+     ada marker atau peta 0x0 (kerangka TASK_70: `invalidateSize` pada peta tanpa view tak memancarkan `resize`). Terukur:
+     buka langsung & lewat tautan dashboard = 8 tile z12 saja, tanpa zoom dunia (#183).
+  3. `docker/tiles/warm-cache.sh`: memanaskan proxy_cache Nginx untuk bbox (bawaan Denpasar z10-z17, 2 style x 1x/@2x =
+     21.468 tile, ~0,9 GB, ~45 mnt), lewat Nginx (`--resolve` ke 127.0.0.1) dengan `?v=` persis dari `.env`; BERHENTI bila
+     `proxy_cache_path` tanpa `inactive=` (bawaan 10 menit = pemanasan sia-sia).
+- **Penjaga:** `LeafletBundleTest` (2 test, terbukti MERAH terhadap HEAD). Verifikasi Playwright (dev server lokal):
+  `window.L` 1.9.4, tanpa galat, popup gelap & peta form lapor tergambar.
+- **Belum:** pemanasan cache di VPS (SSH ditolak pemeriksa izin 2026-10-28 -> perintah konsol); pengukuran ulang prod
+  sesudah deploy. Opsi ditunda: tile vektor di klien (MapLibre), tambah CPU VPS.

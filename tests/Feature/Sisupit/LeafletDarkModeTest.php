@@ -12,8 +12,8 @@
 $css = fn () => file_get_contents(resource_path('css/app.css'));
 
 it('themes the leaflet popup chrome with tokens that beat leaflet.css', function () use ($css) {
-    // `.leaflet-container` di depan WAJIB: leaflet.css dimuat sesudah bundel Vite, jadi selektor
-    // berspesifisitas setara (`.leaflet-popup-content-wrapper` saja) kalah dan popup kembali putih.
+    // `.leaflet-container` di depan WAJIB: menang lewat spesifisitas, tak bergantung urutan berkas
+    // (leaflet.css dulu dari unpkg SESUDAH bundel - selektor setara kalah dan popup kembali putih).
     expect($css())
         ->toMatch('/\.leaflet-container \.leaflet-popup-content-wrapper,\s*\.leaflet-container \.leaflet-popup-tip[^{]*\{[^}]*background: hsl\(var\(--popover\)\);[^}]*color: hsl\(var\(--popover-foreground\)\);/')
         ->toMatch('/\.leaflet-container \.leaflet-bar a \{[^}]*background-color: hsl\(var\(--card\)\);/')

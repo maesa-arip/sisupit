@@ -280,8 +280,9 @@
 /* LEAFLET MENGIKUTI TEMA. leaflet.css mematok popup, tombol zoom, atribusi & tooltip PUTIH,
    sedangkan isi popup kita memakai token (text-foreground dst.) - di mode gelap teksnya ikut
    terang di atas latar putih: tak terbaca, paling sering di iPhone yang bertema gelap otomatis.
-   Semua selektor sengaja diberi `.leaflet-container` tambahan: leaflet.css dimuat SESUDAH bundel
-   Vite (app.blade.php), jadi spesifisitas setara = Leaflet yang menang (pola yang sama #98).
+   Semua selektor sengaja diberi `.leaflet-container` tambahan supaya menang lewat SPESIFISITAS, tak
+   bergantung urutan berkas (leaflet.css dulu dari unpkg sesudah bundel; sejak #225 ikut bundel
+   lewat lib/leaflet.js) - pola yang sama #98.
    Di luar @layer supaya tak dipangkas Tailwind (kelas leaflet-* tak tertulis di JSX). */
 html .leaflet-container {
 	background: hsl(var(--muted));

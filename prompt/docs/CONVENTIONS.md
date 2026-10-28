@@ -242,6 +242,10 @@
   terpasang dalam `display:none`; fit pada peta 0x0 menjatuhkan zoom ke 0 (peta dunia) atau,
   dengan padding, merusak state peta. Helper menunda fit ke event `resize` peta. `setView` dengan
   zoom tetap aman. Dijaga `LeafletFitBoundsTest`.
+- **Leaflet ikut bundel, bukan CDN** (#225): `resources/js/lib/leaflet.js` (diimpor statis di `app.jsx`,
+  chunk `leaflet` di `vite.config.js`) mengisi `window.L`. Jangan kembalikan tag unpkg ke `app.blade.php` (koneksi
+  pihak ketiga menahan seluruh aplikasi) dan jangan impor Leaflet dari `ssr.jsx`. Peta baru: jangan `setView` lalu
+  langsung `fitBounds` - set view pertama dari data (pola `hasViewRef` di `Monitoring/Map.jsx`). Dijaga `LeafletBundleTest`.
 - **Basemap Leaflet: jangan `L.tileLayer(` langsung - pakai `addBaseTiles(map)`** dari
   `lib/map-tiles.js` (#223). Ia memilih tile terang/gelap dari kelas `dark` di `<html>` dan
   menggantinya saat tema berubah; `L.tileLayer` langsung = peta yang tetap terang di mode gelap.

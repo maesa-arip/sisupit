@@ -122,6 +122,20 @@ jangan bangun ulang.
 > kosong. Disengaja: memaksanya sampai z14 membuat garis pantai kasar z8 merembes ke daratan
 > pada zoom rinci — laut biru menutupi tanah di tepi pantai Sanur/Kuta.
 
+## Memanaskan cache tile (#225)
+
+Tile yang belum pernah diminta dirender TileServer-GL saat itu juga; satu layar HP (~20 tile) yang dingin
+antre 0,6-2,5 dtk di CPU VPS, sedangkan dari cache Nginx ~0,1 dtk. Sesudah style/mbtiles berubah atau `?v=`
+dinaikkan, jalankan di VPS:
+
+```bash
+bash /var/www/sisupit/docker/tiles/warm-cache.sh /var/www/sisupit 10 17
+```
+
+Bawaan: Kota Denpasar z10-z17, kedua style, 1x & @2x (~21.500 tile, ~0,9 GB, ~45 menit, 2 paralel). Skrip
+berhenti bila `proxy_cache_path` tanpa `inactive=` - bawaan Nginx membuang entri yang tak diakses 10 menit.
+Wilayah tenant lain: beri bbox `barat selatan timur utara` sebagai argumen 4-7.
+
 ## Mengganti style/mbtiles: WAJIB naikkan `?v=` di `MAP_TILE_URL`
 
 Nginx menyajikan tile dengan `expires 30d` (`Cache-Control: max-age=2592000`). Itu memang

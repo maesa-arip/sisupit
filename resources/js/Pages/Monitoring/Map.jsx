@@ -126,6 +126,7 @@ export default function MonitoringMap({ layers, reports: reportLayer, report_fil
 	const mapRef = useRef(null);
 	const mapInstanceRef = useRef(null);
 	const groupsRef = useRef({});
+	const hasViewRef = useRef(false);
 	const [panelOpen, setPanelOpen] = useState(false);
 	const [panelCollapsed, setPanelCollapsed] = useState(false);
 	const [isMaximized, setIsMaximized] = useState(false);
@@ -190,7 +191,10 @@ export default function MonitoringMap({ layers, reports: reportLayer, report_fil
 	useEffect(() => {
 		if (!mapRef.current || !window.L) return;
 
-		const map = window.L.map(mapRef.current, { zoomControl: false }).setView([-8.65, 115.216667], 11);
+		// Sengaja TANPA setView: view pertama ditetapkan efek marker langsung ke batas marker.
+		// Dulu setView zoom 11 di sini lalu fitBounds sesudahnya - 9 tile z11 diminta lalu
+		// dibuang di setiap pembukaan (#225). Leaflet menunda tile & marker sampai view ada.
+		const map = window.L.map(mapRef.current, { zoomControl: false });
 		addBaseTiles(map);
 		window.L.control.zoom({ position: 'bottomright' }).addTo(map);
 
@@ -206,6 +210,7 @@ export default function MonitoringMap({ layers, reports: reportLayer, report_fil
 		return () => {
 			map.remove();
 			mapInstanceRef.current = null;
+			hasViewRef.current = false;
 		};
 	}, []);
 
@@ -362,6 +367,14 @@ export default function MonitoringMap({ layers, reports: reportLayer, report_fil
 		// Auto zoom: sesuaikan tampilan peta agar pas dengan marker yang sedang
 		// ditampilkan (mengecil/membesar mengikuti layer & filter yang dipilih).
 		// padding kecil (px) agar mepet ke marker; maxZoom cegah over-zoom saat 1 marker.
+		// View bawaan hanya bila belum ada view DAN fit tak bisa langsung jalan: tanpa marker, atau
+		// peta masih 0x0 di balik kerangka navigasi (invalidateSize pada peta tanpa view tak
+		// memancarkan `resize`, jadi fit yang ditunda takkan pernah jalan tanpa view awal).
+		const size = map.getSize();
+		if (!hasViewRef.current && (allMarkers.length === 0 || !(size.x > 0 && size.y > 0))) {
+			map.setView([-8.65, 115.216667], 11);
+		}
+		hasViewRef.current = true;
 		if (allMarkers.length > 0) {
 			const bounds = new window.L.featureGroup(allMarkers).getBounds();
 			fitBoundsWhenSized(map, bounds, { padding: [24, 24], maxZoom: 16 });

@@ -12,6 +12,15 @@ export default defineConfig({
 		}),
 		react(),
 	],
+	build: {
+		rollupOptions: {
+			output: {
+				// Leaflet (#225) chunk sendiri: hash-nya tetap antar-deploy, jadi HP tak mengunduh ulang
+				// ~145 KB tiap rilis seperti bila menumpang di app.js yang hash-nya selalu berubah.
+				manualChunks: (id) => (/[\\/]node_modules[\\/]leaflet[\\/]/.test(id) ? 'leaflet' : undefined),
+			},
+		},
+	},
 	resolve: {
 		alias: {
 			// Folder aslinya `Components` (kapital), tapi banyak import memakai

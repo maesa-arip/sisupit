@@ -51,23 +51,7 @@
              domain — staging/dev jadi menyambung ke Reverb produksi (#58). Hanya app KEY yang
              dikirim ke browser; REVERB_APP_SECRET tidak boleh ikut. --}}
         <script>window.REVERB_CONFIG = @json(config('services.reverb'));</script>
-        <!-- Leaflet CSS -->
-        <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        />
-
-        <!-- Leaflet JS -->
-        <script
-        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        defer
-        ></script>
-        <!-- Tooltip tombol zoom bawaan Leaflet ("Zoom in"/"Zoom out") dalam bahasa Indonesia, untuk semua peta. -->
-        <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            if (window.L) L.Control.Zoom.mergeOptions({ zoomInTitle: 'Perbesar', zoomOutTitle: 'Perkecil' });
-        });
-        </script>
+        {{-- Leaflet (JS + CSS) ikut bundel Vite: resources/js/lib/leaflet.js. --}}
     </head>
     <body class="max-h-screen font-sans antialiased">
         @inertia
