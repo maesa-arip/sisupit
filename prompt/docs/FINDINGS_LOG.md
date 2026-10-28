@@ -5188,12 +5188,13 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **RENCANA (user: "akan dijalankan nanti tengah malam atau subuh", BELUM dijalankan):** sesudah deploy-env.sh prod ke
   @8944c110 (belum dikonfirmasi dijalankan), saat sepi & tanpa kejadian aktif, di konsol:
   ```
-  docker update --cpu-shares 256 sisupit-tiles
+  cp /var/www/sisupit/docker/tiles/docker-compose.yml /opt/geo/tiles/ && (cd /opt/geo/tiles && docker compose up -d) \n    && docker inspect sisupit-tiles --format 'CpuShares={{.HostConfig.CpuShares}}'
   nohup bash /var/www/sisupit/docker/tiles/warm-cache.sh /var/www/sisupit 10 16 115.15 -8.76 115.30 -8.57 1 > /root/warm-cache-$(date +%Y%m%d-%H%M).log 2>&1 &
   ```
   1 paralel (bukan 2) karena 1 inti; z10-z16 dulu (~5.600 tile, ~25-40 mnt), z17 (~16.000 tile, 1,5-2 jam) malam lain.
-  `cpu-shares 256` (bawaan 1024) = PHP/MySQL didahulukan saat rebutan; `nice` pada skrip tak menolong (render di container).
+  `cpu_shares: 256` (bawaan 1024) = PHP/MySQL didahulukan saat rebutan; `nice` pada skrip tak menolong (render di container).
+  Sejak 2026-10-28 PERMANEN di `docker/tiles/docker-compose.yml` (permintaan user); `up -d` membuat ulang container -
+  tile yang belum ter-cache gagal beberapa detik saat start, jadi kerjakan di jam sepi yang sama.
   Pantau `uptime` (load ~1 wajar, lama >2 = hentikan: `pkill -f warm-cache.sh; pkill -f "curl -s -o /dev/null --resolve"`;
-  tile yang sudah ter-cache tetap). Bila skrip BERHENTI karena `inactive=`: perbaiki proxy_cache_path dulu. cpu-shares hilang
-  saat container dibuat ulang - permanen = `cpu_shares: 256` di docker-compose.yml (belum diputuskan); balik:
-  `docker update --cpu-shares 1024 sisupit-tiles`.
+  tile yang sudah ter-cache tetap). Bila skrip BERHENTI karena `inactive=`: perbaiki proxy_cache_path dulu. Balik prioritas:
+  hapus `cpu_shares` dari compose + `docker compose up -d` (sementara: `docker update --cpu-shares 1024 sisupit-tiles`).

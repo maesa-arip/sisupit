@@ -3,6 +3,10 @@ services:
     image: maptiler/tileserver-gl:latest
     container_name: sisupit-tiles
     restart: unless-stopped
+    # Prioritas CPU rendah (bawaan Docker 1024). VPS prod hanya 1 INTI: render tile dingin berebut
+    # dengan PHP-FPM, MySQL, Reverb & queue. Bobot ini hanya berlaku saat rebutan - PHP/MySQL
+    # didahulukan; saat sepi tileserver tetap memakai CPU penuh. FINDINGS #225.
+    cpu_shares: 256
     ports:
       # Container selalu listen di 8080. Diikat ke LOOPBACK saja — sepola sisupit-nominatim
       # (127.0.0.1:8088) & sisupit-osrm (127.0.0.1:5000); yang menyajikannya ke publik adalah
