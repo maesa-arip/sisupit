@@ -174,11 +174,14 @@ TASK_80        APK 1.1.9/vc11 ResponderTrackingService (FGS location) + jembatan
                 ke Sisupit, klik kanan, tel:, Alt+Kiri/F5, ukuran jendela): dist\Sisupit-Desktop-Setup-1.0.3.exe. Penjaga DesktopNativeAppTest.
 #223         : (2026-10-28, TERDEPLOY PROD @49b7be2a + tile sisupit-dark + env, HTTPS terverifikasi) teks popup Peta Pemantauan tak terbaca di mode gelap (iPhone): leaflet.css mematok popup/zoom
                 putih -> blok token di akhir app.css (14 peta). Basemap gelap Sisupit Dark (docker/tiles/style/sisupit-dark, env MAP_TILE_URL_DARK,
-                lib/map-tiles.js addBaseTiles), ThemeProvider ikut tema HP langsung. Dev/staging belum (env kosong = terang). Belum diuji di HP. #224 OPEN.
+                lib/map-tiles.js addBaseTiles), ThemeProvider ikut tema HP langsung. Dev/staging belum (env kosong = terang). Belum diuji di HP. #224 FIXED lewat #226.
 #225         : (2026-10-28, di-push ke main) peta lambat/lag: Leaflet dari unpkg (defer sesudah bundel) menahan aplikasi -> lib/leaflet.js
                 + chunk vite `leaflet`; Peta Pemantauan tanpa setView z11 (dulu 9 tile terbuang). docker/tiles/warm-cache.sh memanaskan
                 cache Nginx - BELUM dijalankan (user: tengah malam/subuh; VPS 1 INTI -> 1 paralel, z10-16 dulu, cpu_shares 256 di compose,
                 perintah di FINDINGS #225). Deploy kode @8944c110 belum dikonfirmasi. Penjaga LeafletBundleTest.
+#226         : (2026-10-29, lokal) ganti tema gelap/terang = RIPPLE dari ikon (View Transitions, clip-path lingkaran 500 ms,
+                kelas theme-switching mematikan transition = tanpa belang; tanpa VT/reduced-motion = instan serentak) + #224
+                FIXED (ketukan pertama mode system). Hanya ThemeSwitcher.jsx + akhir app.css. Penjaga ThemeRippleTest. Belum diuji di HP.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
                 kolom approved_at tetap. #178 i18n TERDEPLOY prod @dde8c6a4; #179 (ikon, paginasi PaginationLinks, email).
                 #180 terjemahan bawaan Laravel dari paket laravel-lang/common (DEV) TERDEPLOY prod @9bf7b103; paginasi tetap versi #178 -
@@ -191,7 +194,7 @@ Belum dicek  : visual di ponsel/APK untuk banyak perubahan UI (tombol merah bran
 Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115 #119 #121
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174 #188(satelit).
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
-Test         : 910 passed, 6833 assertions (2026-10-28, + #225 LeafletBundleTest).
+Test         : 911 passed, 6844 assertions (2026-10-29, + #226 ThemeRippleTest).
 Lingkungan   : PROD @b36c3a55 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#219 + Masuk dengan Apple) | DEV @672b6a10 (dashboard baru) | STAGING @42ef296b (= prod, video demo
                 TASK_80; data uji petugas.uji@sisupit.test + LP-2026-00227). Dev & staging: data salinan prod, basic auth (APK dikecualikan), sandi "password".
 ```
@@ -218,7 +221,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-10-28: 910 passed, 6833 assertions - + #225 LeafletBundleTest;
+Test      : php artisan test            (baseline 2026-10-29: 911 passed, 6844 assertions - + #226 ThemeRippleTest;
             lokal: php -d memory_limit=1G -d extension=php_sqlite3.dll -d extension=pdo_sqlite vendor/bin/pest.
             Perbarui angka ini tiap kali test bertambah - baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan. Riwayat angkanya di STATUS_LOG.md)

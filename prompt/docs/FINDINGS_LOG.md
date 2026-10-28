@@ -5142,13 +5142,16 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   `window.MAP_TILE_URL_DARK` ada, bundel 200, tile gelap z9 & z13 dilihat. Dev/staging belum (kode & env).
 - **Belum dicek:** di iPhone/APK sungguhan.
 
-### #224 — Tombol tema (ThemeSwitcher) tak bereaksi pada ketukan pertama saat tema "Ikuti sistem" dan HP gelap (OPEN)
+### #224 — Tombol tema (ThemeSwitcher) tak bereaksi pada ketukan pertama saat tema "Ikuti sistem" dan HP gelap (FIXED lewat #226, lokal 2026-10-29)
 
 - **Ditemukan** saat #223. `ThemeSwitcher.jsx` hanya mengenal `dark` vs selain-itu: tema bawaan `system` + HP gelap ->
   ikon Bulan (seolah "ganti ke gelap"), ketukan pertama `setTheme('dark')` = tak ada perubahan visual; baru ketukan kedua
   terang. Juga menulis localStorage `'theme'` yang tak dibaca siapa pun (kunci aktif `current-theme`).
 - **Belum dikerjakan** (di luar lingkup #223). Usul: tentukan tema efektif dari kelas `<html>` untuk ikon & tujuan ketukan,
   atau tiga pilihan Terang/Gelap/Ikuti perangkat seperti Google Maps - keputusan rupa, tanyakan user.
+- **FIXED (#226, rencana disetujui user 2026-10-29):** tujuan ketukan dibaca dari kelas `dark` di `<html>`, ikon dari
+  tema efektif (`system` + `prefers-color-scheme`). Tetap dua keadaan (bukan tiga pilihan). Kunci localStorage `'theme'`
+  yang tak terbaca DIBIARKAN (diff minimal).
 
 ### #225 — Peta (form lapor, Peta Pemantauan) lambat & terasa lag di VPS (FIXED kode, lokal 2026-10-28; pemanasan cache tile menunggu konsol)
 
@@ -5198,3 +5201,23 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   Pantau `uptime` (load ~1 wajar, lama >2 = hentikan: `pkill -f warm-cache.sh; pkill -f "curl -s -o /dev/null --resolve"`;
   tile yang sudah ter-cache tetap). Bila skrip BERHENTI karena `inactive=`: perbaiki proxy_cache_path dulu. Balik prioritas:
   hapus `cpu_shares` dari compose + `docker compose up -d` (sementara: `docker update --cpu-shares 1024 sisupit-tiles`).
+
+### #226 — Pergantian tema gelap/terang tidak smooth: halaman berganti belang (FIXED, lokal 2026-10-29)
+
+- **Permintaan user 2026-10-28:** "pergantian tema gelap terang tidak smooth ... ripple animasi jadi terangnya atau
+  gelapnya menjalar dari ikon".
+- **Akar:** `ThemeSwitcher.jsx` menukar kelas `dark` di `<html>` langsung. ~84 file memakai `transition-all/colors` ->
+  sebagian elemen memudar 150 ms, sisanya patah seketika = belang. Ditambah #224 (ketukan pertama sia-sia di mode system).
+- **Perbaikan:** `document.startViewTransition(apply)` + `root.animate` clip-path `circle(0 -> jari-jari ke sudut
+  terjauh)` dari titik tengah tombol pada `::view-transition-new(root)`, 500 ms `cubic-bezier(0.2, 0, 0, 1)`. `apply`
+  memakai `flushSync` agar ikon ikut terpotret. Kelas `theme-switching` di `<html>` selama pergantian mematikan semua
+  transition (app.css, `html.theme-switching *` spesifisitas 0,1,2 - tanpa !important); cross-fade bawaan VT dimatikan.
+  Tanpa View Transitions (WebView/Safari lama) atau `prefers-reduced-motion`: ganti instan serentak, kelas dilepas 2 frame
+  kemudian. Pengaman `typeof window` untuk SSR. Hanya `ThemeSwitcher.jsx` + blok akhir `app.css`; berlaku di AppLayout
+  & 5 halaman Auth. `/guideline` (toggle sendiri) & ThemeProvider tak disentuh.
+- **Penjaga:** `ThemeRippleTest`. Verifikasi Chrome (Vite dev, /login): VT `ready` 10 ms, animasi clip-path jalan di
+  `::view-transition-new(root)`, dibekukan di tengah = lingkaran gelap membesar dari ikon, kelas akhir bersih, tanpa galat.
+  Catatan: di jendela yang tak di depan, browser menggambar lambat -> callback/animasi molor (terukur 0,85 + 1,07 dtk);
+  bukan kode.
+- **Belum:** uji di HP/APK & aplikasi desktop; `meta theme-color` (bilah status) memakai `media` sistem - TIDAK ikut
+  pilihan manual (perilaku lama, di luar lingkup). Tile peta gelap/terang tetap dimuat sesudah ripple.

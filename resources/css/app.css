@@ -346,3 +346,19 @@ html .leaflet-container {
 .dark .leaflet-container .leaflet-control.leaflet-bar {
 	border-color: hsl(var(--border));
 }
+
+/* Ripple pergantian tema (ThemeSwitcher.jsx). Cross-fade bawaan View Transitions dimatikan:
+   tampilan baru dibuka oleh animasi clip-path lingkaran dari ikon, di atas potret tampilan lama.
+   `theme-switching` mematikan transition selama pergantian supaya elemen ber-`transition-colors`
+   tidak memudar sendiri-sendiri (tampak belang). Spesifisitas (0,1,2) mengalahkan utilitas
+   `transition-*` (0,1,0) tanpa !important. */
+::view-transition-old(root),
+::view-transition-new(root) {
+	animation: none;
+	mix-blend-mode: normal;
+}
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+	transition: none;
+}
