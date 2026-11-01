@@ -2630,6 +2630,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + #223 popup Leaflet & basemap mode gelap, ThemeProvider ikut tema HP, LeafletDarkModeTest (2026-10-28) = 908 passed, 6820 assertions.
             + #225 Leaflet ikut bundel + Peta Pemantauan tanpa muat-ganda tile, LeafletBundleTest (2026-10-28) = 910 passed, 6833 assertions.
             + #226 ripple ganti tema dari ikon (View Transitions) + #224, ThemeRippleTest (2026-10-29) = 911 passed, 6844 assertions.
+            + #227/TASK_84 kirim posisi web dibatasi 5 dtk/10 m + channel report-tracking effect [report.id], ResponderTrackingClientTest (2026-11-01) = 913 passed, 6859 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

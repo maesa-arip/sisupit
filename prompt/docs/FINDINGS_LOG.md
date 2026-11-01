@@ -5223,3 +5223,36 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   bukan kode.
 - **Belum:** uji di HP/APK & aplikasi desktop; `meta theme-color` (bilah status) memakai `media` sistem - TIDAK ikut
   pilihan manual (perilaku lama, di luar lingkup). Tile peta gelap/terang tetap dimuat sesudah ripple.
+
+### #227 — Live tracking: halaman detail mengirim posisi tiap detik & menyambung ulang channel tiap posisi masuk (FIXED, lokal 2026-11-01)
+
+- **Keluhan user 2026-11-01:** "kenapa di production masih belum bergerak lokasi mobil damkarnya di peta".
+- **Cek prod read-only (konsol user, 7 hari, 77 penugasan petugas):** server sehat - 11.106 `update-location` = 200
+  (1x 302, 1x 401, 4x 499), Reverb `active`, 0 galat broadcast. Pola kiriman: halaman terbuka = ~1 ping/dtk (LP#355
+  2.280 baris/57 mnt, LP#360 1.240/23 mnt); ~17 penugasan hanya ledakan singkat sesudah Meluncur (LP#381 13 ping/12 dtk)
+  lalu sunyi; sebagian jarang (LP#374 8 ping/34 mnt); 9 penugasan 0 ping. Jadi marker diam = HP berhenti mengirim
+  (lihat #228), bukan server.
+- **Akar (sisi web, dua cacat):** (1) `Show.jsx` watchPosition mem-POST SETIAP tik GPS (tanpa batas) = beban
+  tracking_logs/siaran di VPS 1 inti + peta digambar ulang tiap detik di HP pengirim. (2) langganan `report-tracking.{id}`
+  ada di effect peta yang bergantung pada `officerList`/`helperList`: tiap posisi masuk -> `Echo.leave` + subscribe ulang
+  + POST `/broadcasting/auth`; posisi yang tiba selama celah hilang (di HP pengirim terjadi tiap tik).
+- **Perbaikan:** batas kirim sama dengan `ResponderTrackingService` APK: >= 5 dtk DAN pindah >= 10 m
+  (`TRACKING_MIN_INTERVAL_MS`/`TRACKING_MIN_DISTANCE_M`; fix pertama selalu terkirim; posisi sendiri di peta ikut batas
+  yang sama). Langganan channel dipindah ke effect sendiri ber-dependensi `[report.id]` saja (penangan memakai setter
+  fungsional/`router.reload`, jadi closure tak basi). Web saja, tanpa migrasi, tanpa APK/iOS baru.
+- **Penjaga:** `ResponderTrackingClientTest` (batas kirim sebelum POST; satu `Echo.private`, dependensi `[report.id]`,
+  effect peta tanpa Echo).
+- **Belum:** uji di HP (Meluncur dengan aplikasi terbuka, marker di layar admin bergerak tiap ~5 dtk).
+
+### #228 — Posisi petugas berhenti terkirim saat layar terkunci di iPhone; versi aplikasi petugas tak terlihat di server (OPEN, 2026-11-01)
+
+- **Temuan dari cek #227:** UA terbanyak di `update-location` = aplikasi iOS (2.284 + 1.346 ping). Aplikasi iOS TIDAK punya
+  pelacakan latar (jembatan `startResponderTracking` khusus Android 1.1.9, `mobile/KONTRAK.md` #7) -> di iPhone kiriman
+  berhenti begitu layar terkunci/aplikasi ke latar. Butuh fitur iOS (Core Location background + `UIBackgroundModes
+  location`) - build iOS baru.
+- **Android:** user menyatakan petugas sudah APK 1.1.9, tetapi pola "ledakan singkat lalu sunyi" juga muncul di UA
+  Android. Belum bisa dibuktikan apakah layanan 1.1.9 jalan: `ResponderTrackingService` memakai UA yang SAMA persis
+  dengan WebView, dan server tak menyimpan versi aplikasi (`fcm_tokens` hanya `device_type`). Cek lapangan: selama
+  Meluncur HP 1.1.9 menampilkan notifikasi tetap "Lokasi Anda sedang dibagikan"; Play Console > Statistik > versi
+  aplikasi menunjukkan sebaran versionCode. Usulan kode (belum dikerjakan): versi di UA (`SisupitApp/1.1.10`) pada rilis
+  APK/iOS berikut, dan/atau web menyimpan versi/kemampuan jembatan saat mendaftarkan token FCM (butuh kolom baru = migrasi).

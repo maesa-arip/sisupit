@@ -88,6 +88,13 @@ function animateMarkerTo(marker, to, duration = 1500) {
 	marker._moveRaf = requestAnimationFrame(tick);
 }
 
+// Kiriman posisi dari halaman ini dibatasi SAMA dengan layanan APK (ResponderTrackingService):
+// paling rapat 5 dtk DAN sudah pindah >= 10 m (#227). watchPosition bisa memanggil balik tiap
+// detik - dulu tiap tik = satu POST + satu baris tracking_logs + satu siaran (prod: 2.280 baris
+// untuk satu petugas dalam 57 menit) dan menggambar ulang peta di HP pengirim.
+const TRACKING_MIN_INTERVAL_MS = 5000;
+const TRACKING_MIN_DISTANCE_M = 10;
+
 // Posisi perangkat saat tombol Meluncur / Jaga di Kantor ditekan (TASK_66). Ditunggu SEBENTAR
 // lalu tombol tetap jalan tanpa lokasi - aksi darurat tak boleh tertahan GPS. Penjaga waktu
 // kedua ada karena getCurrentPosition bisa tak pernah memanggil balik selama prompt izin
@@ -798,10 +805,20 @@ export default function ReportShow(props) {
 
 	useEffect(() => {
 		if (!isCurrentlyResponding || !navigator.geolocation) return;
+		let lastSent = null;
 		const watchId = navigator.geolocation.watchPosition(
 			(pos) => {
 				const lat = pos.coords.latitude;
 				const lng = pos.coords.longitude;
+				const now = Date.now();
+				if (
+					lastSent &&
+					(now - lastSent.at < TRACKING_MIN_INTERVAL_MS ||
+						distanceMeters(lastSent.lat, lastSent.lng, lat, lng) < TRACKING_MIN_DISTANCE_M)
+				) {
+					return;
+				}
+				lastSent = { at: now, lat, lng };
 				// Tampilkan posisi sendiri di peta SEGERA dari GPS lokal — jangan menunggu
 				// echo broadcast (yang butuh Reverb aktif). Tanpa ini, responder tak melihat
 				// markernya sendiri saat websocket mati. Update record-ku di list mana pun.
@@ -1117,66 +1134,8 @@ export default function ReportShow(props) {
 			fitBoundsWhenSized(map, new window.L.featureGroup(boundsGroup).getBounds().pad(0.3));
 			hasFitRef.current = true;
 		}
-
-		let channel = null;
-		if (window.Echo) {
-			channel = window.Echo.private(`report-tracking.${report.id}`);
-			channel.listen('ResponderLocationUpdated', (e) => {
-				const { responderId, responderType, lat, lng } = e;
-				// Cukup update state posisi; effect akan menjalankan ulang & menganimasikan marker
-				// mulus ke posisi baru serta memperbarui rute jalan di depan.
-				if (responderType === 'petugas') {
-					setOfficerList((prev) =>
-						prev.map((o) =>
-							o.user_id === responderId ? { ...o, location_lat: lat, location_lng: lng } : o,
-						),
-					);
-				} else {
-					setHelperList((prev) =>
-						prev.map((h) =>
-							h.user_id === responderId ? { ...h, location_lat: lat, location_lng: lng } : h,
-						),
-					);
-				}
-			});
-			channel.listen('IncidentLocationCorrected', (e) => {
-				setIncidentLocation((prev) => ({
-					...prev,
-					lat: e.lat,
-					lng: e.lng,
-					geoAddress: e.geoAddress,
-					// Tanpa ini lencana "±8 km dari posisi pelapor" tetap menempel pada pin
-					// yang baru saja dibetulkan responder di TKP sampai halaman dimuat ulang.
-					locationSource: e.locationSource ?? prev.locationSource,
-					reporterDistanceM: e.locationSource ? null : prev.reporterDistanceM,
-					locationAccuracyM: e.locationSource ? null : prev.locationAccuracyM,
-				}));
-			});
-			// Daftar responder berubah dari sisi lain (responder baru meluncur / batal /
-			// tiba) — muat ulang lewat controller supaya tetap ter-scope & konsisten bentuknya.
-			channel.listen('ResponderRosterChanged', reloadIncident);
-			// Catatan insiden berubah tanpa status/roster ikut berpindah: OPD dilibatkan,
-			// dilepas, atau mengonfirmasi tindakannya; entri berita acara dibuat/dihapus;
-			// pelapor menyunting isi laporannya (#113).
-			channel.listen('ReportRecordChanged', reloadIncident);
-			// Status laporan berubah dari sisi lain (approve/reject/handling/resolve).
-			// Badge & banner ditambal SEKETIKA dari payload supaya tak menunggu perjalanan
-			// bolak-balik; reload menyusul untuk hal yang tidak dibawa payload — jejak
-			// "ditutup/ditolak oleh siapa" (#88) ada di prop `report`, dan tanpa ini
-			// penolakan yang baru saja terjadi berbunyi "Ditolak oleh tidak tercatat",
-			// yaitu kalimat yang disediakan untuk baris lama yang memang tak punya jejak.
-			channel.listen('ReportStatusChanged', (e) => {
-				setReportStatus(e.status);
-				setRejectedReason(e.rejectedReason ?? null);
-				reloadIncident();
-			});
-		}
-		return () => {
-			if (channel) window.Echo.leave(`report-tracking.${report.id}`);
-		};
-		// `pendingPosition` SENGAJA tidak masuk daftar ini: effect ini melepas & menyambung ulang
-		// channel Echo serta menggambar ulang rute jalan, jadi menjalankannya tiap kali pin
-		// dilepas itu mahal — dan tak perlu, karena markernya sudah berada di posisi geserannya.
+		// `pendingPosition` SENGAJA tidak masuk daftar ini: menggambar ulang rute jalan tiap kali
+		// pin dilepas itu mahal - dan tak perlu, karena markernya sudah berada di posisi geserannya.
 		// Nilai terbarunya tetap terbaca saat effect jalan, sebab dependensi lain (tik GPS)
 		// memicu render ulang dengan closure yang segar (FINDINGS #86).
 	}, [
@@ -1187,10 +1146,66 @@ export default function ReportShow(props) {
 		officerList,
 		helperList,
 		// Prop mentah, BUKAN `reguRoster` (yang ber-cadangan `|| []` = array baru tiap render
-		// dan akan menyambung ulang channel Echo di setiap render).
+		// dan akan menggambar ulang peta di setiap render).
 		props.reguRoster,
 		isCorrectingMode,
 	]);
+
+	// Langganan channel insiden HANYA bergantung pada id laporan (#227). Dulu ia menumpang di
+	// effect peta di atas yang ikut `officerList`: tiap posisi masuk = Echo.leave + subscribe
+	// ulang + POST /broadcasting/auth, dan posisi yang tiba selama celah itu hilang. Semua
+	// penangan di sini memakai setter fungsional / router.reload, jadi closure-nya tak pernah basi.
+	useEffect(() => {
+		if (!window.Echo) return;
+		const channelName = `report-tracking.${report.id}`;
+		const channel = window.Echo.private(channelName);
+		channel.listen('ResponderLocationUpdated', (e) => {
+			const { responderId, responderType, lat, lng } = e;
+			// Cukup update state posisi; effect akan menjalankan ulang & menganimasikan marker
+			// mulus ke posisi baru serta memperbarui rute jalan di depan.
+			if (responderType === 'petugas') {
+				setOfficerList((prev) =>
+					prev.map((o) => (o.user_id === responderId ? { ...o, location_lat: lat, location_lng: lng } : o)),
+				);
+			} else {
+				setHelperList((prev) =>
+					prev.map((h) => (h.user_id === responderId ? { ...h, location_lat: lat, location_lng: lng } : h)),
+				);
+			}
+		});
+		channel.listen('IncidentLocationCorrected', (e) => {
+			setIncidentLocation((prev) => ({
+				...prev,
+				lat: e.lat,
+				lng: e.lng,
+				geoAddress: e.geoAddress,
+				// Tanpa ini lencana "±8 km dari posisi pelapor" tetap menempel pada pin
+				// yang baru saja dibetulkan responder di TKP sampai halaman dimuat ulang.
+				locationSource: e.locationSource ?? prev.locationSource,
+				reporterDistanceM: e.locationSource ? null : prev.reporterDistanceM,
+				locationAccuracyM: e.locationSource ? null : prev.locationAccuracyM,
+			}));
+		});
+		// Daftar responder berubah dari sisi lain (responder baru meluncur / batal /
+		// tiba) — muat ulang lewat controller supaya tetap ter-scope & konsisten bentuknya.
+		channel.listen('ResponderRosterChanged', reloadIncident);
+		// Catatan insiden berubah tanpa status/roster ikut berpindah: OPD dilibatkan,
+		// dilepas, atau mengonfirmasi tindakannya; entri berita acara dibuat/dihapus;
+		// pelapor menyunting isi laporannya (#113).
+		channel.listen('ReportRecordChanged', reloadIncident);
+		// Status laporan berubah dari sisi lain (approve/reject/handling/resolve).
+		// Badge & banner ditambal SEKETIKA dari payload supaya tak menunggu perjalanan
+		// bolak-balik; reload menyusul untuk hal yang tidak dibawa payload — jejak
+		// "ditutup/ditolak oleh siapa" (#88) ada di prop `report`, dan tanpa ini
+		// penolakan yang baru saja terjadi berbunyi "Ditolak oleh tidak tercatat",
+		// yaitu kalimat yang disediakan untuk baris lama yang memang tak punya jejak.
+		channel.listen('ReportStatusChanged', (e) => {
+			setReportStatus(e.status);
+			setRejectedReason(e.rejectedReason ?? null);
+			reloadIncident();
+		});
+		return () => window.Echo.leave(channelName);
+	}, [report.id]);
 
 	return (
 		<div className="mx-auto flex w-full max-w-7xl flex-col space-y-6 pb-32">
