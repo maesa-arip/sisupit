@@ -171,7 +171,10 @@ class ReportController extends Controller
         $filters = Report::normalizeListFilters(request()->only(['search', 'periode', 'from', 'to', 'jenis', 'kecamatan', 'load']));
 
         $reports = Report::query()
-            ->with('user:id,name')
+            // `resolver` = penutup insiden (FINDINGS #88). Halaman yang sama dengan daftar admin
+            // membaca null sebagai "tidak tercatat" - tanpa relasi ini SEMUA laporan Selesai di
+            // Riwayat pejabat/relawan berbunyi begitu walau `resolved_by` terisi.
+            ->with(['user:id,name', 'resolver:id,name'])
             ->listFilter($filters)
             ->whereNotIn('status', ['TERLAPOR', 'ditolak', Report::STATUS_DIGABUNG])
             ->when($status !== 'Semua', function ($query) use ($status) {

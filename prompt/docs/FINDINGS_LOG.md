@@ -5256,3 +5256,13 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   Meluncur HP 1.1.9 menampilkan notifikasi tetap "Lokasi Anda sedang dibagikan"; Play Console > Statistik > versi
   aplikasi menunjukkan sebaran versionCode. Usulan kode (belum dikerjakan): versi di UA (`SisupitApp/1.1.10`) pada rilis
   APK/iOS berikut, dan/atau web menyimpan versi/kemampuan jembatan saat mendaftarkan token FCM (butuh kolom baru = migrasi).
+
+### #230 — Riwayat pejabat/relawan: semua laporan Selesai berbunyi "Ditutup oleh tidak tercatat" (FIXED, lokal 2026-11-02)
+
+- **Laporan user 2026-11-02:** login pejabat, menu Riwayat, laporan BARU pun "Ditutup oleh tidak tercatat".
+- **Akar:** `resolve()` selalu mengisi `resolved_by` (#88), tetapi daftar pemantau `ReportController::monitoringIndex()`
+  hanya memuat `with('user:id,name')`. Halaman yang dirender sama (`Admin/Reports/Index.jsx:675`) membaca
+  `report.resolver` null sebagai "tidak tercatat". Daftar admin (`Admin\ReportController`) sudah benar sejak #88.
+- **Fix:** `with(['user:id,name', 'resolver:id,name'])`. Audiens sesuai gerbang `canSeeClosureActor` (staf/pejabat/relawan).
+  Tanpa migrasi, web saja. Laporan yang ditutup SEBELUM migrasi 2026-08-27 tetap "tidak tercatat" (tanpa backfill, #88).
+- **Penjaga:** `ReportClosureActorTest` "monitoring list of pejabat and relawan" (sabotase = merah).

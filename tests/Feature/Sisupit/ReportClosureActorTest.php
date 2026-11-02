@@ -101,6 +101,24 @@ it('ships the closing officer name to the verification list', function () {
     expect($row['resolver']['name'])->toBe('Komandan Regu A');
 });
 
+it('ships the closing officer name to the monitoring list of pejabat and relawan', function () {
+    // Riwayat pejabat/relawan memakai halaman yang sama (Admin/Reports/Index) tapi dilayani
+    // ReportController::monitoringIndex() - dulu tanpa relasi resolver, jadi semua laporan
+    // Selesai berbunyi "Ditutup oleh tidak tercatat".
+    $this->actingAs($this->petugas)->post("/reports/{$this->report->id}/resolve");
+
+    foreach (['pejabat', 'relawan'] as $role) {
+        $viewer = User::factory()->create(['village_code' => '5171012006']);
+        $viewer->assignRole($role);
+
+        $props = $this->actingAs($viewer)->get('/reports?status=resolved')->original->getData()['page']['props'];
+        $row = collect($props['reports']['data'])->firstWhere('id', $this->report->id);
+
+        expect($row)->not->toBeNull();
+        expect($row['resolver']['name'])->toBe('Komandan Regu A');
+    }
+});
+
 /** Semua sel non-kosong di sheet ekspor, diratakan — tata letak boleh berubah. */
 function closureExportCells($response): array
 {
