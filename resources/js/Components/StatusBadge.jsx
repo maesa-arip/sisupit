@@ -6,15 +6,16 @@ import { cn } from '@/lib/utils';
 // dengan label & warna BERBEDA untuk status yang sama (mis. TERLAPOR =
 // "Butuh Bantuan"/"Darurat"/"Terlapor"). Pakai komponen ini agar konsisten.
 // Warna memakai token semantik (destructive/warning/info/success), bukan hex mentah.
+// TASK_87 (desain clean minimalis): pil NETRAL + titik warna status - tanpa blok tint pastel.
+// Warna status tetap satu sumber di sini (titik), label tidak berubah.
 const STATUS_CONFIG = {
-	TERLAPOR: { label: 'Laporan Masuk', className: 'bg-destructive/10 text-destructive border-destructive/30' },
-	pending: { label: 'Laporan Terverifikasi', className: 'bg-warning/10 text-warning border-warning/30' },
-	handling: { label: 'Penanganan', className: 'bg-success/10 text-success border-success/30' },
-	resolved: { label: 'Selesai', className: 'bg-info/10 text-info border-info/30' },
-	ditolak: { label: 'Ditolak', className: 'bg-muted text-muted-foreground border-border' },
-	// Laporan ganda yang digabung ke kejadian lain (TASK_55). Netral seperti `ditolak` tapi
-	// BUKAN abu yang sama: pelapornya tidak salah. Garis putus-putus = tertaut, bukan berdiri sendiri.
-	digabung: { label: 'Digabung', className: 'border-dashed border-muted-foreground/40 bg-muted/40 text-foreground' },
+	TERLAPOR: { label: 'Laporan Masuk', dot: 'bg-destructive' },
+	pending: { label: 'Laporan Terverifikasi', dot: 'bg-warning' },
+	handling: { label: 'Penanganan', dot: 'bg-success' },
+	resolved: { label: 'Selesai', dot: 'bg-info' },
+	ditolak: { label: 'Ditolak', dot: 'bg-muted-foreground/50' },
+	// Laporan ganda yang digabung ke kejadian lain (TASK_55). Garis putus-putus = tertaut, bukan berdiri sendiri.
+	digabung: { label: 'Digabung', dot: 'bg-muted-foreground/50', className: 'border-dashed' },
 };
 
 export default function StatusBadge({ status, className }) {
@@ -22,8 +23,13 @@ export default function StatusBadge({ status, className }) {
 	return (
 		<Badge
 			variant="outline"
-			className={cn('rounded-full px-2.5 py-0.5 font-semibold shadow-none', config.className, className)}
+			className={cn(
+				'gap-1.5 rounded-full border-border bg-card px-2.5 py-0.5 font-semibold text-foreground shadow-none',
+				config.className,
+				className,
+			)}
 		>
+			<span aria-hidden="true" className={cn('h-1.5 w-1.5 shrink-0 rounded-full', config.dot)} />
 			{config.label}
 		</Badge>
 	);

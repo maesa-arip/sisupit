@@ -20,7 +20,7 @@ const Toaster = ({ ...props }) => {
 			mobileOffset={{ top: 'calc(env(safe-area-inset-top) + 0.75rem)', left: '1rem', right: '1rem' }}
 			toastOptions={{
 				classNames: {
-					toast: 'material-thick items-start gap-3 rounded-2xl border border-border/60 px-4 py-3.5 text-popover-foreground shadow-[0_12px_32px_-8px_rgb(0_0_0/0.28),0_2px_6px_rgb(0_0_0/0.08)] ease-spring',
+					toast: 'material-thick items-start gap-3 rounded-2xl border border-border/60 px-4 py-3.5 text-popover-foreground shadow-none ease-spring',
 					content: 'min-w-0 gap-0.5',
 					title: 'text-[15px] font-semibold leading-5 tracking-[-0.01em]',
 					description: 'text-[13px] leading-[18px] text-muted-foreground',

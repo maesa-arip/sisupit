@@ -277,7 +277,7 @@ export default function MobileBottomNav({ auth }) {
 			    Disembunyikan selama keyboard layar terbuka (#187): bilah navigasi tak ikut naik di atas
 			    keyboard, seperti aplikasi native - ruang di atas keyboard milik kolom yang diketik. */}
 			<div
-				className="material-chrome fixed bottom-0 left-0 z-50 w-full shadow-[0_-1px_0_0_hsl(var(--border)),0_-8px_24px_-12px_rgba(0,0,0,0.22)] md:hidden [html[data-keyboard=open]_&]:hidden"
+				className="material-chrome fixed bottom-0 left-0 z-50 w-full shadow-[0_-1px_0_0_hsl(var(--border))] md:hidden [html[data-keyboard=open]_&]:hidden"
 				style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
 			>
 				<div className="mx-auto grid h-14 max-w-md grid-cols-5 px-1">
@@ -532,7 +532,7 @@ const slotClass = (active, open = false) =>
 		// slot aktif bersama warna & ikon padat, dan menyamakan ketiganya akan menyisakan
 		// penanda yang lebih sedikit daripada yang sudah disepakati.
 		active
-			? 'font-medium text-destructive'
+			? 'font-semibold text-foreground'
 			: open
 				? 'bg-accent font-normal text-foreground'
 				: 'font-normal text-muted-foreground hover:text-foreground',
@@ -755,9 +755,8 @@ function LaporSlot({ href, icon: Icon, iconActive: IconActive, active }) {
 					className={cn(
 						'relative flex h-9 w-9 items-center justify-center rounded-full bg-destructive text-destructive-foreground ring-[3px]',
 						pop && cn('animate-lapor-pop motion-reduce:animate-none', TAP_DELAY),
-						active
-							? 'ring-destructive/30 shadow-[0_6px_18px_-4px_hsl(var(--destructive)/0.8)]'
-							: 'ring-background shadow-[0_4px_12px_-6px_hsl(var(--destructive)/0.6)]',
+						// TASK_87: tanpa cahaya/bayangan - cincin putih saat diam, halo tipis saat aktif.
+						active ? 'ring-destructive/30' : 'ring-background',
 					)}
 				>
 					<Glyph className="h-6 w-6" stroke={1.75} />
@@ -780,7 +779,8 @@ function LaporSlot({ href, icon: Icon, iconActive: IconActive, active }) {
 			<span
 				className={cn(
 					'mt-0.5 max-w-full truncate text-[11px] leading-4 transition-colors duration-300',
-					active ? 'font-semibold text-destructive' : 'font-normal text-muted-foreground',
+					// TASK_87: label "Lapor" selalu merah (satu aksen), tebal saat aktif.
+					active ? 'font-bold text-destructive' : 'font-semibold text-destructive',
 				)}
 			>
 				Lapor

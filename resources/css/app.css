@@ -1,27 +1,29 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+/* TASK_87 (desain clean minimalis, khusus branch feat/desain-clean-minimalis + dev): Plus Jakarta Sans menggantikan Inter. */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,400..800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 @layer base {
 	:root {
-		--background: 0 0% 98%;
-		--foreground: 224 71.4% 4.1%;
+		/* TASK_87: latar putih hangat #FBFBF9 (bukan putih murni), teks #111214, garis #E7E7E3. */
+		--background: 60 20% 98%;
+		--foreground: 220 8% 7%;
 		--card: 0 0% 100%;
-		--card-foreground: 224 71.4% 4.1%;
+		--card-foreground: 220 8% 7%;
 		--popover: 0 0% 100%;
-		--popover-foreground: 224 71.4% 4.1%;
+		--popover-foreground: 220 8% 7%;
 		/* Tombol utama = MERAH BRAND (#E0241B, sama dengan --destructive), permintaan user
 		   2026-09-30: tak ada lagi tombol hitam bertulisan putih. Nilai lama: --primary 220.9 39.3% 11%
 		   (hitam kebiruan) / --primary-foreground 210 20% 98%. Lihat PENGECUALIAN_ATURAN #4. */
 		--primary: 3 79% 49%;
 		--primary-foreground: 210 20% 98%;
-		--secondary: 220 14.3% 95.9%;
-		--secondary-foreground: 220.9 39.3% 11%;
-		--muted: 220 14.3% 95.9%;
-		--muted-foreground: 220 8.9% 46.1%;
-		--accent: 220 14.3% 95.9%;
-		--accent-foreground: 220.9 39.3% 11%;
+		--secondary: 60 9% 94%;
+		--secondary-foreground: 220 8% 7%;
+		--muted: 60 9% 94%;
+		--muted-foreground: 222 4% 44%;
+		--accent: 60 9% 94%;
+		--accent-foreground: 220 8% 7%;
 		--destructive: 3 79% 49%;
 		--destructive-foreground: 210 20% 98%;
 		--success: 160 84% 39%;
@@ -34,16 +36,16 @@
 		--teal-foreground: 210 20% 98%;
 		--volunteer: 271 76% 53%;
 		--volunteer-foreground: 0 0% 100%;
-		--border: 0 0% 90%;
-		--input: 0 0% 90%;
-		--ring: 224 71.4% 4.1%;
+		--border: 60 7% 90%;
+		--input: 60 7% 90%;
+		--ring: 220 8% 7%;
 		--chart-1: 12 76% 61%;
 		--chart-2: 173 58% 39%;
 		--chart-3: 197 37% 24%;
 		--chart-4: 43 74% 66%;
 		--chart-5: 27 87% 67%;
 		--radius: 0.5rem;
-		--sidebar-background: 0 0% 98%;
+		--sidebar-background: 0 0% 100%;
 		--sidebar-foreground: 240 5.3% 26.1%;
 		--sidebar-primary: 240 5.9% 10%;
 		--sidebar-primary-foreground: 0 0% 98%;
@@ -184,15 +186,13 @@
 	   membuat teks bertumpuk adalah kegagalan, bukan gaya.
 	   JANGAN tambahkan `bg-*` di elemen yang sama - utilitas menang atas komponen dan materialnya
 	   jadi padat tanpa galat. Tak pernah menumpuk material terang di atas material terang. */
+	/* TASK_87 (desain clean minimalis): tanpa efek kaca - kedua material jadi permukaan PADAT.
+	   Nama kelas dipertahankan supaya pemakai (header, bilah bawah, popover, toast) tak perlu disentuh. */
 	.material-chrome {
-		background-color: hsl(var(--background) / 0.85);
-		-webkit-backdrop-filter: blur(20px) saturate(180%);
-		backdrop-filter: blur(20px) saturate(180%);
+		background-color: hsl(var(--card));
 	}
 	.material-thick {
-		background-color: hsl(var(--popover) / 0.96);
-		-webkit-backdrop-filter: blur(28px) saturate(180%);
-		backdrop-filter: blur(28px) saturate(180%);
+		background-color: hsl(var(--popover));
 	}
 	/* Tanpa dukungan blur, tembus pandang tanpa buram = teks bertumpuk tak terbaca -> padat. */
 	@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
@@ -361,4 +361,49 @@ html.theme-switching *,
 html.theme-switching *::before,
 html.theme-switching *::after {
 	transition: none;
+}
+
+/* ===========================================================================================
+   TASK_87 - desain clean minimalis (branch feat/desain-clean-minimalis + dev SAJA).
+   Kesepakatan desain user 2026-11-04: tanpa latar tint pastel & tanpa efek kaca.
+   Latar tint 5-20% warna status/brand dinetralkan jadi abu muda (--muted); TEKS & IKON tetap
+   berwarna, jadi makna status tidak hilang. Diletakkan sesudah @tailwind utilities supaya
+   menang urutan tanpa !important (spesifisitas sama).
+   =========================================================================================== */
+.bg-destructive\/5,
+.bg-destructive\/10,
+.bg-destructive\/15,
+.bg-destructive\/20,
+.bg-primary\/5,
+.bg-primary\/10,
+.bg-primary\/15,
+.bg-primary\/20,
+.bg-info\/5,
+.bg-info\/10,
+.bg-info\/15,
+.bg-info\/20,
+.bg-success\/5,
+.bg-success\/10,
+.bg-success\/15,
+.bg-success\/20,
+.bg-warning\/5,
+.bg-warning\/10,
+.bg-warning\/15,
+.bg-warning\/20,
+.bg-teal\/5,
+.bg-teal\/10,
+.bg-teal\/15,
+.bg-teal\/20,
+.bg-volunteer\/5,
+.bg-volunteer\/10,
+.bg-volunteer\/15,
+.bg-volunteer\/20 {
+	background-color: hsl(var(--muted));
+}
+.backdrop-blur-sm,
+.backdrop-blur,
+.backdrop-blur-md,
+.backdrop-blur-lg {
+	-webkit-backdrop-filter: none;
+	backdrop-filter: none;
 }

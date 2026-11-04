@@ -1,5 +1,6 @@
 import StatusBadge from '@/Components/StatusBadge';
 import { cn } from '@/lib/utils';
+import { IconCheck } from '@tabler/icons-react';
 import { Fragment } from 'react';
 
 // Kemajuan laporan dari sudut PELAPOR - dipakai halaman Thanks, kartu "Perkembangan Laporan
@@ -14,7 +15,7 @@ import { Fragment } from 'react';
 // Tahap berjalan dibaca dari status laporan - dulu ia dipaku di indeks 0, sehingga laporan
 // yang sudah ditangani atau selesai pun tetap berhenti di "Laporan Masuk".
 const STEP_STATUS = ['TERLAPOR', 'pending', 'handling', 'resolved'];
-const STEPS = ['Laporan Masuk', 'Terverifikasi', 'Penanganan', 'Selesai'];
+const STEPS = ['Masuk', 'Terverifikasi', 'Penanganan', 'Selesai'];
 
 // `ditolak` SENGAJA tidak punya tahap: ia bukan kemajuan di alur ini melainkan jalan buntu,
 // jadi ditampilkan sebagai keterangan tersendiri, bukan sebagai langkah kelima.
@@ -28,15 +29,8 @@ export const STATUS_DIGABUNG = 'digabung';
 // Laporan yang tak lagi bergerak: tak ada regu yang perlu disebut "sedang menuju".
 export const isClosedStatus = (status) => ['resolved', STATUS_DITOLAK, STATUS_DIGABUNG].includes(status);
 
-// Warna per tahap mengikuti kamus status kanonik (StatusBadge): Laporan Masuk merah,
-// Terverifikasi kuning, Penanganan hijau, Selesai biru — jangan diseragamkan jadi satu warna,
-// itu memutus hubungan visual dengan badge & peta.
-const STEP_TONE = {
-	TERLAPOR: { solid: 'bg-destructive text-destructive-foreground', tint: 'bg-destructive/15 text-destructive' },
-	pending: { solid: 'bg-warning text-warning-foreground', tint: 'bg-warning/15 text-warning' },
-	handling: { solid: 'bg-success text-success-foreground', tint: 'bg-success/15 text-success' },
-	resolved: { solid: 'bg-info text-info-foreground', tint: 'bg-info/15 text-info' },
-};
+// TASK_87 (desain clean minimalis): stepper hitam (tahap lewat) / merah (tahap aktif) / abu (berikutnya).
+// Warna status tidak dipakai di stepper; ia hanya hidup di titik StatusBadge & marker peta.
 
 // "Regu Garuda, Regu Elang dan 2 relawan" dari satu tahap ringkasan responder
 // (ReportController::thanksResponders).
@@ -82,33 +76,37 @@ export function ReportStepper({ status, rejectedReason = null, className }) {
 			) : (
 				<ol className="flex items-start">
 					{STEPS.map((step, i) => {
-						const tone = STEP_TONE[STEP_STATUS[i]];
 						const isCurrent = i === currentStep;
 						const isDone = i < currentStep;
 
 						return (
 							<Fragment key={step}>
-								<li className="flex flex-col items-center gap-1.5">
+								<li className="flex w-16 flex-col items-center gap-1.5">
 									<span
 										className={cn(
-											'flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold',
-											isCurrent && tone.solid,
-											isDone && tone.tint,
-											!isCurrent && !isDone && 'bg-muted text-muted-foreground',
+											'flex h-5 w-5 items-center justify-center rounded-full',
+											isDone && 'bg-foreground text-background',
+											isCurrent && 'border-2 border-destructive bg-card',
+											!isCurrent && !isDone && 'border-[1.5px] border-muted-foreground/40 bg-card',
 										)}
 									>
-										{i + 1}
+										{isDone && <IconCheck className="h-3 w-3" stroke={3} />}
+										{isCurrent && <span className="h-2 w-2 rounded-full bg-destructive" />}
 									</span>
 									<span
 										className={cn(
-											'text-center text-[11px] font-medium leading-tight sm:text-[11px]',
-											isCurrent ? 'font-bold text-foreground' : 'text-muted-foreground',
+											'text-center text-[11px] leading-tight',
+											isCurrent && 'font-bold text-destructive',
+											isDone && 'font-semibold text-foreground',
+											!isCurrent && !isDone && 'font-medium text-muted-foreground',
 										)}
 									>
 										{step}
 									</span>
 								</li>
-								{i < STEPS.length - 1 && <span className="mt-3 h-px flex-1 bg-border" />}
+								{i < STEPS.length - 1 && (
+									<span className={cn('mt-2.5 h-0.5 flex-1 rounded-full', i < currentStep ? 'bg-foreground' : 'bg-border')} />
+								)}
 							</Fragment>
 						);
 					})}

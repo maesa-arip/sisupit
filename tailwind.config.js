@@ -84,7 +84,17 @@ export default {
 				'slot-pop': 'slot-pop 450ms cubic-bezier(0.32, 0.72, 0, 1) both',
 			},
 			fontFamily: {
-				sans: ['Inter', ...defaultTheme.fontFamily.sans],
+				sans: ['"Plus Jakarta Sans"', ...defaultTheme.fontFamily.sans],
+			},
+			// TASK_87 (desain clean minimalis): tanpa bayangan jatuh - kartu & panel dipisah garis 1px.
+			boxShadow: {
+				sm: 'none',
+				DEFAULT: 'none',
+				md: 'none',
+				lg: 'none',
+				xl: 'none',
+				'2xl': 'none',
+				inner: 'none',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

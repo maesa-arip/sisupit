@@ -11,7 +11,7 @@ import AppLayout from '@/Layouts/AppLayout';
 import { firstName as getFirstName } from '@/lib/first-name';
 import { reportIcon } from '@/lib/report-icon';
 import { cn, GEO_OPTIONS, reportNumber, timeAgo } from '@/lib/utils';
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import {
 	IconAlertCircle,
 	IconCheckupList,
@@ -20,6 +20,7 @@ import {
 	IconHistory,
 	IconLoader2,
 	IconMapPin,
+	IconPhone,
 	IconRadar,
 	IconRefresh,
 	IconShieldCheck,
@@ -350,6 +351,10 @@ export default function Dashboard(props) {
 		</AppSection>
 	);
 
+	const tenant = usePage().props.tenant || {};
+	const teleponDarurat = tenant.telepon_darurat || '(0361) 480066';
+	const telHref = `tel:${teleponDarurat.replace(/[^0-9+]/g, '')}`;
+
 	return (
 		<div className="flex w-full flex-col space-y-5 pb-32 md:space-y-6">
 			{/* Pembungkus `mx-auto max-w-7xl` dicabut: AppLayout sudah memberi max-width DAN
@@ -362,12 +367,13 @@ export default function Dashboard(props) {
 							variant="outline"
 							className={cn(
 								'rounded-full border px-2.5 py-0.5 text-xs font-semibold shadow-none',
-								isRelawan && isStandby
-									? 'bg-volunteer text-volunteer-foreground'
-									: 'bg-muted text-foreground/80',
+								'border-border bg-card text-foreground',
 							)}
 						>
-							<IconShieldCheck className="mr-1 h-3.5 w-3.5" stroke={2.5} />{' '}
+							<span
+								aria-hidden="true"
+								className={cn('mr-1.5 h-1.5 w-1.5 rounded-full', isRelawan && isStandby ? 'bg-success' : 'bg-muted-foreground/50')}
+							/>
 							{/* Lencana mengikuti saklar StandbyCard di bawahnya - dulu selalu "Siaga"
 							    walau siaga sedang dimatikan. */}
 							{isRelawan ? (isStandby ? 'Relawan Siaga' : 'Relawan - Tidak Siaga') : 'Warga Umum'}
@@ -383,24 +389,27 @@ export default function Dashboard(props) {
 			    disiarkan sirine; tak tampil saat semuanya normal. */}
 			{isRelawan && isStandby && <NotificationDeviceBanner deviceCount={props.fcm_device_count} />}
 
-			{/* CTA UTAMA: LAPOR DARURAT - aksi inti yang harus paling menonjol bagi warga */}
-			<Link
-				href={route('front.reports.create')}
-				className="group flex items-center justify-between gap-3 rounded-2xl border border-destructive bg-destructive p-4 text-destructive-foreground shadow-sm transition-colors hover:bg-destructive/90 active:scale-[0.98] active:bg-destructive/90 motion-reduce:active:scale-100"
-			>
-				<div className="flex items-center gap-3">
-					<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-destructive-foreground/15">
-						<IconFlame className="h-5 w-5" stroke={2} />
-					</div>
-					<div>
-						<h3 className="text-[17px] font-semibold tracking-tight">Lapor Darurat</h3>
-						<p className="mt-0.5 text-xs font-medium text-destructive-foreground/80">
-							Kebakaran atau keadaan darurat lain? Laporkan sekarang.
-						</p>
-					</div>
-				</div>
-				<IconChevronRight className="h-5 w-5 shrink-0" />
-			</Link>
+			{/* CTA UTAMA: LAPOR DARURAT (TASK_87, desain clean minimalis): kartu putih dengan satu
+			    tombol merah + telepon sebagai aksi kedua (tanpa blok merah pekat, tanpa petak pintasan). */}
+			<div className="rounded-2xl border border-border/70 bg-card p-4">
+				<h3 className="text-[19px] font-bold leading-snug tracking-tight text-foreground">
+					Ada kebakaran atau keadaan darurat?
+				</h3>
+				<p className="mt-1 text-[13px] text-muted-foreground">Tandai lokasi, petugas menelepon untuk memastikan.</p>
+				<Button asChild className="mt-4 h-12 w-full rounded-xl text-[15px] font-semibold">
+					<Link href={route('front.reports.create')}>
+						<IconFlame className="mr-2 h-5 w-5" stroke={2} />
+						Lapor Darurat
+					</Link>
+				</Button>
+				<a
+					href={telHref}
+					className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-card text-sm font-semibold text-foreground active:bg-muted"
+				>
+					<IconPhone className="h-4 w-4 text-destructive" stroke={2} />
+					Telepon Damkar {teleponDarurat}
+				</a>
+			</div>
 
 			{/* LAPORAN ANDA YANG MASIH BERJALAN (#165). Halaman Thanks hanya dicapai sekali sesudah
 			    kirim; tanpa kartu ini pelapor harus mencari statusnya lewat Riwayat. Ketuk = detail
@@ -412,7 +421,7 @@ export default function Dashboard(props) {
 							<Link
 								key={report.id}
 								href={route('reports.show', report.id)}
-								className="block rounded-2xl border border-border/70 bg-card p-4 shadow-sm transition-transform active:scale-[0.98] motion-reduce:active:scale-100"
+								className="block rounded-2xl border border-border/70 bg-card p-4 transition-transform active:scale-[0.98] motion-reduce:active:scale-100"
 							>
 								<div className="flex items-start justify-between gap-3">
 									<div className="min-w-0">

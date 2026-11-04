@@ -347,7 +347,7 @@ export default function Register() {
 				<div className="absolute inset-0 z-10 bg-black/20 mix-blend-multiply"></div>
 
 				{/* Overlay gradient dari bawah ke atas agar teks kontras dan terbaca jelas */}
-				<div className="absolute inset-x-0 bottom-0 z-20 h-[60%] bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+				<div className="absolute inset-x-0 bottom-0 z-20 h-[60%] bg-black/55"></div>
 
 				<img src="/images/Damkar.png" alt="Ilustrasi Damkar" className="h-full w-full object-cover" />
 
