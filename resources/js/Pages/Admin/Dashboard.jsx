@@ -1,7 +1,7 @@
 import { AppEmpty, AppGreeting, AppList, AppListRow, AppSection } from '@/Components/AppSection';
+import DotPill from '@/Components/DotPill';
 import StandbyCard from '@/Components/StandbyCard';
 import StatusBadge from '@/Components/StatusBadge';
-import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import useRealtimeStatus from '@/hooks/use-realtime-status';
@@ -21,25 +21,24 @@ import {
 	IconFlame,
 	IconMapPin,
 	IconMapSearch,
-	IconShieldCheck,
 	IconUsersGroup,
 } from '@tabler/icons-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
 const REALTIME_META = {
-	connected: { label: 'Realtime aktif', text: 'text-success', dot: 'bg-success' },
-	connecting: { label: 'Menyambung ulang...', text: 'text-warning', dot: 'bg-warning' },
+	connected: { label: 'Realtime aktif', text: 'text-muted-foreground', dot: 'bg-success' },
+	connecting: { label: 'Menyambung ulang...', text: 'text-muted-foreground', dot: 'bg-warning' },
 	offline: { label: 'Realtime terputus', text: 'text-destructive', dot: 'bg-destructive' },
 	disabled: { label: 'Realtime nonaktif', text: 'text-muted-foreground', dot: 'bg-muted-foreground' },
 };
 
 // Keadaan Laporan Kejadian sebuah insiden selesai (daftar pejabat). Warna sama dengan lencana
-// Sementara/Final di kartu Laporan Kejadian halaman detail.
+// Sementara/Final di kartu Laporan Kejadian halaman detail. TASK_87: pil netral bertitik (DotPill).
 const RESOLUTION_STATE = {
-	belum: { label: 'Belum dibuat', className: 'border-destructive/30 bg-destructive/10 text-destructive' },
-	sementara: { label: 'Sementara', className: 'border-warning/30 bg-warning/10 text-warning' },
-	final: { label: 'Final', className: 'border-success/30 bg-success/10 text-success' },
+	belum: { label: 'Belum dibuat', tone: 'destructive' },
+	sementara: { label: 'Sementara', tone: 'warning' },
+	final: { label: 'Final', tone: 'success' },
 };
 
 export default function AdminDashboard({
@@ -122,7 +121,7 @@ export default function AdminDashboard({
 				className={cn(
 					'h-full rounded-2xl border shadow-sm transition-all',
 					hasEmergency
-						? 'border-destructive bg-destructive text-destructive-foreground shadow-destructive/20 duration-500 animate-in zoom-in-95'
+						? 'border-destructive bg-card'
 						: 'border-border/70 bg-card hover:border-border',
 					href && 'cursor-pointer',
 				)}
@@ -135,13 +134,13 @@ export default function AdminDashboard({
 						<div
 							className={cn(
 								'order-1 hidden shrink-0 rounded-xl p-2 md:order-2 md:block md:rounded-2xl md:p-3.5',
-								hasEmergency ? 'bg-destructive-foreground/20' : bgIconClass,
+								hasEmergency ? 'bg-destructive/10' : bgIconClass,
 							)}
 						>
 							<Icon
 								className={cn(
 									'h-5 w-5 md:h-6 md:w-6',
-									hasEmergency ? 'text-destructive-foreground' : colorClass,
+									hasEmergency ? 'text-destructive' : colorClass,
 								)}
 								stroke={2}
 							/>
@@ -150,7 +149,7 @@ export default function AdminDashboard({
 							<p
 								className={cn(
 									'hidden text-sm font-medium md:block',
-									hasEmergency ? 'text-destructive-foreground/80' : 'text-muted-foreground',
+									hasEmergency ? 'text-destructive' : 'text-muted-foreground',
 								)}
 							>
 								{title}
@@ -158,7 +157,7 @@ export default function AdminDashboard({
 							<div
 								className={cn(
 									'text-3xl font-bold tabular-nums tracking-tight md:text-4xl',
-									hasEmergency ? 'text-destructive-foreground' : 'text-foreground',
+									hasEmergency ? 'text-destructive' : 'text-foreground',
 								)}
 							>
 								{value}
@@ -168,7 +167,7 @@ export default function AdminDashboard({
 					<p
 						className={cn(
 							'mt-0.5 truncate text-[13px] font-medium md:hidden',
-							hasEmergency ? 'text-destructive-foreground/80' : 'text-muted-foreground',
+							hasEmergency ? 'text-destructive' : 'text-muted-foreground',
 						)}
 					>
 						{title}
@@ -177,7 +176,7 @@ export default function AdminDashboard({
 						<div
 							className={cn(
 								'mt-3 hidden text-xs text-muted-foreground md:block',
-								hasEmergency ? 'text-destructive-foreground/70' : 'text-muted-foreground',
+								'text-muted-foreground',
 							)}
 						>
 							{subtitle}
@@ -213,16 +212,9 @@ export default function AdminDashboard({
 				title={`Halo, ${getFirstName(auth.user.name, 'Admin')}`}
 				meta={
 					<>
-						<Badge
-							variant="secondary"
-							className={cn(
-								'rounded-full border-none px-2.5 py-0.5 font-semibold',
-								isPejabat ? 'bg-info/10 text-info' : 'bg-destructive/10 text-destructive',
-							)}
-						>
-							<IconShieldCheck className="mr-1 h-3.5 w-3.5" stroke={2.5} />{' '}
+						<DotPill tone={isPejabat ? 'muted' : 'destructive'}>
 							{isPejabat ? 'Pejabat/Eksekutif' : 'Administrator'}
-						</Badge>
+						</DotPill>
 						<span className="hidden items-center gap-1 text-xs font-medium text-muted-foreground md:flex md:text-sm">
 							<IconMapPin className="h-3.5 w-3.5 text-muted-foreground md:h-4 md:w-4" />
 							Yurisdiksi: <strong className="text-foreground">{getAdminLevelName()}</strong>
@@ -295,8 +287,8 @@ export default function AdminDashboard({
 					title="Relawan Standby"
 					value={currentStats.standby_helpers}
 					icon={IconUsersGroup}
-					colorClass="text-info"
-					bgIconClass="bg-info/10"
+					colorClass="text-foreground/70"
+					bgIconClass="bg-muted"
 					subtitle="Terverifikasi di Area"
 					href={isPejabat ? undefined : route('front.volunteers.index', { status: 'siaga' })}
 				/>
@@ -304,8 +296,8 @@ export default function AdminDashboard({
 					title="Hydrant Siaga"
 					value={currentStats.active_hydrants}
 					icon={IconDroplet}
-					colorClass="text-teal"
-					bgIconClass="bg-teal/10"
+					colorClass="text-foreground/70"
+					bgIconClass="bg-muted"
 					subtitle="Sumber Air Aktif"
 					href={route(isPejabat ? 'front.hydrants.index' : 'admin.hydrants.index')}
 				/>
@@ -321,8 +313,8 @@ export default function AdminDashboard({
 					title="Total Selesai"
 					value={currentStats.resolved_this_month}
 					icon={IconCheck}
-					colorClass="text-info"
-					bgIconClass="bg-info/10"
+					colorClass="text-foreground/70"
+					bgIconClass="bg-muted"
 					subtitle="Insiden Ditutup"
 					href={route(isPejabat ? 'front.reports.index' : 'admin.reports.index', { status: 'resolved' })}
 				/>
@@ -369,16 +361,9 @@ export default function AdminDashboard({
 										</span>
 									}
 									badges={
-										/* Badge status (selaras admin/reports). Status "Penanganan" memakai teal
-										   seperti teks "Hydrant" pada kartu Peta Pemantauan. */
-										<StatusBadge
-											status={report.status}
-											className={
-												report.status === 'handling'
-													? 'border-teal/30 bg-teal/10 text-teal'
-													: undefined
-											}
-										/>
+										/* Badge status (selaras admin/reports). TASK_87: tanpa penimpa teal - warna
+										   status hanya di titik StatusBadge. */
+										<StatusBadge status={report.status} />
 									}
 								/>
 							);
@@ -407,8 +392,8 @@ export default function AdminDashboard({
 								    keduanya kalimat pemasaran yang mendorong daftar insiden turun tanpa menambah
 								    satu pun keputusan. */}
 								<div className="flex shrink-0 items-center justify-between md:w-full">
-									<div className="rounded-xl bg-teal/10 p-2.5 md:rounded-2xl md:p-3.5">
-										<IconMapSearch className="h-5 w-5 text-teal md:h-6 md:w-6" stroke={2} />
+									<div className="rounded-xl bg-muted p-2.5 md:rounded-2xl md:p-3.5">
+										<IconMapSearch className="h-5 w-5 text-foreground/70 md:h-6 md:w-6" stroke={2} />
 									</div>
 									<IconChevronRight className="hidden h-5 w-5 text-muted-foreground transition-transform group-hover:text-foreground md:block" />
 								</div>
@@ -426,30 +411,10 @@ export default function AdminDashboard({
 								</div>
 								<IconChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/60 md:hidden" />
 								<div className="hidden flex-wrap gap-1.5 md:flex">
-									<Badge
-										variant="secondary"
-										className="rounded-full border-none bg-destructive/10 text-destructive"
-									>
-										Kejadian
-									</Badge>
-									<Badge
-										variant="secondary"
-										className="rounded-full border-none bg-teal/10 text-teal"
-									>
-										Hydrant
-									</Badge>
-									<Badge
-										variant="secondary"
-										className="rounded-full border-none bg-info/10 text-info"
-									>
-										Pos & Pompa
-									</Badge>
-									<Badge
-										variant="secondary"
-										className="rounded-full border-none bg-info/10 text-info"
-									>
-										Relawan
-									</Badge>
+									<DotPill tone="destructive">Kejadian</DotPill>
+									<DotPill tone="teal">Hydrant</DotPill>
+									<DotPill tone="info">Pos & Pompa</DotPill>
+									<DotPill tone="info">Relawan</DotPill>
 								</div>
 							</CardContent>
 						</Card>
@@ -464,8 +429,8 @@ export default function AdminDashboard({
 								asChild
 							>
 								<Link href={route('admin.hydrants.index', { type: 'pos' })}>
-									<div className="rounded-lg bg-destructive/10 p-2 transition-colors group-hover:bg-destructive/20">
-										<IconFiretruck className="h-5 w-5 text-destructive" />
+									<div className="rounded-lg bg-muted p-2">
+										<IconFiretruck className="h-5 w-5 text-foreground/70" />
 									</div>
 									<div className="ml-1 text-left">
 										<div className="text-[15px] font-semibold text-foreground">Pos Armada</div>
@@ -508,14 +473,7 @@ export default function AdminDashboard({
 										</span>
 									}
 									badges={
-										<Badge
-											className={cn(
-												'rounded-xl border px-2 py-0.5 text-xs font-semibold shadow-none',
-												state.className,
-											)}
-										>
-											{state.label}
-										</Badge>
+										<DotPill tone={state.tone}>{state.label}</DotPill>
 									}
 								/>
 							);

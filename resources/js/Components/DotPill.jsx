@@ -5,6 +5,7 @@ const DOT = {
 	destructive: 'bg-destructive',
 	info: 'bg-info',
 	success: 'bg-success',
+	teal: 'bg-teal',
 	warning: 'bg-warning',
 	muted: 'bg-muted-foreground/50',
 };

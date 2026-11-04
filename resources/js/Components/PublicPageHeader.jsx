@@ -5,7 +5,7 @@
  */
 export default function PublicPageHeader({ icon: Icon, title, subtitle, eyebrow, action }) {
 	return (
-		<div className="flex flex-col gap-4 rounded-2xl border border-border bg-gradient-to-br from-destructive/5 to-card p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+		<div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
 			<div className="flex items-center gap-4">
 				{Icon && (
 					<div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border-4 border-white bg-destructive shadow-lg shadow-destructive/20 dark:border-neutral-900">

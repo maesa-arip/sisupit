@@ -1,7 +1,7 @@
 import { AppEmpty, AppGreeting, AppList, AppListRow, AppSection } from '@/Components/AppSection';
+import DotPill from '@/Components/DotPill';
 import NotificationDeviceBanner from '@/Components/NotificationDeviceBanner';
 import StatusBadge from '@/Components/StatusBadge';
-import { Badge } from '@/Components/ui/badge';
 import { Card, CardContent } from '@/Components/ui/card';
 import useReportFeed from '@/hooks/use-report-feed';
 import AppLayout from '@/Layouts/AppLayout';
@@ -199,12 +199,7 @@ export default function PetugasDashboard({
 				title={`Siaga, ${firstName}!`}
 				meta={
 					<>
-						<Badge
-							variant="secondary"
-							className="rounded-full border-none bg-destructive px-2.5 py-0.5 text-xs font-semibold text-destructive-foreground"
-						>
-							<IconShieldCheck className="mr-1 h-3.5 w-3.5" stroke={2.5} /> Petugas Damkar
-						</Badge>
+						<DotPill tone="destructive">Petugas Damkar</DotPill>
 						{/* Regu milik petugas ini (TASK_60) - tidak tampil bila belum beregu. */}
 						{myRegu && (
 							<span className="flex items-center gap-1.5 text-xs font-semibold text-foreground md:text-sm">
@@ -248,17 +243,17 @@ export default function PetugasDashboard({
 					</CardContent>
 				</Card>
 			) : awaitingCount > 0 ? (
-				<Card className="overflow-hidden border-warning/30 bg-warning/10">
+				<Card className="overflow-hidden border-border bg-card">
 					<CardContent className="flex flex-col justify-between gap-4 p-4 sm:flex-row sm:items-center md:p-5">
 						<div className="flex items-center gap-3 md:gap-4">
-							<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-warning/15 text-warning">
+							<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
 								<IconHourglass className="h-6 w-6" stroke={2} />
 							</div>
 							<div>
-								<h3 className="text-[15px] font-semibold text-warning">
+								<h3 className="text-[15px] font-semibold text-foreground">
 									{awaitingCount} Laporan Menunggu Verifikasi Admin
 								</h3>
-								<p className="hidden text-[13px] text-warning/80 sm:block">
+								<p className="hidden text-[13px] text-muted-foreground sm:block">
 									Belum ada tindakan untuk Anda. Misi muncul merah begitu admin memverifikasi.
 								</p>
 							</div>
@@ -266,15 +261,15 @@ export default function PetugasDashboard({
 					</CardContent>
 				</Card>
 			) : (
-				<Card className="overflow-hidden border-success/30 bg-success/10">
+				<Card className="overflow-hidden border-border bg-card">
 					<CardContent className="flex flex-col justify-between gap-4 p-4 sm:flex-row sm:items-center md:p-5">
 						<div className="flex items-center gap-3 md:gap-4">
-							<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-success/15 text-success">
+							<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
 								<IconShieldCheck className="h-6 w-6" stroke={2} />
 							</div>
 							<div>
-								<h3 className="text-[15px] font-semibold text-success">Wilayah Aman Terkendali</h3>
-								<p className="hidden text-[13px] text-success/80 sm:block">
+								<h3 className="text-[15px] font-semibold text-foreground">Wilayah Aman Terkendali</h3>
+								<p className="hidden text-[13px] text-muted-foreground sm:block">
 									Tidak ada insiden darurat di wilayah tugas Anda saat ini.
 								</p>
 							</div>
@@ -363,7 +358,7 @@ export default function PetugasDashboard({
 												className={cn(
 													'inline-flex h-7 items-center gap-1 rounded-full px-3 text-[13px] font-semibold transition-colors',
 													mission.isUrgent && 'bg-destructive text-destructive-foreground',
-													mission.isAwaitingAdmin && 'bg-warning/10 text-warning',
+													mission.isAwaitingAdmin && 'border border-border bg-card text-foreground',
 													!mission.isUrgent &&
 														!mission.isAwaitingAdmin &&
 														'bg-muted text-foreground/80',
@@ -401,13 +396,13 @@ export default function PetugasDashboard({
 						Insiden sudah selesai ditangani, tetapi Laporan Kejadian belum dibuat. Isi entri sementaranya di
 						sini; entri final ditutup admin.
 					</p>
-					<AppList className="md:border-warning/30">
+					<AppList>
 						{pendingResolutions.map((item) => (
 							<AppListRow
 								key={item.id}
 								href={route('reports.resolution.create', item.id)}
 								leading={
-									<div className="shrink-0 rounded-xl bg-warning/10 p-2 text-warning md:p-2.5">
+									<div className="shrink-0 rounded-xl bg-muted p-2 text-foreground/70 md:p-2.5">
 										<IconFileText className="h-5 w-5" stroke={2} />
 									</div>
 								}

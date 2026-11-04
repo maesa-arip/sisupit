@@ -103,7 +103,7 @@ export default function Landing({ page_data }) {
 	return (
 		<>
 			{/* ===== HERO ===== */}
-			<section className="relative overflow-hidden bg-gradient-to-b from-destructive/5 to-background">
+			<section className="relative overflow-hidden bg-background">
 				<div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-2">
 					<div className="text-center lg:text-left">
 						<span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5 text-xs font-semibold text-muted-foreground">

@@ -11,11 +11,13 @@ import { IconAlertTriangle, IconFlame } from '@tabler/icons-react';
  * tak akan pernah lengkap; user 2026-10-05 memilih disederhanakan jadi dua ini saja.
  * Tanpa `incident_type` (laporan lama sebelum form dipecah) -> api, seperti sebelumnya.
  *
+ * Warna (TASK_87 desain clean minimalis): kotak ikon netral; hanya kebakaran yang membawa merah aksen.
+ *
  * @returns {{ Icon: import('react').ComponentType, className: string }}
  */
 export function reportIcon(report) {
 	if (report?.incident_type === 'lainnya') {
-		return { Icon: IconAlertTriangle, className: 'text-warning bg-warning/10' };
+		return { Icon: IconAlertTriangle, className: 'text-foreground/70 bg-muted' };
 	}
 
 	return { Icon: IconFlame, className: 'text-destructive bg-destructive/10' };

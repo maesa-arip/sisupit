@@ -40,8 +40,8 @@ export default function OpdDashboard({ agencyName, requests = [], feed_channel =
 			/>
 
 			{!agencyName && (
-				<div className="flex items-start gap-3 rounded-2xl border border-warning/20 bg-warning/10 p-4 text-warning">
-					<IconAlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+				<div className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4 text-foreground">
+					<IconAlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
 					<p className="text-[15px] font-medium leading-relaxed">
 						Akun Anda belum ditautkan ke instansi mana pun, jadi belum ada permintaan yang bisa ditampilkan.
 						Hubungi admin Damkar wilayah Anda untuk menautkannya.
@@ -50,8 +50,8 @@ export default function OpdDashboard({ agencyName, requests = [], feed_channel =
 			)}
 
 			{awaiting.length > 0 && (
-				<div className="flex items-start gap-3 rounded-2xl border border-warning/20 bg-warning/10 p-4 text-warning">
-					<IconAlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+				<div className="flex items-start gap-3 rounded-2xl border border-destructive/30 bg-card p-4 text-foreground">
+					<IconAlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
 					<p className="text-[15px] font-medium leading-relaxed">
 						{awaiting.length} insiden menunggu konfirmasi tindakan dari instansi Anda.
 					</p>
@@ -76,7 +76,7 @@ export default function OpdDashboard({ agencyName, requests = [], feed_channel =
 											className={cn(
 												'shrink-0 rounded-xl p-2 md:p-2.5',
 												pending
-													? 'bg-warning/10 text-warning'
+													? 'bg-muted text-destructive'
 													: 'bg-muted text-muted-foreground',
 											)}
 										>
@@ -101,7 +101,7 @@ export default function OpdDashboard({ agencyName, requests = [], feed_channel =
 												<span
 													className={cn(
 														'flex w-full items-start gap-1.5 font-medium',
-														item.confirmed_at ? 'text-success' : 'text-warning',
+														item.confirmed_at ? 'text-muted-foreground' : 'text-foreground',
 													)}
 												>
 													{item.confirmed_at ? (

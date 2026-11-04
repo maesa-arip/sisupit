@@ -186,3 +186,26 @@ Dev terverifikasi HTTPS memakai build putaran 2 (app-BCXIjJER.js / app-B8rzDiuR.
 - Pest penuh: 913 passed + 1 gagal ACAK (`ForumTest` "refuses cross-regency moderation": UNIQUE users.username -
   `UserFactory` membangkitkan username faker tanpa `unique()`); file itu lulus 5x berturut-turut (18/18). Di luar
   cakupan TASK_87 - temuan untuk FINDINGS_LOG di main (factory username pakai `fake()->unique()`).
+
+## 11. Putaran 4 (2026-11-04) - dashboard per peran & sisa gradien
+
+Dev terverifikasi HTTPS memakai build putaran 3 (app-C7rQ8Y4Y.js / app-0DXkTEWK.css) sebelum putaran ini dimulai.
+Acuan: papan R02 (petugas), R09 (OPD), A01 (admin) di generator desain (`gen-sisupit-semua.py`).
+
+- **Ikon jenis kejadian** (`lib/report-icon.js`, sumber tunggal 5 daftar): non-kebakaran kini kotak netral
+  (`bg-muted`, ikon abu gelap); kebakaran tetap merah aksen.
+- **Dashboard petugas:** lencana peran merah pekat -> `DotPill` bertitik merah; banner "menunggu verifikasi admin"
+  & "Wilayah Aman" -> kartu putih bergaris, teks gelap (dulu kuning/hijau); banner insiden aktif TETAP bergaris
+  merah (satu-satunya keadaan darurat); pil "Menunggu Admin" netral; antrean Berita Acara tanpa garis/ikon kuning.
+  Teks "Ada {actionableCount} Insiden Aktif!" utuh (DashboardPerPeranTest).
+- **Dashboard OPD:** callout "belum ditautkan" netral; "N insiden menunggu konfirmasi" bergaris merah + ikon merah
+  (aksi yang diminta); ikon baris & teks konfirmasi tanpa kuning/hijau.
+- **Dashboard admin/pejabat:** lencana peran -> `DotPill`; kartu "Darurat Aktif" saat > 0 = kartu putih bergaris
+  merah + angka merah (dulu blok merah pekat berbayang + animasi zoom-in); tiga kartu lain ikon netral (dulu
+  biru/teal); status Realtime teks abu + titik warna (terputus tetap merah); lencana "Penanganan" tanpa penimpa
+  teal; legenda kartu Peta Pemantauan -> `DotPill` (tone `teal` baru di DotPill); pintasan Pos Armada netral;
+  keadaan Laporan Kejadian pejabat -> `DotPill`.
+- **Gradien terakhir dicabut:** `PublicPageHeader` & hero `Landing` (sisa `ui/table` hanyalah isi warna tunggal
+  header lengket, bukan gradien - dibiarkan).
+
+Verifikasi: `npm run build` lulus; Pest penuh 914 passed, 6866 assertions, 0 gagal (= putaran 3).
