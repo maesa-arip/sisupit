@@ -32,7 +32,7 @@ export default function DialogRelawanList({ open, onClose, helpers = [], onSelec
 									</div>
 									<ChevronRight
 										size={16}
-										className="text-muted-foreground transition-transform group-hover:translate-x-1"
+										className="text-muted-foreground transition-transform"
 									/>
 								</button>
 							))}

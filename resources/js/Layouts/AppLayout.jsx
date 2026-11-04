@@ -275,7 +275,7 @@ export default function AppLayout({ title, children }) {
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild>
 										<button className="group flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-muted-foreground/50">
-											<div className="flex items-center justify-center w-8 h-8 overflow-hidden text-sm font-semibold transition-transform border rounded-md shadow-sm shrink-0 border-border bg-muted text-muted-foreground group-hover:scale-105">
+											<div className="flex items-center justify-center w-8 h-8 overflow-hidden text-sm font-semibold transition-transform border rounded-md shadow-sm shrink-0 border-border bg-muted text-muted-foreground">
 												{auth.avatar ? (
 													<img
 														src={auth.avatar}

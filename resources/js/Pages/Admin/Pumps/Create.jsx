@@ -719,7 +719,7 @@ export default function Create({ tenant_location, provinces, cities, districts, 
 					<div className="pointer-events-none absolute left-4 top-4 z-10">
 						<div className="flex w-full flex-wrap gap-2">
 							<div
-								className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm transition-all ${currentStep === 1 ? 'animate-pulse bg-primary text-primary-foreground' : 'material-thick border border-border/60 text-muted-foreground'}`}
+								className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm transition-all ${currentStep === 1 ? 'bg-primary text-primary-foreground' : 'material-thick border border-border/60 text-muted-foreground'}`}
 							>
 								<IconClick className="h-3.5 w-3.5" /> <span>1. Klik Area Peta</span>
 							</div>

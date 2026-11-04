@@ -673,8 +673,8 @@ export default function Create(props) {
 									disabled={processing || compressing > 0}
 									className={
 										target === 'final'
-											? 'flex h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-success px-6 text-sm font-semibold text-success-foreground transition-colors hover:bg-success/90 disabled:opacity-70'
-											: 'flex h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-warning px-6 text-sm font-semibold text-warning-foreground transition-colors hover:bg-warning/90 disabled:opacity-70'
+											? 'flex h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-70'
+											: 'flex h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-70'
 									}
 								>
 									{processing || compressing > 0 ? (

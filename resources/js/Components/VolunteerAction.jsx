@@ -37,7 +37,7 @@ export default function VolunteerAction({ incidentId, alreadyHelping = false }) 
 				<Button
 					onClick={handleVolunteerAction}
 					disabled={isLoading}
-					className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-warning text-warning-foreground shadow-md transition-all hover:-translate-y-0.5 hover:bg-warning/90 hover:shadow-lg active:translate-y-0"
+					className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground transition-colors hover:bg-primary/90"
 				>
 					{isLoading ? (
 						<IconLoader2 className="h-5 w-5 animate-spin" />

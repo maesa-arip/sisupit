@@ -122,7 +122,7 @@ export default function Index({ units, filters }) {
 							onClick={() => applyStatusFilter(status)}
 							className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-all ${
 								data.status === status
-									? 'border-primary/20 bg-primary/10 text-primary'
+									? 'border-[1.5px] border-destructive bg-card text-destructive'
 									: 'border-input bg-transparent text-muted-foreground hover:bg-accent'
 							}`}
 						>

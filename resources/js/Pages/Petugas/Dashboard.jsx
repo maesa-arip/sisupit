@@ -228,7 +228,7 @@ export default function PetugasDashboard({
 				<Card className="overflow-hidden border border-destructive/30 bg-destructive/10">
 					<CardContent className="flex flex-col justify-between gap-4 p-4 sm:flex-row sm:items-center md:p-5">
 						<div className="flex items-center gap-3 md:gap-4">
-							<div className="flex h-11 w-11 shrink-0 animate-pulse items-center justify-center rounded-xl bg-destructive/15 text-destructive md:h-12 md:w-12">
+							<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-destructive/15 text-destructive md:h-12 md:w-12">
 								<IconAlertCircle className="h-6 w-6" stroke={2} />
 							</div>
 							<div>
@@ -425,7 +425,8 @@ export default function PetugasDashboard({
 								badges={
 									/* Antrian ini hanya berisi insiden yang BELUM punya entri berita acara
 									   sama sekali (TASK_49), jadi cukup satu ajakan. */
-									<span className="inline-flex h-7 items-center rounded-full bg-warning px-3 text-[13px] font-semibold text-warning-foreground">
+									<span className="inline-flex h-7 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-[13px] font-semibold text-foreground">
+										<span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-warning" />
 										Buat Laporan
 									</span>
 								}

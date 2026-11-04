@@ -399,8 +399,11 @@ it('imports every tabler icon a page renders', function () {
         $known = [];
         foreach ($imports[1] as $list) {
             foreach (explode(',', $list) as $name) {
-                $parts = preg_split('/\s+as\s+/', trim($name));
-                $known[] = trim(end($parts));
+                // TASK_87: `IconSisupitPos as IconFiretruck` - kedua sisi alias adalah nama yang diimpor,
+                // bukan ikon yang dirender tanpa impor.
+                foreach (preg_split('/\s+as\s+/', trim($name)) as $part) {
+                    $known[] = trim($part);
+                }
             }
         }
         preg_match_all('/(?:function|const|let)\s+(Icon[A-Z]\w*)|:\s*(Icon[A-Z]\w*)\s*[,}]/', $src, $defs);

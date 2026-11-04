@@ -135,7 +135,7 @@ export default function Edit(props) {
 					<div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-muted text-4xl font-semibold text-foreground">
 						{user.name?.[0]?.toUpperCase() ?? 'U'}
 						{!isPlainCitizen && (
-							<div className="absolute bottom-0.5 right-0.5 rounded-full border-[3px] border-background bg-info p-1 text-info-foreground">
+							<div className="absolute bottom-0.5 right-0.5 rounded-full border-[3px] border-background bg-primary p-1 text-primary-foreground">
 								<IconShieldCheck size={14} stroke={2} />
 							</div>
 						)}

@@ -1,5 +1,7 @@
+import DotPill from '@/Components/DotPill';
 import HeaderTitle from '@/Components/HeaderTitle';
 import PaginationLinks from '@/Components/PaginationLinks';
+import { IconSisupitHydrant as IconFireHydrant } from '@/Components/SisupitIcons';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -21,7 +23,6 @@ import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
 	IconDroplet,
 	IconEdit,
-	IconFireHydrant,
 	IconHistory,
 	IconMapPinFilled,
 	IconPlus,
@@ -93,7 +94,7 @@ export default function Index({
 				if (!isNaN(lat) && !isNaN(lng)) {
 					const iconColor = facilityStatusIsFaulty(hydrant.status) ? 'text-destructive' : 'text-info';
 					const customIcon = window.L.divIcon({
-						html: `<div class="${iconColor} drop-shadow-md hover:scale-110 transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
+						html: `<div class="${iconColor} drop-shadow-md transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
 						className: 'bg-transparent border-none',
 						iconSize: [32, 32],
 						iconAnchor: [16, 32],
@@ -208,7 +209,7 @@ export default function Index({
 									onClick={() => applyStatusFilter(status)}
 									className={`h-8 rounded-full border px-3 text-xs font-semibold transition-colors active:bg-muted ${
 										data.status === status
-											? 'border-primary/20 bg-primary/10 text-primary'
+											? 'border-[1.5px] border-destructive bg-card text-destructive'
 											: 'border-border/70 bg-card text-muted-foreground hover:text-foreground'
 									}`}
 								>
@@ -304,15 +305,15 @@ export default function Index({
 															`whitespace-nowrap` seperti di /hydrants - label warga "Terdaftar Belum
 															Dimodifikasi" tiga kali lebih panjang dan kolom ini cuma ~1/3 layar. */}
 														<div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-															<span
-																className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${
+															<DotPill
+																tone={
 																	facilityStatusIsFaulty(hydrant.status)
-																		? 'bg-destructive/10 text-destructive'
-																		: 'bg-info/10 text-info'
-																}`}
+																		? 'destructive'
+																		: 'info'
+																}
 															>
 																{facilityStatusLabel(hydrant.status)}
-															</span>
+															</DotPill>
 															{/* Kondisi air SELALU disebut selama jenisnya memang punya kolom itu, termasuk
 																saat kosong. Bentuk lama memakai `waterPressureLabel()` di dalam
 																`.filter(Boolean)`, dan helper itu memulangkan null untuk nilai kosong -

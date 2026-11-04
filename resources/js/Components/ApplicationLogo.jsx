@@ -14,7 +14,7 @@ export default function ApplicationLogo({ url = '/', size = 'size-10', isTitle =
 			<img
 				src="/icon.png"
 				alt="SISUPIT"
-				className={cn('rounded-lg object-contain transition-transform group-hover:scale-105', size)}
+				className={cn('rounded-lg object-contain transition-transform', size)}
 			/>
 
 			{/* Area Teks Logo */}

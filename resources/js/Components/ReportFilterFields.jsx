@@ -39,7 +39,7 @@ export function FilterPill({ active, children, onClick, size = 'md' }) {
 				'inline-flex shrink-0 items-center whitespace-nowrap rounded-full border font-semibold transition-colors active:bg-muted',
 				PILL_SIZE[size],
 				active
-					? 'border-primary/20 bg-primary/10 text-primary'
+					? 'border-[1.5px] border-destructive bg-card text-destructive'
 					: 'border-input bg-transparent text-muted-foreground hover:bg-accent hover:text-foreground',
 			)}
 		>

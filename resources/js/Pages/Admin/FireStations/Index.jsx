@@ -1,5 +1,6 @@
 import HeaderTitle from '@/Components/HeaderTitle';
 import PaginationLinks from '@/Components/PaginationLinks';
+import { IconSisupitPos as IconFiretruck } from '@/Components/SisupitIcons';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -18,7 +19,7 @@ import { fitBoundsWhenSized } from '@/lib/leaflet-fit';
 import { addBaseTiles } from '@/lib/map-tiles';
 import { facilityStatusLabel } from '@/lib/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { IconEdit, IconFiretruck, IconMapPinFilled, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react';
+import { IconEdit, IconMapPinFilled, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 
 export default function Index({ stations, filters, tenant_location }) {
@@ -56,7 +57,7 @@ export default function Index({ stations, filters, tenant_location }) {
 				if (!isNaN(lat) && !isNaN(lng)) {
 					const iconColor = station.status === 'Aktif' ? 'text-info' : 'text-destructive';
 					const customIcon = window.L.divIcon({
-						html: `<div class="${iconColor} drop-shadow-md hover:scale-110 transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
+						html: `<div class="${iconColor} drop-shadow-md transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
 						className: 'bg-transparent border-none',
 						iconSize: [32, 32],
 						iconAnchor: [16, 32],
@@ -171,7 +172,7 @@ export default function Index({ stations, filters, tenant_location }) {
 									onClick={() => applyStatusFilter(status)}
 									className={`h-8 rounded-full border px-3 text-xs font-semibold transition-colors active:bg-muted ${
 										data.status === status
-											? 'border-primary/20 bg-primary/10 text-primary'
+											? 'border-[1.5px] border-destructive bg-card text-destructive'
 											: 'border-border/70 bg-card text-muted-foreground hover:text-foreground'
 									}`}
 								>

@@ -926,7 +926,7 @@ export default function ReportShow(props) {
 
 			const iconEmoji = type === 'petugas' ? '🚒' : '🏃‍♂️';
 			const iconColor =
-				type === 'petugas' ? 'bg-destructive text-destructive-foreground' : 'bg-info text-info-foreground';
+				type === 'petugas' ? 'bg-destructive text-destructive-foreground' : 'bg-muted text-foreground';
 			// Ukuran marker responder diperbesar 28 → 40 px (TASK_30, permintaan user): dispatcher
 			// memantau peta ini dari jarak layar besar sambil menerima telepon, dan emoji 12 px di
 			// dalam lingkaran 28 px sulit dibedakan antara petugas dan relawan. Marker TKP
@@ -1677,7 +1677,7 @@ export default function ReportShow(props) {
 					<div className="relative h-[400px] overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
 						<div className="material-chrome absolute left-3 top-3 z-10 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-semibold text-foreground shadow-sm">
 							<IconRadar
-								className={`h-4 w-4 text-destructive ${reportStatus !== 'resolved' ? 'animate-pulse' : ''}`}
+								className={`h-4 w-4 text-destructive`}
 							/>
 							{/* "Peta dispatcher" istilah internal - pelapor/warga melihat "Posisi Bantuan"
 							    (permintaan user 2026-10-03). */}
@@ -1854,7 +1854,7 @@ export default function ReportShow(props) {
 												<Button
 													onClick={handleArrive}
 													disabled={isActionLoading}
-													className="flex h-12 w-full animate-pulse items-center justify-center gap-2 rounded-lg bg-info text-[13px] font-semibold text-info-foreground shadow-none transition-colors hover:bg-info/90"
+													className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-[13px] font-semibold text-primary-foreground shadow-none transition-colors hover:bg-primary/90"
 												>
 													{isActionLoading ? (
 														<IconLoader2 className="h-4 w-4 animate-spin" />
@@ -2134,7 +2134,7 @@ export default function ReportShow(props) {
 																setConfirmationNote('');
 																setAgencyToConfirm(row);
 															}}
-															className="h-9 w-full rounded-lg bg-success text-[13px] font-semibold text-success-foreground shadow-none hover:bg-success/90"
+															className="h-9 w-full rounded-lg bg-primary text-[13px] font-semibold text-primary-foreground shadow-none hover:bg-primary/90"
 														>
 															<IconCheck className="mr-1.5 h-4 w-4" /> Catat Konfirmasi
 														</Button>
@@ -2342,7 +2342,7 @@ export default function ReportShow(props) {
 																report: report.id,
 																status,
 															})}
-															className="inline-flex items-center gap-1 rounded-lg bg-info px-2.5 py-1.5 text-xs font-semibold text-info-foreground shadow-none transition-colors hover:bg-info/90"
+															className="inline-flex items-center gap-1 rounded-lg bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground shadow-none transition-colors hover:bg-primary/90"
 														>
 															{exists ? (
 																<IconPencil className="h-3.5 w-3.5" />
@@ -2690,7 +2690,7 @@ export default function ReportShow(props) {
 													checked={checked}
 													onCheckedChange={() => toggleAgencySelection(agency.id)}
 													aria-label={agency.name}
-													className="mt-0.5 shrink-0 border-border shadow-none focus-visible:ring-info data-[state=checked]:border-info data-[state=checked]:bg-info data-[state=checked]:text-info-foreground"
+													className="mt-0.5 shrink-0 border-border shadow-none focus-visible:ring-primary data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
 												/>
 												<span className="min-w-0 flex-1">
 													<span className="flex flex-wrap items-center gap-1.5">
@@ -2729,7 +2729,7 @@ export default function ReportShow(props) {
 							</Button>
 							<Button
 								onClick={executeApprove}
-								className="h-10 flex-1 bg-info font-semibold text-info-foreground shadow-none hover:bg-info/90"
+								className="h-10 flex-1 bg-primary font-semibold text-primary-foreground shadow-none hover:bg-primary/90"
 								disabled={isProcessing}
 							>
 								{isProcessing ? <IconLoader2 className="h-4 w-4 animate-spin" /> : 'Ya, Siarkan'}
@@ -2819,7 +2819,7 @@ export default function ReportShow(props) {
 							</Button>
 							<Button
 								onClick={executeResolve}
-								className="h-10 flex-1 bg-success font-semibold text-success-foreground shadow-none hover:bg-success/90"
+								className="h-10 flex-1 bg-primary font-semibold text-primary-foreground shadow-none hover:bg-primary/90"
 								disabled={isActionLoading}
 							>
 								{isActionLoading ? <IconLoader2 className="h-4 w-4 animate-spin" /> : 'Ya, Selesaikan'}
@@ -2872,7 +2872,7 @@ export default function ReportShow(props) {
 							<Button
 								onClick={handleConfirmAgency}
 								disabled={isAgencyProcessing}
-								className="h-10 flex-1 bg-success font-semibold text-success-foreground shadow-none hover:bg-success/90"
+								className="h-10 flex-1 bg-primary font-semibold text-primary-foreground shadow-none hover:bg-primary/90"
 							>
 								{isAgencyProcessing ? <IconLoader2 className="h-4 w-4 animate-spin" /> : 'Ya, Catat'}
 							</Button>

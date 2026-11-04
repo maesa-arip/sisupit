@@ -1,3 +1,4 @@
+import { IconSisupitHydrant, IconSisupitPos, IconSisupitRelawan, IconSisupitSkkl } from '@/Components/SisupitIcons';
 import {
 	IconAddressBook,
 	IconBellCog,
@@ -5,12 +6,9 @@ import {
 	IconChartBar,
 	IconClipboardPlus,
 	IconDashboard,
-	IconDroplet,
 	IconEngine,
-	IconFireHydrant,
 	IconFiretruck,
 	IconFlame,
-	IconHeartHandshake,
 	IconHistory,
 	IconHomeCog,
 	IconKey,
@@ -130,7 +128,7 @@ export function buildNavSections({ auth, url = '' }) {
 	const hydrantAdminItem = {
 		key: 'admin.hydrants',
 		title: 'Manajemen Hydrant',
-		icon: IconFireHydrant,
+		icon: IconSisupitHydrant,
 		url: route('admin.hydrants.index'),
 		// `/admin/hydrant-warga` WAJIB ikut: kedua jenis hydrant tampil sebagai
 		// satu menu bertab (lihat Admin/Hydrants/variants.jsx), jadi tanpa ini
@@ -228,28 +226,28 @@ export function buildNavSections({ auth, url = '' }) {
 				{
 					key: 'hydrants',
 					title: 'Lokasi Hydrant',
-					icon: IconFireHydrant,
+					icon: IconSisupitHydrant,
 					url: route('front.hydrants.index'),
 					active: startsWith('/hydrants'),
 				},
 				{
 					key: 'pumps',
 					title: 'Lokasi SKKL',
-					icon: IconDroplet,
+					icon: IconSisupitSkkl,
 					url: route('front.pumps.index'),
 					active: startsWith('/pumps'),
 				},
 				{
 					key: 'fire_stations',
 					title: 'Pos Pemadam',
-					icon: IconFiretruck,
+					icon: IconSisupitPos,
 					url: route('front.fire_stations.index'),
 					active: startsWith('/fire-stations'),
 				},
 				isStaff && {
 					key: 'volunteers',
 					title: 'Daftar Relawan',
-					icon: IconHeartHandshake,
+					icon: IconSisupitRelawan,
 					url: route('front.volunteers.index'),
 					active: startsWith('/relawan'),
 				},

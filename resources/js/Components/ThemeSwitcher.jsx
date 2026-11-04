@@ -78,9 +78,9 @@ export default function ThemeSwitcher() {
 		>
 			{/* LOGIKA UX: Jika dark mode, tampilkan Matahari. Jika light mode, tampilkan Bulan */}
 			{isDark ? (
-				<Sun className="h-5 w-5 transition-transform hover:rotate-90" />
+				<Sun className="h-5 w-5 transition-transform" />
 			) : (
-				<Moon className="h-5 w-5 transition-transform hover:-rotate-12" />
+				<Moon className="h-5 w-5 transition-transform" />
 			)}
 		</Button>
 	);

@@ -34,7 +34,8 @@
 		--info-foreground: 210 20% 98%;
 		--teal: 175 84% 32%;
 		--teal-foreground: 210 20% 98%;
-		--volunteer: 271 76% 53%;
+		/* TASK_87: relawan = abu batu #475569 (kesepakatan desain: tanpa ungu). Dulu 271 76% 53%. */
+		--volunteer: 215 19% 35%;
 		--volunteer-foreground: 0 0% 100%;
 		--border: 60 7% 90%;
 		--input: 60 7% 90%;
@@ -81,7 +82,7 @@
 		--info-foreground: 210 20% 98%;
 		--teal: 173 66% 50%;
 		--teal-foreground: 210 20% 98%;
-		--volunteer: 271 76% 66%;
+		--volunteer: 215 16% 65%;
 		--volunteer-foreground: 224 71% 4%;
 		--border: 0 0% 15%;
 		--input: 0 0% 15%;

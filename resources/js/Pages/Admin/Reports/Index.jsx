@@ -59,7 +59,7 @@ const MONITOR_HIDDEN_STATUSES = ['TERLAPOR', 'ditolak', 'digabung'];
 // mengikuti halaman Hydrant (Admin/Hydrants/Index.jsx): aksen seleksi primer sejak TASK_69 (apple-design).
 const TEAL_ACCENT = {
 	title: 'text-primary',
-	pillActive: 'border-primary/20 bg-primary/10 text-primary',
+	pillActive: 'border-[1.5px] border-destructive bg-card text-destructive',
 	pageActive: 'border-primary bg-primary text-primary-foreground shadow-sm',
 };
 
@@ -384,7 +384,7 @@ export default function Index(props) {
 				if (!isNaN(lat) && !isNaN(lng)) {
 					const iconColor = markerStyle(report.status).pin;
 					const customIcon = window.L.divIcon({
-						html: `<div class="${iconColor} drop-shadow-md hover:scale-110 transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
+						html: `<div class="${iconColor} drop-shadow-md transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>`,
 						className: 'bg-transparent border-none',
 						iconSize: [32, 32],
 						iconAnchor: [16, 32],

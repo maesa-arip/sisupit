@@ -105,7 +105,7 @@ function DetailItem({ icon, label, value, href, actionIcon }) {
 			}`}
 		>
 			<div
-				className={`mt-0.5 transition-colors [&>svg]:h-[16px] [&>svg]:w-[16px] ${href ? 'text-muted-foreground group-hover:scale-105' : 'text-muted-foreground/70'}`}
+				className={`mt-0.5 transition-colors [&>svg]:h-[16px] [&>svg]:w-[16px] ${href ? 'text-muted-foreground' : 'text-muted-foreground/70'}`}
 			>
 				{icon}
 			</div>

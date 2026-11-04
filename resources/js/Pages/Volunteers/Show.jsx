@@ -78,7 +78,7 @@ export default function Show({ volunteer }) {
 								<Button
 									asChild
 									disabled={!hasPhone}
-									className="h-11 w-full rounded-xl bg-success font-medium text-success-foreground transition-colors hover:bg-success/90 aria-disabled:pointer-events-none aria-disabled:opacity-50"
+									className="h-11 w-full rounded-xl bg-primary font-medium text-primary-foreground transition-colors hover:bg-primary/90 aria-disabled:pointer-events-none aria-disabled:opacity-50"
 								>
 									<a
 										href={hasPhone ? `https://wa.me/${waNumber}` : undefined}

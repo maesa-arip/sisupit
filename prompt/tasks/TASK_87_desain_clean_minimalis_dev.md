@@ -133,3 +133,36 @@ lulus. Tangkapan layar lokal desktop: Spotlight & form lapor sesuai.
 **Belum (putaran berikutnya, menunggu tanggapan user setelah melihat dev):** token mode gelap, ikon khas Sisupit
 sebagai komponen React, cekungan bilah bawah, perombakan per layar dashboard petugas/relawan/OPD/pejabat/admin
 (saat ini hanya mewarisi fondasi), halaman Thanks/Show, uji visual 390 px di HP.
+
+## 9. Laporan pengerjaan putaran 2 (2026-11-04)
+
+Dev terverifikasi HTTPS memakai build putaran 1 (app-B13TWWPP.js / app-Cevpsh2J.css, Plus Jakarta Sans termuat).
+
+- **Satu aksen merah:** tombol pekat biru/hijau/kuning -> `primary` (merah brand): Show.jsx (Meluncur, Tiba,
+  Selesai, gabung, centang), Resolution/Create (kedua varian), Volunteers/Show, VolunteerAction, avatar Profil.
+  Lencana dekoratif -> netral: avatar relawan di Show (`bg-muted`), "Buat Laporan" di dashboard petugas (pil
+  bertitik kuning), NavLinkResponsive (legacy).
+- **Tanpa animasi hover / denyut:** 17 kelas `hover:scale|translate|rotate|shadow` dicabut di 13 berkas (termasuk
+  string HTML marker Leaflet); `animate-pulse` dicabut dari tombol Show, ikon misi petugas, langkah form fasilitas,
+  titik Realtime dashboard admin.
+- **Tanpa ungu:** `--volunteer` terang 271 76% 53% -> 215 19% 35% (#475569, sama dengan desain), gelap 215 16% 65%.
+  `/guideline` tetap mendokumentasikan palet lama (halaman panduan, tidak diubah).
+- **Ikon khas Sisupit:** `Components/SisupitIcons.jsx` dibangkitkan dari `ikon.py` (Hydrant, SKKL, Pos, Regu,
+  Relawan, Sirine, Pohon, APAR, Siaran; stroke currentColor, kontrak props Tabler). Dipakai di navItems (sidebar +
+  popover bilah bawah: Hydrant, SKKL, Pos Pemadam, Daftar Relawan, Manajemen Hydrant) dan 6 halaman fasilitas lewat
+  impor alias (`IconSisupitHydrant as IconFireHydrant` dst.). `IconDroplet` di Admin/Hydrants (= tandon) sengaja tetap.
+  Kebakaran & Armada tetap Tabler IconFlame/IconFiretruck.
+- **Pil status fasilitas:** komponen baru `Components/DotPill.jsx` (pil putih bergaris + titik) di Hydrants,
+  Pumps, FireStations publik dan Admin/Hydrants.
+- **Chip filter aktif = garis merah** (sama dengan chip form lapor) di 8 berkas: Hydrants, Pumps, Admin
+  FireStations/Hydrants/Pumps/Reports/Units, ReportFilterFields.
+- Token gelap lain sudah netral (0 0% 6-15%) - tidak diubah.
+- Penjaga `AppleDesignMaterialTest` "imports every tabler icon": kedua sisi impor alias (`X as Y`) kini dihitung
+  sebagai nama dikenal. Pest penuh 914 passed, 6866 assertions; `npm run build` lulus.
+
+**Sengaja TIDAK dikerjakan (butuh keputusan user):**
+- Kesepakatan "tanpa skeleton loader" bertentangan dengan kerangka navigasi global TASK_70 (`PageSkeleton` di
+  AppLayout, dijaga tes) - itu perilaku, bukan rupa.
+- Kesepakatan "tanpa S&K / Kebijakan Privasi" berlaku untuk halaman pemasaran di desain; halaman legal aplikasi
+  wajib untuk Play Store, jadi tetap.
+- Cekungan bilah bawah: geometri bilah dikunci LaporRaisedCircleTest (#189) - menunggu konfirmasi.

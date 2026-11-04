@@ -1,19 +1,13 @@
+import DotPill from '@/Components/DotPill';
 import HeaderTitle from '@/Components/HeaderTitle';
+import { IconSisupitPos as IconFiretruck } from '@/Components/SisupitIcons';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
 import { facilityStatusLabel, GEO_OPTIONS } from '@/lib/utils';
 import { useForm } from '@inertiajs/react';
-import {
-	IconFiretruck,
-	IconLoader2,
-	IconMapPinFilled,
-	IconPhoneCall,
-	IconRadar,
-	IconRoute,
-	IconSearch,
-} from '@tabler/icons-react';
+import { IconLoader2, IconMapPinFilled, IconPhoneCall, IconRadar, IconRoute, IconSearch } from '@tabler/icons-react';
 import { useState } from 'react';
 
 export default function Index({ stations, filters, ...props }) {
@@ -136,15 +130,9 @@ export default function Index({ stations, filters, ...props }) {
 												{station.address}
 											</p>
 											<div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-												<span
-													className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-														station.status === 'Aktif'
-															? 'bg-info/10 text-info'
-															: 'bg-destructive/10 text-destructive'
-													}`}
-												>
+												<DotPill tone={station.status === 'Aktif' ? 'info' : 'destructive'}>
 													{facilityStatusLabel(station.status)}
-												</span>
+												</DotPill>
 												<span className="border-l border-border pl-1.5 text-xs font-medium text-muted-foreground sm:pl-2">
 													{station.vehicle_count} Armada
 												</span>

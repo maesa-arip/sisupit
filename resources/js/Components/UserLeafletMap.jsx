@@ -190,7 +190,7 @@ const UserLeafletMap = ({
 
 			const userIcon = window.L.divIcon({
 				html: `
-                    <div class="relative flex items-center justify-center text-destructive drop-shadow-md hover:scale-110 transition-transform">
+                    <div class="relative flex items-center justify-center text-destructive drop-shadow-md transition-transform">
                         <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
                         </svg>
@@ -280,7 +280,7 @@ const UserLeafletMap = ({
 
 			return window.L.divIcon({
 				html: `
-                    <div class="relative flex items-center justify-center w-10 h-10 rounded-md shadow-sm ${bgColor} border-2 ${borderColor} ${fgColor} transition-transform hover:scale-110">
+                    <div class="relative flex items-center justify-center w-10 h-10 rounded-md shadow-sm ${bgColor} border-2 ${borderColor} ${fgColor} transition-transform">
                         ${svgIcon}
                     </div>
                     <div class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] ${arrowColor}"></div>

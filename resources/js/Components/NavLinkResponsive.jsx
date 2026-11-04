@@ -8,7 +8,7 @@ export default function NavLinkResponsive({ active = false, url = '#', title, ic
 			href={url}
 			className={cn(
 				active
-					? 'bg-warning font-semibold text-warning-foreground hover:text-warning-foreground'
+					? 'bg-muted font-semibold text-foreground hover:text-foreground'
 					: 'text-muted-foreground hover:text-warning',
 				'flex items-center gap-3 rounded-lg p-2 font-medium transition-all',
 			)}

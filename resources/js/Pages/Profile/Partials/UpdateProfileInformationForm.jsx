@@ -175,7 +175,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 														: `${user.ktp}`
 											}
 											alt="Pratinjau KTP"
-											className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+											className="h-full w-full object-cover transition-transform duration-300"
 										/>
 										{/* Tombol X hanya muncul jika user sedang mem-preview file baru */}
 										{previewUrl && (

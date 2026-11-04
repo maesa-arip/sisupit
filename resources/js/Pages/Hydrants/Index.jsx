@@ -1,12 +1,14 @@
+import DotPill from '@/Components/DotPill';
 import HeaderTitle from '@/Components/HeaderTitle';
 import PaginationLinks from '@/Components/PaginationLinks';
+import { IconSisupitHydrant as IconFireHydrant } from '@/Components/SisupitIcons';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
 import { facilityStatusLabel, GEO_OPTIONS } from '@/lib/utils';
 import { router, useForm } from '@inertiajs/react';
-import { IconFireHydrant, IconLoader2, IconMapPinFilled, IconRadar, IconRoute, IconSearch } from '@tabler/icons-react';
+import { IconLoader2, IconMapPinFilled, IconRadar, IconRoute, IconSearch } from '@tabler/icons-react';
 import { useState } from 'react';
 
 export default function Index({ map_markers, hydrants, filters, ...props }) {
@@ -131,7 +133,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 										onClick={() => applyFilter('status', 'Semua')}
 										className={`h-8 whitespace-nowrap rounded-full border px-3.5 text-[13px] font-medium transition-colors ${
 											activeStatus === 'Semua'
-												? 'border-transparent bg-primary text-primary-foreground'
+												? 'border-[1.5px] border-destructive bg-card text-destructive'
 												: 'border-border bg-card text-foreground/80 hover:bg-muted'
 										}`}
 									>
@@ -142,7 +144,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 										onClick={() => applyFilter('status', 'Aktif')}
 										className={`h-8 whitespace-nowrap rounded-full border px-3.5 text-[13px] font-medium transition-colors ${
 											activeStatus === 'Aktif'
-												? 'border-transparent bg-primary text-primary-foreground'
+												? 'border-[1.5px] border-destructive bg-card text-destructive'
 												: 'border-border bg-card text-foreground/80 hover:bg-muted'
 										}`}
 									>
@@ -153,7 +155,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 										onClick={() => applyFilter('status', 'Perbaikan')}
 										className={`h-8 whitespace-nowrap rounded-full border px-3.5 text-[13px] font-medium transition-colors ${
 											activeStatus === 'Perbaikan'
-												? 'border-transparent bg-primary text-primary-foreground'
+												? 'border-[1.5px] border-destructive bg-card text-destructive'
 												: 'border-border bg-card text-foreground/80 hover:bg-muted'
 										}`}
 									>
@@ -195,15 +197,9 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 												{hydrant.address}
 											</p>
 											<div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-												<span
-													className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-														hydrant.status === 'Aktif'
-															? 'bg-info/10 text-info'
-															: 'bg-destructive/10 text-destructive'
-													}`}
-												>
+												<DotPill tone={hydrant.status === 'Aktif' ? 'info' : 'destructive'}>
 													{facilityStatusLabel(hydrant.status)}
-												</span>
+												</DotPill>
 												<span className="text-[13px] text-muted-foreground">
 													Hydrant {hydrant.type}
 												</span>

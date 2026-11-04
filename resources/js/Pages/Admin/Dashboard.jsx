@@ -124,7 +124,7 @@ export default function AdminDashboard({
 					hasEmergency
 						? 'border-destructive bg-destructive text-destructive-foreground shadow-destructive/20 duration-500 animate-in zoom-in-95'
 						: 'border-border/70 bg-card hover:border-border',
-					href && 'cursor-pointer hover:shadow-md',
+					href && 'cursor-pointer',
 				)}
 			>
 				<CardContent className="p-3.5 md:p-5 lg:p-6">
@@ -252,8 +252,7 @@ export default function AdminDashboard({
 									className={cn(
 										'h-1.5 w-1.5 rounded-full',
 										REALTIME_META[realtimeStatus].dot,
-										realtimeStatus === 'connected' && 'animate-pulse',
-									)}
+																			)}
 								></span>{' '}
 								{REALTIME_META[realtimeStatus].label}
 							</div>
@@ -411,7 +410,7 @@ export default function AdminDashboard({
 									<div className="rounded-xl bg-teal/10 p-2.5 md:rounded-2xl md:p-3.5">
 										<IconMapSearch className="h-5 w-5 text-teal md:h-6 md:w-6" stroke={2} />
 									</div>
-									<IconChevronRight className="hidden h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground md:block" />
+									<IconChevronRight className="hidden h-5 w-5 text-muted-foreground transition-transform group-hover:text-foreground md:block" />
 								</div>
 								<div className="min-w-0 flex-1">
 									<h3 className="text-[15px] font-semibold text-foreground md:text-[17px]">
