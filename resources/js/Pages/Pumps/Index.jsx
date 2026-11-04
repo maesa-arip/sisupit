@@ -166,7 +166,7 @@ export default function Index({ pumps, filters, ...props }) {
 											className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border ${
 												facilityStatusIsFaulty(pump.status)
 													? 'bg-destructive/10 text-destructive'
-													: 'border-info/20 bg-info/10 text-info'
+													: 'bg-muted text-foreground/70'
 											}`}
 										>
 											{pump.source === 'hydrant_warga' ? (

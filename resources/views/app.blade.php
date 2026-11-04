@@ -8,8 +8,8 @@
         {{-- #159/apple-design: status bar browser = warna header (--background terang 98% / gelap 6%),
              bukan merah brand - satu nilai membuat mode gelap berstatus-bar terang. APK tak
              terpengaruh (wrapper membaca latar body sendiri, mobile/PERILAKU_WEBVIEW.md #8). --}}
-        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fafafa">
-        <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0f0f0f">
+        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fbfbf9">
+        <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#121211">
 
         <!-- Favicon -->
         <link rel="icon" href="/favicon.ico" sizes="any">

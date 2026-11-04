@@ -178,7 +178,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 										<div
 											className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border ${
 												hydrant.status === 'Aktif'
-													? 'bg-info/10 text-info'
+													? 'bg-muted text-foreground/70'
 													: 'bg-destructive/10 text-destructive'
 											}`}
 										>
@@ -267,7 +267,7 @@ export default function Index({ map_markers, hydrants, filters, ...props }) {
 				{/* --- KOLOM KANAN: Peta Interaktif (Sticky). Desktop saja - di ponsel peta disembunyikan (permintaan user 2026-10-02, TASK_69 bagian 15) --- */}
 				<div className="hidden w-full flex-col gap-3 lg:sticky lg:top-[90px] lg:flex lg:flex-1">
 					<div className="flex items-center gap-2 px-1">
-						<IconMapPinFilled className="h-4 w-4 text-teal-600 dark:text-teal" />
+						<IconMapPinFilled className="h-4 w-4 text-muted-foreground" />
 						<h2 className="text-sm font-semibold text-foreground">Sebaran Titik Hydrant</h2>
 					</div>
 

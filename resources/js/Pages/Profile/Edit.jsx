@@ -253,7 +253,7 @@ export default function Edit(props) {
 					<RowLink
 						href={route('front.reports.index')}
 						icon={IconHistory}
-						tint="bg-info/10 text-info"
+						tint="bg-muted text-foreground/70"
 						title="Riwayat Laporan Saya"
 						subtitle="Pantau status kejadian yang pernah Anda laporkan"
 					/>
@@ -402,7 +402,7 @@ function BanjarCard({ banjar }) {
 	return (
 		<form onSubmit={simpan} className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
 			<h3 className="flex items-center gap-3 text-[15px] font-semibold text-foreground">
-				<span className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal/10 text-teal">
+				<span className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-foreground/70">
 					<IconHome2 size={18} stroke={1.75} />
 				</span>
 				Banjar

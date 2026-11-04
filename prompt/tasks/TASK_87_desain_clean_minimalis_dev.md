@@ -245,3 +245,25 @@ Dev saat putaran ini dimulai masih memakai build putaran 4 (putaran 5 belum dide
 - Hover ikon aksi `hover:text-info|success` -> `hover:text-foreground` (7 tombol); teks kuning di daftar Instansi,
   Pengguna ("Belum ada HP"), dan paginasi Tenant -> gelap; ikon HP hijau di Pengguna -> abu.
 - Verifikasi: `npm run build` lulus; Pest penuh 914 passed, 6867 assertions, 0 gagal.
+
+## 14. Putaran 7 (2026-11-05) - mode gelap
+
+Dev terverifikasi HTTPS memakai build putaran 6 (app-NO3FOaeu.js / app-yzrcfytH.css) sebelum putaran ini.
+Desain FigCraft belum punya papan gelap; acuan = kesepakatan desain (bukan hitam/putih murni, tanpa ungu, satu aksen).
+
+- **Token `.dark` di `app.css`:** abu netral dingin (`0 0% 6/8/12/15%`) -> gelap HANGAT senada sisi terang (hue 60):
+  latar #121211 (`60 3% 7%`), kartu `60 3% 10%`, muted `60 3% 14%`, garis `60 3% 18%`, teks #F5F5F3 (`60 9% 96%`,
+  bukan putih murni), teks redup `60 3% 64%`, `--ring` = teks. Grafik `--chart-*` = palet sisi terang (dulu biru/ungu
+  khusus gelap - ungu dilarang). Sidebar mengikuti; `--sidebar-primary` biru -> teks terang. Merah brand tidak diubah.
+- **`theme-color` (status bar HP) di `app.blade.php`:** #fafafa -> #fbfbf9, #0f0f0f -> #121211 (= latar baru).
+- **Sisa warna mentah Tailwind:** label "Aktif" hijau di Pengaturan, ikon judul peta teal di Hydrant publik, centang
+  emerald di Tenant -> netral.
+- **Kotak ikon fasilitas publik** (Pos, Hydrant, Pompa) biru -> netral (rusak tetap merah), sama dengan versi admin;
+  hover hijau di Pos publik -> netral; ikon baris Profil (biru/teal) -> netral.
+- Sengaja TIDAK diubah: indikator keakuratan GPS di form lapor (area peta yang disetujui user); Peta Pemantauan
+  (warna peta boleh); `Home.jsx` (/home dialihkan 301, #218).
+- Verifikasi visual: chrome-headless-shell 390x844 @2x, `php artisan serve` dari worktree, skema gelap & terang
+  dipaksa (`--blink-settings=preferredColorScheme`): /hydrants & /reports/create terbaca, latar hangat, satu aksen merah.
+- Temuan di luar cakupan: header masih menampilkan tagline merah kapital "SISTEM UNTUK PELAPORAN DINI TERINTEGRASI"
+  (bawaan main; #217 menyebut tagline dibuang dari judul/meta - perlu dicek user apakah header juga dimaksud).
+- Verifikasi: `npm run build` lulus; Pest penuh 914 passed, 6867 assertions, 0 gagal.

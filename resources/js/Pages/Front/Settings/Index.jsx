@@ -160,7 +160,7 @@ export default function Index(props) {
 											<span
 												className={
 													setting.status
-														? 'text-green-600 dark:text-success'
+														? 'text-foreground'
 														: 'text-muted-foreground'
 												}
 											>

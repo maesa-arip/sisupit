@@ -114,7 +114,7 @@ export default function Index({ stations, filters, ...props }) {
 										<div
 											className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border ${
 												station.status === 'Aktif'
-													? 'bg-info/10 text-info'
+													? 'bg-muted text-foreground/70'
 													: 'bg-destructive/10 text-destructive'
 											}`}
 										>
@@ -155,7 +155,7 @@ export default function Index({ stations, filters, ...props }) {
 													<Button
 														variant="ghost"
 														size="icon"
-														className="h-8 w-8 rounded-lg text-muted-foreground transition-colors hover:bg-success/10 hover:text-success"
+														className="h-8 w-8 rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
 													>
 														<IconPhoneCall className="h-4 w-4" />
 													</Button>

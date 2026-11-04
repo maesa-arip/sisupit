@@ -192,7 +192,7 @@ export default function Index(props) {
 											</TableCell>
 											<TableCell>
 												{tenant.is_active ? (
-													<IconCheck className="size-4 text-emerald-600" />
+													<IconCheck className="size-4 text-foreground" />
 												) : (
 													<IconX className="size-4 text-destructive" />
 												)}
