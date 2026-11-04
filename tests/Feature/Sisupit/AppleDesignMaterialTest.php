@@ -257,7 +257,9 @@ it('reworks the remaining front pages into grouped lists and iOS-style screens',
         expect(appleSource("resources/js/Pages/{$page}.jsx"))->toContain("from '@/lib/report-icon'");
     }
     expect(appleSource('resources/js/Pages/Petugas/Dashboard.jsx'))->not->toContain('IconFiretruck');
-    expect(appleSource('resources/js/Pages/Front/Reports/Thanks.jsx'))->toContain('rounded-full bg-success/10');
+    // TASK_87 (desain clean minimalis): lingkaran centang tetap ada, kini netral - warna status hanya titik.
+    expect(appleSource('resources/js/Pages/Front/Reports/Thanks.jsx'))->toContain('rounded-full bg-muted">')
+        ->not->toContain('bg-success/10');
     expect(appleSource('resources/js/Pages/Volunteers/Index.jsx'))->toContain('after:absolute after:inset-0');
     expect(appleSource('resources/js/Pages/ErrorHandling.jsx'))->not->toMatch('/<Card\b/');
     expect(appleSource('resources/js/Pages/Spotlight.jsx'))->not->toMatch('/\b(bg-white|border-white|border-neutral-200)\b/');

@@ -95,8 +95,8 @@ export default function ReportThanks({
 
 			<div className="mx-auto mt-4 flex w-full max-w-2xl flex-col space-y-6 pb-24 sm:pb-6">
 				{/* 1. Banner Instruksi Keselamatan (Prioritas Utama) */}
-				<div className="flex items-start gap-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-destructive">
-					<IconInfoCircle className="mt-0.5 h-6 w-6 shrink-0" />
+				<div className="flex items-start gap-3 rounded-2xl border border-destructive/30 bg-card p-4 text-foreground">
+					<IconInfoCircle className="mt-0.5 h-6 w-6 shrink-0 text-destructive" />
 					<div className="text-sm font-medium leading-relaxed">
 						Pastikan Anda berada di tempat yang aman dan jauhi titik bahaya. Jangan mencoba memadamkan api
 						sendiri jika situasi sudah di luar kendali.
@@ -107,8 +107,8 @@ export default function ReportThanks({
 				<Card className="overflow-hidden">
 					<CardHeader className="items-center bg-transparent pb-2 pt-8 text-center">
 						<div className="flex flex-col items-center gap-4">
-							<span className="flex h-16 w-16 items-center justify-center rounded-full bg-success/10">
-								<IconShieldCheckFilled className="h-9 w-9 text-success" />
+							<span className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+								<IconShieldCheckFilled className="h-9 w-9 text-foreground" />
 							</span>
 							<div>
 								<CardTitle className="text-2xl font-bold tracking-tight text-foreground">
@@ -261,7 +261,7 @@ export default function ReportThanks({
 						</div>
 					) : (
 						<div className="flex w-full items-start gap-2 border-t border-border pt-4 text-xs text-muted-foreground sm:w-auto sm:max-w-xs sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
-							<IconInfoCircle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+							<IconInfoCircle className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
 							<span>
 								Layanan langsung Damkar di wilayah ini belum aktif. Untuk darurat hubungi{' '}
 								<span className="font-bold text-destructive">{NOMOR_DARURAT_NASIONAL}</span>.

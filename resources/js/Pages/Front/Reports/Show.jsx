@@ -368,28 +368,33 @@ export default function ReportShow(props) {
 
 	// -----------------------------------------------------------------
 	// KAMUS BAHASA & WARNA SEMANTIK (FLAT)
+	// TASK_87: pil netral; warna status hanya di titik `dot` (sama dengan StatusBadge).
 	// -----------------------------------------------------------------
 	const getReportStatus = (status) => {
 		switch (status) {
 			case 'TERLAPOR':
 				return {
 					label: 'Laporan Masuk',
-					color: 'bg-destructive/10 text-destructive border-destructive/20',
+					color: 'bg-card text-foreground border-border',
+					dot: 'bg-destructive',
 				};
 			case 'pending':
 				return {
 					label: 'Laporan Terverifikasi',
-					color: 'bg-warning/10 text-warning border-warning/20',
+					color: 'bg-card text-foreground border-border',
+					dot: 'bg-warning',
 				};
 			case 'handling':
 				return {
 					label: 'Penanganan',
-					color: 'bg-success/10 text-success border-success/20',
+					color: 'bg-card text-foreground border-border',
+					dot: 'bg-success',
 				};
 			case 'resolved':
 				return {
 					label: 'Selesai',
-					color: 'bg-info/10 text-info border-info/20',
+					color: 'bg-card text-foreground border-border',
+					dot: 'bg-info',
 				};
 			case 'ditolak':
 				return { label: 'Ditolak', color: 'bg-muted text-muted-foreground border-border' };
@@ -409,12 +414,14 @@ export default function ReportShow(props) {
 			case 'en_route':
 				return {
 					label: 'Meluncur',
-					color: 'bg-warning/10 text-warning border-warning/20',
+					color: 'bg-card text-foreground border-border',
+					dot: 'bg-warning',
 				};
 			case 'arrived':
 				return {
 					label: 'Tiba di Lokasi',
-					color: 'bg-info/10 text-info border-info/20',
+					color: 'bg-card text-foreground border-border',
+					dot: 'bg-info',
 				};
 			case 'finished':
 				return { label: 'Selesai Tugas', color: 'bg-muted text-muted-foreground border-border' };
@@ -444,6 +451,7 @@ export default function ReportShow(props) {
 					)}
 				</div>
 				<Badge className={cn('rounded-xl border px-2 py-0.5 text-xs font-semibold shadow-none', stat.color)}>
+					{stat.dot && <span aria-hidden="true" className={cn('mr-1.5 h-1.5 w-1.5 shrink-0 rounded-full', stat.dot)} />}
 					{stat.label}
 				</Badge>
 			</div>
@@ -1247,7 +1255,8 @@ export default function ReportShow(props) {
 								currentStatus.color,
 							)}
 						>
-							{currentStatus.label}
+							{currentStatus.dot && <span aria-hidden="true" className={cn('mr-1.5 h-1.5 w-1.5 shrink-0 rounded-full', currentStatus.dot)} />}
+{currentStatus.label}
 						</Badge>
 						<span className="font-mono text-[13px] text-muted-foreground">{reportNumber(report)}</span>
 					</div>
@@ -1303,7 +1312,8 @@ export default function ReportShow(props) {
 												getReportStatus(mergedIncident.status).color,
 											)}
 										>
-											{getReportStatus(mergedIncident.status).label}
+											{getReportStatus(mergedIncident.status).dot && <span aria-hidden="true" className={cn('mr-1.5 h-1.5 w-1.5 shrink-0 rounded-full', getReportStatus(mergedIncident.status).dot)} />}
+{getReportStatus(mergedIncident.status).label}
 										</Badge>
 									</div>
 								)}
@@ -1346,10 +1356,10 @@ export default function ReportShow(props) {
 			    melahirkan dua misi untuk satu kebakaran. Menggabungkan bisa dibatalkan (Pisahkan),
 			    jadi tanpa dialog konfirmasi. */}
 			{reportStatus === 'TERLAPOR' && canMerge && duplicateCandidate && (
-				<Card className="border border-warning/30 bg-warning/5">
+				<Card className="border border-border bg-muted">
 					<CardContent className="flex flex-col gap-4 p-4 sm:p-5 md:flex-row md:items-center md:justify-between">
 						<div className="flex items-start gap-3">
-							<div className="mt-0.5 shrink-0 rounded-lg bg-warning/15 p-2 text-warning">
+							<div className="mt-0.5 shrink-0 rounded-lg bg-muted p-2 text-foreground">
 								<IconStack2 className="h-5 w-5" />
 							</div>
 							<div className="min-w-0 space-y-2">
@@ -1378,7 +1388,8 @@ export default function ReportShow(props) {
 												getReportStatus(duplicateCandidate.status).color,
 											)}
 										>
-											{getReportStatus(duplicateCandidate.status).label}
+											{getReportStatus(duplicateCandidate.status).dot && <span aria-hidden="true" className={cn('mr-1.5 h-1.5 w-1.5 shrink-0 rounded-full', getReportStatus(duplicateCandidate.status).dot)} />}
+{getReportStatus(duplicateCandidate.status).label}
 										</Badge>
 									</span>
 									<span className="mt-1 font-semibold text-foreground">
@@ -1470,7 +1481,7 @@ export default function ReportShow(props) {
 								    terakhir tempat kekeliruan lokasi masih murah diperbaiki — lewat
 								    telepon pelapor yang nomornya sudah tertera persis di atasnya. */}
 								{!asalTitik.terpercaya && (
-									<p className="mt-2 max-w-xl rounded-xl border border-warning/20 bg-warning/10 p-2 text-xs leading-relaxed text-warning">
+									<p className="mt-2 max-w-xl rounded-xl border border-border bg-muted p-2 text-xs leading-relaxed text-foreground">
 										<b>{asalTitik.label}</b>
 										{asalTitik.detail ? ` (${asalTitik.detail}). ` : '. '}
 										{asalTitik.hint}
@@ -1507,9 +1518,9 @@ export default function ReportShow(props) {
 			    Yang ditampilkan bukan nama status (kamus status tetap satu, "Laporan Masuk")
 			    melainkan APA YANG SEDANG DITUNGGU. */}
 			{reportStatus === 'TERLAPOR' && isAwaitingAdmin && (
-				<Card className="border border-warning/30 bg-warning/5">
+				<Card className="border border-border bg-muted">
 					<CardContent className="flex items-start gap-3 p-4 sm:p-5">
-						<div className="mt-0.5 shrink-0 rounded-lg bg-warning/15 p-2 text-warning">
+						<div className="mt-0.5 shrink-0 rounded-lg bg-muted p-2 text-foreground">
 							<IconHourglass className="h-5 w-5" />
 						</div>
 						<div className="space-y-1">
@@ -1780,12 +1791,12 @@ export default function ReportShow(props) {
 						<Card>
 							<CardContent className="space-y-4 p-4 sm:p-5">
 								<h2 className="flex items-center gap-2 text-[17px] font-semibold tracking-tight text-foreground">
-									<IconShieldCheck className="h-4 w-4 text-info" /> Panel Tindakan Anda
+									<IconShieldCheck className="h-4 w-4 text-muted-foreground" /> Panel Tindakan Anda
 								</h2>
 
 								{reportStatus === 'resolved' ? (
 									<div className="space-y-2">
-										<div className="flex items-center justify-center gap-2 rounded-lg border border-info/20 bg-info/10 p-3 text-center text-xs font-semibold text-info">
+										<div className="flex items-center justify-center gap-2 rounded-lg border border-border bg-muted p-3 text-center text-xs font-semibold text-foreground">
 											<IconCheck className="h-4 w-4" /> INSIDEN SELESAI DITANGANI
 										</div>
 										{closureActorLine('resolved')}
@@ -1813,7 +1824,7 @@ export default function ReportShow(props) {
 										) : !myRecord ? (
 											<div className="space-y-2">
 												{myRegu && officerList.some((o) => reguKeyOf(o) === myRegu.key) && (
-													<p className="rounded-lg border border-warning/20 bg-warning/10 p-3 text-xs font-semibold leading-relaxed text-warning">
+													<p className="rounded-lg border border-border bg-muted p-3 text-xs font-semibold leading-relaxed text-foreground">
 														{myRegu.name} sudah meluncur. Pilih keberangkatan Anda sendiri.
 													</p>
 												)}
@@ -1874,7 +1885,7 @@ export default function ReportShow(props) {
 												</Button>
 											</>
 										) : myRecord.status === 'arrived' ? (
-											<div className="rounded-lg border border-info/20 bg-info/10 p-3 text-center text-xs font-semibold text-info">
+											<div className="rounded-lg border border-border bg-muted p-3 text-center text-xs font-semibold text-foreground">
 												Anda Sedang di Lokasi.
 											</div>
 										) : (
@@ -1895,7 +1906,7 @@ export default function ReportShow(props) {
 										)}
 
 										{myRecord?.status === 'arrived' && isCorrectingMode && (
-											<div className="mt-2 space-y-2 rounded-lg border border-warning/20 bg-warning/10 p-3 text-xs text-warning">
+											<div className="mt-2 space-y-2 rounded-lg border border-border bg-muted p-3 text-xs text-foreground">
 												<p className="font-semibold leading-relaxed">
 													Titik laporan mungkin belum tepat. Geser pin merah ke lokasi
 													kejadian sebenarnya agar rekan lain menuju titik yang benar, lalu
@@ -1928,7 +1939,7 @@ export default function ReportShow(props) {
 											<Button
 												onClick={() => setConfirmResolve(true)}
 												variant="outline"
-												className="mt-2 h-12 w-full rounded-lg border-success/30 text-[13px] font-semibold text-success shadow-none transition-colors hover:bg-success/10"
+												className="mt-2 h-12 w-full rounded-lg border-border text-[13px] font-semibold text-foreground shadow-none transition-colors hover:bg-muted"
 											>
 												Tandai Insiden Selesai
 											</Button>
@@ -1953,7 +1964,7 @@ export default function ReportShow(props) {
 							<Card>
 								<CardContent className="space-y-3 p-4 sm:p-5">
 									<h2 className="flex items-center gap-2 text-[17px] font-semibold tracking-tight text-foreground">
-										<IconTruck className="h-4 w-4 text-teal-600 dark:text-teal" /> Pengerahan Armada
+										<IconTruck className="h-4 w-4 text-muted-foreground" /> Pengerahan Armada
 									</h2>
 
 									{dispatchedUnits.length > 0 ? (
@@ -1993,7 +2004,7 @@ export default function ReportShow(props) {
 											<select
 												value={unitToDispatch}
 												onChange={(e) => setUnitToDispatch(e.target.value)}
-												className="h-10 flex-1 rounded-lg border border-border bg-card px-3 text-base font-medium text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-teal-500 dark:focus-visible:ring-teal md:text-xs"
+												className="h-10 flex-1 rounded-lg border border-border bg-card px-3 text-base font-medium text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring md:text-xs"
 											>
 												<option value="">Pilih unit tersedia...</option>
 												{availableUnits.map((u) => (
@@ -2005,7 +2016,7 @@ export default function ReportShow(props) {
 											<Button
 												onClick={handleDispatchUnit}
 												disabled={isUnitProcessing || !unitToDispatch}
-												className="h-10 shrink-0 rounded-lg bg-teal-600 text-[13px] font-semibold text-white shadow-none hover:bg-teal-700 dark:bg-teal dark:hover:bg-teal/90"
+												className="h-10 shrink-0 rounded-lg bg-primary text-[13px] font-semibold text-primary-foreground shadow-none hover:bg-primary/90"
 											>
 												{isUnitProcessing ? (
 													<IconLoader2 className="h-4 w-4 animate-spin" />
@@ -2098,8 +2109,8 @@ export default function ReportShow(props) {
 															className={cn(
 																'rounded-xl border px-2.5 py-2 text-xs leading-relaxed',
 																row.confirmed_at
-																	? 'border-success/20 bg-success/10 text-success'
-																	: 'border-warning/20 bg-warning/10 text-warning',
+																	? 'border-border bg-muted text-foreground'
+																	: 'border-border bg-muted text-foreground',
 															)}
 														>
 															<div className="flex items-start gap-1.5 font-semibold">
@@ -2304,6 +2315,7 @@ export default function ReportShow(props) {
 													stat.color,
 												)}
 											>
+												{stat.dot && <span aria-hidden="true" className={cn('mr-1.5 h-1.5 w-1.5 shrink-0 rounded-full', stat.dot)} />}
 												{stat.label}
 											</Badge>
 										</div>
@@ -2321,7 +2333,7 @@ export default function ReportShow(props) {
 							<CardContent className="space-y-3 p-4 sm:p-5">
 								<div className="flex items-center justify-between gap-2">
 									<h2 className="flex items-center gap-2 text-[17px] font-semibold tracking-tight text-foreground">
-										<IconFileText className="h-4 w-4 text-info" /> Laporan Kejadian
+										<IconFileText className="h-4 w-4 text-muted-foreground" /> Laporan Kejadian
 									</h2>
 									{canManageResolution && resolutionOpen && (
 										<div className="flex flex-wrap justify-end gap-1.5">
@@ -2359,7 +2371,7 @@ export default function ReportShow(props) {
 								</div>
 
 								{canManageResolution && !resolutionOpen && (
-									<div className="rounded-xl border border-info/30 bg-info/10 p-3 text-[13px] leading-relaxed text-foreground">
+									<div className="rounded-xl border border-border bg-muted p-3 text-[13px] leading-relaxed text-foreground">
 										Laporan kejadian bisa dibuat setelah insiden dinyatakan <b>selesai</b>.
 										{resolutions.length > 0 &&
 											' Entri yang sudah tersimpan selama penanganan tetap aman dan bisa dilihat; mengubahnya bisa dilakukan setelah insiden selesai.'}
@@ -2393,8 +2405,8 @@ export default function ReportShow(props) {
 														className={cn(
 															'rounded-xl border px-2 py-0.5 text-xs font-semibold shadow-none',
 															r.status === 'final'
-																? 'border-success/30 bg-success/10 text-success'
-																: 'border-warning/30 bg-warning/10 text-warning',
+																? 'border-border bg-muted text-foreground'
+																: 'border-border bg-muted text-foreground',
 														)}
 													>
 														{r.status === 'final' ? 'Final' : 'Sementara'}
@@ -2542,7 +2554,7 @@ export default function ReportShow(props) {
 																				href={v.ktp_url}
 																				target="_blank"
 																				rel="noopener noreferrer"
-																				className="shrink-0 font-semibold text-info hover:underline"
+																				className="shrink-0 font-semibold text-primary hover:underline"
 																			>
 																				Lihat KTP
 																			</a>
@@ -2653,7 +2665,7 @@ export default function ReportShow(props) {
 			<Dialog open={confirmApprove} onOpenChange={setConfirmApprove}>
 				<DialogContent className="max-w-md p-6">
 					<div className="flex flex-col items-center space-y-4 text-center">
-						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-info/10 text-info">
+						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-foreground">
 							<IconRadar className="h-6 w-6" />
 						</div>
 						<h2 className="text-[17px] font-semibold tracking-tight text-foreground">Broadcast Darurat?</h2>
@@ -2682,7 +2694,7 @@ export default function ReportShow(props) {
 												className={cn(
 													'flex cursor-pointer items-start gap-2.5 rounded-lg border p-2.5 transition-colors',
 													checked
-														? 'border-info/40 bg-info/5'
+														? 'border-foreground/40 bg-muted'
 														: 'border-border bg-card hover:bg-muted/50',
 												)}
 											>
@@ -2700,7 +2712,7 @@ export default function ReportShow(props) {
 														{recommended && (
 															<Badge
 																variant="outline"
-																className="rounded-xl border-info/20 bg-info/10 px-1.5 py-0 text-xs font-semibold text-info shadow-none"
+																className="rounded-xl border-border bg-muted px-1.5 py-0 text-xs font-semibold text-foreground shadow-none"
 															>
 																Disarankan
 															</Badge>
@@ -2785,7 +2797,7 @@ export default function ReportShow(props) {
 			<Dialog open={confirmResolve} onOpenChange={setConfirmResolve}>
 				<DialogContent className="max-w-sm p-6">
 					<div className="flex flex-col items-center space-y-4 text-center">
-						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/10 text-success">
+						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-foreground">
 							<IconCheck className="h-6 w-6" />
 						</div>
 						<h2 className="text-[17px] font-semibold tracking-tight text-foreground">Tutup Insiden?</h2>
@@ -2796,11 +2808,11 @@ export default function ReportShow(props) {
 						{/* Peringatan, BUKAN penghalang (keputusan user): insiden tetap boleh ditutup
 						    walau OPD belum mengonfirmasi — yang belum terpenuhi ikut tercatat apa adanya. */}
 						{awaitingConfirmations.length > 0 && (
-							<div className="w-full space-y-1 rounded-lg border border-warning/20 bg-warning/10 p-3 text-left">
-								<div className="flex items-center gap-1.5 text-xs font-semibold text-warning">
+							<div className="w-full space-y-1 rounded-lg border border-border bg-muted p-3 text-left">
+								<div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
 									<IconAlertCircle className="h-4 w-4 shrink-0" /> Masih ditunggu
 								</div>
-								<ul className="space-y-0.5 pl-5 text-xs leading-relaxed text-warning">
+								<ul className="space-y-0.5 pl-5 text-xs leading-relaxed text-foreground">
 									{awaitingConfirmations.map((a) => (
 										<li key={a.id} className="list-disc">
 											<b>{a.agency_name}</b> - {a.confirmation_label}
@@ -2835,7 +2847,7 @@ export default function ReportShow(props) {
 			<Dialog open={agencyToConfirm !== null} onOpenChange={(open) => !open && setAgencyToConfirm(null)}>
 				<DialogContent className="max-w-sm p-6">
 					<div className="flex flex-col items-center space-y-4 text-center">
-						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/10 text-success">
+						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-foreground">
 							<IconCheck className="h-6 w-6" />
 						</div>
 						<h2 className="text-[17px] font-semibold tracking-tight text-foreground">Catat Konfirmasi?</h2>

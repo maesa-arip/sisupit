@@ -209,3 +209,23 @@ Acuan: papan R02 (petugas), R09 (OPD), A01 (admin) di generator desain (`gen-sis
   header lengket, bukan gradien - dibiarkan).
 
 Verifikasi: `npm run build` lulus; Pest penuh 914 passed, 6866 assertions, 0 gagal (= putaran 3).
+
+## 12. Putaran 5 (2026-11-04) - detail laporan & Thanks
+
+Dev terverifikasi HTTPS memakai build putaran 4 (app-woOK0Q71.js / app-5IvUFyZA.css) sebelum putaran ini.
+
+- **Detail laporan (`Front/Reports/Show.jsx`):**
+  - kamus status milik halaman ini (`getReportStatus`/`getResponderStatus`) -> pil putih bergaris + titik `dot`
+    berwarna sama dengan `StatusBadge`; dipasang di 5 tempat (judul, insiden gabungan, kandidat ganda, manifes
+    petugas, daftar relawan). Ditolak/Selesai Tugas/Bersiap tetap abu tanpa titik.
+  - callout kuning/biru/hijau (laporan ganda, panel tindakan, OPD terkait, Laporan Kejadian, dialog) -> garis abu,
+    latar muted, teks gelap; lingkaran ikon dialog sukses netral (dialog berbahaya tetap merah).
+  - tombol teal "Pengerahan Armada" -> merah primer (satu aksen), fokus `ring-ring`; ikon judul kartu abu;
+    tautan biru -> `text-primary`; pilihan OPD tercentang = garis gelap + muted.
+- **Thanks:** banner keselamatan bergaris merah dengan teks gelap + ikon merah (pola callout OPD); lingkaran centang
+  hijau -> netral; ikon info kuning -> abu.
+- Show.jsx asli belum bersih prettier, jadi prettier TIDAK dijalankan (diff minimal).
+- Penjaga diperbarui (bukan dimatikan): `AppleDesignMaterialTest` "reworks the remaining front pages" dulu mewajibkan
+  `rounded-full bg-success/10` di Thanks; kini mewajibkan lingkaran `rounded-full bg-muted` dan melarang `bg-success/10`.
+- Verifikasi: `npm run build` lulus; Pest penuh 913 passed + 1 gagal (penjaga di atas, sebelum diperbarui);
+  sesudahnya AppleDesignMaterialTest 32/32 lulus -> 914 passed (= putaran 4).
