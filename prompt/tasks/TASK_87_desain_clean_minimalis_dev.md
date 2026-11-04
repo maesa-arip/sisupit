@@ -93,3 +93,43 @@ Bukan bug. Perubahan desain atas permintaan user.
 - [ ] Tidak ada regresi fungsi (test >= baseline, penjaga diperbarui dengan alasan)
 - [ ] Tidak ada commit ke `main`, tidak ada deploy production/staging
 - [ ] Dokumen diperbarui di branch kerja (STATUS_LOG, task ini; CONVENTIONS hanya catatan "berlaku di branch ini")
+
+---
+
+## 8. Laporan pengerjaan (2026-11-04, putaran 1 - siap dilihat di dev)
+
+Dikerjakan di worktree `.claude/worktrees/desain-clean`, branch `feat/desain-clean-minimalis` (dari main @640f0831).
+
+**Fondasi (global, menjangkau semua halaman & peran):**
+- `resources/css/app.css`: token terang baru (latar #FBFBF9 = `60 20% 98%`, teks `220 8% 7%`, garis `60 7% 90%`,
+  abu muda `60 9% 94%`); font Plus Jakarta Sans menggantikan Inter; `.material-chrome`/`.material-thick` jadi
+  permukaan PADAT tanpa blur; blok penetral di akhir berkas: latar tint `bg-{destructive,primary,info,success,
+  warning,teal,volunteer}/{5,10,15,20}` -> `hsl(var(--muted))` dan `backdrop-blur-*` -> none (tanpa !important,
+  menang urutan). Token mode gelap BELUM disentuh.
+- `tailwind.config.js`: font sans + `boxShadow` semua ukuran = none.
+- Sisa bayangan/gradien arbitrer dicabut: `ui/sonner.jsx`, `section-cards.jsx`, overlay foto Login/Register
+  (gradien -> `bg-black/55`), lembar Kirim di `Front/Reports/Create.jsx`.
+
+**Komponen bersama:** `StatusBadge` = pil putih bertitik warna status; `ReportProgress` (stepper) = hitam
+(lewat, centang) / merah (aktif, cincin + titik) / abu (berikutnya); `NavLink` sidebar aktif = abu muda + teks
+gelap tebal; `InfoShell` Callout darurat = kartu putih bergaris; bilah bawah tanpa bayangan/cahaya, slot aktif
+teks gelap, label Lapor selalu merah (tebal saat aktif).
+
+**Layar:** Beranda warga (kartu darurat putih: judul + tombol merah "Lapor Darurat" + tombol garis "Telepon
+Damkar <nomor tenant>", lencana relawan jadi pil bertitik); Spotlight `/` (lingkaran latar, kemiringan &
+hover dicabut, ikon pendamping netral); form lapor (jenis kejadian = chip pil, aktif garis merah tanpa tint;
+judul seksi kalimat biasa, bukan huruf kapital kecil).
+
+**Penjaga tes diperbarui (bukan dimatikan):**
+- `AppleDesignMaterialTest`: dibalik - material wajib padat tanpa blur (kesepakatan desain melarang kaca).
+- `MobileNavIconGlyphTest`: label Lapor `'font-bold text-destructive' : 'font-semibold text-destructive'`.
+- `LaporRaisedCircleTest`: lolos dengan `shadow-none` di cincin (pola `ring-destructive/30 ` tetap).
+- `ButtonBrandColorTest`: titik stepper memakai `text-card` (bukan `text-background`) - bukan tombol hitam.
+
+**Verifikasi:** Pest penuh **914 passed, 6856 assertions, 0 gagal** (914 = baseline commit 640f0831; angka 932
+di CLAUDE.md memuat `AppReviewTest.php` TASK_86 yang belum di-commit di working tree utama). `npm run build`
+lulus. Tangkapan layar lokal desktop: Spotlight & form lapor sesuai.
+
+**Belum (putaran berikutnya, menunggu tanggapan user setelah melihat dev):** token mode gelap, ikon khas Sisupit
+sebagai komponen React, cekungan bilah bawah, perombakan per layar dashboard petugas/relawan/OPD/pejabat/admin
+(saat ini hanya mewarisi fondasi), halaman Thanks/Show, uji visual 390 px di HP.

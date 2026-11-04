@@ -25,8 +25,9 @@ export default function NavLink({
 
 				// Aktif = sorotan bertint seperti sidebar iPadOS/macOS (apple-design, TASK_69, khusus branch
 				// ini) - dulu blok merah padat, yang di dalam daftar menu terbaca seperti tombol darurat.
+				// TASK_87 (desain clean minimalis): aktif = latar abu muda + teks gelap tebal.
 				active
-					? 'bg-primary/10 font-semibold text-primary'
+					? 'bg-muted font-semibold text-foreground'
 					: 'text-foreground/80 hover:bg-muted hover:text-foreground',
 				className,
 			)}

@@ -112,7 +112,8 @@ it('keeps the centre Lapor circle red and marks its open page with a halo and an
         ->toContain("'relative flex h-9 w-9 items-center justify-center rounded-full bg-destructive text-destructive-foreground ring-[3px]'")
         ->toMatch("/active\s*\?\s*'ring-destructive\/30[^']*'\s*:\s*'ring-background[^']*'/")
         ->toContain('const Glyph = active && IconActive ? IconActive : Icon;')
-        ->toMatch("/active \? 'font-semibold text-destructive' : 'font-normal text-muted-foreground'/")
+        // TASK_87 (desain clean minimalis): label "Lapor" SELALU merah (satu aksen), tebal saat aktif.
+        ->toMatch("/active \? 'font-bold text-destructive' : 'font-semibold text-destructive'/")
         ->not->toContain('bg-muted text-muted-foreground')
         ->toContain('let laporTap = { at: 0, anchor: 0 };')
         ->toContain('useTapClock(laporTap, Boolean(pop))')

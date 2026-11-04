@@ -25,18 +25,15 @@ function appleClassesAround(string $path, string $needle): array
     return preg_split('/\s+/', trim($m[1]));
 }
 
-it('defines both materials with a blur and a solid fallback for reduced transparency and high contrast', function () {
+// TASK_87 (desain clean minimalis, branch feat/desain-clean-minimalis + dev): kesepakatan desain user
+// 2026-11-04 melarang efek kaca, jadi penjaga ini DIBALIK - kedua material wajib padat tanpa blur.
+// Nama kelasnya dipertahankan supaya pemakainya (header, bilah bawah, popover, toast) tak berubah.
+it('defines both materials as solid surfaces without a blur (clean minimal design)', function () {
     $css = appleSource('resources/css/app.css');
 
-    // Opasitas minimum (koreksi user 2026-10-01): menu di bawah ini membuat data di belakangnya tembus.
-    expect(preg_match('/\.material-thick\s*\{[^}]*hsl\(var\(--popover\) \/ (0\.\d+)\)/', $css, $thick))->toBe(1)
-        ->and((float) $thick[1])->toBeGreaterThanOrEqual(0.95);
-    expect(preg_match('/\.material-chrome\s*\{[^}]*hsl\(var\(--background\) \/ (0\.\d+)\)/', $css, $chrome))->toBe(1)
-        ->and((float) $chrome[1])->toBeGreaterThanOrEqual(0.85);
-    expect($css)->toMatch('/\.material-chrome\s*\{[^}]*backdrop-filter:\s*blur\(/')
-        ->and($css)->toMatch('/\.material-thick\s*\{[^}]*backdrop-filter:\s*blur\(/')
-        ->and($css)->toMatch('/@media \(prefers-reduced-transparency: reduce\), \(prefers-contrast: more\)\s*\{[^@]*backdrop-filter:\s*none/')
-        ->and($css)->toMatch('/@supports not \(\(backdrop-filter/');
+    expect($css)->toMatch('/\.material-chrome\s*\{\s*background-color:\s*hsl\(var\(--card\)\);\s*\}/')
+        ->and($css)->toMatch('/\.material-thick\s*\{\s*background-color:\s*hsl\(var\(--popover\)\);\s*\}/')
+        ->and($css)->not->toMatch('/\.material-(chrome|thick)\s*\{[^}]*backdrop-filter:\s*blur\(/');
 });
 
 it('builds the header and the bottom bar from the chrome material, never a solid background', function (string $path, string $needle) {

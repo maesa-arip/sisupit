@@ -756,7 +756,7 @@ function LaporSlot({ href, icon: Icon, iconActive: IconActive, active }) {
 						'relative flex h-9 w-9 items-center justify-center rounded-full bg-destructive text-destructive-foreground ring-[3px]',
 						pop && cn('animate-lapor-pop motion-reduce:animate-none', TAP_DELAY),
 						// TASK_87: tanpa cahaya/bayangan - cincin putih saat diam, halo tipis saat aktif.
-						active ? 'ring-destructive/30' : 'ring-background',
+						active ? 'ring-destructive/30 shadow-none' : 'ring-background shadow-none',
 					)}
 				>
 					<Glyph className="h-6 w-6" stroke={1.75} />

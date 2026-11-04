@@ -87,10 +87,11 @@ export function Bullets({ items }) {
  */
 export function Callout({ tone = 'muted', title, children }) {
 	const toneClass =
+		// TASK_87 (desain clean minimalis): darurat = kartu putih bergaris, bukan tint merah.
 		tone === 'destructive'
-			? 'bg-destructive/10'
+			? 'border border-border/70 bg-card'
 			: tone === 'info'
-				? 'bg-info/10'
+				? 'bg-muted/60'
 				: 'bg-muted/60';
 
 	return (

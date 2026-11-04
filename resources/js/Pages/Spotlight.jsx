@@ -39,22 +39,20 @@ export default function Spotlight(props) {
 
 			{/* --- ILUSTRASI BERBASIS IKON (Solid & Flat Design) --- */}
 			<div className="relative mx-auto flex aspect-square w-full max-w-[240px] items-center justify-center sm:max-w-[280px]">
-				{/* Latar Belakang Lingkaran (Solid, tanpa blur) */}
-				<div className="absolute inset-0 scale-90 rounded-full bg-destructive/10 transition-colors"></div>
 
 				{/* Ikon Utama (Tengah) */}
-				<div className="relative z-10 flex h-32 w-32 rotate-3 items-center justify-center rounded-[24px] border-4 border-background bg-destructive shadow-none transition-transform duration-300 hover:rotate-0 hover:scale-105 dark:border-neutral-900">
+				<div className="relative z-10 flex h-32 w-32 items-center justify-center rounded-[30px] bg-destructive">
 					<IconFlame className="h-16 w-16 text-destructive-foreground" stroke={1.5} />
 				</div>
 
 				{/* Elemen Dekorasi (Kanan Bawah - Perisai) */}
-				<div className="absolute bottom-8 right-6 z-20 flex h-14 w-14 -rotate-6 items-center justify-center rounded-2xl border border-border/70 bg-card shadow-none transition-colors dark:border-neutral-700 dark:bg-neutral-900 sm:right-10">
-					<IconShieldCheck className="h-7 w-7 text-success" stroke={1.5} />
+				<div className="absolute bottom-8 right-6 z-20 flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-card sm:right-10">
+					<IconShieldCheck className="h-7 w-7 text-foreground" stroke={1.5} />
 				</div>
 
 				{/* Elemen Dekorasi (Kiri Atas - Telepon) */}
-				<div className="absolute left-6 top-10 z-0 flex h-12 w-12 -rotate-12 items-center justify-center rounded-full border border-border/70 bg-card shadow-none transition-colors dark:border-neutral-700 dark:bg-neutral-900 sm:left-10">
-					<IconPhoneCall className="h-5 w-5 text-info" stroke={1.5} />
+				<div className="absolute left-6 top-10 z-20 flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card sm:left-10">
+					<IconPhoneCall className="h-5 w-5 text-foreground" stroke={1.5} />
 				</div>
 			</div>
 
@@ -95,7 +93,7 @@ export default function Spotlight(props) {
 						download="Sisupit.apk"
 						className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-medium text-muted-foreground outline-none transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-muted-foreground/40"
 					>
-						<IconBrandAndroid className="h-5 w-5 text-success" stroke={2} />
+						<IconBrandAndroid className="h-5 w-5 text-foreground" stroke={2} />
 						Unduh Aplikasi Android
 					</a>
 				)}

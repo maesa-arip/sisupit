@@ -1213,7 +1213,7 @@ export default function Create(props) {
 								    baris lokasi di form (placeTitle/placeSubtitle), jadi yang dilihat di sini
 								    persis yang akan tercatat. */}
 								{mapExpanded && (
-									<div className="relative z-10 rounded-t-2xl border-t border-border/70 bg-card px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-4 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.22)]">
+									<div className="relative z-10 rounded-t-2xl border-t border-border/70 bg-card px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-4">
 										<div className="flex items-start gap-3">
 											<IconMapPinFilled className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
 											<div className="min-w-0 flex-1">
@@ -1417,10 +1417,10 @@ export default function Create(props) {
 										value={INCIDENT_TAB.fire}
 										className="mt-4 outline-none focus-visible:ring-0"
 									>
-										<h3 className="border-b border-border/70 pb-2 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+										<h3 className="text-sm font-semibold text-foreground">
 											Apa yang terbakar?
 										</h3>
-										<div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
+										<div className="mt-3 flex flex-wrap gap-2">
 											{FIRE_INCIDENT_TYPES.map((type) => {
 												const Icon = type.icon;
 												const active = data.incident_type === type.value;
@@ -1431,14 +1431,15 @@ export default function Create(props) {
 														onClick={() => selectIncidentType(type)}
 														aria-pressed={active}
 														className={cn(
-															'flex min-h-[72px] flex-col items-center justify-center gap-1.5 rounded-xl border p-2 text-center transition-colors',
+															// TASK_87: chip pil; aktif = garis merah tanpa tint.
+															'flex h-10 items-center gap-1.5 rounded-full border bg-card px-3.5 text-center transition-colors',
 															active
-																? 'border-destructive bg-destructive/10 text-destructive'
-																: 'border-border bg-card text-foreground hover:bg-accent',
+																? 'border-[1.5px] border-destructive text-destructive'
+																: 'border-border text-foreground hover:bg-accent',
 														)}
 													>
-														<Icon className="h-6 w-6" stroke={1.5} />
-														<span className="text-xs font-semibold leading-tight">
+														<Icon className="h-4 w-4" stroke={1.75} />
+														<span className="text-[13px] font-semibold leading-tight">
 															{type.label}
 														</span>
 													</button>
@@ -1453,7 +1454,7 @@ export default function Create(props) {
 										value={INCIDENT_TAB.nonFire}
 										className="mt-4 outline-none focus-visible:ring-0"
 									>
-										<h3 className="border-b border-border/70 pb-2 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+										<h3 className="text-sm font-semibold text-foreground">
 											Darurat apa yang terjadi?
 										</h3>
 									</TabsContent>

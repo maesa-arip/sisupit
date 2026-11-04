@@ -85,7 +85,7 @@ export function ReportStepper({ status, rejectedReason = null, className }) {
 									<span
 										className={cn(
 											'flex h-5 w-5 items-center justify-center rounded-full',
-											isDone && 'bg-foreground text-background',
+											isDone && 'bg-foreground text-card',
 											isCurrent && 'border-2 border-destructive bg-card',
 											!isCurrent && !isDone && 'border-[1.5px] border-muted-foreground/40 bg-card',
 										)}
