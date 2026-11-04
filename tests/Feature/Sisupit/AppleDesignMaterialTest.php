@@ -43,7 +43,9 @@ it('builds the header and the bottom bar from the chrome material, never a solid
         ->and(preg_grep('/^bg-/', $classes))->toBe([]);
 })->with([
     ['resources/js/Layouts/AppLayout.jsx', 'sticky top-0 z-40'],
-    ['resources/js/Layouts/Partials/MobileBottomNav.jsx', 'fixed bottom-0 left-0 z-50'],
+    // TASK_87: bilah bawah bercekung - warnanya dibawa potongan sisi datar (NavNotchBackground), sebab
+    // kontainer persegi yang dicat akan menutup cekungan.
+    ['resources/js/Layouts/Partials/MobileBottomNav.jsx', 'material-chrome flex-1 shadow-[inset_0_1px_0_0_hsl(var(--border))]'],
 ]);
 
 it('grows every floating surface from its trigger out of the thick material', function (string $path, string $needle, string $origin) {

@@ -161,8 +161,28 @@ Dev terverifikasi HTTPS memakai build putaran 1 (app-B13TWWPP.js / app-Cevpsh2J.
   sebagai nama dikenal. Pest penuh 914 passed, 6866 assertions; `npm run build` lulus.
 
 **Sengaja TIDAK dikerjakan (butuh keputusan user):**
-- Kesepakatan "tanpa skeleton loader" bertentangan dengan kerangka navigasi global TASK_70 (`PageSkeleton` di
-  AppLayout, dijaga tes) - itu perilaku, bukan rupa.
-- Kesepakatan "tanpa S&K / Kebijakan Privasi" berlaku untuk halaman pemasaran di desain; halaman legal aplikasi
-  wajib untuk Play Store, jadi tetap.
+- (DIKOREKSI user 2026-11-04, lihat bagian 10) Butir "tanpa skeleton / S&K / Kebijakan Privasi" sempat dibaca
+  sebagai larangan. Maknanya terbalik: ketiadaannya ciri vibe-coded, jadi keduanya WAJIB ada - sudah ada di kode.
 - Cekungan bilah bawah: geometri bilah dikunci LaporRaisedCircleTest (#189) - menunggu konfirmasi.
+
+## 10. Putaran 3 (2026-11-04) - keputusan user "skeleton pertahankan, cekungan terapkan"
+
+Dev terverifikasi HTTPS memakai build putaran 2 (app-BCXIjJER.js / app-B8rzDiuR.css).
+
+- **Skeleton = WAJIB ADA, bukan pengecualian** (koreksi user): di daftar vibe-coded, "tidak ada skeleton
+  loading", "tidak ada S&K/Kebijakan Privasi", dan "tidak ada demo produk asli" adalah CIRI aplikasi vibe-coded -
+  ketiadaannya yang ketahuan. Kerangka navigasi TASK_70 dan halaman legal karena itu SESUAI kesepakatan.
+  KESEPAKATAN-DESAIN.md diperbaiki (bagian baru "Wajib ada"). Jangan pernah cabut kerangka atau halaman legal
+  atas nama kesepakatan ini.
+- **Cekungan bilah bawah DITERAPKAN** (`MobileBottomNav.jsx`, komponen `NavNotchBackground`):
+  - bentuk dari `bottom_nav` generator desain, diskalakan ke bilah 56px: tepi atas melengkung turun 10px sampai
+    garis tengah lingkaran Lapor, celah 4px dari cincin, SVG tengah 120px + dua sisi datar `material-chrome`;
+  - lengkung sengaja TAK membungkus bawah lingkaran (label "Lapor" mulai y 30px);
+  - ceruk diisi `--background` supaya konten yang tergulir tak mengintip lewat celah (uji 390px);
+  - kontainer `fixed bottom-0` tak lagi dicat (persegi menutup cekungan); geometri lingkaran/label TIDAK berubah.
+- Penjaga disesuaikan: `AppleDesignMaterialTest` (material bilah dibaca dari potongan sisi datar),
+  `KeyboardOpenLayoutTest` (regex kontainer tanpa awalan material-chrome; perilaku sembunyi saat keyboard tetap).
+- Verifikasi visual: chrome-headless-shell 390x844 @2x, /hydrants (diam) & /reports/create (aktif + halo).
+- Pest penuh: 913 passed + 1 gagal ACAK (`ForumTest` "refuses cross-regency moderation": UNIQUE users.username -
+  `UserFactory` membangkitkan username faker tanpa `unique()`); file itu lulus 5x berturut-turut (18/18). Di luar
+  cakupan TASK_87 - temuan untuk FINDINGS_LOG di main (factory username pakai `fake()->unique()`).

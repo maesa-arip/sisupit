@@ -277,9 +277,10 @@ export default function MobileBottomNav({ auth }) {
 			    Disembunyikan selama keyboard layar terbuka (#187): bilah navigasi tak ikut naik di atas
 			    keyboard, seperti aplikasi native - ruang di atas keyboard milik kolom yang diketik. */}
 			<div
-				className="material-chrome fixed bottom-0 left-0 z-50 w-full shadow-[0_-1px_0_0_hsl(var(--border))] md:hidden [html[data-keyboard=open]_&]:hidden"
+				className="fixed bottom-0 left-0 z-50 w-full md:hidden [html[data-keyboard=open]_&]:hidden"
 				style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
 			>
+				<NavNotchBackground />
 				<div className="mx-auto grid h-14 max-w-md grid-cols-5 px-1">
 					{/* 1. Beranda — ikon disamakan dengan sidebar (dulu IconHome di sini saja) */}
 					<NavItem
@@ -720,6 +721,39 @@ let laporTap = { at: 0, anchor: 0 };
  * memantul (efek "bounce" SF Symbols) + riak memudar keluar. Reduced motion: tanpa pantulan &
  * riak, hanya perubahan halo & ikon.
  */
+/**
+ * Latar bilah bawah BERCEKUNG (TASK_87, desain clean minimalis - branch feat/desain-clean-minimalis + dev;
+ * keputusan user 2026-11-04 "cekungan terapkan"). Bentuk dari papan FigCraft (`bottom_nav` di generator
+ * desain), diskalakan ke bilah 56px: tepi atas turun melengkung di tengah sampai garis tengah lingkaran
+ * Lapor (y 10px), berjarak 4px dari cincinnya. Lengkung SENGAJA tak membungkus bagian bawah lingkaran -
+ * di bilah 56px label "Lapor" mulai di y 30px, lengkung sedalam lingkaran akan memotong labelnya.
+ *
+ * Kontainer bilah tak lagi dicat (persegi akan menutup cekungan): warnanya dibawa potongan di sini -
+ * dua sisi datar `material-chrome` + SVG tengah selebar 120px berisi `--card` (= material-chrome padat
+ * TASK_87) - plus isian area aman di bawahnya. Garis rambut atas mengikuti lengkung. Lapisan ini
+ * `-z-10` di dalam konteks tumpuk kontainer (fixed z-50), jadi tetap di belakang slot & popover.
+ * Pusat cekungan = pusat layar: grid slot `mx-auto` simetris, slot ke-3 selalu di tengah.
+ */
+function NavNotchBackground() {
+	return (
+		<div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 flex flex-col">
+			<div className="flex h-14 shrink-0">
+				<div className="material-chrome flex-1 shadow-[inset_0_1px_0_0_hsl(var(--border))]" />
+				<svg width="120" height="56" viewBox="0 0 120 56" className="shrink-0">
+					{/* Ceruk diisi warna latar halaman: tanpa ini konten yang tergulir di belakang bilah
+					    mengintip lewat celah lingkaran dan terbaca sebagai noda (uji 390px 2026-11-04). */}
+					<path d="M16 0C28 0 35 2 35 10L85 10C85 2 92 0 104 0Z" fill="hsl(var(--background))" />
+					<path d="M0 0H16C28 0 35 2 35 10L85 10C85 2 92 0 104 0H120V56H0Z" fill="hsl(var(--card))" />
+					<path d="M0 0.5H16C28 0.5 35 2.5 35 10.5" fill="none" stroke="hsl(var(--border))" strokeWidth="1" />
+					<path d="M85 10.5C85 2.5 92 0.5 104 0.5H120" fill="none" stroke="hsl(var(--border))" strokeWidth="1" />
+				</svg>
+				<div className="material-chrome flex-1 shadow-[inset_0_1px_0_0_hsl(var(--border))]" />
+			</div>
+			<div className="material-chrome flex-1" />
+		</div>
+	);
+}
+
 function LaporSlot({ href, icon: Icon, iconActive: IconActive, active }) {
 	const [pop, setPop] = useState(() => (tapElapsed(laporTap) < LAPOR_POP_MS ? { key: laporTap.at } : null));
 	const Glyph = active && IconActive ? IconActive : Icon;

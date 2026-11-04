@@ -29,7 +29,8 @@ it('installs the keyboard flag in AppLayout', function () {
 
 it('hides the bottom nav while the keyboard is open', function () {
     expect(keyboardSource('Layouts/Partials/MobileBottomNav.jsx'))
-        ->toMatch('/className="material-chrome fixed bottom-0[^"]*\[html\[data-keyboard=open\]_&\]:hidden/');
+        // TASK_87: kontainer bilah bercekung tak lagi membawa material-chrome (dipindah ke NavNotchBackground).
+        ->toMatch('/className="fixed bottom-0[^"]*\[html\[data-keyboard=open\]_&\]:hidden/');
 });
 
 it('drops the report submit bar onto the keyboard', function () {
