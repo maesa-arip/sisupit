@@ -229,3 +229,19 @@ Dev terverifikasi HTTPS memakai build putaran 4 (app-woOK0Q71.js / app-5IvUFyZA.
   `rounded-full bg-success/10` di Thanks; kini mewajibkan lingkaran `rounded-full bg-muted` dan melarang `bg-success/10`.
 - Verifikasi: `npm run build` lulus; Pest penuh 913 passed + 1 gagal (penjaga di atas, sebelum diperbarui);
   sesudahnya AppleDesignMaterialTest 32/32 lulus -> 914 passed (= putaran 4).
+
+## 13. Putaran 6 (2026-11-04) - layar admin selain dashboard
+
+Dev saat putaran ini dimulai masih memakai build putaran 4 (putaran 5 belum dideploy).
+
+- **Verifikasi laporan (`Admin/Reports/Index.jsx`):** `STATUS_META.badge` netral + titik `dot` di pil status
+  lokal; `pin` (marker peta) tetap berwarna. Chip triase `ok`/`warn` netral, `danger` tetap merah.
+  Field `ring` di kamus memang tak dipakai di mana pun - dibiarkan (di luar cakupan).
+- **Armada (`Units/Index`):** pil Siap/Dikerahkan netral + titik; kotak ikon teal -> netral.
+- **Fasilitas (Pos, Hydrant, Pompa admin):** kotak ikon biru -> netral (rusak tetap merah); ikon Ringkasan Air
+  Desa abu; lencana varian hydrant (teal) -> pil netral. Warna marker peta (`iconColor`) tidak diubah.
+- **Pil status sederhana:** Pengumuman (Aktif), Banjar (Usulan Warga), Tenant (Aktif/Nonaktif) -> pil bertitik.
+- **Callout form biru/kuning -> netral:** Instansi Create/Edit, Kontak Email Create, Pengaturan Email, Ubah Armada.
+- Hover ikon aksi `hover:text-info|success` -> `hover:text-foreground` (7 tombol); teks kuning di daftar Instansi,
+  Pengguna ("Belum ada HP"), dan paginasi Tenant -> gelap; ikon HP hijau di Pengguna -> abu.
+- Verifikasi: `npm run build` lulus; Pest penuh 914 passed, 6867 assertions, 0 gagal.

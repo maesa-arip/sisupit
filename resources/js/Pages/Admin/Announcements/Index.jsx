@@ -72,10 +72,13 @@ function StatusPill({ value }) {
 	return (
 		<span
 			className={cn(
-				'inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold',
-				value === 'Aktif' ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground',
+				'inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2 py-0.5 text-[11px] font-semibold text-foreground',
 			)}
 		>
+			<span
+				aria-hidden="true"
+				className={cn('h-1.5 w-1.5 shrink-0 rounded-full', value === 'Aktif' ? 'bg-success' : 'bg-muted-foreground/50')}
+			/>
 			{value}
 		</span>
 	);

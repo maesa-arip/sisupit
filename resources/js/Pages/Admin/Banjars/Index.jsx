@@ -248,7 +248,8 @@ export default function Index({
 													</span>
 												)}
 												{banjar.status === 'usulan' && (
-													<span className="shrink-0 rounded-full bg-warning/10 px-2.5 py-0.5 text-xs font-semibold text-warning">
+													<span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-0.5 text-xs font-semibold text-foreground">
+														<span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-warning" />
 														Usulan Warga
 													</span>
 												)}
@@ -274,7 +275,7 @@ export default function Index({
 													size="icon"
 													onClick={() => setujui(banjar.id)}
 													title="Tandai terverifikasi"
-													className="h-8 w-8 text-muted-foreground hover:text-success"
+													className="h-8 w-8 text-muted-foreground hover:text-foreground"
 												>
 													<IconCheck className="h-4 w-4" />
 												</Button>
@@ -283,7 +284,7 @@ export default function Index({
 												variant="ghost"
 												size="icon"
 												asChild
-												className="h-8 w-8 text-muted-foreground hover:text-info"
+												className="h-8 w-8 text-muted-foreground hover:text-foreground"
 											>
 												<Link href={route('admin.banjars.edit', banjar.id)}>
 													<IconEdit className="h-4 w-4" />

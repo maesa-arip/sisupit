@@ -63,31 +63,32 @@ const TEAL_ACCENT = {
 	pageActive: 'border-primary bg-primary text-primary-foreground shadow-sm',
 };
 
+// TASK_87: `badge` netral; warna status hanya di `dot` (pil) & `pin` (marker peta).
 const STATUS_META = {
 	TERLAPOR: {
 		label: 'Laporan Masuk',
-		badge: 'bg-destructive/10 text-destructive border-destructive/30',
+		badge: 'bg-card text-foreground border-border',
 		pin: 'text-destructive',
 		dot: 'bg-destructive',
 		ring: 'bg-destructive/10 text-destructive',
 	},
 	pending: {
 		label: 'Laporan Terverifikasi',
-		badge: 'bg-warning/10 text-warning border-warning/30',
+		badge: 'bg-card text-foreground border-border',
 		pin: 'text-warning',
 		dot: 'bg-warning',
 		ring: 'bg-warning/10 text-warning',
 	},
 	handling: {
 		label: 'Penanganan',
-		badge: 'bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal/10 dark:text-teal dark:border-teal/30',
+		badge: 'bg-card text-foreground border-border',
 		pin: 'text-teal-600 dark:text-teal',
 		dot: 'bg-teal-600 dark:bg-teal',
 		ring: 'bg-teal-50 text-teal-700 dark:bg-teal/10 dark:text-teal',
 	},
 	resolved: {
 		label: 'Selesai',
-		badge: 'bg-info/10 text-info border-info/30',
+		badge: 'bg-card text-foreground border-border',
 		pin: 'text-info',
 		dot: 'bg-info',
 		ring: 'bg-info/10 text-info',
@@ -284,6 +285,7 @@ function StatusBadge({ status }) {
 			variant="outline"
 			className={cn('whitespace-nowrap rounded-full px-2.5 py-0.5 font-semibold shadow-none', active.badge)}
 		>
+			<span aria-hidden="true" className={cn('mr-1.5 h-1.5 w-1.5 shrink-0 rounded-full', active.dot)} />
 			{active.label}
 		</Badge>
 	);
@@ -303,8 +305,8 @@ function formatDate(value) {
 // Chip ringkas untuk pemindaian triase cepat (umur laporan, ada/tanpa foto, tanpa titik).
 const CHIP_TONE = {
 	muted: 'border-border bg-muted/60 text-muted-foreground',
-	ok: 'border-success/30 bg-success/10 text-success',
-	warn: 'border-warning/30 bg-warning/10 text-warning',
+	ok: 'border-border bg-card text-foreground',
+	warn: 'border-border bg-card text-foreground',
 	danger: 'border-destructive/30 bg-destructive/10 text-destructive',
 };
 

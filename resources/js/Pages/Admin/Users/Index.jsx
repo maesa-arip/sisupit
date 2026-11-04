@@ -99,7 +99,7 @@ function PhoneReadiness({ user, className }) {
 		const needsSiren = (user.roles ?? []).some((role) => SIREN_ROLES.includes(role));
 		return (
 			<span
-				className={cn('text-xs', needsSiren ? 'font-medium text-warning' : 'text-muted-foreground', className)}
+				className={cn('text-xs', needsSiren ? 'font-medium text-foreground' : 'text-muted-foreground', className)}
 			>
 				{needsSiren ? 'Belum ada HP' : '-'}
 			</span>
@@ -108,7 +108,7 @@ function PhoneReadiness({ user, className }) {
 
 	return (
 		<span className={cn('inline-flex items-center gap-1 text-xs text-muted-foreground', className)}>
-			<IconDeviceMobile className="size-3.5 shrink-0 text-success" />
+			<IconDeviceMobile className="size-3.5 shrink-0 text-muted-foreground" />
 			<span>
 				<span className="font-medium tabular-nums text-foreground">{phones.count} HP</span>
 				{phones.last_seen && ` · aktif ${phones.last_seen}`}

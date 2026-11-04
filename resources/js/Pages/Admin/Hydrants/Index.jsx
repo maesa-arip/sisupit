@@ -228,7 +228,7 @@ export default function Index({
 						<div className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
 							<div>
 								<div className="mb-2 flex items-center gap-1.5">
-									<IconDroplet className="h-4 w-4 text-teal" />
+									<IconDroplet className="h-4 w-4 text-muted-foreground" />
 									<h3 className="text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
 										Ringkasan Air Desa
 									</h3>
@@ -284,7 +284,7 @@ export default function Index({
 											<div className="flex flex-col gap-2 px-4 py-3.5">
 												<div className="flex flex-row items-center gap-3">
 													<div
-														className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${facilityStatusIsFaulty(hydrant.status) ? 'bg-destructive/10 text-destructive' : 'bg-info/10 text-info'}`}
+														className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${facilityStatusIsFaulty(hydrant.status) ? 'bg-destructive/10 text-destructive' : 'bg-muted text-foreground/70'}`}
 													>
 														<IconFireHydrant className="h-5 w-5" />
 													</div>
@@ -374,7 +374,7 @@ export default function Index({
 															variant="ghost"
 															size="icon"
 															asChild
-															className="h-8 w-8 text-muted-foreground hover:text-info"
+															className="h-8 w-8 text-muted-foreground hover:text-foreground"
 														>
 															<Link href={route(v.routes.edit, hydrant.id)}>
 																<IconEdit className="h-4 w-4" />

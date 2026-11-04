@@ -127,12 +127,16 @@ export default function Index(props) {
 										<span className="mt-1 flex min-w-0 items-center gap-2 text-[13px] text-muted-foreground">
 											<span
 												className={cn(
-													'shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold',
-													tenant.is_active
-														? 'bg-success/10 text-success'
-														: 'bg-destructive/10 text-destructive',
+													'inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-2 py-0.5 text-[11px] font-semibold text-foreground',
 												)}
 											>
+												<span
+													aria-hidden="true"
+													className={cn(
+														'h-1.5 w-1.5 shrink-0 rounded-full',
+														tenant.is_active ? 'bg-success' : 'bg-destructive',
+													)}
+												/>
 												{tenant.is_active ? 'Aktif' : 'Nonaktif'}
 											</span>
 											<span className="truncate">
@@ -221,7 +225,7 @@ export default function Index(props) {
 				</CardContent>
 				<CardFooter className="flex w-full flex-col items-center justify-between border-t py-2 lg:flex-row">
 					<p className="mb-2 text-sm text-muted-foreground">
-						Menampilkan <span className="font-medium text-warning">{props.tenants.from ?? 0}</span> dari{' '}
+						Menampilkan <span className="font-medium text-foreground">{props.tenants.from ?? 0}</span> dari{' '}
 						{props.tenants.total} tenant
 					</p>
 					<div className="overflow-x-auto">

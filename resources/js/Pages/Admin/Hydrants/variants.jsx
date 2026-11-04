@@ -208,7 +208,7 @@ export function HydrantVariantBadge({ variant }) {
 	const config = hydrantVariant(variant);
 
 	return (
-		<span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700 dark:border-teal/30 dark:bg-teal/10 dark:text-teal">
+		<span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold text-foreground">
 			{config.tab}
 		</span>
 	);

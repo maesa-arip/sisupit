@@ -145,7 +145,7 @@ export default function Index({ agencies, filters }) {
 												</p>
 											)}
 											{agency.requires_confirmation && (
-												<p className="mt-1 flex items-start gap-1 text-[13px] font-medium leading-snug text-warning">
+												<p className="mt-1 flex items-start gap-1 text-[13px] font-medium leading-snug text-foreground">
 													<IconBolt className="mt-0.5 h-3.5 w-3.5 shrink-0" />
 													{agency.confirmation_label}
 												</p>
@@ -157,7 +157,7 @@ export default function Index({ agencies, filters }) {
 												variant="ghost"
 												size="icon"
 												asChild
-												className="h-8 w-8 text-muted-foreground hover:text-info"
+												className="h-8 w-8 text-muted-foreground hover:text-foreground"
 											>
 												<Link href={route('admin.agencies.edit', agency.id)}>
 													<IconEdit className="h-4 w-4" />

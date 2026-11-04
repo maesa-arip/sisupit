@@ -202,7 +202,7 @@ export default function Index({ stations, filters, tenant_location }) {
 											<div className="flex flex-col gap-2 px-4 py-3.5">
 												<div className="flex flex-row items-center gap-3">
 													<div
-														className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${station.status === 'Aktif' ? 'bg-info/10 text-info' : 'bg-destructive/10 text-destructive'}`}
+														className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${station.status === 'Aktif' ? 'bg-muted text-foreground/70' : 'bg-destructive/10 text-destructive'}`}
 													>
 														{station.status === 'Aktif' ? (
 															<IconFiretruck className="h-5 w-5" />
@@ -229,7 +229,7 @@ export default function Index({ stations, filters, tenant_location }) {
 															variant="ghost"
 															size="icon"
 															asChild
-															className="h-8 w-8 text-muted-foreground hover:text-info"
+															className="h-8 w-8 text-muted-foreground hover:text-foreground"
 														>
 															<Link href={route('admin.fire-stations.edit', station.id)}>
 																<IconEdit className="h-4 w-4" />

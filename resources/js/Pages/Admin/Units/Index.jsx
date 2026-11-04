@@ -31,11 +31,13 @@ import { useState } from 'react';
 const STATUS_META = {
 	available: {
 		label: 'Siap',
-		color: 'bg-success/10 text-success border-success/20',
+		color: 'bg-card text-foreground border-border',
+		dot: 'bg-success',
 	},
 	dispatched: {
 		label: 'Dikerahkan',
-		color: 'bg-warning/10 text-warning border-warning/20',
+		color: 'bg-card text-foreground border-border',
+		dot: 'bg-warning',
 	},
 	maintenance: { label: 'Perbaikan', color: 'bg-muted text-muted-foreground border-border' },
 };
@@ -144,7 +146,7 @@ export default function Index({ units, filters }) {
 								return (
 									<div key={unit.id} className="transition-colors hover:bg-muted/40 active:bg-muted">
 										<CardContent className="flex flex-row items-center gap-3 p-3 sm:p-4">
-											<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal/10 text-teal">
+											<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground/70">
 												<IconBuildingWarehouse className="h-5 w-5" />
 											</div>
 											<div className="min-w-0 flex-1">
@@ -153,8 +155,9 @@ export default function Index({ units, filters }) {
 														{unit.name}
 													</h3>
 													<span
-														className={`shrink-0 rounded-2xl border px-2 py-0.5 text-[11px] font-bold uppercase ${meta.color}`}
+														className={`inline-flex shrink-0 items-center rounded-2xl border px-2 py-0.5 text-[11px] font-bold uppercase ${meta.color}`}
 													>
+														{meta.dot && <span aria-hidden="true" className={`mr-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${meta.dot}`} />}
 														{meta.label}
 													</span>
 												</div>
@@ -174,7 +177,7 @@ export default function Index({ units, filters }) {
 													variant="ghost"
 													size="icon"
 													asChild
-													className="h-8 w-8 text-muted-foreground hover:text-info"
+													className="h-8 w-8 text-muted-foreground hover:text-foreground"
 												>
 													<Link href={route('admin.units.edit', unit.id)}>
 														<IconEdit className="h-4 w-4" />
