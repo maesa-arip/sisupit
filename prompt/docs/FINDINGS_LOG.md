@@ -5333,7 +5333,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   Email butuh SMTP prod (#191). Akun demo yang mengundang = email disenyapkan (TASK_81).
 - **Penjaga:** `PetugasInvitationTest`.
 
-### #236 — Form ulasan aplikasi sementara disembunyikan (SEMENTARA, lokal 2026-11-06)
+### #236 — Form ulasan aplikasi sementara disembunyikan (SEMENTARA, TERDEPLOY PROD @e8188f18 2026-11-06)
 
 - **Permintaan user:** "sementara hide dulu form rating sisupit, hide tampilannya saja".
 - **Perubahan:** flag `SHOW_APP_REVIEW_FORM = false` di `resources/js/Components/AppReview/flags.js` menggerbangi kartu ajakan
