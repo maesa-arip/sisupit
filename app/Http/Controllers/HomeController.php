@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AppReview;
 use App\Models\Report;
 use App\Models\Tenant;
 use App\Models\User;
@@ -42,6 +43,8 @@ class HomeController extends Controller
             'page_data' => [
                 ...$this->pageStats(),
             ],
+            // Testimoni ulasan aplikasi (TASK_86): kota tenant, apex = semua kota.
+            'testimonials' => AppReview::testimonials($this->tenantCityCode()),
         ]);
     }
 
@@ -67,6 +70,7 @@ class HomeController extends Controller
                 'title' => 'Sisupit',
                 'subtitle' => 'SISTEM UNTUK PELAPORAN DINI TERINTEGRASI',
             ],
+            'testimonials' => AppReview::testimonials($this->tenantCityCode(), 3),
             'page_data' => [
                 'reportChart' => $this->chart(),
                 ...$this->pageStats(),

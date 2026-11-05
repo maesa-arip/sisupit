@@ -103,6 +103,8 @@ it('lays out the entry, escapes typed text, and never carries the victim KTP', f
         ->toContain('A.A Ngurah')
         ->toContain('luka ringan')
         ->toContain(e($tenant->nama_instansi))
+        // Tanda Sisupit kecil di footer (2026-11-06), bukan di kop.
+        ->toContain('Dibuat dengan Sisupit')
         // Isian petugas ter-escape - tak ada tag yang ikut dirender.
         ->toContain('kebakaran dapur &lt;b&gt;tebal&lt;/b&gt;')
         ->not->toContain('<b>tebal</b>');

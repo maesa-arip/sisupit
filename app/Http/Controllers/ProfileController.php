@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AppReview;
 use App\Models\Banjar;
 use App\Models\Setting;
 use App\Models\SocialAccount;
@@ -46,7 +47,17 @@ class ProfileController extends Controller
                 'banjar_id' => $request->user()->banjar_id ? (string) $request->user()->banjar_id : '',
                 'required' => $this->banjarRequired(),
             ] : null,
+            // Kartu "Ubah Wilayah" (2026-11-06) - HANYA wilayah domisili (warga/relawan). Wilayah
+            // peran yang dikelola admin = wilayah TUGAS & kewenangan, tak boleh diubah sendiri.
+            'regionForm' => $this->canEditOwnRegion($request->user()) ? [
+                'provinces' => Province::select('code', 'name')->get(),
+                'codes' => $request->user()->only(['province_code', 'city_code', 'district_code', 'village_code']),
+                'banjar_id' => $request->user()->banjar_id ? (string) $request->user()->banjar_id : '',
+                'banjar_required' => $this->banjarRequired(),
+            ] : null,
             'skillOptions' => \App\Models\Skill::options(), // master keahlian untuk editor relawan di profil
+            // Ulasan aplikasi milik akun ini + pilihan tag (TASK_86, kartu "Ulasan Aplikasi").
+            'appReview' => AppReview::formProps($request->user()),
         ]);
     }
 
@@ -150,6 +161,57 @@ class ProfileController extends Controller
             // memblokir seluruh pendaftaran warga (gema #61). Lihat Setting::KEY_REQUIRE_BANJAR.
             'banjar_required' => $this->banjarRequired(),
         ]);
+    }
+
+    /**
+     * Boleh mengubah wilayah akunnya sendiri? Hanya peran yang wilayahnya = tempat tinggal.
+     * Peran CENTRALLY_MANAGED_ROLES (staf + OPD) memakai kode wilayah sebagai wilayah TUGAS -
+     * menentukan laporan yang dilihat & yurisdiksinya - jadi hanya admin yang mengubahnya
+     * (keputusan user 2026-11-06). Daftar yang sama dengan pengecualian Lengkapi Profil.
+     */
+    private function canEditOwnRegion(User $user): bool
+    {
+        return ! $user->hasAnyRole(User::CENTRALLY_MANAGED_ROLES);
+    }
+
+    /**
+     * Ubah wilayah domisili akun sendiri (2026-11-06). Laporan user: warga yang mendaftar saat
+     * berada di kabupaten lain terisi wilayah tempat ia mendaftar, dan sebelumnya tak ada jalan
+     * memperbaikinya. Banjar ikut dikirim karena banjar milik desa - ganti desa = pilih ulang.
+     */
+    public function updateRegion(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        abort_unless($this->canEditOwnRegion($user), 403, 'Wilayah tugas diatur oleh admin.');
+
+        $data = $request->validate([
+            'province_code' => 'required|exists:indonesia_provinces,code',
+            'city_code' => 'required|exists:indonesia_cities,code',
+            'district_code' => 'required|exists:indonesia_districts,code',
+            'village_code' => 'required|exists:indonesia_villages,code',
+            'banjar_id' => [$this->banjarRequired() ? 'required' : 'nullable', 'integer', 'exists:banjars,id'],
+        ], [
+            'banjar_id.required' => 'Pilih banjar tempat Anda tinggal.',
+        ]);
+
+        // Keempat kode harus satu rantai (desa di kecamatan itu, dst.) - `exists` saja tak
+        // membuktikannya, dan kode wilayah menentukan notifikasi yang diterima.
+        $chainOk = str_starts_with($data['city_code'], $data['province_code'])
+            && str_starts_with($data['district_code'], $data['city_code'])
+            && str_starts_with($data['village_code'], $data['district_code']);
+        if (! $chainOk) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'village_code' => 'Pilihan wilayah tidak saling cocok. Pilih ulang dari provinsi.',
+            ]);
+        }
+
+        Banjar::assertBelongsToVillage($data['banjar_id'] ?? null, $data['village_code']);
+
+        $user->update([...$data, 'banjar_id' => $data['banjar_id'] ?? null]);
+
+        flashMessage('Wilayah tempat tinggal berhasil diperbarui.');
+
+        return Redirect::route('profile.edit');
     }
 
     /** Apakah warga wajib memilih banjar saat melengkapi profil? */
@@ -279,6 +341,16 @@ class ProfileController extends Controller
                 DB::table('password_reset_tokens')->where('email', $user->email)->delete();
             }
             $user->notifications()->delete();
+            // Ulasan aplikasi (TASK_86): bintangnya tetap dihitung, tapi komentar (bisa memuat
+            // identitas) dibuang dan testimoni diturunkan - nama "Akun Dihapus" tak boleh tampil.
+            AppReview::withoutGlobalScopes()->where('user_id', $user->id)->update([
+                'comment' => null,
+                'allow_public' => false,
+                'approved_at' => null,
+                'approved_by' => null,
+                'province_code' => null,
+                'city_code' => null,
+            ]);
             $user->syncRoles([]);
             $user->syncPermissions([]);
 

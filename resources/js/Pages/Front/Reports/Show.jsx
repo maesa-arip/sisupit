@@ -1843,11 +1843,6 @@ export default function ReportShow(props) {
 														</Button>
 													)}
 												</div>
-												{myRegu?.stay_taken_by && (
-													<p className="text-center text-xs text-muted-foreground">
-														{myRegu.stay_taken_by} sudah Jaga di Kantor untuk {myRegu.name}.
-													</p>
-												)}
 											</div>
 										) : myRecord.status === 'en_route' ? (
 											<>
@@ -2246,16 +2241,19 @@ export default function ReportShow(props) {
 													</span>
 												</div>
 												{anggota.map(renderOfficerRow)}
-												{regu.stay && (
-													<div className="flex items-center justify-between gap-3 p-3.5 text-xs">
+												{(regu.stays || []).map((name, i) => (
+													<div
+														key={`stay-${i}`}
+														className="flex items-center justify-between gap-3 p-3.5 text-xs"
+													>
 														<div className="min-w-0 flex-1 truncate font-semibold text-foreground">
-															{regu.stay}
+															{name}
 														</div>
 														<Badge className="rounded-xl border border-border bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground shadow-none">
 															Jaga di Kantor
 														</Badge>
 													</div>
-												)}
+												))}
 												{regu.pending.length > 0 && (
 													<div className="p-3.5 text-xs leading-relaxed text-muted-foreground">
 														Belum memilih: {regu.pending.join(', ')}

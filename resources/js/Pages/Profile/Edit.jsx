@@ -1,4 +1,8 @@
+import AppReviewDialog from '@/Components/AppReview/AppReviewDialog';
+import StarRating from '@/Components/AppReview/StarRating';
 import BanjarField from '@/Components/BanjarField';
+import { groupedRowsClass } from '@/Components/GroupedForm';
+import RegionFields from '@/Components/RegionFields';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -27,6 +31,7 @@ import {
 	IconLogout,
 	IconMapPin,
 	IconMedal,
+	IconMessageStar,
 	IconShieldCheck,
 	IconUserEdit,
 } from '@tabler/icons-react';
@@ -75,6 +80,8 @@ export default function Edit(props) {
 	const [skills, setSkills] = useState(Array.isArray(user?.skills) ? user.skills : []);
 	const [isSavingSkills, setIsSavingSkills] = useState(false);
 	const [confirmLogoutEverywhere, setConfirmLogoutEverywhere] = useState(false);
+	const [reviewOpen, setReviewOpen] = useState(false);
+	const myReview = props.appReview?.mine ?? null;
 
 	const toggleSkill = (skill) => {
 		setSkills((prev) => (prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]));
@@ -194,6 +201,10 @@ export default function Edit(props) {
 					</Group>
 				)}
 
+				{/* --- UBAH WILAYAH (2026-11-06) --- prop server: hanya warga/relawan. Wilayah tugas
+				    staf & OPD tetap diatur admin (ProfileController::canEditOwnRegion). */}
+				{props.regionForm && <RegionCard form={props.regionForm} />}
+
 				{/* --- BANJAR --- */}
 				{/* Terpisah dari kartu wilayah di atas yang murni tampilan: banjar BOLEH diubah
 				    (warga pindah banjar, atau salah pilih saat mendaftar), sedangkan kode wilayah akun
@@ -310,6 +321,40 @@ export default function Edit(props) {
 					</Group>
 				</div>
 
+				{/* --- ULASAN APLIKASI (TASK_86) --- di semua platform; masuk ke database Sisupit, bukan toko aplikasi. */}
+				<Group
+					title="Ulasan Aplikasi"
+					footer={
+						myReview?.approved
+							? 'Ulasan Anda sedang tampil sebagai testimoni di halaman depan.'
+							: 'Ulasan dibaca tim Sisupit. Testimoni hanya tampil bila Anda izinkan dan admin menyetujuinya.'
+					}
+				>
+					<button
+						type="button"
+						onClick={() => setReviewOpen(true)}
+						className="flex min-h-[56px] w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50 active:bg-muted"
+					>
+						<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-warning/10 text-warning">
+							<IconMessageStar size={18} stroke={1.75} />
+						</span>
+						<span className="min-w-0 flex-1">
+							<span className="block truncate text-[15px] font-medium text-foreground">
+								{myReview ? 'Ubah ulasan Anda' : 'Beri ulasan untuk Sisupit'}
+							</span>
+							{myReview ? (
+								<StarRating value={myReview.rating} size="sm" className="mt-0.5" />
+							) : (
+								<span className="block truncate text-[13px] text-muted-foreground">
+									Ceritakan seberapa membantu aplikasi ini
+								</span>
+							)}
+						</span>
+						<IconChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/50" />
+					</button>
+				</Group>
+				<AppReviewDialog open={reviewOpen} onOpenChange={setReviewOpen} review={props.appReview} />
+
 				{!isWebView && (
 					<Group title="Aplikasi">
 						<a
@@ -383,6 +428,87 @@ export default function Edit(props) {
 }
 
 Edit.layout = (page) => <AppLayout children={page} title={'Profil Pengguna'} />;
+
+/**
+ * Kartu ubah wilayah tempat tinggal (2026-11-06). Tertutup = satu tombol; terbuka = isian yang
+ * sama dengan layar Lengkapi Profil (<RegionFields/>) + banjar, karena banjar milik desa.
+ */
+function RegionCard({ form }) {
+	const [open, setOpen] = useState(false);
+	const { data, setData, patch, processing, errors, reset, clearErrors } = useForm({
+		province_code: form.codes.province_code || '',
+		city_code: form.codes.city_code || '',
+		district_code: form.codes.district_code || '',
+		village_code: form.codes.village_code || '',
+		banjar_id: form.banjar_id || '',
+	});
+
+	const tutup = () => {
+		reset();
+		clearErrors();
+		setOpen(false);
+	};
+
+	const simpan = (e) => {
+		e.preventDefault();
+		patch(route('profile.region'), {
+			preserveScroll: true,
+			onSuccess: () => {
+				setOpen(false);
+				toast.success('Wilayah tempat tinggal berhasil diperbarui.');
+			},
+		});
+	};
+
+	if (!open) {
+		return (
+			<Button type="button" variant="outline" onClick={() => setOpen(true)} className="h-11 w-full rounded-xl">
+				<IconMapPin className="h-4 w-4" /> Ubah Wilayah Tempat Tinggal
+			</Button>
+		);
+	}
+
+	return (
+		<form onSubmit={simpan} className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
+			<h3 className="flex items-center gap-3 text-[15px] font-semibold text-foreground">
+				<span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+					<IconMapPin size={18} stroke={1.75} />
+				</span>
+				Ubah Wilayah Tempat Tinggal
+			</h3>
+			<p className="mt-2 text-[13px] text-muted-foreground">
+				Pilih wilayah tempat Anda tinggal, bukan tempat Anda berada sekarang. Notifikasi darurat di sekitar Anda
+				mengikuti wilayah ini.
+			</p>
+
+			<div className={cn('mt-4', groupedRowsClass)}>
+				<RegionFields data={data} setData={setData} errors={errors} provinces={form.provinces} />
+				<BanjarField
+					villageCode={data.village_code}
+					value={data.banjar_id}
+					onChange={(val) => setData('banjar_id', val)}
+					error={errors.banjar_id}
+					required={form.banjar_required}
+					className="space-y-1.5"
+				/>
+			</div>
+
+			<div className="mt-4 flex gap-2">
+				<Button type="submit" disabled={processing || !data.village_code} className="h-10 rounded-xl px-4">
+					{processing ? (
+						<IconLoader2 className="h-4 w-4 animate-spin" />
+					) : (
+						<IconDeviceFloppy className="h-4 w-4" />
+					)}{' '}
+					Simpan
+				</Button>
+				<Button type="button" variant="outline" onClick={tutup} className="h-10 rounded-xl px-4">
+					Batal
+				</Button>
+			</div>
+		</form>
+	);
+}
 
 /**
  * Kartu ubah banjar. Memakai <BanjarField/> yang sama dengan layar Lengkapi Profil & form

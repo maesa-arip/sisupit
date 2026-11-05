@@ -10,11 +10,15 @@ use App\Http\Requests\Admin\UserRequest;
 use App\Http\Resources\Admin\UserResource;
 use App\Models\Agency;
 use App\Models\User;
+use App\Models\UserInvitation;
+use App\Notifications\PetugasInvitationNotification;
 use App\Traits\HasFile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Response;
@@ -214,6 +218,156 @@ class UserController extends Controller
             flashMessage(MessageType::ERROR->message(error: $e->getMessage()), 'error');
 
             return to_route('admin.users.index');
+        }
+    }
+
+    /**
+     * Halaman "Undang Petugas" (2026-11-06): form undangan + daftar undangan di wilayah admin.
+     * Wilayah tugas dipilih dengan kunci yang sama dengan Tambah Pengguna (regionFormProps):
+     * tingkat wilayah admin sendiri terkunci, yang lebih rinci dipilih.
+     */
+    public function invitations(): Response
+    {
+        $admin = auth()->user();
+
+        $invitations = UserInvitation::withinRegionOf($admin)
+            ->with('inviter:id,name')
+            ->latest('id')
+            ->limit(50)
+            ->get()
+            ->map(fn (UserInvitation $inv) => [
+                'id' => $inv->id,
+                'email' => $inv->email,
+                'status' => $inv->status(),
+                'region' => UserInvitation::regionNameOf($inv->regionCodes()),
+                'inviter' => optional($inv->inviter)->name,
+                'created_at' => $inv->created_at?->toIso8601String(),
+                'expires_at' => $inv->expires_at?->toIso8601String(),
+                'accepted_at' => $inv->accepted_at?->toIso8601String(),
+            ]);
+
+        return inertia('Admin/Users/Invite', [
+            'page_settings' => [
+                'title' => 'Undang Petugas',
+                'subtitle' => 'Kirim tautan undangan lewat email. Penerima langsung menjadi petugas di wilayah tugas yang Anda pilih.',
+            ],
+            'invitations' => $invitations,
+            'assignable_levels' => $this->assignableLevels(),
+            'valid_days' => UserInvitation::VALID_DAYS,
+            ...$this->regionFormProps($admin),
+        ]);
+    }
+
+    public function storeInvitation(Request $request): RedirectResponse
+    {
+        $admin = auth()->user();
+
+        $request->validate([
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255'],
+            'level' => ['required', Rule::in(array_column($this->assignableLevels(), 'value'))],
+        ], [
+            'email.lowercase' => 'Email harus huruf kecil semua.',
+        ]);
+
+        $email = $request->email;
+
+        // Akun yang sudah ada: petugas tak perlu diundang lagi; peran lain yang dikelola
+        // terpusat (admin/pejabat/OPD) TIDAK boleh diturunkan diam-diam lewat undangan.
+        $existing = User::where('email', $email)->first();
+        if ($existing?->hasRole('petugas')) {
+            throw ValidationException::withMessages(['email' => 'Email ini sudah terdaftar sebagai petugas.']);
+        }
+        if ($existing?->hasAnyRole(User::CENTRALLY_MANAGED_ROLES)) {
+            throw ValidationException::withMessages(['email' => 'Email ini milik akun dengan peran lain (admin/pejabat/OPD). Ubah perannya lewat Kelola Pengguna.']);
+        }
+
+        // Kode wilayah: tingkat milik admin terkunci (pola store()), sisanya dari form.
+        $codes = [
+            'province_code' => $admin->province_code ?? $request->province_code,
+            'city_code' => $admin->city_code ?? $request->city_code,
+            'district_code' => $admin->district_code ?? $request->district_code,
+            'village_code' => $admin->village_code ?? $request->village_code,
+        ];
+        $this->assertRegionChain($codes);
+
+        $level = TenantLevel::from($request->level);
+        $draft = new User($codes);
+        if ($this->regionRank($draft) < $level->rank()) {
+            throw ValidationException::withMessages([
+                'level' => "Pilih wilayah tugas sampai tingkat {$level->label()} lebih dulu.",
+            ]);
+        }
+        $trimmed = $this->trimRegionToLevel($draft, $level);
+
+        $token = UserInvitation::newToken();
+
+        // Satu tautan aktif per email: undangan lama yang belum dipakai dibatalkan.
+        UserInvitation::where('email', $email)->whereNull('accepted_at')->delete();
+        $invitation = UserInvitation::create([
+            'email' => $email,
+            'role' => 'petugas',
+            'token_hash' => UserInvitation::hashToken($token),
+            ...$trimmed,
+            'invited_by' => $admin->id,
+            'expires_at' => now()->addDays(UserInvitation::VALID_DAYS),
+        ]);
+
+        try {
+            Notification::route('mail', $email)->notify(new PetugasInvitationNotification(
+                url: route('invitations.show', $token),
+                inviterName: $admin->name,
+                regionName: UserInvitation::regionNameOf($trimmed) ?? '-',
+                expiresAt: $invitation->expires_at->copy()->setTimezone(config('app.local_timezone'))->format('d-m-Y H:i'),
+            ));
+        } catch (\Throwable $e) {
+            // Tanpa email, undangan tak bisa dipakai siapa pun - jangan tinggalkan baris yatim.
+            $invitation->delete();
+            Log::error('Undangan petugas gagal dikirim', ['email' => $email, 'error' => $e->getMessage()]);
+
+            throw ValidationException::withMessages(['email' => 'Email undangan gagal dikirim. Periksa alamatnya lalu coba lagi.']);
+        }
+
+        flashMessage("Undangan terkirim ke {$email}.");
+
+        return back();
+    }
+
+    public function destroyInvitation(int $invitation): RedirectResponse
+    {
+        // Dicari DI DALAM wilayah admin - id dari URL tak cukup (aturan emas #7).
+        $row = UserInvitation::withinRegionOf(auth()->user())->whereNull('accepted_at')->findOrFail($invitation);
+        $row->delete();
+
+        flashMessage('Undangan dibatalkan.');
+
+        return back();
+    }
+
+    /** Kode yang terisi harus satu rantai (tanpa lompatan) dan ada di tabel wilayah. */
+    private function assertRegionChain(array $codes): void
+    {
+        $tables = [
+            'province_code' => 'indonesia_provinces',
+            'city_code' => 'indonesia_cities',
+            'district_code' => 'indonesia_districts',
+            'village_code' => 'indonesia_villages',
+        ];
+        $parent = null;
+        $ended = false;
+        foreach ($tables as $column => $table) {
+            $code = $codes[$column] ?? null;
+            if (! $code) {
+                $ended = true;
+
+                continue;
+            }
+            $ok = ! $ended
+                && ($parent === null || str_starts_with($code, $parent))
+                && DB::table($table)->where('code', $code)->exists();
+            if (! $ok) {
+                throw ValidationException::withMessages(['level' => 'Pilihan wilayah tugas tidak valid. Pilih ulang dari atas.']);
+            }
+            $parent = $code;
         }
     }
 
