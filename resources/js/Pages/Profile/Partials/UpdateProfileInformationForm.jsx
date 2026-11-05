@@ -232,7 +232,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 							</p>
 
 							{status === 'verification-link-sent' && (
-								<Alert className="mt-3 border-success/20 bg-success/10 text-success">
+								<Alert className="mt-3 border-border bg-muted text-foreground">
 									<AlertDescription>
 										Tautan verifikasi baru telah dikirim ke alamat email Anda.
 									</AlertDescription>

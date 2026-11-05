@@ -68,7 +68,7 @@ export default function Create({ contacts = [], mailbox }) {
 				<Card className="w-full max-w-2xl">
 					<CardContent className="p-5 sm:p-6">
 						{contacts.length === 0 ? (
-							<div className="flex items-start gap-3 rounded-2xl border border-warning/20 bg-warning/10 p-3 text-warning">
+							<div className="flex items-start gap-3 rounded-2xl border border-border bg-muted p-3 text-foreground">
 								<IconInfoCircle className="mt-0.5 h-5 w-5 shrink-0" />
 								<p className="text-xs font-medium leading-relaxed">
 									Belum ada penerima terdaftar untuk wilayah ini. Minta admin mengisi Daftar Penerima

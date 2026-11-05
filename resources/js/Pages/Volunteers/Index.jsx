@@ -1,3 +1,4 @@
+import DotPill from '@/Components/DotPill';
 import { AppEmpty } from '@/Components/AppSection';
 import ComboBox from '@/Components/ComboBox';
 import { filledFieldsClass } from '@/Components/GroupedForm';
@@ -186,16 +187,9 @@ export default function Index({ volunteers, filterOptions, filters, ...props }) 
 											{volunteer.name}
 										</Link>
 									</h3>
-									<span
-										className={cn(
-											'shrink-0 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold',
-											volunteer.status === 'Siaga'
-												? 'bg-success/10 text-success'
-												: 'bg-muted text-muted-foreground',
-										)}
-									>
+									<DotPill tone={volunteer.status === 'Siaga' ? 'success' : 'muted'} className="shrink-0">
 										{volunteer.status}
-									</span>
+									</DotPill>
 								</div>
 								<p className="mt-0.5 flex items-start gap-1 text-[13px] leading-snug text-muted-foreground">
 									<IconMapPinFilled className="mt-0.5 h-3.5 w-3.5 shrink-0" />

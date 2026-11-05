@@ -290,3 +290,25 @@ Sapuan `resources/js` per kategori larangan; yang masih tersisa di kode yang DIP
   MultiSelect `animate-bounce` (hanya bila prop `animation`, tak ada pemakai). Em dash tersisa = komentar kode saja.
 - Bayangan & tint: sudah dinetralkan global sejak putaran 1 (boxShadow none + blok penetral app.css).
 - Verifikasi: `npm run build` lulus; Pest penuh 914 passed, 6867 assertions, 0 gagal (= putaran 7).
+
+## 16. Putaran 9 (2026-11-05) - cek HTTPS dev + sisa warna status
+
+Dev terverifikasi HTTPS memakai build putaran 8 (app-DdN30nMo.js) sebelum putaran ini. Playwright (playwright-core
+1.64 di folder tmp job, di luar repo) 390x844 @2x + 1440x900, skema terang & gelap: tamu (/, /login, /hydrants,
+/reports/create), petugas1 (/dashboard), admin@denpasar.go.id (/dashboard, /admin/reports, ponsel & desktop).
+Semua 200, tanpa error JS (satu-satunya error konsol = izin lokasi ditolak di headless). Akun seeder warga3 tidak
+ada di salinan data prod dev -> layar warga belum dicek (sengaja tidak memakai akun warga asli).
+
+Temuan & perbaikan (garis/ikon/teks berwarna status lolos dari penetral latar tint putaran 1):
+- **Banner "Belum ada HP yang menerima sirine"** (NotificationDeviceBanner, dashboard petugas/relawan): garis &
+  ikon kuning -> pola banner keselamatan Thanks (garis merah tipis, kartu putih, ikon merah, teks gelap), hover
+  tanpa transisi.
+- **Kartu "Notifikasi di HP ini"** (NotificationDeviceCard): chip ikon hijau -> netral gelap, kuning -> merah.
+- **Popover Fasilitas bilah bawah:** ikon biru/teal/slate per jenis -> `FASILITAS_ITEM_TONE = {}` (netral seperti
+  popover Menu: ikon abu, baris aktif merah).
+- **Pil status relawan** (Volunteers/Show & Index) -> `DotPill` (Siaga = titik hijau).
+- Ikon Android hijau di Login & Profil, alert "tersimpan" hijau di Profil, callout kuning form email, ikon pin
+  biru daftar pompa publik -> netral.
+- Sengaja TIDAK diubah: warna pin misi petugas (marker peta), Peta Pemantauan, indikator GPS form lapor,
+  teks "Tersimpan." hijau kecil (umpan balik form).
+- Verifikasi: `npm run build` lulus; Pest penuh 914 passed, 6867 assertions, 0 gagal (= putaran 8).

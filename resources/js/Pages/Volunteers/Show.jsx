@@ -1,3 +1,4 @@
+import DotPill from '@/Components/DotPill';
 import HeaderTitle from '@/Components/HeaderTitle';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
@@ -48,15 +49,7 @@ export default function Show({ volunteer }) {
 						<div className="relative h-24 border-b border-border bg-muted">
 							{/* Status Badge */}
 							<div className="absolute right-4 top-4">
-								<span
-									className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
-										user.status === 'Siaga'
-											? 'border-success/30 bg-success/10 text-success'
-											: 'border-warning/30 bg-warning/10 text-warning'
-									}`}
-								>
-									{user.status}
-								</span>
+								<DotPill tone={user.status === 'Siaga' ? 'success' : 'warning'}>{user.status}</DotPill>
 							</div>
 						</div>
 

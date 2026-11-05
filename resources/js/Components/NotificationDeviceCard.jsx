@@ -30,13 +30,13 @@ const STATUS = {
 	},
 	active: {
 		icon: IconCircleCheck,
-		tint: 'bg-success/10 text-success',
+		tint: 'bg-muted text-foreground',
 		title: 'Aktif',
 		subtitle: 'HP ini terdaftar menerima notifikasi. Coba bunyinya di bawah.',
 	},
 	inactive: {
 		icon: IconAlertTriangle,
-		tint: 'bg-warning/15 text-warning',
+		tint: 'bg-muted text-destructive',
 		title: 'Belum aktif',
 		subtitle:
 			'HP ini belum terdaftar. Tutup lalu buka lagi aplikasinya, dan pastikan notifikasi Sisupit diizinkan.',
@@ -62,7 +62,7 @@ const DESKTOP = {
 	},
 	active: {
 		icon: IconCircleCheck,
-		tint: 'bg-success/10 text-success',
+		tint: 'bg-muted text-foreground',
 		title: 'Aktif',
 		subtitle:
 			'Komputer ini menerima notifikasi selama Sisupit Desktop berjalan, termasuk saat jendelanya ditutup ke tray.',
@@ -76,7 +76,7 @@ const DESKTOP = {
 	},
 	failed: {
 		icon: IconAlertTriangle,
-		tint: 'bg-warning/15 text-warning',
+		tint: 'bg-muted text-destructive',
 		title: 'Belum tersambung',
 		subtitle:
 			'Komputer ini belum menerima notifikasi. Periksa koneksi internet; Sisupit Desktop menyambung ulang sendiri.',
@@ -109,7 +109,7 @@ const PROBLEM = {
 	},
 	channels: {
 		icon: IconAlertTriangle,
-		tint: 'bg-warning/15 text-warning',
+		tint: 'bg-muted text-destructive',
 		title: 'Sebagian notifikasi dimatikan',
 		action: 'Buka setelan notifikasi',
 	},

@@ -246,7 +246,7 @@ export default function Index({ pumps, filters, ...props }) {
 				<div className="hidden w-full flex-col gap-3 lg:sticky lg:top-[90px] lg:flex lg:flex-1">
 					{/* Header Peta */}
 					<div className="flex items-center gap-2 px-1">
-						<IconMapPinFilled className="h-4 w-4 text-info" />
+						<IconMapPinFilled className="h-4 w-4 text-muted-foreground" />
 						<h2 className="text-sm font-semibold text-foreground">Sebaran Titik SKKL</h2>
 					</div>
 

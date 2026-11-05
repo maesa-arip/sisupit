@@ -317,7 +317,7 @@ export default function Edit(props) {
 							download="Sisupit.apk"
 							className="flex min-h-[56px] w-full items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50 active:bg-muted"
 						>
-							<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-success/10 text-success">
+							<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground">
 								<IconBrandAndroid size={18} stroke={1.75} />
 							</span>
 							<span className="flex-1 text-[15px] font-medium text-foreground">

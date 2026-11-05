@@ -50,9 +50,9 @@ export default function NotificationDeviceBanner({ deviceCount }) {
 	return (
 		<Link
 			href={`${route('profile.edit')}#notifikasi-hp`}
-			className="flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 transition-colors hover:bg-warning/15 active:bg-warning/20"
+			className="flex items-start gap-3 rounded-xl border border-destructive/40 bg-card px-4 py-3 hover:bg-muted active:bg-muted"
 		>
-			<IconAlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warning" stroke={2} />
+			<IconAlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" stroke={2} />
 			<span className="min-w-0 flex-1">
 				<span className="block text-sm font-semibold text-foreground">{pesan.title}</span>
 				<span className="mt-0.5 block text-[13px] leading-snug text-muted-foreground">{pesan.body}</span>

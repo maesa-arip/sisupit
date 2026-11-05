@@ -189,13 +189,9 @@ const FASILITAS_ITEM_KEYS = ['hydrants', 'pumps', 'fire_stations', 'volunteers',
  * Kelasnya sengaja ditulis UTUH, bukan dirakit dari nama warna: Tailwind memindai teks
  * sumber, kelas hasil template string tak akan pernah ikut ter-generate.
  */
-const FASILITAS_ITEM_TONE = {
-	pumps: { icon: 'text-info', active: 'bg-info/10 text-info' },
-	fire_stations: { icon: 'text-destructive', active: 'bg-destructive/10 text-destructive' },
-	hydrants: { icon: 'text-teal', active: 'bg-teal/10 text-teal' },
-	volunteers: { icon: 'text-volunteer', active: 'bg-volunteer/10 text-volunteer' },
-	'monitoring.map': { icon: 'text-teal', active: 'bg-teal/10 text-teal' },
-};
+// TASK_87 (desain clean minimalis, branch ini + dev): ikon jenis fasilitas tak lagi berwarna pelangi -
+// semua jatuh ke netral (ikon abu, baris aktif merah) seperti popover "Menu". Isi production ada di main.
+const FASILITAS_ITEM_TONE = {};
 
 /** Tint baris aktif untuk item tanpa warna jenis (popover "Menu") — sama dengan production. */
 const MENU_ACTIVE_TONE = 'bg-destructive/10 text-destructive';
