@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
-import { ChevronRight, Users } from 'lucide-react';
+import { IconChevronRight as ChevronRight, IconUsers as Users } from '@tabler/icons-react';
 
 export default function DialogRelawanList({ open, onClose, helpers = [], onSelect }) {
 	return (

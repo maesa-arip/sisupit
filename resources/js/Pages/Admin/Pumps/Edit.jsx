@@ -693,7 +693,7 @@ export default function Edit({
 					    cukup. Nilai 400 dulu menembus SEMUA lapisan halaman — header sticky
 					    (z-40) dan dialog Radix (z-50) ikut tertimpa chip ini. */}
 					<div className="pointer-events-none absolute left-1/2 top-4 z-10 -translate-x-1/2">
-						<div className="flex items-center gap-2 rounded-full border border-border bg-background/80 px-4 py-2 shadow-sm backdrop-blur-md">
+						<div className="flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 shadow-sm">
 							<IconArrowsMove className="h-4 w-4 text-primary" />
 							<span className="text-xs font-medium text-foreground">
 								Geser pin pada peta untuk koreksi akurasi

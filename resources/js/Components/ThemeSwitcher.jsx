@@ -1,4 +1,4 @@
-import { Moon, Sun } from 'lucide-react';
+import { IconMoon as Moon, IconSun as Sun } from '@tabler/icons-react';
 import { flushSync } from 'react-dom';
 import { useTheme } from './ThemeProvider';
 import { Button } from './ui/button';

@@ -267,3 +267,26 @@ Desain FigCraft belum punya papan gelap; acuan = kesepakatan desain (bukan hitam
 - Temuan di luar cakupan: header masih menampilkan tagline merah kapital "SISTEM UNTUK PELAPORAN DINI TERINTEGRASI"
   (bawaan main; #217 menyebut tagline dibuang dari judul/meta - perlu dicek user apakah header juga dimaksud).
 - Verifikasi: `npm run build` lulus; Pest penuh 914 passed, 6867 assertions, 0 gagal.
+
+## 15. Putaran 8 (2026-11-05) - audit kepatuhan KESEPAKATAN-DESAIN.md
+
+Dev terverifikasi HTTPS memakai build putaran 7 (app-DGA8hLH6.js) sebelum putaran ini.
+Sapuan `resources/js` per kategori larangan; yang masih tersisa di kode yang DIPAKAI dibereskan:
+
+- **Ikon Lucide -> Tabler** di 17 berkas hidup (DialogRelawanDetail/List, MultiSelect, ReportCard, ThemeSwitcher,
+  ui/calendar, toast, carousel, radio-group, sheet, command, dropdown-menu, sidebar, dialog, checkbox, combobox,
+  select): impor alias `IconX as X` (pola putaran 2), pemakaian JSX tak berubah. `WandSparkles` (ikon kilau,
+  dilarang) -> `IconWand`; `ShieldAlert` -> `IconShieldExclamation`; `PanelLeft` -> `IconLayoutSidebar`.
+  ReportCard `strokeWidth` -> `stroke` (nama prop Tabler).
+- **Animasi hover/denyut:** titik "Laporan Masuk" ReportCard tak lagi berdenyut; foto ReportCard tak membesar saat
+  hover, label "Perbesar" selalu tampil di pojok (ponsel tak punya hover). Landing (`/landing`): ping, kotak api
+  miring + putar saat hover + bayangan merah, dan dua lingkaran tint konsentris (orb radial) dibuang.
+- **Efek kaca (backdrop-blur):** header PublicLayout & pil peta admin (Pos/Hydrant/Pompa Edit) jadi solid;
+  overlay Dialog/AlertDialog/filter Peta Pemantauan/peta misi petugas tanpa blur; tombol hapus foto tanpa blur.
+- Sengaja TIDAK diubah: berkas mati (app-sidebar, nav-*, data-table, section-cards, breadcrumb, calendar1,
+  navigation-menu, pagination, HelpConfirmAlertDialog, AuthenticatedLayout + ResponsiveNavLink ber-border-l-4,
+  Home.jsx - /home 301); `Guideline.jsx` (dokumen gaya lama, menyebut Inter - halaman /guideline); `lucide-react`
+  tetap di package.json karena berkas mati masih mengimpornya; skeleton `animate-pulse` (umpan muat, WAJIB ada);
+  MultiSelect `animate-bounce` (hanya bila prop `animation`, tak ada pemakai). Em dash tersisa = komentar kode saja.
+- Bayangan & tint: sudah dinetralkan global sejak putaran 1 (boxShadow none + blok penetral app.css).
+- Verifikasi: `npm run build` lulus; Pest penuh 914 passed, 6867 assertions, 0 gagal (= putaran 7).

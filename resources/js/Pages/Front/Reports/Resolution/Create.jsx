@@ -569,7 +569,7 @@ export default function Create(props) {
 															<button
 																type="button"
 																onClick={() => setVictimKtp(i, null)}
-																className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-lg border border-transparent bg-card/90 text-destructive shadow-sm backdrop-blur-sm transition-colors hover:border-destructive/30 hover:bg-destructive/10"
+																className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-lg border border-transparent bg-card/90 text-destructive shadow-sm transition-colors hover:border-destructive/30 hover:bg-destructive/10"
 																title="Hapus foto KTP"
 															>
 																<IconX stroke={2.5} className="h-3.5 w-3.5" />
@@ -624,7 +624,7 @@ export default function Create(props) {
 											<button
 												type="button"
 												onClick={() => removeSavedPhoto(ph.id)}
-												className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-lg border border-transparent bg-card/90 text-destructive shadow-sm backdrop-blur-sm transition-colors hover:border-destructive/30 hover:bg-destructive/10"
+												className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-lg border border-transparent bg-card/90 text-destructive shadow-sm transition-colors hover:border-destructive/30 hover:bg-destructive/10"
 												title="Hapus foto"
 											>
 												<IconX stroke={2.5} className="h-4 w-4" />
@@ -644,7 +644,7 @@ export default function Create(props) {
 											<button
 												type="button"
 												onClick={() => removePhoto(i)}
-												className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-lg border border-transparent bg-card/90 text-destructive shadow-sm backdrop-blur-sm transition-colors hover:border-destructive/30 hover:bg-destructive/10"
+												className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-lg border border-transparent bg-card/90 text-destructive shadow-sm transition-colors hover:border-destructive/30 hover:bg-destructive/10"
 												title="Hapus foto"
 											>
 												<IconX stroke={2.5} className="h-4 w-4" />

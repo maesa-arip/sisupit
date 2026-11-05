@@ -1,7 +1,7 @@
 'use client';
 
 import * as SelectPrimitive from '@radix-ui/react-select';
-import { Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { IconCheck as Check, IconChevronDown as ChevronDown, IconChevronUp as ChevronUp } from '@tabler/icons-react';
 import * as React from 'react';
 
 import PullToRefreshLock from '@/lib/pull-to-refresh-lock';

@@ -658,7 +658,7 @@ export default function MonitoringMap({ layers, reports: reportLayer, report_fil
 			{/* Overlay gelap saat panel terbuka di mobile */}
 			{panelOpen && (
 				<div
-					className="absolute inset-0 z-[15] bg-black/30 backdrop-blur-[1px] lg:hidden"
+					className="absolute inset-0 z-[15] bg-black/30 lg:hidden"
 					onClick={() => setPanelOpen(false)}
 				/>
 			)}

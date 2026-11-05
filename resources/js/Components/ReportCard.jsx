@@ -1,7 +1,7 @@
 import { Dialog, DialogContent } from '@/Components/ui/dialog';
 import { alamatLaporan, cn, timeAgo } from '@/lib/utils';
 import { Link } from '@inertiajs/react';
-import { CheckCircle2, Clock, Flame, MapPin, Navigation, ShieldAlert, User, Users, X, ZoomIn } from 'lucide-react';
+import { IconCircleCheck as CheckCircle2, IconClock as Clock, IconFlame as Flame, IconMapPin as MapPin, IconNavigation as Navigation, IconShieldExclamation as ShieldAlert, IconUser as User, IconUsers as Users, IconX as X, IconZoomIn as ZoomIn } from '@tabler/icons-react';
 import { useState } from 'react';
 import DialogRelawanDetail from './DialogRelawanDetail';
 import DialogRelawanList from './DialogRelawanList';
@@ -58,7 +58,7 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 		return {
 			label: 'Laporan Masuk',
 			color: 'bg-destructive/10 text-destructive border-destructive/20',
-			icon: <span className="mr-1.5 h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-destructive"></span>,
+			icon: <span className="mr-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-destructive"></span>,
 		};
 	};
 	const statusConfig = getStatusConfig();
@@ -80,22 +80,22 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 					</span>
 				</div>
 				<h2 className="mb-2 flex items-start gap-2 break-words text-[17px] font-semibold leading-snug tracking-tight text-foreground">
-					<Flame size={16} className="mt-1 shrink-0 text-destructive" strokeWidth={2.5} />
+					<Flame size={16} className="mt-1 shrink-0 text-destructive" stroke={2.5} />
 					<span className="min-w-0">{report.title}</span>
 				</h2>
 
 				<div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] text-muted-foreground">
 					<span className="flex items-center gap-1">
-						<Clock size={12} strokeWidth={2.5} className="shrink-0" />
+						<Clock size={12} stroke={2.5} className="shrink-0" />
 						{timeAgo(report.created_at)}
 					</span>
 					<span className="flex min-w-0 items-center gap-1">
-						<User size={12} strokeWidth={2.5} className="shrink-0" />
+						<User size={12} stroke={2.5} className="shrink-0" />
 						<span className="break-words">{report.name || report.user?.name || 'Warga'}</span>
 					</span>
 					{distKm != null && (
 						<span className="flex items-center gap-1 text-foreground">
-							<Navigation size={12} strokeWidth={2.5} className="shrink-0" />±
+							<Navigation size={12} stroke={2.5} className="shrink-0" />±
 							{distKm < 10 ? distKm.toFixed(1) : Math.round(distKm)} km
 						</span>
 					)}
@@ -110,10 +110,10 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 							src={`/storage/${report.photo}`}
 							alt="Foto laporan"
 							onError={(e) => (e.target.src = report.photo)}
-							className="h-full w-full object-cover grayscale-[15%] transition-all duration-500 group-hover/img:scale-105 group-hover/img:grayscale-0"
+							className="h-full w-full object-cover"
 						/>
-						<div className="absolute inset-0 flex items-center justify-center bg-black/5 transition-colors duration-300 group-hover/img:bg-black/30">
-							<div className="flex translate-y-2 transform items-center gap-1.5 rounded-md border border-border bg-card/95 p-1.5 px-3 text-foreground opacity-0 shadow-none backdrop-blur-sm transition-all duration-300 group-hover/img:translate-y-0 group-hover/img:opacity-100">
+						<div className="absolute inset-0 flex items-end justify-end p-2">
+							<div className="flex items-center gap-1.5 rounded-md border border-border bg-card p-1.5 px-3 text-foreground">
 								<ZoomIn size={12} />
 								<span className="text-xs font-semibold">Perbesar</span>
 							</div>
@@ -170,7 +170,7 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 							type="button"
 							className="flex h-11 w-11 items-center justify-center rounded-xl border border-border/70 bg-card text-muted-foreground shadow-none transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-muted-foreground/50"
 						>
-							<Navigation size={14} strokeWidth={2.5} />
+							<Navigation size={14} stroke={2.5} />
 						</button>
 					</a>
 

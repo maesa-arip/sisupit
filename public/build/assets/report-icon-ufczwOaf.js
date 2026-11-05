@@ -1,0 +1,1 @@
+import{I as n}from"./IconAlertTriangle-moTN_NPa.js";import{I as t}from"./IconFlame-Ce70CLsn.js";function i(e){return(e==null?void 0:e.incident_type)==="lainnya"?{Icon:n,className:"text-foreground/70 bg-muted"}:{Icon:t,className:"text-destructive bg-destructive/10"}}export{i as r};

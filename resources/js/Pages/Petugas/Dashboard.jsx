@@ -290,7 +290,7 @@ export default function PetugasDashboard({
 				</div>
 				<div ref={miniMapRef} className="z-0 h-full w-full bg-accent/30 pt-11"></div>
 				{missionsWithCoords.length === 0 && (
-					<div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/40 pt-11 backdrop-blur-[2px]">
+					<div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/70 pt-11">
 						<IconMapPin className="mb-2 h-8 w-8 text-muted-foreground/50" />
 						<p className="text-xs font-medium text-muted-foreground">Belum ada titik misi</p>
 					</div>

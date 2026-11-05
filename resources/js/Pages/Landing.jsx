@@ -108,7 +108,6 @@ export default function Landing({ page_data }) {
 					<div className="text-center lg:text-left">
 						<span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5 text-xs font-semibold text-muted-foreground">
 							<span className="relative flex h-2 w-2">
-								<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-destructive opacity-75"></span>
 								<span className="relative inline-flex h-2 w-2 rounded-full bg-destructive"></span>
 							</span>
 							Siaga 24 Jam
@@ -158,9 +157,7 @@ export default function Landing({ page_data }) {
 
 					{/* Ilustrasi ikon */}
 					<div className="relative mx-auto flex aspect-square w-full max-w-sm items-center justify-center">
-						<div className="absolute inset-6 rounded-full bg-destructive/10"></div>
-						<div className="absolute inset-16 rounded-full bg-destructive/15"></div>
-						<div className="relative z-10 flex h-40 w-40 rotate-3 items-center justify-center rounded-[36px] border-4 border-background bg-destructive shadow-2xl shadow-destructive/30 transition-transform duration-300 hover:rotate-0 dark:border-neutral-900">
+						<div className="relative z-10 flex h-40 w-40 items-center justify-center rounded-[36px] border-4 border-background bg-destructive dark:border-neutral-900">
 							<IconFlame className="h-24 w-24 text-destructive-foreground" stroke={1.5} />
 						</div>
 						<div className="absolute right-4 top-10 z-20 flex h-16 w-16 -rotate-6 items-center justify-center rounded-2xl border border-border/70 bg-card shadow-lg dark:border-neutral-700 dark:bg-neutral-900">

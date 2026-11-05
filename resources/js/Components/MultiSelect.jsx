@@ -1,5 +1,5 @@
 import { cva } from 'class-variance-authority';
-import { CheckIcon, ChevronDown, WandSparkles, XCircle, XIcon } from 'lucide-react';
+import { IconCheck as CheckIcon, IconChevronDown as ChevronDown, IconWand as WandSparkles, IconCircleX as XCircle, IconX as XIcon } from '@tabler/icons-react';
 import * as React from 'react';
 
 import { Badge } from '@/Components/ui/badge';

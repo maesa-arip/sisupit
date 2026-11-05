@@ -1,6 +1,6 @@
 import { Button } from '@/Components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
-import { ArrowLeft, Calendar, ExternalLink, Mail, MapPin, Phone } from 'lucide-react';
+import { IconArrowLeft as ArrowLeft, IconCalendar as Calendar, IconExternalLink as ExternalLink, IconMail as Mail, IconMapPin as MapPin, IconPhone as Phone } from '@tabler/icons-react';
 
 export default function DialogRelawanDetail({ open, onClose, helper, onBack }) {
 	const getMapsUrl = (lat, lng) => `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;

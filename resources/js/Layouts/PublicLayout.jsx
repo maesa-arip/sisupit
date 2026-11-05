@@ -37,7 +37,7 @@ export default function PublicLayout({ children, title }) {
 			{title && <Head title={title} />}
 
 			{/* ===== NAVBAR ===== */}
-			<header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
+			<header className="sticky top-0 z-40 border-b border-border/60 bg-background">
 				<div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
 					<Link href="/" className="flex items-center gap-2.5 outline-none">
 						<img src="/icon.png" alt="SISUPIT" className="size-9 rounded-lg object-contain" />

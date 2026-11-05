@@ -1,5 +1,5 @@
 import { Command as CommandPrimitive } from 'cmdk';
-import { Search } from 'lucide-react';
+import { IconSearch as Search } from '@tabler/icons-react';
 import * as React from 'react';
 
 import { Dialog, DialogContent } from '@/Components/ui/dialog';

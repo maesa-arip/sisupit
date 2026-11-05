@@ -1649,7 +1649,7 @@ export default function Create(props) {
 														<button
 															type="button"
 															onClick={() => removePhoto(i)}
-															className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-lg border border-transparent bg-card/90 text-destructive shadow-sm backdrop-blur-sm transition-colors hover:border-destructive/30 hover:bg-destructive/10"
+															className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-lg border border-transparent bg-card/90 text-destructive shadow-sm transition-colors hover:border-destructive/30 hover:bg-destructive/10"
 															title="Hapus foto"
 														>
 															<IconX stroke={2.5} className="h-4 w-4" />
