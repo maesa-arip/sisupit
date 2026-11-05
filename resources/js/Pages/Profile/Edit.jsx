@@ -1,4 +1,5 @@
 import AppReviewDialog from '@/Components/AppReview/AppReviewDialog';
+import { SHOW_APP_REVIEW_FORM } from '@/Components/AppReview/flags';
 import StarRating from '@/Components/AppReview/StarRating';
 import BanjarField from '@/Components/BanjarField';
 import { groupedRowsClass } from '@/Components/GroupedForm';
@@ -321,39 +322,44 @@ export default function Edit(props) {
 					</Group>
 				</div>
 
-				{/* --- ULASAN APLIKASI (TASK_86) --- di semua platform; masuk ke database Sisupit, bukan toko aplikasi. */}
-				<Group
-					title="Ulasan Aplikasi"
-					footer={
-						myReview?.approved
-							? 'Ulasan Anda sedang tampil sebagai testimoni di halaman depan.'
-							: 'Ulasan dibaca tim Sisupit. Testimoni hanya tampil bila Anda izinkan dan admin menyetujuinya.'
-					}
-				>
-					<button
-						type="button"
-						onClick={() => setReviewOpen(true)}
-						className="flex min-h-[56px] w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50 active:bg-muted"
+				{/* --- ULASAN APLIKASI (TASK_86) --- di semua platform; masuk ke database Sisupit, bukan toko aplikasi.
+				    Sementara disembunyikan (#236, Components/AppReview/flags.js). */}
+				{SHOW_APP_REVIEW_FORM && (
+					<Group
+						title="Ulasan Aplikasi"
+						footer={
+							myReview?.approved
+								? 'Ulasan Anda sedang tampil sebagai testimoni di halaman depan.'
+								: 'Ulasan dibaca tim Sisupit. Testimoni hanya tampil bila Anda izinkan dan admin menyetujuinya.'
+						}
 					>
-						<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-warning/10 text-warning">
-							<IconMessageStar size={18} stroke={1.75} />
-						</span>
-						<span className="min-w-0 flex-1">
-							<span className="block truncate text-[15px] font-medium text-foreground">
-								{myReview ? 'Ubah ulasan Anda' : 'Beri ulasan untuk Sisupit'}
+						<button
+							type="button"
+							onClick={() => setReviewOpen(true)}
+							className="flex min-h-[56px] w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50 active:bg-muted"
+						>
+							<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-warning/10 text-warning">
+								<IconMessageStar size={18} stroke={1.75} />
 							</span>
-							{myReview ? (
-								<StarRating value={myReview.rating} size="sm" className="mt-0.5" />
-							) : (
-								<span className="block truncate text-[13px] text-muted-foreground">
-									Ceritakan seberapa membantu aplikasi ini
+							<span className="min-w-0 flex-1">
+								<span className="block truncate text-[15px] font-medium text-foreground">
+									{myReview ? 'Ubah ulasan Anda' : 'Beri ulasan untuk Sisupit'}
 								</span>
-							)}
-						</span>
-						<IconChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/50" />
-					</button>
-				</Group>
-				<AppReviewDialog open={reviewOpen} onOpenChange={setReviewOpen} review={props.appReview} />
+								{myReview ? (
+									<StarRating value={myReview.rating} size="sm" className="mt-0.5" />
+								) : (
+									<span className="block truncate text-[13px] text-muted-foreground">
+										Ceritakan seberapa membantu aplikasi ini
+									</span>
+								)}
+							</span>
+							<IconChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/50" />
+						</button>
+					</Group>
+				)}
+				{SHOW_APP_REVIEW_FORM && (
+					<AppReviewDialog open={reviewOpen} onOpenChange={setReviewOpen} review={props.appReview} />
+				)}
 
 				{!isWebView && (
 					<Group title="Aplikasi">

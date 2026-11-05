@@ -266,3 +266,16 @@ it('renders the prompt in the layout content flow and the testimonials on the fr
         ->and(file_get_contents(resource_path('js/Pages/Spotlight.jsx')))->toContain('<Testimonials items={props.testimonials}')
         ->and(file_get_contents(resource_path('js/Pages/Landing.jsx')))->toContain('<Testimonials items={testimonials}');
 });
+
+// #236 (keputusan user 2026-11-06): form ulasan SEMENTARA disembunyikan - hanya tampilannya.
+// Saat dinyalakan lagi (flags.js = true), ubah test ini bersama flag-nya.
+it('hides the review form surfaces behind one flag while the server stays intact', function () {
+    $flags = file_get_contents(resource_path('js/Components/AppReview/flags.js'));
+    $layout = file_get_contents(resource_path('js/Layouts/AppLayout.jsx'));
+    $profile = file_get_contents(resource_path('js/Pages/Profile/Edit.jsx'));
+
+    expect($flags)->toContain('export const SHOW_APP_REVIEW_FORM = false;')
+        ->and($layout)->toContain('{SHOW_APP_REVIEW_FORM && appReviewPrompt')
+        ->and($profile)->toContain('{SHOW_APP_REVIEW_FORM && (')
+        ->and(app('router')->has('admin.app-reviews.index'))->toBeTrue();
+});

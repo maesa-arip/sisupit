@@ -5332,3 +5332,11 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Sisa:** undang dengan Google belum ada (penerima Google: masuk dulu dengan Google beremail sama, lalu buka lagi tautan).
   Email butuh SMTP prod (#191). Akun demo yang mengundang = email disenyapkan (TASK_81).
 - **Penjaga:** `PetugasInvitationTest`.
+
+### #236 — Form ulasan aplikasi sementara disembunyikan (SEMENTARA, lokal 2026-11-06)
+
+- **Permintaan user:** "sementara hide dulu form rating sisupit, hide tampilannya saja".
+- **Perubahan:** flag `SHOW_APP_REVIEW_FORM = false` di `resources/js/Components/AppReview/flags.js` menggerbangi kartu ajakan
+  `AppReviewPrompt` di `AppLayout.jsx` dan kartu + dialog "Ulasan Aplikasi" di `Profile/Edit.jsx`. Server (prop `appReviewPrompt`,
+  `appReview`, route simpan), tabel, menu admin `/admin/app-reviews`, dan testimoni yang sudah disetujui di Spotlight/Landing TIDAK diubah.
+- **Cara mengembalikan:** ubah flag ke `true`, lalu sesuaikan test `AppReviewTest` "hides the review form surfaces", lalu `npm run build`.

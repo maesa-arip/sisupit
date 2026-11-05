@@ -1,5 +1,6 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import AppReviewPrompt from '@/Components/AppReview/AppReviewPrompt';
+import { SHOW_APP_REVIEW_FORM } from '@/Components/AppReview/flags';
 import Banner from '@/Components/Banner';
 import PageSkeleton from '@/Components/PageSkeleton';
 import SoundNotificationControl from '@/Components/SoundNotificationControl';
@@ -355,7 +356,7 @@ export default function AppLayout({ title, children }) {
 									<Banner announcement={announcemet} />
 								</div>
 							)}
-							{appReviewPrompt && !pendingVisit?.skeleton && (
+							{SHOW_APP_REVIEW_FORM && appReviewPrompt && !pendingVisit?.skeleton && (
 								<div className="mb-4 lg:mb-6">
 									<AppReviewPrompt review={appReviewPrompt} />
 								</div>

@@ -202,12 +202,14 @@ DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permi
 SEMENTARA    : #149 menu "Jangkauan Petugas" disembunyikan + foto laporan non-kebakaran
                 opsional; #156 menu admin "Daftar Penerima Email" & "Pengaturan Email Dinas"
                 disembunyikan (flag di navItems.js). Cara mengembalikan: FINDINGS_LOG #149/#156.
+                #236 (2026-11-06) form ulasan aplikasi TASK_86 (ajakan dashboard + kartu Profil) disembunyikan -
+                flag SHOW_APP_REVIEW_FORM di Components/AppReview/flags.js; server & menu admin utuh.
 Belum dicek  : visual di ponsel/APK untuk banyak perubahan UI (tombol merah brand, pop-up,
                 combobox, dashboard, bilah bawah) - daftar per task di STATUS_LOG.
 Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115 #119 #121
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174 #188(satelit).
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
-Test         : 946 passed, 7312 assertions (2026-11-06, + TASK_88 #231-#235).
+Test         : 947 passed (2026-11-06, + #236 penjaga flag ulasan; penuh terakhir 946/7312 sebelum #236).
 Lingkungan   : PROD @8bae8d95 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#235 + Masuk dengan Apple) | DEV @672b6a10 (dashboard baru) | STAGING @42ef296b (= prod, video demo
                 TASK_80; data uji petugas.uji@sisupit.test + LP-2026-00227). Dev & staging: data salinan prod, TANPA basic auth sejak 2026-10-18 (PENGECUALIAN #7), sandi "password".
 ```
@@ -234,7 +236,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-11-06: 946 passed, 7312 assertions - + TASK_88;
+Test      : php artisan test            (baseline 2026-11-06: 947 passed - + #236 (946/7312 + 1 test statis);
             lokal: php -d memory_limit=1G -d extension=php_sqlite3.dll -d extension=pdo_sqlite vendor/bin/pest.
             Perbarui angka ini tiap kali test bertambah - baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan. Riwayat angkanya di STATUS_LOG.md)
