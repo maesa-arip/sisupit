@@ -5257,6 +5257,20 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   aplikasi menunjukkan sebaran versionCode. Usulan kode (belum dikerjakan): versi di UA (`SisupitApp/1.1.10`) pada rilis
   APK/iOS berikut, dan/atau web menyimpan versi/kemampuan jembatan saat mendaftarkan token FCM (butuh kolom baru = migrasi).
 
+### #229 — Ulasan aplikasi + testimoni di halaman depan (FIXED, lokal 2026-11-01, TASK_86, ADA MIGRASI)
+
+- **Permintaan user 2026-11-01:** "buatkan fitur review" untuk APLIKASI ("aplikasi ini sangat membantu"), muncul di
+  semua platform. Keputusan: masuk ke **database Sisupit** (bukan Play Store/App Store), **testimoni ditampilkan**,
+  **semua peran** boleh, **tamu tidak**.
+- **Bentuk:** tabel `app_reviews` (satu per user, Tenantable province+city penulis) + `app_review_prompts`. Ajakan =
+  kartu di dashboard (shared prop `appReviewPrompt` hanya di route `dashboard`, `AppReview::shouldAsk`: bukan demo,
+  belum mengulas, tidak Meluncur/Tiba, akun >= 7 hari atau laporan Selesai, "Nanti saja" 30 hari / "Jangan tanya
+  lagi"); Profil > Ulasan Aplikasi; admin `/admin/app-reviews` (ringkasan, sebaran, per platform, saringan, tab
+  Menunggu/Testimoni, Ekspor Excel); testimoni dua persetujuan (pemilik + admin) di Spotlight & Landing per kota tenant.
+  Hapus akun = komentar dibuang + testimoni turun. Tanpa notifikasi baru, tanpa APK/iOS/exe baru.
+- **Penjaga:** `AppReviewTest` (18 test; sabotase syarat route dashboard = merah).
+- **Belum:** tampilan di ponsel/APK/iOS/desktop; deploy (kode + `php artisan migrate` bersamaan, cadangan DB dulu).
+
 ### #230 — Riwayat pejabat/relawan: semua laporan Selesai berbunyi "Ditutup oleh tidak tercatat" (FIXED, lokal 2026-11-02)
 
 - **Laporan user 2026-11-02:** login pejabat, menu Riwayat, laporan BARU pun "Ditutup oleh tidak tercatat".
@@ -5266,3 +5280,55 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Fix:** `with(['user:id,name', 'resolver:id,name'])`. Audiens sesuai gerbang `canSeeClosureActor` (staf/pejabat/relawan).
   Tanpa migrasi, web saja. Laporan yang ditutup SEBELUM migrasi 2026-08-27 tetap "tidak tercatat" (tanpa backfill, #88).
 - **Penjaga:** `ReportClosureActorTest` "monitoring list of pejabat and relawan" (sabotase = merah).
+
+### #231 — Tombol "Jaga di Kantor" banyak tidak muncul bagi petugas (FIXED, lokal 2026-11-06, TASK_88, ADA MIGRASI)
+
+- **Laporan user 2026-11-06:** "tombol diam di kantor saat ada kejadian beberapa petugas bilang banyak tidak muncul, apakah ada batas?"
+- **Akar:** bukan bug - aturan TASK_60 "tepat satu orang per regu per kejadian" (UNIQUE(report_id, regu_id)). Begitu satu
+  anggota menekannya, `canStayAtBase` false bagi seluruh regu. Syarat lain tetap: petugas beregu, belum Meluncur, dalam wilayah, insiden terbuka.
+- **Keputusan user:** tanpa batas. Migrasi `2026_11_06_100000_allow_many_jaga_kantor_per_regu` melepas UNIQUE(report_id, regu_id);
+  UNIQUE(report_id, user_id) tetap. `stayAtBase()` hanya menolak orang yang sama; `reguManifest()` -> `stays` (daftar), `stay_taken_by` dibuang.
+  `ReportAlpha::recordFor` & Export sudah membaca banyak baris. down() gagal bila sudah ada dua orang satu regu.
+- **Penjaga:** `ReguTest` (dua anggota satu regu boleh, ketukan ganda tak menambah baris, tombol tetap ditawarkan ke anggota lain).
+
+### #232 — Penampil foto: animasi aneh & berat, tak bisa zoom, tak bisa unduh (FIXED, lokal 2026-11-06, TASK_88)
+
+- **Laporan user:** "tampilan foto saat di klik tidak bagus, aneh animasinya juga terlihat berat"; minta zoom & unduh (contoh: saat membuat Laporan Kejadian).
+- **Akar:** `PhotoViewer` (#215) memakai `ui/dialog` DialogContent: zoom-95 + geser dari kiri-atas 300 ms ease-spring + overlay `backdrop-blur`.
+- **Fix:** `Components/PhotoViewer.jsx` ditulis ulang di atas Radix Dialog primitif (tetap `DismissOnBack` + `PullToRefreshLock`): layar penuh
+  hitam 95%, PUDAR 200 ms saja; zoom cubit / ketuk ganda (sentuh) / klik ganda & roda (tetikus), geser saat diperbesar, transform ditulis
+  langsung ke style (hanya `transform`); Embla `watchDrag` mati selama diperbesar; tombol Unduh (`<a download>` ke route `photos.download`).
+  `PhotoDownloadController`: attachment HANYA untuk `reports/` & `resolutions/` di disk public (folder `users/` berisi KTP akun tidak).
+  Form Laporan Kejadian: kartu "Foto dari laporan warga" (lihat + unduh per foto) + foto tersimpan bisa diketuk.
+- **Penjaga:** `PhotoDownloadTest`, `PhotoViewerSwipeTest`. Dicek di Chrome desktop (zoom, unduh 200 attachment); **belum diuji di HP/APK**
+  (unduhan APK bergantung DownloadListener, mobile/PERILAKU_WEBVIEW.md butir 5).
+
+### #233 — PDF Laporan Kejadian tanpa tanda Sisupit (FIXED, lokal 2026-11-06, TASK_88)
+
+- **Permintaan user:** "laporan yang jadi pdf buat ada sisupitnya tapi tidak terlalu mencolok".
+- **Fix:** footer kanan = logo 9px (`public/favicon-32x32.png`, data URI, syarat GD) + "Dibuat dengan Sisupit · sisupit.com" abu `#999`;
+  teks kiri (nomor, dicetak oleh) tetap. Kop instansi tidak diubah. Penjaga: `LaporanKejadianPdfTest`. Dicek visual (render dompdf -> PNG).
+
+### #234 — Wilayah akun ikut lokasi saat mendaftar (Bangli/Badung) & petugas salah baca isian (FIXED, lokal 2026-11-06, TASK_88)
+
+- **Laporan user:** pendaftar dari Bangli/Badung terdeteksi otomatis di sana; petugas mengira isian Lengkapi Profil = lokasi tugas.
+- **Akar:** `CompleteProfile.jsx` mengisi wilayah dari GPS tanpa memandang kota tenant; tak ada jalan mengubah wilayah sesudahnya;
+  `assignRole` memangkas wilayah TUGAS dari wilayah domisili akun -> petugas ikut wilayah tempat ia mendaftar.
+- **Fix:** isian wilayah dipisah ke `Components/RegionFields.jsx` (dipakai Lengkapi Profil & Profil): deteksi di LUAR kota tenant
+  (`tenant.city_code`) tidak diisikan - isian diarahkan ke kota tenant + tombol "Tetap pakai lokasi terdeteksi". Kotak info "Petugas Damkar?"
+  di Lengkapi Profil. Profil: kartu "Ubah Wilayah Tempat Tinggal" -> `PATCH /profile/region` (`ProfileController::updateRegion`, rantai kode
+  diperiksa, banjar ikut) HANYA warga/relawan - peran `CENTRALLY_MANAGED_ROLES` 403 (keputusan user: wilayah tugas diatur admin).
+- **Penjaga:** `ProfileRegionTest`. Belum diuji di HP.
+
+### #235 — Undang Petugas lewat email (FIXED, lokal 2026-11-06, TASK_88, ADA MIGRASI)
+
+- **Permintaan user:** admin mengundang petugas dengan memasukkan email. Keputusan user: tabel (bisa dilihat & dibatalkan).
+- **Fix:** tabel `user_invitations` (migrasi `2026_11_06_100100`), `/admin/users/invitations` (form + 50 undangan terakhir, batal), tombol
+  "Undang petugas" di Kelola Pengguna. Aturan tingkat/wilayah = `assignableLevels` + kunci wilayah admin + `trimRegionToLevel` yang sama
+  dengan Tetapkan Peran. Email `PetugasInvitationNotification` (kanal mail, tidak antre, `DipicuAkunDemo`); gagal kirim = baris dihapus + galat.
+  Penerima `/undangan/{token}` (`InvitationController`): tamu buat akun (email terkunci, terverifikasi), atau masuk dulu bila email sudah
+  terdaftar (url.intended), atau Terima bila sudah masuk dengan email itu; klaim = UPDATE bersyarat (sekali pakai). Akun admin/pejabat/OPD
+  tak bisa diundang (tak diturunkan diam-diam); petugas tak diundang ulang. Banjar & instansi dilepas saat diangkat.
+- **Sisa:** undang dengan Google belum ada (penerima Google: masuk dulu dengan Google beremail sama, lalu buka lagi tautan).
+  Email butuh SMTP prod (#191). Akun demo yang mengundang = email disenyapkan (TASK_81).
+- **Penjaga:** `PetugasInvitationTest`.

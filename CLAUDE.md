@@ -186,6 +186,15 @@ TASK_80        APK 1.1.9/vc11 ResponderTrackingService (FGS location) + jembatan
 #227/TASK_84 : (2026-11-01, lokal) mobil Damkar tak bergerak di peta: cek prod = server & Reverb sehat, HP berhenti kirim. Show.jsx kirim
                 posisi dibatasi 5 dtk/10 m (sama layanan APK) + channel report-tracking di effect sendiri [report.id] (dulu langganan ulang tiap
                 posisi masuk). Web saja, tanpa migrasi. Penjaga ResponderTrackingClientTest. #228 OPEN: iOS tanpa pelacakan latar; versi app tak terlihat.
+TASK_86/#229 : (2026-11-01, lokal, ADA MIGRASI app_reviews + app_review_prompts) ulasan APLIKASI ke DB sendiri (bukan Play/App Store),
+                semua platform lewat web, semua peran, tamu tidak. Kartu ajakan hanya di dashboard (AppReview::shouldAsk), Profil > Ulasan
+                Aplikasi, /admin/app-reviews (ringkasan, saringan, Excel), testimoni = izin pemilik + setuju admin di Spotlight & Landing.
+                Penjaga AppReviewTest. Belum diuji di HP.
+TASK_88/     : (2026-11-06, lokal, belum commit, ADA 2 MIGRASI) #231 Jaga di Kantor TANPA BATAS per regu (lepas UNIQUE report_id+regu_id);
+#231-#235      #232 PhotoViewer layar penuh pudar 200 ms + zoom cubit/ketuk ganda + Unduh (route photos.download, attachment) + foto
+                laporan warga di form Laporan Kejadian; #233 footer PDF "Dibuat dengan Sisupit"; #234 RegionFields (deteksi luar kota tenant
+                tak diisikan) + PATCH /profile/region warga/relawan saja; #235 Undang Petugas (user_invitations, /admin/users/invitations,
+                /undangan/{token}). Belum diuji di HP.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
                 kolom approved_at tetap. #178 i18n TERDEPLOY prod @dde8c6a4; #179 (ikon, paginasi PaginationLinks, email).
                 #180 terjemahan bawaan Laravel dari paket laravel-lang/common (DEV) TERDEPLOY prod @9bf7b103; paginasi tetap versi #178 -
@@ -198,7 +207,7 @@ Belum dicek  : visual di ponsel/APK untuk banyak perubahan UI (tombol merah bran
 Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115 #119 #121
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174 #188(satelit).
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
-Test         : 913 passed, 6859 assertions (2026-11-01, + #227 ResponderTrackingClientTest).
+Test         : 946 passed, 7312 assertions (2026-11-06, + TASK_88 #231-#235).
 Lingkungan   : PROD @b36c3a55 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#219 + Masuk dengan Apple) | DEV @672b6a10 (dashboard baru) | STAGING @42ef296b (= prod, video demo
                 TASK_80; data uji petugas.uji@sisupit.test + LP-2026-00227). Dev & staging: data salinan prod, TANPA basic auth sejak 2026-10-18 (PENGECUALIAN #7), sandi "password".
 ```
@@ -225,7 +234,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-11-01: 913 passed, 6859 assertions - + #227 ResponderTrackingClientTest;
+Test      : php artisan test            (baseline 2026-11-06: 946 passed, 7312 assertions - + TASK_88;
             lokal: php -d memory_limit=1G -d extension=php_sqlite3.dll -d extension=pdo_sqlite vendor/bin/pest.
             Perbarui angka ini tiap kali test bertambah - baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan. Riwayat angkanya di STATUS_LOG.md)

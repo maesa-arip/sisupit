@@ -11,6 +11,10 @@ per entri). File ini TIDAK dimuat otomatis tiap sesi — baca saat butuh konteks
 ## Riwayat STATUS (salinan verbatim per 2026-10-01)
 
 ```
+TASK_86/#229 ULASAN APLIKASI (2026-11-01): permintaan user "fitur review" untuk aplikasi. Keputusan user: masuk DB Sisupit
+                (bukan store), testimoni ditampilkan, semua peran, tamu tidak. MIGRASI app_reviews + app_review_prompts. Baseline
+                sebelum 913/6869, sesudah 931/7064 (AppReviewTest 18 test, sabotase route dashboard = merah). Lokal, belum
+                commit/deploy. Rincian prompt/tasks/TASK_86_ulasan_aplikasi.md.
 DEPLOY 2026-10-18: TASK_81/#214 + #212 + #213 TERDEPLOY PROD @97eccef1 (konsol user, deploy-env.sh, ADA MIGRASI is_demo).
                 HTTPS: /login 200 memuat app-B4hPlQvQ.js (= build lokal); Admin/Users Edit-BTOSCcyk.js 200 berisi "Jadikan akun
                 demo"; Settings Edit-NX8m0K0L.js berisi "Mode Akun Demo"; GET admin/users/demo/1 = 405 (rute PUT ada).
@@ -2631,6 +2635,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + #225 Leaflet ikut bundel + Peta Pemantauan tanpa muat-ganda tile, LeafletBundleTest (2026-10-28) = 910 passed, 6833 assertions.
             + #226 ripple ganti tema dari ikon (View Transitions) + #224, ThemeRippleTest (2026-10-29) = 911 passed, 6844 assertions.
             + #227/TASK_84 kirim posisi web dibatasi 5 dtk/10 m + channel report-tracking effect [report.id], ResponderTrackingClientTest (2026-11-01) = 913 passed, 6859 assertions.
+            + TASK_88 #231-#235 foto zoom/unduh, PDF Sisupit, ubah wilayah, Undang Petugas, Jaga di Kantor tanpa batas (2026-11-06) = 946 passed, 7312 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

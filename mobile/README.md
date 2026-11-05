@@ -19,6 +19,7 @@ kontraknya disimpan.
 | [`PERILAKU_WEBVIEW.md`](PERILAKU_WEBVIEW.md) | Perilaku native yang dipasang Android dan WAJIB ditiru iOS (cookie, GPS, kamera/foto, unduhan, tautan luar, inset, tarik-untuk-refresh) | sisi Android saat menambah perilaku |
 | [`CHANGELOG_ANDROID.md`](CHANGELOG_ANDROID.md) | Riwayat rilis APK + apa yang harus di-port ke iOS per rilis | sisi Android, SETIAP rilis APK |
 | [`PARITAS.md`](PARITAS.md) | Matriks fitur Android vs iOS + celah di server yang merugikan iOS | kedua sisi |
+| [`CHECKLIST_WEBVIEW_UMUM.md`](CHECKLIST_WEBVIEW_UMUM.md) | Pelajaran dari bug Sisupit yang berlaku untuk **aplikasi WebView mana pun** (tanpa nama/endpoint Sisupit) - titik awal proyek WebView lain | siapa pun yang menemukan bug WebView baru |
 | [`aset/suara/`](aset/suara/) | Berkas suara PERSIS yang dipaket di APK saat ini | sisi Android saat suara berubah |
 
 `docs/ios/PROMPT_SISUPIT_IOS.md` tetap jadi prompt pembuka proyek iOS (penyiapan Mac,
@@ -54,15 +55,17 @@ git log --oneline -- mobile/                        # apa yang berubah sejak ter
 Baca `CHANGELOG_ANDROID.md` dari atas sampai entri yang sudah di-port, kerjakan butir
 "Yang harus dilakukan iOS", lalu perbarui `PARITAS.md` dan commit.
 
-## Keadaan per 2026-10-13
+## Keadaan per 2026-11-02
 
-- APK **1.1.8 / versionCode 10** (2026-10-08, izin notifikasi terbaca web #196 + Cross-App Scripting #197;
-  sebelumnya 1.1.7/vc9 tautan Play Store #185; AAB 10 dikirim ke review Play jalur "Closed testing - Alpha"
-  2026-10-08), minSdk 24, targetSdk 36, build Play Store (kunci unggah
-  `sisupit-upload.jks`) untuk uji tertutup Google Play (12 penguji × 14 hari). SHA-1 Play App
-  Signing belum didaftarkan ke Firebase.
-- Web produksi @`1085a18d`: termasuk TASK_69 (safe area/`viewport-fit=cover`), TASK_73
-  (sesi aplikasi & token FCM), TASK_74 (Profil > "Notifikasi di HP ini"), #188/#192 (peta form lapor,
-  layar penuh di ponsel), TASK_77 (lapor tanpa login), #203 (judul sirine "🚨 Laporan Darurat").
-- iOS: mulai dikerjakan - titik awal = semua butir `[ ]` di `CHANGELOG_ANDROID.md` +
-  kolom iOS `PARITAS.md`.
+- APK **1.1.9 / versionCode 11** (2026-10-15, pelacakan lokasi petugas saat layar terkunci #210 -
+  `ResponderTrackingService`). AAB 11 di Closed testing - Alpha 2026-10-15, lalu **Production (Indonesia, full
+  rollout) dikirim ke review 2026-10-25**, managed publishing off = publik saat disetujui. minSdk 24, targetSdk 36,
+  kunci unggah `sisupit-upload.jks`. SHA-1 Play App Signing belum didaftarkan ke Firebase. Sebelumnya: 1.1.8/vc10
+  izin notifikasi #196 + Cross-App Scripting #197; 1.1.7/vc9 tautan Play Store #185.
+- Web produksi @`b36c3a55`: termasuk TASK_69 (safe area), TASK_73/74 (sesi aplikasi & token FCM, kartu "Notifikasi
+  di HP ini"), #188/#192 (peta form lapor), TASK_77 (lapor tanpa login), #205 (Kembali menutup dialog), #209,
+  #212 (unduhan dari dialog), #223 (mode gelap ikut tema HP), Masuk dengan Apple. **Belum terdeploy:** #227
+  (batas kirim posisi web 5 dtk/10 m).
+- iOS: build 3 memasang `signInWithApple` (Guideline 4.8). **Belum ada pelacakan latar** - posisi petugas di
+  iPhone berhenti saat layar terkunci (#228 OPEN, butir 1.1.9 di `CHANGELOG_ANDROID.md`). Titik awal = semua
+  butir `[ ]` di `CHANGELOG_ANDROID.md` + kolom iOS `PARITAS.md`.

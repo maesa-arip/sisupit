@@ -167,6 +167,10 @@ Produksi saja: dump DB + `.env` + `storage/app` tiap malam via cron `/etc/cron.d
   Untuk saat ini **tanpa** HTTP Basic auth / IP allowlist (keputusan user 2026-07-06:
   produksi pun masih testing internal tim). Aktifkan pembatasan bila subdomain non-prod
   akan diekspos ke publik luas.
+  2026-10-04 dipasang gerbang basic auth + semua sandi dev/staging jadi "password"
+  (`deploy/preview-access.sh`, `deploy/preview-apk-exempt.sh`); **2026-10-18 gerbang dicabut lagi**
+  atas permintaan user (`deploy/preview-access-off.sh`), sandi tetap "password" -
+  PENGECUALIAN_ATURAN #7. Pasang lagi: `bash /root/preview-apk-exempt.sh`.
 - Realtime (Reverb): `public/build` yang di-commit di-build dg `VITE_REVERB_HOST=sisupit.com`,
   jadi WebSocket dari staging/dev untuk sementara menunjuk ke Reverb **produksi**. Infra
   Reverb per-env sudah dipasang (8081/8082) & siap dipakai; agar terisolasi penuh perlu

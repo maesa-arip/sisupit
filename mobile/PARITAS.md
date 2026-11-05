@@ -3,7 +3,8 @@
 Kolom iOS diisi oleh sisi iOS (`✅` selesai & diuji di perangkat, `🟡` ada tapi belum diuji,
 `❌` belum, `n/a` tak berlaku). Perbarui setiap rilis.
 
-Terakhir diperbarui: 2026-10-13 (kolom Android dari APK 1.1.8/vc10 + web prod @`1085a18d`; kolom iOS diisi sesi iOS 2026-10-13 — `🟡` = sudah di-port & diverifikasi di Simulator/log, belum diuji di perangkat fisik).
+Terakhir diperbarui: 2026-11-02 (kolom Android dari APK 1.1.9/vc11 + web prod @`b36c3a55`; baris pelacakan latar,
+Apple, versi aplikasi & unduhan dari dialog ditambah 2026-11-02. Sebelumnya 2026-10-13: kolom iOS diisi sesi iOS 2026-10-13 — `🟡` = sudah di-port & diverifikasi di Simulator/log, belum diuji di perangkat fisik).
 
 | Fitur | Android | iOS | Rujukan |
 |---|---|---|---|
@@ -38,6 +39,10 @@ Terakhir diperbarui: 2026-10-13 (kolom Android dari APK 1.1.8/vc10 + web prod @`
 | Halaman tamu melepas token (`fcm.release`) | ✅ (web TASK_73) | 🟡 (`postToken`/`receiveFcmTokenFromNative`; pelepasan diurus web) | KONTRAK §3 |
 | Keluar / Keluar dari semua perangkat → tak ada notifikasi | ✅ (web TASK_73) | 🟡 (web + token; belum diuji) | ATURAN_NOTIFIKASI §5 |
 | Profil > "Notifikasi di HP ini" status Aktif + tombol uji berbunyi | ✅ (web TASK_74) | 🟡 (status via #196 kini ada; tombol uji bunyi butuh device) | ATURAN_NOTIFIKASI §5b |
+| Pelacakan lokasi petugas saat layar terkunci (`startResponderTracking`/`stopResponderTracking`) | 🟡 1.1.9 (#210; belum terbukti di lapangan, #228) | ❌ (#228 OPEN - posisi iPhone berhenti saat terkunci; terlihat di log prod) | KONTRAK §2.1 #7-#8 |
+| Masuk dengan Apple (`signInWithApple` + 3 callback) | n/a (khusus App Store) | 🟡 build 3 (Guideline 4.8) | KONTRAK §2.1 #9, §2.2 |
+| Versi aplikasi terbaca server (UA/token) | ❌ (#228) | ❌ (#228) | CHANGELOG web 10-15 s/d 11-01 |
+| Unduh dari dalam dialog (Ekspor Excel) tak dibatalkan tombol Kembali web | 🟡 (web #212, belum diuji di HP) | ? (uji WKDownload) | PERILAKU #5, #10 |
 | Splash merah + petir | ✅ | 🟡 (`LaunchScreen` + lanjutan splash; terlihat di Simulator) | PERILAKU #13 |
 
 ## Celah di SERVER yang merugikan iOS
@@ -54,3 +59,6 @@ Terakhir diperbarui: 2026-10-13 (kolom Android dari APK 1.1.8/vc10 + web prod @`
    tambah cek `navigator.maxTouchPoints > 1 && /Macintosh/`.
 4. **`GOOGLE_IOS_CLIENT_ID` di `.env` prod/staging/dev** - wajib terisi sebelum login Google
    iOS diuji; tanpa itu server menolak ID token iPhone (`aud` tak dikenal).
+5. **Server tak tahu versi aplikasi (#228 OPEN).** `fcm_tokens` hanya `device_type`, dan UA aplikasi tanpa nomor
+   versi - tak bisa dibedakan iPhone tanpa pelacakan latar dari APK lama atau layanan yang mati. Usulan: versi di UA
+   (`SisupitApp/x.y.z`) di kedua platform dan/atau dicatat saat mendaftarkan token (migrasi).

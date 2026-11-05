@@ -5,7 +5,7 @@
 // persegi khas seri Ultra, rangka titanium, kamera punch-hole di tengah.
 // Aplikasi dimuat pada lebar CSS realistis (440px) lalu diskalakan 1.07 agar mengisi
 // tinggi kanvas; Chrome me-raster ulang pada skala itu sehingga teks tetap tajam.
-module.exports = function shellHtml({ statusTime = '09:41' } = {}) {
+module.exports = function shellHtml({ statusTime = '09:41', total = 14 } = {}) {
 	return `<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Sisupit</title>
 <style>
 	*{margin:0;padding:0;box-sizing:border-box}
@@ -138,7 +138,7 @@ module.exports = function shellHtml({ statusTime = '09:41' } = {}) {
 	const cap = $('cap'), push = $('push'), peran = $('peran'), kursor = $('kursor');
 	const frame = $('app-frame');
 
-	const TOTAL = 14, jejak = $('jejak');
+	const TOTAL = ${total}, jejak = $('jejak');
 	for (let i = 0; i < TOTAL; i++) jejak.appendChild(document.createElement('i'));
 	const tandai = (n) => [...jejak.children].forEach((el, i) => el.classList.toggle('aktif', i < n));
 
