@@ -5257,7 +5257,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   aplikasi menunjukkan sebaran versionCode. Usulan kode (belum dikerjakan): versi di UA (`SisupitApp/1.1.10`) pada rilis
   APK/iOS berikut, dan/atau web menyimpan versi/kemampuan jembatan saat mendaftarkan token FCM (butuh kolom baru = migrasi).
 
-### #229 — Ulasan aplikasi + testimoni di halaman depan (FIXED, lokal 2026-11-01, TASK_86, ADA MIGRASI)
+### #229 — Ulasan aplikasi + testimoni di halaman depan (FIXED, TERDEPLOY PROD @8bae8d95 2026-11-06, TASK_86, ADA MIGRASI)
 
 - **Permintaan user 2026-11-01:** "buatkan fitur review" untuk APLIKASI ("aplikasi ini sangat membantu"), muncul di
   semua platform. Keputusan: masuk ke **database Sisupit** (bukan Play Store/App Store), **testimoni ditampilkan**,
@@ -5281,7 +5281,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   Tanpa migrasi, web saja. Laporan yang ditutup SEBELUM migrasi 2026-08-27 tetap "tidak tercatat" (tanpa backfill, #88).
 - **Penjaga:** `ReportClosureActorTest` "monitoring list of pejabat and relawan" (sabotase = merah).
 
-### #231 — Tombol "Jaga di Kantor" banyak tidak muncul bagi petugas (FIXED, lokal 2026-11-06, TASK_88, ADA MIGRASI)
+### #231 — Tombol "Jaga di Kantor" banyak tidak muncul bagi petugas (FIXED, TERDEPLOY PROD @8bae8d95 2026-11-06, TASK_88, ADA MIGRASI)
 
 - **Laporan user 2026-11-06:** "tombol diam di kantor saat ada kejadian beberapa petugas bilang banyak tidak muncul, apakah ada batas?"
 - **Akar:** bukan bug - aturan TASK_60 "tepat satu orang per regu per kejadian" (UNIQUE(report_id, regu_id)). Begitu satu
@@ -5291,7 +5291,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   `ReportAlpha::recordFor` & Export sudah membaca banyak baris. down() gagal bila sudah ada dua orang satu regu.
 - **Penjaga:** `ReguTest` (dua anggota satu regu boleh, ketukan ganda tak menambah baris, tombol tetap ditawarkan ke anggota lain).
 
-### #232 — Penampil foto: animasi aneh & berat, tak bisa zoom, tak bisa unduh (FIXED, lokal 2026-11-06, TASK_88)
+### #232 — Penampil foto: animasi aneh & berat, tak bisa zoom, tak bisa unduh (FIXED, TERDEPLOY PROD @8bae8d95 2026-11-06, TASK_88)
 
 - **Laporan user:** "tampilan foto saat di klik tidak bagus, aneh animasinya juga terlihat berat"; minta zoom & unduh (contoh: saat membuat Laporan Kejadian).
 - **Akar:** `PhotoViewer` (#215) memakai `ui/dialog` DialogContent: zoom-95 + geser dari kiri-atas 300 ms ease-spring + overlay `backdrop-blur`.
@@ -5303,13 +5303,13 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Penjaga:** `PhotoDownloadTest`, `PhotoViewerSwipeTest`. Dicek di Chrome desktop (zoom, unduh 200 attachment); **belum diuji di HP/APK**
   (unduhan APK bergantung DownloadListener, mobile/PERILAKU_WEBVIEW.md butir 5).
 
-### #233 — PDF Laporan Kejadian tanpa tanda Sisupit (FIXED, lokal 2026-11-06, TASK_88)
+### #233 — PDF Laporan Kejadian tanpa tanda Sisupit (FIXED, TERDEPLOY PROD @8bae8d95 2026-11-06, TASK_88)
 
 - **Permintaan user:** "laporan yang jadi pdf buat ada sisupitnya tapi tidak terlalu mencolok".
 - **Fix:** footer kanan = logo 9px (`public/favicon-32x32.png`, data URI, syarat GD) + "Dibuat dengan Sisupit · sisupit.com" abu `#999`;
   teks kiri (nomor, dicetak oleh) tetap. Kop instansi tidak diubah. Penjaga: `LaporanKejadianPdfTest`. Dicek visual (render dompdf -> PNG).
 
-### #234 — Wilayah akun ikut lokasi saat mendaftar (Bangli/Badung) & petugas salah baca isian (FIXED, lokal 2026-11-06, TASK_88)
+### #234 — Wilayah akun ikut lokasi saat mendaftar (Bangli/Badung) & petugas salah baca isian (FIXED, TERDEPLOY PROD @8bae8d95 2026-11-06, TASK_88)
 
 - **Laporan user:** pendaftar dari Bangli/Badung terdeteksi otomatis di sana; petugas mengira isian Lengkapi Profil = lokasi tugas.
 - **Akar:** `CompleteProfile.jsx` mengisi wilayah dari GPS tanpa memandang kota tenant; tak ada jalan mengubah wilayah sesudahnya;
@@ -5320,7 +5320,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   diperiksa, banjar ikut) HANYA warga/relawan - peran `CENTRALLY_MANAGED_ROLES` 403 (keputusan user: wilayah tugas diatur admin).
 - **Penjaga:** `ProfileRegionTest`. Belum diuji di HP.
 
-### #235 — Undang Petugas lewat email (FIXED, lokal 2026-11-06, TASK_88, ADA MIGRASI)
+### #235 — Undang Petugas lewat email (FIXED, TERDEPLOY PROD @8bae8d95 2026-11-06, TASK_88, ADA MIGRASI)
 
 - **Permintaan user:** admin mengundang petugas dengan memasukkan email. Keputusan user: tabel (bisa dilihat & dibatalkan).
 - **Fix:** tabel `user_invitations` (migrasi `2026_11_06_100100`), `/admin/users/invitations` (form + 50 undangan terakhir, batal), tombol

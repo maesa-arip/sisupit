@@ -6,7 +6,7 @@
 | Severity | P2 (wilayah petugas salah) / P3 (lainnya) |
 | Tipe | fitur + perbaikan (ADA MIGRASI x2) |
 | Sumber | permintaan user 2026-11-06 (bekerja di `main`) |
-| Status | DONE (lokal, belum di-commit/deploy) |
+| Status | DONE - TERDEPLOY PROD @8bae8d95 (2026-11-06, migrasi Ran, /login 200) |
 
 ---
 

@@ -6,7 +6,7 @@
 | Severity | P3 |
 | Tipe | fitur kecil (ADA MIGRASI) |
 | Sumber | permintaan user 2026-11-01 |
-| Status | DONE (lokal) |
+| Status | DONE - TERDEPLOY PROD @8bae8d95 (2026-11-06, bersama TASK_88) |
 
 ---
 
