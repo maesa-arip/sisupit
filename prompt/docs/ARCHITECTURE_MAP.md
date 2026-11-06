@@ -54,7 +54,7 @@ app/
     ProfileController.php       Profil user (Breeze + complete-profile + KTP) + toggleStandby
                                  (siaga notifikasi, dipakai relawan & pejabat — User::STANDBY_ROLES)
     VolunteerController.php     Self-register relawan + keahlian
-    ReportHelperController.php  (terpisah dari ReportActionController — lihat catatan risiko)
+    (ReportHelperController DIHAPUS 2026-11-06, #237 - respons hanya lewat take-action)
   Models/        Agency (OPD/instansi terkait — Tenantable+SoftDeletes, TASK_27),
                  Banjar (satuan komunitas di BAWAH desa — Tenantable+SoftDeletes, 2026-08-26;
                    BUKAN tingkat kelima Tenantable, sifatnya deskriptif),
@@ -307,7 +307,7 @@ salah saat menyentuhnya:
 | ReportJagaKantor | belongsTo User | Tabel `report_jaga_kantor` (TASK_60): anggota regu yang memilih tinggal di kantor untuk satu kejadian. Tanpa batas per regu sejak 2026-11-06 (#231); UNIQUE(report_id, user_id) = sekali per orang; `regu_name` snapshot |
 | UserInvitation | belongsTo User (`inviter` via `invited_by`) | Tabel `user_invitations` (#235/TASK_88, 2026-11-06): undangan petugas lewat email. `token_hash` sha256 (token asli hanya di email), kode wilayah TUGAS sudah dipangkas ke tingkat pilihan admin, `expires_at` 7 hari, `accepted_at/accepted_user_id`. TANPA Tenantable (penerima belum berwilayah); daftar admin disaring `scopeWithinRegionOf` (kode admin harus SAMA, bukan NULL-lebih-luas) |
 | ReportOfficer | belongsTo Report, User, `arriver` (User via `arrived_by`, #154) | Kolom `regu_id` (nullOnDelete) + `regu_name` = snapshot regu saat petugas menekan Meluncur (TASK_60), NULL untuk petugas tanpa regu. Eloquent model ADA, tapi `ReportActionController` mengakses tabel `report_officers` via `DB::table()` mentah, bukan model ini — dua jalur akses ke data yang sama |
-| ReportHelper | belongsTo Report, User; fillable: location_lat, location_lng, status | Dipakai sebagai Eloquent di `ReportHelperController`, tapi sebagai raw table di `ReportActionController` — sama seperti di atas |
+| ReportHelper | belongsTo Report, User; fillable: location_lat, location_lng, status | Eloquent untuk relasi/baca (ReportHelperController dihapus #237), tapi sebagai raw table di `ReportActionController` — sama seperti di atas |
 | TrackingLog | belongsTo Report, User | Append-only (riwayat GPS), tidak ada update/delete |
 | Hydrant, Pompa, PosPemadam | relasi wilayah (province/city/district/village); Pompa & PosPemadam pakai SoftDeletes | Ketiganya kini pakai `Tenantable`+kolom wilayah. Pompa/PosPemadam: kolom GPS aslinya `lat`/`lng` (BUKAN `location_lat/lng` — `$fillable` lama salah, sudah diperbaiki ke `$guarded=[]`, FINDINGS #23). **Hydrant (TASK_30)** dapat `water_pressure` (`Keras`/`Sedang`/`Kecil`, nullable = belum disurvei) dan `debit_lpm` (liter/menit, opsional — angkanya dipegang PDAM). Satuan `debit_lpm` sengaja sama dengan `pompas.capacity_lpm` supaya rekap per desa bisa menjumlahkan keduanya tanpa konversi. **Sejak TASK_33 `hydrant_wargas` TIDAK lagi ikut** — angkanya `capacity_liter` (simpanan) dan liter tak boleh dijumlahkan dengan liter/menit, jadi `Admin\PompaController::waterSummary` (dulu `debitSummary`) mengirim DUA pasang angka per desa, dipisahkan kunci `water_metric` dari `toSkklRow()` (bukan `source`). Keduanya juga mengirim `unknown_debit`/`unknown_capacity` agar total tak dibaca sebagai angka pasti padahal ia batas bawah |
 | ReportAlpha | — (snapshot) | Tabel `report_alpha` (TASK_66): anggota regu yang ikut dipanggil (minimal satu anggota regunya Meluncur/Jaga di Kantor) tapi tak memilih keduanya sampai `resolve()`. Regu & nama di-SNAPSHOT, UNIQUE(report_id, user_id), `recordFor()` idempoten. DATA INTERNAL admin/superadmin (prop `alphaMembers`, kolom Export AM) |
@@ -365,7 +365,7 @@ auth+verified           : /dashboard, /reports/* (CRUD milik sendiri + approve/r
                            PATCH /profile/region (#234: warga/relawan saja, peran CENTRALLY_MANAGED 403),
                            GET /foto/unduh?path= (#232: attachment, hanya reports/ & resolutions/ di disk public)
                            (siaga notifikasi relawan & pejabat — User::STANDBY_ROLES),
-                           /helpers/create, /users/relawan/{user}, /users/detail/{user}
+                           /users/relawan/{user}, /users/detail/{user}
                            (2 terakhir TANPA role check — FINDINGS_LOG #1, P0)
 throttle:20,1 (tanpa auth): GET/POST /undangan/{token}, GET /undangan/{token}/masuk (#235/TASK_88 - gerbang = token
                            undangan; akun harus beremail sama; dikecualikan EnsureProfileComplete)

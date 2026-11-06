@@ -2636,6 +2636,8 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + #226 ripple ganti tema dari ikon (View Transitions) + #224, ThemeRippleTest (2026-10-29) = 911 passed, 6844 assertions.
             + #227/TASK_84 kirim posisi web dibatasi 5 dtk/10 m + channel report-tracking effect [report.id], ResponderTrackingClientTest (2026-11-01) = 913 passed, 6859 assertions.
             + TASK_88 #231-#235 foto zoom/unduh, PDF Sisupit, ubah wilayah, Undang Petugas, Jaga di Kantor tanpa batas (2026-11-06) = 946 passed, 7312 assertions.
+            + #236 flag form ulasan (2026-11-06) = 947 passed, 7321 assertions.
+            + #237 route helpers/create & 2 komponen mati dihapus, gerbang canRespond, ResponderActionGateTest (2026-11-06) = 950 passed, 7311 assertions.
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)

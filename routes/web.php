@@ -37,7 +37,6 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReguController;
 use App\Http\Controllers\ReportActionController;
 use App\Http\Controllers\ReportController;
-use App\Http\Controllers\ReportHelperController;
 use App\Http\Controllers\ReportResolutionController;
 use App\Http\Controllers\VolunteerController;
 use Illuminate\Http\Request;
@@ -379,9 +378,8 @@ Route::middleware(['auth', 'verified'])->controller(UserController::class)->grou
     Route::put('users/detail/{user}', 'storeDetailUser')->name('admin.detail.update');
 });
 
-Route::middleware(['auth', 'verified'])->controller(ReportHelperController::class)->group(function () {
-    Route::post('helpers/create', 'store')->name('front.helpers.store');
-});
+// `helpers/create` (front.helpers.store) DIHAPUS 2026-11-06 (#237): jalur respons lama tanpa cek
+// peran/wilayah/status - warga pun bisa mendaftar "Bersiap". Respons hanya lewat take-action.
 
 // Undangan petugas (2026-11-06) - TANPA `auth`: penerimanya bisa belum punya akun. Gerbangnya
 // token di tautan email (InvitationController). Dibatasi throttle supaya token tak bisa ditebak.

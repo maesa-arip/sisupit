@@ -588,7 +588,7 @@ Status: `OPEN` · `IN PROGRESS` · `FIXED` · `WONTFIX` (beri alasan).
 - **Sisa cleanup (BELUM, di luar scope ini):** endpoint `front.helpers.store` (`ReportHelperController::store`, route web.php:162) + komponen `HelpConfirmAlertDialog.jsx` & `VolunteerAction.jsx` (dead, tak dipakai) kini tak terpakai oleh alur hidup; status `'waiting'` jadi legacy. Pertimbangkan hapus/deprecate di task terpisah agar tak ada lagi sumber data `waiting` baru.
 - **Verifikasi:** `npm run build` lulus; `php artisan test` 127 passed (345 assertions). Manual: relawan buka kartu → Lihat & Respons → detail → Meluncur → Tiba/Batal berfungsi & ter-broadcast.
 - **Sumber:** review tampilan relawan 2026-06-29.
-- **Status:** FIXED (sisa cleanup endpoint mati OPEN)
+- **Status:** FIXED (sisa cleanup endpoint mati SELESAI 2026-11-06 lewat #237)
 
 ### #34 — Deteksi GPS form lapor: fix jaringan diterima buta, cache basi, tanpa fallback, GPS ganda
 - **Severity:** P2 (lokasi laporan darurat bisa salah kota → salah tenant/respons)
@@ -5340,3 +5340,21 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   `AppReviewPrompt` di `AppLayout.jsx` dan kartu + dialog "Ulasan Aplikasi" di `Profile/Edit.jsx`. Server (prop `appReviewPrompt`,
   `appReview`, route simpan), tabel, menu admin `/admin/app-reviews`, dan testimoni yang sudah disetujui di Spotlight/Landing TIDAK diubah.
 - **Cara mengembalikan:** ubah flag ke `true`, lalu sesuaikan test `AppReviewTest` "hides the review form surfaces", lalu `npm run build`.
+
+### #237 — "Warga bisa klik Meluncur": jalur respons lama tanpa gerbang + tombol taktis tampil untuk admin (FIXED, 2026-11-06, lokal)
+
+- **Laporan user:** "ada laporan bahwa warga bisa klik meluncur".
+- **Temuan:** tombol Meluncur di `Front/Reports/Show.jsx` sudah bergerbang (`isRelawan || isStaffOrAdmin`) dan
+  `ReportActionController::takeAction` menolak selain `petugas|relawan` - akun warga murni TIDAK melihat tombolnya.
+  Dugaan terkuat: akun yang dilaporkan ber-peran `relawan` (relawan = warga yang menjadi relawan, sah meluncur) -
+  belum dicek di data prod. Yang benar-benar bocor:
+  1. `POST helpers/create` (`front.helpers.store`, `ReportHelperController::store`, sisa #33): `authorize()` selalu
+     true, tanpa cek peran, wilayah, maupun status - akun login mana pun (warga) bisa membuat baris `report_helpers`
+     status `waiting` ("Bersiap") di laporan apa pun, termasuk lintas tenant.
+  2. Panel Tindakan menawarkan Meluncur/Jaga di Kantor ke admin/superadmin, padahal server menjawab 403.
+- **Perbaikan:** route + `ReportHelperController` + `ReportHelperRequest` + komponen mati `VolunteerAction.jsx` &
+  `HelpConfirmAlertDialog.jsx` DIHAPUS (tak ada pemakai). `Show.jsx` `canRespond` (petugas|relawan, sama dengan server)
+  menggerbangi tombol taktis; admin tetap melihat "Tandai Insiden Selesai". Tanpa migrasi; data `waiting` lama dibiarkan.
+- **Penjaga:** `tests/Feature/Sisupit/ResponderActionGateTest.php`.
+- **Sisa:** cek peran akun yang dilaporkan (bila ternyata warga murni di layar lain, laporkan halamannya).
+- **Status:** FIXED (2026-11-06, lokal)

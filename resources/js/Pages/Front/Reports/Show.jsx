@@ -246,6 +246,10 @@ export default function ReportShow(props) {
 	// tapi tidak boleh mengelola daftarnya, jadi tautan pintasnya tidak ditawarkan ke mereka.
 	const isAdminOrSuperadmin = userRoles.some((r) => ['admin', 'superadmin'].includes(r));
 	const isRelawan = userRoles.includes('relawan');
+	// Meluncur/Jaga di Kantor/Tiba = peran responder saja, sama persis dengan gerbang server
+	// ReportActionController::takeAction (hasAnyRole petugas|relawan). Admin/superadmin tetap
+	// melihat panel (Tandai Insiden Selesai) tapi tidak ditawari tombol yang berakhir 403 (#237).
+	const canRespond = userRoles.some((r) => ['petugas', 'relawan'].includes(r));
 	const isOwner = auth.user?.id === report.user_id;
 	// Jejak "siapa yang menutup/menolak" (FINDINGS #88) ditujukan ke rekan kerja & pengawas,
 	// bukan ke pelapor: jejak penutupan memang sudah hanya tampil di dalam "Panel Tindakan
@@ -1793,7 +1797,7 @@ export default function ReportShow(props) {
 								) : (
 									<>
 										{/* 👇 TOMBOL TAKTIS (Dengan Warna Solid Semantik) 👇 */}
-										{!myRecord && myRegu?.i_stay ? (
+										{!canRespond ? null : !myRecord && myRegu?.i_stay ? (
 											// Anggota regu yang memilih tinggal (TASK_60): bukan responder, jadi
 											// tak ada tombol Tiba/Koreksi - cukup keadaannya & jalan membatalkan.
 											<>

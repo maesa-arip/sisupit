@@ -76,7 +76,7 @@
   benar memfilter. Lihat `FINDINGS_LOG.md` #2.
 - ~~**Dua jalur akses ke tabel yang sama**~~ — **diklarifikasi sebagai keputusan sadar
   (2026-06-25), bukan anti-pola tak disengaja.** `report_officers`/`report_helpers`
-  punya Eloquent model (`ReportOfficer`, `ReportHelper`, dipakai `ReportHelperController`)
+  punya Eloquent model (`ReportOfficer`, `ReportHelper`; `ReportHelperController` dihapus #237)
   tapi `ReportActionController` sengaja memakai `DB::table()` mentah demi
   `lockForUpdate()` (cegah double-insert saat respons konkuren) — lihat komentar di
   kedua model dan di atas `ReportActionController`, serta `FINDINGS_LOG.md` #6. **Jangan

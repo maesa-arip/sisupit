@@ -33,7 +33,7 @@ use Illuminate\Support\Facades\Notification;
 
 // Catatan arsitektur (disengaja, dikonfirmasi 2026-06-25): controller ini mengakses
 // tabel report_officers/report_helpers lewat DB::table() mentah, BUKAN model Eloquent
-// ReportOfficer/ReportHelper (yang dipakai ReportHelperController). Ini sengaja, bukan
+// ReportOfficer/ReportHelper (dipakai untuk relasi/baca; jalur tulis lama dihapus #237). Ini sengaja, bukan
 // inkonsistensi yang belum disadari - dipilih demi lockForUpdate() di takeAction() untuk
 // mencegah double-insert saat banyak relawan/petugas merespons satu insiden bersamaan.
 // Jangan konsolidasi ke Eloquent tanpa mempertahankan locking ini (lihat FINDINGS_LOG #6).
