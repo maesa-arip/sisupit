@@ -5341,7 +5341,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   `appReview`, route simpan), tabel, menu admin `/admin/app-reviews`, dan testimoni yang sudah disetujui di Spotlight/Landing TIDAK diubah.
 - **Cara mengembalikan:** ubah flag ke `true`, lalu sesuaikan test `AppReviewTest` "hides the review form surfaces", lalu `npm run build`.
 
-### #237 — "Warga bisa klik Meluncur": jalur respons lama tanpa gerbang + tombol taktis tampil untuk admin (FIXED, 2026-11-06, lokal)
+### #237 — "Warga bisa klik Meluncur": jalur respons lama tanpa gerbang + tombol taktis tampil untuk admin (FIXED, TERDEPLOY PROD @39392892 2026-11-07)
 
 - **Laporan user:** "ada laporan bahwa warga bisa klik meluncur".
 - **Temuan:** tombol Meluncur di `Front/Reports/Show.jsx` sudah bergerbang (`isRelawan || isStaffOrAdmin`) dan
@@ -5357,4 +5357,4 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   menggerbangi tombol taktis; admin tetap melihat "Tandai Insiden Selesai". Tanpa migrasi; data `waiting` lama dibiarkan.
 - **Penjaga:** `tests/Feature/Sisupit/ResponderActionGateTest.php`.
 - **Sisa:** cek peran akun yang dilaporkan (bila ternyata warga murni di layar lain, laporkan halamannya).
-- **Status:** FIXED (2026-11-06, lokal)
+- **Status:** FIXED, TERDEPLOY PROD @39392892 (2026-11-07; HTTPS: bundel Show-BXZPCGps.js & app-DtryRnni.js 200, POST /helpers/create 404)

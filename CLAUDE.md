@@ -195,7 +195,7 @@ TASK_88/     : (2026-11-06, TERDEPLOY PROD @8bae8d95 bersama TASK_86, HTTPS 200,
                 laporan warga di form Laporan Kejadian; #233 footer PDF "Dibuat dengan Sisupit"; #234 RegionFields (deteksi luar kota tenant
                 tak diisikan) + PATCH /profile/region warga/relawan saja; #235 Undang Petugas (user_invitations, /admin/users/invitations,
                 /undangan/{token}). Belum diuji di HP.
-#237         : (2026-11-06, lokal) "warga bisa klik Meluncur": tombol & server sudah petugas|relawan (akun pelapor diduga relawan, belum dicek);
+#237         : (2026-11-06, TERDEPLOY PROD @39392892 2026-11-07, HTTPS terverifikasi: helpers/create 404) "warga bisa klik Meluncur": tombol & server sudah petugas|relawan (akun pelapor diduga relawan, belum dicek);
                 route lama helpers/create (tanpa cek peran/wilayah) + ReportHelperController/Request + 2 komponen mati DIHAPUS;
                 tombol taktis Show.jsx digerbang canRespond (admin tak ditawari Meluncur). Tanpa migrasi. Penjaga ResponderActionGateTest.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
@@ -213,7 +213,7 @@ Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174 #188(satelit).
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
 Test         : 950 passed / 7311 assertions (2026-11-06, + #237 ResponderActionGateTest; assertion turun karena 2 file JSX dihapus dari pindaian).
-Lingkungan   : PROD @e8188f18 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#236 + Masuk dengan Apple) | DEV @672b6a10 (dashboard baru) | STAGING @42ef296b (= prod, video demo
+Lingkungan   : PROD @39392892 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#237 + Masuk dengan Apple) | DEV @672b6a10 (dashboard baru) | STAGING @42ef296b (= prod, video demo
                 TASK_80; data uji petugas.uji@sisupit.test + LP-2026-00227). Dev & staging: data salinan prod, TANPA basic auth sejak 2026-10-18 (PENGECUALIAN #7), sandi "password".
 ```
 
