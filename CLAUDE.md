@@ -198,6 +198,12 @@ TASK_88/     : (2026-11-06, TERDEPLOY PROD @8bae8d95 bersama TASK_86, HTTPS 200,
 #237         : (2026-11-06, TERDEPLOY PROD @39392892 2026-11-07, HTTPS terverifikasi: helpers/create 404) "warga bisa klik Meluncur": tombol & server sudah petugas|relawan (akun pelapor diduga relawan, belum dicek);
                 route lama helpers/create (tanpa cek peran/wilayah) + ReportHelperController/Request + 2 komponen mati DIHAPUS;
                 tombol taktis Show.jsx digerbang canRespond (admin tak ditawari Meluncur). Tanpa migrasi. Penjaga ResponderActionGateTest.
+#238         : (2026-11-09, lokal) foto darurat NON-kebakaran WAJIB bagi warga/relawan/tamu, opsional bagi Pusat Komando
+                (petugas/admin/superadmin, input telepon): ReportRequest::nonFirePhotoRequired + prop non_fire_photo_required.
+                Kebakaran tetap opsional. Mencabut sebagian #149(b). Tanpa migrasi. Penjaga ReportMultiPhotoTest/GuestReportTest.
+#239         : (2026-11-09, lokal) form ulasan aplikasi DIAKTIFKAN lagi (flag SHOW_APP_REVIEW_FORM = true, cabut #236): ajakan HANYA
+                sesudah kejadian yang dilaporkan/ditangani (petugas/relawan Meluncur/Tiba) Selesai - syarat akun >= 7 hari dibuang;
+                kartu di dashboard + detail laporan Selesai (shouldAsk($user, $report)); kartu Profil tampil. Tanpa migrasi. Penjaga AppReviewTest.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
                 kolom approved_at tetap. #178 i18n TERDEPLOY prod @dde8c6a4; #179 (ikon, paginasi PaginationLinks, email).
                 #180 terjemahan bawaan Laravel dari paket laravel-lang/common (DEV) TERDEPLOY prod @9bf7b103; paginasi tetap versi #178 -
@@ -205,14 +211,14 @@ DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permi
 SEMENTARA    : #149 menu "Jangkauan Petugas" disembunyikan + foto laporan non-kebakaran
                 opsional; #156 menu admin "Daftar Penerima Email" & "Pengaturan Email Dinas"
                 disembunyikan (flag di navItems.js). Cara mengembalikan: FINDINGS_LOG #149/#156.
-                #236 (2026-11-06, TERDEPLOY PROD @e8188f18) form ulasan aplikasi TASK_86 (ajakan dashboard + kartu Profil) disembunyikan -
-                flag SHOW_APP_REVIEW_FORM di Components/AppReview/flags.js; server & menu admin utuh.
+                (foto non-kebakaran wajib lagi bagi non-staf sejak #238.)
+                #236 form ulasan aplikasi disembunyikan - DICABUT #239 (2026-11-09, flag kembali true).
 Belum dicek  : visual di ponsel/APK untuk banyak perubahan UI (tombol merah brand, pop-up,
                 combobox, dashboard, bilah bawah) - daftar per task di STATUS_LOG.
 Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115 #119 #121
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174 #188(satelit).
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
-Test         : 950 passed / 7311 assertions (2026-11-06, + #237 ResponderActionGateTest; assertion turun karena 2 file JSX dihapus dari pindaian).
+Test         : 956 passed / 7391 assertions (2026-11-09, + #238 foto non-kebakaran, #239 ulasan sesudah kejadian Selesai).
 Lingkungan   : PROD @39392892 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#237 + Masuk dengan Apple) | DEV @672b6a10 (dashboard baru) | STAGING @42ef296b (= prod, video demo
                 TASK_80; data uji petugas.uji@sisupit.test + LP-2026-00227). Dev & staging: data salinan prod, TANPA basic auth sejak 2026-10-18 (PENGECUALIAN #7), sandi "password".
 ```
@@ -239,7 +245,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-11-06: 950 passed / 7311 assertions - + #237 ResponderActionGateTest;
+Test      : php artisan test            (baseline 2026-11-09: 956 passed / 7391 assertions - + #238/#239;
             lokal: php -d memory_limit=1G -d extension=php_sqlite3.dll -d extension=pdo_sqlite vendor/bin/pest.
             Perbarui angka ini tiap kali test bertambah - baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan. Riwayat angkanya di STATUS_LOG.md)

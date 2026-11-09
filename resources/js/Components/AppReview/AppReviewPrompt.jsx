@@ -5,9 +5,10 @@ import { IconMessageStar, IconX } from '@tabler/icons-react';
 import { useState } from 'react';
 
 /**
- * Ajakan ulasan aplikasi di dashboard (TASK_86). Tampil hanya bila server mengirim prop
- * `appReviewPrompt` (AppReview::shouldAsk - bukan akun demo, belum mengulas, tidak sedang di
- * misi, akun cukup lama, tidak baru ditunda) dan hanya di route dashboard. Kartu biasa di alur
+ * Ajakan ulasan aplikasi (TASK_86). Tampil hanya bila server mengirim prop `appReviewPrompt`
+ * (AppReview::shouldAsk - bukan akun demo, belum mengulas, tidak sedang di misi, tidak baru
+ * ditunda, dan sesudah kejadian yang ia laporkan/tangani Selesai, #239), hanya di dashboard dan
+ * detail laporan Selesai. Kartu biasa di alur
  * halaman seperti Banner pengumuman (#184): JANGAN dijadikan pop-up yang menghadang, fixed, atau
  * sticky - ini aplikasi darurat, dan ulasan tak boleh berdiri di antara pengguna dan tugasnya.
  */

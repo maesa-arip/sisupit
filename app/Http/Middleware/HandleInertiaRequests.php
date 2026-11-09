@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Http\Resources\UserSingleResource;
 use App\Models\Announcement;
 use App\Models\AppReview;
+use App\Models\Report;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
@@ -71,12 +72,26 @@ class HandleInertiaRequests extends Middleware
             // ditulis di satu tempat (config/legal.php) — sebelumnya ter-hardcode di AppLayout
             // dengan ejaan yang berbeda dari dokumen legal.
             'penyedia_nama' => fn () => config('legal.penyedia.nama'),
-            // Ajakan ulasan aplikasi (TASK_86): HANYA di halaman dashboard, supaya kartunya tak
-            // pernah muncul di form lapor atau detail insiden; null = jangan tampilkan.
-            'appReviewPrompt' => fn () => $request->user() && $request->routeIs('dashboard')
-                && AppReview::shouldAsk($request->user())
-                ? AppReview::formProps($request->user())
-                : null,
+            // Ajakan ulasan aplikasi (TASK_86): di dashboard, dan sejak #239 juga di detail laporan
+            // yang SUDAH Selesai dan ia laporkan/tangani (bukan form lapor, bukan insiden yang masih
+            // berjalan); null = jangan tampilkan. Syaratnya dipegang AppReview::shouldAsk.
+            'appReviewPrompt' => function () use ($request) {
+                $user = $request->user();
+                if (! $user) {
+                    return null;
+                }
+
+                if ($request->routeIs('dashboard')) {
+                    $ask = AppReview::shouldAsk($user);
+                } elseif ($request->routeIs('reports.show')) {
+                    $report = Report::withoutGlobalScopes()->find($request->route('report'));
+                    $ask = $report && AppReview::shouldAsk($user, $report);
+                } else {
+                    $ask = false;
+                }
+
+                return $ask ? AppReview::formProps($user) : null;
+            },
         ];
     }
 }

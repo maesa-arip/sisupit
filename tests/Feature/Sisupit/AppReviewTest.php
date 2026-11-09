@@ -28,6 +28,17 @@ function ulasanUser(string $role, string $city = '5171', array $overrides = []):
     return $user;
 }
 
+/** Laporan milik $userId (pelapor) dengan status tertentu, di wilayah ulasanUser(). */
+function laporanUlasan(?int $userId, string $status = 'resolved'): Report
+{
+    return Report::withoutGlobalScopes()->create([
+        'user_id' => $userId, 'name' => 'Pelapor', 'phone' => '0812', 'title' => 'Kebakaran',
+        'incident_type' => 'rumah', 'description' => 'Api', 'address' => 'Jl. Uji',
+        'lat' => '-8.7', 'lng' => '115.2', 'status' => $status,
+        'province_code' => '51', 'city_code' => '5171', 'district_code' => '517101', 'village_code' => '5171012008',
+    ]);
+}
+
 function kirimUlasan($test, User $user, array $data = [], string $agent = 'Mozilla/5.0 (Windows NT 10.0) Chrome/130')
 {
     return $test->actingAs($user)
@@ -91,19 +102,15 @@ it('rejects a missing rating and unknown tags', function () {
     expect(AppReview::ownedBy($warga))->toBeNull();
 });
 
-it('asks only at a calm moment, and respects later and never', function () {
-    $baru = ulasanUser('warga', '5171', ['created_at' => now()->subDays(2)]);
-    expect(AppReview::shouldAsk($baru))->toBeFalse();
-
-    // Akun baru yang laporannya sudah Selesai = momen yang tepat.
-    Report::withoutGlobalScopes()->create([
-        'user_id' => $baru->id, 'name' => 'Pelapor', 'phone' => '0812', 'title' => 'Kebakaran',
-        'incident_type' => 'rumah', 'description' => 'Api', 'address' => 'Jl. Uji',
-        'lat' => '-8.7', 'lng' => '115.2', 'status' => 'resolved',
-    ]);
-    expect(AppReview::shouldAsk($baru))->toBeTrue();
-
+it('asks only after an incident the user reported is resolved, and respects later and never', function () {
+    // #239 (keputusan user 2026-11-09): umur akun tak lagi cukup - harus ada kejadian Selesai.
     $lama = ulasanUser('warga');
+    expect(AppReview::shouldAsk($lama))->toBeFalse();
+
+    $berjalan = laporanUlasan($lama->id, 'handling');
+    expect(AppReview::shouldAsk($lama))->toBeFalse();
+
+    $berjalan->update(['status' => 'resolved']);
     expect(AppReview::shouldAsk($lama))->toBeTrue();
 
     $this->actingAs($lama)->post(route('app-review.dismiss'), ['never' => false])->assertRedirect();
@@ -117,37 +124,62 @@ it('asks only at a calm moment, and respects later and never', function () {
     expect(AppReview::shouldAsk($lama))->toBeFalse();
 
     // Sesudah mengulas, tak pernah ditanya lagi.
-    $sudah = ulasanUser('relawan');
+    $sudah = ulasanUser('warga');
+    laporanUlasan($sudah->id);
     kirimUlasan($this, $sudah);
     expect(AppReview::shouldAsk($sudah))->toBeFalse();
 
     $demo = ulasanUser('warga', '5171', ['is_demo' => true]);
+    laporanUlasan($demo->id);
     expect(AppReview::shouldAsk($demo))->toBeFalse();
 });
 
-it('never asks a responder who is on the way or at the scene', function () {
-    $petugas = ulasanUser('petugas');
-    $report = Report::withoutGlobalScopes()->create([
-        'user_id' => ulasanUser('warga')->id, 'name' => 'Pelapor', 'phone' => '0812', 'title' => 'Kebakaran',
-        'incident_type' => 'rumah', 'description' => 'Api', 'address' => 'Jl. Uji',
-        'lat' => '-8.7', 'lng' => '115.2', 'status' => 'handling',
-    ]);
-    DB::table('report_officers')->insert([
-        'report_id' => $report->id, 'user_id' => $petugas->id, 'status' => 'en_route',
+it('asks a responder only after the incident they handled is resolved, never mid-mission', function (string $table, string $role) {
+    $responder = ulasanUser($role);
+    $report = laporanUlasan(ulasanUser('warga')->id, 'handling');
+    DB::table($table)->insert([
+        'report_id' => $report->id, 'user_id' => $responder->id, 'status' => 'en_route',
         'created_at' => now(), 'updated_at' => now(),
     ]);
 
-    expect(AppReview::shouldAsk($petugas))->toBeFalse();
+    expect(AppReview::shouldAsk($responder))->toBeFalse();
 
-    DB::table('report_officers')->where('user_id', $petugas->id)->update(['status' => 'finished']);
-    expect(AppReview::shouldAsk($petugas))->toBeTrue();
-});
+    // Tiba di TKP, insiden belum Selesai: tetap tidak.
+    DB::table($table)->where('user_id', $responder->id)->update(['status' => 'arrived']);
+    expect(AppReview::shouldAsk($responder))->toBeFalse();
 
-it('sends the prompt prop on the dashboard only', function () {
+    // Insiden ditutup (resolve() menandai semua baris penanganan `finished`).
+    $report->update(['status' => 'resolved']);
+    DB::table($table)->where('user_id', $responder->id)->update(['status' => 'finished']);
+    expect(AppReview::shouldAsk($responder))->toBeTrue()
+        ->and(AppReview::shouldAsk($responder, $report))->toBeTrue();
+
+    // Petugas lain yang tidak ikut menangani: tidak diajak.
+    expect(AppReview::shouldAsk(ulasanUser($role)))->toBeFalse();
+})->with([['report_officers', 'petugas'], ['report_helpers', 'relawan']]);
+
+it('sends the prompt prop on the dashboard and on the detail of a resolved incident only', function () {
     $warga = ulasanUser('warga');
 
     $this->actingAs($warga)->get(route('dashboard'))
+        ->assertInertia(fn (Assert $page) => $page->where('appReviewPrompt', null));
+
+    $selesai = laporanUlasan($warga->id);
+    $berjalan = laporanUlasan($warga->id, 'handling');
+
+    $this->actingAs($warga)->get(route('dashboard'))
         ->assertInertia(fn (Assert $page) => $page->whereNot('appReviewPrompt', null)->has('appReviewPrompt.tags'));
+
+    $this->actingAs($warga)->get(route('reports.show', $selesai->id))
+        ->assertInertia(fn (Assert $page) => $page->whereNot('appReviewPrompt', null));
+
+    // Insiden yang masih berjalan: tidak ada ajakan, walau kejadian lain sudah Selesai.
+    $this->actingAs($warga)->get(route('reports.show', $berjalan->id))
+        ->assertInertia(fn (Assert $page) => $page->where('appReviewPrompt', null));
+
+    // Admin yang membuka detail kejadian orang lain tidak diajak di sana.
+    $this->actingAs(ulasanUser('admin'))->get(route('reports.show', $selesai->id))
+        ->assertInertia(fn (Assert $page) => $page->where('appReviewPrompt', null));
 
     $this->actingAs($warga)->get(route('profile.edit'))
         ->assertInertia(fn (Assert $page) => $page->where('appReviewPrompt', null)->where('appReview.mine', null));
@@ -267,14 +299,14 @@ it('renders the prompt in the layout content flow and the testimonials on the fr
         ->and(file_get_contents(resource_path('js/Pages/Landing.jsx')))->toContain('<Testimonials items={testimonials}');
 });
 
-// #236 (keputusan user 2026-11-06): form ulasan SEMENTARA disembunyikan - hanya tampilannya.
-// Saat dinyalakan lagi (flags.js = true), ubah test ini bersama flag-nya.
-it('hides the review form surfaces behind one flag while the server stays intact', function () {
+// #236 sempat menyembunyikan form ulasan (2026-11-06); #239 (2026-11-09) menyalakannya lagi.
+// Flag tetap satu-satunya saklar tampilan untuk kartu ajakan & kartu Profil.
+it('shows the review form surfaces behind one flag while the server stays intact', function () {
     $flags = file_get_contents(resource_path('js/Components/AppReview/flags.js'));
     $layout = file_get_contents(resource_path('js/Layouts/AppLayout.jsx'));
     $profile = file_get_contents(resource_path('js/Pages/Profile/Edit.jsx'));
 
-    expect($flags)->toContain('export const SHOW_APP_REVIEW_FORM = false;')
+    expect($flags)->toContain('export const SHOW_APP_REVIEW_FORM = true;')
         ->and($layout)->toContain('{SHOW_APP_REVIEW_FORM && appReviewPrompt')
         ->and($profile)->toContain('{SHOW_APP_REVIEW_FORM && (')
         ->and(app('router')->has('admin.app-reviews.index'))->toBeTrue();

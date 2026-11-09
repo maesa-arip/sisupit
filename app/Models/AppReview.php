@@ -16,8 +16,9 @@ use Illuminate\Support\Facades\DB;
  * Aturan yang dipegang di sini - jangan disalin ke controller/JSX:
  *  - SATU ulasan per pengguna (UNIQUE user_id); menyunting = menimpa.
  *  - Tamu tidak bisa mengulas (route di grup auth, keputusan user). Semua peran boleh.
- *  - Ajakan otomatis di dashboard = shouldAsk(): bukan akun demo, belum mengulas, tidak sedang
- *    meluncur/di TKP, akun >= 7 hari ATAU laporannya sudah Selesai, dan tidak baru ditunda.
+ *  - Ajakan otomatis di dashboard & detail laporan Selesai = shouldAsk(): bukan akun demo, belum
+ *    mengulas, tidak sedang meluncur/di TKP, tidak baru ditunda, dan HANYA sesudah kejadian yang ia
+ *    laporkan atau ikut tangani dinyatakan Selesai (#239; dulu cukup akun >= 7 hari).
  *  - Testimoni publik = persetujuan pengguna (allow_public) DAN admin (approved_at). Komentar
  *    yang diubah sesudah disetujui kembali menunggu - yang disetujui admin adalah teks itu.
  */
@@ -56,8 +57,6 @@ class AppReview extends Model
         'relawan' => 'Relawan Aktif',
         'warga' => 'Warga',
     ];
-
-    public const MIN_ACCOUNT_AGE_DAYS = 7;
 
     /** "Nanti saja" menunda ajakan selama ini. */
     public const SNOOZE_DAYS = 30;
@@ -117,8 +116,8 @@ class AppReview extends Model
         return self::withoutGlobalScopes()->where('user_id', $user->id)->first();
     }
 
-    /** Apakah ajakan mengulas boleh tampil di dashboard pengguna ini? */
-    public static function shouldAsk(User $user): bool
+    /** Apakah ajakan mengulas boleh tampil bagi pengguna ini (di dashboard, atau di detail $report)? */
+    public static function shouldAsk(User $user, ?Report $report = null): bool
     {
         if ($user->is_demo || self::ownedBy($user)) {
             return false;
@@ -137,10 +136,27 @@ class AppReview extends Model
             }
         }
 
-        $oldEnough = $user->created_at && $user->created_at->lte(now()->subDays(self::MIN_ACCOUNT_AGE_DAYS));
+        // #239 (keputusan user 2026-11-09): HANYA sesudah kejadian yang ia laporkan atau ikut
+        // tangani (Meluncur/Tiba - baris report_officers/report_helpers; batal Meluncur menghapus
+        // barisnya) dinyatakan Selesai. Dulu cukup akun >= 7 hari. Dengan $report: kejadian itu saja
+        // (kartu di detail laporan); tanpa: kejadian Selesai mana pun (kartu di dashboard).
+        return self::resolvedIncidentsOf($user)
+            ->when($report, fn ($query) => $query->whereKey($report->id))
+            ->exists();
+    }
 
-        return $oldEnough
-            || Report::withoutGlobalScopes()->where('user_id', $user->id)->where('status', 'resolved')->exists();
+    /**
+     * Laporan Selesai yang dibuat ATAU ikut ditangani pengguna ini. Tenantable dilepas karena wilayah
+     * akun bisa berubah sesudah kejadian; pengganti proteksinya adalah syarat keterlibatan user_id
+     * itu sendiri (pelapor atau baris penanganan miliknya).
+     */
+    private static function resolvedIncidentsOf(User $user)
+    {
+        return Report::withoutGlobalScopes()
+            ->where('status', 'resolved')
+            ->where(fn ($query) => $query->where('user_id', $user->id)
+                ->orWhereIn('id', DB::table('report_officers')->where('user_id', $user->id)->select('report_id'))
+                ->orWhereIn('id', DB::table('report_helpers')->where('user_id', $user->id)->select('report_id')));
     }
 
     /** Data form ulasan untuk layar: ulasan sendiri (bila ada) + pilihan tag. */

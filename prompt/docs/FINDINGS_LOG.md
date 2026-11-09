@@ -3720,6 +3720,8 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   lapor: label foto non-kebakaran "(Opsional)", seksi foto tetap terbuka. Penjaga dibalik di
   `ReportMultiPhotoTest` (lainnya tanpa foto TERSIMPAN; tanpa deskripsi/patokan DITOLAK).
   Mengembalikan kewajiban = `$isOtherEmergency ? 'required' : 'nullable'` + label + test.
+- **2026-11-09 (#238):** (b) DICABUT untuk warga/relawan/tamu - foto non-kebakaran wajib lagi bagi mereka;
+  Pusat Komando (petugas/admin/superadmin) tetap opsional. Lihat #238.
 
 
 ### #150 — "Atur Anggota" /regu: tarikan ke bawah memuat ulang halaman di APK, bukan menggulir daftar (FIXED)
@@ -5333,7 +5335,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   Email butuh SMTP prod (#191). Akun demo yang mengundang = email disenyapkan (TASK_81).
 - **Penjaga:** `PetugasInvitationTest`.
 
-### #236 — Form ulasan aplikasi sementara disembunyikan (SEMENTARA, TERDEPLOY PROD @e8188f18 2026-11-06)
+### #236 — Form ulasan aplikasi sementara disembunyikan (DICABUT #239 2026-11-09; dulu TERDEPLOY PROD @e8188f18 2026-11-06)
 
 - **Permintaan user:** "sementara hide dulu form rating sisupit, hide tampilannya saja".
 - **Perubahan:** flag `SHOW_APP_REVIEW_FORM = false` di `resources/js/Components/AppReview/flags.js` menggerbangi kartu ajakan
@@ -5358,3 +5360,38 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Penjaga:** `tests/Feature/Sisupit/ResponderActionGateTest.php`.
 - **Sisa:** cek peran akun yang dilaporkan (bila ternyata warga murni di layar lain, laporkan halamannya).
 - **Status:** FIXED, TERDEPLOY PROD @39392892 (2026-11-07; HTTPS: bundel Show-BXZPCGps.js & app-DtryRnni.js 200, POST /helpers/create 404)
+
+### #238 — Foto darurat non-kebakaran WAJIB bagi warga, opsional bagi admin yang input manual (FIXED, lokal 2026-11-09)
+
+- **Permintaan user:** "apakah fitur jika admin yang input manual laporan foto tidak wajib dan jika warga yang input
+  maka foto wajib?" - fitur belum ada (sejak #149 foto opsional untuk SEMUA). Keputusan user: wajib "hanya untuk non-kebakaran".
+- **Perubahan:** `ReportRequest::nonFirePhotoRequired(?User)` = SATU rumus: wajib kecuali peran Pusat Komando
+  (`ReportController::COMMAND_CENTER_ROLES` = petugas/admin/superadmin, kini `public` - daftar yang sama dengan pemilih
+  wilayah & bebas limiter). `photos` = `required` hanya untuk POST + `incident_type = 'lainnya'` + pelapor non-staf
+  (warga, relawan, TAMU). Kebakaran (termasuk `kebakaran_lainnya`) tetap opsional - darurat-first. Edit (PUT) tetap opsional.
+  Pesan "Lampirkan minimal satu foto kejadian." (`GuestReportRequest::messages()` kini mewarisi pesan induk).
+  Prop `non_fire_photo_required` di `create()` & `guestCreate()`; `Create.jsx` label "(Wajib)", teks bantuan, dan penjaga
+  sebelum kirim (toast) - keputusan dari server, bukan peran di JSX (pola #101).
+- **Mencabut sebagian #149(b)** untuk pelapor non-staf. Mengembalikan pelonggaran = `$photoRule` di `ReportRequest` jadi
+  `'nullable'` + balik test.
+- **Penjaga:** `ReportMultiPhotoTest` (warga ditolak tanpa foto & lolos dengan foto; admin/superadmin/petugas lolos tanpa
+  foto; relawan ditolak; prop form), `GuestReportTest` (tamu wajib foto non-kebakaran, prop `true`).
+- **Status:** FIXED lokal 2026-11-09, belum di-commit/deploy. Tanpa migrasi. Belum diuji di HP.
+
+### #239 — Ulasan aplikasi diaktifkan lagi, ajakan hanya sesudah kejadian Selesai (FIXED, lokal 2026-11-09)
+
+- **Permintaan user:** "sekarang aktifkan fitur review, tapi review hanya muncul saat kejadian sudah selesai ditangani".
+  Keputusan user: yang diajak = pelapor + petugas/relawan yang menangani; kartu di dashboard + detail laporan Selesai;
+  kartu "Ulasan Aplikasi" di Profil ikut tampil.
+- **Perubahan:** `flags.js` `SHOW_APP_REVIEW_FORM = true` (mencabut #236). `AppReview::shouldAsk(User, ?Report)`:
+  syarat "akun >= 7 hari" (`MIN_ACCOUNT_AGE_DAYS`, dihapus) DIBUANG; kini wajib ada laporan `resolved` yang ia buat ATAU
+  ikut ia tangani (baris `report_officers`/`report_helpers` - batal Meluncur menghapus baris, Jaga di Kantor tabel lain,
+  jadi keduanya tak terhitung). Satu rumus `resolvedIncidentsOf()`; dengan `$report` = kejadian itu saja. Syarat lama
+  (bukan demo, belum mengulas, tidak Meluncur/Tiba, tunda 30 hari / jangan tanya lagi) tetap.
+  `HandleInertiaRequests` `appReviewPrompt`: `dashboard` + `reports.show` (laporan dicari tanpa Tenantable; pengganti
+  proteksinya = syarat keterlibatan user itu sendiri, dan prop hanya berisi form ulasan miliknya, bukan data laporan).
+- **Catatan:** di detail laporan, kartu muncul pada kunjungan berikutnya sesudah status jadi Selesai (reload realtime
+  #113 memakai `only`, tak menyertakan `appReviewPrompt`). Tamu tetap tak bisa mengulas.
+- **Penjaga:** `AppReviewTest` (pelapor: berjalan = tidak, Selesai = ya; responder officers/helpers: Meluncur/Tiba = tidak,
+  Selesai = ya, petugas lain = tidak; prop dashboard/detail Selesai/detail berjalan/admin lain; flag = true).
+- **Status:** FIXED lokal 2026-11-09, belum di-commit/deploy. Tanpa migrasi. Belum diuji di HP.
