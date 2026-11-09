@@ -333,3 +333,9 @@ Persetujuan user 2026-11-09: "setuju, kerjakan; tagline header dibuang juga".
 - Sengaja TIDAK diubah: spinner muat (umpan balik), animasi buka/tutup PhotoViewer (fade 200 ms, bukan hover/denyut),
   sisa `bg-warning/10` lama di forum.js/ErrorHandling/indikator GPS/Peta Pemantauan (di luar cakupan putaran ini).
 - Verifikasi: `npm run build` lulus; Pest penuh 950 passed, 7315 assertions, 0 gagal (= baseline main 950).
+- **Terdeploy dev 2026-11-09** (user via konsol; HTTPS memakai app-BaMEIBdu.js = build lokal putaran 10). Cek Playwright
+  390x844 @2x terang & gelap: tamu (/, /login, /reports/create, /hydrants), admin@denpasar.go.id (/dashboard,
+  /admin/reports, /admin/users, /admin/users/invitations, /admin/app-reviews, /profile), petugas1 (/dashboard, /profile):
+  semua 200, tanpa error JS (hanya izin lokasi headless), teks tagline 0 di semua halaman; /admin/app-reviews tampil
+  = migrasi app_review jalan. relawan1@sisupit.com & akun warga uji tidak ada di salinan data prod dev -> layar
+  relawan/warga login belum dicek. Basemap gelap di dev masih terang (MAP_TILE_URL_DARK kosong, sesuai #223).
