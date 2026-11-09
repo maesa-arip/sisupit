@@ -362,3 +362,7 @@ Persetujuan user 2026-11-09: "kerjakan putaran 11, akun uji buat sendiri di dev"
   lama), prod sudah 0361-480066 (#206); bukan perubahan desain.
 - **Dokumen:** STATUS_LOG (entri TASK_87), STATUS CLAUDE.md di branch ini, CONVENTIONS (catatan "berlaku di branch ini").
 - Verifikasi: `npm run build` lulus; Pest penuh 950 passed, 7315 assertions, 0 gagal (= putaran 10).
+- **Terdeploy dev 2026-11-09** (user via konsol; HTTPS app-oL2w6wjk.js = build lokal putaran 11). Cek Playwright 390x844
+  terang & gelap SEMUA peran (tamu, admin, petugas1, warga.uji, relawan.uji): semua halaman 200, tanpa error JS selain
+  izin lokasi headless; /forum & /admin/forum 404 = forum mati untuk Denpasar. Pil "Selesai" ReportCard di Beranda
+  warga kini netral + titik biru (kelas bg-card text-foreground border-border), terang & gelap.
