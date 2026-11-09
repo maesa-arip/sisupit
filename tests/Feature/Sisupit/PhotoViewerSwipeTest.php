@@ -22,7 +22,7 @@ it('renders the photos in a carousel starting at the tapped photo', function () 
     $viewer = file_get_contents(resource_path('js/Components/PhotoViewer.jsx'));
 
     expect($viewer)->toContain("from '@/Components/ui/carousel';")
-        ->and($viewer)->toContain('opts={{ startIndex: viewer.index }}')
+        ->and($viewer)->toContain('opts={{ startIndex: viewer.index, watchDrag: () => !zoomedRef.current }}')
         ->and($viewer)->toContain('{photos.map((path, i) => (')
-        ->and($viewer)->toContain('{current + 1} / {photos.length}');
+        ->and($viewer)->toContain('`${current + 1} / ${photos.length}`');
 });

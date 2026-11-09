@@ -33,11 +33,20 @@
         .ttd { margin-top: 24px; page-break-inside: avoid; }
         .ttd td { width: 50%; text-align: center; vertical-align: top; }
         .footer { position: fixed; bottom: -30px; left: 0; right: 0; font-size: 8px; color: #666; border-top: 1px solid #ccc; padding-top: 3px; }
+        /* Tanda Sisupit di footer kanan: kecil & abu, supaya kop instansi tetap yang utama. */
+        .footer td { padding: 0; vertical-align: middle; }
+        .footer .merek { text-align: right; color: #999; white-space: nowrap; }
+        .footer .merek img { width: 9px; height: 9px; vertical-align: middle; margin-right: 2px; }
     </style>
 </head>
 <body>
     <div class="footer">
-        {{ $nomor }} &middot; Dicetak {{ $printedAt->format('d-m-Y H:i') }} WITA oleh {{ $printedBy }} &middot; Sisupit
+        <table>
+            <tr>
+                <td>{{ $nomor }} &middot; Dicetak {{ $printedAt->format('d-m-Y H:i') }} WITA oleh {{ $printedBy }}</td>
+                <td class="merek">@if (! empty($brandLogo))<img src="{{ $brandLogo }}" alt="">@endif Dibuat dengan Sisupit &middot; sisupit.com</td>
+            </tr>
+        </table>
     </div>
 
     <div class="kop">

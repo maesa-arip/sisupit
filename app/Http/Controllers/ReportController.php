@@ -594,8 +594,8 @@ class ReportController extends Controller
         $roster = [];
         foreach ($groups as $key => $group) {
             $regu = $group['regu_id'] ? $regus->get($group['regu_id']) : null;
-            $stay = $stays->first(fn ($s) => $keyOf($s->regu_id, $s->regu_name) === $key);
-            $chosen = $report->officers->pluck('user_id')->push(optional($stay)->user_id)->filter();
+            $reguStays = $stays->filter(fn ($s) => $keyOf($s->regu_id, $s->regu_name) === $key);
+            $chosen = $report->officers->pluck('user_id')->merge($reguStays->pluck('user_id'))->filter();
 
             $roster[] = [
                 'key' => $key,
@@ -604,7 +604,10 @@ class ReportController extends Controller
                 // Peta detail menaruh marker regu di GPS danru bila ia ikut meluncur (§13
                 // TASK_60) - dicocokkan lewat id, sebab nama petugas tidak unik.
                 'leader_id' => $regu?->leader_id,
-                'stay' => $canSeeRoster && $stay ? optional($stay->user)->name : null,
+                // Jaga di Kantor tanpa batas per regu (2026-11-06) - daftar nama, bukan satu nama.
+                'stays' => $canSeeRoster
+                    ? $reguStays->map(fn ($s) => optional($s->user)->name)->filter()->sortBy(fn ($n) => $n)->values()
+                    : [],
                 'pending' => $canSeeRoster && $isOpen && $regu
                     ? $regu->members->whereNotIn('id', $chosen)->sortBy('name')->pluck('name')->values()
                     : [],
@@ -614,19 +617,18 @@ class ReportController extends Controller
         $myRegu = null;
         $canStayAtBase = false;
         if ($user->hasRole('petugas') && ($own = Regu::milik($user))) {
-            $ownStay = $stays->firstWhere('regu_id', $own->id);
+            $iStay = $stays->contains('user_id', $user->id);
             $isOfficer = $report->officers->contains('user_id', $user->id);
 
             $myRegu = [
                 'name' => $own->name,
                 'key' => $keyOf($own->id, $own->name),
                 'is_leader' => $own->isLeader($user),
-                'i_stay' => $ownStay && (int) $ownStay->user_id === (int) $user->id,
-                'stay_taken_by' => $ownStay ? optional($ownStay->user)->name : null,
+                'i_stay' => $iStay,
             ];
             // Syarat yang sama persis dengan stayAtBase(): wilayah, insiden masih terbuka, belum
-            // meluncur, dan regunya belum punya orang yang jaga kantor.
-            $canStayAtBase = $isOpen && ! $isOfficer && ! $ownStay && $user->withinReportJurisdiction($report);
+            // meluncur, dan belum jaga kantor sendiri. Jumlah per regu TAK dibatasi (2026-11-06).
+            $canStayAtBase = $isOpen && ! $isOfficer && ! $iStay && $user->withinReportJurisdiction($report);
         }
 
         return [$roster, $myRegu, $canStayAtBase];

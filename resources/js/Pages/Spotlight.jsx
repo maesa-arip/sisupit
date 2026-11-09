@@ -1,3 +1,4 @@
+import Testimonials from '@/Components/AppReview/Testimonials';
 import { Button } from '@/Components/ui/button';
 import AppLayout from '@/Layouts/AppLayout';
 import { isDesktopApp } from '@/lib/native-app';
@@ -98,6 +99,9 @@ export default function Spotlight(props) {
 					</a>
 				)}
 			</div>
+
+			{/* Testimoni (TASK_86): SESUDAH semua aksi darurat, jadi tak pernah menggeser tombol Lapor. */}
+			<Testimonials items={props.testimonials} className="mx-auto max-w-xl pt-4" />
 		</div>
 	);
 }

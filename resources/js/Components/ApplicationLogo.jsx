@@ -19,12 +19,8 @@ export default function ApplicationLogo({ url = '/', size = 'size-10', isTitle =
 
 			{/* Area Teks Logo */}
 			{isTitle && (
-				<div className="flex flex-col justify-center">
-					<span className="text-xl font-bold leading-none tracking-tight text-foreground">SISUPIT</span>
-					<span className="mt-1 text-[11px] font-bold uppercase tracking-wide text-destructive">
-						Sistem Untuk Pelaporan Dini Terintegrasi
-					</span>
-				</div>
+				// TASK_87 putaran 10 (keputusan user 2026-11-09): tagline merah kapital di bawah nama dibuang.
+				<span className="text-xl font-bold leading-none tracking-tight text-foreground">SISUPIT</span>
 			)}
 		</Link>
 	);

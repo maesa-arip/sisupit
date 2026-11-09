@@ -1,4 +1,6 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
+import AppReviewPrompt from '@/Components/AppReview/AppReviewPrompt';
+import { SHOW_APP_REVIEW_FORM } from '@/Components/AppReview/flags';
 import Banner from '@/Components/Banner';
 import PageSkeleton from '@/Components/PageSkeleton';
 import SoundNotificationControl from '@/Components/SoundNotificationControl';
@@ -27,6 +29,8 @@ export default function AppLayout({ title, children }) {
 	// <html data-keyboard="open"> selama keyboard layar terbuka (#187, lib/keyboard-open.js).
 	useKeyboardOpenFlag();
 	const announcemet = usePage().props.announcemet;
+	// Ajakan ulasan aplikasi (TASK_86) - server hanya mengirimnya di route dashboard.
+	const appReviewPrompt = usePage().props.appReviewPrompt ?? null;
 	const auth = usePage().props.auth?.user ?? null;
 	const notifications = usePage().props.notifications ?? [];
 	const unreadCount = usePage().props.unread_notifications_count ?? 0;
@@ -350,6 +354,11 @@ export default function AppLayout({ title, children }) {
 							{announcemet && announcemet.is_active == 1 && (
 								<div className="mb-4 lg:mb-6">
 									<Banner announcement={announcemet} />
+								</div>
+							)}
+							{SHOW_APP_REVIEW_FORM && appReviewPrompt && !pendingVisit?.skeleton && (
+								<div className="mb-4 lg:mb-6">
+									<AppReviewPrompt review={appReviewPrompt} />
 								</div>
 							)}
 							{/* Navigasi instan (TASK_70): kerangka tujuan tampil sebelum respons tiba. Halaman lama

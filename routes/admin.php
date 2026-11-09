@@ -23,6 +23,11 @@ Route::middleware(['auth', 'verified', 'role:admin|superadmin'])->prefix('admin'
         Route::put('users/edit/{user}', 'update')->name('admin.users.update');
         Route::put('users/assign-role/{user}', 'assignRole')->name('admin.users.assign-role');
         Route::delete('users/destroy/{user}', 'destroy')->name('admin.users.destroy');
+        // Undang Petugas lewat email (2026-11-06) - wilayah dijaga UserController::assignableLevels
+        // + kunci wilayah admin; daftar/batal disaring UserInvitation::withinRegionOf.
+        Route::get('users/invitations', 'invitations')->name('admin.users.invitations');
+        Route::post('users/invitations', 'storeInvitation')->name('admin.users.invitations.store');
+        Route::delete('users/invitations/{invitation}', 'destroyInvitation')->name('admin.users.invitations.destroy');
     });
 
     // RBAC sistem (role/permission/assign-permission/route-access), pengumuman, & pengaturan

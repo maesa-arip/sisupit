@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Notification;
  *   - anggota regu = PETUGAS SAJA, satu petugas di satu regu;
  *   - tiap anggota WAJIB menekan tombolnya sendiri - "Meluncur" (nama regu di-snapshot ke
  *     barisnya) atau "Jaga di Kantor";
- *   - Jaga di Kantor TEPAT SATU per regu per kejadian;
+ *   - Jaga di Kantor TANPA BATAS per regu (2026-11-06; dulu tepat satu), sekali per orang;
  *   - anggota mana pun boleh memulai, tidak harus danru.
  */
 beforeEach(function () {
@@ -143,16 +143,17 @@ it('stamps the regu on each member who takes action, and keeps that stamp after 
     expect(DB::table('report_officers')->where('user_id', $this->anggota1->id)->value('regu_name'))->toBe('Regu A');
 });
 
-it('lets exactly one member per regu stay at the office for an incident', function () {
+it('lets any number of members of one regu stay at the office, each once', function () {
     $this->actingAs($this->anggota1)->post(route('reports.stay-at-base', $this->report))->assertSessionHasNoErrors();
 
-    // Anggota kedua ditolak - kursi jaga kantor regu ini sudah terisi.
-    $this->actingAs($this->anggota2)
-        ->post(route('reports.stay-at-base', $this->report))
-        ->assertSessionHasErrors('jaga_kantor');
+    // Anggota kedua regu yang sama TIDAK ditolak lagi (keputusan user 2026-11-06).
+    $this->actingAs($this->anggota2)->post(route('reports.stay-at-base', $this->report))->assertSessionHasNoErrors();
 
-    expect(DB::table('report_jaga_kantor')->where('report_id', $this->report->id)->pluck('user_id')->all())
-        ->toBe([$this->anggota1->id]);
+    // Ketukan ganda orang yang sama tidak menambah baris.
+    $this->actingAs($this->anggota2)->post(route('reports.stay-at-base', $this->report))->assertSessionHasNoErrors();
+
+    expect(DB::table('report_jaga_kantor')->where('report_id', $this->report->id)->orderBy('id')->pluck('user_id')->all())
+        ->toBe([$this->anggota1->id, $this->anggota2->id]);
 
     // Yang jaga kantor BUKAN responder: tak ada di report_officers, jadi tak tergambar di peta
     // dan tak dihitung sebagai responder aktif.
@@ -191,18 +192,18 @@ it('shows the regu, who stays, and who has not chosen to staff, but not to the r
             ->where('reguRoster.0.key', 'id:'.$this->regu->id)
             ->where('reguRoster.0.name', 'Regu A')
             ->where('reguRoster.0.leader', 'Danru Made')
-            ->where('reguRoster.0.stay', 'Wayan Anggota')
+            ->where('reguRoster.0.stays', ['Wayan Anggota'])
             ->where('reguRoster.0.pending', ['Danru Made']));
 
     // Pelapor melihat nama regu yang meluncur, tapi bukan siapa yang tidak berangkat.
     $this->actingAs($this->reporter)->get(route('reports.show', $this->report))
         ->assertInertia(fn ($page) => $page
             ->where('reguRoster.0.name', 'Regu A')
-            ->where('reguRoster.0.stay', null)
+            ->where('reguRoster.0.stays', [])
             ->where('reguRoster.0.pending', []));
 });
 
-it('offers the jaga kantor button only while the regu seat is free and the viewer has not left', function () {
+it('keeps offering the jaga kantor button to the rest of the regu, but not to whoever already chose', function () {
     $this->actingAs($this->danru)->get(route('reports.show', $this->report))
         ->assertInertia(fn ($page) => $page->where('canStayAtBase', true)->where('myRegu.is_leader', true));
 
@@ -210,11 +211,16 @@ it('offers the jaga kantor button only while the regu seat is free and the viewe
 
     $this->actingAs($this->anggota2)->get(route('reports.show', $this->report))
         ->assertInertia(fn ($page) => $page
-            ->where('canStayAtBase', false)
-            ->where('myRegu.stay_taken_by', 'Ketut Anggota'));
+            ->where('canStayAtBase', true)
+            ->where('myRegu.i_stay', false));
 
     $this->actingAs($this->anggota1)->get(route('reports.show', $this->report))
-        ->assertInertia(fn ($page) => $page->where('myRegu.i_stay', true));
+        ->assertInertia(fn ($page) => $page->where('myRegu.i_stay', true)->where('canStayAtBase', false));
+
+    // Yang sudah meluncur tak ditawari jaga kantor.
+    $this->actingAs($this->danru)->post(route('reports.take-action', $this->report));
+    $this->actingAs($this->danru)->get(route('reports.show', $this->report))
+        ->assertInertia(fn ($page) => $page->where('canStayAtBase', false));
 });
 
 it('reads the jaga kantor button from the server prop, not from roles in the page', function () {

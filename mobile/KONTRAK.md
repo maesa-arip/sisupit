@@ -4,7 +4,8 @@ Diverifikasi langsung dari kode pada **2026-10-06**: repo web @`ee72b990` (= pro
 + dokumen) dan sumber APK 1.1.6/vc8 (`MainActivity.java`, `SisupitFirebaseMessagingService.java`). Rujukan baris
 menunjuk repo web kecuali disebut lain.
 Pembaruan sesudahnya (tanpa verifikasi ulang penuh): metode #5-#6 APK 1.1.8/vc10 (#196, 2026-10-08);
-judul sirine "🚨 Laporan Darurat" (#203, 2026-10-13); web prod kini @`e27eb448`.
+judul sirine "🚨 Laporan Darurat" (#203, 2026-10-13); metode #7-#8 APK 1.1.9/vc11 (#210, 2026-10-15);
+metode #9 iOS build 3 (Masuk dengan Apple); batas kirim web #227 (2026-11-01, lokal); web prod kini @`b36c3a55`.
 
 ---
 
@@ -82,8 +83,10 @@ melapor "terkirim" (#196). iOS: padanannya `UNUserNotificationCenter.getNotifica
 
 Metode 7 & 8 opsional di web (`typeof … === 'function'`): APK ≤ 1.1.8, iOS, dan browser tetap
 hanya melacak lewat `watchPosition` selama halaman detail terbuka - posisi membeku saat layar
-terkunci (#210). Web tetap mengirim dari `watchPosition` juga saat halaman terbuka (ping ganda
-disengaja, tahan kegagalan layanan). iOS: padanannya `CLLocationManager` dengan
+terkunci (#210; di iPhone ini masih terjadi, #228 OPEN). Web tetap mengirim dari `watchPosition` juga saat halaman terbuka (ping ganda
+disengaja, tahan kegagalan layanan). Sejak #227 kiriman web dibatasi sama dengan layanan: >= 5 dtk DAN pindah
+>= 10 m (fix pertama selalu terkirim). Layanan native memakai UA yang sama dengan WebView, jadi server tak bisa
+membedakan sumber/versinya (#228). iOS: padanannya `CLLocationManager` dengan
 `allowsBackgroundLocationUpdates = true` + `showsBackgroundLocationIndicator`, UIBackgroundModes
 `location`, izin "When In Use" cukup bila dimulai saat aplikasi terlihat.
 

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AgencyController as AdminAgencyController;
+use App\Http\Controllers\Admin\AppReviewController as AdminAppReviewController;
 use App\Http\Controllers\Admin\BanjarController as AdminBanjarController;
 use App\Http\Controllers\Admin\ForumModerationController as AdminForumModerationController;
 use App\Http\Controllers\Admin\HydrantController as AdminHydrantController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\Api\BanjarUsulanController;
 use App\Http\Controllers\Api\FcmController;
 use App\Http\Controllers\Api\GeocodeController;
 use App\Http\Controllers\Api\RouteController;
+use App\Http\Controllers\AppReviewController;
 use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Front\ForumController;
@@ -28,12 +30,13 @@ use App\Http\Controllers\Front\PosPemadamController;
 use App\Http\Controllers\Front\RelawanController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InfoController;
+use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PhotoDownloadController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReguController;
 use App\Http\Controllers\ReportActionController;
 use App\Http\Controllers\ReportController;
-use App\Http\Controllers\ReportHelperController;
 use App\Http\Controllers\ReportResolutionController;
 use App\Http\Controllers\VolunteerController;
 use Illuminate\Http\Request;
@@ -63,6 +66,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Rute tunggal se-arah untuk memisahkan view dashboard secara otomatis
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Ulasan aplikasi (TASK_86) - semua peran, tamu tidak (keputusan user 2026-11-01). Hanya
+    // ulasan milik akun sendiri; tak ada id di URL.
+    Route::post('/ulasan', [AppReviewController::class, 'store'])->middleware('throttle:10,1')->name('app-review.store');
+    Route::post('/ulasan/tunda', [AppReviewController::class, 'dismiss'])->middleware('throttle:10,1')->name('app-review.dismiss');
 
     // Hydrant resmi: PETUGAS ikut boleh melihat, menambah, dan menyunting (2026-09-22).
     // URL & nama route tetap admin.hydrants.* supaya halaman React tidak bercabang. Hapus tetap
@@ -135,6 +143,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/posts/{post}/hide', 'hidePost')->name('posts.hide');
             Route::post('/posts/{post}/restore', 'restorePost')->name('posts.restore');
             Route::post('/flags/{type}/{id}/dismiss', 'dismissFlags')->whereIn('type', ['thread', 'post'])->whereNumber('id')->name('flags.dismiss');
+        });
+
+        // Ulasan aplikasi (TASK_86). Wilayah dipegang Tenantable AppReview (kabupaten penulis).
+        Route::prefix('app-reviews')->name('app-reviews.')->controller(AdminAppReviewController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/export', 'export')->name('export');
+            Route::post('/{appReview}/testimoni', 'togglePublish')->whereNumber('appReview')->name('publish');
         });
     });
 
@@ -354,6 +369,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/reports/{report}/victims/{victim}/ktp', [ReportResolutionController::class, 'ktp'])->name('reports.resolution.ktp');
     // PDF Laporan Kejadian (TASK_68) - gerbang BACA yang sama dengan halaman detail (staf + pejabat).
     Route::get('/reports/{report}/resolution/{resolution}/pdf', [ReportResolutionController::class, 'pdf'])->name('reports.resolution.pdf');
+    // Tombol "Unduh" penampil foto (2026-11-06) - hanya folder foto kejadian, lihat controllernya.
+    Route::get('/foto/unduh', PhotoDownloadController::class)->name('photos.download');
 });
 
 Route::middleware(['auth', 'verified'])->controller(UserController::class)->group(function () {
@@ -361,8 +378,15 @@ Route::middleware(['auth', 'verified'])->controller(UserController::class)->grou
     Route::put('users/detail/{user}', 'storeDetailUser')->name('admin.detail.update');
 });
 
-Route::middleware(['auth', 'verified'])->controller(ReportHelperController::class)->group(function () {
-    Route::post('helpers/create', 'store')->name('front.helpers.store');
+// `helpers/create` (front.helpers.store) DIHAPUS 2026-11-06 (#237): jalur respons lama tanpa cek
+// peran/wilayah/status - warga pun bisa mendaftar "Bersiap". Respons hanya lewat take-action.
+
+// Undangan petugas (2026-11-06) - TANPA `auth`: penerimanya bisa belum punya akun. Gerbangnya
+// token di tautan email (InvitationController). Dibatasi throttle supaya token tak bisa ditebak.
+Route::middleware('throttle:20,1')->controller(InvitationController::class)->group(function () {
+    Route::get('/undangan/{token}', 'show')->name('invitations.show');
+    Route::get('/undangan/{token}/masuk', 'login')->name('invitations.login');
+    Route::post('/undangan/{token}', 'accept')->name('invitations.accept');
 });
 
 Route::middleware(['auth'])->controller(ProfileController::class)->group(function () {
@@ -374,6 +398,8 @@ Route::middleware(['auth'])->controller(ProfileController::class)->group(functio
     // mendaftar. Sebelum 2026-08-26 kolom ini hanya bisa diisi sekali di layar Lengkapi Profil
     // dan tak ada satu pun jalan memperbaikinya, admin sekalipun.
     Route::patch('profile/banjar', 'updateBanjar')->name('profile.banjar');
+    // Wilayah domisili sendiri (2026-11-06) - warga/relawan saja; wilayah tugas staf diatur admin.
+    Route::patch('profile/region', 'updateRegion')->name('profile.region');
     Route::get('/complete-profile', 'completeProfile')->name('profile.complete');
     Route::post('/complete-profile', 'storeCompleteProfile')->name('profile.complete.store');
     Route::post('/volunteer/register', [VolunteerController::class, 'register'])->name('volunteer.register');

@@ -33,7 +33,7 @@ use Illuminate\Support\Facades\Notification;
 
 // Catatan arsitektur (disengaja, dikonfirmasi 2026-06-25): controller ini mengakses
 // tabel report_officers/report_helpers lewat DB::table() mentah, BUKAN model Eloquent
-// ReportOfficer/ReportHelper (yang dipakai ReportHelperController). Ini sengaja, bukan
+// ReportOfficer/ReportHelper (dipakai untuk relasi/baca; jalur tulis lama dihapus #237). Ini sengaja, bukan
 // inkonsistensi yang belum disadari - dipilih demi lockForUpdate() di takeAction() untuk
 // mencegah double-insert saat banyak relawan/petugas merespons satu insiden bersamaan.
 // Jangan konsolidasi ke Eloquent tanpa mempertahankan locking ini (lihat FINDINGS_LOG #6).
@@ -443,8 +443,8 @@ class ReportActionController extends Controller
     }
 
     // 2b-2. Anggota regu memilih TINGGAL di kantor untuk kejadian ini (Tombol "Jaga di Kantor",
-    // TASK_60). Keputusan user: TEPAT SATU orang per regu per kejadian, siapa pun yang lebih dulu
-    // menekannya. Petugas saja, dan hanya yang beregu - tanpa regu tak ada yang "ditinggal jaga".
+    // TASK_60). Tanpa batas jumlah per regu (keputusan user 2026-11-06; dulu tepat satu orang).
+    // Petugas saja, dan hanya yang beregu - tanpa regu tak ada yang "ditinggal jaga".
     public function stayAtBase(Request $request, $id)
     {
         $user = auth()->user();
@@ -469,15 +469,11 @@ class ReportActionController extends Controller
             abort(403, 'Anda sudah meluncur ke kejadian ini. Batalkan keberangkatan dulu bila akan jaga kantor.');
         }
 
-        $penuh = ['jaga_kantor' => 'Regu Anda sudah punya satu anggota yang jaga kantor untuk kejadian ini.'];
-
-        $sudahAda = ReportJagaKantor::where('report_id', $report->id)->where('regu_id', $regu->id)->first();
-        if ($sudahAda) {
-            return (int) $sudahAda->user_id === (int) $user->id ? back() : back()->withErrors($penuh);
+        if (ReportJagaKantor::where('report_id', $report->id)->where('user_id', $user->id)->exists()) {
+            return back();
         }
 
-        // Dua anggota yang menekan bersamaan bisa sama-sama lolos pemeriksaan di atas;
-        // UNIQUE(report_id, regu_id) yang memutuskan siapa yang lebih dulu.
+        // Ketukan ganda yang lolos pemeriksaan di atas ditahan UNIQUE(report_id, user_id).
         try {
             ReportJagaKantor::create([
                 'report_id' => $report->id,
@@ -488,7 +484,7 @@ class ReportActionController extends Controller
                 ...$this->clickLocation($request),
             ]);
         } catch (UniqueConstraintViolationException) {
-            return back()->withErrors($penuh);
+            return back();
         }
 
         // Manifes regu di layar orang lain ikut berubah (siapa tinggal, siapa belum memilih).

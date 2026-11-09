@@ -1,3 +1,4 @@
+import Testimonials from '@/Components/AppReview/Testimonials';
 import { Button } from '@/Components/ui/button';
 import PublicLayout from '@/Layouts/PublicLayout';
 import { isSisupitApp } from '@/lib/native-app';
@@ -24,7 +25,7 @@ import { useEffect } from 'react';
  * INILAH satu-satunya pemakainya (halaman fasilitas & info/legal dikembalikan ke AppLayout
  * agar bilah bawah tak hilang bagi tamu). WebView di-redirect di HomeController::landing
  * sebelum halaman ini termuat; useEffect di bawah hanya jaring pengaman untuk masa deploy. */
-export default function Landing({ page_data }) {
+export default function Landing({ page_data, testimonials }) {
 	const { auth } = usePage().props;
 	const isAuthenticated = Boolean(auth?.user?.name || auth?.name);
 	const primaryHref = isAuthenticated ? route('dashboard') : route('login');
@@ -248,6 +249,13 @@ export default function Landing({ page_data }) {
 					</div>
 				</div>
 			</section>
+
+			{/* ===== TESTIMONI (TASK_86) ===== */}
+			{testimonials?.length > 0 && (
+				<div className="mx-auto max-w-6xl px-4 pt-16 sm:px-6 sm:pt-20">
+					<Testimonials items={testimonials} gridClassName="sm:grid-cols-2 lg:grid-cols-3" />
+				</div>
+			)}
 
 			{/* ===== UNDUH APLIKASI ===== */}
 			<section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">

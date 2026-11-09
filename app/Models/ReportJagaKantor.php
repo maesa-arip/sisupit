@@ -5,8 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Anggota regu yang memilih "Jaga di Kantor" untuk satu kejadian (TASK_60). Tepat satu per
- * regu per kejadian - dijaga UNIQUE(report_id, regu_id) di database. Nama regu di-snapshot
+ * Anggota regu yang memilih "Jaga di Kantor" untuk satu kejadian (TASK_60). Tanpa batas per
+ * regu sejak 2026-11-06 (dulu UNIQUE(report_id, regu_id)); satu orang tetap sekali - UNIQUE
+ * (report_id, user_id). Nama regu di-snapshot
  * seperti report_officers.regu_name. Sengaja tabel sendiri, bukan status di report_officers
  * (alasannya di migrasi 2026_09_25_100000_create_regus_tables).
  */

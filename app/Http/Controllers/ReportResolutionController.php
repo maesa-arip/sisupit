@@ -55,6 +55,7 @@ class ReportResolutionController extends Controller
             // dari master `agencies` - berita acara adalah dokumen historis, isinya tak boleh
             // ikut berubah saat master OPD di-rename (aturan yang sama dipakai ReportsExport).
             'reportAgencies',
+            'photos:id,report_id,path',
         ]);
 
         $target = $this->activeEntry($report->id, $status);
@@ -145,6 +146,11 @@ class ReportResolutionController extends Controller
                 // Data pelapor → tombol "Ambil dari data pelapor" pada bagian korban.
                 'reporter_name' => $report->name ?: optional($report->user)->name,
                 'reporter_address' => $report->address,
+                // Foto lampiran pelapor - bisa dilihat & DIUNDUH petugas saat mengisi Laporan
+                // Kejadian (2026-11-06). Relasi photos, cadangan kolom `photo` lama (pola Show.jsx).
+                'photos' => $report->photos->isNotEmpty()
+                    ? $report->photos->pluck('path')->values()
+                    : collect([$report->photo])->filter()->values(),
             ],
             'prefill' => $prefill,
             'hasPrevious' => (bool) $latest,
@@ -352,6 +358,13 @@ class ReportResolutionController extends Controller
                 ->values()
             : collect();
 
+        // Logo Sisupit kecil di footer (2026-11-06) - data URI dengan syarat GD yang sama dengan
+        // foto; tanpa GD footer tetap memuat tulisan "Dibuat dengan Sisupit".
+        $logoPath = public_path('favicon-32x32.png');
+        $brandLogo = extension_loaded('gd') && is_file($logoPath)
+            ? 'data:image/png;base64,'.base64_encode(file_get_contents($logoPath))
+            : null;
+
         $tz = config('app.local_timezone');
         $nomor = Report::nomorLaporan($report);
         $lastEdit = $resolution->logs->firstWhere('action', ReportResolutionLog::ACTION_UPDATED);
@@ -370,6 +383,7 @@ class ReportResolutionController extends Controller
             'lastEditAt' => $lastEdit?->created_at?->copy()->setTimezone($tz),
             'printedAt' => now($tz),
             'printedBy' => auth()->user()->name,
+            'brandLogo' => $brandLogo,
         ])->setPaper('a4');
 
         return $pdf->download("laporan-kejadian-{$nomor}-{$resolution->status}.pdf");

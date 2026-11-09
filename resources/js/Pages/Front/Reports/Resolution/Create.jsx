@@ -1,6 +1,7 @@
 import { groupedRowsClass } from '@/Components/GroupedForm';
 import DatePicker from '@/Components/DatePicker';
 import InputError from '@/Components/InputError';
+import PhotoViewer from '@/Components/PhotoViewer';
 import TimePicker from '@/Components/TimePicker';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
@@ -14,6 +15,7 @@ import {
 	IconArrowLeft,
 	IconCloudUpload,
 	IconDeviceFloppy,
+	IconDownload,
 	IconId,
 	IconLoader2,
 	IconPlus,
@@ -80,6 +82,10 @@ export default function Create(props) {
 			'keep_photo_ids',
 			data.keep_photo_ids.filter((k) => k !== id),
 		);
+
+	// Penampil foto layar penuh (zoom + Unduh) untuk foto laporan warga & foto tersimpan.
+	const [photoViewer, setPhotoViewer] = useState(null);
+	const reporterPhotos = report.photos || [];
 
 	const [previews, setPreviews] = useState([]);
 	const previewsRef = useRef([]);
@@ -602,6 +608,46 @@ export default function Create(props) {
 								<Label className="text-sm font-medium text-foreground/80">
 									Foto Kejadian ({photoCount}/{MAX_PHOTOS})
 								</Label>
+								{reporterPhotos.length > 0 && (
+									<div className="mt-2 rounded-xl border border-border bg-muted/40 p-3">
+										<p className="text-xs font-medium text-muted-foreground">
+											Foto dari laporan warga - ketuk untuk melihat, atau unduh untuk dipakai di
+											sini.
+										</p>
+										<div className="mt-2 flex flex-wrap gap-2">
+											{reporterPhotos.map((path, i) => (
+												<div key={`rp-${i}`} className="relative h-16 w-16">
+													<button
+														type="button"
+														onClick={() =>
+															setPhotoViewer({ photos: reporterPhotos, index: i })
+														}
+														className="h-full w-full overflow-hidden rounded-xl border border-border active:opacity-80"
+													>
+														<img
+															src={/^https?:\/\//.test(path) ? path : `/storage/${path}`}
+															alt={`Foto laporan ${i + 1}`}
+															className="h-full w-full object-cover"
+														/>
+													</button>
+													<a
+														href={
+															/^https?:\/\//.test(path)
+																? path
+																: route('photos.download', { path })
+														}
+														download
+														className="absolute -bottom-1.5 -right-1.5 flex h-7 w-7 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm active:bg-muted"
+														title="Unduh foto"
+													>
+														<IconDownload className="h-3.5 w-3.5" />
+														<span className="sr-only">Unduh foto {i + 1}</span>
+													</a>
+												</div>
+											))}
+										</div>
+									</div>
+								)}
 								<input
 									type="file"
 									accept="image/*"
@@ -616,11 +662,22 @@ export default function Create(props) {
 											key={`saved-${ph.id}`}
 											className="group relative h-32 w-full overflow-hidden rounded-2xl border border-border shadow-sm"
 										>
-											<img
-												src={`/storage/${ph.path}`}
-												alt="Foto kejadian tersimpan"
-												className="h-full w-full object-cover"
-											/>
+											<button
+												type="button"
+												onClick={() =>
+													setPhotoViewer({
+														photos: savedPhotos.map((x) => x.path),
+														index: savedPhotos.indexOf(ph),
+													})
+												}
+												className="h-full w-full"
+											>
+												<img
+													src={`/storage/${ph.path}`}
+													alt="Foto kejadian tersimpan"
+													className="h-full w-full object-cover"
+												/>
+											</button>
 											<button
 												type="button"
 												onClick={() => removeSavedPhoto(ph.id)}
@@ -698,6 +755,7 @@ export default function Create(props) {
 					</CardContent>
 				</Card>
 			</div>
+			<PhotoViewer viewer={photoViewer} onClose={() => setPhotoViewer(null)} />
 		</div>
 	);
 }

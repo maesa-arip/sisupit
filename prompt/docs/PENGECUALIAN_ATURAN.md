@@ -262,3 +262,19 @@
 - **Hidup di:** `resources/js/Layouts/Partials/MobileBottomNav.jsx` - `LaporSlot` (docblock merujuk entri ini).
 - **Test penjaga:** `tests/Feature/Sisupit/MobileNavIconGlyphTest.php` (test Lapor) dan
   `tests/Feature/Sisupit/LaporRaisedCircleTest.php`. Mengembalikan ke abu = ubah keduanya + hapus entri ini.
+
+---
+
+## #7 — Dev & staging terbuka TANPA basic auth, padahal semua akunnya bersandi "password"
+
+- **Aturan yang ditekuk:** gerbang basic auth dev/staging (`deploy/preview-access.sh`, disetujui 2026-10-04)
+  yang dipasang karena dev & staging berisi SALINAN DATA PRIBADI produksi dan semua sandinya "password".
+- **Keputusan:** gerbang dicabut (`deploy/preview-access-off.sh` mengosongkan
+  `/etc/nginx/snippets/sisupit-preview-auth.conf`); sandi semua akun dev/staging TETAP "password".
+- **Disetujui:** user, **2026-10-18** - "hilangkan username dan password saat pertama akses dev atau staging",
+  lalu memilih "Cabut gerbang saja, sandi tetap password" (opsi yang direkomendasikan - kembalikan sandi
+  asli dari prod - tidak dipilih).
+- **Konsekuensi yang diterima:** siapa pun yang menebak email (pola `admin@<kota>.go.id`) bisa login sebagai admin
+  di dev/staging dan melihat PII warga salinan prod. Produksi tidak terpengaruh (DB & sandi terpisah).
+- **Hidup di:** VPS - snippet di atas (vhost, `.htpasswd-sisupit-preview`, dan map APK dibiarkan utuh).
+- **Mengembalikan:** `bash /root/preview-apk-exempt.sh` lalu hapus entri ini.

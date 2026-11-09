@@ -312,3 +312,24 @@ Temuan & perbaikan (garis/ikon/teks berwarna status lolos dari penetral latar ti
 - Sengaja TIDAK diubah: warna pin misi petugas (marker peta), Peta Pemantauan, indikator GPS form lapor,
   teks "Tersimpan." hijau kecil (umpan balik form).
 - Verifikasi: `npm run build` lulus; Pest penuh 914 passed, 6867 assertions, 0 gagal (= putaran 8).
+
+## 17. Putaran 10 (2026-11-09) - susul main + layar baru + tagline header dibuang
+
+Persetujuan user 2026-11-09: "setuju, kerjakan; tagline header dibuang juga".
+
+- **Merge `main` (b2b70982) ke `feat/desain-clean-minimalis`** agar dev ikut TASK_86 (ulasan aplikasi), TASK_88
+  (#231-#235), #236, #237. Konflik: `public/build/*` (dibangun ulang) dan `Components/VolunteerAction.jsx`
+  (dihapus di main #237 sebagai komponen mati, diubah putaran 8) -> ikut main, dihapus. Kode sumber lain bersih.
+  **Deploy dev berikutnya menjalankan 3 MIGRASI** (app_review_tables, allow_many_jaga_kantor_per_regu,
+  user_invitations) - deploy-env.sh mencadangkan DB lebih dulu.
+- **Tagline header dibuang:** `ApplicationLogo` kini hanya ikon + "SISUPIT" (dulu ditambah baris merah kapital
+  "SISTEM UNTUK PELAPORAN DINI TERINTEGRASI"). Berlaku di header AppLayout & layar auth/undangan. Judul/meta
+  (BrandNameTest, #217), footer PublicLayout, Landing, Tentang tidak diubah.
+- **Layar baru dari main, disesuaikan KESEPAKATAN:** Undang Petugas (status undangan -> `DotPill`), Ulasan Aplikasi
+  admin (pil "Testimoni tampil"/"Boleh jadi testimoni" -> `DotPill`, batang sebaran bintang kuning -> netral),
+  `StarRating` bintang kuning -> warna teks, kartu ajakan ulasan & baris Profil "Beri ulasan" chip kuning -> netral,
+  `RegionFields` callout "di luar kota" kuning -> callout netral, `CompleteProfile` ikon info biru -> netral,
+  `PhotoViewer` bilah atas gradien -> scrim hitam padat.
+- Sengaja TIDAK diubah: spinner muat (umpan balik), animasi buka/tutup PhotoViewer (fade 200 ms, bukan hover/denyut),
+- Verifikasi: `npm run build` lulus; Pest penuh 950 passed, 7315 assertions, 0 gagal (= baseline main 950).
+  sisa `bg-warning/10` lama di forum.js/ErrorHandling/indikator GPS/Peta Pemantauan (di luar cakupan putaran ini).

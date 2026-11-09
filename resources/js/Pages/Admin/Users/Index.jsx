@@ -47,6 +47,7 @@ import {
 	IconChevronUp,
 	IconDeviceMobile,
 	IconInfoCircle,
+	IconMailForward,
 	IconPencil,
 	IconPlus,
 	IconRefresh,
@@ -294,11 +295,19 @@ export default function Index(props) {
 					subtitle={props.page_settings.subtitle}
 					icon={IconUsersGroup}
 				/>
-				<Button size="sm" className="h-10 rounded-full px-4" asChild>
-					<Link href={route('admin.users.create')}>
-						<IconPlus className="size-4" /> Tambah pengguna
-					</Link>
-				</Button>
+				<div className="flex flex-wrap gap-2">
+					{/* Undang Petugas lewat email (2026-11-06). */}
+					<Button size="sm" variant="outline" className="h-10 rounded-full px-4" asChild>
+						<Link href={route('admin.users.invitations')}>
+							<IconMailForward className="size-4" /> Undang petugas
+						</Link>
+					</Button>
+					<Button size="sm" className="h-10 rounded-full px-4" asChild>
+						<Link href={route('admin.users.create')}>
+							<IconPlus className="size-4" /> Tambah pengguna
+						</Link>
+					</Button>
+				</div>
 			</div>
 
 			<div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">

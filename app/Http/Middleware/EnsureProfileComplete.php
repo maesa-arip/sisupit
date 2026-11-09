@@ -26,6 +26,9 @@ class EnsureProfileComplete
         // selamanya — tanpa galat apa pun di layar. Ditemukan oleh test, bukan oleh mata.
         'api.banjars',
         'api.banjars.usul',
+        // Undangan petugas (2026-11-06): warga yang belum melengkapi profil harus tetap bisa
+        // menerima undangan - menerimanya justru mengisi wilayah TUGAS & melepasnya dari layar ini.
+        'invitations.*',
     ];
 
     /**

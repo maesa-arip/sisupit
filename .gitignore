@@ -30,3 +30,7 @@ yarn-error.log
 # deploy ketiga environment memakai `git pull`, jadi berkas sebesar ini akan ikut
 # terunduh ke server tanpa pernah dipakai di sana. Simpan/bagikan lewat Drive.
 /docs/video/
+
+# Dokumen legal PT (akta, NIB, NPWP, KTP pejabat, shapefile lokasi OSS). SENGAJA di luar git:
+# berisi data pribadi pengurus. Simpan/bagikan lewat Drive.
+/docs/legal/

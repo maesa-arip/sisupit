@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Http\Resources\UserSingleResource;
 use App\Models\Announcement;
+use App\Models\AppReview;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
@@ -70,6 +71,12 @@ class HandleInertiaRequests extends Middleware
             // ditulis di satu tempat (config/legal.php) — sebelumnya ter-hardcode di AppLayout
             // dengan ejaan yang berbeda dari dokumen legal.
             'penyedia_nama' => fn () => config('legal.penyedia.nama'),
+            // Ajakan ulasan aplikasi (TASK_86): HANYA di halaman dashboard, supaya kartunya tak
+            // pernah muncul di form lapor atau detail insiden; null = jangan tampilkan.
+            'appReviewPrompt' => fn () => $request->user() && $request->routeIs('dashboard')
+                && AppReview::shouldAsk($request->user())
+                ? AppReview::formProps($request->user())
+                : null,
         ];
     }
 }

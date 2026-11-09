@@ -246,6 +246,10 @@ export default function ReportShow(props) {
 	// tapi tidak boleh mengelola daftarnya, jadi tautan pintasnya tidak ditawarkan ke mereka.
 	const isAdminOrSuperadmin = userRoles.some((r) => ['admin', 'superadmin'].includes(r));
 	const isRelawan = userRoles.includes('relawan');
+	// Meluncur/Jaga di Kantor/Tiba = peran responder saja, sama persis dengan gerbang server
+	// ReportActionController::takeAction (hasAnyRole petugas|relawan). Admin/superadmin tetap
+	// melihat panel (Tandai Insiden Selesai) tapi tidak ditawari tombol yang berakhir 403 (#237).
+	const canRespond = userRoles.some((r) => ['petugas', 'relawan'].includes(r));
 	const isOwner = auth.user?.id === report.user_id;
 	// Jejak "siapa yang menutup/menolak" (FINDINGS #88) ditujukan ke rekan kerja & pengawas,
 	// bukan ke pelapor: jejak penutupan memang sudah hanya tampil di dalam "Panel Tindakan
@@ -1804,7 +1808,7 @@ export default function ReportShow(props) {
 								) : (
 									<>
 										{/* 👇 TOMBOL TAKTIS (Dengan Warna Solid Semantik) 👇 */}
-										{!myRecord && myRegu?.i_stay ? (
+										{!canRespond ? null : !myRecord && myRegu?.i_stay ? (
 											// Anggota regu yang memilih tinggal (TASK_60): bukan responder, jadi
 											// tak ada tombol Tiba/Koreksi - cukup keadaannya & jalan membatalkan.
 											<>
@@ -1854,11 +1858,6 @@ export default function ReportShow(props) {
 														</Button>
 													)}
 												</div>
-												{myRegu?.stay_taken_by && (
-													<p className="text-center text-xs text-muted-foreground">
-														{myRegu.stay_taken_by} sudah Jaga di Kantor untuk {myRegu.name}.
-													</p>
-												)}
 											</div>
 										) : myRecord.status === 'en_route' ? (
 											<>
@@ -2257,16 +2256,19 @@ export default function ReportShow(props) {
 													</span>
 												</div>
 												{anggota.map(renderOfficerRow)}
-												{regu.stay && (
-													<div className="flex items-center justify-between gap-3 p-3.5 text-xs">
+												{(regu.stays || []).map((name, i) => (
+													<div
+														key={`stay-${i}`}
+														className="flex items-center justify-between gap-3 p-3.5 text-xs"
+													>
 														<div className="min-w-0 flex-1 truncate font-semibold text-foreground">
-															{regu.stay}
+															{name}
 														</div>
 														<Badge className="rounded-xl border border-border bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground shadow-none">
 															Jaga di Kantor
 														</Badge>
 													</div>
-												)}
+												))}
 												{regu.pending.length > 0 && (
 													<div className="p-3.5 text-xs leading-relaxed text-muted-foreground">
 														Belum memilih: {regu.pending.join(', ')}
