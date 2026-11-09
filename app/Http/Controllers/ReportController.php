@@ -46,8 +46,10 @@ class ReportController extends Controller
      * dua keputusan - pemilih wilayah di form DAN pembebasan dari batas kirim laporan - supaya
      * operator yang mendapat pemilih wilayah tak pernah bisa terkunci limiter saat menerima
      * panggilan beruntun (2026-09-29: Admin Damkar Denpasar terkena 429 di tengah input).
+     * Keputusan ketiga (#238): mereka bebas dari kewajiban foto darurat non-kebakaran -
+     * penelepon tidak bisa mengirim foto ke operator (ReportRequest::nonFirePhotoRequired).
      */
-    private const COMMAND_CENTER_ROLES = ['petugas', 'admin', 'superadmin'];
+    public const COMMAND_CENTER_ROLES = ['petugas', 'admin', 'superadmin'];
 
     /**
      * Batas kirim laporan untuk selain Pusat Komando: 5 laporan TERSIMPAN per 10 menit.
@@ -676,6 +678,8 @@ class ReportController extends Controller
             ],
             'provinces' => $provinces,
             'region_picker' => $regionPicker,
+            // #238: foto darurat non-kebakaran wajib bagi pelapor selain Pusat Komando.
+            'non_fire_photo_required' => ReportRequest::nonFirePhotoRequired($user),
             // Daftar kabupaten yang sudah bekerjasama (TASK_17) → form menampilkan notice
             // "laporan akan diarahkan ke Damkar X" / "belum terdaftar" begitu pin ter-resolve.
             'registered_tenants' => Tenant::where('is_active', true)->get(['city_code', 'subdomain', 'nama_instansi']),
@@ -705,6 +709,7 @@ class ReportController extends Controller
             ],
             'provinces' => $provinces,
             'region_picker' => null,
+            'non_fire_photo_required' => ReportRequest::nonFirePhotoRequired(null),
             'registered_tenants' => Tenant::where('is_active', true)->get(['city_code', 'subdomain', 'nama_instansi']),
             'guest' => [
                 // Kosong = Turnstile mati; form tetap jalan dengan lapis pertama saja.

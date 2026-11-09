@@ -6,9 +6,11 @@ use App\Models\Report;
 use App\Models\User;
 use App\Notifications\EmergencyAlertNotification;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 
 // TASK_77 (2026-10-11) - lapor TANPA LOGIN. Keputusan user: tanpa OTP; dua lapis pelindung
@@ -58,6 +60,7 @@ it('opens the same report form to guests, pointed at the guest endpoint', functi
             ->component('Front/Reports/Create')
             ->where('page_settings.action', route('front.reports.guest.store'))
             ->where('region_picker', null)
+            ->where('non_fire_photo_required', true)
             ->where('guest.turnstile_site_key', null))
         ->assertSessionHas(GuestReportRequest::SESSION_FORM_OPENED_AT)
         ->assertCookie(ReportController::GUEST_DEVICE_COOKIE);
@@ -103,13 +106,16 @@ it('stores a guest report without an account and alerts the command center only'
 
 it('accepts every incident type from guests, with the same detail rules as accounts', function () {
     guestPost($this, ['incident_type' => 'lainnya', 'title' => 'Pohon tumbang'])
-        ->assertSessionHasErrors(['description', 'address']);
+        // #238: tamu ikut aturan warga - foto non-kebakaran wajib.
+        ->assertSessionHasErrors(['description', 'address', 'photos']);
 
+    Storage::fake('public');
     guestPost($this, [
         'incident_type' => 'lainnya',
         'title' => 'Pohon tumbang',
         'description' => 'Menutup jalan',
         'address' => 'Depan pura',
+        'photos' => [UploadedFile::fake()->image('pohon.jpg')],
     ])->assertSessionHasNoErrors();
 
     expect(Report::withoutGlobalScopes()->sole()->incident_type)->toBe('lainnya');

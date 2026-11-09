@@ -99,7 +99,7 @@ const FIRE_INCIDENT_TYPES = [
 
 // Tab NON KEBAKARAN hanya punya SATU jenis, jadi tak ada tombol pilihan: membuka tabnya
 // sudah menentukan jenisnya dan warga langsung mengetik kejadiannya. Di sinilah server
-// mewajibkan deskripsi/patokan (ReportRequest; foto sementara opsional) karena petugas butuh konteks lebih.
+// mewajibkan deskripsi/patokan (+ foto bagi non-staf, #238; ReportRequest) karena petugas butuh konteks lebih.
 const NON_FIRE_INCIDENT_TYPE = { value: 'lainnya', title: '' };
 
 const INCIDENT_TAB = { fire: 'kebakaran', nonFire: 'non_kebakaran' };
@@ -167,6 +167,9 @@ export default function Create(props) {
 	// Lapor TANPA LOGIN (TASK_77): dikirim server hanya untuk tamu. Form-nya SAMA - yang berbeda
 	// cuma kolom kontak (nama & nomor HP, untuk akun keduanya dari profil), honeypot, dan Turnstile.
 	const guest = props.guest || null;
+	// #238: foto darurat non-kebakaran wajib bagi warga/relawan/tamu, opsional bagi Pusat Komando
+	// (laporan telepon). Keputusannya milik server (ReportRequest::nonFirePhotoRequired), bukan peran di JSX.
+	const nonFirePhotoRequired = Boolean(props.non_fire_photo_required);
 	const turnstileSiteKey = guest?.turnstile_site_key || null;
 	// Lapis 1: kolom jebakan yang tak terlihat manusia; bot pengisi semua kolom mengisinya.
 	const honeypotRef = useRef(null);
@@ -774,14 +777,15 @@ export default function Create(props) {
 
 	const onHandleChange = (e) => setData(e.target.name, e.target.value);
 
-	// Darurat non-kebakaran → deskripsi/patokan wajib (foto sementara opsional). 'kebakaran_lainnya'
+	// Darurat non-kebakaran → deskripsi/patokan wajib (foto wajib bagi non-staf, #238). 'kebakaran_lainnya'
 	// SENGAJA tidak ikut: ia kebakaran, jadi tetap darurat-first — yang membedakannya cuma
 	// judul yang diketik sendiri. Aturan yang sama dipegang server di ReportRequest.
 	const isOther = data.incident_type === NON_FIRE_INCIDENT_TYPE.value;
 	// Judul teks bebas dipakai dua keadaan: darurat non-kebakaran & kebakaran "Lainnya".
 	const needsFreeTitle = isOther || data.incident_type === 'kebakaran_lainnya';
-	// 'lainnya': seksi foto selalu terbuka (sementara OPSIONAL, keputusan user 2026-09-29);
+	// 'lainnya': seksi foto selalu terbuka (wajib bagi non-staf sejak #238, opsional bagi Pusat Komando);
 	// kebakaran collapsible; buka bila sudah ada foto.
+	const photoRequired = isOther && nonFirePhotoRequired;
 	const photoExpanded = isOther || showPhotoSection || data.photos.length > 0;
 
 	const selectIncidentType = (type) => {
@@ -872,6 +876,12 @@ export default function Create(props) {
 		if (data._method === 'POST' && !data.village_code) {
 			setRegionOpen(true);
 			toast.warning('Pilih desa/kelurahan kejadian di bawah peta.');
+			return;
+		}
+
+		if (data._method === 'POST' && photoRequired && data.photos.length === 0) {
+			document.getElementById('photos')?.parentElement?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+			toast.warning('Lampirkan minimal satu foto kejadian.');
 			return;
 		}
 
@@ -1590,7 +1600,9 @@ export default function Create(props) {
 								{isOther ? (
 									<Label className="text-sm font-medium text-foreground/80">
 										Foto Bukti Kejadian{' '}
-										<span className="font-normal text-muted-foreground">(Opsional)</span>
+										<span className="font-normal text-muted-foreground">
+											{photoRequired ? '(Wajib)' : '(Opsional)'}
+										</span>
 									</Label>
 								) : (
 									<button
@@ -1614,9 +1626,11 @@ export default function Create(props) {
 								{/* Pesan keselamatan — jangan ambil risiko demi foto */}
 								<p className="mt-2 flex items-start gap-1.5 text-[13px] text-muted-foreground">
 									<IconAlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
-									{isOther
-										? 'Foto opsional, tapi membantu petugas menilai situasi. Tetap utamakan keselamatan Anda.'
-										: 'Foto opsional. Jangan mendekat ke api hanya untuk mengambil foto.'}
+									{photoRequired
+										? 'Lampirkan minimal satu foto agar petugas bisa menilai situasi. Tetap utamakan keselamatan Anda.'
+										: isOther
+											? 'Foto opsional, tapi membantu petugas menilai situasi. Tetap utamakan keselamatan Anda.'
+											: 'Foto opsional. Jangan mendekat ke api hanya untuk mengambil foto.'}
 								</p>
 
 								{/* Satu input file tersembunyi, dipakai upload box & tombol "Tambah" */}

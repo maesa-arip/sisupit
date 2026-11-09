@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Controllers\ReportController;
 use App\Models\Report;
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -38,6 +40,7 @@ class ReportRequest extends FormRequest
         // kebakaran yang diketik sendiri warga, jadi ia ikut aturan kebakaran.
         $isOtherEmergency = $isCreate && $this->input('incident_type') === 'lainnya';
         $detailRule = $isOtherEmergency ? 'required' : 'nullable';
+        $photoRule = $isOtherEmergency && self::nonFirePhotoRequired($this->user()) ? 'required' : 'nullable';
 
         return [
             // Jenis kejadian dari tombol pilihan cepat. Selain menentukan wajib/opsional field
@@ -137,11 +140,12 @@ class ReportRequest extends FormRequest
                 'min:0',
             ],
             // Galeri foto (FINDINGS #17). Darurat-first (Kluster A): opsional untuk kebakaran
-            // (jangan paksa warga mendekati api). Dulu WAJIB untuk darurat non-kebakaran
-            // ('lainnya'); SEMENTARA opsional juga (keputusan user 2026-09-29) - deskripsi &
-            // patokan TETAP wajib untuknya. Pada update (PUT) opsional. Kolom `photo` lama = sampul.
+            // (jangan paksa warga mendekati api). Darurat non-kebakaran ('lainnya'): WAJIB bagi
+            // warga/relawan/tamu, opsional bagi Pusat Komando yang mengetik laporan telepon
+            // (#238, keputusan user 2026-11-09; mencabut pelonggaran #149 untuk pelapor non-staf).
+            // Pada update (PUT) opsional. Kolom `photo` lama = sampul.
             'photos' => [
-                'nullable',
+                $photoRule,
                 'array',
                 'max:6',
             ],
@@ -163,6 +167,23 @@ class ReportRequest extends FormRequest
                 'mimes:png,jpg,jpeg,webp',
                 'max:2048',
             ],
+        ];
+    }
+
+    /**
+     * Apakah pelapor ini wajib melampirkan foto untuk darurat NON-kebakaran (#238). SATU rumus
+     * untuk validasi di atas dan prop form (ReportController::create/guestCreate), supaya label
+     * "(Wajib)" di layar tak pernah berbeda dari yang ditolak server. Tamu (null) = wajib.
+     */
+    public static function nonFirePhotoRequired(?User $user): bool
+    {
+        return ! $user?->hasAnyRole(ReportController::COMMAND_CENTER_ROLES);
+    }
+
+    public function messages(): array
+    {
+        return [
+            'photos.required' => 'Lampirkan minimal satu foto kejadian.',
         ];
     }
 

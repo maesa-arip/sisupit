@@ -59,6 +59,7 @@ class GuestReportRequest extends ReportRequest
     public function messages(): array
     {
         return [
+            ...parent::messages(),
             'phone.required' => 'Nomor HP wajib diisi agar petugas bisa menghubungi Anda.',
             'phone.regex' => 'Nomor HP tidak valid. Contoh: 081234567890.',
             'website.prohibited' => self::BOT_MESSAGE,

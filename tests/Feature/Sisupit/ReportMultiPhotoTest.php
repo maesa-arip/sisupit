@@ -75,9 +75,9 @@ it('allows creating a fire report without any photo (photo optional for kebakara
     expect($report->photo)->toBeNull();
 });
 
-it('accepts a non-fire emergency (incident_type = lainnya) without a photo, but still requires description and patokan', function () {
-    // SEMENTARA (keputusan user 2026-09-29): foto non-kebakaran opsional. Deskripsi &
-    // patokan TETAP wajib - petugas tetap butuh konteks, hanya fotonya yang dilonggarkan.
+it('requires a photo, description and patokan from a citizen for a non-fire emergency (incident_type = lainnya)', function () {
+    // #238 (keputusan user 2026-11-09): foto darurat non-kebakaran WAJIB lagi bagi warga
+    // (pelonggaran #149 dicabut untuk pelapor non-staf). Deskripsi & patokan tetap wajib.
     Notification::fake();
     Storage::fake('public');
 
@@ -89,16 +89,56 @@ it('accepts a non-fire emergency (incident_type = lainnya) without a photo, but 
         'incident_type' => 'lainnya',
         'description' => '',
         'address' => '',
-    ])->assertSessionHasErrors(['description', 'address'])
-        ->assertSessionDoesntHaveErrors('photos');
+    ])->assertSessionHasErrors(['description', 'address', 'photos' => 'Lampirkan minimal satu foto kejadian.']);
     expect(Report::withoutGlobalScopes()->count())->toBe(0);
 
     $this->actingAs($citizen)->post('/reports/create', [
         ...$this->payload,
         'incident_type' => 'lainnya',
+        'photos' => [UploadedFile::fake()->image('pohon.jpg')],
     ])->assertSessionHasNoErrors();
 
     $report = Report::withoutGlobalScopes()->first();
     expect($report)->not->toBeNull();
-    expect($report->photos()->count())->toBe(0);
+    expect($report->photos()->count())->toBe(1);
+});
+
+it('keeps the non-fire photo optional for the command center typing a phone report (#238)', function (string $role) {
+    Notification::fake();
+    Storage::fake('public');
+
+    $operator = User::factory()->create(['province_code' => '51', 'city_code' => '5171']);
+    $operator->assignRole($role);
+
+    $this->actingAs($operator)->post('/reports/create', [
+        ...$this->payload,
+        'incident_type' => 'lainnya',
+    ])->assertSessionHasNoErrors();
+
+    expect(Report::withoutGlobalScopes()->sole()->photos()->count())->toBe(0);
+})->with(['admin', 'superadmin', 'petugas']);
+
+it('requires the non-fire photo from a relawan too - only the command center is exempt (#238)', function () {
+    Notification::fake();
+
+    $relawan = User::factory()->create(['village_code' => '5171012006']);
+    $relawan->assignRole('relawan');
+
+    $this->actingAs($relawan)->post('/reports/create', [
+        ...$this->payload,
+        'incident_type' => 'lainnya',
+    ])->assertSessionHasErrors('photos');
+    expect(Report::withoutGlobalScopes()->count())->toBe(0);
+});
+
+it('tells the form whether the non-fire photo is required, from the same rule (#238)', function () {
+    $warga = User::factory()->create(['village_code' => '5171012006']);
+    $warga->assignRole('warga');
+    $admin = User::factory()->create(['province_code' => '51', 'city_code' => '5171']);
+    $admin->assignRole('admin');
+
+    $this->actingAs($warga)->get(route('front.reports.create'))
+        ->assertInertia(fn ($page) => $page->where('non_fire_photo_required', true));
+    $this->actingAs($admin)->get(route('front.reports.create'))
+        ->assertInertia(fn ($page) => $page->where('non_fire_photo_required', false));
 });
