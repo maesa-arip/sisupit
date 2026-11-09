@@ -5361,7 +5361,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Sisa:** cek peran akun yang dilaporkan (bila ternyata warga murni di layar lain, laporkan halamannya).
 - **Status:** FIXED, TERDEPLOY PROD @39392892 (2026-11-07; HTTPS: bundel Show-BXZPCGps.js & app-DtryRnni.js 200, POST /helpers/create 404)
 
-### #238 — Foto darurat non-kebakaran WAJIB bagi warga, opsional bagi admin yang input manual (FIXED, lokal 2026-11-09)
+### #238 — Foto darurat non-kebakaran WAJIB bagi warga, opsional bagi admin yang input manual (FIXED, TERDEPLOY PROD @935e42b5 2026-11-09)
 
 - **Permintaan user:** "apakah fitur jika admin yang input manual laporan foto tidak wajib dan jika warga yang input
   maka foto wajib?" - fitur belum ada (sejak #149 foto opsional untuk SEMUA). Keputusan user: wajib "hanya untuk non-kebakaran".
@@ -5376,9 +5376,10 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   `'nullable'` + balik test.
 - **Penjaga:** `ReportMultiPhotoTest` (warga ditolak tanpa foto & lolos dengan foto; admin/superadmin/petugas lolos tanpa
   foto; relawan ditolak; prop form), `GuestReportTest` (tamu wajib foto non-kebakaran, prop `true`).
-- **Status:** FIXED lokal 2026-11-09, belum di-commit/deploy. Tanpa migrasi. Belum diuji di HP.
+- **Status:** FIXED, TERDEPLOY PROD @935e42b5 (2026-11-09; HTTPS: app-DOXPJy-o.js 200, chunk Create memuat pesan wajib foto,
+  /reports/create tamu non_fire_photo_required=true). Tanpa migrasi. Belum diuji di HP.
 
-### #239 — Ulasan aplikasi diaktifkan lagi, ajakan hanya sesudah kejadian Selesai (FIXED, lokal 2026-11-09)
+### #239 — Ulasan aplikasi diaktifkan lagi, ajakan hanya sesudah kejadian Selesai (FIXED, TERDEPLOY PROD @935e42b5 2026-11-09)
 
 - **Permintaan user:** "sekarang aktifkan fitur review, tapi review hanya muncul saat kejadian sudah selesai ditangani".
   Keputusan user: yang diajak = pelapor + petugas/relawan yang menangani; kartu di dashboard + detail laporan Selesai;
@@ -5394,4 +5395,4 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   #113 memakai `only`, tak menyertakan `appReviewPrompt`). Tamu tetap tak bisa mengulas.
 - **Penjaga:** `AppReviewTest` (pelapor: berjalan = tidak, Selesai = ya; responder officers/helpers: Meluncur/Tiba = tidak,
   Selesai = ya, petugas lain = tidak; prop dashboard/detail Selesai/detail berjalan/admin lain; flag = true).
-- **Status:** FIXED lokal 2026-11-09, belum di-commit/deploy. Tanpa migrasi. Belum diuji di HP.
+- **Status:** FIXED, TERDEPLOY PROD @935e42b5 (2026-11-09, bersama #238). Tanpa migrasi. Belum diuji di HP.

@@ -198,10 +198,10 @@ TASK_88/     : (2026-11-06, TERDEPLOY PROD @8bae8d95 bersama TASK_86, HTTPS 200,
 #237         : (2026-11-06, TERDEPLOY PROD @39392892 2026-11-07, HTTPS terverifikasi: helpers/create 404) "warga bisa klik Meluncur": tombol & server sudah petugas|relawan (akun pelapor diduga relawan, belum dicek);
                 route lama helpers/create (tanpa cek peran/wilayah) + ReportHelperController/Request + 2 komponen mati DIHAPUS;
                 tombol taktis Show.jsx digerbang canRespond (admin tak ditawari Meluncur). Tanpa migrasi. Penjaga ResponderActionGateTest.
-#238         : (2026-11-09, lokal) foto darurat NON-kebakaran WAJIB bagi warga/relawan/tamu, opsional bagi Pusat Komando
+#238         : (2026-11-09, TERDEPLOY PROD @935e42b5, HTTPS terverifikasi) foto darurat NON-kebakaran WAJIB bagi warga/relawan/tamu, opsional bagi Pusat Komando
                 (petugas/admin/superadmin, input telepon): ReportRequest::nonFirePhotoRequired + prop non_fire_photo_required.
                 Kebakaran tetap opsional. Mencabut sebagian #149(b). Tanpa migrasi. Penjaga ReportMultiPhotoTest/GuestReportTest.
-#239         : (2026-11-09, lokal) form ulasan aplikasi DIAKTIFKAN lagi (flag SHOW_APP_REVIEW_FORM = true, cabut #236): ajakan HANYA
+#239         : (2026-11-09, TERDEPLOY PROD @935e42b5) form ulasan aplikasi DIAKTIFKAN lagi (flag SHOW_APP_REVIEW_FORM = true, cabut #236): ajakan HANYA
                 sesudah kejadian yang dilaporkan/ditangani (petugas/relawan Meluncur/Tiba) Selesai - syarat akun >= 7 hari dibuang;
                 kartu di dashboard + detail laporan Selesai (shouldAsk($user, $report)); kartu Profil tampil. Tanpa migrasi. Penjaga AppReviewTest.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
@@ -219,7 +219,7 @@ Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174 #188(satelit).
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
 Test         : 956 passed / 7391 assertions (2026-11-09, + #238 foto non-kebakaran, #239 ulasan sesudah kejadian Selesai).
-Lingkungan   : PROD @39392892 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#237 + Masuk dengan Apple) | DEV @672b6a10 (dashboard baru) | STAGING @42ef296b (= prod, video demo
+Lingkungan   : PROD @935e42b5 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#239 + Masuk dengan Apple) | DEV @672b6a10 (dashboard baru) | STAGING @42ef296b (= prod, video demo
                 TASK_80; data uji petugas.uji@sisupit.test + LP-2026-00227). Dev & staging: data salinan prod, TANPA basic auth sejak 2026-10-18 (PENGECUALIAN #7), sandi "password".
 ```
 
