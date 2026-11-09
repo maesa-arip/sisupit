@@ -331,5 +331,5 @@ Persetujuan user 2026-11-09: "setuju, kerjakan; tagline header dibuang juga".
   `RegionFields` callout "di luar kota" kuning -> callout netral, `CompleteProfile` ikon info biru -> netral,
   `PhotoViewer` bilah atas gradien -> scrim hitam padat.
 - Sengaja TIDAK diubah: spinner muat (umpan balik), animasi buka/tutup PhotoViewer (fade 200 ms, bukan hover/denyut),
-- Verifikasi: `npm run build` lulus; Pest penuh 950 passed, 7315 assertions, 0 gagal (= baseline main 950).
   sisa `bg-warning/10` lama di forum.js/ErrorHandling/indikator GPS/Peta Pemantauan (di luar cakupan putaran ini).
+- Verifikasi: `npm run build` lulus; Pest penuh 950 passed, 7315 assertions, 0 gagal (= baseline main 950).
