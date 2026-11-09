@@ -75,10 +75,11 @@ export function containsEmergencyWords(...texts) {
 // Status thread & balasan. Tidak ada cadangan yang MENGAKU jadi status lain (pelajaran #94):
 // nilai tak dikenal tampil apa adanya.
 export const FORUM_STATUS_META = {
-	menunggu: { label: 'Menunggu Tinjauan Admin', tone: 'border-warning/30 bg-warning/10 text-warning' },
-	tampil: { label: 'Tayang', tone: 'border-success/20 bg-success/10 text-success' },
-	disembunyikan: { label: 'Disembunyikan Admin', tone: 'border-destructive/30 bg-destructive/10 text-destructive' },
+	// `tone` = nada titik DotPill (TASK_87 putaran 11: pil netral, warna hanya di titik).
+	menunggu: { label: 'Menunggu Tinjauan Admin', tone: 'warning' },
+	tampil: { label: 'Tayang', tone: 'success' },
+	disembunyikan: { label: 'Disembunyikan Admin', tone: 'destructive' },
 };
 
 export const forumStatusMeta = (status) =>
-	FORUM_STATUS_META[status] ?? { label: status ?? '-', tone: 'border-border bg-muted text-muted-foreground' };
+	FORUM_STATUS_META[status] ?? { label: status ?? '-', tone: 'muted' };

@@ -12,7 +12,7 @@ export default function ErrorHandling({ status }) {
 			<Head title={errorMessages.title} />
 			<div className="grid min-h-[70vh] place-items-center bg-background px-6 py-16 sm:py-24">
 				<div className="flex max-w-md flex-col items-center text-center">
-					<span className="flex h-16 w-16 items-center justify-center rounded-full bg-warning/10 text-warning">
+					<span className="flex h-16 w-16 items-center justify-center rounded-full bg-muted text-foreground">
 						<IconAlertTriangle className="h-8 w-8" stroke={1.75} />
 					</span>
 					<p className="mt-6 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">

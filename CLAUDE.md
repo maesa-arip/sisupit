@@ -198,6 +198,9 @@ TASK_88/     : (2026-11-06, TERDEPLOY PROD @8bae8d95 bersama TASK_86, HTTPS 200,
 #237         : (2026-11-06, TERDEPLOY PROD @39392892 2026-11-07, HTTPS terverifikasi: helpers/create 404) "warga bisa klik Meluncur": tombol & server sudah petugas|relawan (akun pelapor diduga relawan, belum dicek);
                 route lama helpers/create (tanpa cek peran/wilayah) + ReportHelperController/Request + 2 komponen mati DIHAPUS;
                 tombol taktis Show.jsx digerbang canRespond (admin tak ditawari Meluncur). Tanpa migrasi. Penjaga ResponderActionGateTest.
+TASK_87      : (2026-11-04 s/d 11-09, KHUSUS BRANCH dev - main/prod tak disentuh) desain clean minimalis, branch
+                feat/desain-clean-minimalis (worktree desain-clean) -> ff ke dev. Putaran 10 merge main + tagline header dibuang;
+                putaran 11 sisa tint + akun uji demo warga.uji@/relawan.uji@sisupit.test di dev. Rincian: file task.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
                 kolom approved_at tetap. #178 i18n TERDEPLOY prod @dde8c6a4; #179 (ikon, paginasi PaginationLinks, email).
                 #180 terjemahan bawaan Laravel dari paket laravel-lang/common (DEV) TERDEPLOY prod @9bf7b103; paginasi tetap versi #178 -

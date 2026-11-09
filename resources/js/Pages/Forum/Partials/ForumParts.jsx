@@ -9,6 +9,7 @@ import {
 } from '@/Components/ui/alert-dialog';
 import { Button } from '@/Components/ui/button';
 import { forumStatusMeta } from '@/lib/forum';
+import DotPill from '@/Components/DotPill';
 import { cn, NOMOR_DARURAT_NASIONAL } from '@/lib/utils';
 import { Link } from '@inertiajs/react';
 import { IconAlertTriangle, IconFlame, IconPhone } from '@tabler/icons-react';
@@ -87,9 +88,9 @@ export function ForumStatusBadge({ status }) {
 	const meta = forumStatusMeta(status);
 
 	return (
-		<span className={cn('shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-semibold', meta.tone)}>
+		<DotPill tone={meta.tone} className="shrink-0 px-2 text-[11px]">
 			{meta.label}
-		</span>
+		</DotPill>
 	);
 }
 

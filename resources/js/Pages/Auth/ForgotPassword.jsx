@@ -44,7 +44,7 @@ export default function ForgotPassword({ status }) {
 						{status && (
 							<Alert
 								variant="success"
-								className="rounded-xl border-success/20 bg-success/10 text-success"
+								className="rounded-xl border-border bg-card text-foreground"
 							>
 								<AlertDescription>{status}</AlertDescription>
 							</Alert>

@@ -303,3 +303,14 @@
   jadi gerbang yang cuma ada di controller membuat POST ke fitur yang mati dijawab galat
   validasi (302) alih-alih 404 — jawaban yang mengaku endpoint-nya ada sekaligus membocorkan
   cara kerja daftar putihnya. Terbukti saat dikerjakan, bukan teori.
+
+## Catatan branch desain clean minimalis (TASK_87) - BERLAKU DI BRANCH INI SAJA
+
+Berlaku di `feat/desain-clean-minimalis` / `dev`, BUKAN di `main`. Pola tambahan yang wajib ditiru di branch ini:
+- Status apa pun (laporan, fasilitas, undangan, forum, ulasan) = pil netral bergaris + titik warna:
+  `StatusBadge` untuk status laporan, `Components/DotPill.jsx` (`tone`: destructive|warning|success|info|teal|muted)
+  untuk lainnya. Jangan latar tint `bg-*/10` + teks berwarna.
+- Callout/info = `border-border bg-muted` + ikon `text-muted-foreground`; banner keselamatan = garis merah tipis +
+  ikon merah. Satu aksen: merah brand. Tanpa bayangan, kaca (backdrop-blur), gradien, denyut/zoom hover.
+- Ikon antarmuka Tabler (alias `IconX as X` boleh), ikon khas di `Components/SisupitIcons.jsx`.
+- Rincian & kesepakatan desain: prompt/tasks/TASK_87_desain_clean_minimalis_dev.md.

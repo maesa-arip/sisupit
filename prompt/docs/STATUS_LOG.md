@@ -11,6 +11,15 @@ per entri). File ini TIDAK dimuat otomatis tiap sesi — baca saat butuh konteks
 ## Riwayat STATUS (salinan verbatim per 2026-10-01)
 
 ```
+TASK_87 DESAIN CLEAN MINIMALIS - KHUSUS DEV (2026-11-04 s/d 2026-11-09): permintaan user "jangan mengubah production dan
+  branch main, buat task baru untuk menerapkan desain ini ke dev". Branch feat/desain-clean-minimalis (worktree
+  .claude/worktrees/desain-clean), di-fast-forward ke branch `dev`; main/staging/prod TIDAK disentuh. Putaran 1-9
+  (token & Plus Jakarta Sans, tanpa bayangan/kaca/tint/gradien, StatusBadge & DotPill bertitik, bilah bawah bercekungan,
+  ikon khas SisupitIcons, dashboard per peran netral, detail/Thanks, admin, mode gelap hangat, Lucide -> Tabler).
+  Putaran 10 (11-09): main b2b70982 di-merge (TASK_86/88, #236, #237 + 3 migrasi), layar baru disesuaikan, tagline
+  merah ApplicationLogo dibuang (keputusan user). Putaran 11 (11-09): sisa tint di alert auth, ErrorHandling, pil
+  forum (DotPill), pil status ReportCard; akun uji DEMO di dev warga.uji@ / relawan.uji@sisupit.test (sandi "password",
+  dibuat admin dev, ditandai demo oleh superadmin). Rincian per putaran: prompt/tasks/TASK_87_desain_clean_minimalis_dev.md.
 TASK_86/#229 ULASAN APLIKASI (2026-11-01): permintaan user "fitur review" untuk aplikasi. Keputusan user: masuk DB Sisupit
                 (bukan store), testimoni ditampilkan, semua peran, tamu tidak. MIGRASI app_reviews + app_review_prompts. Baseline
                 sebelum 913/6869, sesudah 931/7064 (AppReviewTest 18 test, sabotase route dashboard = merah). Lokal, belum

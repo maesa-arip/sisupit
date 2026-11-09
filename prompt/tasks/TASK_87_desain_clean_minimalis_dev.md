@@ -339,3 +339,26 @@ Persetujuan user 2026-11-09: "setuju, kerjakan; tagline header dibuang juga".
   semua 200, tanpa error JS (hanya izin lokasi headless), teks tagline 0 di semua halaman; /admin/app-reviews tampil
   = migrasi app_review jalan. relawan1@sisupit.com & akun warga uji tidak ada di salinan data prod dev -> layar
   relawan/warga login belum dicek. Basemap gelap di dev masih terang (MAP_TILE_URL_DARK kosong, sesuai #223).
+
+## 18. Putaran 11 (2026-11-09) - sisa tint, akun uji warga/relawan, dokumen
+
+Persetujuan user 2026-11-09: "kerjakan putaran 11, akun uji buat sendiri di dev".
+
+- **Sisa tint lolos penetral:** alert status Login/ForgotPassword/VerifyEmail hijau -> kartu netral; kotak ikon
+  Android Login -> bg-muted; ikon segitiga halaman galat (ErrorHandling) kuning -> netral; pil status Forum
+  (`lib/forum.js` FORUM_STATUS_META.tone kini nada DotPill, `ForumStatusBadge` -> `DotPill`); pil status
+  `ReportCard` (dipakai "Kejadian di sekitar" Beranda warga & form lapor) biru/hijau/merah bertint -> pil netral +
+  titik warna StatusBadge (Selesai biru, Penanganan hijau, Laporan Masuk merah); ikon CheckCircle2/ShieldAlert dibuang.
+- Sengaja TIDAK diubah: `Admin/Reports/Index` STATUS_META.pin/ring (warna marker peta - peta boleh berwarna; `ring`
+  tak dipakai), indikator GPS form lapor, Peta Pemantauan, berkas mati (Home, ResponsiveNavLink).
+- **Akun uji di dev (demo):** dibuat lewat admin@denpasar.go.id di /admin/users/create (langsung terverifikasi),
+  lalu ditandai DEMO oleh pusat@sisupit.com (TASK_81: aksinya tak memicu notif ke pengguna asli - data dev salinan
+  prod). `warga.uji@sisupit.test` (id 241, warga) & `relawan.uji@sisupit.test` (id 242, relawan), sandi "password",
+  HP dummy 080000000241/242, wilayah Denpasar Selatan - Sesetan. Tidak ada di prod/staging.
+- **Cek HTTPS dev (build putaran 10) warga & relawan**, 390x844 terang/gelap: /dashboard, /reports?filter=mine,
+  /reports/create, /profile = 200, tanpa error JS; /complete-profile tampil benar (callout info netral). /forum 404
+  = fitur forum mati untuk Denpasar (TASK_54), bukan bug. Pil "Selesai" bertint biru di Beranda warga = ReportCard,
+  diperbaiki putaran ini. Catatan data: dev menampilkan "Telepon Damkar 0361-223333" - DATA tenants dev (salinan
+  lama), prod sudah 0361-480066 (#206); bukan perubahan desain.
+- **Dokumen:** STATUS_LOG (entri TASK_87), STATUS CLAUDE.md di branch ini, CONVENTIONS (catatan "berlaku di branch ini").
+- Verifikasi: `npm run build` lulus; Pest penuh 950 passed, 7315 assertions, 0 gagal (= putaran 10).

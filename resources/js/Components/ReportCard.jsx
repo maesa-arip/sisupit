@@ -1,7 +1,7 @@
 import { Dialog, DialogContent } from '@/Components/ui/dialog';
 import { alamatLaporan, cn, timeAgo } from '@/lib/utils';
 import { Link } from '@inertiajs/react';
-import { IconCircleCheck as CheckCircle2, IconClock as Clock, IconFlame as Flame, IconMapPin as MapPin, IconNavigation as Navigation, IconShieldExclamation as ShieldAlert, IconUser as User, IconUsers as Users, IconX as X, IconZoomIn as ZoomIn } from '@tabler/icons-react';
+import { IconClock as Clock, IconFlame as Flame, IconMapPin as MapPin, IconNavigation as Navigation, IconUser as User, IconUsers as Users, IconX as X, IconZoomIn as ZoomIn } from '@tabler/icons-react';
 import { useState } from 'react';
 import DialogRelawanDetail from './DialogRelawanDetail';
 import DialogRelawanList from './DialogRelawanList';
@@ -46,18 +46,18 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 		if (report.status === 'resolved')
 			return {
 				label: 'Selesai',
-				color: 'bg-info/10 text-info border-info/20',
-				icon: <CheckCircle2 size={12} className="mr-1 shrink-0" />,
+				color: 'bg-card text-foreground border-border',
+				icon: <span className="mr-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-info"></span>,
 			};
 		if (report.status === 'handling' || hasHelpers)
 			return {
 				label: 'Penanganan',
-				color: 'bg-success/10 text-success border-success/20',
-				icon: <ShieldAlert size={12} className="mr-1 shrink-0" />,
+				color: 'bg-card text-foreground border-border',
+				icon: <span className="mr-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-success"></span>,
 			};
 		return {
 			label: 'Laporan Masuk',
-			color: 'bg-destructive/10 text-destructive border-destructive/20',
+			color: 'bg-card text-foreground border-border',
 			icon: <span className="mr-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-destructive"></span>,
 		};
 	};

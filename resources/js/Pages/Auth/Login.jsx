@@ -115,7 +115,7 @@ export default function Login({ status, canResetPassword }) {
 						{status && (
 							<Alert
 								variant="success"
-								className="rounded-xl border-success/20 bg-success/10 text-success"
+								className="rounded-xl border-border bg-card text-foreground"
 							>
 								<AlertDescription>{status}</AlertDescription>
 							</Alert>
@@ -316,7 +316,7 @@ export default function Login({ status, canResetPassword }) {
 									download="Sisupit.apk"
 									className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-border bg-card px-6 font-medium text-foreground shadow-sm outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-muted-foreground/50 sm:w-auto"
 								>
-									<div className="flex items-center justify-center rounded-lg bg-success/10 p-1">
+									<div className="flex items-center justify-center rounded-lg bg-muted p-1">
 										<IconBrandAndroid className="h-5 w-5 text-foreground" stroke={2} />
 									</div>
 									<span className="text-sm">Unduh Aplikasi Android</span>
