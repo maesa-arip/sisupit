@@ -6,7 +6,7 @@
 | Severity | P2 |
 | Tipe | fitur kecil |
 | Sumber | permintaan user 2026-11-11 / FINDINGS_LOG #240 |
-| Status | DONE (lokal, belum commit/deploy) |
+| Status | DONE - TERDEPLOY PROD @794924c1 (2026-11-11) |
 
 ---
 

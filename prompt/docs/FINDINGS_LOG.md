@@ -5397,7 +5397,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   Selesai = ya, petugas lain = tidak; prop dashboard/detail Selesai/detail berjalan/admin lain; flag = true).
 - **Status:** FIXED, TERDEPLOY PROD @935e42b5 (2026-11-09, bersama #238). Tanpa migrasi. Belum diuji di HP.
 
-### #240 — Warga tak pernah tahu ada kejadian di sekitarnya: notifikasi biasa sesudah verifikasi (FIXED, lokal 2026-11-11, TASK_89)
+### #240 — Warga tak pernah tahu ada kejadian di sekitarnya: notifikasi biasa sesudah verifikasi (FIXED, TERDEPLOY PROD @794924c1 2026-11-11, TASK_89)
 
 - **Permintaan user:** "cek di main apakah masyarakat dapat notif jika ada kejadian disekitar?" - jawabannya tidak
   (siaran approve() hanya petugas/relawan siaga/pejabat siaga/OPD; warga hanya kabar laporannya sendiri & forum). Lalu:
@@ -5419,4 +5419,5 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Penjaga:** `NearbyIncidentNotificationTest` (9 test: penerima bawaan Desa, Kecamatan menjangkau desa tetangga, pelapor
   gabungan dikecualikan, tolak tak mengirim, payload report_status/default/active, lonceng ke /kejadian, halaman tanpa PII,
   gerbang = rumus penerima + status, setelan). Sabotase `type`/rumus wilayah = 3 merah, dipulihkan byte-exact.
-- **Status:** FIXED lokal (belum commit/deploy). Tanpa migrasi, tanpa APK/iOS baru. Belum diuji di HP.
+- **Status:** FIXED, TERDEPLOY PROD @794924c1 (2026-11-11; HTTPS: app-Bizju31L.js 200, chunk Front/Incidents/Show-Byh8Ykd2.js 200,
+  /kejadian/1 tamu = 302 ke /login). Tanpa migrasi, tanpa APK/iOS baru. Belum diuji di HP.

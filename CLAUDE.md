@@ -204,7 +204,7 @@ TASK_88/     : (2026-11-06, TERDEPLOY PROD @8bae8d95 bersama TASK_86, HTTPS 200,
 #239         : (2026-11-09, TERDEPLOY PROD @935e42b5) form ulasan aplikasi DIAKTIFKAN lagi (flag SHOW_APP_REVIEW_FORM = true, cabut #236): ajakan HANYA
                 sesudah kejadian yang dilaporkan/ditangani (petugas/relawan Meluncur/Tiba) Selesai - syarat akun >= 7 hari dibuang;
                 kartu di dashboard + detail laporan Selesai (shouldAsk($user, $report)); kartu Profil tampil. Tanpa migrasi. Penjaga AppReviewTest.
-TASK_89/#240 : (2026-11-11, lokal, belum commit) warga sekitar dapat notifikasi BIASA (bukan sirine) sesudah approve(): NearbyIncidentNotification
+TASK_89/#240 : (2026-11-11, TERDEPLOY PROD @794924c1, HTTPS terverifikasi) warga sekitar dapat notifikasi BIASA (bukan sirine) sesudah approve(): NearbyIncidentNotification
                 (FCM type report_status, event nearby_incident; tanpa APK baru), penerima User::scopeWargaNearReport (kode wilayah sama, setelan
                 "Kabar Warga Sekitar" bawaan DESA), ketuk = /kejadian/{id} detail terbatas tanpa identitas/foto/deskripsi (gerbang rumus sama).
                 Tanpa migrasi. Penjaga NearbyIncidentNotificationTest. Belum diuji di HP.
@@ -223,7 +223,7 @@ Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174 #188(satelit).
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
 Test         : 965 passed / 7470 assertions (2026-11-11, + TASK_89 kabar warga sekitar).
-Lingkungan   : PROD @935e42b5 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#239 + Masuk dengan Apple) | DEV @672b6a10 (dashboard baru) | STAGING @42ef296b (= prod, video demo
+Lingkungan   : PROD @794924c1 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#240 + Masuk dengan Apple) | DEV @672b6a10 (dashboard baru) | STAGING @42ef296b (= prod, video demo
                 TASK_80; data uji petugas.uji@sisupit.test + LP-2026-00227). Dev & staging: data salinan prod, TANPA basic auth sejak 2026-10-18 (PENGECUALIAN #7), sandi "password".
 ```
 
