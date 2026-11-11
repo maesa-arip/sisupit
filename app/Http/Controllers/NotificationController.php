@@ -17,6 +17,15 @@ class NotificationController extends Controller
         $notification = $request->user()->notifications()->findOrFail($id);
         $notification->markAsRead();
 
+        // Notifikasi yang tujuannya BUKAN detail laporan penuh (TASK_89: warga sekitar kejadian
+        // tak berhak membuka reports.show) membawa `url` sendiri. Hanya path relatif yang dipakai
+        // supaya data notifikasi tak pernah bisa jadi open redirect.
+        $url = $notification->data['url'] ?? null;
+        // "/\host" dibaca sebagian browser sebagai "//host", jadi garis miring kedua ditolak juga.
+        if (is_string($url) && ($path = parse_url($url, PHP_URL_PATH)) && preg_match('#^/(?![/\\\\])#', $path)) {
+            return redirect($path);
+        }
+
         $reportId = $notification->data['report_id'] ?? null;
         if ($reportId) {
             return redirect()->route('reports.show', $reportId);

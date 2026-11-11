@@ -18,6 +18,7 @@ export default function Edit(props) {
 		notify_level_petugas: props.settings.notify_level_petugas,
 		notify_level_relawan: props.settings.notify_level_relawan,
 		notify_level_pejabat: props.settings.notify_level_pejabat,
+		notify_level_warga: props.settings.notify_level_warga,
 		duplikat_radius_m: props.settings.duplikat_radius_m,
 		duplikat_jendela_menit: props.settings.duplikat_jendela_menit,
 		akun_demo_aktif: props.settings.akun_demo_aktif,
@@ -94,6 +95,23 @@ export default function Edit(props) {
 							'Tingkat Siaran Pejabat',
 							errors.notify_level_pejabat,
 						)}
+						{/* Kabar warga sekitar (TASK_89). */}
+						<div className="space-y-4">
+							<div>
+								<h3 className="text-[15px] font-semibold text-foreground">Kabar Warga Sekitar</h3>
+								<p className="mt-1 text-sm text-muted-foreground">
+									Sesudah laporan diverifikasi, warga yang tinggal di wilayah yang sama dengan lokasi
+									kejadian menerima notifikasi biasa (bukan sirine) berisi lokasi kejadian. Desa
+									berarti warga satu desa/kelurahan, Kecamatan berarti semua warga sekecamatan, dan
+									seterusnya. Pelapor tidak ikut karena sudah menerima kabar laporannya sendiri.
+								</p>
+							</div>
+							{renderLevelSelect(
+								'notify_level_warga',
+								'Jangkauan Kabar Warga Sekitar',
+								errors.notify_level_warga,
+							)}
+						</div>
 						{/* Laporan ganda (TASK_55). */}
 						<div className="space-y-4">
 							<div>

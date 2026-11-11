@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TenantLevel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
@@ -50,6 +51,14 @@ class Setting extends Model
      */
     public const KEY_AKUN_DEMO_AKTIF = 'akun_demo_aktif';
 
+    /**
+     * Jangkauan notifikasi biasa "kejadian di sekitar Anda" ke WARGA sesudah laporan diverifikasi
+     * (TASK_89). Bukan sirine. Default DESA (keputusan user 2026-11-11). Artinya beda dari tingkat
+     * siaran relawan/pejabat: warga yang kode wilayahnya SAMA pada tingkat ini, lihat
+     * User::scopeWargaNearReport.
+     */
+    public const KEY_NOTIFY_LEVEL_WARGA = 'notify_level_warga';
+
     protected $fillable = ['key', 'value'];
 
     public static function getValue(string $key, ?string $default = null): ?string
@@ -64,6 +73,11 @@ class Setting extends Model
     public static function akunDemoAktif(): bool
     {
         return filter_var(static::getValue(self::KEY_AKUN_DEMO_AKTIF, '1'), FILTER_VALIDATE_BOOLEAN);
+    }
+
+    public static function wargaNotifyLevel(): TenantLevel
+    {
+        return TenantLevel::tryFrom((string) static::getValue(self::KEY_NOTIFY_LEVEL_WARGA)) ?? TenantLevel::DESA;
     }
 
     public static function setValue(string $key, ?string $value): void

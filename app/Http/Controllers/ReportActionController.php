@@ -24,6 +24,7 @@ use App\Models\User;
 use App\Notifications\AgencyConfirmationNotification;
 use App\Notifications\AgencyDispatchNotification;
 use App\Notifications\EmergencyAlertNotification;
+use App\Notifications\NearbyIncidentNotification;
 use App\Notifications\ReportStatusUpdatedNotification;
 use App\Notifications\TriageDecidedNotification;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -118,6 +119,7 @@ class ReportActionController extends Controller
 
         // Loop-balik ke pelapor: laporannya sudah divalidasi.
         $this->notifyReporter($report, 'approved');
+        $this->notifyNearbyWarga($report);
         $this->notifyTriageDecided($report, TriageDecidedNotification::APPROVED, $wasDuplicateCandidate);
         broadcast(new ReportStatusChanged($report->id, 'pending'));
         broadcast(ReportFeedChanged::for($report, 'pending'));
@@ -1188,6 +1190,31 @@ class ReportActionController extends Controller
 
         if ($penerima->isNotEmpty()) {
             Notification::send($penerima, new TriageDecidedNotification($report, $decision, auth()->user()->name));
+        }
+    }
+
+    /**
+     * Kabar BIASA (bukan sirine) ke warga di sekitar kejadian yang baru diverifikasi (TASK_89).
+     * Pelapor & pelapor laporan yang digabung ke kejadian ini dikecualikan - mereka sudah dikabari
+     * notifyReporter(), dan di Android notifikasi ber-report_id sama saling menimpa. Penerimanya
+     * SATU rumus dengan gerbang halaman tujuannya (User::scopeWargaNearReport).
+     */
+    private function notifyNearbyWarga(Report $report): void
+    {
+        $dikecualikan = Report::withoutGlobalScopes()
+            ->where('merged_into_id', $report->id)
+            ->pluck('user_id')
+            ->push($report->user_id, auth()->id())
+            ->filter()
+            ->unique()
+            ->values();
+
+        $warga = User::wargaNearReport($report, Setting::wargaNotifyLevel())
+            ->whereNotIn('id', $dikecualikan)
+            ->get();
+
+        if ($warga->isNotEmpty()) {
+            Notification::send($warga, new NearbyIncidentNotification($report));
         }
     }
 

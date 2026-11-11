@@ -156,7 +156,7 @@ server menambahkan blok `apns` di samping blok `data` untuk keempat jenis (lihat
 | `type` | ya | `emergency` \| `agency_dispatch` \| `agency_confirmation` \| `report_status` |
 | `alert_stage` | hanya `emergency` | `report_incoming` (laporan baru, belum diverifikasi) \| `dispatch` (sudah diverifikasi → meluncur) |
 | `user_role` | hanya `emergency` | peran penerima (`petugas`, `relawan`, `pejabat`, `admin`, …) |
-| `event` | hanya `report_status` | `approved`, `en_route`, `arrived`, `resolved`, `merged`, … (ke pelapor); `triage_approved`, `triage_rejected`, `triage_merged` (ke admin lain, #209 - menimpa notifikasi triase) |
+| `event` | hanya `report_status` | `approved`, `en_route`, `arrived`, `resolved`, `merged`, … (ke pelapor); `triage_approved`, `triage_rejected`, `triage_merged` (ke admin lain, #209 - menimpa notifikasi triase); `nearby_incident` (ke warga sekitar sesudah verifikasi, TASK_89 - `action_url` = `/kejadian/{id}`, bukan reports/show) |
 | `agency_id` | agency_* | id instansi |
 
 > Penanda tahap **sengaja tidak bernama `type`**: `BroadcastNotificationCreated` menimpa

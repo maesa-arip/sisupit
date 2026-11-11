@@ -5396,3 +5396,27 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Penjaga:** `AppReviewTest` (pelapor: berjalan = tidak, Selesai = ya; responder officers/helpers: Meluncur/Tiba = tidak,
   Selesai = ya, petugas lain = tidak; prop dashboard/detail Selesai/detail berjalan/admin lain; flag = true).
 - **Status:** FIXED, TERDEPLOY PROD @935e42b5 (2026-11-09, bersama #238). Tanpa migrasi. Belum diuji di HP.
+
+### #240 — Warga tak pernah tahu ada kejadian di sekitarnya: notifikasi biasa sesudah verifikasi (FIXED, lokal 2026-11-11, TASK_89)
+
+- **Permintaan user:** "cek di main apakah masyarakat dapat notif jika ada kejadian disekitar?" - jawabannya tidak
+  (siaran approve() hanya petugas/relawan siaga/pejabat siaga/OPD; warga hanya kabar laporannya sendiri & forum). Lalu:
+  "saat laporan sudah di verifikasi warga dapat notif biasa di aplikasi, bukan sirine tapi notifikasi biasa".
+  Keputusan user: jangkauan bisa diatur, bawaan DESA; penerima WARGA saja; ketuk = detail versi terbatas; semua jenis
+  kejadian; foto TIDAK ditampilkan.
+- **Perubahan:** `NearbyIncidentNotification` (FCM `type: report_status` + `event: nearby_incident` = channel
+  status_update_v2 nada bawaan, APK lama aman; APNs `sound: default` `active`; + `database`; DipicuAkunDemo), dikirim di
+  `ReportActionController::approve()` lewat `notifyNearbyWarga()` - pelapor, pelapor laporan gabungan, dan admin pemutus
+  dikecualikan. Penerima = `User::scopeWargaNearReport($report, Setting::wargaNotifyLevel())`: warga yang kode wilayahnya
+  SAMA pada tingkat setelan (Desa = village_code, Kecamatan = district_code, ...). SENGAJA bukan scopeNotifiableForReport
+  (rumus itu hanya naik ke akun yang kode desanya kosong; setelan Kecamatan tak akan menjangkau desa tetangga).
+  Setelan `notify_level_warga` di /admin/settings ("Kabar Warga Sekitar", opsional di request).
+  Halaman terbatas `GET /kejadian/{report}` (`front.incidents.show`, Front\NearbyIncidentController, Front/Incidents/Show):
+  gerbang `User::canViewNearbyIncident` = rumus penerima yang SAMA + status pending/handling/resolved. Isi: judul, jenis,
+  status, alamatTampil, titik peta, waktu, telepon darurat tenant. TANPA nama/HP pelapor & responder, foto, deskripsi.
+  `reports.show` tetap 403 bagi warga lain. `NotificationController::read` kini memakai `data.url` (path relatif saja,
+  tolak `//` dan `/\`) sebelum jatuh ke reports.show.
+- **Penjaga:** `NearbyIncidentNotificationTest` (9 test: penerima bawaan Desa, Kecamatan menjangkau desa tetangga, pelapor
+  gabungan dikecualikan, tolak tak mengirim, payload report_status/default/active, lonceng ke /kejadian, halaman tanpa PII,
+  gerbang = rumus penerima + status, setelan). Sabotase `type`/rumus wilayah = 3 merah, dipulihkan byte-exact.
+- **Status:** FIXED lokal (belum commit/deploy). Tanpa migrasi, tanpa APK/iOS baru. Belum diuji di HP.

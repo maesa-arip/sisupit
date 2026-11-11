@@ -28,6 +28,8 @@ class SettingController extends Controller
                 'notify_level_petugas' => Setting::getValue(Setting::KEY_NOTIFY_LEVEL_PETUGAS, TenantLevel::KABUPATEN->value),
                 'notify_level_relawan' => Setting::getValue(Setting::KEY_NOTIFY_LEVEL_RELAWAN, TenantLevel::DESA->value),
                 'notify_level_pejabat' => Setting::getValue(Setting::KEY_NOTIFY_LEVEL_PEJABAT, TenantLevel::KABUPATEN->value),
+                // Notifikasi biasa ke warga sekitar sesudah verifikasi (TASK_89).
+                'notify_level_warga' => Setting::wargaNotifyLevel()->value,
                 // Deteksi laporan ganda (TASK_55).
                 'duplikat_radius_m' => (int) Setting::getValue(Setting::KEY_DUPLIKAT_RADIUS_M, (string) Setting::DEFAULT_DUPLIKAT_RADIUS_M),
                 'duplikat_jendela_menit' => (int) Setting::getValue(Setting::KEY_DUPLIKAT_JENDELA_MENIT, (string) Setting::DEFAULT_DUPLIKAT_JENDELA_MENIT),
@@ -44,6 +46,10 @@ class SettingController extends Controller
             Setting::setValue(Setting::KEY_NOTIFY_LEVEL_PETUGAS, $request->notify_level_petugas);
             Setting::setValue(Setting::KEY_NOTIFY_LEVEL_RELAWAN, $request->notify_level_relawan);
             Setting::setValue(Setting::KEY_NOTIFY_LEVEL_PEJABAT, $request->notify_level_pejabat);
+            // Opsional (TASK_89) dengan alasan yang sama dengan isian laporan ganda di bawah.
+            if ($request->filled('notify_level_warga')) {
+                Setting::setValue(Setting::KEY_NOTIFY_LEVEL_WARGA, $request->notify_level_warga);
+            }
             // Opsional di request supaya pemanggil lama (tanpa kedua isian) tidak diam-diam
             // mengosongkan setelan deteksi laporan ganda.
             if ($request->filled('duplikat_radius_m')) {

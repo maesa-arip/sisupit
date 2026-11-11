@@ -2638,7 +2638,12 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
             + TASK_88 #231-#235 foto zoom/unduh, PDF Sisupit, ubah wilayah, Undang Petugas, Jaga di Kantor tanpa batas (2026-11-06) = 946 passed, 7312 assertions.
             + #236 flag form ulasan (2026-11-06) = 947 passed, 7321 assertions.
             + #237 route helpers/create & 2 komponen mati dihapus, gerbang canRespond, ResponderActionGateTest (2026-11-06) = 950 passed, 7311 assertions.
+            + TASK_89/#240 kabar warga sekitar sesudah verifikasi, NearbyIncidentNotificationTest (2026-11-11) = 965 passed, 7470 assertions (baseline sebelumnya 956/7396).
             Perbarui angka ini tiap kali test bertambah - ia sempat tertinggal di 375/386
             sementara yang sebenarnya sudah 390, dan baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan)
 ```
+
+## TASK_89 / #240 - Kabar warga sekitar (2026-11-11)
+
+Lokal, belum commit/deploy. Warga yang kode wilayahnya sama dengan laporan (setelan "Kabar Warga Sekitar", bawaan Desa) mendapat notifikasi biasa (report_status, nada bawaan) saat admin memverifikasi; ketuk = /kejadian/{id} terbatas (tanpa nama/HP/foto/deskripsi). Tanpa migrasi, tanpa APK baru. Rincian: FINDINGS_LOG #240, prompt/tasks/TASK_89_kabar_warga_sekitar.md. Belum diuji di HP.

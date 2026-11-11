@@ -64,6 +64,7 @@ Di Setelan Android > Aplikasi > Sisupit > Notifikasi, keempatnya tampil sebagai 
 | **Relawan** yang **siaga ON** di jangkauan relawan | 🚨 SIRINE | (sama) |
 | **Pejabat** yang **siaga ON** di jangkauan pejabat | 🚨 SIRINE | (sama) - disengaja, #97 WONTFIX: pejabat punya saklar siaga sendiri |
 | **Pelapor** | 🔔 BAWAAN | "Laporan Anda divalidasi" |
+| **Warga** di wilayah kejadian (TASK_89; bawaan satu DESA, diatur di Pengaturan > "Kabar Warga Sekitar") | 🔔 BAWAAN | "Kebakaran di sekitar Anda" / "Kejadian darurat di sekitar Anda" + alamat. Ketuk = `/kejadian/{id}` (detail terbatas tanpa nama/HP/foto). Pelapor & pelapor laporan gabungan tidak ikut |
 | **Akun OPD** yang dicentang admin saat verifikasi | 🤝 KONFIRMASI | "Permintaan Bantuan: <nama OPD>" |
 | **Admin & superadmin lain** yang tadi dapat 📥 NADA MASUK (#209) | 🔔 BAWAAN | "✅ Laporan sudah diverifikasi" - **menimpa** notifikasi "menunggu verifikasi" laporan yang sama |
 

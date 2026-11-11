@@ -274,6 +274,45 @@ class User extends Authenticatable implements MustVerifyEmail
             ->get();
     }
 
+    /**
+     * Status laporan yang boleh dikabarkan ke warga sekitar (TASK_89): SUDAH diverifikasi admin.
+     * Laporan mentah bisa hoaks, ditolak bukan kejadian, digabung = kejadian yang sama dengan induknya.
+     */
+    public const NEARBY_INCIDENT_STATUSES = ['pending', 'handling', 'resolved'];
+
+    /**
+     * Warga yang tinggal di sekitar kejadian (TASK_89) - SATU rumus untuk penerima notifikasi
+     * "kejadian di sekitar Anda" DAN gerbang halaman detail terbatasnya (front.incidents.show).
+     *
+     * SENGAJA bukan scopeNotifiableForReport: rumus itu hanya "naik" ke akun yang terdaftar di
+     * tingkat atas (kode desanya kosong), karena ia menjawab yurisdiksi staf/relawan. Warga
+     * adalah penduduk, bukan pemegang wilayah - setelan Kecamatan harus berarti "semua warga
+     * sekecamatan", termasuk yang tinggal di desa tetangga. Kode wilayah laporan kosong di
+     * tingkat itu = tak ada penerima (jangan pernah jatuh ke "semua warga").
+     */
+    public function scopeWargaNearReport(Builder $query, Report $report, TenantLevel $level): Builder
+    {
+        $column = match ($level) {
+            TenantLevel::DESA => 'village_code',
+            TenantLevel::KECAMATAN => 'district_code',
+            TenantLevel::KABUPATEN => 'city_code',
+            TenantLevel::PROVINSI => 'province_code',
+        };
+
+        $query->whereHas('roles', fn ($r) => $r->where('name', 'warga'));
+
+        return $report->{$column}
+            ? $query->where($column, $report->{$column})
+            : $query->whereRaw('1 = 0');
+    }
+
+    /** Boleh membuka halaman "kejadian di sekitar Anda" untuk laporan ini (TASK_89). */
+    public function canViewNearbyIncident(Report $report): bool
+    {
+        return in_array($report->status, self::NEARBY_INCIDENT_STATUSES, true)
+            && self::whereKey($this->id)->wargaNearReport($report, Setting::wargaNotifyLevel())->exists();
+    }
+
     public function withinReportJurisdiction(Report $report): bool
     {
         if ($this->hasRole('superadmin')) {

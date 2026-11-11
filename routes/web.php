@@ -25,6 +25,7 @@ use App\Http\Controllers\Front\ForumController;
 use App\Http\Controllers\Front\HydrantController;
 use App\Http\Controllers\Front\MailController;
 use App\Http\Controllers\Front\MonitoringMapController;
+use App\Http\Controllers\Front\NearbyIncidentController;
 use App\Http\Controllers\Front\PompaController;
 use App\Http\Controllers\Front\PosPemadamController;
 use App\Http\Controllers\Front\RelawanController;
@@ -327,6 +328,12 @@ Route::middleware(['auth', 'verified'])->controller(ReportController::class)->gr
     Route::put('reports/edit/{report}', 'update')->name('front.reports.update');
     Route::delete('reports/destroy/{report}', 'destroy')->name('front.reports.destroy');
 });
+
+// Detail TERBATAS kejadian di sekitar warga (TASK_89) - tujuan ketuk notifikasi biasa sesudah
+// verifikasi. Gerbangnya User::canViewNearbyIncident di controller.
+Route::get('kejadian/{report}', [NearbyIncidentController::class, 'show'])
+    ->middleware(['auth', 'verified'])
+    ->name('front.incidents.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // Rute Taktis (Custom Actions) Laporan
