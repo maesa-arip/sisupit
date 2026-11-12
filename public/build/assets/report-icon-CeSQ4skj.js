@@ -1,0 +1,1 @@
+import{I as t}from"./IconAlertTriangle-5jxkQ5mt.js";import{I as a}from"./IconFlame-Bwy8X_qw.js";function c(n){return(n==null?void 0:n.incident_type)==="lainnya"?{Icon:t,className:"text-warning bg-warning/10"}:{Icon:a,className:"text-destructive bg-destructive/10"}}export{c as r};
