@@ -2650,4 +2650,4 @@ TERDEPLOY PROD @794924c1 (2026-11-11, deploy via konsol user, HTTPS terverifikas
 
 ## Ulasan Aplikasi superadmin saja (2026-11-13)
 
-Permintaan user: menu "Ulasan Aplikasi" pindah dari grup admin ke grup Sistem (superadmin saja). Route `/admin/app-reviews` (+ export, testimoni) kini `role:superadmin` di routes/web.php; admin kabupaten 403. Tenantable AppReview tetap (superadmin tanpa wilayah = semua kabupaten). Penyetuju testimoni kini superadmin. Tanpa migrasi. Penjaga AppReviewTest (test admin diubah jadi 403).
+TERDEPLOY PROD @8a5212a5 (2026-11-13, deploy via konsol user, HTTPS terverifikasi: app-CeQkkqBM.js 200, /admin/app-reviews tamu 302 ke login). Permintaan user: menu "Ulasan Aplikasi" pindah dari grup admin ke grup Sistem (superadmin saja). Route `/admin/app-reviews` (+ export, testimoni) kini `role:superadmin` di routes/web.php; admin kabupaten 403. Tenantable AppReview tetap (superadmin tanpa wilayah = semua kabupaten). Penyetuju testimoni kini superadmin. Tanpa migrasi. Penjaga AppReviewTest (test admin diubah jadi 403).
