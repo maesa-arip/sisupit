@@ -28,6 +28,12 @@ function ulasanUser(string $role, string $city = '5171', array $overrides = []):
     return $user;
 }
 
+/** Superadmin tanpa wilayah (lintas kabupaten) - satu-satunya pemegang /admin/app-reviews. */
+function ulasanSuperadmin(): User
+{
+    return ulasanUser('superadmin', '5171', ['province_code' => null, 'city_code' => null, 'district_code' => null, 'village_code' => null]);
+}
+
 /** Laporan milik $userId (pelapor) dengan status tertentu, di wilayah ulasanUser(). */
 function laporanUlasan(?int $userId, string $status = 'resolved'): Report
 {
@@ -185,32 +191,30 @@ it('sends the prompt prop on the dashboard and on the detail of a resolved incid
         ->assertInertia(fn (Assert $page) => $page->where('appReviewPrompt', null)->where('appReview.mine', null));
 });
 
-it('limits the admin page to the admin region and blocks non-admins', function () {
+it('limits the review page to superadmin and blocks admin and other roles', function () {
     kirimUlasan($this, ulasanUser('warga', '5171'), ['comment' => 'Denpasar']);
     kirimUlasan($this, ulasanUser('warga', '5103', ['district_code' => '510301', 'village_code' => '5103012001']), ['comment' => 'Badung']);
-    $badungReview = AppReview::withoutGlobalScopes()->where('city_code', '5103')->first();
+    $review = AppReview::withoutGlobalScopes()->where('city_code', '5171')->first();
 
+    // Sejak 2026-11-13 admin kabupaten tak lagi memegang ulasan (superadmin saja).
     $admin = ulasanUser('admin', '5171', ['district_code' => null, 'village_code' => null]);
-    $this->actingAs($admin)->get(route('admin.app-reviews.index'))
+    $this->actingAs($admin)->get(route('admin.app-reviews.index'))->assertForbidden();
+    $this->actingAs($admin)->get(route('admin.app-reviews.export'))->assertForbidden();
+    $this->actingAs($admin)->post(route('admin.app-reviews.publish', $review))->assertForbidden();
+
+    $superadmin = ulasanSuperadmin();
+    $this->actingAs($superadmin)->get(route('admin.app-reviews.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page->component('Admin/AppReviews/Index')
-            ->has('reviews.data', 1)
-            ->where('reviews.data.0.comment', 'Denpasar')
-            ->where('summary.total', 1));
-
-    // Id dari kabupaten lain = 404 (binding membawa Tenantable).
-    $this->actingAs($admin)->post(route('admin.app-reviews.publish', $badungReview))->assertNotFound();
-
-    $superadmin = ulasanUser('superadmin', '5171', ['province_code' => null, 'city_code' => null, 'district_code' => null, 'village_code' => null]);
-    $this->actingAs($superadmin)->get(route('admin.app-reviews.index'))
-        ->assertInertia(fn (Assert $page) => $page->has('reviews.data', 2));
+            ->has('reviews.data', 2)
+            ->where('summary.total', 2));
 
     $this->actingAs(ulasanUser('petugas'))->get(route('admin.app-reviews.index'))->assertForbidden();
 });
 
 it('publishes a testimonial only with consent and admin approval', function () {
     $warga = ulasanUser('warga', '5171', ['name' => 'I Wayan Sudarta']);
-    $admin = ulasanUser('admin', '5171', ['district_code' => null, 'village_code' => null]);
+    $admin = ulasanSuperadmin();
 
     kirimUlasan($this, $warga, ['comment' => 'Petugas cepat datang.', 'allow_public' => false]);
     $review = AppReview::ownedBy($warga);
@@ -247,7 +251,7 @@ it('publishes a testimonial only with consent and admin approval', function () {
 
 it('never publishes a demo account review', function () {
     $demo = ulasanUser('warga', '5171', ['is_demo' => true]);
-    $admin = ulasanUser('admin', '5171', ['district_code' => null, 'village_code' => null]);
+    $admin = ulasanSuperadmin();
     kirimUlasan($this, $demo, ['allow_public' => true]);
 
     $this->actingAs($admin)->post(route('admin.app-reviews.publish', AppReview::ownedBy($demo)))->assertStatus(422);
@@ -273,7 +277,7 @@ it('strips the comment and testimonial when the account is deleted', function ()
 it('exports the filtered reviews of the admin region', function () {
     Excel::fake();
     kirimUlasan($this, ulasanUser('warga'), ['rating' => 2]);
-    $admin = ulasanUser('admin', '5171', ['district_code' => null, 'village_code' => null]);
+    $admin = ulasanSuperadmin();
 
     $this->actingAs($admin)->get(route('admin.app-reviews.export', ['rating' => '2']))->assertOk();
 

@@ -2647,3 +2647,7 @@ Test      : php artisan test            (baseline 2026-09-27 di main hasil merge
 ## TASK_89 / #240 - Kabar warga sekitar (2026-11-11)
 
 TERDEPLOY PROD @794924c1 (2026-11-11, deploy via konsol user, HTTPS terverifikasi: app-Bizju31L.js 200, /kejadian tamu 302 ke login). Warga yang kode wilayahnya sama dengan laporan (setelan "Kabar Warga Sekitar", bawaan Desa) mendapat notifikasi biasa (report_status, nada bawaan) saat admin memverifikasi; ketuk = /kejadian/{id} terbatas (tanpa nama/HP/foto/deskripsi). Tanpa migrasi, tanpa APK baru. Rincian: FINDINGS_LOG #240, prompt/tasks/TASK_89_kabar_warga_sekitar.md. Belum diuji di HP.
+
+## Ulasan Aplikasi superadmin saja (2026-11-13)
+
+Permintaan user: menu "Ulasan Aplikasi" pindah dari grup admin ke grup Sistem (superadmin saja). Route `/admin/app-reviews` (+ export, testimoni) kini `role:superadmin` di routes/web.php; admin kabupaten 403. Tenantable AppReview tetap (superadmin tanpa wilayah = semua kabupaten). Penyetuju testimoni kini superadmin. Tanpa migrasi. Penjaga AppReviewTest (test admin diubah jadi 403).

@@ -222,7 +222,7 @@ Belum dicek  : visual di ponsel/APK untuk banyak perubahan UI (tombol merah bran
 Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115 #119 #121
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174 #188(satelit).
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
-Test         : 965 passed / 7470 assertions (2026-11-11, + TASK_89 kabar warga sekitar).
+Test         : 965 passed / 7460 assertions (2026-11-13, ulasan aplikasi superadmin saja).
 Lingkungan   : PROD @794924c1 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#240 + Masuk dengan Apple) | DEV @672b6a10 (dashboard baru) | STAGING @42ef296b (= prod, video demo
                 TASK_80; data uji petugas.uji@sisupit.test + LP-2026-00227). Dev & staging: data salinan prod, TANPA basic auth sejak 2026-10-18 (PENGECUALIAN #7), sandi "password".
 ```
@@ -249,7 +249,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-11-11: 965 passed / 7470 assertions - + TASK_89;
+Test      : php artisan test            (baseline 2026-11-13: 965 passed / 7460 assertions - ulasan superadmin saja;
             lokal: php -d memory_limit=1G -d extension=php_sqlite3.dll -d extension=pdo_sqlite vendor/bin/pest.
             Perbarui angka ini tiap kali test bertambah - baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan. Riwayat angkanya di STATUS_LOG.md)

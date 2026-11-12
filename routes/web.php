@@ -146,8 +146,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/flags/{type}/{id}/dismiss', 'dismissFlags')->whereIn('type', ['thread', 'post'])->whereNumber('id')->name('flags.dismiss');
         });
 
-        // Ulasan aplikasi (TASK_86). Wilayah dipegang Tenantable AppReview (kabupaten penulis).
-        Route::prefix('app-reviews')->name('app-reviews.')->controller(AdminAppReviewController::class)->group(function () {
+        // Ulasan aplikasi (TASK_86). Sejak 2026-11-13 SUPERADMIN SAJA (permintaan user); admin
+        // kabupaten 403. Tenantable AppReview tetap terpasang (superadmin tanpa wilayah = semua).
+        Route::middleware('role:superadmin')->prefix('app-reviews')->name('app-reviews.')->controller(AdminAppReviewController::class)->group(function () {
             Route::get('/', 'index')->name('index');
             Route::get('/export', 'export')->name('export');
             Route::post('/{appReview}/testimoni', 'togglePublish')->whereNumber('appReview')->name('publish');

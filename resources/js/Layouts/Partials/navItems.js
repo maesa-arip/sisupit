@@ -337,14 +337,6 @@ export function buildNavSections({ auth, url = '' }) {
 							url: route('admin.forum.index'),
 							active: startsWith('/admin/forum'),
 						},
-						// Ulasan aplikasi (TASK_86) - per kabupaten admin (Tenantable), superadmin semua.
-						{
-							key: 'admin.app-reviews',
-							title: 'Ulasan Aplikasi',
-							icon: IconMessageStar,
-							url: route('admin.app-reviews.index'),
-							active: startsWith('/admin/app-reviews'),
-						},
 						// SEMENTARA DISEMBUNYIKAN (keputusan user 2026-06-29): menu "Kelola Armada"
 						// disembunyikan selaras dengan panel Pengerahan Armada di Show.jsx.
 						// Backend & route admin.units.* tetap utuh — buka kembali entri ini
@@ -427,6 +419,14 @@ export function buildNavSections({ auth, url = '' }) {
 							icon: IconChartBar,
 							url: route('admin.visits.index'),
 							active: startsWith('/admin/visits'),
+						},
+						// Ulasan aplikasi (TASK_86) - superadmin saja sejak 2026-11-13 (route role:superadmin).
+						{
+							key: 'admin.app-reviews',
+							title: 'Ulasan Aplikasi',
+							icon: IconMessageStar,
+							url: route('admin.app-reviews.index'),
+							active: startsWith('/admin/app-reviews'),
 						},
 						{
 							key: 'admin.settings',
