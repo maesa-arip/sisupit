@@ -70,7 +70,11 @@ const UserLeafletMap = ({
 			mapRef.current,
 			centerPin
 				? { zoomControl: false, touchZoom: 'center', scrollWheelZoom: 'center', doubleClickZoom: 'center' }
-				: {},
+				: // Form lapor (satu-satunya pemakai onLocate) sejak #242 memakai marker biasa: kolom
+					// cari menutupi pojok kiri atas, jadi tombol zoom dipindah ke bawah (di bawah).
+					onLocate
+					? { zoomControl: false }
+					: {},
 		).setView([-8.65, 115.22], 13);
 
 		addBaseTiles(mapInstanceRef.current);
@@ -112,6 +116,10 @@ const UserLeafletMap = ({
 				const center = map.getCenter();
 				onLocationChangeRef.current?.(center.lat, center.lng);
 			});
+		}
+
+		if (!centerPin && onLocateRef.current && window.matchMedia?.('(pointer: fine)').matches) {
+			window.L.control.zoom({ position: 'bottomright' }).addTo(mapInstanceRef.current);
 		}
 
 		if (onLocateRef.current) {

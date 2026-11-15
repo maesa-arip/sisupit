@@ -3,11 +3,23 @@ import ThemeSwitcher from '@/Components/ThemeSwitcher';
 import { Alert, AlertDescription } from '@/Components/ui/alert';
 import { Button } from '@/Components/ui/button';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Link, useForm } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import { IconLoader2, IconMail } from '@tabler/icons-react';
+import { useEffect } from 'react';
 
 export default function VerifyEmail({ status }) {
 	const { post, processing } = useForm({});
+
+	// Tautan di email bisa dibuka di browser lain (Safari dari aplikasi Mail di iPhone). Saat
+	// pengguna kembali ke aplikasi, periksa ulang - server mengalihkan ke dasbor bila sudah
+	// terverifikasi, jadi tak perlu menutup-buka aplikasi.
+	useEffect(() => {
+		const recheck = () => {
+			if (document.visibilityState === 'visible') router.reload();
+		};
+		document.addEventListener('visibilitychange', recheck);
+		return () => document.removeEventListener('visibilitychange', recheck);
+	}, []);
 
 	const onHandleSubmit = (e) => {
 		e.preventDefault();

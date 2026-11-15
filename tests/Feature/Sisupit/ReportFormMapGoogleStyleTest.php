@@ -11,14 +11,13 @@ it('drops the copy-to-patokan button because a machine address is not a landmark
         ->and($form())->not->toContain("setData('address', data.geo_address)");
 });
 
-it('puts the search box on the map with a center pin and a locate button', function () use ($form) {
+it('puts the search box on the map with a locate button', function () use ($form) {
     $src = $form();
     $mapPos = strpos($src, '<UserLeafletMap');
     $searchPos = strpos($src, 'aria-label="Cari lokasi kejadian"');
     $regionPos = strpos($src, "selectRegion('village', val)");
 
-    expect($src)->toContain('centerPin')
-        ->and($src)->toContain('onLocate={locateMe}')
+    expect($src)->toContain('onLocate={locateMe}')
         // Kolom cari menempel pada peta, dan pilihan wilayah dilipat di kartu yang SAMA.
         ->and($searchPos)->toBeGreaterThan($mapPos)
         ->and($searchPos)->toBeLessThan($regionPos)
@@ -47,4 +46,17 @@ it('keeps pinch and wheel zoom anchored on the center pin', function () use ($ma
     expect($map())->toContain("touchZoom: 'center'")
         ->and($map())->toContain("scrollWheelZoom: 'center'")
         ->and($map())->toContain("matchMedia?.('(pointer: fine)')");
+});
+
+// #242 (2026-11-15): menggeser peta tak lagi memindahkan titik - geseran tak sengaja saat
+// menggulir form dulu memindahkan titik kejadian. Pin = marker yang bisa diseret, ketuk peta
+// menaruh titik; Leaflet tak mengirim `click` sesudah peta digeser.
+it('moves the report point only by tapping the map or dragging the pin, not by panning', function () use ($form) {
+    $src = $form();
+    $tag = substr($src, strpos($src, '<UserLeafletMap'), 400);
+
+    expect($tag)->not->toContain('centerPin')
+        ->and($tag)->toContain('draggable')
+        ->and($tag)->toContain('clickToPlace')
+        ->and($src)->not->toContain('Geser peta sampai pin');
 });

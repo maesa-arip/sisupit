@@ -10,6 +10,7 @@ import { ThemeProvider } from './Components/ThemeProvider';
 import { installBackClosesLayer } from './lib/back-closes-layer';
 import { focusFirstError } from './lib/focus-first-error';
 import { installNavigationTracking } from './lib/navigation';
+import { installMapPullToRefreshGuard } from './lib/pull-to-refresh-lock';
 import { releaseFcmTokenIfGuest } from './lib/release-fcm-token';
 
 // Nama merek tetap di kode, bukan VITE_APP_NAME: nilai itu tertanam saat build dari .env server,
@@ -41,6 +42,9 @@ if (typeof window !== 'undefined') {
 	// Kembali menutup lapisan layar penuh (#192). WAJIB sebelum createInertiaApp: listener
 	// popstate ini harus terdaftar lebih dulu dari milik Inertia (lib/back-closes-layer.js).
 	installBackClosesLayer();
+
+	// Menggeser peta tidak memicu tarik-untuk-refresh APK/iOS (#241, lib/pull-to-refresh-lock.js).
+	installMapPullToRefreshGuard();
 
 	// Aplikasi yang tampil sebagai tamu melepas token FCM-nya (TASK_73, lib/release-fcm-token.js).
 	router.on('navigate', (event) => releaseFcmTokenIfGuest(event.detail.page));

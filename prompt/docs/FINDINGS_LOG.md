@@ -5421,3 +5421,63 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   gerbang = rumus penerima + status, setelan). Sabotase `type`/rumus wilayah = 3 merah, dipulihkan byte-exact.
 - **Status:** FIXED, TERDEPLOY PROD @794924c1 (2026-11-11; HTTPS: app-Bizju31L.js 200, chunk Front/Incidents/Show-Byh8Ykd2.js 200,
   /kejadian/1 tamu = 302 ke /login). Tanpa migrasi, tanpa APK/iOS baru. Belum diuji di HP.
+
+### #241 — Menggeser peta ke bawah memuat ulang halaman di APK (FIXED, commit di main 2026-11-15, belum deploy)
+
+- **Laporan user 2026-11-15:** "bug di maps saat full, scroll kebawah malah refresh, cek dimana lagi ada bug ini".
+- **Root cause:** `SwipeRefreshLayout` APK merebut setiap tarikan ke bawah selama HALAMAN di puncak
+  (`canScrollVertically(-1)` = false) - ia tak tahu jari sedang menggeser peta Leaflet. Kunci `PullToRefreshLock` (TASK_65)
+  hanya dipasang di panel & peta layar penuh form lapor (#192). Tidak terkunci: **Peta Pemantauan saat diperbesar**
+  (`isMaximized`, fixed inset-0) dan semua peta lain yang berada dekat puncak halaman (fasilitas, detail insiden, dashboard).
+- **Fix (web saja, tanpa APK baru):** `lib/pull-to-refresh-lock.js` `installMapPullToRefreshGuard()` (dipasang di app.jsx):
+  `touchstart` yang dimulai di `.leaflet-container` atau `[data-no-pull-refresh]` memanggil `setPullToRefreshEnabled(false)`,
+  `touchend`/`touchcancel` jari terakhir menyalakannya lagi HANYA bila tak ada panel terbuka (`openPanelCount`). Peta
+  Pemantauan diperbesar kini memasang `<PullToRefreshLock />` + `data-no-pull-refresh` (header & panel filter ikut).
+  iOS memakai jembatan yang sama (shim `UIRefreshControl`, PARITAS 🟡).
+- **Penjaga:** `MapPullToRefreshGuardTest` (sumber). Perilaku sentuh hanya bisa diuji di HP. **Belum diuji di HP.**
+
+### #242 — Form lapor: menggeser peta memindahkan titik kejadian (FIXED, commit di main 2026-11-15, belum deploy)
+
+- **Permintaan user:** "scroll maps tidak lagi memindahkan titik karena sering tidak sengaja geser dan titik maps malah pindah".
+  Pilihan user: titik dipindah lewat ketuk peta / seret pin.
+- **Sebab:** pola pin-tengah #188 (`UserLeafletMap centerPin`): titik = pusat peta, jadi setiap geseran (termasuk tak
+  sengaja saat menggulir form) memindahkan titik.
+- **Fix:** `Front/Reports/Create.jsx` memakai `draggable` + `clickToPlace` (mode marker biasa yang sudah dipakai halaman
+  fasilitas). Leaflet tak mengirim `click` sesudah peta digeser, jadi geser/zoom hanya menggerakkan tampilan. Tombol zoom
+  untuk tetikus dipindah ke kanan bawah bila `onLocate` diisi (kolom cari menutupi kiri atas). Pesan "geser peta sampai pin"
+  diganti "ketuk peta / seret pin". Kode `centerPin` di UserLeafletMap DIBIARKAN (tak dipakai) - memulihkan #188 cukup
+  mengganti `draggable` kembali jadi `centerPin` di Create.jsx.
+- **Penjaga:** `ReportFormMapGoogleStyleTest` (tes baru + ekspektasi centerPin dicabut). **Belum diuji di HP.**
+
+### #243 — Taksiran kerugian teks bebas tak bisa dirumuskan di Excel (FIXED, commit di main 2026-11-15, ADA MIGRASI, belum deploy)
+
+- **Permintaan user:** "tafsiran kerugian buat number only bukan lagi +- tapi buat rentang dari berapa sampai berapa, karena
+  nanti di laporan excel ini akan dipakai angkanya untuk formula". Pilihan user Excel: AH=Min, AI=Maks berdampingan
+  walau kolom sesudahnya bergeser satu huruf (Jml. Korban AI->AJ ... Alpha AM->AN). **Rumus rekap lama yang merujuk kolom
+  AI ke kanan harus disesuaikan.**
+- **Perubahan:** migrasi `2026_11_15_100000_add_kerugian_range_to_report_resolutions` (`kerugian_min`, `kerugian_maks`
+  unsignedBigInteger nullable, tanpa backfill). Form = dua isian rupiah ("Dari" s/d "Sampai", pemisah ribuan, digit saja),
+  validasi integer >= 0 & maks >= min. Teks lama `kerugian` tetap dibawa ulang dan DIKOSONGKAN begitu angka diisi; form
+  menampilkannya sebagai "Catatan lama". `ReportResolution::kerugianLabel()` satu rumus untuk detail insiden, PDF, dan
+  riwayat perubahan ("Rp 1.000.000 - Rp 5.000.000"). Excel AH/AI = ANGKA berformat `#,##0`; berita acara lama tanpa angka
+  membawa teks lamanya di AH (agar tak hilang - SUM mengabaikan teks, tapi rumus selisih AI-AH akan #VALUE! di baris itu).
+- **Penjaga:** `KerugianRentangTest` (simpan rentang & buang teks lama, maks < min ditolak, non-angka ditolak, label, sel
+  Excel AH/AI numerik); `ReportClosureActorTest` kolom terakhir AN.
+
+### #244 — Verifikasi email di iPhone: tautan di email tak meloloskan akun di aplikasi (FIXED, commit di main 2026-11-15, belum deploy)
+
+- **Laporan user:** "di iphone ada muncul verifikasi email tapi saat di email tidak ada verif yang bisa di klik tapi saat
+  login tetap diminta verif".
+- **Diperiksa:** email verifikasi dirender lokal - tombol "Verifikasi Alamat Email" + tautan cadangan ADA dan benar. Log
+  email prod TIDAK diperiksa (SSH hanya bila diminta); bila emailnya memang tak sampai, itu sebab lain yang masih terbuka.
+- **Root cause yang ditemukan:** (1) route `verification.verify` di grup `auth` + `EmailVerificationRequest` mensyaratkan
+  login di browser yang SAMA. Tautan dari aplikasi Mail iPhone terbuka di Safari (sesi lain) -> diminta login -> pengguna
+  kembali ke aplikasi -> tetap belum terverifikasi. (2) Akun email lama yang belum verifikasi lalu masuk dengan Google/Apple
+  (email sama) tetap `email_verified_at` NULL.
+- **Fix:** route verifikasi keluar dari grup `auth` (tetap `signed` + `throttle:6,1`); `VerifyEmailController` mencari user
+  dari `{id}`, cek `hash_equals(sha1(email))` (403 bila salah), tandai terverifikasi; sesi akun yang sama -> dasbor seperti
+  dulu, selain itu -> /login dengan status "Email Anda berhasil diverifikasi...". `SocialiteController::findOrCreateUser`
+  menandai email terverifikasi saat menautkan akun lama. Halaman Verifikasi Email `router.reload()` saat aplikasi kembali
+  terlihat (server mengalihkan ke dasbor bila sudah terverifikasi).
+- **Penjaga:** `EmailVerificationTest` (+3: tamu bisa verifikasi, hash salah/tanpa tanda tangan 403, tautan Google
+  memverifikasi). **Belum diuji di iPhone.**

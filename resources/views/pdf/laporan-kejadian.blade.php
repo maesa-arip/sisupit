@@ -76,7 +76,7 @@
             <td class="k">Pemilik Lahan/Rumah</td><td class="s">:</td>
             <td>{{ $resolution->pemilik_nama ?: '-' }}@if ($resolution->pemilik_umur) ({{ $resolution->pemilik_umur }} tahun)@endif</td>
         </tr>
-        <tr><td class="k">Estimasi Kerugian</td><td class="s">:</td><td>{{ $resolution->kerugian ?: '-' }}</td></tr>
+        <tr><td class="k">Estimasi Kerugian</td><td class="s">:</td><td>{{ $resolution->kerugianLabel() ?: '-' }}</td></tr>
         <tr><td class="k">Volume Air Digunakan</td><td class="s">:</td><td>{{ $resolution->volume_air ?: '-' }}</td></tr>
     </table>
 

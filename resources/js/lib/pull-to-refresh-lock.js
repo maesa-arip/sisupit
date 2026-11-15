@@ -40,3 +40,33 @@ export default function PullToRefreshLock() {
 	}, []);
 	return null;
 }
+
+// Peta (#241, 2026-11-15): menggeser peta Leaflet ke bawah saat HALAMAN di puncak juga direbut
+// tarik-untuk-refresh APK - peta Pemantauan yang diperbesar, peta fasilitas, peta detail insiden,
+// dst. Daripada memasang kunci di tiap peta, satu penjaga global: sentuhan yang DIMULAI di atas
+// peta (atau lapisan bertanda `data-no-pull-refresh`, mis. peta layar penuh) mematikan refresh
+// sampai jari diangkat. Panel yang masih terbuka (openPanelCount) tetap memegang kuncinya.
+const NO_PULL_SELECTOR = '.leaflet-container, [data-no-pull-refresh]';
+let touchGuardActive = false;
+
+const onGuardTouchStart = (event) => {
+	const target = event.target;
+	if (!(target instanceof Element) || !target.closest(NO_PULL_SELECTOR)) return;
+	touchGuardActive = true;
+	setNativePullToRefresh(false);
+};
+
+const onGuardTouchEnd = (event) => {
+	// Masih ada jari lain di layar (cubit zoom): tunggu jari terakhir.
+	if (!touchGuardActive || event.touches.length > 0) return;
+	touchGuardActive = false;
+	if (openPanelCount === 0) setNativePullToRefresh(true);
+};
+
+/** Dipasang sekali di app.jsx. Browser biasa & .exe tak punya jembatan - tanpa efek. */
+export function installMapPullToRefreshGuard() {
+	if (typeof window === 'undefined') return;
+	window.addEventListener('touchstart', onGuardTouchStart, { capture: true, passive: true });
+	window.addEventListener('touchend', onGuardTouchEnd, { capture: true, passive: true });
+	window.addEventListener('touchcancel', onGuardTouchEnd, { capture: true, passive: true });
+}

@@ -495,10 +495,10 @@ export default function Create(props) {
 					applyUntrustedPoint(
 						coords.latitude,
 						coords.longitude,
-						'Lokasi kurang akurat - geser peta sampai pin merah tepat di titik kejadian.',
+						'Lokasi kurang akurat - ketuk peta atau seret pin merah tepat ke titik kejadian.',
 					);
 					setLocationLoading(false);
-					toast.warning('Lokasi kurang akurat. Geser peta sampai pin merah tepat di titik kejadian.');
+					toast.warning('Lokasi kurang akurat. Ketuk peta atau seret pin merah tepat ke titik kejadian.');
 					return;
 				}
 
@@ -518,11 +518,11 @@ export default function Create(props) {
 				applyUntrustedPoint(
 					DEFAULT_MAP_CENTER.lat,
 					DEFAULT_MAP_CENTER.lng,
-					'Lokasi tak terdeteksi - geser peta sampai pin merah di titik kejadian.',
+					'Lokasi tak terdeteksi - ketuk peta di titik kejadian.',
 				);
 				setLocationLoading(false);
 				toast.error(
-					'Gagal melacak lokasi. Pastikan izin/GPS aktif, lalu geser peta ke titik kejadian & isi patokan.',
+					'Gagal melacak lokasi. Pastikan izin/GPS aktif, lalu ketuk peta di titik kejadian & isi patokan.',
 				);
 			});
 	};
@@ -862,7 +862,7 @@ export default function Create(props) {
 		}
 
 		if (!data.lat || !data.lng) {
-			toast.warning('Lokasi belum terisi. Geser peta sampai pin merah di titik kejadian.');
+			toast.warning('Lokasi belum terisi. Ketuk peta di titik kejadian.');
 			return;
 		}
 
@@ -1028,8 +1028,10 @@ export default function Create(props) {
 							Lokasi kejadian
 						</h2>
 						<div className="space-y-3 rounded-2xl border border-border/70 bg-card p-3 shadow-sm">
-							{/* Peta gaya Google Maps (#188): kolom cari menempel di atas peta, pin diam di
-							    tengah & PETANYA yang digeser, tombol "Lokasi saya" di kanan bawah. Kolom
+							{/* Peta gaya Google Maps (#188): kolom cari menempel di atas peta, tombol "Lokasi
+							    saya" di kanan bawah. Pin TIDAK lagi diam di tengah (#242, 2026-11-15): menggeser
+							    peta hanya menggerakkan tampilan - dulu geseran tak sengaja saat menggulir form
+							    memindahkan titik kejadian. Titik pindah lewat ketuk peta / seret pin. Kolom
 							    cari dulu berada di bagian Wilayah Kejadian, di bawah peta - tak terlihat
 							    saat pelapor sedang memandangi peta. Wadah luar sengaja TANPA
 							    overflow-hidden supaya daftar hasil boleh menjulur melewati tepi peta. */}
@@ -1057,7 +1059,7 @@ export default function Create(props) {
 									<UserLeafletMap
 										lat={data.lat}
 										lng={data.lng}
-										centerPin
+										draggable
 										autoLocate={false}
 										onLocationChange={handleMarkerDrag}
 										onLocate={locateMe}
@@ -1149,7 +1151,7 @@ export default function Create(props) {
 																{' '}
 																{searchQuery.trim()}
 															</span>
-															. Coba kata kunci lain, atau geser peta ke titik kejadian.
+															. Coba kata kunci lain, atau ketuk peta di titik kejadian.
 														</>
 													)}
 												</div>
@@ -1236,7 +1238,7 @@ export default function Create(props) {
 													</p>
 												)}
 												<p className="mt-1 text-xs text-muted-foreground">
-													Geser peta sampai pin tepat di titik kejadian.
+													Ketuk peta atau seret pin ke titik kejadian.
 												</p>
 											</div>
 										</div>

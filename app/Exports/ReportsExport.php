@@ -49,7 +49,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
     private const HEADER_ROW = 6;
 
     /** Kolom terakhir yang dipakai tabel (disesuaikan dengan jumlah heading). */
-    private const LAST_COLUMN = 'AM';
+    private const LAST_COLUMN = 'AN';
 
     /**
      * Label status. WAJIB seiring dengan kamus kanonik di layar
@@ -126,7 +126,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
                 // Tenantable milik Unit sengaja dibiarkan: nama armada dibaca dengan
                 // wewenang yang sama seperti di layar.)
                 'reportUnits.unit' => fn ($query) => $query->withTrashed()->select('id', 'name'),
-                'resolutions:id,report_id,status,kerugian,created_at',
+                'resolutions:id,report_id,status,kerugian,kerugian_min,kerugian_maks,created_at',
                 'resolutions.victims:id,report_resolution_id',
                 'photos:id,report_id',
                 // Induk laporan ganda (TASK_55) - cukup id & tahun untuk nomor LP-nya.
@@ -188,7 +188,8 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             'Konfirmasi OPD',
             'Jml. Foto',
             'Berita Acara',
-            'Taksiran Kerugian',
+            'Taksiran Kerugian Min (Rp)',
+            'Taksiran Kerugian Maks (Rp)',
             'Jml. Korban',
             'Laporan Sama dengan',
             'Regu Meluncur',
@@ -260,7 +261,13 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             // tercatat 0 foto padahal fotonya ada.
             $report->photos->count() ?: ($report->photo ? 1 : 0),
             $this->resolutionLabel($report),
-            optional($resolution)->kerugian ?: '-',
+            // Rentang rupiah sebagai ANGKA (2026-11-15) supaya bisa dirumuskan; pilihan user
+            // AH=Min, AI=Maks berdampingan walau kolom sesudahnya bergeser satu huruf. Berita
+            // acara lama tanpa angka membawa teks bebasnya di kolom Min agar tak hilang.
+            $resolution && $resolution->kerugian_min !== null
+                ? $resolution->kerugian_min
+                : (optional($resolution)->kerugian ?: null),
+            optional($resolution)->kerugian_maks,
             $resolution ? $resolution->victims->count() : 0,
             // Kolom TERAKHIR, bukan di sebelah Status: menyisipkannya di tengah menggeser seluruh
             // huruf kolom sesudahnya, dan rekap lama yang dibaca dengan rumus Excel ikut meleset.
@@ -330,12 +337,13 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             'AE' => 34,  // Konfirmasi OPD
             'AF' => 9,   // Jml Foto
             'AG' => 16,  // Berita Acara
-            'AH' => 18,  // Taksiran Kerugian
-            'AI' => 11,  // Jml Korban
-            'AJ' => 16,  // Laporan Sama dengan
-            'AK' => 30,  // Regu Meluncur
-            'AL' => 30,  // Jaga di Kantor
-            'AM' => 30,  // Alpha (Tidak Memilih)
+            'AH' => 18,  // Taksiran Kerugian Min (Rp)
+            'AI' => 18,  // Taksiran Kerugian Maks (Rp)
+            'AJ' => 11,  // Jml Korban
+            'AK' => 16,  // Laporan Sama dengan
+            'AL' => 30,  // Regu Meluncur
+            'AM' => 30,  // Jaga di Kantor
+            'AN' => 30,  // Alpha (Tidak Memilih)
         ];
     }
 
@@ -394,6 +402,9 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
                         $sheet->getStyle("{$col}{$firstDataRow}:{$col}{$lastDataRow}")
                             ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
                     }
+                    // Kerugian tetap ANGKA (untuk rumus), hanya tampilannya berpemisah ribuan.
+                    $sheet->getStyle("AH{$firstDataRow}:AI{$lastDataRow}")
+                        ->getNumberFormat()->setFormatCode('#,##0');
                     // Belang baris (zebra) untuk keterbacaan.
                     for ($row = $firstDataRow; $row <= $lastDataRow; $row++) {
                         if (($row - $firstDataRow) % 2 === 1) {

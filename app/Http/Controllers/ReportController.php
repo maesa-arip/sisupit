@@ -475,7 +475,8 @@ class ReportController extends Controller
                     'kecamatan' => $r->kecamatan,
                     'pemilik_nama' => $r->pemilik_nama,
                     'pemilik_umur' => $r->pemilik_umur,
-                    'kerugian' => $r->kerugian,
+                    // Rentang rupiah (2026-11-15) atau teks lama - satu rumus di model.
+                    'kerugian' => $r->kerugianLabel(),
                     'volume_air' => $r->volume_air,
                     'tim_atensi' => $r->tim_atensi,
                     'kronologi' => $r->kronologi,

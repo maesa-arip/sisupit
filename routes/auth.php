@@ -35,13 +35,17 @@ Route::middleware('guest')->group(function () {
         ->name('password.store');
 });
 
+// Tautan verifikasi TANPA `auth`: tanda tangan URL + hash email sudah membuktikan pemiliknya.
+// Di iPhone tautan dari aplikasi Mail terbuka di Safari, yang tak berbagi sesi dengan aplikasi
+// Sisupit - dulu Safari meminta login dulu, pengguna kembali ke aplikasi, dan tetap diminta
+// verifikasi (laporan user 2026-11-15).
+Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('verification.verify');
+
 Route::middleware('auth')->group(function () {
     Route::get('verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');
-
-    Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
-        ->middleware(['signed', 'throttle:6,1'])
-        ->name('verification.verify');
 
     Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
         ->middleware('throttle:6,1')

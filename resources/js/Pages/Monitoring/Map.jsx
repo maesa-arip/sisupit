@@ -5,6 +5,7 @@ import AppLayout from '@/Layouts/AppLayout';
 import { escapeHtml } from '@/lib/escape-html';
 import { fitBoundsWhenSized } from '@/lib/leaflet-fit';
 import { addBaseTiles } from '@/lib/map-tiles';
+import PullToRefreshLock from '@/lib/pull-to-refresh-lock';
 import { cn, facilityStatusLabel, NOMOR_DARURAT_NASIONAL } from '@/lib/utils';
 import { Head, router } from '@inertiajs/react';
 import {
@@ -548,8 +549,12 @@ export default function MonitoringMap({ layers, reports: reportLayer, report_fil
 					? 'fixed inset-0 z-[200] h-dvh w-screen rounded-none border-0'
 					: 'h-[calc(100dvh-8rem)] rounded-2xl border lg:h-[calc(100vh-6rem)]',
 			)}
+			data-no-pull-refresh={isMaximized ? '' : undefined}
 		>
 			<Head title="Peta Pemantauan" />
+			{/* Diperbesar = lapisan layar penuh: tarik ke bawah di mana pun (termasuk header &
+			    panel filter) tak boleh memuat ulang halaman (#241), sama dengan peta form lapor. */}
+			{isMaximized && <PullToRefreshLock />}
 
 			<div ref={mapRef} className="z-0 h-full w-full bg-accent/30" />
 

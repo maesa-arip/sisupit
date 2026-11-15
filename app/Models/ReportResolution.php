@@ -52,7 +52,11 @@ class ReportResolution extends Model
         'kecamatan',
         'pemilik_nama',
         'pemilik_umur',
+        // Teks bebas LAMA ("±1jt"). Sejak 2026-11-15 form mengisi rentang angka di bawah; teks
+        // ini hanya dibawa ulang untuk berita acara lama dan dikosongkan begitu angka diisi.
         'kerugian',
+        'kerugian_min',
+        'kerugian_maks',
         // Volume air yang dipakai memadamkan. TEKS BEBAS seperti `kerugian` — "±3 tangki".
         'volume_air',
         'tim_atensi',
@@ -61,7 +65,35 @@ class ReportResolution extends Model
 
     protected $casts = [
         'occurred_at' => 'datetime',
+        'kerugian_min' => 'integer',
+        'kerugian_maks' => 'integer',
     ];
+
+    /**
+     * Taksiran kerugian untuk DIBACA manusia - satu rumus untuk detail insiden, PDF, dan
+     * riwayat perubahan. Rentang angka (2026-11-15) didahulukan; berita acara lama yang
+     * hanya punya teks bebas tetap tampil apa adanya.
+     */
+    public function kerugianLabel(): ?string
+    {
+        $rupiah = fn (int $value) => 'Rp '.number_format($value, 0, ',', '.');
+        $min = $this->kerugian_min;
+        $maks = $this->kerugian_maks;
+
+        if ($min !== null && $maks !== null) {
+            return $min === $maks ? $rupiah($min) : $rupiah($min).' - '.$rupiah($maks);
+        }
+        if ($min !== null) {
+            return 'Minimal '.$rupiah($min);
+        }
+        if ($maks !== null) {
+            return 'Maksimal '.$rupiah($maks);
+        }
+
+        $legacy = trim((string) $this->kerugian);
+
+        return $legacy === '' ? null : $legacy;
+    }
 
     public function report(): BelongsTo
     {
@@ -101,6 +133,8 @@ class ReportResolution extends Model
         foreach (array_keys(self::SNAPSHOT_LABELS) as $field) {
             $row[$field] = in_array($field, ['occurred_at', 'korban'], true) ? null : $blank($this->{$field});
         }
+
+        $row['kerugian'] = $this->kerugianLabel();
 
         $row['occurred_at'] = $this->occurred_at
             ? $this->occurred_at->copy()->setTimezone(config('app.local_timezone'))->format('d-m-Y H:i')

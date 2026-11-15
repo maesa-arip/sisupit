@@ -2651,3 +2651,7 @@ TERDEPLOY PROD @794924c1 (2026-11-11, deploy via konsol user, HTTPS terverifikas
 ## Ulasan Aplikasi superadmin saja (2026-11-13)
 
 TERDEPLOY PROD @8a5212a5 (2026-11-13, deploy via konsol user, HTTPS terverifikasi: app-CeQkkqBM.js 200, /admin/app-reviews tamu 302 ke login). Permintaan user: menu "Ulasan Aplikasi" pindah dari grup admin ke grup Sistem (superadmin saja). Route `/admin/app-reviews` (+ export, testimoni) kini `role:superadmin` di routes/web.php; admin kabupaten 403. Tenantable AppReview tetap (superadmin tanpa wilayah = semua kabupaten). Penyetuju testimoni kini superadmin. Tanpa migrasi. Penjaga AppReviewTest (test admin diubah jadi 403).
+
+## #241-#244 - Peta tanpa refresh, pin tak ikut geser, kerugian rentang, verifikasi email (2026-11-15)
+
+Commit di main (belum push/deploy), ADA MIGRASI `2026_11_15_100000_add_kerugian_range_to_report_resolutions` (wajib naik bersama kode + cadangan DB). Permintaan user: (1) taksiran kerugian rentang angka untuk rumus Excel - pilihan user AH=Min, AI=Maks walau kolom sesudahnya bergeser; (2) iPhone tetap diminta verifikasi email; (3) geser peta layar penuh memuat ulang halaman, cek peta lain; geser peta tak boleh memindahkan titik - pilihan user ketuk peta / seret pin. Rincian: FINDINGS_LOG #241-#244. Test 976 passed / 7499 assertions. Belum diuji di HP.

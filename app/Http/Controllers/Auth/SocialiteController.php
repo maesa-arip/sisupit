@@ -207,6 +207,13 @@ class SocialiteController extends Controller
                 ])->assignRole('warga');
             }
 
+            // Akun email lama yang belum sempat verifikasi lalu masuk dengan Google/Apple: email
+            // yang sama sudah dijamin penyedianya (Apple dicek `email_verified` di atas). Tanpa
+            // ini akun itu tetap tertahan di halaman Verifikasi Email (2026-11-15).
+            if (! $user->hasVerifiedEmail()) {
+                $user->markEmailAsVerified();
+            }
+
             // Buat Social Account baru
             $user->socialAccounts()->create([
                 'provider_id' => $socialUser->getId(),

@@ -30,6 +30,16 @@ import { toast } from 'sonner';
 
 const MAX_PHOTOS = 8;
 
+// Taksiran kerugian = rentang rupiah (2026-11-15): disimpan ANGKA polos untuk rumus Excel,
+// ditampilkan berpemisah ribuan "1.500.000" supaya nol-nya tak salah hitung.
+const formatRupiah = (value) =>
+	value === '' || value === null || value === undefined ? '' : Number(value).toLocaleString('id-ID');
+const digitsOnly = (text) =>
+	String(text)
+		.replace(/\D/g, '')
+		.replace(/^0+(?=\d)/, '')
+		.slice(0, 15);
+
 export default function Create(props) {
 	const report = props.report;
 	const p = props.prefill || {};
@@ -54,7 +64,11 @@ export default function Create(props) {
 		kecamatan: p.kecamatan ?? '',
 		pemilik_nama: p.pemilik_nama ?? '',
 		pemilik_umur: p.pemilik_umur ?? '',
+		// Teks bebas LAMA ("±1jt") - tak disunting lagi, hanya dibawa ulang; server
+		// mengosongkannya begitu rentang angka diisi.
 		kerugian: p.kerugian ?? '',
+		kerugian_min: p.kerugian_min ?? '',
+		kerugian_maks: p.kerugian_maks ?? '',
 		volume_air: p.volume_air ?? '',
 		tim_atensi: p.tim_atensi ?? '',
 		kronologi: p.kronologi ?? '',
@@ -314,18 +328,38 @@ export default function Create(props) {
 								</div>
 
 								<div>
-									<Label htmlFor="kerugian" className="text-sm font-medium text-foreground/80">
-										Estimasi Kerugian
+									<Label htmlFor="kerugian_min" className="text-sm font-medium text-foreground/80">
+										Estimasi Kerugian (Rp)
 									</Label>
-									<Input
-										name="kerugian"
-										id="kerugian"
-										value={data.kerugian}
-										onChange={onHandleChange}
-										placeholder="Contoh: ±1jt"
-										className="mt-1.5 h-10 rounded-2xl border-border bg-card focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
-									/>
-									<InputError message={errors.kerugian} className="mt-1" />
+									<div className="mt-1.5 flex items-center gap-2">
+										<Input
+											name="kerugian_min"
+											id="kerugian_min"
+											inputMode="numeric"
+											aria-label="Kerugian paling sedikit (Rp)"
+											value={formatRupiah(data.kerugian_min)}
+											onChange={(e) => setData('kerugian_min', digitsOnly(e.target.value))}
+											placeholder="Dari"
+											className="h-10 min-w-0 flex-1 rounded-2xl border-border bg-card tabular-nums focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+										/>
+										<span className="shrink-0 text-sm text-muted-foreground">s/d</span>
+										<Input
+											name="kerugian_maks"
+											id="kerugian_maks"
+											inputMode="numeric"
+											aria-label="Kerugian paling banyak (Rp)"
+											value={formatRupiah(data.kerugian_maks)}
+											onChange={(e) => setData('kerugian_maks', digitsOnly(e.target.value))}
+											placeholder="Sampai"
+											className="h-10 min-w-0 flex-1 rounded-2xl border-border bg-card tabular-nums focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive"
+										/>
+									</div>
+									{data.kerugian && data.kerugian_min === '' && data.kerugian_maks === '' && (
+										<p className="mt-1 text-xs text-muted-foreground">
+											Catatan lama: {data.kerugian}. Isi rentang angka untuk menggantinya.
+										</p>
+									)}
+									<InputError message={errors.kerugian_min || errors.kerugian_maks} className="mt-1" />
 								</div>
 
 								<div>

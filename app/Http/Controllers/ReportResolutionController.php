@@ -112,6 +112,8 @@ class ReportResolutionController extends Controller
             'pemilik_nama' => $latest->pemilik_nama,
             'pemilik_umur' => $latest->pemilik_umur,
             'kerugian' => $latest->kerugian,
+            'kerugian_min' => $latest->kerugian_min,
+            'kerugian_maks' => $latest->kerugian_maks,
             'volume_air' => $latest->volume_air,
             'tim_atensi' => $latest->tim_atensi ?: $timAtensi,
             'kronologi' => $latest->kronologi,
@@ -185,7 +187,11 @@ class ReportResolutionController extends Controller
             'kecamatan' => 'nullable|string|max:255',
             'pemilik_nama' => 'nullable|string|max:255',
             'pemilik_umur' => 'nullable|integer|min:0|max:200',
+            // Teks bebas LAMA - form tak lagi menyuntingnya, hanya membawanya ulang untuk berita
+            // acara lama. Taksiran baru = rentang rupiah di bawah (2026-11-15, dipakai rumus Excel).
             'kerugian' => 'nullable|string|max:255',
+            'kerugian_min' => 'nullable|integer|min:0|max:999999999999999',
+            'kerugian_maks' => 'nullable|integer|min:0|max:999999999999999',
             // Teks bebas, bukan numeric — lihat catatan di migrasinya.
             'volume_air' => 'nullable|string|max:255',
             'tim_atensi' => 'nullable|string|max:2000',
@@ -214,11 +220,22 @@ class ReportResolutionController extends Controller
         // tombolnya: tombol yang hilang tidak menghentikan request yang dibuat tangan.
         abort_if($validated['status'] === 'final' && ! $this->canFinalize(), 403, 'Berita acara final hanya boleh ditutup admin.');
 
+        $kerugianMin = $validated['kerugian_min'] ?? null;
+        $kerugianMaks = $validated['kerugian_maks'] ?? null;
+        if ($kerugianMin !== null && $kerugianMaks !== null && (int) $kerugianMaks < (int) $kerugianMin) {
+            throw ValidationException::withMessages([
+                'kerugian_maks' => 'Batas atas kerugian tidak boleh lebih kecil dari batas bawah.',
+            ]);
+        }
+        // Begitu rentang angka diisi, teks lama tak lagi berlaku - tanpa ini dua taksiran yang
+        // berbeda tersimpan berdampingan.
+        $kerugianTeks = ($kerugianMin !== null || $kerugianMaks !== null) ? null : ($validated['kerugian'] ?? null);
+
         // Berkas dihapus SESUDAH transaksi berhasil: menghapusnya di dalam transaksi yang lalu
         // gagal meninggalkan baris yang menunjuk berkas yang sudah tak ada.
         $filesToDelete = [];
 
-        DB::transaction(function () use ($request, $report, $validated, &$filesToDelete) {
+        DB::transaction(function () use ($request, $report, $validated, $kerugianTeks, $kerugianMin, $kerugianMaks, &$filesToDelete) {
             // Dua petugas menyimpan bersamaan tak boleh sama-sama "membuat" entri sementara.
             Report::withoutGlobalScopes()->whereKey($report->id)->lockForUpdate()->first();
             // Dicek SESUDAH kunci: admin yang memfinalkan bersamaan tak boleh terlewat.
@@ -233,7 +250,9 @@ class ReportResolutionController extends Controller
                 'kecamatan' => $validated['kecamatan'] ?? null,
                 'pemilik_nama' => $validated['pemilik_nama'] ?? null,
                 'pemilik_umur' => $validated['pemilik_umur'] ?? null,
-                'kerugian' => $validated['kerugian'] ?? null,
+                'kerugian' => $kerugianTeks,
+                'kerugian_min' => $kerugianMin,
+                'kerugian_maks' => $kerugianMaks,
                 'volume_air' => $validated['volume_air'] ?? null,
                 'tim_atensi' => $validated['tim_atensi'] ?? null,
                 'kronologi' => $validated['kronologi'] ?? null,
