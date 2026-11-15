@@ -6,6 +6,7 @@ use App\Http\Resources\UserSingleResource;
 use App\Models\Announcement;
 use App\Models\AppReview;
 use App\Models\Report;
+use App\Models\ReporterCall;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
@@ -91,6 +92,14 @@ class HandleInertiaRequests extends Middleware
                 }
 
                 return $ask ? AppReview::formProps($user) : null;
+            },
+            // Panggilan Sisupit yang sedang berdering untuk akun ini (TASK_90): pelapor yang membuka
+            // aplikasi dari push "Damkar sedang menelepon Anda" langsung melihat layar panggilan.
+            // Hanya id - isinya diambil klien lewat calls.state (gerbang peserta).
+            'incomingCall' => function () use ($request) {
+                $call = $request->user() ? ReporterCall::ringingFor($request->user()) : null;
+
+                return $call ? ['id' => $call->id] : null;
             },
         ];
     }

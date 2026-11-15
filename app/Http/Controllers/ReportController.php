@@ -14,6 +14,7 @@ use App\Models\ReportAgency;
 use App\Models\ReportAlpha;
 use App\Models\ReportJagaKantor;
 use App\Models\ReportResolution;
+use App\Models\ReporterCall;
 use App\Models\Tenant;
 use App\Models\TrackingLog;
 use App\Models\Unit;
@@ -550,6 +551,17 @@ class ReportController extends Controller
             // khusus PELAPOR - Thanks hanya dicapai sekali, sedangkan semua jalan masuk lain menuju
             // halaman ini. Bukan untuk staf/relawan: mereka sudah punya manifest regu lengkap.
             'responders' => $isReporter ? $this->thanksResponders($report->id) : null,
+            // Panggilan suara lewat Sisupit (TASK_90). Tombolnya dibaca dari prop server - rumusnya
+            // sama dengan gerbang ReporterCallController::start (ReporterCall::canCall).
+            'canCallReporter' => $isStaff && ReporterCall::canCall($user, $report),
+            'reporterCalls' => $isStaff
+                ? ReporterCall::where('report_id', $report->id)->latest('id')->take(10)->get()
+                    // Bukan `->each->expireIfStale()`: each() berhenti saat callback memulangkan false.
+                    ->each(function (ReporterCall $call) {
+                        $call->expireIfStale();
+                    })
+                    ->map->toLogRow()->values()
+                : [],
         ]);
     }
 
@@ -681,6 +693,9 @@ class ReportController extends Controller
             'region_picker' => $regionPicker,
             // #238: foto darurat non-kebakaran wajib bagi pelapor selain Pusat Komando.
             'non_fire_photo_required' => ReportRequest::nonFirePhotoRequired($user),
+            // TASK_90: nomor yang akan ditelepon Pusat Komando ditampilkan & dikonfirmasi sebelum
+            // kirim - bagi pelapor selain Pusat Komando (operator mengetik laporan dari telepon).
+            'confirm_phone' => ! $user->hasAnyRole(self::COMMAND_CENTER_ROLES),
             // Daftar kabupaten yang sudah bekerjasama (TASK_17) → form menampilkan notice
             // "laporan akan diarahkan ke Damkar X" / "belum terdaftar" begitu pin ter-resolve.
             'registered_tenants' => Tenant::where('is_active', true)->get(['city_code', 'subdomain', 'nama_instansi']),
@@ -711,6 +726,7 @@ class ReportController extends Controller
             'provinces' => $provinces,
             'region_picker' => null,
             'non_fire_photo_required' => ReportRequest::nonFirePhotoRequired(null),
+            'confirm_phone' => true,
             'registered_tenants' => Tenant::where('is_active', true)->get(['city_code', 'subdomain', 'nama_instansi']),
             'guest' => [
                 // Kosong = Turnstile mati; form tetap jalan dengan lapis pertama saja.
@@ -1023,8 +1039,24 @@ class ReportController extends Controller
                     : null,
                 'loginUrl' => $user ? null : URL::temporarySignedRoute('front.reports.guest.login', now()->addHours(self::GUEST_STATUS_LINK_HOURS), ['report' => $report->id], false),
                 'isOwner' => $user && $report->user_id === $user->id,
+                // Panggilan suara dari Pusat Komando (TASK_90). Tamu tak bisa memakai channel privat:
+                // ia mendengar channel publik bernama rahasia dan bertindak lewat URL bertanda tangan
+                // (masa berlaku sama dengan tautan status). Laporan yang sudah diklaim berdering di akun.
+                'call' => $report->user_id === null ? $this->guestCallProps($report->id) : null,
             ],
         ]);
+    }
+
+    private function guestCallProps(int $reportId): array
+    {
+        $sign = fn (string $route) => URL::temporarySignedRoute($route, now()->addHours(self::GUEST_STATUS_LINK_HOURS), ['report' => $reportId], false);
+
+        return [
+            'channel' => ReporterCall::guestChannel($reportId),
+            'stateUrl' => $sign('front.reports.guest.call'),
+            'answerUrl' => $sign('front.reports.guest.call.answer'),
+            'endUrl' => $sign('front.reports.guest.call.end'),
+        ];
     }
 
     /**

@@ -3,12 +3,14 @@ import AppReviewPrompt from '@/Components/AppReview/AppReviewPrompt';
 import { SHOW_APP_REVIEW_FORM } from '@/Components/AppReview/flags';
 import Banner from '@/Components/Banner';
 import PageSkeleton from '@/Components/PageSkeleton';
+import CallOverlay from '@/Components/ReporterCall/CallOverlay';
 import SoundNotificationControl from '@/Components/SoundNotificationControl';
 import ThemeSwitcher from '@/Components/ThemeSwitcher';
 import { Toaster } from '@/Components/ui/sonner';
 import { refreshNativeNotificationStatus, setFcmDevice } from '@/lib/fcm-device';
 import { useKeyboardOpenFlag } from '@/lib/keyboard-open';
 import { useNavUrl, usePageTransition, usePendingVisit, useSkeletonHost } from '@/lib/navigation';
+import { handleCallNudge } from '@/lib/reporter-call';
 import { cn } from '@/lib/utils';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { IconBell } from '@tabler/icons-react';
@@ -34,6 +36,8 @@ export default function AppLayout({ title, children }) {
 	const auth = usePage().props.auth?.user ?? null;
 	const notifications = usePage().props.notifications ?? [];
 	const unreadCount = usePage().props.unread_notifications_count ?? 0;
+	// Panggilan Sisupit yang sedang berdering untuk akun ini (TASK_90) - mis. dibuka dari push.
+	const incomingCallId = usePage().props.incomingCall?.id ?? null;
 	// Nama badan hukum penyedia dari config/legal.php (shared prop) — sebelumnya ter-hardcode
 	// di footer dengan ejaan yang berbeda dari dokumen legal.
 	const penyediaNama = usePage().props.penyedia_nama ?? 'PT Tawarin Dimana Saja';
@@ -137,12 +141,20 @@ export default function AppLayout({ title, children }) {
 		if (!auth?.id || !window.Echo) return;
 
 		const channelName = `App.Models.User.${auth.id}`;
-		window.Echo.private(channelName).notification(() => {
-			router.reload({ only: ['notifications', 'unread_notifications_count'] });
-		});
+		window.Echo.private(channelName)
+			.notification(() => {
+				router.reload({ only: ['notifications', 'unread_notifications_count'] });
+			})
+			// Aba-aba panggilan Sisupit (TASK_90) di channel yang sama - bukan notifikasi, jadi exe
+			// desktop (yang hanya membunyikan BroadcastNotificationCreated) tidak bersirine.
+			.listen('.reporter-call.changed', handleCallNudge);
 
 		return () => window.Echo.leave(channelName);
 	}, [auth?.id]);
+
+	useEffect(() => {
+		if (incomingCallId) handleCallNudge({ callId: incomingCallId });
+	}, [incomingCallId]);
 
 	// useEffect(() => {
 	//     if (!auth) return;
@@ -166,6 +178,7 @@ export default function AppLayout({ title, children }) {
 		<>
 			<Head title={title} />
 			<Toaster position="top-center" />
+			<CallOverlay />
 			<SoundNotificationControl />
 
 			<div className="flex min-h-screen w-full bg-background">

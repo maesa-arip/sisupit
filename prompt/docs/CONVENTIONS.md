@@ -275,6 +275,12 @@
   Komando BERSIRINE karena hal yang bukan kejadian. Kalau notifikasi baru memang butuh push,
   itu tahap baru + rilis kedua wrapper, bukan satu baris `via()`. Patokan & penjaga:
   `app/Notifications/ForumNotification.php`, `ForumTest`.
+- **Event realtime BUKAN notifikasi boleh lewat channel `App.Models.User.{id}`, notifikasi baru tetap tidak**
+  (TASK_90). Exe desktop hanya membunyikan `BroadcastNotificationCreated` di channel itu, jadi event biasa ber-`broadcastAs`
+  sendiri (`ReporterCallChanged`) aman; `Notification` ber-`'broadcast'` tetap = sirine. Pendengarnya WAJIB dipasang di
+  effect channel yang sama di `AppLayout` (effect itu `Echo.leave` tiap pindah halaman - listener di tempat lain ikut
+  lepas). Keadaan yang harus bertahan lintas halaman (panggilan WebRTC) disimpan di tingkat MODUL (`lib/reporter-call.js`),
+  bukan state komponen. Dijaga `ReporterCallTest`.
 - Role check: **selalu** `hasRole()`/`hasAnyRole()` dari Spatie Permission, bukan kolom
   string manual. `User::role([...])` bisa melempar `RoleDoesNotExist` di DB belum ter-seed
   (lihat workaround di `HomeController`).

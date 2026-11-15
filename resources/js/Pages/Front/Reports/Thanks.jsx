@@ -2,6 +2,7 @@ import { describeUnits, isClosedStatus, ReportStepper, ResponderSummary } from '
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import AppLayout from '@/Layouts/AppLayout';
+import { checkGuestIncoming, configureGuestCalls, handleCallNudge } from '@/lib/reporter-call';
 import { NOMOR_DARURAT_NASIONAL, reportNumber } from '@/lib/utils';
 import { Head, Link, router } from '@inertiajs/react';
 import {
@@ -75,6 +76,24 @@ export default function ReportThanks({
 
 		return () => clearInterval(timer);
 	}, [guestView, status]);
+
+	// Panggilan suara dari Pusat Komando untuk TAMU (TASK_90). Tamu tak bisa memakai channel pribadi:
+	// ia mendengar channel publik bernama rahasia (aba-aba saja) dan mengambil keadaan panggilan lewat
+	// URL bertanda tangan. Cek berkala 10 dtk sebagai cadangan bila WebSocket tak tersambung.
+	const guestCall = guestView?.call ?? null;
+	useEffect(() => {
+		if (!guestCall) return undefined;
+		configureGuestCalls(guestCall);
+		checkGuestIncoming();
+		window.Echo?.channel(guestCall.channel).listen('.reporter-call.changed', handleCallNudge);
+		const timer = setInterval(() => document.visibilityState === 'visible' && checkGuestIncoming(), 10000);
+
+		return () => {
+			clearInterval(timer);
+			window.Echo?.leave(guestCall.channel);
+			configureGuestCalls(null);
+		};
+	}, [guestCall?.channel]);
 
 	// Tombol & keterangan mengikuti perkembangan (permintaan user 2026-10-03). Petanya tetap hanya
 	// di halaman detail - halaman ini dibuka warga yang sedang panik, tombol telepon jangan terdorong.

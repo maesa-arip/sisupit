@@ -125,6 +125,18 @@ return [
         'scheme' => env('REVERB_SCHEME', 'https'),
     ],
 
+    'webrtc' => [
+        // Panggilan suara Pusat Komando -> pelapor (TASK_90). STUN cukup untuk jaringan biasa;
+        // di balik CGNAT seluler sebagian panggilan butuh TURN (coturn di VPS, `use-auth-secret`).
+        // TURN_URLS dipisah koma, mis. "turn:turn.sisupit.com:3478?transport=udp,turns:turn.sisupit.com:5349".
+        // TURN_SECRET = static-auth-secret coturn - TIDAK PERNAH dikirim ke browser, hanya dipakai
+        // membuat kredensial sementara (ReporterCall::iceServers).
+        'stun_urls' => env('WEBRTC_STUN_URLS', 'stun:stun.l.google.com:19302'),
+        'turn_urls' => env('TURN_URLS'),
+        'turn_secret' => env('TURN_SECRET'),
+        'turn_ttl' => (int) env('TURN_TTL', 3600),
+    ],
+
     'tenant' => [
         // Domain dasar (registrable) untuk multi-tenant per kabupaten (TASK_17). Subdomain
         // di-strip dari Host memakai nilai ini: badung.sisupit.com → subdomain "badung".

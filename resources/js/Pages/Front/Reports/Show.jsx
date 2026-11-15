@@ -2,6 +2,7 @@ import DemoBadge from '@/Components/DemoBadge';
 import GuestReporterBadge, { isGuestReport } from '@/Components/GuestReporterBadge';
 import PhotoViewer from '@/Components/PhotoViewer';
 import { ReportStepper, ResponderSummary } from '@/Components/ReportProgress';
+import CallReporterButton from '@/Components/ReporterCall/CallReporterButton';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
@@ -297,6 +298,10 @@ export default function ReportShow(props) {
 	const reguRoster = props.reguRoster || [];
 	const myRegu = props.myRegu || null;
 	const canStayAtBase = props.canStayAtBase || false;
+	// Panggilan suara lewat Sisupit (TASK_90): tombol = prop server (ReporterCall::canCall),
+	// riwayat 10 panggilan terakhir untuk Pusat Komando (berubah lewat ReportRecordChanged).
+	const canCallReporter = props.canCallReporter || false;
+	const reporterCalls = props.reporterCalls || [];
 	// Entri FINAL Laporan Kejadian = admin saja (TASK_67) - prop server, bukan peran di JSX.
 	const canFinalizeResolution = props.canFinalizeResolution || false;
 	// Alpha per regu (TASK_66) - kosong bagi selain admin/superadmin.
@@ -352,6 +357,8 @@ export default function ReportShow(props) {
 				'canStayAtBase',
 				'alphaMembers',
 				'responders',
+				'reporterCalls',
+				'canCallReporter',
 			],
 		});
 	};
@@ -1454,18 +1461,24 @@ export default function ReportShow(props) {
 								{/* Konfirmasi ke pelapor: telepon biasa ATAU WhatsApp (permintaan user
 								    TASK_65) - di lapangan pelapor sering lebih cepat membalas WA daripada
 								    mengangkat telepon, dan pesan WA bisa membawa foto lokasi tambahan. */}
-								{reporterPhone.tel && (
+								{(reporterPhone.tel || canCallReporter) && (
 									<div className="mt-3 flex flex-wrap gap-2">
-										<Button asChild variant="outline" size="sm" className="h-9">
-											<a href={`tel:${reporterPhone.tel}`}>
-												<IconPhone className="mr-1.5 h-4 w-4" /> Telepon
-											</a>
-										</Button>
-										<Button asChild variant="outline" size="sm" className="h-9">
-											<a href={reporterPhone.whatsapp} target="_blank" rel="noopener noreferrer">
-												<IconBrandWhatsapp className="mr-1.5 h-4 w-4" /> WhatsApp
-											</a>
-										</Button>
+										{reporterPhone.tel && (
+											<>
+												<Button asChild variant="outline" size="sm" className="h-9">
+													<a href={`tel:${reporterPhone.tel}`}>
+														<IconPhone className="mr-1.5 h-4 w-4" /> Telepon
+													</a>
+												</Button>
+												<Button asChild variant="outline" size="sm" className="h-9">
+													<a href={reporterPhone.whatsapp} target="_blank" rel="noopener noreferrer">
+														<IconBrandWhatsapp className="mr-1.5 h-4 w-4" /> WhatsApp
+													</a>
+												</Button>
+											</>
+										)}
+										{/* Nomor tak bisa dihubungi (TASK_90): telepon lewat internet ke Sisupit pelapor. */}
+										{canCallReporter && <CallReporterButton reportId={report.id} />}
 									</div>
 								)}
 								{/* Titik yang belum bisa dipercaya diangkat DI SINI, bukan cuma di kartu
@@ -1562,6 +1575,43 @@ export default function ReportShow(props) {
 									<IconPhone className="h-4 w-4 shrink-0" /> {report.phone}
 								</a>
 							</div>
+							{(canCallReporter || reporterCalls.length > 0) && (
+								<div className="space-y-2 px-4 py-3">
+									<div className="flex flex-wrap items-center justify-between gap-2">
+										<span className="text-[15px] text-muted-foreground">Panggilan Sisupit</span>
+										{canCallReporter && <CallReporterButton reportId={report.id} />}
+									</div>
+									{reporterCalls.length > 0 ? (
+										<ul className="space-y-1">
+											{reporterCalls.map((c) => (
+												<li key={c.id} className="flex items-baseline justify-between gap-3 text-[13px]">
+													<span className="min-w-0 text-muted-foreground">
+														{new Intl.DateTimeFormat('id-ID', {
+															day: 'numeric',
+															month: 'short',
+															hour: '2-digit',
+															minute: '2-digit',
+														}).format(new Date(c.created_at))}
+														{c.caller_name ? ` - ${c.caller_name}` : ''}
+													</span>
+													<span className="shrink-0 font-medium text-foreground">
+														{c.status === 'ended'
+															? c.duration_seconds != null
+																? `${c.end_label} (${Math.floor(c.duration_seconds / 60)}:${String(c.duration_seconds % 60).padStart(2, '0')})`
+																: c.end_label
+															: 'Berlangsung'}
+													</span>
+												</li>
+											))}
+										</ul>
+									) : (
+										<p className="text-[13px] leading-snug text-muted-foreground">
+											Telepon lewat internet bila nomor pelapor tak bisa dihubungi. Berdering bila pelapor
+											sedang membuka Sisupit atau halaman status laporannya.
+										</p>
+									)}
+								</div>
+							)}
 							<div className="space-y-0.5 px-4 py-3">
 								<div className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
 									<IconMap className="h-3.5 w-3.5" /> Wilayah administratif

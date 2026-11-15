@@ -38,6 +38,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReguController;
 use App\Http\Controllers\ReportActionController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReporterCallController;
 use App\Http\Controllers\ReportResolutionController;
 use App\Http\Controllers\VolunteerController;
 use Illuminate\Http\Request;
@@ -328,6 +329,25 @@ Route::middleware(['auth', 'verified'])->controller(ReportController::class)->gr
     Route::get('reports/edit/{report}', 'edit')->name('front.reports.edit');
     Route::put('reports/edit/{report}', 'update')->name('front.reports.update');
     Route::delete('reports/destroy/{report}', 'destroy')->name('front.reports.destroy');
+});
+
+// Panggilan suara Pusat Komando -> pelapor lewat Sisupit (TASK_90). Gerbang di controller:
+// pemanggil = ReporterCall::canCall, sisanya = peserta panggilan itu. `state` dipolling klien
+// (cadangan aba-aba Reverb) selama panggilan berjalan, jadi batasnya longgar.
+Route::middleware(['auth', 'verified'])->controller(ReporterCallController::class)->group(function () {
+    Route::post('reports/{report}/panggilan', 'start')->middleware('throttle:10,1')->name('reports.calls.start');
+    // Server ICE pemanggil diminta SEBELUM offer dibuat (offer sudah memuat kandidat TURN-nya).
+    Route::get('panggilan/ice', 'ice')->middleware('throttle:30,1')->name('calls.ice');
+    Route::get('panggilan/{call}', 'state')->whereNumber('call')->middleware('throttle:120,1')->name('calls.state');
+    Route::post('panggilan/{call}/jawab', 'answer')->middleware('throttle:30,1')->name('calls.answer');
+    Route::post('panggilan/{call}/tersambung', 'connected')->middleware('throttle:30,1')->name('calls.connected');
+    Route::post('panggilan/{call}/akhiri', 'end')->middleware('throttle:30,1')->name('calls.end');
+});
+// Pelapor TAMU: gerbangnya tanda tangan URL yang sama dengan tautan status (TASK_77).
+Route::middleware('signed:relative')->controller(ReporterCallController::class)->group(function () {
+    Route::get('lapor-darurat/status/{report}/panggilan', 'guestState')->middleware('throttle:120,1')->name('front.reports.guest.call');
+    Route::post('lapor-darurat/status/{report}/panggilan/jawab', 'guestAnswer')->middleware('throttle:30,1')->name('front.reports.guest.call.answer');
+    Route::post('lapor-darurat/status/{report}/panggilan/akhiri', 'guestEnd')->middleware('throttle:30,1')->name('front.reports.guest.call.end');
 });
 
 // Detail TERBATAS kejadian di sekitar warga (TASK_89) - tujuan ketuk notifikasi biasa sesudah

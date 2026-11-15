@@ -2,6 +2,7 @@ import { filledFieldsClass } from '@/Components/GroupedForm';
 import InputError from '@/Components/InputError';
 import { Button } from '@/Components/ui/button';
 import { Combobox } from '@/Components/ui/combobox';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs';
@@ -11,6 +12,7 @@ import UserLeafletMap from '@/Components/UserLeafletMap';
 import AppLayout from '@/Layouts/AppLayout';
 import useBackClosesLayer from '@/lib/back-closes-layer';
 import { compressImages, oversizeMessage, splitOversize } from '@/lib/compress-image';
+import { formatPhone, normalizePhone, phoneProblem } from '@/lib/phone';
 import PullToRefreshLock from '@/lib/pull-to-refresh-lock';
 import {
 	alamatTerbaca,
@@ -170,6 +172,15 @@ export default function Create(props) {
 	// #238: foto darurat non-kebakaran wajib bagi warga/relawan/tamu, opsional bagi Pusat Komando
 	// (laporan telepon). Keputusannya milik server (ReportRequest::nonFirePhotoRequired), bukan peran di JSX.
 	const nonFirePhotoRequired = Boolean(props.non_fire_photo_required);
+	// TASK_90 "cek nomor sebelum kirim": nomor yang akan ditelepon Pusat Komando ditampilkan dan
+	// dikonfirmasi sekali sebelum kirim (kasus nyata: laporan benar, nomornya tak bisa ditelepon).
+	// Server yang memutuskan siapa (props.confirm_phone: tamu & akun selain Pusat Komando).
+	const confirmPhone = Boolean(props.confirm_phone);
+	const [phoneDialogOpen, setPhoneDialogOpen] = useState(false);
+	const [phoneEditing, setPhoneEditing] = useState(false);
+	const [phoneTouched, setPhoneTouched] = useState(false);
+	// Nomor yang sudah dikonfirmasi; berubah lagi = konfirmasi lagi.
+	const confirmedPhoneRef = useRef(null);
 	const turnstileSiteKey = guest?.turnstile_site_key || null;
 	// Lapis 1: kolom jebakan yang tak terlihat manusia; bot pengisi semua kolom mengisinya.
 	const honeypotRef = useRef(null);
@@ -896,6 +907,11 @@ export default function Create(props) {
 			return;
 		}
 
+		if (confirmPhone && confirmedPhoneRef.current !== normalizePhone(data.phone)) {
+			setPhoneDialogOpen(true);
+			return;
+		}
+
 		// Posisi pelapor & akurasinya ikut dikirim MENTAH (TASK_52) — server yang menghitung
 		// jaraknya ke pin lalu menetapkan `location_source`. Sengaja lewat transform, bukan
 		// field useForm: nilainya tidak boleh bisa tersentuh setData mana pun, dan tak ada
@@ -903,6 +919,8 @@ export default function Create(props) {
 		// itu keadaan yang sah dan server membacanya sebagai "tanpa referensi".
 		transform((payload) => ({
 			...payload,
+			// Nomor yang dikonfirmasi = nomor yang disimpan (bentuk 08xx, sama dengan penormalan server tamu).
+			...(confirmPhone && payload.phone && { phone: normalizePhone(payload.phone) }),
 			reporter_lat: gpsFixRef.current?.lat ?? null,
 			reporter_lng: gpsFixRef.current?.lng ?? null,
 			gps_accuracy_m: gpsFixRef.current?.accuracy ?? null,
@@ -1021,6 +1039,29 @@ export default function Create(props) {
 					)}
 				</div>
 
+				<PhoneConfirmDialog
+					open={phoneDialogOpen}
+					phone={data.phone}
+					guest={Boolean(guest)}
+					onOpenChange={setPhoneDialogOpen}
+					onEdit={() => {
+						setPhoneDialogOpen(false);
+						setPhoneEditing(true);
+						setPhoneTouched(true);
+						setTimeout(() => {
+							const el = document.getElementById('phone');
+							el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+							el?.focus();
+						}, 250);
+					}}
+					onConfirm={() => {
+						confirmedPhoneRef.current = normalizePhone(data.phone);
+						setPhoneDialogOpen(false);
+						const form = document.getElementById('reportForm');
+						if (form?.requestSubmit) form.requestSubmit();
+						else form?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+					}}
+				/>
 				<form id="reportForm" className={`space-y-7 ${filledFieldsClass}`} onSubmit={onHandleSubmit}>
 					{/* --- BAGIAN LOKASI --- */}
 					<section className="space-y-2">
@@ -1500,6 +1541,64 @@ export default function Create(props) {
 						</div>
 					</section>
 
+					{/* Nomor yang akan ditelepon, untuk pelapor BER-AKUN selain Pusat Komando (TASK_90). Dulu
+					    nomor profil ikut terkirim tanpa pernah terlihat - yang salah/lama tak ketahuan sampai
+					    petugas gagal menelepon. Mengubahnya di sini hanya untuk laporan ini. */}
+					{confirmPhone && !guest && (
+						<section className="space-y-2">
+							<h2 className="px-4 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+								Kontak Anda
+							</h2>
+							<div className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
+								{phoneEditing || !data.phone ? (
+									<div>
+										<Label htmlFor="phone" className="text-sm font-medium text-foreground/80">
+											Nomor HP yang bisa dihubungi
+										</Label>
+										<Input
+											name="phone"
+											id="phone"
+											type="tel"
+											inputMode="tel"
+											autoComplete="tel"
+											value={data.phone}
+											onChange={onHandleChange}
+											onBlur={() => setPhoneTouched(true)}
+											className="mt-1.5 h-11 rounded-xl border-border bg-card focus-visible:ring-2 focus-visible:ring-primary/30"
+											placeholder="Contoh: 081234567890"
+										/>
+										<PhoneHint phone={data.phone} touched={phoneTouched} />
+										<p className="mt-1 text-xs text-muted-foreground">
+											Hanya untuk laporan ini. Nomor di profil Anda tidak berubah.
+										</p>
+										{errors.phone && <InputError message={errors.phone} className="mt-1" />}
+									</div>
+								) : (
+									<div>
+										<div className="flex items-center justify-between gap-3">
+											<div className="min-w-0">
+												<p className="text-[13px] text-muted-foreground">Petugas akan menelepon</p>
+												<p className="text-[17px] font-semibold tabular-nums text-foreground">
+													{formatPhone(data.phone)}
+												</p>
+											</div>
+											<Button
+												type="button"
+												variant="outline"
+												size="sm"
+												className="h-9 shrink-0"
+												onClick={() => setPhoneEditing(true)}
+											>
+												Ubah
+											</Button>
+										</div>
+										<PhoneHint phone={data.phone} touched onlyProblem />
+									</div>
+								)}
+							</div>
+						</section>
+					)}
+
 					{/* Kontak pelapor TAMU (TASK_77). Untuk akun nama & nomor diambil dari profil, jadi
 					    kartu ini hanya ada bagi tamu - nomor HP satu-satunya jalan Pusat Komando
 					    menelepon balik (wajib di server, tanpa OTP: teleponnya itulah verifikasinya). */}
@@ -1521,12 +1620,11 @@ export default function Create(props) {
 										autoComplete="tel"
 										value={data.phone}
 										onChange={onHandleChange}
+										onBlur={() => setPhoneTouched(true)}
 										className="mt-1.5 h-11 rounded-xl border-border bg-card focus-visible:ring-2 focus-visible:ring-primary/30"
 										placeholder="Contoh: 081234567890"
 									/>
-									<p className="mt-1.5 text-[13px] text-muted-foreground">
-										Petugas akan menelepon nomor ini untuk memastikan kejadian.
-									</p>
+									<PhoneHint phone={data.phone} touched={phoneTouched} />
 									{errors.phone && <InputError message={errors.phone} className="mt-1" />}
 								</div>
 								<div>
@@ -1812,3 +1910,84 @@ export default function Create(props) {
 }
 
 Create.layout = (page) => <AppLayout children={page} title="Buat Laporan Baru" />;
+
+// Gema & peringatan nomor HP (TASK_90). Peringatan baru muncul sesudah kolom ditinggalkan atau
+// nomornya cukup panjang - menegur pelapor yang masih mengetik hanya menambah panik.
+function PhoneHint({ phone, touched, onlyProblem = false }) {
+	const problem = phone && (touched || normalizePhone(phone).length >= 10) ? phoneProblem(phone) : null;
+
+	if (problem) {
+		return (
+			<p
+				className={cn(
+					'mt-1.5 text-[13px] leading-snug',
+					problem.level === 'error' ? 'text-destructive' : 'text-warning',
+				)}
+			>
+				{problem.message}
+			</p>
+		);
+	}
+	if (onlyProblem) return null;
+
+	return (
+		<p className="mt-1.5 text-[13px] text-muted-foreground">
+			{phone && !phoneProblem(phone) ? (
+				<>
+					Petugas akan menelepon <b className="tabular-nums text-foreground">{formatPhone(phone)}</b> untuk
+					memastikan kejadian.
+				</>
+			) : (
+				'Petugas akan menelepon nomor ini untuk memastikan kejadian.'
+			)}
+		</p>
+	);
+}
+
+// Konfirmasi nomor sekali sebelum laporan dikirim (TASK_90). Tamu tak bisa mengirim nomor yang
+// pasti ditolak server; akun boleh tetap mengirim (nomor profil lama tak boleh menahan laporan).
+function PhoneConfirmDialog({ open, phone, guest, onOpenChange, onEdit, onConfirm }) {
+	const problem = phoneProblem(phone);
+	const blocked = guest && problem?.level === 'error';
+	const empty = !normalizePhone(phone);
+
+	return (
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="max-w-sm">
+				<DialogHeader>
+					<DialogTitle>{empty ? 'Nomor HP belum diisi' : 'Pastikan nomor ini bisa dihubungi'}</DialogTitle>
+					<DialogDescription>
+						{empty
+							? 'Tanpa nomor HP, petugas tidak bisa menelepon Anda untuk memastikan kejadian.'
+							: 'Petugas akan menelepon nomor ini untuk memastikan kejadian. Pastikan HP aktif dan dekat dengan Anda.'}
+					</DialogDescription>
+				</DialogHeader>
+				{!empty && (
+					<p className="rounded-xl bg-muted/50 py-3 text-center text-2xl font-bold tabular-nums tracking-wide text-foreground">
+						{formatPhone(phone)}
+					</p>
+				)}
+				{problem && !empty && (
+					<p
+						className={cn(
+							'text-[13px] leading-snug',
+							problem.level === 'error' ? 'text-destructive' : 'text-warning',
+						)}
+					>
+						{problem.message}
+					</p>
+				)}
+				<DialogFooter className="gap-2 sm:gap-2">
+					<Button type="button" variant="outline" className="h-11 rounded-xl" onClick={onEdit}>
+						{empty ? 'Isi nomor' : 'Ubah nomor'}
+					</Button>
+					{!blocked && (
+						<Button type="button" className="h-11 rounded-xl" onClick={onConfirm}>
+							{empty ? 'Kirim tanpa nomor' : 'Benar, kirim laporan'}
+						</Button>
+					)}
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
+	);
+}

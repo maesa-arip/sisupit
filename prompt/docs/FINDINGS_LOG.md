@@ -5481,3 +5481,28 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   terlihat (server mengalihkan ke dasbor bila sudah terverifikasi).
 - **Penjaga:** `EmailVerificationTest` (+3: tamu bisa verifikasi, hash salah/tanpa tanda tangan 403, tautan Google
   memverifikasi). **Belum diuji di iPhone.**
+
+### #245 — Nomor pelapor tak bisa ditelepon padahal kejadian nyata: panggilan Sisupit + cek nomor (FIXED tahap 1, lokal 2026-11-15, ADA MIGRASI, belum deploy, TASK_90)
+
+- **Permintaan user:** OTP nomor HP via WhatsApp/SMS dibahas lalu DITUNDA (penyedia berbayar atau gateway tak resmi yang
+  bisa diblokir; OTP tak menjamin telepon diangkat; lapor tamu tetap tanpa OTP - TASK_77). Yang disetujui: "kerjakan
+  tahap 1 dan cek nomor sebelum kirim".
+- **Fitur:** Pusat Komando menelepon pelapor lewat internet (WebRTC) dari detail laporan ("Telepon via Sisupit" di panel
+  verifikasi & baris "Panggilan Sisupit" + riwayat 10 panggilan). Berdering di aplikasi/halaman status yang terbuka; akun
+  dengan aplikasi tertutup mendapat push `type: report_status`. Tabel `reporter_calls`, siaran `ReporterCallChanged` =
+  aba-aba saja, SDP lewat HTTP bergerbang peserta, tamu lewat channel publik bernama rahasia + URL bertanda tangan.
+  Form lapor menampilkan & mengonfirmasi nomor yang akan ditelepon (dialog sekali sebelum kirim, akun bisa ubah nomor
+  untuk laporan itu saja). Rincian: `prompt/tasks/TASK_90_panggilan_sisupit_cek_nomor.md`.
+- **Prasyarat produksi:** coturn di VPS + `TURN_URLS`/`TURN_SECRET` (`deploy/coturn.md`) - tanpa TURN sebagian panggilan
+  lewat data seluler gagal tersambung.
+- **Penjaga:** `ReporterCallTest` (12 test). **Belum diuji di dua perangkat nyata.**
+
+### #246 — Panggilan Sisupit: APK & aplikasi iOS belum bisa memakai mikrofon (OPEN, tahap 2)
+
+- **Ditemukan saat TASK_90:** proyek `SisupitWebView` tak punya izin `RECORD_AUDIO` maupun `WebChromeClient.onPermissionRequest`,
+  jadi `getUserMedia` di APK 1.1.9 selalu gagal. Pelapor yang memakai APK melihat dering, tapi Terima berujung kartu
+  "Mikrofon tidak bisa dipakai - Telepon Balik Damkar" (alasan `no_mic` tercatat di riwayat panggilan admin). Aplikasi
+  iOS (WKWebView) butuh `NSMicrophoneUsageDescription` - belum diperiksa.
+- **Rencana:** APK 1.2.0 - `RECORD_AUDIO` + `MODIFY_AUDIO_SETTINGS`, minta izin runtime saat `onPermissionRequest` meminta
+  `RESOURCE_AUDIO_CAPTURE`, grant hanya untuk origin *.sisupit.com; sekalian dering layar penuh saat HP terkunci
+  (tahap 2, butuh deklarasi Play Console). Browser HP & komputer tidak terpengaruh.
