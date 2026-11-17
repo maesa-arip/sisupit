@@ -8,9 +8,10 @@ set -e
 APP=${1:?usage: coturn-setup.sh <dir-aplikasi>}
 IP=31.97.110.62
 
-if ! command -v turnserver >/dev/null; then
-  apt-get update -q && DEBIAN_FRONTEND=noninteractive apt-get install -y -q coturn
-fi
+# coturn jalan sebagai container Docker (--network host), BUKAN paket apt: di VPS ini `apt-get install
+# coturn` ikut menarik upgrade mysql-server-8.0 (DB prod/staging/dev) lewat libmysqlclient21 (2026-11-17).
+IMAGE=coturn/coturn:4.6.2
+command -v docker >/dev/null || { echo "docker tidak ada - batal (jangan pasang coturn lewat apt)"; exit 1; }
 
 RAHASIA=$(grep -s '^static-auth-secret=' /etc/turnserver.conf | cut -d= -f2-)
 [ -z "$RAHASIA" ] && RAHASIA=$(openssl rand -hex 32)
@@ -32,11 +33,13 @@ denied-peer-ip=127.0.0.0-127.255.255.255
 no-cli
 total-quota=50
 user-quota=4
-log-file=/var/log/turnserver.log
+log-file=stdout
 simple-log
 CONF
-[ -f /etc/default/coturn ] && sed -i 's/^#\?TURNSERVER_ENABLED=.*/TURNSERVER_ENABLED=1/' /etc/default/coturn
-systemctl enable -q coturn && systemctl restart coturn
+chmod 644 /etc/turnserver.conf
+docker rm -f coturn >/dev/null 2>&1 || true
+docker run -d --name coturn --restart unless-stopped --network host   -v /etc/turnserver.conf:/etc/coturn/turnserver.conf:ro "$IMAGE" -c /etc/coturn/turnserver.conf >/dev/null
+sleep 3
 
 ufw allow 3478/udp >/dev/null; ufw allow 3478/tcp >/dev/null; ufw allow 49160:49200/udp >/dev/null
 
@@ -49,6 +52,6 @@ cd "$APP"
 # Cache config hanya bila memang sedang di-cache (pola deploy-env.sh).
 [ -f bootstrap/cache/config.php ] && sudo -u www-data php artisan config:cache >/dev/null && echo "config:cache ok"
 
-echo "coturn: $(systemctl is-active coturn)"
+echo "coturn: $(docker inspect -f {{.State.Status}} coturn)"
 ss -lnup | grep -q ':3478 ' && echo "UDP 3478 terbuka" || echo "PERINGATAN: UDP 3478 tidak terdengar"
 grep -E '^(WEBRTC_STUN_URLS|TURN_URLS)=' "$APP/.env"

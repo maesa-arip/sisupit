@@ -12,6 +12,8 @@ hanya hitungan jari, jadi VPS 1 inti cukup. Semua komponen gratis (coturn open s
 
 `bash deploy/coturn-setup.sh /var/www/sisupit-staging` - memasang coturn, membuka port di ufw, dan mengisi
 `WEBRTC_STUN_URLS`/`TURN_URLS`/`TURN_SECRET` di `.env` environment itu memakai IP VPS `31.97.110.62` (tanpa DNS baru).
+coturn jalan sebagai container Docker `coturn/coturn:4.6.2` (`--network host`), BUKAN paket apt: di VPS ini
+`apt-get install coturn` ikut menarik upgrade `mysql-server-8.0` (database ketiga environment) - JANGAN pakai apt.
 Aman diulang; untuk prod jalankan lagi dengan `/var/www/sisupit` (rahasia yang sama dipakai ulang). Bila Hostinger
 memasang firewall di panel (VPS > Keamanan > Firewall), buka juga UDP 3478 & 49160-49200 dan TCP 3478 di sana.
 
