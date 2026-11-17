@@ -1,6 +1,6 @@
 # Checklist Aplikasi WebView (umum, untuk proyek mana pun)
 
-Disarikan dari bug nyata wrapper Sisupit (Android 1.1.2 s/d 1.1.9, iOS build 1-3, 2026-08 s/d 2026-11).
+Disarikan dari bug nyata wrapper Sisupit (Android 1.1.2 s/d 1.2.0, iOS build 1-3, 2026-08 s/d 2026-11).
 Berkas ini **tidak** memuat nama, endpoint, atau payload khusus Sisupit - untuk itu lihat `KONTRAK.md`,
 `PERILAKU_WEBVIEW.md`, `ATURAN_NOTIFIKASI.md`. Nomor `#` merujuk `prompt/docs/FINDINGS_LOG.md` repo ini
 bila butuh cerita lengkapnya.
@@ -55,6 +55,14 @@ fisik** (emulator/Simulator dan browser desktop tidak memperlihatkan separuh bug
       Sediakan tombol ke Setelan notifikasi + callback saat app kembali ke depan.
 - [ ] **Jangan pakai input tanggal/jam native** (`type=date|time|datetime-local`): di WebView ia membuka
       dialog native yang bisa menutup aplikasi (#108). Pakai pemilih JS murni.
+- [ ] **Mikrofon/kamera untuk `getUserMedia` (WebRTC) tidak otomatis ada di WebView** (#246). Android: izin
+      `RECORD_AUDIO` (+ `MODIFY_AUDIO_SETTINGS`) DAN `WebChromeClient.onPermissionRequest` yang `grant()` HANYA
+      sumber yang diminta & HANYA origin sendiri (selain itu `deny()`); izin OS diminta saat itu, simpan
+      `PermissionRequest` sampai dijawab. Tanpa handler = `getUserMedia` selalu ditolak walau izin OS ada.
+      iOS: `NSMicrophoneUsageDescription` + `WKUIDelegate requestMediaCapturePermissionFor` (iOS 15+).
+- [ ] **Suara yang diputar tanpa ketukan** (nada dering, suara lawan bicara dari `ontrack`) bisu di WebView
+      bawaan. Android `setMediaPlaybackRequiresUserGesture(false)`; iOS
+      `mediaTypesRequiringUserActionForPlayback = []` + `allowsInlineMediaPlayback = true`.
 
 ## D. Tampilan & interaksi
 

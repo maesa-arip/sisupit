@@ -5508,7 +5508,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   ufw 3478/udp+tcp & 49160-49200/udp dibuka; uji STUN dari luar OK (firewall Hostinger tak memblokir). `.env` STAGING berisi
   WEBRTC_STUN_URLS/TURN_URLS/TURN_SECRET (IP 31.97.110.62). Prod belum.
 
-### #246 — Panggilan Sisupit: APK & aplikasi iOS belum bisa memakai mikrofon (OPEN, tahap 2)
+### #246 — Panggilan Sisupit: APK & aplikasi iOS belum bisa memakai mikrofon (OPEN - Android 1.2.0 dibangun, iOS belum)
 
 - **Ditemukan saat TASK_90:** proyek `SisupitWebView` tak punya izin `RECORD_AUDIO` maupun `WebChromeClient.onPermissionRequest`,
   jadi `getUserMedia` di APK 1.1.9 selalu gagal. Pelapor yang memakai APK melihat dering, tapi Terima berujung kartu
@@ -5517,3 +5517,11 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Rencana:** APK 1.2.0 - `RECORD_AUDIO` + `MODIFY_AUDIO_SETTINGS`, minta izin runtime saat `onPermissionRequest` meminta
   `RESOURCE_AUDIO_CAPTURE`, grant hanya untuk origin *.sisupit.com; sekalian dering layar penuh saat HP terkunci
   (tahap 2, butuh deklarasi Play Console). Browser HP & komputer tidak terpengaruh.
+- **2026-11-17 Android 1.2.0/vc12 (dibangun, belum diunggah/diuji di HP):** manifest `RECORD_AUDIO` + `MODIFY_AUDIO_SETTINGS`
+  (+ `uses-feature microphone required=false`); `onPermissionRequest` grant HANYA `RESOURCE_AUDIO_CAPTURE` untuk origin
+  `isOwnSiteUrl` (aturan #197), lainnya `deny()`, izin OS diminta (kode 4) dan permintaan disimpan sampai dijawab;
+  `setMediaPlaybackRequiresUserGesture(false)` agar dering WebAudio & suara lawan (`ontrack`) tak bisu. Tanpa perubahan web.
+  Dering layar penuh saat terkunci DITUNDA (USE_FULL_SCREEN_INTENT + deklarasi Play). `SisupitWebView/app/release/Sisupit-1.2.0.{aab,apk}`
+  (AAB md5 c86e72ae, APK md5 18f721ba, kunci unggah CA:6F:A8); cadangan `*.bak-v119`.
+- **iOS:** to-do di `mobile/CHANGELOG_ANDROID.md` entri 1.2.0 + KONTRAK §6 + PERILAKU #16-#17 (`NSMicrophoneUsageDescription`,
+  `requestMediaCapturePermissionFor`, `mediaTypesRequiringUserActionForPlayback = []`). Tutup #246 setelah keduanya teruji di HP.

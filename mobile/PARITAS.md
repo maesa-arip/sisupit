@@ -3,7 +3,9 @@
 Kolom iOS diisi oleh sisi iOS (`✅` selesai & diuji di perangkat, `🟡` ada tapi belum diuji,
 `❌` belum, `n/a` tak berlaku). Perbarui setiap rilis.
 
-Terakhir diperbarui: 2026-11-17 (sesi iOS: koreksi pelacakan latar iOS = 🟡 build 2+, baris panggilan suara TASK_90). Sebelumnya 2026-11-02 (kolom Android dari APK 1.1.9/vc11 + web prod @`b36c3a55`; baris pelacakan latar,
+Terakhir diperbarui: 2026-11-17 (kolom Android dari APK 1.2.0/vc12 + web prod @`b20ef0a3`; baris mikrofon panggilan
+Sisupit, dering tanpa ketukan & push warga sekitar ditambah; sesi iOS: koreksi pelacakan latar iOS = 🟡 build 2+, baris panggilan suara TASK_90).
+Sebelumnya 2026-11-02 (APK 1.1.9/vc11; baris pelacakan latar,
 Apple, versi aplikasi & unduhan dari dialog ditambah 2026-11-02. Sebelumnya 2026-10-13: kolom iOS diisi sesi iOS 2026-10-13 — `🟡` = sudah di-port & diverifikasi di Simulator/log, belum diuji di perangkat fisik).
 
 | Fitur | Android | iOS | Rujukan |
@@ -40,10 +42,14 @@ Apple, versi aplikasi & unduhan dari dialog ditambah 2026-11-02. Sebelumnya 2026
 | Keluar / Keluar dari semua perangkat → tak ada notifikasi | ✅ (web TASK_73) | 🟡 (web + token; belum diuji) | ATURAN_NOTIFIKASI §5 |
 | Profil > "Notifikasi di HP ini" status Aktif + tombol uji berbunyi | ✅ (web TASK_74) | 🟡 (status via #196 kini ada; tombol uji bunyi butuh device) | ATURAN_NOTIFIKASI §5b |
 | Pelacakan lokasi petugas saat layar terkunci (`startResponderTracking`/`stopResponderTracking`) | 🟡 1.1.9 (#210; belum terbukti di lapangan, #228) | 🟡 build 2+ (`ResponderTracker`: `CLLocationManager` + latar `location`, 5 dtk/10 m, cookie WKWebView + `X-XSRF-TOKEN`, berhenti stopped/401/403/404/3xx/8 jam; belum diuji di perangkat. Log prod #228 kemungkinan build 1) | KONTRAK §2.1 #7-#8 |
+| Mikrofon untuk "Telepon via Sisupit" (`getUserMedia` audio, hanya situs sendiri) | 🟡 1.2.0 (#246; belum diuji di HP) | 🟡 build 4 (lihat baris Panggilan suara Sisupit) | KONTRAK §6, PERILAKU #16 |
+| Nada dering & suara lawan bicara tanpa ketukan | 🟡 1.2.0 (`setMediaPlaybackRequiresUserGesture(false)`) | ? (`mediaTypesRequiringUserActionForPlayback = []`) | PERILAKU #17 |
+| Push `reporter_call` (Damkar menelepon) -> buka detail laporan | ✅ (`report_status`, tanpa kode baru) | ? (apns `time-sensitive` sudah dikirim server; uji deep-link) | KONTRAK §4.1, §4.3 |
+| Push `nearby_incident` (warga sekitar, TASK_89) -> `/kejadian/{id}` | ✅ (`report_status`, tanpa kode baru) | ? (apns `active`; uji deep-link) | KONTRAK §4.1, §4.3 |
 | Masuk dengan Apple (`signInWithApple` + 3 callback) | n/a (khusus App Store) | 🟡 build 3 (Guideline 4.8) | KONTRAK §2.1 #9, §2.2 |
 | Versi aplikasi terbaca server (UA `SisupitApp/<versi>`) | ❌ (#228, rilis berikut) | 🟡 build 4 (`SisupitApp/1.0.4`, terlihat di Simulator) | KONTRAK §1 |
 | Unduh dari dalam dialog (Ekspor Excel) tak dibatalkan tombol Kembali web | 🟡 (web #212, belum diuji di HP) | ? (uji WKDownload) | PERILAKU #5, #10 |
-| Panggilan suara Sisupit (WebRTC, `getUserMedia({audio})`, TASK_90) | ❌ 1.1.9 tanpa `RECORD_AUDIO`/`onPermissionRequest` | 🟡 build 4 (`NSMicrophoneUsageDescription` + `requestMediaCapturePermissionFor` host sendiri; tanpa kunci itu build ≤ 3 crash saat mikrofon diakses). CallKit = tahap 3 | KONTRAK §4.1 `reporter_call` |
+| Panggilan suara Sisupit (WebRTC, `getUserMedia({audio})`, TASK_90) | 🟡 1.2.0 (#246, baris Mikrofon; 1.1.9 tanpa `RECORD_AUDIO`) | 🟡 build 4 (`NSMicrophoneUsageDescription` + `requestMediaCapturePermissionFor` host sendiri; tanpa kunci itu build ≤ 3 crash saat mikrofon diakses). CallKit = tahap 3 | KONTRAK §4.1 `reporter_call` |
 | Splash merah + petir | ✅ | 🟡 (`LaunchScreen` + lanjutan splash; terlihat di Simulator) | PERILAKU #13 |
 
 ## Celah di SERVER yang merugikan iOS

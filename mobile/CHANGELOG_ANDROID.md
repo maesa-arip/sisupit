@@ -8,6 +8,45 @@ iOS** sebagai daftar centang. Sisi iOS mencentang (`[x]`) saat sudah di-port.
 
 ---
 
+## 1.2.0 / vc12 - 2026-11-17 - Mikrofon untuk "Telepon via Sisupit" (#246, TASK_90)
+
+Web prod @`b20ef0a3` (2026-11-17) punya panggilan suara WebRTC Pusat Komando -> pelapor: admin menekan "Telepon via
+Sisupit" di detail laporan, HP pelapor berdering di halaman yang terbuka (layar `CallOverlay` dari shared prop
+`incomingCall` / channel Reverb), bila app tertutup lewat push `report_status` event `reporter_call`. Terima =
+`getUserMedia({audio})`. APK 1.1.9 tak punya izin mikrofon, jadi Terima selalu berujung kartu "Mikrofon tidak bisa
+dipakai - Telepon Balik Damkar" (alasan `no_mic` di riwayat panggilan admin).
+
+Android 1.2.0:
+- Manifest `RECORD_AUDIO` + `MODIFY_AUDIO_SETTINGS`, `uses-feature android.hardware.microphone required=false`.
+- `WebChromeClient.onPermissionRequest`: hanya `RESOURCE_AUDIO_CAPTURE`, hanya origin situs sendiri (`isOwnSiteUrl`,
+  aturan #197) -> `grant`; sumber/origin lain `deny()`. Izin OS belum ada -> dialog izin (kode 4), permintaan
+  disimpan lalu dijawab di `onRequestPermissionsResult`; `onPermissionRequestCanceled` membersihkannya.
+- `setMediaPlaybackRequiresUserGesture(false)`: dering WebAudio & suara lawan (`ontrack`) tak lagi butuh ketukan.
+- Tanpa perubahan web, payload FCM, atau jembatan. Dering layar penuh saat HP terkunci BELUM (butuh
+  `USE_FULL_SCREEN_INTENT` + deklarasi Play) - sampai itu, panggilan saat app tertutup = notifikasi biasa.
+- `app/release/Sisupit-1.2.0.{aab,apk}` (AAB md5 c86e72ae..., APK md5 18f721ba...), kunci unggah SHA-1 CA:6F:A8.
+  Play Console: izin mikrofon tak butuh formulir deklarasi khusus, tapi Data safety perlu "Audio - rekaman suara"
+  bila dianggap dikumpulkan (audio hanya lewat WebRTC langsung, tak disimpan server). Belum diunggah/diuji di HP.
+
+Juga sejak entri sebelumnya (web saja, tanpa kode native):
+- **TASK_89 (prod @794924c1):** warga sekitar dapat push BIASA sesudah laporan diverifikasi - `report_status` event
+  `nearby_incident`, `action_url` = `/kejadian/{id}` (halaman terbatas), iOS `active`, `thread-id: nearby-incident`.
+- **#227 kini TERDEPLOY** (batas kirim posisi web 5 dtk/10 m).
+
+**Yang harus dilakukan iOS**
+- [ ] `NSMicrophoneUsageDescription` di Info.plist (mis. "Mikrofon dipakai untuk panggilan suara dari Damkar terkait
+      laporan Anda."). Tanpa kunci ini mikrofon tak bisa dipakai sama sekali (WebKit menolak/akses dihentikan sistem).
+- [ ] `WKUIDelegate` `webView(_:requestMediaCapturePermissionFor:initiatedByFrame:type:decisionHandler:)` (iOS 15+):
+      `.grant` bila `origin.host` = situs sendiri/subdomain dan `type == .microphone`, selain itu `.deny`.
+- [ ] `WKWebViewConfiguration`: `allowsInlineMediaPlayback = true`, `mediaTypesRequiringUserActionForPlayback = []`
+      (sebelum WKWebView dibuat) - supaya nada dering & suara lawan bicara berbunyi.
+- [ ] Push `reporter_call` sudah ber-`apns` (`time-sensitive`, `sound: default`, `thread-id: reporter-call`) - cukup
+      deep-link `action_url` biasa. Batas yang diketahui: tanpa CallKit/VoIP push, panggilan saat app tertutup =
+      notifikasi biasa, dan audio WKWebView putus bila app ke latar selama panggilan.
+- [ ] Uji (staging): akun warga di iPhone buat laporan -> admin "Telepon via Sisupit" -> dering -> Terima -> dua
+      arah terdengar; tolak izin mikrofon -> kartu "Telepon Balik Damkar".
+- [ ] Uji push `nearby_incident` (TASK_89): ketuk -> `/kejadian/{id}`.
+
 ## (web saja, APK tetap 1.1.9) - 2026-10-15 s/d 11-01 - unduhan dari dialog, mode gelap, batas kirim posisi (#212, #223, #227, #228)
 
 Tak ada perubahan kode APK.

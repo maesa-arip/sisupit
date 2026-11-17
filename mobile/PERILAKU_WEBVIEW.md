@@ -1,7 +1,7 @@
 # Perilaku Native yang Dipasang Android (WAJIB ditiru iOS)
 
 Setiap butir di bawah lahir dari bug nyata di Android. Rujukan = `MainActivity.java` +
-`ResponderTrackingService.java` APK 1.1.9/vc11. Versi umum (tanpa hal khusus Sisupit) untuk aplikasi WebView lain:
+`ResponderTrackingService.java` APK 1.2.0/vc12. Versi umum (tanpa hal khusus Sisupit) untuk aplikasi WebView lain:
 [`CHECKLIST_WEBVIEW_UMUM.md`](CHECKLIST_WEBVIEW_UMUM.md). Kolom "iOS" adalah padanan yang disarankan.
 
 | # | Perilaku | Android (cara & alasan) | iOS (padanan) |
@@ -21,6 +21,8 @@ Setiap butir di bawah lahir dari bug nyata di Android. Rujukan = `MainActivity.j
 | 13 | **Splash** | `SplashActivity` 2000 ms, latar merah `#E0241B` + petir putih; splash sistem Android 12 dibuat polos agar logo tak berkedip dua kali | `LaunchScreen.storyboard` latar `#E0241B` + petir putih |
 | 14 | **Login Google native** | Credential Manager, `setFilterByAuthorizedAccounts(false)`, `serverClientId` = Web Client ID (`74357247971-2f2h…`), project Firebase `sisupit-c1e5a`. Galat **tidak ditelan** (Toast + `onGoogleSignInError`) | `GIDSignIn` dengan `clientID` = iOS Client ID dan `serverClientID` = Web Client ID; kirim `user.idToken.tokenString`. Galat → `onGoogleSignInError` |
 | 15 | **Lokasi tetap terkirim saat layar terkunci** (#210) | `ResponderTrackingService` (FGS tipe `location`, notifikasi tetap, tanpa `ACCESS_BACKGROUND_LOCATION` karena dimulai saat terlihat), POST sendiri dengan cookie sesi + `X-XSRF-TOKEN`, 5 dtk/10 m, berhenti pada `{"status":"stopped"}`/401/403/404/3xx/8 jam. WebView sendiri menghentikan `watchPosition` saat layar mati | `CLLocationManager` + `allowsBackgroundLocationUpdates` + UIBackgroundModes `location`, cookie dari `WKHTTPCookieStore`. **Ada sejak build 2** (`Location/ResponderTracker.swift`), belum diuji di perangkat |
+| 16 | **Mikrofon untuk panggilan Sisupit** (#246, TASK_90) | Manifest `RECORD_AUDIO` + `MODIFY_AUDIO_SETTINGS` (+ `uses-feature microphone required=false`). `onPermissionRequest`: hanya `RESOURCE_AUDIO_CAPTURE` dan hanya origin `isOwnSiteUrl` (https + host BASE_URL/subdomain) yang di-`grant`; lainnya `deny()`. Izin OS belum ada -> `requestPermissions` (kode 4), `PermissionRequest` disimpan lalu grant/deny di `onRequestPermissionsResult`. Ditolak = web menampilkan "Telepon Balik Damkar" (`no_mic`) | `NSMicrophoneUsageDescription` di Info.plist + `WKUIDelegate.webView(_:requestMediaCapturePermissionFor:initiatedByFrame:type:decisionHandler:)` (iOS 15+): `.grant` bila host = situs sendiri & `type == .microphone`, selain itu `.deny`. Tanpa delegate WKWebView bertanya tiap panggilan. **Ada sejak build 4** |
+| 17 | **Nada dering & suara lawan bicara tanpa ketukan** (#246) | `setMediaPlaybackRequiresUserGesture(false)` - dering WebAudio berbunyi sebelum Terima diketuk, suara lawan dari `ontrack` (asinkron). Dengan bawaan `true` keduanya bisu | `configuration.allowsInlineMediaPlayback = true` + `mediaTypesRequiringUserActionForPlayback = []` (diset SEBELUM WKWebView dibuat) |
 
 ## Bug yang diperbaiki di WEB tapi hanya muncul di WebView
 

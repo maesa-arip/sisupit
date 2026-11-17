@@ -5,7 +5,8 @@ Diverifikasi langsung dari kode pada **2026-10-06**: repo web @`ee72b990` (= pro
 menunjuk repo web kecuali disebut lain.
 Pembaruan sesudahnya (tanpa verifikasi ulang penuh): metode #5-#6 APK 1.1.8/vc10 (#196, 2026-10-08);
 judul sirine "🚨 Laporan Darurat" (#203, 2026-10-13); metode #7-#8 APK 1.1.9/vc11 (#210, 2026-10-15);
-metode #9 iOS build 3 (Masuk dengan Apple); batas kirim web #227 (2026-11-01, lokal); web prod kini @`b36c3a55`.
+metode #9 iOS build 3 (Masuk dengan Apple); batas kirim web #227 (2026-11-01); push `nearby_incident` (TASK_89) &
+`reporter_call` (TASK_90) + izin mikrofon §6 APK 1.2.0/vc12 (#246, 2026-11-17); web prod kini @`b20ef0a3`.
 
 ---
 
@@ -201,6 +202,8 @@ afconvert aset/suara/konfirmasi.wav konfirmasi.caf -d ima4 -f caff -v
 | `agency_dispatch`, `agency_confirmation` | ada | `time-sensitive` | `konfirmasi.caf` | `agency` |
 | `report_status` (ke pelapor) | ada (sejak #158) | `active` | `default` | `report-status` |
 | `report_status` / `triage_*` (ke admin lain, #209) | ada | `active` | `default` | `emergency` |
+| `report_status` / `nearby_incident` (ke warga sekitar, TASK_89) | ada | `active` | `default` | `nearby-incident` |
+| `report_status` / `reporter_call` (Damkar menelepon pelapor, TASK_90) | ada | `time-sensitive` | `default` | `reporter-call` |
 
 Semua yang punya `apns`: `apns-priority: 10`, `apns-push-type: alert`,
 `content-available: 1` (emergency juga `mutable-content: 1`).
@@ -234,3 +237,19 @@ iOS kelak memakai `UNNotificationCategory` dengan suara tetap.
 Untuk kelengkapan: SisupitDesktop (Electron, Pusat Komando) **tidak** memakai FCM; ia
 mendengar Reverb di channel privat `App.Models.User.{id}` lewat `via()` 'broadcast'.
 Perubahan payload FCM tidak memengaruhinya, tapi perubahan `toArray()` notifikasi iya.
+
+---
+
+## 6. Izin media WebView - mikrofon panggilan Sisupit (#246, TASK_90)
+
+Web (`resources/js/lib/reporter-call.js`) memanggil `navigator.mediaDevices.getUserMedia({ audio: {...} })` saat
+pelapor menekan Terima; gagal/ditolak -> `end(call, 'no_mic')` + kartu "Telepon Balik Damkar". Tidak ada metode
+jembatan - native cukup MENGIZINKAN, web tak perlu tahu platformnya. Dering memakai WebAudio dan suara lawan
+diputar `Audio().play()` dari `ontrack`, keduanya tanpa ketukan pengguna.
+
+| | Wajib |
+|---|---|
+| Android | `RECORD_AUDIO` + `MODIFY_AUDIO_SETTINGS`; `onPermissionRequest` grant HANYA `RESOURCE_AUDIO_CAPTURE` untuk origin https situs sendiri/subdomain, lainnya `deny()`; `setMediaPlaybackRequiresUserGesture(false)` (sejak 1.2.0) |
+| iOS | `NSMicrophoneUsageDescription`; `requestMediaCapturePermissionFor` `.grant` hanya host sendiri & `.microphone`; `allowsInlineMediaPlayback = true`, `mediaTypesRequiringUserActionForPlayback = []` |
+
+ICE/TURN (coturn) diurus server & web; native tak perlu konfigurasi jaringan apa pun.
