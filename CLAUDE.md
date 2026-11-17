@@ -214,7 +214,7 @@ Ulasan admin : (2026-11-13, TERDEPLOY PROD @8a5212a5, HTTPS terverifikasi) menu 
                 .leaflet-container di pull-to-refresh-lock.js + kunci Peta Pemantauan diperbesar); #242 form lapor: geser peta tak memindahkan
                 titik (marker draggable + ketuk, centerPin tak dipakai); #243 kerugian rentang rupiah, Excel AH=Min AI=Maks (kolom geser, akhir AN);
                 #244 tautan verifikasi email sah tanpa login (iPhone Mail -> Safari) + login Google/Apple menandai email terverifikasi. Belum diuji di HP.
-TASK_90/#245 : (2026-11-15; STAGING @2ea02e17 2026-11-17 TERUJI: Wi-Fi sama & data seluler OK, coturn Docker aktif; prod belum, ADA MIGRASI reporter_calls) panggilan suara WebRTC Pusat Komando -> pelapor
+TASK_90/#245 : (2026-11-15; TERDEPLOY PROD & STAGING @b20ef0a3 2026-11-17, MIGRASI reporter_calls Ran, HTTPS terverifikasi; teruji staging Wi-Fi & data seluler; coturn Docker, .env TURN prod & staging) panggilan suara WebRTC Pusat Komando -> pelapor
                 ("Telepon via Sisupit" di detail laporan; berdering di aplikasi/halaman status tamu yang terbuka, push report_status bila tertutup)
                 + cek nomor sebelum kirim (dialog konfirmasi, akun bisa ubah nomor per laporan). OTP WA DITUNDA. Prod butuh coturn (deploy/coturn.md,
                 TURN_URLS/TURN_SECRET). #246 OPEN: APK 1.1.9 tanpa izin mikrofon -> "Telepon Balik Damkar". Penjaga ReporterCallTest. Belum diuji di HP.
@@ -233,7 +233,7 @@ Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174 #188(satelit).
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
 Test         : 989 passed / 7721 assertions (2026-11-17, TASK_90 fix SDP).
-Lingkungan   : PROD @8a5212a5 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#240 + ulasan superadmin + Masuk dengan Apple) | DEV @672b6a10 (dashboard baru) | STAGING @42ef296b (= prod, video demo
+Lingkungan   : PROD @b20ef0a3 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#245 + ulasan superadmin + Masuk dengan Apple) | DEV @672b6a10 (dashboard baru) | STAGING @b20ef0a3 (= prod; dulu video demo
                 TASK_80; data uji petugas.uji@sisupit.test + LP-2026-00227). Dev & staging: data salinan prod, TANPA basic auth sejak 2026-10-18 (PENGECUALIAN #7), sandi "password".
 ```
 
