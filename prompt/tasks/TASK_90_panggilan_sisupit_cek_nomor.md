@@ -103,6 +103,9 @@ Deploy staging @300047db (7 migrasi). Uji Chrome laptop -> Chrome HP (Wi-Fi sama
 tersambung" langsung. Root cause: `TrimStrings` memotong CRLF ujung SDP (Chrome menolak). Fix di `bootstrap/app.php` +
 helper `sdp()` klien; test baru merah sebelum fix, hijau sesudah.
 
+Sesudah fix + coturn Docker di VPS (2026-11-17): uji ulang Chrome laptop -> Chrome HP BERHASIL, baik Wi-Fi sama maupun
+HP memakai data seluler (konfirmasi user). Sisa: APK (#246), uji tamu, rilis prod (merge main + deploy + coturn-setup.sh prod).
+
 ## 7. Rollback
 
 Revert commit TASK_90; migrasi `reporter_calls` boleh dibiarkan (tak dibaca kode lama) atau `migrate:rollback --step=1`.

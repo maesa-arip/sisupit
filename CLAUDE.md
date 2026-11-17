@@ -214,7 +214,7 @@ Ulasan admin : (2026-11-13, TERDEPLOY PROD @8a5212a5, HTTPS terverifikasi) menu 
                 .leaflet-container di pull-to-refresh-lock.js + kunci Peta Pemantauan diperbesar); #242 form lapor: geser peta tak memindahkan
                 titik (marker draggable + ketuk, centerPin tak dipakai); #243 kerugian rentang rupiah, Excel AH=Min AI=Maks (kolom geser, akhir AN);
                 #244 tautan verifikasi email sah tanpa login (iPhone Mail -> Safari) + login Google/Apple menandai email terverifikasi. Belum diuji di HP.
-TASK_90/#245 : (2026-11-15, lokal - belum commit/deploy, ADA MIGRASI reporter_calls) panggilan suara WebRTC Pusat Komando -> pelapor
+TASK_90/#245 : (2026-11-15; STAGING @2ea02e17 2026-11-17 TERUJI: Wi-Fi sama & data seluler OK, coturn Docker aktif; prod belum, ADA MIGRASI reporter_calls) panggilan suara WebRTC Pusat Komando -> pelapor
                 ("Telepon via Sisupit" di detail laporan; berdering di aplikasi/halaman status tamu yang terbuka, push report_status bila tertutup)
                 + cek nomor sebelum kirim (dialog konfirmasi, akun bisa ubah nomor per laporan). OTP WA DITUNDA. Prod butuh coturn (deploy/coturn.md,
                 TURN_URLS/TURN_SECRET). #246 OPEN: APK 1.1.9 tanpa izin mikrofon -> "Telepon Balik Damkar". Penjaga ReporterCallTest. Belum diuji di HP.
