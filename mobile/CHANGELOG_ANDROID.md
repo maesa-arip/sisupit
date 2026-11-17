@@ -32,8 +32,9 @@ Tak ada perubahan kode APK.
 - [ ] Uji: ganti tema iPhone gelap/terang saat app terbuka -> halaman & peta ikut tanpa muat ulang.
 
 **Yang harus dilakukan Android (rilis berikut)**
-- [ ] Usulan #228: tambah versi ke UA (`SisupitApp/1.1.10`) di WebView DAN `ResponderTrackingService`, supaya log
-      server bisa membedakan versi & sumber kiriman (iOS juga). Belum disepakati - konfirmasi user dulu.
+- [ ] #228 (DISEPAKATI 2026-11-17, KONTRAK §1): tambah versi ke UA (`SisupitApp/1.1.10`) di WebView DAN
+      `ResponderTrackingService`, supaya log server bisa membedakan versi & sumber kiriman. iOS sudah sejak build 4
+      (`SisupitApp/1.0.4`).
 
 ## 1.1.9 / vc11 - 2026-10-15 - Lokasi petugas tetap terkirim saat layar terkunci (#210, TASK_80)
 

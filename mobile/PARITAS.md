@@ -41,7 +41,7 @@ Apple, versi aplikasi & unduhan dari dialog ditambah 2026-11-02. Sebelumnya 2026
 | Profil > "Notifikasi di HP ini" status Aktif + tombol uji berbunyi | ✅ (web TASK_74) | 🟡 (status via #196 kini ada; tombol uji bunyi butuh device) | ATURAN_NOTIFIKASI §5b |
 | Pelacakan lokasi petugas saat layar terkunci (`startResponderTracking`/`stopResponderTracking`) | 🟡 1.1.9 (#210; belum terbukti di lapangan, #228) | 🟡 build 2+ (`ResponderTracker`: `CLLocationManager` + latar `location`, 5 dtk/10 m, cookie WKWebView + `X-XSRF-TOKEN`, berhenti stopped/401/403/404/3xx/8 jam; belum diuji di perangkat. Log prod #228 kemungkinan build 1) | KONTRAK §2.1 #7-#8 |
 | Masuk dengan Apple (`signInWithApple` + 3 callback) | n/a (khusus App Store) | 🟡 build 3 (Guideline 4.8) | KONTRAK §2.1 #9, §2.2 |
-| Versi aplikasi terbaca server (UA/token) | ❌ (#228) | ❌ (#228) | CHANGELOG web 10-15 s/d 11-01 |
+| Versi aplikasi terbaca server (UA `SisupitApp/<versi>`) | ❌ (#228, rilis berikut) | 🟡 build 4 (`SisupitApp/1.0.4`, terlihat di Simulator) | KONTRAK §1 |
 | Unduh dari dalam dialog (Ekspor Excel) tak dibatalkan tombol Kembali web | 🟡 (web #212, belum diuji di HP) | ? (uji WKDownload) | PERILAKU #5, #10 |
 | Panggilan suara Sisupit (WebRTC, `getUserMedia({audio})`, TASK_90) | ❌ 1.1.9 tanpa `RECORD_AUDIO`/`onPermissionRequest` | 🟡 build 4 (`NSMicrophoneUsageDescription` + `requestMediaCapturePermissionFor` host sendiri; tanpa kunci itu build ≤ 3 crash saat mikrofon diakses). CallKit = tahap 3 | KONTRAK §4.1 `reporter_call` |
 | Splash merah + petir | ✅ | 🟡 (`LaunchScreen` + lanjutan splash; terlihat di Simulator) | PERILAKU #13 |

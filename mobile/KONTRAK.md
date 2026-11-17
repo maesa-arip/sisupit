@@ -11,12 +11,16 @@ metode #9 iOS build 3 (Masuk dengan Apple); batas kirim web #227 (2026-11-01, lo
 
 ## 1. User-Agent - penanda "ini aplikasi, bukan browser"
 
-UA WebView **wajib mengandung token `SisupitApp`**.
+UA WebView **wajib mengandung token `SisupitApp`**, sejak #228 diikuti nomor versi: **`SisupitApp/<versi>`**
+(disepakati 2026-11-17). Semua pembaca di bawah memakai sub-string (`str_contains` / `/SisupitApp/i`), jadi
+`SisupitApp` polos (app lama) dan `SisupitApp/1.0.4` sama-sama dikenali. Versi dibaca server dengan
+`/SisupitApp\/(\S+)/` - perlakukan sebagai label (bukan dibandingkan lintas platform); platform tetap dari
+`iPhone|iPad|iPod|Macintosh`. Tanpa `/...` = Android ≤ 1.1.9 atau iOS ≤ build 3.
 
 | | Cara |
 |---|---|
-| Android | UA bawaan, buang `"; wv"` (Google memblokir login dari WebView bertanda itu), lalu tambah `" SisupitApp"` |
-| iOS | UA bawaan + `" SisupitApp"` (mis. `configuration.applicationNameForUserAgent = "SisupitApp"`, verifikasi hasilnya lewat `navigator.userAgent`) |
+| Android | UA bawaan, buang `"; wv"` (Google memblokir login dari WebView bertanda itu), lalu tambah `" SisupitApp/" + versionName` (mis. `SisupitApp/1.1.10`). **`ResponderTrackingService` wajib memakai UA yang sama** - belum dipasang (rilis berikut) |
+| iOS | UA bawaan + `" SisupitApp/<CFBundleShortVersionString>.<CFBundleVersion>"`, mis. `SisupitApp/1.0.4` = versi 1.0 build 4 (segmen terakhir selalu nomor build). Sejak build 4 (`Konfigurasi.tokenUserAgentBerversi`, `customUserAgent`); `ResponderTracker` ikut memakai UA itu. Diverifikasi di Simulator lewat `navigator.userAgent` |
 
 Yang membacanya:
 
