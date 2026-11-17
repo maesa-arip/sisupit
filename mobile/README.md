@@ -58,7 +58,7 @@ Baca `CHANGELOG_ANDROID.md` dari atas sampai entri yang sudah di-port, kerjakan 
 ## Keadaan per 2026-11-17
 
 - APK **1.2.0 / versionCode 12** (2026-11-17, mikrofon untuk "Telepon via Sisupit" #246 + dering tanpa ketukan).
-  `app/release/Sisupit-1.2.0.{aab,apk}`, belum diunggah ke Play, belum diuji di HP. **iOS wajib
+  Dikirim ke review Play **Production** 2026-11-17 (full rollout, publik saat disetujui); belum diuji di HP. **iOS wajib
   `NSMicrophoneUsageDescription` sebelum build berikutnya** - tanpa itu pelapor iPhone tak bisa menerima panggilan Damkar
   (butir 1.2.0 di `CHANGELOG_ANDROID.md`, KONTRAK §6).
 - Web produksi @`b20ef0a3`: + TASK_89 (push warga sekitar `nearby_incident`), TASK_90 (panggilan WebRTC ke pelapor,

@@ -219,7 +219,7 @@ TASK_90/#245 : (2026-11-15; TERDEPLOY PROD & STAGING @b20ef0a3 2026-11-17, MIGRA
                 + cek nomor sebelum kirim (dialog konfirmasi, akun bisa ubah nomor per laporan). OTP WA DITUNDA. Prod butuh coturn (deploy/coturn.md,
                 TURN_URLS/TURN_SECRET). #246 OPEN: APK 1.1.9 tanpa izin mikrofon -> "Telepon Balik Damkar". Penjaga ReporterCallTest. Belum diuji di HP.
 #246         : (2026-11-17, lokal) APK 1.2.0/vc12 mikrofon panggilan Sisupit (RECORD_AUDIO, onPermissionRequest audio + situs sendiri saja,
-                media tanpa ketukan); app/release/Sisupit-1.2.0.{aab,apk}, belum diunggah/diuji. iOS: to-do di mobile/ (CHANGELOG 1.2.0, KONTRAK §6).
+                media tanpa ketukan); AAB 12 (1.2.0) DIKIRIM KE REVIEW Play PRODUCTION (Indonesia, full rollout 100%, managed publishing off = publik saat disetujui) 2026-11-17; 0 perangkat hilang. Belum diuji di HP. iOS: to-do di mobile/ (CHANGELOG 1.2.0, KONTRAK §6).
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
                 kolom approved_at tetap. #178 i18n TERDEPLOY prod @dde8c6a4; #179 (ikon, paginasi PaginationLinks, email).
                 #180 terjemahan bawaan Laravel dari paket laravel-lang/common (DEV) TERDEPLOY prod @9bf7b103; paginasi tetap versi #178 -

@@ -26,7 +26,7 @@ Android 1.2.0:
   `USE_FULL_SCREEN_INTENT` + deklarasi Play) - sampai itu, panggilan saat app tertutup = notifikasi biasa.
 - `app/release/Sisupit-1.2.0.{aab,apk}` (AAB md5 c86e72ae..., APK md5 18f721ba...), kunci unggah SHA-1 CA:6F:A8.
   Play Console: izin mikrofon tak butuh formulir deklarasi khusus, tapi Data safety perlu "Audio - rekaman suara"
-  bila dianggap dikumpulkan (audio hanya lewat WebRTC langsung, tak disimpan server). Belum diunggah/diuji di HP.
+  bila dianggap dikumpulkan (audio hanya lewat WebRTC langsung, tak disimpan server). AAB 12 (1.2.0) DIKIRIM KE REVIEW Play PRODUCTION (Indonesia, full rollout 100%, managed publishing off = publik saat disetujui) 2026-11-17; 0 perangkat hilang. Belum diuji di HP.
 
 Juga sejak entri sebelumnya (web saja, tanpa kode native):
 - **TASK_89 (prod @794924c1):** warga sekitar dapat push BIASA sesudah laporan diverifikasi - `report_status` event

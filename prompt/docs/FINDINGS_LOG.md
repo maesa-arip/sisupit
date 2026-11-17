@@ -5522,6 +5522,6 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   `isOwnSiteUrl` (aturan #197), lainnya `deny()`, izin OS diminta (kode 4) dan permintaan disimpan sampai dijawab;
   `setMediaPlaybackRequiresUserGesture(false)` agar dering WebAudio & suara lawan (`ontrack`) tak bisu. Tanpa perubahan web.
   Dering layar penuh saat terkunci DITUNDA (USE_FULL_SCREEN_INTENT + deklarasi Play). `SisupitWebView/app/release/Sisupit-1.2.0.{aab,apk}`
-  (AAB md5 c86e72ae, APK md5 18f721ba, kunci unggah CA:6F:A8); cadangan `*.bak-v119`.
+  (AAB md5 c86e72ae, APK md5 18f721ba, kunci unggah CA:6F:A8); cadangan `*.bak-v119`. AAB 12 (1.2.0) DIKIRIM KE REVIEW Play PRODUCTION (Indonesia, full rollout 100%, managed publishing off = publik saat disetujui) 2026-11-17; 0 perangkat hilang.
 - **iOS:** to-do di `mobile/CHANGELOG_ANDROID.md` entri 1.2.0 + KONTRAK §6 + PERILAKU #16-#17 (`NSMicrophoneUsageDescription`,
   `requestMediaCapturePermissionFor`, `mediaTypesRequiringUserActionForPlayback = []`). Tutup #246 setelah keduanya teruji di HP.
