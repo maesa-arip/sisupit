@@ -18,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // SDP WebRTC panggilan Sisupit (TASK_90) WAJIB diakhiri CRLF - TrimStrings memotongnya dan
+        // Chrome menolak offer/answer itu ("Gagal tersambung" begitu Jawab ditekan, staging 2026-11-17).
+        $middleware->trimStrings(except: ['offer_sdp', 'answer_sdp']);
         $middleware->web(append: [
             \App\Http\Middleware\ResolveTenant::class,
             \App\Http\Middleware\HandleInertiaRequests::class,

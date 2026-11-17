@@ -304,3 +304,17 @@ it('wires the call screen once in AppLayout and listens for nudges on the person
     expect(array_keys($event->broadcastWith()))->toBe(['callId', 'status'])
         ->and($event->broadcastAs())->toBe('reporter-call.changed');
 });
+
+// Bug staging 2026-11-17: "Gagal tersambung" langsung saat Jawab. SDP WAJIB diakhiri CRLF, dan
+// middleware bawaan TrimStrings memotongnya - Chrome menolak offer/answer yang terpotong.
+it('stores offer and answer SDP byte-for-byte, trailing CRLF included', function () {
+    $offer = "v=0\r\no=- 1 2 IN IP4 127.0.0.1\r\na=candidate:1 1 udp 1 192.168.1.5 5000 typ host\r\n";
+    $answer = "v=0\r\no=- 3 4 IN IP4 127.0.0.1\r\n";
+
+    $this->actingAs($this->admin)->postJson(route('reports.calls.start', $this->report->id), ['offer_sdp' => $offer])->assertCreated();
+    $call = ReporterCall::sole();
+    $this->actingAs($this->reporter)->getJson(route('calls.state', $call))->assertJsonPath('call.offer_sdp', $offer);
+
+    $this->actingAs($this->reporter)->postJson(route('calls.answer', $call), ['answer_sdp' => $answer])->assertOk();
+    $this->actingAs($this->admin)->getJson(route('calls.state', $call))->assertJsonPath('call.answer_sdp', $answer);
+});

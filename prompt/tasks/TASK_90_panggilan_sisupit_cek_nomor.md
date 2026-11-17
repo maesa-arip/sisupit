@@ -97,6 +97,12 @@ tak bisa lanjut; akun boleh "Kirim tanpa nomor"). Server tidak diperketat untuk 
       1.1.9 -> kartu "Telepon Balik Damkar"; push saat aplikasi tertutup. coturn belum terpasang = sebagian
       panggilan seluler bisa gagal.
 
+## 6b. Uji staging 2026-11-17
+
+Deploy staging @300047db (7 migrasi). Uji Chrome laptop -> Chrome HP (Wi-Fi sama): dering & bunyi OK, Jawab = "Gagal
+tersambung" langsung. Root cause: `TrimStrings` memotong CRLF ujung SDP (Chrome menolak). Fix di `bootstrap/app.php` +
+helper `sdp()` klien; test baru merah sebelum fix, hijau sesudah.
+
 ## 7. Rollback
 
 Revert commit TASK_90; migrasi `reporter_calls` boleh dibiarkan (tak dibaca kode lama) atau `migrate:rollback --step=1`.

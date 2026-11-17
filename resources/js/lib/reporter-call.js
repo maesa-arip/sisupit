@@ -145,6 +145,9 @@ function createPeer(iceServers) {
 	return peer;
 }
 
+// SDP wajib diakhiri CRLF (pengaman bila ada lapisan yang memotong spasi ujung, mis. TrimStrings).
+const sdp = (text) => (String(text || '').endsWith('\n') ? String(text) : `${String(text || '').trimEnd()}\r\n`);
+
 // Offer/answer lengkap: tunggu pengumpulan kandidat ICE selesai (atau batas waktu), lalu kirim
 // SDP sekali jadi - sinyal cukup satu kali bolak-balik lewat server.
 function gatherComplete(peer) {
@@ -237,7 +240,7 @@ function applyServer(call) {
 		clearTimeout(outgoingTimer);
 		stopTone();
 		setState({ phase: 'connecting', call });
-		pc.setRemoteDescription({ type: 'answer', sdp: call.answer_sdp }).catch(() => hangUp('failed'));
+		pc.setRemoteDescription({ type: 'answer', sdp: sdp(call.answer_sdp) }).catch(() => hangUp('failed'));
 	}
 }
 
@@ -318,7 +321,7 @@ export async function acceptCall() {
 		setState({ phase: 'connecting' });
 		pc = createPeer(call.ice_servers);
 		localStream.getTracks().forEach((t) => pc.addTrack(t, localStream));
-		await pc.setRemoteDescription({ type: 'offer', sdp: call.offer_sdp });
+		await pc.setRemoteDescription({ type: 'offer', sdp: sdp(call.offer_sdp) });
 		await pc.setLocalDescription(await pc.createAnswer());
 		await gatherComplete(pc);
 		const res = await api.answer(call.id, pc.localDescription.sdp);

@@ -5495,7 +5495,12 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   untuk laporan itu saja). Rincian: `prompt/tasks/TASK_90_panggilan_sisupit_cek_nomor.md`.
 - **Prasyarat produksi:** coturn di VPS + `TURN_URLS`/`TURN_SECRET` (`deploy/coturn.md`) - tanpa TURN sebagian panggilan
   lewat data seluler gagal tersambung.
-- **Penjaga:** `ReporterCallTest` (12 test). **Belum diuji di dua perangkat nyata.**
+- **Penjaga:** `ReporterCallTest` (13 test). **Belum diuji di dua perangkat nyata.**
+- **Bug uji staging 2026-11-17** (Chrome laptop -> Chrome HP, Wi-Fi sama): dering masuk, tapi "Gagal tersambung" LANGSUNG
+  saat Jawab. Sebab: middleware bawaan `TrimStrings` memotong CRLF di ujung `offer_sdp`/`answer_sdp`, dan Chrome menolak SDP
+  tanpa baris baru terakhir (test lama memakai SDP tanpa CRLF ujung sehingga lolos). Fix: `bootstrap/app.php`
+  `trimStrings(except: ['offer_sdp','answer_sdp'])` + helper `sdp()` di `lib/reporter-call.js` menambah CRLF bila hilang.
+  Penjaga: test `stores offer and answer SDP byte-for-byte, trailing CRLF included` (merah sebelum fix).
 
 ### #246 — Panggilan Sisupit: APK & aplikasi iOS belum bisa memakai mikrofon (OPEN, tahap 2)
 
