@@ -8,7 +8,14 @@ berdering, dijawab, lalu "Gagal tersambung".
 Beban: suara Opus ~40-60 kbit/s per arah per panggilan yang lewat TURN. Panggilan bersamaan di Damkar
 hanya hitungan jari, jadi VPS 1 inti cukup. Semua komponen gratis (coturn open source).
 
-## 1. Pasang (sekali, di VPS lewat konsol)
+## Cara cepat (dipakai 2026-11-17)
+
+`bash deploy/coturn-setup.sh /var/www/sisupit-staging` - memasang coturn, membuka port di ufw, dan mengisi
+`WEBRTC_STUN_URLS`/`TURN_URLS`/`TURN_SECRET` di `.env` environment itu memakai IP VPS `31.97.110.62` (tanpa DNS baru).
+Aman diulang; untuk prod jalankan lagi dengan `/var/www/sisupit` (rahasia yang sama dipakai ulang). Bila Hostinger
+memasang firewall di panel (VPS > Keamanan > Firewall), buka juga UDP 3478 & 49160-49200 dan TCP 3478 di sana.
+
+## 1. Pasang manual (rincian yang dikerjakan skrip)
 
 ```bash
 apt-get update && apt-get install -y coturn
