@@ -5501,6 +5501,12 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   tanpa baris baru terakhir (test lama memakai SDP tanpa CRLF ujung sehingga lolos). Fix: `bootstrap/app.php`
   `trimStrings(except: ['offer_sdp','answer_sdp'])` + helper `sdp()` di `lib/reporter-call.js` menambah CRLF bila hilang.
   Penjaga: test `stores offer and answer SDP byte-for-byte, trailing CRLF included` (merah sebelum fix).
+- **coturn staging 2026-11-17:** `apt-get install coturn` dari konsol ikut menarik `libmysqlclient21` -> **mysql-server-8.0
+  TER-UPGRADE ke 8.0.46** (MySQL dikecualikan unattended-upgrades, #137 - upgrade ini TIDAK direncanakan). Sesudahnya MySQL
+  `active`, /login prod/staging/dev 200. Paket apt coturn tertinggal `unpacked` (gagal configure) - perlu `dpkg --remove coturn`.
+  coturn kini container Docker `coturn/coturn:4.6.2` (`--network host`, restart unless-stopped) lewat `deploy/coturn-setup.sh`;
+  ufw 3478/udp+tcp & 49160-49200/udp dibuka; uji STUN dari luar OK (firewall Hostinger tak memblokir). `.env` STAGING berisi
+  WEBRTC_STUN_URLS/TURN_URLS/TURN_SECRET (IP 31.97.110.62). Prod belum.
 
 ### #246 — Panggilan Sisupit: APK & aplikasi iOS belum bisa memakai mikrofon (OPEN, tahap 2)
 
