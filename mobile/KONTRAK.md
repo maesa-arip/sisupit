@@ -83,7 +83,7 @@ melapor "terkirim" (#196). iOS: padanannya `UNUserNotificationCenter.getNotifica
 
 Metode 7 & 8 opsional di web (`typeof … === 'function'`): APK ≤ 1.1.8, iOS, dan browser tetap
 hanya melacak lewat `watchPosition` selama halaman detail terbuka - posisi membeku saat layar
-terkunci (#210; di iPhone ini masih terjadi, #228 OPEN). Web tetap mengirim dari `watchPosition` juga saat halaman terbuka (ping ganda
+terkunci (#210). iOS build 2+ memasang metode 7 & 8 (`ResponderTracker.swift`); iPhone build 1 masih membeku (#228). Web tetap mengirim dari `watchPosition` juga saat halaman terbuka (ping ganda
 disengaja, tahan kegagalan layanan). Sejak #227 kiriman web dibatasi sama dengan layanan: >= 5 dtk DAN pindah
 >= 10 m (fix pertama selalu terkirim). Layanan native memakai UA yang sama dengan WebView, jadi server tak bisa
 membedakan sumber/versinya (#228). iOS: padanannya `CLLocationManager` dengan

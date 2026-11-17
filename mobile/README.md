@@ -66,6 +66,9 @@ Baca `CHANGELOG_ANDROID.md` dari atas sampai entri yang sudah di-port, kerjakan 
   di HP ini"), #188/#192 (peta form lapor), TASK_77 (lapor tanpa login), #205 (Kembali menutup dialog), #209,
   #212 (unduhan dari dialog), #223 (mode gelap ikut tema HP), Masuk dengan Apple. **Belum terdeploy:** #227
   (batas kirim posisi web 5 dtk/10 m).
-- iOS: build 3 memasang `signInWithApple` (Guideline 4.8). **Belum ada pelacakan latar** - posisi petugas di
-  iPhone berhenti saat layar terkunci (#228 OPEN, butir 1.1.9 di `CHANGELOG_ANDROID.md`). Titik awal = semua
-  butir `[ ]` di `CHANGELOG_ANDROID.md` + kolom iOS `PARITAS.md`.
+- iOS: pelacakan latar (`startResponderTracking`/`stopResponderTracking`, butir 1.1.9) **sudah ada sejak build 2**
+  (`ResponderTracker.swift`); build 3 menambah `signInWithApple` (Guideline 4.8); build 4 (2026-11-17, lokal)
+  menambah `NSMicrophoneUsageDescription` untuk panggilan suara TASK_90. Ketiganya belum diuji di perangkat
+  fisik. Kiriman iPhone "ledakan lalu sunyi" di log prod (#228) kemungkinan dari build 1 / build yang belum
+  terpasang - tak bisa dipastikan tanpa versi di UA. Titik awal = butir `[ ]` di `CHANGELOG_ANDROID.md` +
+  kolom iOS `PARITAS.md`.

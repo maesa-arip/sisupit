@@ -22,11 +22,12 @@ Tak ada perubahan kode APK.
 - **#227 (lokal, belum terdeploy):** `watchPosition` di `Show.jsx` kini dibatasi sama dengan layanan APK: >= 5 dtk DAN
   pindah >= 10 m (dulu POST tiap tik GPS). Channel `report-tracking.{id}` tak lagi disambung ulang tiap posisi.
 - **#228 (OPEN):** dari cek prod, UA terbanyak di `update-location` = aplikasi iOS, dan polanya "ledakan lalu sunyi":
-  iOS tak punya pelacakan latar. Di Android pun belum terbukti layanan 1.1.9 jalan, karena layanan memakai UA yang
+  iOS tak punya pelacakan latar. (Koreksi sesi iOS 2026-11-17: iOS build 2+ SUDAH punya - pola itu kemungkinan dari
+  build 1 / build yang belum terpasang.) Di Android pun belum terbukti layanan 1.1.9 jalan, karena layanan memakai UA yang
   sama dengan WebView dan server tak menyimpan versi aplikasi.
 
 **Yang harus dilakukan iOS**
-- [ ] Prioritas: butir 1.1.9 di bawah (pelacakan latar) - inilah #228.
+- [x] Prioritas: butir 1.1.9 di bawah (pelacakan latar) - inilah #228. Ada sejak build 2; uji di perangkat masih perlu.
 - [ ] Uji: dialog Ekspor Excel di /admin/reports -> Unduh -> berkas sampai ke share sheet (WKDownload), dialog tertutup.
 - [ ] Uji: ganti tema iPhone gelap/terang saat app terbuka -> halaman & peta ikut tanpa muat ulang.
 
@@ -48,9 +49,10 @@ rollout) dikirim ke review 2026-10-25. Belum terbukti di lapangan (#228): cek no
 dibagikan" saat Meluncur.
 
 **Yang harus dilakukan iOS**
-- [ ] Shim `startResponderTracking`/`stopResponderTracking` di `window.AndroidBridge`.
-- [ ] `CLLocationManager` + UIBackgroundModes `location`, POST ke `update-location` dengan cookie WKWebView
-      (`WKHTTPCookieStore`) + `X-XSRF-TOKEN`; berhenti pada `{"status":"stopped"}`/401/403/404/3xx.
+- [x] Shim `startResponderTracking`/`stopResponderTracking` di `window.AndroidBridge`. (iOS build 2, `JembatanWeb+JS.swift`)
+- [x] `CLLocationManager` + UIBackgroundModes `location`, POST ke `update-location` dengan cookie WKWebView
+      (`WKHTTPCookieStore`) + `X-XSRF-TOKEN`; berhenti pada `{"status":"stopped"}`/401/403/404/3xx. (iOS build 2,
+      `Location/ResponderTracker.swift`; belum diuji di perangkat fisik)
 
 ## (web saja, APK tetap 1.1.8) - 2026-10-14 - Kembali menutup dialog (#205)
 
