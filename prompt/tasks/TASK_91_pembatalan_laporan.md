@@ -74,6 +74,18 @@ Tak ada APK/iOS baru. MIGRASI: kode & `php artisan migrate` wajib naik bersamaan
 3. Peta Pemantauan: chip "Dibatalkan" (mati bawaan). /admin/reports chip & Export.
 
 ## 6. Tidak dikerjakan (catatan)
-- Admin tak bisa langsung membatalkan tanpa pengajuan petugas (mis. pelapor menelepon Pusat Komando).
+- ~~Admin tak bisa langsung membatalkan~~ DIKERJAKAN 2026-11-19 (permintaan user, bagian 7).
 - Pengajuan yang menunggu tak tampil di dashboard admin (hanya notif + detail laporan).
 - Laporan Kejadian tak bisa diisi untuk laporan dibatalkan (`abortUnlessResolved`).
+
+## 7. Lanjutan 2026-11-19: admin membatalkan LANGSUNG (permintaan user)
+"admin bisa langsung batalkan tanpa pengajuan petugas". `POST reports/{id}/batalkan`
+(`reports.cancellation.direct`, `ReportActionController::cancelDirectly`), gerbang
+`ReportCancellation::canCancelDirectly` (admin|superadmin, wilayah, status TERLAPOR|pending|handling,
+TANPA pengajuan menunggu - yang menunggu diputuskan lewat Setujui) = prop `canCancelDirectly`. Alasan wajib.
+Baris `report_cancellations` langsung `disetujui`, pengaju = pemutus = admin (`toDetail().is_direct`).
+Asumsi (dicatat ke user): laporan MENTAH juga boleh - pelapor bisa batal sebelum verifikasi, "Dibatalkan"
+lebih jujur dari "Ditolak"; laporan mentah ikut `TriageDecidedNotification::CANCELLED` ke admin lain (#209).
+Setujui & batal langsung berbagi SATU helper `cancelReport()` (hentikan penugasan, lepas unit, kabari).
+UI: "Batalkan laporan" di panel verifikasi (TERLAPOR) & "Batalkan Laporan" di Panel Tindakan admin.
++3 test di ReportCancellationTest.

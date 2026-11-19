@@ -5559,5 +5559,6 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   + Export + penyaring daftar hitam (rincian TASK_91 §3). Disetujui = responder `finished`, unit dilepas, tanpa alpha,
   pelapor & responder dikabari. Sekalian: `ReportCard` dulu melabeli laporan ber-responder berstatus apa pun "Penanganan".
 - **Penjaga:** `ReportCancellationTest` (9 test). Sabotase daftar hitam takeAction -> merah. Belum diuji di HP.
-- **Sisa (tidak dikerjakan):** admin membatalkan langsung tanpa pengajuan; pengajuan menunggu di dashboard admin; Laporan
-  Kejadian untuk laporan dibatalkan.
+- **Lanjutan 2026-11-19 (permintaan user):** admin membatalkan LANGSUNG tanpa pengajuan (`reports.cancellation.direct`,
+  `canCancelDirectly`, alasan wajib, termasuk laporan mentah; Setujui & langsung berbagi `cancelReport()`). TASK_91 §7.
+- **Sisa (tidak dikerjakan):** pengajuan menunggu di dashboard admin; Laporan Kejadian untuk laporan dibatalkan.
