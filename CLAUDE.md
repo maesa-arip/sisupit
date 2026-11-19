@@ -220,6 +220,9 @@ TASK_90/#245 : (2026-11-15; TERDEPLOY PROD & STAGING @b20ef0a3 2026-11-17, MIGRA
                 TURN_URLS/TURN_SECRET). #246 OPEN: APK 1.1.9 tanpa izin mikrofon -> "Telepon Balik Damkar". Penjaga ReporterCallTest. Belum diuji di HP.
 #246         : (2026-11-17, lokal) APK 1.2.0/vc12 mikrofon panggilan Sisupit (RECORD_AUDIO, onPermissionRequest audio + situs sendiri saja,
                 media tanpa ketukan); AAB 12 (1.2.0) DIKIRIM KE REVIEW Play PRODUCTION (Indonesia, full rollout 100%, managed publishing off = publik saat disetujui) 2026-11-17; 0 perangkat hilang. Belum diuji di HP. iOS: to-do di mobile/ (CHANGELOG 1.2.0, KONTRAK §6).
+#247         : (2026-11-19, lokal) PDF Laporan Kejadian gaya naskah dinas: kop resmi dari docx Justifikasi (public/images/kop-damkar-denpasar.png,
+                KOP_IMAGES hanya 5171; tenant lain kop teks + lambang Damkar), bagian A-E, TTD tempat-tanggal + NIP, "Halaman X dari Y" (kanvas dompdf),
+                footer Sisupit tetap. CallOverlay: lambang Kota Denpasar (5171) + Damkar berdampingan, payload panggilan + city_code. Tanpa migrasi. Belum diuji di HP.
 DIKEMBALIKAN : 2026-10-05 SEMUA dashboard ke tag pra-task72-dashboard atas permintaan user (TASK_72 bagian 24);
                 kolom approved_at tetap. #178 i18n TERDEPLOY prod @dde8c6a4; #179 (ikon, paginasi PaginationLinks, email).
                 #180 terjemahan bawaan Laravel dari paket laravel-lang/common (DEV) TERDEPLOY prod @9bf7b103; paginasi tetap versi #178 -
@@ -234,7 +237,7 @@ Belum dicek  : visual di ponsel/APK untuk banyak perubahan UI (tombol merah bran
 Temuan OPEN  : lihat FINDINGS_LOG (judul ber-"(OPEN)"), a.l. #102 #103 #114 #115 #119 #121
                 #123 #124 #127 #128 #129 #130(parsial) #140 (port MySQL terbuka) #148 #166 #174 #188(satelit).
 Ditunda      : TASK_08 chat, TASK_57 WhatsApp, TASK_58 penguncian komputer, TASK_18 slice 2-4.
-Test         : 989 passed / 7721 assertions (2026-11-17, TASK_90 fix SDP).
+Test         : 992 passed / 7746 assertions (2026-11-19, #247).
 Lingkungan   : PROD @b20ef0a3 (dashboard pra-TASK_72 + #178-#180 + TASK_73/74 + #183-#245 + ulasan superadmin + Masuk dengan Apple) | DEV @672b6a10 (dashboard baru) | STAGING @b20ef0a3 (= prod; dulu video demo
                 TASK_80; data uji petugas.uji@sisupit.test + LP-2026-00227). Dev & staging: data salinan prod, TANPA basic auth sejak 2026-10-18 (PENGECUALIAN #7), sandi "password".
 ```
@@ -261,7 +264,7 @@ Stack     : PHP 8.2 + Laravel ^11.31, Inertia v2 + React 18, Vite 6, Tailwind v3
             Pest v3, SQLite (lokal & testing), spatie/laravel-permission, laravolt/indonesia,
             Reverb (WebSocket), FCM + WebPush (push notification)
 Build     : npm run build
-Test      : php artisan test            (baseline 2026-11-17: 989 passed / 7721 assertions - TASK_90 fix SDP;
+Test      : php artisan test            (baseline 2026-11-19: 992 passed / 7746 assertions - #247;
             lokal: php -d memory_limit=1G -d extension=php_sqlite3.dll -d extension=pdo_sqlite vendor/bin/pest.
             Perbarui angka ini tiap kali test bertambah - baseline yang basi membuat "hijau
             seperti semula" tak bisa dibuktikan. Riwayat angkanya di STATUS_LOG.md)

@@ -5525,3 +5525,24 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   (AAB md5 c86e72ae, APK md5 18f721ba, kunci unggah CA:6F:A8); cadangan `*.bak-v119`. AAB 12 (1.2.0) DIKIRIM KE REVIEW Play PRODUCTION (Indonesia, full rollout 100%, managed publishing off = publik saat disetujui) 2026-11-17; 0 perangkat hilang.
 - **iOS:** to-do di `mobile/CHANGELOG_ANDROID.md` entri 1.2.0 + KONTRAK §6 + PERILAKU #16-#17 (`NSMicrophoneUsageDescription`,
   `requestMediaCapturePermissionFor`, `mediaTypesRequiringUserActionForPlayback = []`). Tutup #246 setelah keduanya teruji di HP.
+
+### #247 — PDF Laporan Kejadian polos (bukan naskah dinas) & layar panggilan Sisupit tanpa identitas Damkar (FIXED, lokal 2026-11-19)
+
+- **Permintaan user:** "perbaharui laporan pdf pakai logo, logonya ambil di file Justifikasi Aplikasi Sisupit, buat pdf nya
+  profesional pemerintahan ... namun tetap isi sisupit di foot nya, ganti desain telp via sisupit logo pas telp, logo damkar
+  denpasar" -> dikonfirmasi: lambang Kota Denpasar + lambang Damkar BERDAMPINGAN di layar panggilan.
+- **PDF (`resources/views/pdf/laporan-kejadian.blade.php`, `ReportResolutionController::pdf()`):** kop surat resmi =
+  gambar dari `docs/legal/Justikfikasi Aplikasi Sisupit.docx` (word/media/image1.png, garis bawah bawaan gambar dipotong
+  -> 916x156) di `public/images/kop-damkar-denpasar.png`. Per tenant lewat `ReportResolutionController::KOP_IMAGES`
+  (hanya `5171`); tenant lain = kop teks "PEMERINTAH {KOTA/KABUPATEN X}" + nama instansi + lambang Damkar, supaya kop
+  Denpasar tak tercetak di dinas lain. Garis kop ganda, judul bergaris bawah + "Nomor:", bagian A-E (pita biru tua),
+  tabel korban bertajuk, jejak pembuat, blok tanda tangan "{Kota}, {tanggal Indonesia}" + NIP. Footer tetap: nomor/cetak
+  kiri, "Dibuat dengan Sisupit · sisupit.com" + logo kanan (#233); "Halaman X dari Y" lewat `page_text` kanvas dompdf
+  (CSS `counter(pages)` tak didukung dompdf - tercetak 0). KTP tetap tak ikut.
+- **Panggilan (`CallOverlay.jsx`):** ikon telepon diganti pil putih berisi lambang Kota Denpasar (hanya `city_code` 5171,
+  sama dengan halaman Thanks) + lambang Damkar, lencana telepon di sudut, cincin berdenyut saat berdering, abu saat berakhir,
+  label "Telepon via Sisupit". `ReporterCallController` caller/callee payload kini membawa `city_code`. Latar putih pil
+  disengaja (lambang dirancang di atas putih). Tombol tak berubah.
+- **Penjaga:** `LaporanKejadianPdfTest` (+2: kop Denpasar via View::composer, kop teks tenant lain + footer Sisupit),
+  `ReporterCallTest` (+1: city_code kedua sisi + lambang di CallOverlay). Tanpa migrasi, tanpa APK baru.
+  Visual dicek: render dompdf -> pdftoppm (Denpasar & Badung), kartu panggilan headless Chromium terang/gelap. Belum diuji di HP.
