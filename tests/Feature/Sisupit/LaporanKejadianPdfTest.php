@@ -1,11 +1,14 @@
 <?php
 
+use App\Http\Controllers\ReportResolutionController;
 use App\Models\Report;
 use App\Models\ReportResolution;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\View;
 
 /**
  * TASK_68 (permintaan user 2026-09-29): "Buatkan format laporan pdf pada Laporan Kejadian".
@@ -120,4 +123,56 @@ it('offers the pdf link on each entry of the detail page', function () {
 
     $jsx = file_get_contents(resource_path('js/Pages/Front/Reports/Show.jsx'));
     expect($jsx)->toMatch('~href=\{r\.pdf_url\}~');
+});
+
+// 2026-11-19 (permintaan user): PDF bergaya naskah dinas dengan kop resmi dari dokumen "Justifikasi
+// Aplikasi Sisupit". Kop gambar HANYA untuk tenant yang terdaftar di KOP_IMAGES (Denpasar) - tenant
+// lain jatuh ke kop teks + lambang Damkar. Tanda Sisupit tetap di footer.
+it('prints the official Denpasar letterhead on Denpasar reports and keeps the Sisupit footer', function () {
+    expect(ReportResolutionController::KOP_IMAGES)->toBe(['5171' => 'images/kop-damkar-denpasar.png'])
+        ->and(public_path('images/kop-damkar-denpasar.png'))->toBeFile();
+    DB::table('indonesia_provinces')->insertOrIgnore(['code' => '51', 'name' => 'BALI']);
+    DB::table('indonesia_cities')->insert(['code' => '5171', 'province_code' => '51', 'name' => 'KOTA DENPASAR']);
+
+    $data = null;
+    View::composer('pdf.laporan-kejadian', function ($view) use (&$data) {
+        $data = $view->getData();
+    });
+    $this->actingAs($this->petugas)->get($this->url)->assertOk();
+
+    expect($data['placeName'])->toBe('Denpasar')
+        ->and($data['pemerintahLabel'])->toBe('PEMERINTAH KOTA DENPASAR');
+    if (extension_loaded('gd')) {
+        expect($data['kopImage'])->toStartWith('data:image/png;base64,')
+            ->and($data['damkarLogo'])->toBeNull();
+    }
+});
+
+it('falls back to a text letterhead for tenants without a letterhead image', function () {
+    $html = view('pdf.laporan-kejadian', [
+        'report' => $this->report,
+        'resolution' => $this->resolution->load(['victims', 'photos', 'creator', 'logs']),
+        'nomor' => Report::nomorLaporan($this->report),
+        'isActive' => true,
+        'tenant' => Tenant::default(),
+        'kopImage' => null,
+        'damkarLogo' => 'data:image/png;base64,AAAA',
+        'placeName' => 'Badung',
+        'pemerintahLabel' => 'PEMERINTAH KABUPATEN BADUNG',
+        'photos' => collect(),
+        'photosSkipped' => 0,
+        'occurredAt' => null,
+        'createdAt' => null,
+        'lastEdit' => null,
+        'lastEditAt' => null,
+        'printedAt' => now(),
+        'printedBy' => 'Admin',
+    ])->render();
+
+    expect($html)->toContain('PEMERINTAH KABUPATEN BADUNG')
+        ->toContain('class="kop-teks"')
+        ->not->toContain('class="kop-img"')
+        ->toContain('Badung, ')
+        ->toContain('NIP.')
+        ->toContain('Dibuat dengan Sisupit');
 });

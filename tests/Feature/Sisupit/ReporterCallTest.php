@@ -318,3 +318,21 @@ it('stores offer and answer SDP byte-for-byte, trailing CRLF included', function
     $this->actingAs($this->reporter)->postJson(route('calls.answer', $call), ['answer_sdp' => $answer])->assertOk();
     $this->actingAs($this->admin)->getJson(route('calls.state', $call))->assertJsonPath('call.answer_sdp', $answer);
 });
+
+// 2026-11-19 (permintaan user "logo pas telp, logo damkar denpasar"): layar panggilan memuat lambang
+// Kota Denpasar berdampingan dengan lambang Damkar. Lambang kota hanya untuk laporan Denpasar, jadi
+// kedua sisi panggilan wajib membawa city_code laporannya.
+it('carries the report city to both sides so the call screen shows the right emblems', function () {
+    startCall($this, $this->admin)->assertCreated()->assertJsonPath('call.city_code', '5171');
+    $call = ReporterCall::sole();
+    $this->actingAs($this->reporter)->getJson(route('calls.state', $call))
+        ->assertOk()->assertJsonPath('call.city_code', '5171');
+
+    $overlay = file_get_contents(resource_path('js/Components/ReporterCall/CallOverlay.jsx'));
+    expect($overlay)->toContain("call.call?.city_code === '5171'")
+        ->toContain('/images/lambang-denpasar.png')
+        ->toContain('/images/damkar-mark.png')
+        ->toContain('Telepon via Sisupit');
+    expect(public_path('images/lambang-denpasar.png'))->toBeFile()
+        ->and(public_path('images/damkar-mark.png'))->toBeFile();
+});

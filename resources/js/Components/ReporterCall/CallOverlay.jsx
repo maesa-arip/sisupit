@@ -57,6 +57,8 @@ export default function CallOverlay() {
 	}
 
 	const ringing = call.phase === 'incoming' || call.phase === 'outgoing';
+	const ended = call.phase === 'ended' || call.phase === 'nomic';
+	const showCityEmblem = call.call?.city_code === '5171';
 
 	return (
 		<div
@@ -64,41 +66,71 @@ export default function CallOverlay() {
 			aria-live="assertive"
 			className="fixed inset-x-4 top-[calc(env(safe-area-inset-top)+0.75rem)] z-[70] mx-auto max-w-sm md:left-auto md:right-6 md:mx-0"
 		>
-			<div className="material-thick rounded-2xl border border-border/70 p-4 shadow-lg">
-				<div className="flex items-start gap-3">
-					<span
-						className={cn(
-							'flex h-11 w-11 shrink-0 items-center justify-center rounded-full',
-							call.phase === 'ended' || call.phase === 'nomic'
-								? 'bg-muted text-muted-foreground'
-								: 'bg-success/15 text-success',
-							ringing && 'motion-safe:animate-pulse',
-						)}
+			<div className="material-thick relative rounded-2xl border border-border/70 p-4 pt-5 shadow-lg">
+				{ended && (
+					<button
+						type="button"
+						onClick={dismissCall}
+						aria-label="Tutup"
+						className="absolute right-2 top-2 rounded-full p-1.5 text-muted-foreground active:bg-accent"
 					>
-						{call.phase === 'ended' ? <IconPhoneOff className="h-5 w-5" /> : <IconPhoneCall className="h-5 w-5" />}
-					</span>
-					<div className="min-w-0 flex-1">
-						<p className="text-[15px] font-semibold leading-snug text-foreground">{title}</p>
-						{subtitle && (
-							<p
-								className={cn(
-									'mt-0.5 text-[13px] leading-snug text-muted-foreground',
-									call.phase === 'connected' && 'font-mono tabular-nums',
-								)}
-							>
-								{subtitle}
-							</p>
+						<IconX className="h-4 w-4" />
+					</button>
+				)}
+
+				<div className="flex flex-col items-center text-center">
+					{/* Identitas penelepon (2026-11-19, permintaan user): lambang Kota Denpasar (hanya laporan
+					    Denpasar - aset yang ada, sama dengan halaman Thanks) berdampingan dengan lambang Damkar.
+					    Latar putih disengaja: kedua lambang dirancang di atas putih (pita hitam tak terbaca di gelap). */}
+					<div className="relative">
+						{ringing && (
+							<span
+								aria-hidden="true"
+								className="absolute -inset-1.5 rounded-full bg-success/25 motion-safe:animate-ping"
+							/>
 						)}
-					</div>
-					{(call.phase === 'ended' || call.phase === 'nomic') && (
-						<button
-							type="button"
-							onClick={dismissCall}
-							aria-label="Tutup"
-							className="-mr-1 -mt-1 rounded-full p-1.5 text-muted-foreground active:bg-accent"
+						<div
+							className={cn(
+								'relative flex items-center gap-2 rounded-full bg-white px-3 py-1.5 shadow-sm ring-1 ring-border',
+								ended && 'opacity-60 grayscale',
+							)}
 						>
-							<IconX className="h-4 w-4" />
-						</button>
+							{showCityEmblem && (
+								<img
+									src="/images/lambang-denpasar.png"
+									alt="Lambang Kota Denpasar"
+									className="h-11 w-auto"
+								/>
+							)}
+							<img src="/images/damkar-mark.png" alt="Pemadam Kebakaran" className="h-12 w-auto" />
+						</div>
+						<span
+							className={cn(
+								'absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full ring-2 ring-background',
+								ended ? 'bg-muted-foreground text-background' : 'bg-success text-success-foreground',
+							)}
+						>
+							{call.phase === 'ended' ? (
+								<IconPhoneOff className="h-3.5 w-3.5" />
+							) : (
+								<IconPhoneCall className="h-3.5 w-3.5" />
+							)}
+						</span>
+					</div>
+
+					<p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+						Telepon via Sisupit
+					</p>
+					<p className="mt-0.5 text-[15px] font-semibold leading-snug text-foreground">{title}</p>
+					{subtitle && (
+						<p
+							className={cn(
+								'mt-0.5 text-[13px] leading-snug text-muted-foreground',
+								call.phase === 'connected' && 'font-mono tabular-nums',
+							)}
+						>
+							{subtitle}
+						</p>
 					)}
 				</div>
 

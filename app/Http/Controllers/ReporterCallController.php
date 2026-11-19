@@ -223,6 +223,8 @@ class ReporterCallController extends Controller
             'id' => $call->id,
             'side' => 'caller',
             'report_id' => $call->report_id,
+            // Lambang kota di layar panggilan hanya bila asetnya ada (Denpasar) - CallOverlay.
+            'city_code' => $call->report?->city_code,
             'status' => $call->status,
             'end_reason' => $call->end_reason,
             'end_label' => $call->end_reason ? ReporterCall::END_REASONS[$call->end_reason] ?? null : null,
@@ -246,6 +248,7 @@ class ReporterCallController extends Controller
             'side' => 'callee',
             'report_id' => $call->report_id,
             'report_number' => $report ? Report::nomorLaporan($report) : null,
+            'city_code' => $report?->city_code,
             'status' => $call->status,
             'end_reason' => $call->end_reason,
             'offer_sdp' => $call->status === ReporterCall::STATUS_RINGING ? $call->offer_sdp : null,

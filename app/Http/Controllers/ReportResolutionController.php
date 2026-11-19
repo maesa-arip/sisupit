@@ -31,6 +31,11 @@ class ReportResolutionController extends Controller
     // Foto KTP korban = PII → disk privat (storage/app), diakses hanya lewat ktp() bergerbang.
     private const KTP_DISK = 'local';
 
+    /** Gambar kop surat resmi per city_code tenant (relatif ke public/). Tak terdaftar = kop teks. */
+    public const KOP_IMAGES = [
+        '5171' => 'images/kop-damkar-denpasar.png',
+    ];
+
     /**
      * Form isi/sunting SATU entri (`?status=sementara|final`, TASK_67). Bila entri aktif status
      * itu sudah ada, form menyuntingnya; bila belum, prefill dari entri aktif lain (Final
@@ -384,6 +389,27 @@ class ReportResolutionController extends Controller
             ? 'data:image/png;base64,'.base64_encode(file_get_contents($logoPath))
             : null;
 
+        $tenant = Tenant::forCity($report->city_code) ?? Tenant::default();
+
+        // Kop surat resmi (2026-11-19, permintaan user): gambar kop dinas apa adanya dari dokumen
+        // "Justifikasi Aplikasi Sisupit". Per tenant lewat KOP_IMAGES - tenant tanpa gambar kop
+        // memakai kop teks + lambang Damkar, supaya kop Denpasar tak pernah tercetak di dinas lain.
+        $kopPath = isset(self::KOP_IMAGES[$tenant->city_code]) ? public_path(self::KOP_IMAGES[$tenant->city_code]) : null;
+        $kopImage = extension_loaded('gd') && $kopPath && is_file($kopPath)
+            ? 'data:image/png;base64,'.base64_encode(file_get_contents($kopPath))
+            : null;
+        $damkarPath = public_path('images/damkar-mark.png');
+        $damkarLogo = ! $kopImage && extension_loaded('gd') && is_file($damkarPath)
+            ? 'data:image/png;base64,'.base64_encode(file_get_contents($damkarPath))
+            : null;
+
+        // Tempat di blok tanda tangan ("Denpasar, 19 November 2026"): nama kota tenant tanpa
+        // awalan KOTA/KABUPATEN. Kop teks memakai nama lengkapnya ("PEMERINTAH KABUPATEN BADUNG").
+        $cityName = DB::table('indonesia_cities')->where('code', $tenant->city_code)->value('name');
+        $placeName = $cityName
+            ? Str::title(Str::lower(preg_replace('/^(KOTA|KABUPATEN|KAB\.)\s+/i', '', $cityName)))
+            : null;
+
         $tz = config('app.local_timezone');
         $nomor = Report::nomorLaporan($report);
         $lastEdit = $resolution->logs->firstWhere('action', ReportResolutionLog::ACTION_UPDATED);
@@ -393,7 +419,11 @@ class ReportResolutionController extends Controller
             'resolution' => $resolution,
             'nomor' => $nomor,
             'isActive' => $isActive,
-            'tenant' => Tenant::forCity($report->city_code) ?? Tenant::default(),
+            'tenant' => $tenant,
+            'kopImage' => $kopImage,
+            'damkarLogo' => $damkarLogo,
+            'placeName' => $placeName,
+            'pemerintahLabel' => $cityName ? 'PEMERINTAH '.mb_strtoupper($cityName) : null,
             'photos' => $photos,
             'photosSkipped' => $resolution->photos->count() - $photos->count(),
             'occurredAt' => $resolution->occurred_at?->copy()->setTimezone($tz),
@@ -404,6 +434,14 @@ class ReportResolutionController extends Controller
             'printedBy' => auth()->user()->name,
             'brandLogo' => $brandLogo,
         ])->setPaper('a4');
+
+        // "Halaman X dari Y" lewat kanvas: dompdf tak mendukung counter(pages) di CSS (tercetak 0).
+        $pdf->render();
+        $dompdf = $pdf->getDomPDF();
+        $dompdf->getCanvas()->page_text(
+            268, 816, 'Halaman {PAGE_NUM} dari {PAGE_COUNT}',
+            $dompdf->getFontMetrics()->getFont('DejaVu Sans'), 7, [0.4, 0.4, 0.4]
+        );
 
         return $pdf->download("laporan-kejadian-{$nomor}-{$resolution->status}.pdf");
     }
