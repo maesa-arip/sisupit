@@ -2678,4 +2678,4 @@ Permintaan user: "ajukan pembatalan dari petugas, ada laporan petugas sudah otw 
 
 **Deploy #248 2026-11-19 (konsol user, deploy-env.sh staging lalu prod, cadangan DB oleh skrip):** HTTPS prod & staging: /login 200, bundel app-D-Xa2c_0.js (= lokal) 200, GET /reports/1/pembatalan 405 (route POST terdaftar; pembanding path asal 404). MIGRASI report_cancellations ikut naik. Belum diuji di HP.
 
-**Lanjutan #248 2026-11-19 (lokal):** admin batal langsung tanpa pengajuan petugas (reports.cancellation.direct). Test: 1004 passed / 7930 assertions (+3). Build lulus. Belum commit/deploy.
+**Lanjutan #248 2026-11-19 (lokal):** admin batal langsung tanpa pengajuan petugas (reports.cancellation.direct). Test: 1004 passed / 7930 assertions (+3). Build lulus. TERDEPLOY PROD & STAGING @8cdad78a (konsol user, tanpa migrasi): HTTPS /login 200, bundel app-C3DOlk7J.js (= lokal) 200, GET /reports/1/batalkan 405 (route POST terdaftar). Belum diuji di HP.

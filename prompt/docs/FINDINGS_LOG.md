@@ -5561,4 +5561,5 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Penjaga:** `ReportCancellationTest` (9 test). Sabotase daftar hitam takeAction -> merah. Belum diuji di HP.
 - **Lanjutan 2026-11-19 (permintaan user):** admin membatalkan LANGSUNG tanpa pengajuan (`reports.cancellation.direct`,
   `canCancelDirectly`, alasan wajib, termasuk laporan mentah; Setujui & langsung berbagi `cancelReport()`). TASK_91 §7.
+  TERDEPLOY PROD & STAGING @8cdad78a 2026-11-19, HTTPS terverifikasi.
 - **Sisa (tidak dikerjakan):** pengajuan menunggu di dashboard admin; Laporan Kejadian untuk laporan dibatalkan.
