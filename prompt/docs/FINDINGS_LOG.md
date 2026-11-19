@@ -5526,7 +5526,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **iOS:** to-do di `mobile/CHANGELOG_ANDROID.md` entri 1.2.0 + KONTRAK §6 + PERILAKU #16-#17 (`NSMicrophoneUsageDescription`,
   `requestMediaCapturePermissionFor`, `mediaTypesRequiringUserActionForPlayback = []`). Tutup #246 setelah keduanya teruji di HP.
 
-### #247 — PDF Laporan Kejadian polos (bukan naskah dinas) & layar panggilan Sisupit tanpa identitas Damkar (FIXED, lokal 2026-11-19)
+### #247 — PDF Laporan Kejadian polos (bukan naskah dinas) & layar panggilan Sisupit tanpa identitas Damkar (FIXED, TERDEPLOY PROD & STAGING @5995927e 2026-11-19, HTTPS terverifikasi)
 
 - **Permintaan user:** "perbaharui laporan pdf pakai logo, logonya ambil di file Justifikasi Aplikasi Sisupit, buat pdf nya
   profesional pemerintahan ... namun tetap isi sisupit di foot nya, ganti desain telp via sisupit logo pas telp, logo damkar
