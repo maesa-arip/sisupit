@@ -6,7 +6,7 @@
 | Severity | P2 |
 | Tipe | fitur kecil (ADA MIGRASI) |
 | Sumber | permintaan user 2026-11-19: "ajukan pembatalan dari petugas, ada laporan petugas sudah otw tapi ternyata batal dari pelapor, harus ada alasan" |
-| Status | DONE (lokal, belum commit/deploy) |
+| Status | DONE - TERDEPLOY PROD & STAGING @0e3bef48 (2026-11-19, deploy via konsol user) |
 
 ## 1. Tujuan
 Petugas sudah Meluncur, lalu pelapor mengabari kejadiannya batal (api padam sendiri, salah lapor).

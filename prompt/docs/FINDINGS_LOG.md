@@ -5547,7 +5547,7 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   `ReporterCallTest` (+1: city_code kedua sisi + lambang di CallOverlay). Tanpa migrasi, tanpa APK baru.
   Visual dicek: render dompdf -> pdftoppm (Denpasar & Badung), kartu panggilan headless Chromium terang/gelap. Belum diuji di HP.
 
-### #248 — Laporan yang dibatalkan pelapor saat tim sudah Meluncur tak bisa ditutup dengan benar (FIXED lokal 2026-11-19, ADA MIGRASI, belum commit/deploy, TASK_91)
+### #248 — Laporan yang dibatalkan pelapor saat tim sudah Meluncur tak bisa ditutup dengan benar (FIXED, TERDEPLOY PROD & STAGING @0e3bef48 2026-11-19, ADA MIGRASI, HTTPS terverifikasi, TASK_91)
 
 - **Permintaan user:** "ajukan pembatalan dari petugas, ada laporan petugas sudah otw tapi ternyata batal dari pelapor, harus
   ada alasan". Dipilih user: petugas MENGAJUKAN, admin MENYETUJUI; status baru `dibatalkan`.

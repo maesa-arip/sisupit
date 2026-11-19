@@ -2675,3 +2675,5 @@ Permintaan user: PDF pakai logo dari file Justifikasi Aplikasi Sisupit, gaya pem
 ## #248/TASK_91 - Pengajuan pembatalan laporan oleh petugas (2026-11-19)
 
 Permintaan user: "ajukan pembatalan dari petugas, ada laporan petugas sudah otw tapi ternyata batal dari pelapor, harus ada alasan". Pilihan user: petugas mengajukan, admin menyetujui; status baru `dibatalkan`. Tabel `report_cancellations` (MIGRASI), model `ReportCancellation`, route `reports.cancellation.{request,approve,decline}`, `ReportCancellationNotification`, kamus status layar + Export + daftar hitam. Test: 1001 passed / 7879 assertions (+9 `ReportCancellationTest`). Build lulus. Lokal, belum commit/deploy, belum diuji di HP. Rincian: TASK_91, FINDINGS #248.
+
+**Deploy #248 2026-11-19 (konsol user, deploy-env.sh staging lalu prod, cadangan DB oleh skrip):** HTTPS prod & staging: /login 200, bundel app-D-Xa2c_0.js (= lokal) 200, GET /reports/1/pembatalan 405 (route POST terdaftar; pembanding path asal 404). MIGRASI report_cancellations ikut naik. Belum diuji di HP.
