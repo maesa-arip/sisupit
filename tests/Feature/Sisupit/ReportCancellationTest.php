@@ -232,3 +232,59 @@ it('names the status a cancellation really writes, in every status dictionary an
     expect($cells)->toContain('Dibatalkan')
         ->and($cells->contains(fn ($c) => str_starts_with((string) $c, 'Dibatalkan: Api sudah padam sebelum tim tiba')))->toBeTrue();
 });
+
+// Permintaan user 2026-11-19: admin membatalkan LANGSUNG tanpa pengajuan petugas (mis. pelapor
+// menelepon Pusat Komando). Alasan tetap wajib; efeknya = Setujui.
+it('lets an admin cancel directly with a reason, standing the team down', function () {
+    $direct = fn (User $u, string $reason = 'Pelapor menelepon, api sudah padam') => $this->actingAs($u)
+        ->post(route('reports.cancellation.direct', $this->report->id), ['reason' => $reason]);
+
+    $direct($this->admin, '')->assertSessionHasErrors('reason');
+    $direct($this->petugas)->assertForbidden();
+
+    $direct($this->admin)->assertRedirect()->assertSessionHasNoErrors();
+
+    $batal = ReportCancellation::sole();
+    expect($this->report->refresh()->status)->toBe(Report::STATUS_DIBATALKAN)
+        ->and($batal->status)->toBe(ReportCancellation::STATUS_DISETUJUI)
+        ->and($batal->requested_by)->toBe($this->admin->id)
+        ->and($batal->decided_by)->toBe($this->admin->id)
+        ->and(DB::table('report_officers')->where('report_id', $this->report->id)->pluck('status')->unique()->all())->toBe(['finished']);
+
+    Notification::assertSentTo($this->reporter, ReportStatusUpdatedNotification::class, fn ($n) => $n->event === 'cancelled');
+    Notification::assertSentTo([$this->petugas, $this->rekan], ReportCancellationNotification::class,
+        fn ($n) => $n->event === ReportCancellationNotification::APPROVED);
+
+    $this->actingAs($this->reporter)->get(route('reports.show', $this->report->id))
+        ->assertInertia(fn ($page) => $page->where('cancellation.is_direct', true));
+});
+
+it('lets an admin cancel a raw report too, and tells the other admins it was decided', function () {
+    $this->report->update(['status' => 'TERLAPOR']);
+    $adminLain = User::factory()->create(['village_code' => '5171012006']);
+    $adminLain->assignRole('admin');
+
+    $this->actingAs($this->admin)->get(route('reports.show', $this->report->id))
+        ->assertInertia(fn ($page) => $page->where('canCancelDirectly', true));
+
+    $this->actingAs($this->admin)
+        ->post(route('reports.cancellation.direct', $this->report->id), ['reason' => 'Dibatalkan oleh pelapor'])
+        ->assertRedirect();
+
+    expect($this->report->refresh()->status)->toBe(Report::STATUS_DIBATALKAN);
+    Notification::assertSentTo($adminLain, \App\Notifications\TriageDecidedNotification::class,
+        fn ($n) => $n->decision === \App\Notifications\TriageDecidedNotification::CANCELLED);
+});
+
+it('sends a waiting petugas request through Setujui instead of a direct cancel', function () {
+    ($this->ajukan)()->assertRedirect();
+
+    $this->actingAs($this->admin)->get(route('reports.show', $this->report->id))
+        ->assertInertia(fn ($page) => $page->where('canCancelDirectly', false)->where('canDecideCancellation', true));
+
+    $this->actingAs($this->admin)
+        ->post(route('reports.cancellation.direct', $this->report->id), ['reason' => 'Dibatalkan oleh pelapor'])
+        ->assertForbidden();
+
+    expect($this->report->refresh()->status)->toBe('handling');
+});

@@ -543,6 +543,7 @@ class ReportController extends Controller
                 ->toDetail($isStaff || $isPejabat || $isHelper || $isRelawanInArea),
             'canRequestCancellation' => ReportCancellation::canRequest($user, $report),
             'canDecideCancellation' => ReportCancellation::canDecide($user, $report),
+            'canCancelDirectly' => ReportCancellation::canCancelDirectly($user, $report),
             'duplicateCandidate' => $duplicateCandidate,
             'mergedReports' => $mergedReports,
             'mergedIncident' => $mergedIncident,

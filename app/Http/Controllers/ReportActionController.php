@@ -1074,11 +1074,7 @@ class ReportActionController extends Controller
 
         abort_unless(ReportCancellation::canDecide($user, $report), 403, 'Tidak ada pengajuan pembatalan yang bisa Anda putuskan.');
 
-        // Responder yang masih bergerak dikabari SEBELUM barisnya ditimpa `finished`.
-        $responderIds = DB::table('report_officers')->where('report_id', $report->id)->whereIn('status', ['en_route', 'arrived'])->pluck('user_id')
-            ->merge(DB::table('report_helpers')->where('report_id', $report->id)->whereIn('status', ['en_route', 'arrived'])->pluck('user_id'));
-
-        $cancellation = DB::transaction(function () use ($report, $user) {
+        return $this->cancelReport($report, $user, function () use ($report, $user) {
             $row = ReportCancellation::where('report_id', $report->id)
                 ->where('status', ReportCancellation::STATUS_MENUNGGU)
                 ->lockForUpdate()
@@ -1093,10 +1089,64 @@ class ReportActionController extends Controller
                 'decided_at' => now(),
             ]);
 
+            return $row;
+        });
+    }
+
+    // Admin membatalkan LANGSUNG tanpa pengajuan petugas (permintaan user 2026-11-19), mis. pelapor
+    // menelepon Pusat Komando. Alasan tetap wajib. Jejaknya baris yang sama: pengaju = pemutus = admin.
+    public function cancelDirectly(Request $request, $id)
+    {
+        $user = auth()->user();
+        $report = Report::withoutGlobalScopes()->findOrFail($id);
+
+        abort_unless(ReportCancellation::canCancelDirectly($user, $report), 403, 'Laporan ini tidak dapat dibatalkan langsung.');
+
+        $data = $request->validate([
+            'reason' => 'required|string|min:'.ReportCancellation::REASON_MIN.'|max:'.ReportCancellation::REASON_MAX,
+        ], [
+            'reason.required' => 'Alasan pembatalan wajib diisi.',
+            'reason.min' => 'Alasan pembatalan minimal :min karakter.',
+        ]);
+
+        return $this->cancelReport($report, $user, function () use ($report, $user, $data) {
+            // Pengajuan petugas yang masuk sesaat sebelumnya diputuskan lewat Setujui, bukan ditimpa.
+            abort_if((bool) ReportCancellation::pendingFor($report), 403, 'Ada pengajuan pembatalan dari petugas. Putuskan lewat tombol Setujui.');
+
+            return ReportCancellation::create([
+                'report_id' => $report->id,
+                'requested_by' => $user->id,
+                'requester_name' => $user->name,
+                'reason' => trim($data['reason']),
+                'status' => ReportCancellation::STATUS_DISETUJUI,
+                'decided_by' => $user->id,
+                'decider_name' => $user->name,
+                'decided_at' => now(),
+            ]);
+        });
+    }
+
+    /**
+     * Satu jalur penutupan untuk approveCancellation() & cancelDirectly(): status `dibatalkan`,
+     * penugasan dihentikan seperti resolve() TANPA ReportAlpha (anggota regu yang tak memilih apa
+     * pun untuk kejadian yang batal bukan alpha), unit dilepas, lalu semua pihak dikabari.
+     * $decide menulis baris ReportCancellation-nya di dalam transaksi yang sama.
+     */
+    private function cancelReport(Report $report, User $user, \Closure $decide)
+    {
+        $wasTriage = $report->status === 'TERLAPOR';
+        $wasDuplicateCandidate = (bool) $report->duplicate_candidate_of_id;
+
+        // Responder yang masih bergerak dikabari SEBELUM barisnya ditimpa `finished`.
+        $responderIds = DB::table('report_officers')->where('report_id', $report->id)->whereIn('status', ['en_route', 'arrived'])->pluck('user_id')
+            ->merge(DB::table('report_helpers')->where('report_id', $report->id)->whereIn('status', ['en_route', 'arrived'])->pluck('user_id'));
+
+        $cancellation = DB::transaction(function () use ($report, $decide) {
+            Report::withoutGlobalScopes()->whereKey($report->id)->lockForUpdate()->first();
+            $row = $decide();
+
             $report->update(['status' => Report::STATUS_DIBATALKAN]);
 
-            // Penugasan dihentikan seperti resolve() - tanpa ReportAlpha: anggota regu yang tak
-            // memilih apa pun untuk kejadian yang batal bukan alpha.
             DB::table('report_officers')->where('report_id', $report->id)->whereIn('status', ['en_route', 'arrived'])->update(['status' => 'finished', 'finished_at' => now()]);
             DB::table('report_helpers')->where('report_id', $report->id)->whereIn('status', ['en_route', 'arrived'])->update(['status' => 'finished', 'finished_at' => now()]);
 
@@ -1114,6 +1164,11 @@ class ReportActionController extends Controller
         broadcast(new ReportStatusChanged($report->id, Report::STATUS_DIBATALKAN));
         broadcast(ReportFeedChanged::for($report, Report::STATUS_DIBATALKAN));
         broadcast(new ResponderRosterChanged($report->id));
+
+        // Laporan mentah: timpa notifikasi "menunggu verifikasi" di HP admin lain (#209).
+        if ($wasTriage) {
+            $this->notifyTriageDecided($report, TriageDecidedNotification::CANCELLED, $wasDuplicateCandidate);
+        }
 
         $penerimaIds = $responderIds->push($cancellation->requested_by)->filter()->map(fn ($uid) => (int) $uid)
             ->unique()->reject(fn ($uid) => $uid === (int) $user->id)->values();

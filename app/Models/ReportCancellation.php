@@ -25,6 +25,12 @@ class ReportCancellation extends Model
     /** Laporan yang sudah diverifikasi & belum ditutup - tahap di mana tim bisa sudah berangkat. */
     public const CANCELLABLE_STATUSES = ['pending', 'handling'];
 
+    /**
+     * Admin membatalkan LANGSUNG (tanpa pengajuan petugas) - termasuk laporan mentah: pelapor bisa
+     * membatalkan sebelum diverifikasi, dan "Dibatalkan" lebih jujur daripada "Ditolak" (hoaks).
+     */
+    public const DIRECT_CANCELLABLE_STATUSES = ['TERLAPOR', 'pending', 'handling'];
+
     public const REASON_MIN = 5;
 
     public const REASON_MAX = 500;
@@ -63,6 +69,15 @@ class ReportCancellation extends Model
             && (bool) self::pendingFor($report);
     }
 
+    /** Admin/superadmin di wilayah laporan, tanpa pengajuan yang menunggu (itu diputuskan lewat canDecide). */
+    public static function canCancelDirectly(User $user, Report $report): bool
+    {
+        return $user->hasAnyRole(['admin', 'superadmin'])
+            && in_array($report->status, self::DIRECT_CANCELLABLE_STATUSES, true)
+            && $user->withinReportJurisdiction($report)
+            && ! self::pendingFor($report);
+    }
+
     /**
      * Bentuk untuk halaman detail. Nama pengaju/pemutus hanya untuk rekan kerja & pengawas
      * ($withActors), sama dengan audiens jejak penutupan (FINDINGS #88) - pelapor cukup alasannya.
@@ -72,6 +87,8 @@ class ReportCancellation extends Model
         return [
             'id' => $this->id,
             'status' => $this->status,
+            // Dibatalkan langsung oleh admin (tanpa pengajuan petugas): pengaju = pemutus.
+            'is_direct' => $this->requested_by !== null && $this->requested_by === $this->decided_by,
             'reason' => $this->reason,
             'requested_at' => $this->created_at,
             'requester_name' => $withActors ? $this->requester_name : null,

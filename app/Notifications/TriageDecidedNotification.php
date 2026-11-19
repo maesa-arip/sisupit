@@ -39,6 +39,9 @@ class TriageDecidedNotification extends Notification implements ShouldQueue
 
     public const MERGED = 'merged';
 
+    // Admin membatalkan laporan mentah langsung (TASK_91).
+    public const CANCELLED = 'cancelled';
+
     public $report;
 
     public $decision;
@@ -68,6 +71,7 @@ class TriageDecidedNotification extends Notification implements ShouldQueue
             self::APPROVED => ['title' => '✅ Laporan sudah diverifikasi', 'body' => $laporan.'. Diverifikasi'.$oleh.' dan disiarkan ke lapangan.'],
             self::REJECTED => ['title' => 'Laporan ditolak', 'body' => $laporan.'. Ditolak'.$oleh.'.'],
             self::MERGED => ['title' => 'Laporan digabung', 'body' => $laporan.'. Digabung'.$oleh.' ke kejadian yang sudah ada.'],
+            self::CANCELLED => ['title' => 'Laporan dibatalkan', 'body' => $laporan.'. Dibatalkan'.$oleh.'.'],
             default => ['title' => 'Laporan sudah diproses', 'body' => $laporan],
         };
     }

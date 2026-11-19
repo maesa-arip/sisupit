@@ -371,6 +371,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/reports/{report}/pembatalan', [ReportActionController::class, 'requestCancellation'])->name('reports.cancellation.request');
     Route::post('/reports/{report}/pembatalan/setujui', [ReportActionController::class, 'approveCancellation'])->name('reports.cancellation.approve');
     Route::post('/reports/{report}/pembatalan/tolak', [ReportActionController::class, 'declineCancellation'])->name('reports.cancellation.decline');
+    // Admin membatalkan langsung tanpa pengajuan petugas (alasan tetap wajib).
+    Route::post('/reports/{report}/batalkan', [ReportActionController::class, 'cancelDirectly'])->name('reports.cancellation.direct');
     // Regu (TASK_60): anggota regu memilih tinggal di kantor alih-alih meluncur. Petugas saja,
     // tepat satu per regu per kejadian - gerbangnya di controller seperti take-action.
     Route::post('/reports/{report}/jaga-kantor', [ReportActionController::class, 'stayAtBase'])->name('reports.stay-at-base');

@@ -333,6 +333,8 @@ export default function ReportShow(props) {
 	const cancellation = props.cancellation || null;
 	const canRequestCancellation = props.canRequestCancellation || false;
 	const canDecideCancellation = props.canDecideCancellation || false;
+	// Admin membatalkan langsung tanpa pengajuan petugas (ReportCancellation::canCancelDirectly).
+	const canCancelDirectly = props.canCancelDirectly || false;
 
 	const postDuplicateAction = (routeName, reportId, data, message) => {
 		setIsMerging(true);
@@ -384,6 +386,7 @@ export default function ReportShow(props) {
 				'cancellation',
 				'canRequestCancellation',
 				'canDecideCancellation',
+				'canCancelDirectly',
 			],
 		});
 	};
@@ -600,6 +603,11 @@ export default function ReportShow(props) {
 		const target = {
 			request: ['reports.cancellation.request', { reason: cancelText }, 'Pembatalan diajukan ke admin.'],
 			approve: ['reports.cancellation.approve', {}, 'Laporan dibatalkan. Penugasan tim dihentikan.'],
+			direct: [
+				'reports.cancellation.direct',
+				{ reason: cancelText },
+				'Laporan dibatalkan. Penugasan tim dihentikan.',
+			],
 			decline: ['reports.cancellation.decline', { note: cancelText }, 'Pengajuan pembatalan ditolak.'],
 		}[kind];
 		if (!target) return;
@@ -1567,6 +1575,16 @@ export default function ReportShow(props) {
 							>
 								<IconX className="h-3.5 w-3.5" /> Tolak laporan
 							</Button>
+							{/* Pelapor membatalkan sebelum diverifikasi: "Dibatalkan", bukan "Ditolak" (hoaks). */}
+							{canCancelDirectly && (
+								<Button
+									onClick={() => openCancelDialog('direct')}
+									variant="ghost"
+									className="h-8 gap-1.5 rounded-lg px-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+								>
+									<IconBan className="h-3.5 w-3.5" /> Batalkan laporan
+								</Button>
+							)}
 						</div>
 					</CardContent>
 				</Card>
@@ -1831,18 +1849,24 @@ export default function ReportShow(props) {
 									<IconBan className="h-4 w-4" /> Laporan Dibatalkan
 								</h2>
 								<p className="text-xs leading-relaxed text-muted-foreground">
-									Laporan ini dibatalkan atas pengajuan petugas dan persetujuan admin. Penugasan tim
-									sudah dihentikan.
+									{cancellation?.is_direct
+										? 'Laporan ini dibatalkan oleh Pusat Komando. Penugasan tim sudah dihentikan.'
+										: 'Laporan ini dibatalkan atas pengajuan petugas dan persetujuan admin. Penugasan tim sudah dihentikan.'}
 								</p>
 								{cancellation?.status === 'disetujui' && (
 									<>
 										{canSeeClosureActor && (
 											<p className="text-xs leading-relaxed text-muted-foreground">
-												Diajukan{' '}
-												<span className="font-semibold text-foreground">
-													{cancellation.requester_name ?? 'tidak tercatat'}
-												</span>
-												{' · '}disetujui{' '}
+												{!cancellation.is_direct && (
+													<>
+														Diajukan{' '}
+														<span className="font-semibold text-foreground">
+															{cancellation.requester_name ?? 'tidak tercatat'}
+														</span>
+														{' · '}
+													</>
+												)}
+												{cancellation.is_direct ? 'Dibatalkan' : 'disetujui'}{' '}
 												<span className="font-semibold text-foreground">
 													{cancellation.decider_name ?? 'tidak tercatat'}
 												</span>
@@ -2133,6 +2157,17 @@ export default function ReportShow(props) {
 													</Button>
 												</div>
 											</div>
+										)}
+
+										{/* Admin membatalkan langsung (laporan berjalan, tanpa pengajuan yang menunggu). */}
+										{canCancelDirectly && reportStatus !== 'TERLAPOR' && (
+											<Button
+												onClick={() => openCancelDialog('direct')}
+												variant="outline"
+												className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-lg border-border text-[13px] font-semibold text-muted-foreground shadow-none transition-colors hover:bg-muted hover:text-foreground"
+											>
+												<IconBan className="h-4 w-4" /> Batalkan Laporan
+											</Button>
 										)}
 
 										{/* TASK_91: pelapor membatalkan saat tim sudah berangkat - petugas mengajukan,
@@ -3011,7 +3046,7 @@ export default function ReportShow(props) {
 				</DialogContent>
 			</Dialog>
 
-			{/* Pembatalan laporan (TASK_91): satu dialog untuk ajukan (alasan WAJIB), setujui, dan tolak. */}
+			{/* Pembatalan laporan (TASK_91): satu dialog untuk ajukan & batalkan langsung (alasan WAJIB), setujui, dan tolak. */}
 			<Dialog open={cancelDialog !== null} onOpenChange={(open) => !open && setCancelDialog(null)}>
 				<DialogContent className="max-w-sm p-6">
 					<div className="flex flex-col items-center space-y-4 text-center">
@@ -3021,16 +3056,20 @@ export default function ReportShow(props) {
 						<h2 className="text-[17px] font-semibold tracking-tight text-foreground">
 							{cancelDialog === 'request'
 								? 'Ajukan Pembatalan Laporan?'
-								: cancelDialog === 'approve'
-									? 'Setujui Pembatalan?'
-									: 'Tolak Pengajuan Pembatalan?'}
+								: cancelDialog === 'direct'
+									? 'Batalkan Laporan?'
+									: cancelDialog === 'approve'
+										? 'Setujui Pembatalan?'
+										: 'Tolak Pengajuan Pembatalan?'}
 						</h2>
 						<p className="text-sm leading-relaxed text-muted-foreground">
 							{cancelDialog === 'request'
 								? 'Admin akan menerima pengajuan ini. Misi tetap berjalan sampai admin menyetujuinya.'
-								: cancelDialog === 'approve'
-									? 'Laporan ditandai dibatalkan, seluruh penugasan dihentikan, dan pelapor dikabari.'
-									: 'Laporan tetap berjalan dan pengaju dikabari.'}
+								: cancelDialog === 'direct'
+									? 'Laporan ditandai dibatalkan, penugasan yang berjalan dihentikan, dan pelapor dikabari.'
+									: cancelDialog === 'approve'
+										? 'Laporan ditandai dibatalkan, seluruh penugasan dihentikan, dan pelapor dikabari.'
+										: 'Laporan tetap berjalan dan pengaju dikabari.'}
 						</p>
 						{cancelDialog === 'approve' && cancellation?.reason && (
 							<div className="w-full rounded-lg border border-border bg-muted p-3 text-left text-xs text-foreground/80">
@@ -3038,7 +3077,7 @@ export default function ReportShow(props) {
 								{cancellation.reason}
 							</div>
 						)}
-						{cancelDialog === 'request' && (
+						{(cancelDialog === 'request' || cancelDialog === 'direct') && (
 							<div className="w-full space-y-2 text-left">
 								<label className="text-[13px] font-medium text-muted-foreground">
 									Alasan pembatalan <span className="font-normal text-destructive">(wajib)</span>
@@ -3099,14 +3138,15 @@ export default function ReportShow(props) {
 								className="h-10 flex-1 font-semibold shadow-none"
 								disabled={
 									isCancelProcessing ||
-									(cancelDialog === 'request' && cancelText.trim().length < CANCEL_REASON_MIN)
+									(['request', 'direct'].includes(cancelDialog) &&
+										cancelText.trim().length < CANCEL_REASON_MIN)
 								}
 							>
 								{isCancelProcessing ? (
 									<IconLoader2 className="h-4 w-4 animate-spin" />
 								) : cancelDialog === 'request' ? (
 									'Ajukan'
-								) : cancelDialog === 'approve' ? (
+								) : cancelDialog === 'approve' || cancelDialog === 'direct' ? (
 									'Ya, Batalkan'
 								) : (
 									'Tolak Pengajuan'
