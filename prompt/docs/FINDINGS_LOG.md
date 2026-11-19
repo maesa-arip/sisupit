@@ -5546,3 +5546,18 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
 - **Penjaga:** `LaporanKejadianPdfTest` (+2: kop Denpasar via View::composer, kop teks tenant lain + footer Sisupit),
   `ReporterCallTest` (+1: city_code kedua sisi + lambang di CallOverlay). Tanpa migrasi, tanpa APK baru.
   Visual dicek: render dompdf -> pdftoppm (Denpasar & Badung), kartu panggilan headless Chromium terang/gelap. Belum diuji di HP.
+
+### #248 — Laporan yang dibatalkan pelapor saat tim sudah Meluncur tak bisa ditutup dengan benar (FIXED lokal 2026-11-19, ADA MIGRASI, belum commit/deploy, TASK_91)
+
+- **Permintaan user:** "ajukan pembatalan dari petugas, ada laporan petugas sudah otw tapi ternyata batal dari pelapor, harus
+  ada alasan". Dipilih user: petugas MENGAJUKAN, admin MENYETUJUI; status baru `dibatalkan`.
+- **Akar:** tiga jalan yang ada semuanya salah makna - `cancelResponse` memundurkan satu petugas (laporan tetap aktif),
+  `reject` = hoaks (admin saja, pelapor jujur kena label "Ditolak"), `resolve` = "Selesai Ditangani" + alpha regu.
+- **Fix:** tabel `report_cancellations` + model `ReportCancellation` (gerbang `canRequest`/`canDecide` dipakai endpoint & prop
+  tombol), `ReportActionController::{request,approve,decline}Cancellation`, route `reports.cancellation.*`,
+  `ReportCancellationNotification` (FCM `report_status` + database, tanpa broadcast), status `dibatalkan` di SEMUA kamus layar
+  + Export + penyaring daftar hitam (rincian TASK_91 §3). Disetujui = responder `finished`, unit dilepas, tanpa alpha,
+  pelapor & responder dikabari. Sekalian: `ReportCard` dulu melabeli laporan ber-responder berstatus apa pun "Penanganan".
+- **Penjaga:** `ReportCancellationTest` (9 test). Sabotase daftar hitam takeAction -> merah. Belum diuji di HP.
+- **Sisa (tidak dikerjakan):** admin membatalkan langsung tanpa pengajuan; pengajuan menunggu di dashboard admin; Laporan
+  Kejadian untuk laporan dibatalkan.
