@@ -47,7 +47,17 @@ import {
 import { useEffect, useRef, useState } from 'react';
 
 // 'aktif' dulu & jadi default triase (laporan yang masih perlu tindakan). 'Semua' tetap ada.
-const STATUS_OPTIONS = ['aktif', 'Semua', 'TERLAPOR', 'pending', 'handling', 'resolved', 'ditolak', 'digabung'];
+const STATUS_OPTIONS = [
+	'aktif',
+	'Semua',
+	'TERLAPOR',
+	'pending',
+	'handling',
+	'resolved',
+	'ditolak',
+	'digabung',
+	'dibatalkan',
+];
 
 // Status yang TIDAK PERNAH sampai ke pemantau (pejabat/relawan): ReportController::index
 // menyaringnya di server (whereNotIn TERLAPOR/ditolak/digabung). Chip yang selalu memulangkan
@@ -111,6 +121,14 @@ const STATUS_META = {
 		dot: 'bg-muted-foreground/60',
 		ring: 'bg-muted/40 text-muted-foreground',
 	},
+	// Laporan yang dibatalkan (TASK_91), sewarna Components/StatusBadge.jsx.
+	dibatalkan: {
+		label: 'Dibatalkan',
+		badge: 'bg-muted/60 text-foreground/70 border-muted-foreground/30',
+		pin: 'text-muted-foreground/80',
+		dot: 'bg-muted-foreground/80',
+		ring: 'bg-muted/60 text-foreground/70',
+	},
 };
 
 // 'aktif' = filter gabungan (TERLAPOR+pending+handling), bukan status nyata — tidak lagi
@@ -125,10 +143,11 @@ const FILTER_LABEL = {
 	resolved: STATUS_META.resolved.label,
 	ditolak: STATUS_META.ditolak.label,
 	digabung: STATUS_META.digabung.label,
+	dibatalkan: STATUS_META.dibatalkan.label,
 };
 
-// Urutan legenda peta = urutan alur insiden, ditutup 'ditolak' & 'digabung' (jalan keluar, bukan tahap).
-const LEGEND_STATUSES = ['TERLAPOR', 'pending', 'handling', 'resolved', 'ditolak', 'digabung'];
+// Urutan legenda peta = urutan alur insiden, ditutup 'ditolak', 'digabung' & 'dibatalkan' (jalan keluar, bukan tahap).
+const LEGEND_STATUSES = ['TERLAPOR', 'pending', 'handling', 'resolved', 'ditolak', 'digabung', 'dibatalkan'];
 
 const markerStyle = (status) => STATUS_META[status] || STATUS_META.pending;
 

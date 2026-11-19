@@ -75,6 +75,14 @@ const REPORT_STATUS = [
 		dot: 'bg-muted-foreground/60',
 		badge: 'border-dashed border-muted-foreground/40 bg-muted/40 text-foreground',
 	},
+	// Laporan yang dibatalkan (TASK_91): kejadiannya batal, jadi tersembunyi bawaan seperti 'Selesai'.
+	{
+		key: 'dibatalkan',
+		label: 'Dibatalkan',
+		marker: 'bg-muted-foreground/80',
+		dot: 'bg-muted-foreground/80',
+		badge: 'bg-muted/60 text-foreground/70 border-muted-foreground/30',
+	},
 ];
 const REPORT_META = Object.fromEntries(REPORT_STATUS.map((s) => [s.key, s]));
 
@@ -169,7 +177,7 @@ export default function MonitoringMap({ layers, reports: reportLayer, report_fil
 	// Kejadian yang tampil pertama kali = yang masih berjalan (Laporan Masuk,
 	// Laporan Terverifikasi, Penanganan). 'Selesai' & 'ditolak' disembunyikan,
 	// tetap bisa dinyalakan lewat chip status.
-	const [reportHidden, setReportHidden] = useState(() => new Set(['ditolak', 'resolved', 'digabung']));
+	const [reportHidden, setReportHidden] = useState(() => new Set(['ditolak', 'resolved', 'digabung', 'dibatalkan']));
 	const [hydrantHidden, setHydrantHidden] = useState(() => new Set());
 	const [stationHidden, setStationHidden] = useState(() => new Set());
 	const [pumpHidden, setPumpHidden] = useState(() => new Set());

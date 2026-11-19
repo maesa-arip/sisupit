@@ -25,8 +25,13 @@ export const STATUS_DITOLAK = 'ditolak';
 // membaca "digabung" bisa mengira laporannya dianggap salah.
 export const STATUS_DIGABUNG = 'digabung';
 
+// `dibatalkan` (TASK_91) juga bukan tahap: laporan terverifikasi yang batal (mis. pelapor
+// mengabari apinya sudah padam) - pengajuan petugas yang disetujui admin.
+export const STATUS_DIBATALKAN = 'dibatalkan';
+
 // Laporan yang tak lagi bergerak: tak ada regu yang perlu disebut "sedang menuju".
-export const isClosedStatus = (status) => ['resolved', STATUS_DITOLAK, STATUS_DIGABUNG].includes(status);
+export const isClosedStatus = (status) =>
+	['resolved', STATUS_DITOLAK, STATUS_DIGABUNG, STATUS_DIBATALKAN].includes(status);
 
 // Warna per tahap mengikuti kamus status kanonik (StatusBadge): Laporan Masuk merah,
 // Terverifikasi kuning, Penanganan hijau, Selesai biru — jangan diseragamkan jadi satu warna,
@@ -49,7 +54,7 @@ export const describeUnits = (stage) => {
 };
 
 /**
- * Kotak "Status laporan": badge + mini-stepper 4 tahap, atau keterangan untuk ditolak/digabung.
+ * Kotak "Status laporan": badge + mini-stepper 4 tahap, atau keterangan untuk ditolak/digabung/dibatalkan.
  */
 export function ReportStepper({ status, rejectedReason = null, className }) {
 	const currentStep = STEP_STATUS.indexOf(status);
@@ -78,6 +83,11 @@ export function ReportStepper({ status, rejectedReason = null, className }) {
 				<p className="text-xs leading-relaxed text-muted-foreground">
 					Kejadian ini sudah dilaporkan warga lain dan sedang diproses Pusat Komando. Laporan Anda digabungkan
 					dengannya, dan perkembangannya tetap dikabarkan ke Anda.
+				</p>
+			) : status === STATUS_DIBATALKAN ? (
+				<p className="text-xs leading-relaxed text-muted-foreground">
+					Laporan ini dibatalkan dan penugasan tim dihentikan. Bila keadaan darurat terjadi lagi, segera
+					laporkan atau telepon Damkar.
 				</p>
 			) : (
 				<ol className="flex items-start">

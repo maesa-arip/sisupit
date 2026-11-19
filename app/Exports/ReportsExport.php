@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Report;
+use App\Models\ReportCancellation;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
@@ -67,6 +68,8 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
         // Laporan ganda yang digabung ke kejadian lain (TASK_55). Nomor induknya di kolom
         // "Digabung ke", supaya rekap bisa menghitung KEJADIAN, bukan cuma laporan.
         'digabung' => 'Laporan Sama',
+        // TASK_91: laporan terverifikasi yang dibatalkan (pengajuan petugas, disetujui admin).
+        'dibatalkan' => 'Dibatalkan',
     ];
 
     /**
@@ -131,6 +134,8 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
                 'photos:id,report_id',
                 // Induk laporan ganda (TASK_55) - cukup id & tahun untuk nomor LP-nya.
                 'mergedInto:id,created_at',
+                // Pembatalan yang disetujui (TASK_91) - alasannya di kolom "Alasan Ditolak/Dibatalkan".
+                'cancellations' => fn ($query) => $query->where('status', ReportCancellation::STATUS_DISETUJUI),
             ])
             // Pencarian + rentang tanggal laporan masuk (TASK_65) lewat rumus yang SAMA dengan
             // daftar di layar (Report::scopeListFilter, TASK_78). Tanggalnya tanggal WITA,
@@ -172,7 +177,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             'Latitude',
             'Longitude',
             'Status',
-            'Alasan Ditolak',
+            'Alasan Ditolak/Dibatalkan',
             'Ditolak Oleh',
             'Jam Direspons',
             'Jam Tiba di Lokasi',
@@ -321,7 +326,7 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             'O' => 12,   // Lat
             'P' => 12,   // Lng
             'Q' => 22,   // Status
-            'R' => 30,   // Alasan Ditolak
+            'R' => 30,   // Alasan Ditolak/Dibatalkan
             'S' => 22,   // Ditolak Oleh
             'T' => 18,   // Jam Direspons
             'U' => 18,   // Jam Tiba
@@ -478,6 +483,20 @@ class ReportsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
      */
     private function rejectionSummary($report): string
     {
+        // TASK_91: kolom yang sama memuat alasan pembatalan + admin yang menyetujuinya.
+        if ($report->status === Report::STATUS_DIBATALKAN) {
+            $batal = $report->cancellations->first();
+            if (! $batal) {
+                return 'Dibatalkan - tanpa alasan tercatat';
+            }
+            $jejak = array_filter([
+                $batal->decider_name ? 'disetujui '.$batal->decider_name : null,
+                $batal->decided_at ? $this->localTime($batal->decided_at) : null,
+            ]);
+
+            return 'Dibatalkan: '.$batal->reason.($jejak ? ' ('.implode(', ', $jejak).')' : '');
+        }
+
         if ($report->status !== 'ditolak') {
             return '-';
         }

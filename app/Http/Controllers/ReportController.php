@@ -12,6 +12,7 @@ use App\Models\Regu;
 use App\Models\Report;
 use App\Models\ReportAgency;
 use App\Models\ReportAlpha;
+use App\Models\ReportCancellation;
 use App\Models\ReportJagaKantor;
 use App\Models\ReportResolution;
 use App\Models\ReporterCall;
@@ -535,6 +536,13 @@ class ReportController extends Controller
             // Laporan ganda (TASK_55). `canMerge` = gerbang Gabungkan/Bukan sama/Pisahkan;
             // sama dengan ReportActionController::merge(), jadi turunannya $isVerifier.
             'canMerge' => $isVerifier,
+            // Pembatalan laporan (TASK_91): pengajuan terbaru (menunggu/disetujui/ditolak) + dua
+            // gerbang tombol dari rumus yang SAMA dengan endpoint-nya (ReportCancellation).
+            // Nama pengaju/pemutus hanya untuk audiens jejak penutupan (#88), bukan pelapor.
+            'cancellation' => optional(ReportCancellation::where('report_id', $report->id)->latest('id')->first())
+                ->toDetail($isStaff || $isPejabat || $isHelper || $isRelawanInArea),
+            'canRequestCancellation' => ReportCancellation::canRequest($user, $report),
+            'canDecideCancellation' => ReportCancellation::canDecide($user, $report),
             'duplicateCandidate' => $duplicateCandidate,
             'mergedReports' => $mergedReports,
             'mergedIncident' => $mergedIncident,
@@ -599,7 +607,7 @@ class ReportController extends Controller
             $groups[$key] ??= ['regu_id' => $stay->regu_id, 'name' => $stay->regu_name];
         }
 
-        $isOpen = ! in_array($report->status, ['resolved', 'ditolak', Report::STATUS_DIGABUNG], true);
+        $isOpen = ! in_array($report->status, ['resolved', 'ditolak', Report::STATUS_DIGABUNG, Report::STATUS_DIBATALKAN], true);
         $regus = Regu::withoutGlobalScope('tenant')
             ->with(['leader:id,name', 'members:id,name'])
             ->whereIn('id', collect($groups)->pluck('regu_id')->filter())

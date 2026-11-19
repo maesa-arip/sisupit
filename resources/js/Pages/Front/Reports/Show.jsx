@@ -1,5 +1,6 @@
 import DemoBadge from '@/Components/DemoBadge';
 import GuestReporterBadge, { isGuestReport } from '@/Components/GuestReporterBadge';
+import InputError from '@/Components/InputError';
 import PhotoViewer from '@/Components/PhotoViewer';
 import { ReportStepper, ResponderSummary } from '@/Components/ReportProgress';
 import CallReporterButton from '@/Components/ReporterCall/CallReporterButton';
@@ -20,6 +21,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import {
 	IconAlertCircle,
 	IconArrowBackUp,
+	IconBan,
 	IconBrandWhatsapp,
 	IconBuilding,
 	IconBuildingCommunity,
@@ -58,6 +60,16 @@ const ROUTE_REFETCH_METERS = 30;
 // 2026-06-29) karena masih terpisah dari pelacakan petugas. Set true untuk menampilkannya
 // kembali — seluruh backend & alur dispatch/release tetap utuh.
 const SHOW_ARMADA_PANEL = false;
+
+// Pembatalan laporan (TASK_91). Pilihan cepat hanya MENGISI kolom alasan (tetap bisa disunting);
+// batas minimal = ReportCancellation::REASON_MIN di server.
+const CANCEL_REASON_PRESETS = [
+	'Dibatalkan oleh pelapor',
+	'Api sudah padam sebelum tim tiba',
+	'Sudah ditangani pihak lain',
+	'Laporan keliru / bukan keadaan darurat',
+];
+const CANCEL_REASON_MIN = 5;
 
 // Jarak haversine kasar (meter) antara dua titik koordinat.
 function distanceMeters(lat1, lng1, lat2, lng2) {
@@ -159,6 +171,11 @@ export default function ReportShow(props) {
 	const [confirmApprove, setConfirmApprove] = useState(false);
 	const [confirmReject, setConfirmReject] = useState(false);
 	const [rejectReason, setRejectReason] = useState('');
+	// Pembatalan laporan (TASK_91): dialog pengajuan (petugas) & keputusan (admin).
+	const [cancelDialog, setCancelDialog] = useState(null); // 'request' | 'approve' | 'decline' | null
+	const [cancelText, setCancelText] = useState('');
+	const [cancelError, setCancelError] = useState(null);
+	const [isCancelProcessing, setIsCancelProcessing] = useState(false);
 	const [confirmResolve, setConfirmResolve] = useState(false);
 
 	// Pengerahan unit/armada (TASK_09): daftar unit tersedia ter-scope wilayah dari server,
@@ -310,7 +327,12 @@ export default function ReportShow(props) {
 	// Insiden yang sedang berjalan di alur respons: bukan laporan mentah, bukan yang ditolak,
 	// dan bukan laporan ganda yang sudah digabung - responder yang meluncur ke laporan anak tak
 	// terlihat oleh siapa pun yang memantau insiden induknya (server menolaknya juga).
-	const isInResponseFlow = !['TERLAPOR', 'ditolak', 'digabung'].includes(reportStatus);
+	const isInResponseFlow = !['TERLAPOR', 'ditolak', 'digabung', 'dibatalkan'].includes(reportStatus);
+	// Pembatalan laporan (TASK_91). `cancellation` = pengajuan TERBARU (menunggu/disetujui/ditolak);
+	// kedua tombol dibaca dari prop server - rumusnya ReportCancellation::canRequest/canDecide.
+	const cancellation = props.cancellation || null;
+	const canRequestCancellation = props.canRequestCancellation || false;
+	const canDecideCancellation = props.canDecideCancellation || false;
 
 	const postDuplicateAction = (routeName, reportId, data, message) => {
 		setIsMerging(true);
@@ -359,6 +381,9 @@ export default function ReportShow(props) {
 				'responders',
 				'reporterCalls',
 				'canCallReporter',
+				'cancellation',
+				'canRequestCancellation',
+				'canDecideCancellation',
 			],
 		});
 	};
@@ -410,6 +435,9 @@ export default function ReportShow(props) {
 					label: 'Digabung',
 					color: 'border-dashed border-muted-foreground/40 bg-muted/40 text-foreground',
 				};
+			// TASK_91, sewarna Components/StatusBadge.jsx.
+			case 'dibatalkan':
+				return { label: 'Dibatalkan', color: 'bg-muted/60 text-foreground/70 border-muted-foreground/30' };
 			default:
 				return { label: status, color: 'bg-muted text-muted-foreground border-border' };
 		}
@@ -559,6 +587,34 @@ export default function ReportShow(props) {
 				onFinish: () => setIsProcessing(false),
 			},
 		);
+	};
+
+	const openCancelDialog = (kind) => {
+		setCancelText('');
+		setCancelError(null);
+		setCancelDialog(kind);
+	};
+
+	const submitCancellation = () => {
+		const kind = cancelDialog;
+		const target = {
+			request: ['reports.cancellation.request', { reason: cancelText }, 'Pembatalan diajukan ke admin.'],
+			approve: ['reports.cancellation.approve', {}, 'Laporan dibatalkan. Penugasan tim dihentikan.'],
+			decline: ['reports.cancellation.decline', { note: cancelText }, 'Pengajuan pembatalan ditolak.'],
+		}[kind];
+		if (!target) return;
+
+		setIsCancelProcessing(true);
+		router.post(route(target[0], report.id), target[1], {
+			preserveScroll: true,
+			onSuccess: () => {
+				setCancelDialog(null);
+				setCancelText('');
+				toast.success(target[2]);
+			},
+			onError: (errors) => setCancelError(errors.reason || errors.note || 'Gagal memproses pembatalan.'),
+			onFinish: () => setIsCancelProcessing(false),
+		});
 	};
 
 	const handleTakeAction = async () => {
@@ -1271,8 +1327,8 @@ export default function ReportShow(props) {
 			    Bantuan" semuanya menuju halaman ini. Tahapan tampil untuk SEMUA yang membuka detail
 			    (permintaan user 2026-10-08, dulu khusus pelapor); ringkasan regu tetap khusus pelapor
 			    karena `responders` hanya dikirim server untuknya - staf sudah punya manifes lengkap.
-			    Ditolak & digabung tidak di sini: keduanya sudah punya kartu penjelasannya sendiri. */}
-			{!['ditolak', 'digabung'].includes(reportStatus) && (
+			    Ditolak, digabung & dibatalkan tidak di sini: ketiganya punya kartu penjelasannya sendiri. */}
+			{!['ditolak', 'digabung', 'dibatalkan'].includes(reportStatus) && (
 				<Card>
 					<CardContent className="space-y-3 p-4 sm:p-5">
 						<h2 className="text-[17px] font-semibold tracking-tight text-foreground">
@@ -1767,6 +1823,112 @@ export default function ReportShow(props) {
 						</Card>
 					)}
 
+					{/* --- PEMBATALAN LAPORAN (TASK_91) --- */}
+					{reportStatus === 'dibatalkan' && (
+						<Card>
+							<CardContent className="space-y-2 p-4 sm:p-5">
+								<h2 className="flex items-center gap-2 text-[17px] font-semibold tracking-tight text-foreground">
+									<IconBan className="h-4 w-4" /> Laporan Dibatalkan
+								</h2>
+								<p className="text-xs leading-relaxed text-muted-foreground">
+									Laporan ini dibatalkan atas pengajuan petugas dan persetujuan admin. Penugasan tim
+									sudah dihentikan.
+								</p>
+								{cancellation?.status === 'disetujui' && (
+									<>
+										{canSeeClosureActor && (
+											<p className="text-xs leading-relaxed text-muted-foreground">
+												Diajukan{' '}
+												<span className="font-semibold text-foreground">
+													{cancellation.requester_name ?? 'tidak tercatat'}
+												</span>
+												{' · '}disetujui{' '}
+												<span className="font-semibold text-foreground">
+													{cancellation.decider_name ?? 'tidak tercatat'}
+												</span>
+												{cancellation.decided_at
+													? ` · ${fmtDateTime(cancellation.decided_at)}`
+													: ''}
+											</p>
+										)}
+										<div className="mt-1 rounded-lg border border-border bg-muted p-3 text-xs text-foreground/80">
+											<span className="font-semibold">Alasan: </span>
+											{cancellation.reason}
+										</div>
+									</>
+								)}
+							</CardContent>
+						</Card>
+					)}
+
+					{/* Pengajuan yang menunggu admin, atau yang terakhir ditolak (laporan tetap berjalan).
+					    Hanya untuk staf: pelapor tak perlu melihat usulan yang belum diputuskan. */}
+					{isStaffOrAdmin &&
+						isInResponseFlow &&
+						reportStatus !== 'resolved' &&
+						cancellation &&
+						cancellation.status !== 'disetujui' && (
+							<Card className={cancellation.status === 'menunggu' ? 'border-warning/40' : undefined}>
+								<CardContent className="space-y-3 p-4 sm:p-5">
+									<h2 className="flex items-center gap-2 text-[17px] font-semibold tracking-tight text-foreground">
+										<IconBan className="h-4 w-4 text-warning" />
+										{cancellation.status === 'menunggu'
+											? 'Pengajuan Pembatalan'
+											: 'Pengajuan Pembatalan Ditolak'}
+									</h2>
+									<p className="text-xs leading-relaxed text-muted-foreground">
+										Diajukan{' '}
+										<span className="font-semibold text-foreground">
+											{cancellation.requester_name ?? 'tidak tercatat'}
+										</span>
+										{cancellation.requested_at
+											? ` · ${fmtDateTime(cancellation.requested_at)}`
+											: ''}
+									</p>
+									<div className="rounded-lg border border-border bg-muted p-3 text-xs text-foreground/80">
+										<span className="font-semibold">Alasan: </span>
+										{cancellation.reason}
+									</div>
+									{cancellation.status === 'ditolak' && (
+										<p className="text-xs leading-relaxed text-muted-foreground">
+											Ditolak{' '}
+											<span className="font-semibold text-foreground">
+												{cancellation.decider_name ?? 'tidak tercatat'}
+											</span>
+											{cancellation.decided_at
+												? ` · ${fmtDateTime(cancellation.decided_at)}`
+												: ''}
+											{cancellation.decision_note ? ` - ${cancellation.decision_note}` : ''}.
+											Laporan tetap berjalan.
+										</p>
+									)}
+									{cancellation.status === 'menunggu' &&
+										(canDecideCancellation ? (
+											<div className="grid grid-cols-2 gap-2">
+												<Button
+													onClick={() => openCancelDialog('decline')}
+													variant="outline"
+													className="h-10 rounded-lg border-border text-[13px] font-semibold text-foreground shadow-none hover:bg-muted"
+												>
+													Tolak
+												</Button>
+												<Button
+													onClick={() => openCancelDialog('approve')}
+													className="h-10 rounded-lg text-[13px] font-semibold shadow-none"
+												>
+													Setujui
+												</Button>
+											</div>
+										) : (
+											<p className="flex items-center gap-1.5 rounded-lg border border-warning/20 bg-warning/10 p-3 text-xs font-semibold text-warning">
+												<IconHourglass className="h-4 w-4 shrink-0" /> Menunggu keputusan admin.
+												Misi tetap berjalan sampai disetujui.
+											</p>
+										))}
+								</CardContent>
+							</Card>
+						)}
+
 					{/* Laporan TERKAIT (TASK_55): laporan lain yang digabung ke insiden ini. Foto &
 					    keterangan pelapor ke-2, ke-3, dst. adalah bukti tambahan - tanpa daftar ini
 					    semuanya hilang dari pandangan begitu digabung. */}
@@ -1973,6 +2135,18 @@ export default function ReportShow(props) {
 											</div>
 										)}
 
+										{/* TASK_91: pelapor membatalkan saat tim sudah berangkat - petugas mengajukan,
+										    admin memutuskan. Gerbang = prop server. */}
+										{canRequestCancellation && (
+											<Button
+												onClick={() => openCancelDialog('request')}
+												variant="outline"
+												className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-lg border-border text-[13px] font-semibold text-muted-foreground shadow-none transition-colors hover:bg-muted hover:text-foreground"
+											>
+												<IconBan className="h-4 w-4" /> Ajukan Pembatalan Laporan
+											</Button>
+										)}
+
 										{isStaffOrAdmin && (
 											<Button
 												onClick={() => setConfirmResolve(true)}
@@ -1998,6 +2172,7 @@ export default function ReportShow(props) {
 						reportStatus !== 'TERLAPOR' &&
 						reportStatus !== 'ditolak' &&
 						reportStatus !== 'digabung' &&
+						reportStatus !== 'dibatalkan' &&
 						reportStatus !== 'resolved' && (
 							<Card>
 								<CardContent className="space-y-3 p-4 sm:p-5">
@@ -2103,7 +2278,8 @@ export default function ReportShow(props) {
 						(canManageAgencies &&
 							reportStatus !== 'TERLAPOR' &&
 							reportStatus !== 'ditolak' &&
-							reportStatus !== 'digabung')) && (
+							reportStatus !== 'digabung' &&
+							reportStatus !== 'dibatalkan')) && (
 						<Card>
 							<CardContent className="space-y-3 p-4 sm:p-5">
 								<h2 className="flex items-center gap-2 text-[17px] font-semibold tracking-tight text-foreground">
@@ -2202,6 +2378,7 @@ export default function ReportShow(props) {
 									reportStatus !== 'TERLAPOR' &&
 									reportStatus !== 'ditolak' &&
 									reportStatus !== 'digabung' &&
+									reportStatus !== 'dibatalkan' &&
 									reportStatus !== 'resolved' &&
 									(addableAgencies.length > 0 ? (
 										<div className="flex flex-col gap-2 border-t border-border/70 pt-2 sm:flex-row">
@@ -2828,6 +3005,112 @@ export default function ReportShow(props) {
 								disabled={isProcessing}
 							>
 								{isProcessing ? <IconLoader2 className="h-4 w-4 animate-spin" /> : 'Ya, Tolak'}
+							</Button>
+						</div>
+					</div>
+				</DialogContent>
+			</Dialog>
+
+			{/* Pembatalan laporan (TASK_91): satu dialog untuk ajukan (alasan WAJIB), setujui, dan tolak. */}
+			<Dialog open={cancelDialog !== null} onOpenChange={(open) => !open && setCancelDialog(null)}>
+				<DialogContent className="max-w-sm p-6">
+					<div className="flex flex-col items-center space-y-4 text-center">
+						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-warning/10 text-warning">
+							<IconBan className="h-6 w-6" />
+						</div>
+						<h2 className="text-[17px] font-semibold tracking-tight text-foreground">
+							{cancelDialog === 'request'
+								? 'Ajukan Pembatalan Laporan?'
+								: cancelDialog === 'approve'
+									? 'Setujui Pembatalan?'
+									: 'Tolak Pengajuan Pembatalan?'}
+						</h2>
+						<p className="text-sm leading-relaxed text-muted-foreground">
+							{cancelDialog === 'request'
+								? 'Admin akan menerima pengajuan ini. Misi tetap berjalan sampai admin menyetujuinya.'
+								: cancelDialog === 'approve'
+									? 'Laporan ditandai dibatalkan, seluruh penugasan dihentikan, dan pelapor dikabari.'
+									: 'Laporan tetap berjalan dan pengaju dikabari.'}
+						</p>
+						{cancelDialog === 'approve' && cancellation?.reason && (
+							<div className="w-full rounded-lg border border-border bg-muted p-3 text-left text-xs text-foreground/80">
+								<span className="font-semibold">Alasan: </span>
+								{cancellation.reason}
+							</div>
+						)}
+						{cancelDialog === 'request' && (
+							<div className="w-full space-y-2 text-left">
+								<label className="text-[13px] font-medium text-muted-foreground">
+									Alasan pembatalan <span className="font-normal text-destructive">(wajib)</span>
+								</label>
+								<div className="flex flex-wrap gap-1.5">
+									{CANCEL_REASON_PRESETS.map((preset) => (
+										<button
+											key={preset}
+											type="button"
+											onClick={() => setCancelText(preset)}
+											className={cn(
+												'rounded-full border px-2.5 py-1 text-xs font-medium transition-colors active:scale-[0.97]',
+												cancelText === preset
+													? 'border-primary/30 bg-primary/10 text-primary'
+													: 'border-border text-muted-foreground hover:bg-muted',
+											)}
+										>
+											{preset}
+										</button>
+									))}
+								</div>
+								<Textarea
+									value={cancelText}
+									onChange={(e) => setCancelText(e.target.value)}
+									placeholder="Contoh: pelapor menelepon, api sudah dipadamkan warga sebelum tim tiba."
+									maxLength={500}
+									className="min-h-[80px] resize-y rounded-lg border-border bg-card text-base focus-visible:ring-1 md:text-sm"
+								/>
+								<InputError message={cancelError} />
+							</div>
+						)}
+						{cancelDialog === 'decline' && (
+							<div className="w-full space-y-1.5 text-left">
+								<label className="text-[13px] font-medium text-muted-foreground">
+									Catatan untuk pengaju <span className="font-normal">(opsional)</span>
+								</label>
+								<Textarea
+									value={cancelText}
+									onChange={(e) => setCancelText(e.target.value)}
+									placeholder="Contoh: pelapor tidak dapat dihubungi, lanjutkan pengecekan di lokasi."
+									maxLength={500}
+									className="min-h-[72px] resize-y rounded-lg border-border bg-card text-base focus-visible:ring-1 md:text-sm"
+								/>
+								<InputError message={cancelError} />
+							</div>
+						)}
+						{cancelDialog === 'approve' && cancelError && <InputError message={cancelError} />}
+						<div className="mt-2 flex w-full gap-3 border-t border-border/70 pt-4">
+							<Button
+								onClick={() => setCancelDialog(null)}
+								variant="outline"
+								className="h-10 flex-1 border-border bg-transparent text-foreground/80 shadow-none"
+							>
+								Batal
+							</Button>
+							<Button
+								onClick={submitCancellation}
+								className="h-10 flex-1 font-semibold shadow-none"
+								disabled={
+									isCancelProcessing ||
+									(cancelDialog === 'request' && cancelText.trim().length < CANCEL_REASON_MIN)
+								}
+							>
+								{isCancelProcessing ? (
+									<IconLoader2 className="h-4 w-4 animate-spin" />
+								) : cancelDialog === 'request' ? (
+									'Ajukan'
+								) : cancelDialog === 'approve' ? (
+									'Ya, Batalkan'
+								) : (
+									'Tolak Pengajuan'
+								)}
 							</Button>
 						</div>
 					</div>

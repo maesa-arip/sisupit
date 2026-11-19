@@ -15,6 +15,9 @@ const STATUS_CONFIG = {
 	// Laporan ganda yang digabung ke kejadian lain (TASK_55). Netral seperti `ditolak` tapi
 	// BUKAN abu yang sama: pelapornya tidak salah. Garis putus-putus = tertaut, bukan berdiri sendiri.
 	digabung: { label: 'Digabung', className: 'border-dashed border-muted-foreground/40 bg-muted/40 text-foreground' },
+	// Laporan terverifikasi yang dibatalkan (TASK_91, mis. pelapor mengabari apinya padam). Netral
+	// seperti `ditolak`, tapi bukan abu yang sama: laporannya bukan hoaks.
+	dibatalkan: { label: 'Dibatalkan', className: 'bg-muted/60 text-foreground/70 border-muted-foreground/30' },
 };
 
 export default function StatusBadge({ status, className }) {

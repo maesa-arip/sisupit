@@ -1,7 +1,19 @@
 import { Dialog, DialogContent } from '@/Components/ui/dialog';
 import { alamatLaporan, cn, timeAgo } from '@/lib/utils';
 import { Link } from '@inertiajs/react';
-import { CheckCircle2, Clock, Flame, MapPin, Navigation, ShieldAlert, User, Users, X, ZoomIn } from 'lucide-react';
+import {
+	CheckCircle2,
+	Clock,
+	Flame,
+	MapPin,
+	Navigation,
+	ShieldAlert,
+	User,
+	Users,
+	X,
+	XCircle,
+	ZoomIn,
+} from 'lucide-react';
 import { useState } from 'react';
 import DialogRelawanDetail from './DialogRelawanDetail';
 import DialogRelawanList from './DialogRelawanList';
@@ -48,6 +60,13 @@ export default function ReportCard({ report, currentUser, onSuccess, isRelawan, 
 				label: 'Selesai',
 				color: 'bg-info/10 text-info border-info/20',
 				icon: <CheckCircle2 size={12} className="mr-1 shrink-0" />,
+			};
+		// Laporan yang dibatalkan (TASK_91) bisa punya responder - tanpa cabang ini ia mengaku "Penanganan".
+		if (report.status === 'dibatalkan')
+			return {
+				label: 'Dibatalkan',
+				color: 'bg-muted/60 text-foreground/70 border-muted-foreground/30',
+				icon: <XCircle size={12} className="mr-1 shrink-0" />,
 			};
 		if (report.status === 'handling' || hasHelpers)
 			return {

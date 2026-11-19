@@ -366,6 +366,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/reports/{report}/dismiss-duplicate', [ReportActionController::class, 'dismissDuplicate'])->name('reports.dismiss-duplicate');
     Route::post('/reports/{report}/take-action', [ReportActionController::class, 'takeAction'])->name('reports.take-action');
     Route::post('/reports/{report}/cancel-response', [ReportActionController::class, 'cancelResponse'])->name('reports.cancel-response');
+    // Pembatalan laporan (TASK_91): petugas mengajukan beralasan, admin memutuskan. Gerbangnya
+    // ReportCancellation::canRequest/canDecide, dicek di controller.
+    Route::post('/reports/{report}/pembatalan', [ReportActionController::class, 'requestCancellation'])->name('reports.cancellation.request');
+    Route::post('/reports/{report}/pembatalan/setujui', [ReportActionController::class, 'approveCancellation'])->name('reports.cancellation.approve');
+    Route::post('/reports/{report}/pembatalan/tolak', [ReportActionController::class, 'declineCancellation'])->name('reports.cancellation.decline');
     // Regu (TASK_60): anggota regu memilih tinggal di kantor alih-alih meluncur. Petugas saja,
     // tepat satu per regu per kejadian - gerbangnya di controller seperti take-action.
     Route::post('/reports/{report}/jaga-kantor', [ReportActionController::class, 'stayAtBase'])->name('reports.stay-at-base');

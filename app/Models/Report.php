@@ -85,6 +85,15 @@ class Report extends Model
      */
     public const STATUS_DIGABUNG = 'digabung';
 
+    /**
+     * Laporan terverifikasi yang DIBATALKAN (TASK_91) - mis. pelapor mengabari apinya sudah padam
+     * saat tim sudah Meluncur. Petugas mengajukan beralasan, admin menyetujui (ReportCancellation).
+     * Jalan keluar dari alur seperti `ditolak`/`digabung`, jadi WAJIB disebut di setiap penyaring
+     * daftar HITAM. Bedanya dari `ditolak`: laporannya bukan hoaks; dari `resolved`: tak ada
+     * penanganan yang dicatat sebagai selesai (tanpa alpha regu, tanpa Laporan Kejadian).
+     */
+    public const STATUS_DIBATALKAN = 'dibatalkan';
+
     /** Status yang masih bisa menjadi induk sebuah laporan ganda. */
     public const STATUS_INDUK_DUPLIKAT = ['TERLAPOR', 'pending', 'handling'];
 
@@ -231,6 +240,12 @@ class Report extends Model
     public function merger(): BelongsTo
     {
         return $this->belongsTo(User::class, 'merged_by');
+    }
+
+    /** Pengajuan pembatalan (TASK_91), terbaru dulu. */
+    public function cancellations(): HasMany
+    {
+        return $this->hasMany(ReportCancellation::class)->latest('id');
     }
 
     /**

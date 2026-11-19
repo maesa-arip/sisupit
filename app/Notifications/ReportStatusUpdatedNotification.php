@@ -50,6 +50,8 @@ class ReportStatusUpdatedNotification extends Notification implements ShouldQueu
             // TASK_55. Kalimatnya sengaja menegaskan laporannya DITERIMA, bukan dibuang: pelapor
             // jujur yang hanya membaca "digabung" bisa mengira laporannya dianggap salah.
             'merged' => ['title' => 'Laporan Anda diterima', 'body' => 'Kejadian "'.$this->report->title.'" sudah dilaporkan warga lain dan sedang diproses. Laporan Anda digabungkan, dan perkembangannya tetap dikabarkan ke Anda.'],
+            // TASK_91: pembatalan disetujui admin (biasanya pelapor sendiri yang membatalkan).
+            'cancelled' => ['title' => 'Laporan Anda dibatalkan', 'body' => 'Laporan "'.$this->report->title.'" dibatalkan dan penugasan tim dihentikan. Bila keadaan darurat terjadi lagi, segera laporkan atau telepon Damkar.'],
             default => ['title' => 'Status laporan diperbarui', 'body' => $this->report->title],
         };
     }

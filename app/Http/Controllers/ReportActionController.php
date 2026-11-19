@@ -14,6 +14,7 @@ use App\Models\Regu;
 use App\Models\Report;
 use App\Models\ReportAgency;
 use App\Models\ReportAlpha;
+use App\Models\ReportCancellation;
 use App\Models\ReportJagaKantor;
 use App\Models\ReportUnit;
 use App\Models\Setting; // <-- Wajib ditambahkan
@@ -25,6 +26,7 @@ use App\Notifications\AgencyConfirmationNotification;
 use App\Notifications\AgencyDispatchNotification;
 use App\Notifications\EmergencyAlertNotification;
 use App\Notifications\NearbyIncidentNotification;
+use App\Notifications\ReportCancellationNotification;
 use App\Notifications\ReportStatusUpdatedNotification;
 use App\Notifications\TriageDecidedNotification;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -153,6 +155,11 @@ class ReportActionController extends Controller
         // Insiden yang sudah selesai tidak bisa ditolak.
         if ($report->status === 'resolved') {
             abort(403, 'Insiden yang sudah selesai tidak dapat ditolak.');
+        }
+
+        // TASK_91: laporan yang dibatalkan sudah ditutup lewat keputusan admin lain.
+        if ($report->status === Report::STATUS_DIBATALKAN) {
+            abort(403, 'Laporan yang sudah dibatalkan tidak dapat ditolak.');
         }
 
         // Laporan yang digabung bukan kejadian yang berdiri sendiri (TASK_55). Menolaknya
@@ -327,7 +334,7 @@ class ReportActionController extends Controller
         // Tak bisa merespons insiden yang sudah ditutup/ditolak.
         // `digabung` (TASK_55): responder yang meluncur ke laporan anak tak terlihat oleh siapa pun
         // yang memantau insiden induknya.
-        if (in_array($report->status, ['resolved', 'ditolak', Report::STATUS_DIGABUNG], true)) {
+        if (in_array($report->status, ['resolved', 'ditolak', Report::STATUS_DIGABUNG, Report::STATUS_DIBATALKAN], true)) {
             abort(403, 'Insiden ini sudah ditutup.');
         }
 
@@ -458,7 +465,7 @@ class ReportActionController extends Controller
         $this->ensureWithinJurisdiction($report, $user);
 
         // Daftar hitam yang sama dengan takeAction() - keduanya pilihan atas panggilan yang sama.
-        if (in_array($report->status, ['resolved', 'ditolak', Report::STATUS_DIGABUNG], true)) {
+        if (in_array($report->status, ['resolved', 'ditolak', Report::STATUS_DIGABUNG, Report::STATUS_DIBATALKAN], true)) {
             abort(403, 'Insiden ini sudah ditutup.');
         }
 
@@ -528,7 +535,7 @@ class ReportActionController extends Controller
         $this->ensureWithinJurisdiction($report, auth()->user());
         // `digabung` (TASK_55): responder yang meluncur ke laporan anak tak terlihat oleh siapa pun
         // yang memantau insiden induknya.
-        if (in_array($report->status, ['resolved', 'ditolak', Report::STATUS_DIGABUNG], true)) {
+        if (in_array($report->status, ['resolved', 'ditolak', Report::STATUS_DIGABUNG, Report::STATUS_DIBATALKAN], true)) {
             abort(403, 'Insiden ini sudah ditutup.');
         }
 
@@ -601,7 +608,7 @@ class ReportActionController extends Controller
 
         // `digabung` (TASK_55): responder yang meluncur ke laporan anak tak terlihat oleh siapa pun
         // yang memantau insiden induknya.
-        if (in_array($report->status, ['resolved', 'ditolak', Report::STATUS_DIGABUNG], true)) {
+        if (in_array($report->status, ['resolved', 'ditolak', Report::STATUS_DIGABUNG, Report::STATUS_DIBATALKAN], true)) {
             abort(403, 'Insiden ini sudah ditutup.');
         }
 
@@ -864,7 +871,7 @@ class ReportActionController extends Controller
 
         // `digabung` (TASK_55): responder yang meluncur ke laporan anak tak terlihat oleh siapa pun
         // yang memantau insiden induknya.
-        if (in_array($report->status, ['resolved', 'ditolak', Report::STATUS_DIGABUNG], true)) {
+        if (in_array($report->status, ['resolved', 'ditolak', Report::STATUS_DIGABUNG, Report::STATUS_DIBATALKAN], true)) {
             abort(403, 'Insiden ini sudah ditutup.');
         }
 
@@ -973,6 +980,11 @@ class ReportActionController extends Controller
             abort(403, 'Laporan yang sudah digabung diselesaikan lewat kejadian induknya.');
         }
 
+        // TASK_91: menutupnya menulis `resolved` di atas `dibatalkan` dan mencatat alpha regu.
+        if ($report->status === Report::STATUS_DIBATALKAN) {
+            abort(403, 'Laporan yang sudah dibatalkan tidak dapat dinyatakan selesai.');
+        }
+
         $actorId = auth()->id();
 
         DB::transaction(function () use ($report, $actorId) {
@@ -1013,6 +1025,146 @@ class ReportActionController extends Controller
         return back()->with('success', 'Insiden Selesai Ditangani.');
     }
 
+    // 4b. Pembatalan laporan (TASK_91). Tim sudah Meluncur, lalu pelapor mengabari kejadiannya
+    // batal. Petugas MENGAJUKAN dengan alasan wajib; admin MEMUTUSKAN (TASK_51 - keputusan status
+    // laporan = admin). Kedua gerbang di ReportCancellation, sama dengan prop tombol di show().
+    public function requestCancellation(Request $request, $id)
+    {
+        $user = auth()->user();
+        $report = Report::withoutGlobalScopes()->findOrFail($id);
+
+        abort_unless(ReportCancellation::canRequest($user, $report), 403, 'Pembatalan tidak dapat diajukan untuk laporan ini.');
+
+        $data = $request->validate([
+            'reason' => 'required|string|min:'.ReportCancellation::REASON_MIN.'|max:'.ReportCancellation::REASON_MAX,
+        ], [
+            'reason.required' => 'Alasan pembatalan wajib diisi.',
+            'reason.min' => 'Alasan pembatalan minimal :min karakter.',
+        ]);
+
+        // Kunci baris laporan: dua petugas seregu bisa menekan bersamaan, dan pengajuan ganda
+        // yang menunggu membuat admin memutuskan hal yang sama dua kali.
+        $cancellation = DB::transaction(function () use ($report, $user, $data) {
+            Report::withoutGlobalScopes()->whereKey($report->id)->lockForUpdate()->first();
+            abort_if((bool) ReportCancellation::pendingFor($report), 403, 'Pembatalan laporan ini sudah diajukan dan menunggu keputusan admin.');
+
+            return ReportCancellation::create([
+                'report_id' => $report->id,
+                'requested_by' => $user->id,
+                'requester_name' => $user->name,
+                'reason' => trim($data['reason']),
+                'status' => ReportCancellation::STATUS_MENUNGGU,
+            ]);
+        });
+
+        broadcast(new ReportRecordChanged($report->id));
+
+        $admins = User::triageAdminsFor($report)->reject(fn (User $u) => $u->id === $user->id);
+        if ($admins->isNotEmpty()) {
+            Notification::send($admins, new ReportCancellationNotification($report, ReportCancellationNotification::REQUESTED, $cancellation, $user->name));
+        }
+
+        return back()->with('success', 'Pembatalan diajukan. Menunggu keputusan admin.');
+    }
+
+    public function approveCancellation($id)
+    {
+        $user = auth()->user();
+        $report = Report::withoutGlobalScopes()->findOrFail($id);
+
+        abort_unless(ReportCancellation::canDecide($user, $report), 403, 'Tidak ada pengajuan pembatalan yang bisa Anda putuskan.');
+
+        // Responder yang masih bergerak dikabari SEBELUM barisnya ditimpa `finished`.
+        $responderIds = DB::table('report_officers')->where('report_id', $report->id)->whereIn('status', ['en_route', 'arrived'])->pluck('user_id')
+            ->merge(DB::table('report_helpers')->where('report_id', $report->id)->whereIn('status', ['en_route', 'arrived'])->pluck('user_id'));
+
+        $cancellation = DB::transaction(function () use ($report, $user) {
+            $row = ReportCancellation::where('report_id', $report->id)
+                ->where('status', ReportCancellation::STATUS_MENUNGGU)
+                ->lockForUpdate()
+                ->latest('id')
+                ->first();
+            abort_unless($row, 403, 'Pengajuan pembatalan sudah diputuskan.');
+
+            $row->update([
+                'status' => ReportCancellation::STATUS_DISETUJUI,
+                'decided_by' => $user->id,
+                'decider_name' => $user->name,
+                'decided_at' => now(),
+            ]);
+
+            $report->update(['status' => Report::STATUS_DIBATALKAN]);
+
+            // Penugasan dihentikan seperti resolve() - tanpa ReportAlpha: anggota regu yang tak
+            // memilih apa pun untuk kejadian yang batal bukan alpha.
+            DB::table('report_officers')->where('report_id', $report->id)->whereIn('status', ['en_route', 'arrived'])->update(['status' => 'finished', 'finished_at' => now()]);
+            DB::table('report_helpers')->where('report_id', $report->id)->whereIn('status', ['en_route', 'arrived'])->update(['status' => 'finished', 'finished_at' => now()]);
+
+            $dispatchedUnitIds = DB::table('report_units')->where('report_id', $report->id)->where('status', 'dispatched')->pluck('unit_id');
+            if ($dispatchedUnitIds->isNotEmpty()) {
+                DB::table('report_units')->where('report_id', $report->id)->where('status', 'dispatched')
+                    ->update(['status' => 'released', 'released_at' => now(), 'updated_at' => now()]);
+                DB::table('units')->whereIn('id', $dispatchedUnitIds)->update(['status' => 'available', 'updated_at' => now()]);
+            }
+
+            return $row;
+        });
+
+        $this->notifyReporter($report, 'cancelled');
+        broadcast(new ReportStatusChanged($report->id, Report::STATUS_DIBATALKAN));
+        broadcast(ReportFeedChanged::for($report, Report::STATUS_DIBATALKAN));
+        broadcast(new ResponderRosterChanged($report->id));
+
+        $penerimaIds = $responderIds->push($cancellation->requested_by)->filter()->map(fn ($uid) => (int) $uid)
+            ->unique()->reject(fn ($uid) => $uid === (int) $user->id)->values();
+        $penerima = User::whereIn('id', $penerimaIds)->get();
+        if ($penerima->isNotEmpty()) {
+            Notification::send($penerima, new ReportCancellationNotification($report, ReportCancellationNotification::APPROVED, $cancellation, $user->name));
+        }
+
+        return back()->with('success', 'Laporan dibatalkan. Penugasan tim dihentikan.');
+    }
+
+    public function declineCancellation(Request $request, $id)
+    {
+        $user = auth()->user();
+        $report = Report::withoutGlobalScopes()->findOrFail($id);
+
+        abort_unless(ReportCancellation::canDecide($user, $report), 403, 'Tidak ada pengajuan pembatalan yang bisa Anda putuskan.');
+
+        $data = $request->validate([
+            'note' => 'nullable|string|max:500',
+        ]);
+
+        $cancellation = DB::transaction(function () use ($report, $user, $data) {
+            $row = ReportCancellation::where('report_id', $report->id)
+                ->where('status', ReportCancellation::STATUS_MENUNGGU)
+                ->lockForUpdate()
+                ->latest('id')
+                ->first();
+            abort_unless($row, 403, 'Pengajuan pembatalan sudah diputuskan.');
+
+            $row->update([
+                'status' => ReportCancellation::STATUS_DITOLAK,
+                'decided_by' => $user->id,
+                'decider_name' => $user->name,
+                'decision_note' => isset($data['note']) ? (trim($data['note']) ?: null) : null,
+                'decided_at' => now(),
+            ]);
+
+            return $row;
+        });
+
+        broadcast(new ReportRecordChanged($report->id));
+
+        $pengaju = $cancellation->requested_by && $cancellation->requested_by !== $user->id
+            ? User::find($cancellation->requested_by)
+            : null;
+        $pengaju?->notify(new ReportCancellationNotification($report, ReportCancellationNotification::DECLINED, $cancellation, $user->name));
+
+        return back()->with('success', 'Pengajuan pembatalan ditolak. Laporan tetap berjalan.');
+    }
+
     // 5. Menerima Titik GPS dari Perangkat Relawan (Dikirim dari React Background)
     public function updateLocation(Request $request, $id)
     {
@@ -1041,7 +1193,7 @@ class ReportActionController extends Controller
             ->whereIn('status', ['en_route', 'arrived'])
             ->exists();
 
-        if (! $isActive || in_array($report->status, ['resolved', 'ditolak', Report::STATUS_DIGABUNG], true)) {
+        if (! $isActive || in_array($report->status, ['resolved', 'ditolak', Report::STATUS_DIGABUNG, Report::STATUS_DIBATALKAN], true)) {
             return response()->json(['status' => 'stopped']);
         }
 
