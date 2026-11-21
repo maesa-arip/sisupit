@@ -5593,5 +5593,10 @@ pertanyaan privasi: **(b) saklar izin pemilik DIHAPUS** - semua ulasan tampil ta
 logika `$keepApproval` di `AppReviewController::store`, dan `scopePublished` menjadi
 `allow_public + approved_at NOT NULL + hidden_at NULL` (lihat diff commit #249).
 
+**Lanjutan (permintaan user 2026-11-21, "review yang ditampilkan hanya 3?" -> opsi carousel):** Spotlight
+mengambil 10 testimoni (dulu 3) dan menampilkannya sebagai CAROUSEL geser (`<Testimonials carousel>`, Embla
+`ui/carousel`, kartu 85% / sm 50% supaya kartu berikutnya mengintip, titik penanda posisi). Landing tetap grid
+maks 6. Urutan di `testimonials()`: yang BERKOMENTAR dulu (`orderByRaw CASE comment kosong`), lalu terbaru.
+
 **Penjaga:** `AppReviewTest` (tampil otomatis termasuk bintang saja, sembunyi bertahan saat disunting, demo,
-hapus akun, dialog tanpa saklar). Belum diuji di HP.
+hapus akun, dialog tanpa saklar, komentar didahulukan + Spotlight carousel 10). Belum diuji di HP.
