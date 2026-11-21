@@ -193,7 +193,8 @@ class AppReview extends Model
     /**
      * Testimoni untuk halaman depan. Tenantable dilepas karena halaman ini publik (tamu & akun mana
      * pun melihat hal yang sama); yang keluar hanya scopePublished (bukan demo, tidak disembunyikan
-     * admin) dan nama publik singkat. Ulasan bintang saja ikut (comment null). Kota mengikuti
+     * admin) dan nama publik singkat. Ulasan bintang saja ikut (comment null) SESUDAH semua yang
+     * berkomentar. Kota mengikuti
      * subdomain tenant (null = apex = semua kota, pola HomeController::pageStats).
      */
     public static function testimonials(?string $cityCode, int $limit = 6): array
@@ -202,6 +203,8 @@ class AppReview extends Model
             ->published()
             ->when($cityCode, fn ($q) => $q->where('city_code', $cityCode))
             ->with('user:id,name')
+            // Yang berkomentar didahulukan (keputusan user 2026-11-21), lalu yang terbaru.
+            ->orderByRaw("CASE WHEN comment IS NULL OR comment = '' THEN 1 ELSE 0 END")
             ->latest('updated_at')
             ->latest('id')
             ->limit($limit)

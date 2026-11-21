@@ -279,6 +279,17 @@ it('strips the comment and testimonial when the account is deleted', function ()
         ->and(AppReview::testimonials(null))->toBe([]);
 });
 
+it('puts commented reviews before star-only ones and shows Spotlight as a carousel of ten', function () {
+    kirimUlasan($this, ulasanUser('warga', '5171', ['name' => 'Ada Komentar']), ['comment' => 'Mantap.']);
+    $this->travel(1)->minutes();
+    kirimUlasan($this, ulasanUser('warga', '5171', ['name' => 'Bintang Saja']), ['comment' => '']);
+
+    // Bintang saja lebih baru, tapi yang berkomentar tetap di depan.
+    expect(collect(AppReview::testimonials(null))->pluck('comment')->all())->toBe(['Mantap.', null])
+        ->and(file_get_contents(resource_path('js/Pages/Spotlight.jsx')))->toContain('<Testimonials items={props.testimonials} carousel')
+        ->and(file_get_contents(app_path('Http/Controllers/HomeController.php')))->toContain('AppReview::testimonials($this->tenantCityCode(), 10)');
+});
+
 it('drops the consent switch and tells the reviewer the review is public', function () {
     $dialog = file_get_contents(resource_path('js/Components/AppReview/AppReviewDialog.jsx'));
 

@@ -103,7 +103,7 @@ export default function Spotlight(props) {
 			</div>
 
 			{/* Testimoni (TASK_86): SESUDAH semua aksi darurat, jadi tak pernah menggeser tombol Lapor. */}
-			<Testimonials items={props.testimonials} className="mx-auto max-w-xl pt-4" />
+			<Testimonials items={props.testimonials} carousel className="mx-auto max-w-xl pt-4" />
 		</div>
 	);
 }

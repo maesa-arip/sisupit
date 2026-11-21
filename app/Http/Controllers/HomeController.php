@@ -70,7 +70,8 @@ class HomeController extends Controller
                 'title' => 'Sisupit',
                 'subtitle' => 'SISTEM UNTUK PELAPORAN DINI TERINTEGRASI',
             ],
-            'testimonials' => AppReview::testimonials($this->tenantCityCode(), 3),
+            // Carousel geser (#249), jadi 10 kartu tak memanjangkan halaman darurat.
+            'testimonials' => AppReview::testimonials($this->tenantCityCode(), 10),
             'page_data' => [
                 'reportChart' => $this->chart(),
                 ...$this->pageStats(),
