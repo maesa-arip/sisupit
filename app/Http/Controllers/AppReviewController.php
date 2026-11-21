@@ -22,7 +22,6 @@ class AppReviewController extends Controller
             'tags' => ['nullable', 'array', 'max:'.count(AppReview::TAGS)],
             'tags.*' => ['string', 'distinct', Rule::in(array_keys(AppReview::TAGS))],
             'comment' => ['nullable', 'string', 'max:'.AppReview::COMMENT_MAX],
-            'allow_public' => ['boolean'],
         ], [
             'rating.required' => 'Pilih jumlah bintang terlebih dahulu.',
             'rating.between' => 'Pilih jumlah bintang terlebih dahulu.',
@@ -31,28 +30,20 @@ class AppReviewController extends Controller
 
         $user = $request->user();
         $comment = trim((string) ($data['comment'] ?? '')) ?: null;
-        $allowPublic = (bool) ($data['allow_public'] ?? false);
         $existing = AppReview::ownedBy($user);
 
-        // Persetujuan admin melekat pada TEKS yang ia baca. Komentar berubah atau izin dicabut =
-        // testimoni turun dan (bila masih diizinkan) kembali menunggu tinjauan.
-        $keepApproval = $existing
-            && $existing->approved_at
-            && $allowPublic
-            && $existing->comment === $comment;
+        // Testimoni otomatis (2026-11-21): tak ada izin/persetujuan yang ditulis di sini. hidden_at
+        // (disembunyikan admin) sengaja TIDAK disentuh - menyunting tak memunculkannya lagi.
 
         $values = [
             'rating' => $data['rating'],
             'tags' => array_values($data['tags'] ?? []) ?: null,
             'comment' => $comment,
-            'allow_public' => $allowPublic,
             'platform' => AppReview::platformFrom($request),
             'role' => AppReview::roleOf($user),
             'province_code' => $user->province_code,
             'city_code' => $user->city_code,
             'is_demo' => (bool) $user->is_demo,
-            'approved_at' => $keepApproval ? $existing->approved_at : null,
-            'approved_by' => $keepApproval ? $existing->approved_by : null,
         ];
 
         if ($existing) {

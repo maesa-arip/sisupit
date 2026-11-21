@@ -3,8 +3,9 @@ import { cn, roleLabel } from '@/lib/utils';
 import { IconQuote } from '@tabler/icons-react';
 
 /**
- * Testimoni pengguna di halaman depan (TASK_86). Isinya dari AppReview::testimonials(): hanya
- * ulasan yang pemiliknya izinkan DAN admin setujui, nama publik = nama sapaan + inisial. Tidak
+ * Testimoni pengguna di halaman depan (TASK_86). Isinya dari AppReview::testimonials(): semua
+ * ulasan yang tidak disembunyikan admin, termasuk yang hanya bintang (comment null = tanpa
+ * kutipan), nama publik = nama sapaan + inisial. Tidak
  * dirender sama sekali bila belum ada - seksi kosong di halaman darurat hanya memakan layar.
  */
 export default function Testimonials({ items, title = 'Kata Mereka tentang Sisupit', className, gridClassName }) {
@@ -23,9 +24,11 @@ export default function Testimonials({ items, title = 'Kata Mereka tentang Sisup
 							<StarRating value={item.rating} size="sm" />
 							<IconQuote className="h-5 w-5 text-muted-foreground/30" stroke={1.5} />
 						</div>
-						<blockquote className="whitespace-pre-line break-words text-[15px] leading-relaxed text-foreground">
-							{item.comment}
-						</blockquote>
+						{item.comment && (
+							<blockquote className="whitespace-pre-line break-words text-[15px] leading-relaxed text-foreground">
+								{item.comment}
+							</blockquote>
+						)}
 						<figcaption className="mt-auto text-[13px] text-muted-foreground">
 							<span className="font-semibold text-foreground">{item.name}</span>
 							{item.role ? ` - ${roleLabel(item.role)}` : ''}

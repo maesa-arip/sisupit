@@ -19,8 +19,10 @@ use Illuminate\Support\Facades\DB;
  *  - Ajakan otomatis di dashboard & detail laporan Selesai = shouldAsk(): bukan akun demo, belum
  *    mengulas, tidak sedang meluncur/di TKP, tidak baru ditunda, dan HANYA sesudah kejadian yang ia
  *    laporkan atau ikut tangani dinyatakan Selesai (#239; dulu cukup akun >= 7 hari).
- *  - Testimoni publik = persetujuan pengguna (allow_public) DAN admin (approved_at). Komentar
- *    yang diubah sesudah disetujui kembali menunggu - yang disetujui admin adalah teks itu.
+ *  - Testimoni publik OTOMATIS (keputusan user 2026-11-21): setiap ulasan bukan akun demo tampil,
+ *    termasuk yang hanya bintang, tanpa izin pemilik (saklar dihapus) dan tanpa persetujuan admin.
+ *    Admin bisa MENYEMBUNYIKAN (hidden_at) dan itu bertahan walau pemilik menyunting. Kolom lama
+ *    allow_public/approved_at tak lagi menentukan tampil (cara kembali: FINDINGS_LOG #249).
  */
 class AppReview extends Model
 {
@@ -70,6 +72,7 @@ class AppReview extends Model
         'tags' => 'array',
         'allow_public' => 'boolean',
         'approved_at' => 'datetime',
+        'hidden_at' => 'datetime',
         'is_demo' => 'boolean',
     ];
 
@@ -81,6 +84,17 @@ class AppReview extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function hider(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'hidden_by');
+    }
+
+    /** Ulasan yang tampil sebagai testimoni - SATU rumus untuk halaman depan & tab admin. */
+    public function scopePublished($query)
+    {
+        return $query->where('is_demo', false)->whereNull('hidden_at');
     }
 
     /**
@@ -169,8 +183,7 @@ class AppReview extends Model
                 'rating' => $mine->rating,
                 'tags' => $mine->tags ?? [],
                 'comment' => $mine->comment ?? '',
-                'allow_public' => $mine->allow_public,
-                'approved' => $mine->approved_at !== null,
+                'published' => ! $mine->is_demo && $mine->hidden_at === null,
                 'updated_at' => $mine->updated_at,
             ] : null,
             'tags' => collect(self::TAGS)->map(fn ($label, $key) => ['value' => $key, 'label' => $label])->values()->all(),
@@ -179,21 +192,18 @@ class AppReview extends Model
 
     /**
      * Testimoni untuk halaman depan. Tenantable dilepas karena halaman ini publik (tamu & akun mana
-     * pun melihat hal yang sama); pengganti proteksinya adalah DUA persetujuan di bawah - hanya
-     * ulasan yang pemiliknya izinkan DAN admin setujui yang pernah keluar dari sini. Kota mengikuti
+     * pun melihat hal yang sama); yang keluar hanya scopePublished (bukan demo, tidak disembunyikan
+     * admin) dan nama publik singkat. Ulasan bintang saja ikut (comment null). Kota mengikuti
      * subdomain tenant (null = apex = semua kota, pola HomeController::pageStats).
      */
     public static function testimonials(?string $cityCode, int $limit = 6): array
     {
         return self::withoutGlobalScopes()
-            ->where('allow_public', true)
-            ->whereNotNull('approved_at')
-            ->where('is_demo', false)
-            ->whereNotNull('comment')
-            ->where('comment', '!=', '')
+            ->published()
             ->when($cityCode, fn ($q) => $q->where('city_code', $cityCode))
             ->with('user:id,name')
-            ->latest('approved_at')
+            ->latest('updated_at')
+            ->latest('id')
             ->limit($limit)
             ->get()
             ->map(fn (self $review) => [

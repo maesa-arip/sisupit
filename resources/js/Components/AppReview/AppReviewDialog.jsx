@@ -10,7 +10,6 @@ import {
 	DialogTitle,
 } from '@/Components/ui/dialog';
 import { Label } from '@/Components/ui/label';
-import { Switch } from '@/Components/ui/switch';
 import { Textarea } from '@/Components/ui/textarea';
 import { cn, flashMessage } from '@/lib/utils';
 import { useForm } from '@inertiajs/react';
@@ -33,7 +32,6 @@ export default function AppReviewDialog({ open, onOpenChange, review, initialRat
 		rating: mine?.rating ?? initialRating,
 		tags: mine?.tags ?? [],
 		comment: mine?.comment ?? '',
-		allow_public: mine?.allow_public ?? false,
 	});
 
 	// Bintang dari kartu ajakan bisa berubah di antara dua pembukaan dialog.
@@ -130,20 +128,11 @@ export default function AppReviewDialog({ open, onOpenChange, review, initialRat
 						</div>
 					</div>
 
-					<div className="flex items-start justify-between gap-4">
-						<div className="grid gap-1">
-							<Label htmlFor="app-review-public">Boleh ditampilkan sebagai testimoni</Label>
-							<p className="text-xs leading-snug text-muted-foreground">
-								Komentar Anda bisa tampil di halaman depan bersama nama depan dan peran Anda, setelah
-								ditinjau admin.
-							</p>
-						</div>
-						<Switch
-							id="app-review-public"
-							checked={!!form.data.allow_public}
-							onCheckedChange={(checked) => form.setData('allow_public', checked)}
-						/>
-					</div>
+					{/* Testimoni otomatis (2026-11-21): saklar izin dihapus, jadi pengguna WAJIB diberi tahu. */}
+					<p className="text-xs leading-snug text-muted-foreground">
+						Bintang dan komentar Anda akan tampil di halaman depan Sisupit bersama nama depan dan peran
+						Anda.
+					</p>
 
 					<DialogFooter className="gap-2 sm:gap-0">
 						<Button

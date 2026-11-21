@@ -10,8 +10,8 @@ use Maatwebsite\Excel\Facades\Excel;
 
 /**
  * Ulasan aplikasi (TASK_86, keputusan user 2026-11-01): ulasan masuk ke database Sisupit (bukan
- * Play Store/App Store), muncul di semua platform, semua peran boleh, tamu tidak, dan ulasan yang
- * diizinkan pemilik + disetujui admin tampil sebagai testimoni di halaman depan.
+ * Play Store/App Store), muncul di semua platform, semua peran boleh, tamu tidak, dan (sejak
+ * 2026-11-21) setiap ulasan tampil otomatis sebagai testimoni kecuali disembunyikan admin.
  */
 function ulasanUser(string $role, string $city = '5171', array $overrides = []): User
 {
@@ -55,7 +55,7 @@ function kirimUlasan($test, User $user, array $data = [], string $agent = 'Mozil
 it('stores one review per user with platform and role snapshots', function () {
     $warga = ulasanUser('warga');
 
-    kirimUlasan($this, $warga, ['tags' => ['mudah_dipakai'], 'allow_public' => true])
+    kirimUlasan($this, $warga, ['tags' => ['mudah_dipakai']])
         ->assertSessionHasNoErrors()->assertRedirect();
 
     $review = AppReview::ownedBy($warga);
@@ -64,7 +64,7 @@ it('stores one review per user with platform and role snapshots', function () {
         ->and($review->platform)->toBe('web')
         ->and($review->role)->toBe('warga')
         ->and($review->city_code)->toBe('5171')
-        ->and($review->allow_public)->toBeTrue();
+        ->and($review->hidden_at)->toBeNull();
 
     // Mengulas lagi = menimpa baris yang sama, bukan baris kedua.
     kirimUlasan($this, $warga, ['rating' => 3], 'Mozilla/5.0 (Linux; Android 14) SisupitApp');
@@ -212,66 +212,80 @@ it('limits the review page to superadmin and blocks admin and other roles', func
     $this->actingAs(ulasanUser('petugas'))->get(route('admin.app-reviews.index'))->assertForbidden();
 });
 
-it('publishes a testimonial only with consent and admin approval', function () {
+// 2026-11-21 (keputusan user): ulasan tampil OTOMATIS - tanpa izin pemilik (saklar dihapus) dan
+// tanpa persetujuan admin, termasuk yang hanya bintang. Admin tetap bisa menyembunyikan.
+it('publishes every review automatically, star-only included, until an admin hides it', function () {
     $warga = ulasanUser('warga', '5171', ['name' => 'I Wayan Sudarta']);
+    $bintang = ulasanUser('relawan', '5171', ['name' => 'Ni Made Ayu']);
     $admin = ulasanSuperadmin();
 
-    kirimUlasan($this, $warga, ['comment' => 'Petugas cepat datang.', 'allow_public' => false]);
+    kirimUlasan($this, $warga, ['comment' => 'Petugas cepat datang.']);
+    kirimUlasan($this, $bintang, ['rating' => 4, 'comment' => '']);
     $review = AppReview::ownedBy($warga);
-
-    // Tanpa izin pemilik, admin tak bisa menayangkannya.
-    $this->actingAs($admin)->post(route('admin.app-reviews.publish', $review))->assertStatus(422);
-
-    kirimUlasan($this, $warga, ['comment' => 'Petugas cepat datang.', 'allow_public' => true]);
-    $this->actingAs($admin)->post(route('admin.app-reviews.publish', $review))->assertRedirect();
-    expect($review->fresh()->approved_at)->not->toBeNull();
 
     auth()->logout();
     $this->get(route('home.landing.page'))
-        ->assertInertia(fn (Assert $page) => $page->has('testimonials', 1)
-            ->where('testimonials.0.name', 'Wayan S.')
-            ->where('testimonials.0.comment', 'Petugas cepat datang.')
-            ->where('testimonials.0.role', 'warga'));
+        ->assertInertia(fn (Assert $page) => $page->has('testimonials', 2)
+            ->where('testimonials', fn ($items) => collect($items)->contains(fn ($i) => $i['name'] === 'Wayan S.'
+                && $i['comment'] === 'Petugas cepat datang.' && $i['role'] === 'warga')
+                && collect($items)->contains(fn ($i) => $i['name'] === 'Made A.' && $i['comment'] === null && $i['rating'] === 4)));
     $this->get(route('home.spotlight'))
-        ->assertInertia(fn (Assert $page) => $page->has('testimonials', 1));
+        ->assertInertia(fn (Assert $page) => $page->has('testimonials', 2));
 
-    // Komentar diubah sesudah disetujui = kembali menunggu tinjauan.
-    kirimUlasan($this, $warga, ['comment' => 'Teks lain.', 'allow_public' => true]);
-    expect($review->fresh()->approved_at)->toBeNull();
-    $this->actingAs($admin)->post(route('admin.app-reviews.publish', $review));
+    // Admin menyembunyikan -> turun dari halaman depan, masuk tab Disembunyikan.
+    $this->actingAs($admin)->post(route('admin.app-reviews.publish', $review))->assertRedirect();
+    expect($review->fresh()->hidden_at)->not->toBeNull()
+        ->and($review->fresh()->hidden_by)->toBe($admin->id)
+        ->and(collect(AppReview::testimonials(null))->pluck('name')->all())->toBe(['Made A.']);
+    $this->actingAs($admin)->get(route('admin.app-reviews.index', ['tab' => 'disembunyikan']))
+        ->assertInertia(fn (Assert $page) => $page->has('reviews.data', 1)
+            ->where('counts.disembunyikan', 1)->where('counts.testimoni', 1));
 
-    // Rating saja yang berubah = tetap tayang.
-    kirimUlasan($this, $warga, ['rating' => 4, 'comment' => 'Teks lain.', 'allow_public' => true]);
-    expect($review->fresh()->approved_at)->not->toBeNull();
+    // Pemilik menyunting = TETAP tersembunyi (spam tak muncul lagi lewat suntingan).
+    kirimUlasan($this, $warga, ['comment' => 'Teks lain.']);
+    expect($review->fresh()->hidden_at)->not->toBeNull();
 
-    // Izin dicabut = turun.
-    kirimUlasan($this, $warga, ['comment' => 'Teks lain.', 'allow_public' => false]);
-    expect($review->fresh()->approved_at)->toBeNull();
+    // Admin menampilkan lagi.
+    $this->actingAs($admin)->post(route('admin.app-reviews.publish', $review))->assertRedirect();
+    expect($review->fresh()->hidden_at)->toBeNull()
+        ->and(AppReview::testimonials(null))->toHaveCount(2);
 });
 
 it('never publishes a demo account review', function () {
     $demo = ulasanUser('warga', '5171', ['is_demo' => true]);
     $admin = ulasanSuperadmin();
-    kirimUlasan($this, $demo, ['allow_public' => true]);
+    kirimUlasan($this, $demo);
+    $review = AppReview::ownedBy($demo);
 
-    $this->actingAs($admin)->post(route('admin.app-reviews.publish', AppReview::ownedBy($demo)))->assertStatus(422);
+    expect(AppReview::testimonials(null))->toBe([]);
+    // Disembunyikan lalu "tampilkan lagi" pun ditolak untuk akun demo.
+    $this->actingAs($admin)->post(route('admin.app-reviews.publish', $review))->assertRedirect();
+    $this->actingAs($admin)->post(route('admin.app-reviews.publish', $review))->assertStatus(422);
     $this->actingAs($admin)->get(route('admin.app-reviews.index'))
         ->assertInertia(fn (Assert $page) => $page->where('summary.total', 0)->has('reviews.data', 1));
 });
 
 it('strips the comment and testimonial when the account is deleted', function () {
     $warga = ulasanUser('warga');
-    kirimUlasan($this, $warga, ['comment' => 'Saya Wayan dari Banjar Uji.', 'allow_public' => true]);
-    AppReview::ownedBy($warga)->update(['approved_at' => now()]);
+    kirimUlasan($this, $warga, ['comment' => 'Saya Wayan dari Banjar Uji.']);
+    expect(AppReview::testimonials(null))->toHaveCount(1);
 
     $this->actingAs($warga)->delete('/profile', ['password' => 'password'])->assertSessionHasNoErrors();
 
     $review = AppReview::withoutGlobalScopes()->where('user_id', $warga->id)->first();
     expect($review->rating)->toBe(5)
         ->and($review->comment)->toBeNull()
-        ->and($review->allow_public)->toBeFalse()
-        ->and($review->approved_at)->toBeNull()
+        ->and($review->hidden_at)->not->toBeNull()
         ->and(AppReview::testimonials(null))->toBe([]);
+});
+
+it('drops the consent switch and tells the reviewer the review is public', function () {
+    $dialog = file_get_contents(resource_path('js/Components/AppReview/AppReviewDialog.jsx'));
+
+    expect($dialog)->not->toContain('allow_public')
+        ->and($dialog)->not->toContain('<Switch')
+        ->and($dialog)->toContain('akan tampil di halaman depan')
+        ->and(file_get_contents(resource_path('js/Components/AppReview/Testimonials.jsx')))->toContain('{item.comment && (');
 });
 
 it('exports the filtered reviews of the admin region', function () {

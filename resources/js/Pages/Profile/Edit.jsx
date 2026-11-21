@@ -328,9 +328,9 @@ export default function Edit(props) {
 					<Group
 						title="Ulasan Aplikasi"
 						footer={
-							myReview?.approved
-								? 'Ulasan Anda sedang tampil sebagai testimoni di halaman depan.'
-								: 'Ulasan dibaca tim Sisupit. Testimoni hanya tampil bila Anda izinkan dan admin menyetujuinya.'
+							myReview && !myReview.published
+								? 'Ulasan dibaca tim Sisupit. Ulasan Anda sedang tidak tampil di halaman depan.'
+								: 'Ulasan dibaca tim Sisupit dan tampil di halaman depan bersama nama depan dan peran Anda.'
 						}
 					>
 						<button

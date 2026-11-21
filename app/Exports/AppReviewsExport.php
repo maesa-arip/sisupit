@@ -44,7 +44,7 @@ class AppReviewsExport implements FromQuery, ShouldAutoSize, WithHeadings, WithM
             $review->rating,
             collect($review->tags ?? [])->map(fn ($tag) => AppReview::TAGS[$tag] ?? $tag)->implode(', '),
             $review->comment,
-            $review->approved_at ? 'Tampil' : ($review->allow_public ? 'Diizinkan, belum ditinjau' : 'Tidak diizinkan'),
+            $review->is_demo ? 'Tidak (akun demo)' : ($review->hidden_at ? 'Disembunyikan admin' : 'Tampil'),
             $review->is_demo ? 'Ya' : '',
         ];
     }

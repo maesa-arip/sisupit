@@ -342,12 +342,13 @@ class ProfileController extends Controller
             }
             $user->notifications()->delete();
             // Ulasan aplikasi (TASK_86): bintangnya tetap dihitung, tapi komentar (bisa memuat
-            // identitas) dibuang dan testimoni diturunkan - nama "Akun Dihapus" tak boleh tampil.
+            // identitas) dibuang dan testimoni disembunyikan - nama "Akun Dihapus" tak boleh tampil.
             AppReview::withoutGlobalScopes()->where('user_id', $user->id)->update([
                 'comment' => null,
                 'allow_public' => false,
                 'approved_at' => null,
                 'approved_by' => null,
+                'hidden_at' => now(),
                 'province_code' => null,
                 'city_code' => null,
             ]);

@@ -25,7 +25,7 @@ class AppReviewController extends Controller
 {
     public const RANGE_OPTIONS = ['30', '90', '365', 'semua'];
 
-    public const TABS = ['semua', 'menunggu', 'testimoni'];
+    public const TABS = ['semua', 'testimoni', 'disembunyikan'];
 
     public function index(Request $request): Response
     {
@@ -37,7 +37,7 @@ class AppReviewController extends Controller
         $total = (int) $distribution->sum();
 
         $reviews = $this->applyTab($this->filtered($filters), $tab)
-            ->with(['user:id,name', 'approver:id,name'])
+            ->with(['user:id,name', 'hider:id,name'])
             ->latest('updated_at')
             ->paginate(20)
             ->withQueryString()
@@ -50,12 +50,10 @@ class AppReviewController extends Controller
                 'public_name' => AppReview::publicName($review->user?->name),
                 'role' => $review->role,
                 'platform' => $review->platform,
-                'allow_public' => $review->allow_public,
-                'approved_at' => $review->approved_at,
-                'approver' => $review->approver?->name,
+                'hidden_at' => $review->hidden_at,
+                'hider' => $review->hider?->name,
                 'is_demo' => $review->is_demo,
                 'updated_at' => $review->updated_at,
-                'can_publish' => $this->canPublish($review),
             ]);
 
         return inertia('Admin/AppReviews/Index', [
@@ -78,8 +76,8 @@ class AppReviewController extends Controller
                     ])->all(),
             ],
             'counts' => [
-                'menunggu' => $this->applyTab($this->filtered($filters), 'menunggu')->count(),
                 'testimoni' => $this->applyTab($this->filtered($filters), 'testimoni')->count(),
+                'disembunyikan' => $this->applyTab($this->filtered($filters), 'disembunyikan')->count(),
             ],
             'options' => [
                 'platforms' => collect(AppReview::PLATFORMS)->map(fn ($label, $key) => ['value' => $key, 'label' => $label])->values(),
@@ -89,20 +87,23 @@ class AppReviewController extends Controller
         ]);
     }
 
-    /** Tampilkan / turunkan sebuah ulasan sebagai testimoni di halaman depan. */
+    /**
+     * Sembunyikan / tampilkan lagi sebuah ulasan di halaman depan. Ulasan tampil otomatis
+     * (2026-11-21), jadi satu-satunya keputusan admin adalah menyembunyikannya.
+     */
     public function togglePublish(Request $request, AppReview $appReview): RedirectResponse
     {
-        if ($appReview->approved_at) {
-            $appReview->update(['approved_at' => null, 'approved_by' => null]);
-            flashMessage('Testimoni diturunkan dari halaman depan.');
+        if ($appReview->hidden_at) {
+            abort_if($appReview->is_demo, 422, 'Ulasan akun demo tidak tampil sebagai testimoni.');
+
+            $appReview->update(['hidden_at' => null, 'hidden_by' => null]);
+            flashMessage('Ulasan kembali tampil sebagai testimoni.');
 
             return back();
         }
 
-        abort_unless($this->canPublish($appReview), 422, 'Ulasan ini tidak bisa dijadikan testimoni.');
-
-        $appReview->update(['approved_at' => now(), 'approved_by' => $request->user()->id]);
-        flashMessage('Ulasan kini tampil sebagai testimoni.');
+        $appReview->update(['hidden_at' => now(), 'hidden_by' => $request->user()->id]);
+        flashMessage('Ulasan disembunyikan dari halaman depan.');
 
         return back();
     }
@@ -115,12 +116,6 @@ class AppReviewController extends Controller
             new AppReviewsExport($this->filtered($filters)->with('user:id,name')->latest('updated_at')),
             'ulasan-aplikasi-'.now(config('app.local_timezone'))->format('Ymd-Hi').'.xlsx'
         );
-    }
-
-    /** Testimoni butuh izin pemilik + komentar + bukan akun demo. */
-    private function canPublish(AppReview $review): bool
-    {
-        return $review->allow_public && filled($review->comment) && ! $review->is_demo;
     }
 
     /** Nilai filter dari query string; nilai asing dibuang (pola Report::normalizeListFilters). */
@@ -151,9 +146,8 @@ class AppReviewController extends Controller
     private function applyTab(Builder $query, string $tab): Builder
     {
         return match ($tab) {
-            'menunggu' => $query->where('allow_public', true)->whereNull('approved_at')->where('is_demo', false)
-                ->whereNotNull('comment')->where('comment', '!=', ''),
-            'testimoni' => $query->whereNotNull('approved_at'),
+            'testimoni' => $query->published(),
+            'disembunyikan' => $query->whereNotNull('hidden_at'),
             default => $query,
         };
     }

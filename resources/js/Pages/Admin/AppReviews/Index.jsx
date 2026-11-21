@@ -14,8 +14,8 @@ const RANGE_LABELS = { 30: '30 hari', 90: '90 hari', 365: '1 tahun', semua: 'Sem
 
 /**
  * Ulasan aplikasi (TASK_86). Isi disaring server per kabupaten admin (Tenantable AppReview);
- * ringkasan tak menghitung akun demo. Tab "Menunggu" = ulasan yang pemiliknya izinkan jadi
- * testimoni tapi belum ditinjau - yang disetujui tampil di Spotlight & Landing.
+ * ringkasan tak menghitung akun demo. Ulasan tampil OTOMATIS di Spotlight & Landing (2026-11-21,
+ * termasuk bintang saja); admin hanya bisa menyembunyikan - tab "Disembunyikan".
  */
 export default function Index({ reviews, filters, summary, counts, options }) {
 	const visit = (changes) =>
@@ -41,8 +41,8 @@ export default function Index({ reviews, filters, summary, counts, options }) {
 	const { tab, ...exportFilters } = filters;
 	const tabs = [
 		{ key: 'semua', label: 'Semua' },
-		{ key: 'menunggu', label: 'Menunggu Tinjauan', count: counts.menunggu },
 		{ key: 'testimoni', label: 'Testimoni Tampil', count: counts.testimoni },
+		{ key: 'disembunyikan', label: 'Disembunyikan', count: counts.disembunyikan },
 	];
 	const maxBar = Math.max(1, ...summary.distribution.map((row) => row.total));
 	const platformLabel = (value) => options.platforms.find((p) => p.value === value)?.label ?? value;
@@ -200,8 +200,8 @@ export default function Index({ reviews, filters, summary, counts, options }) {
 					<AppEmpty
 						icon={IconMessageStar}
 						title={
-							tab === 'menunggu'
-								? 'Tidak ada ulasan yang menunggu tinjauan testimoni.'
+							tab === 'disembunyikan'
+								? 'Tidak ada ulasan yang disembunyikan.'
 								: tab === 'testimoni'
 									? 'Belum ada testimoni yang tampil.'
 									: 'Belum ada ulasan untuk saringan ini.'
@@ -224,14 +224,14 @@ export default function Index({ reviews, filters, summary, counts, options }) {
 										Demo
 									</span>
 								)}
-								{review.approved_at ? (
-									<span className="rounded-full border border-success/20 bg-success/10 px-2 py-0.5 text-[11px] font-semibold text-success">
-										Testimoni tampil
+								{review.hidden_at ? (
+									<span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+										Disembunyikan
 									</span>
 								) : (
-									review.can_publish && (
-										<span className="rounded-full border border-warning/20 bg-warning/10 px-2 py-0.5 text-[11px] font-semibold text-warning">
-											Boleh jadi testimoni
+									!review.is_demo && (
+										<span className="rounded-full border border-success/20 bg-success/10 px-2 py-0.5 text-[11px] font-semibold text-success">
+											Testimoni tampil
 										</span>
 									)
 								)}
@@ -253,25 +253,27 @@ export default function Index({ reviews, filters, summary, counts, options }) {
 									{review.comment}
 								</p>
 							)}
-							{review.approved_at && review.approver && (
+							{!review.is_demo && (
 								<p className="text-[12px] text-muted-foreground">
-									Tampil sebagai "{review.public_name}" - disetujui {review.approver}
+									{review.hidden_at
+										? `Disembunyikan${review.hider ? ` oleh ${review.hider}` : ''} - tidak tampil di halaman depan`
+										: `Tampil sebagai "${review.public_name}"`}
 								</p>
 							)}
-							{(review.approved_at || review.can_publish) && (
+							{!review.is_demo && (
 								<div className="pt-1">
 									<Button
-										variant={review.approved_at ? 'ghost' : 'green'}
+										variant={review.hidden_at ? 'green' : 'ghost'}
 										className="h-9 rounded-xl"
 										onClick={() => togglePublish(review)}
 									>
-										{review.approved_at ? (
+										{review.hidden_at ? (
 											<>
-												<IconEyeOff /> Turunkan testimoni
+												<IconEye /> Tampilkan lagi
 											</>
 										) : (
 											<>
-												<IconEye /> Tampilkan sebagai testimoni
+												<IconEyeOff /> Sembunyikan
 											</>
 										)}
 									</Button>
