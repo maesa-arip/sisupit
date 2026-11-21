@@ -5563,3 +5563,35 @@ dan keduanya gampang "diperbaiki" kembali oleh sesi berikutnya yang mengira itu 
   `canCancelDirectly`, alasan wajib, termasuk laporan mentah; Setujui & langsung berbagi `cancelReport()`). TASK_91 §7.
   TERDEPLOY PROD & STAGING @8cdad78a 2026-11-19, HTTPS terverifikasi.
 - **Sisa (tidak dikerjakan):** pengajuan menunggu di dashboard admin; Laporan Kejadian untuk laporan dibatalkan.
+
+### #249 — Ulasan aplikasi menunggu persetujuan admin & ulasan bintang saja tak pernah tampil (FIXED, lokal 2026-11-21, ADA MIGRASI hidden_at/hidden_by)
+
+**Permintaan user (2026-11-21):** "untuk sekarang semua review auto acc admin dan auto tampil tapi admin tetap
+bisa disable reviewnya, dan untuk review tampilkan juga yang tanpa teks hanya bintang saja". Pilihan user atas
+pertanyaan privasi: **(b) saklar izin pemilik DIHAPUS** - semua ulasan tampil tanpa izin pemilik.
+
+**Dulu:** `AppReview::testimonials()` mensyaratkan `allow_public` (saklar pemilik, bawaan mati) + `approved_at`
+(superadmin) + komentar tak kosong. Ulasan bintang saja tak pernah tampil.
+
+**Kini:**
+- `AppReview::scopePublished` = `is_demo = false` + `hidden_at IS NULL` - satu rumus untuk halaman depan dan
+  tab admin "Testimoni Tampil". Komentar opsional; kartu `Testimonials.jsx` tanpa kutipan bila komentar null.
+  Urutan terbaru `updated_at`.
+- Migrasi `2026_11_21_100000_add_hidden_to_app_reviews` menambah `hidden_at`, `hidden_by` (nullOnDelete) dan
+  menyembunyikan ulasan akun yang sudah dianonimkan (`username` `dihapus-%`). Ulasan lama lain langsung tampil.
+- Tombol admin (`admin.app-reviews.publish`, superadmin) = toggle Sembunyikan / Tampilkan lagi; tab "Menunggu
+  Tinjauan" diganti "Disembunyikan". Akun demo tak bisa ditampilkan (422).
+- `AppReviewController::store` tak lagi menulis `allow_public`/`approved_*` dan tak menyentuh `hidden_at`:
+  menyunting ulasan yang disembunyikan tetap tersembunyi.
+- Dialog ulasan: saklar "Boleh ditampilkan" dihapus, diganti keterangan "Bintang dan komentar Anda akan tampil
+  di halaman depan Sisupit bersama nama depan dan peran Anda." Profil: `formProps.mine.published`.
+- Hapus akun: `hidden_at = now()` (dulu cukup `allow_public = false`). Excel kolom Testimoni: Tampil /
+  Disembunyikan admin / Tidak (akun demo).
+- Kolom `allow_public`/`approved_at`/`approved_by` dibiarkan (data lama), tak lagi dibaca untuk tampil.
+
+**Cara kembali ke persetujuan admin + izin pemilik:** pulihkan saklar di `AppReviewDialog.jsx`, validasi &
+logika `$keepApproval` di `AppReviewController::store`, dan `scopePublished` menjadi
+`allow_public + approved_at NOT NULL + hidden_at NULL` (lihat diff commit #249).
+
+**Penjaga:** `AppReviewTest` (tampil otomatis termasuk bintang saja, sembunyi bertahan saat disunting, demo,
+hapus akun, dialog tanpa saklar). Belum diuji di HP.
